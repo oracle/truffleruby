@@ -11,9 +11,9 @@
 /vendor/bundle
 
 /build/
-/lib/yarp/yarp.*
-/lib/yarp.bundle
-/lib/yarp.so
+/lib/prism/prism.*
+/lib/prism.bundle
+/lib/prism.so
 /test.rb
 *.dSYM
 /*.iml
@@ -22,15 +22,19 @@
 test.c
 a.out
 
-/ext/yarp/api_node.c
+/ext/prism/api_node.c
 /fuzz/output/
-/include/yarp/ast.h
-/java/org/yarp/AbstractNodeVisitor.java
-/java/org/yarp/Loader.java
-/java/org/yarp/Nodes.java
-/lib/yarp/mutation_visitor.rb
-/lib/yarp/node.rb
-/lib/yarp/serialize.rb
+/include/prism/ast.h
+/java/org/prism/AbstractNodeVisitor.java
+/java/org/prism/Loader.java
+/java/org/prism/Nodes.java
+/lib/prism/compiler.rb
+/lib/prism/dispatcher.rb
+/lib/prism/dsl.rb
+/lib/prism/mutation_compiler.rb
+/lib/prism/node.rb
+/lib/prism/serialize.rb
+/lib/prism/visitor.rb
 /src/node.c
 /src/prettyprint.c
 /src/serialize.c

@@ -5,1187 +5,1721 @@
 /* if you are looking to modify the                                           */
 /* template                                                                   */
 /******************************************************************************/
-#include "yarp.h"
+#include "prism.h"
 
 #include <stdio.h>
 
 static inline uint32_t
-yp_ptrdifft_to_u32(ptrdiff_t value) {
+pm_ptrdifft_to_u32(ptrdiff_t value) {
     assert(value >= 0 && ((unsigned long) value) < UINT32_MAX);
     return (uint32_t) value;
 }
 
 static inline uint32_t
-yp_sizet_to_u32(size_t value) {
+pm_sizet_to_u32(size_t value) {
     assert(value < UINT32_MAX);
     return (uint32_t) value;
 }
 
 static void
-yp_serialize_location(yp_parser_t *parser, yp_location_t *location, yp_buffer_t *buffer) {
+pm_serialize_location(pm_parser_t *parser, pm_location_t *location, pm_buffer_t *buffer) {
     assert(location->start);
     assert(location->end);
     assert(location->start <= location->end);
 
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(location->start - parser->start));
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(location->end - location->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(location->start - parser->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(location->end - location->start));
 }
 
 static void
-yp_serialize_string(yp_parser_t *parser, yp_string_t *string, yp_buffer_t *buffer) {
+pm_serialize_string(pm_parser_t *parser, pm_string_t *string, pm_buffer_t *buffer) {
     switch (string->type) {
-        case YP_STRING_SHARED: {
-            yp_buffer_append_u8(buffer, 1);
-            yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(yp_string_source(string) - parser->start));
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(yp_string_length(string)));
+        case PM_STRING_SHARED: {
+            pm_buffer_append_u8(buffer, 1);
+            pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(pm_string_source(string) - parser->start));
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(pm_string_length(string)));
             break;
         }
-        case YP_STRING_OWNED:
-        case YP_STRING_CONSTANT: {
-            uint32_t length = yp_sizet_to_u32(yp_string_length(string));
-            yp_buffer_append_u8(buffer, 2);
-            yp_buffer_append_u32(buffer, length);
-            yp_buffer_append_bytes(buffer, yp_string_source(string), length);
+        case PM_STRING_OWNED:
+        case PM_STRING_CONSTANT: {
+            uint32_t length = pm_sizet_to_u32(pm_string_length(string));
+            pm_buffer_append_u8(buffer, 2);
+            pm_buffer_append_u32(buffer, length);
+            pm_buffer_append_bytes(buffer, pm_string_source(string), length);
             break;
         }
-        case YP_STRING_MAPPED:
+        case PM_STRING_MAPPED:
             assert(false && "Cannot serialize mapped strings.");
             break;
     }
 }
 
 void
-yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
-    yp_buffer_append_u8(buffer, (uint8_t) YP_NODE_TYPE(node));
+pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
+    pm_buffer_append_u8(buffer, (uint8_t) PM_NODE_TYPE(node));
 
     size_t offset = buffer->length;
 
-    yp_serialize_location(parser, &node->location, buffer);
+    pm_serialize_location(parser, &node->location, buffer);
 
-    switch (YP_NODE_TYPE(node)) {
+    switch (PM_NODE_TYPE(node)) {
         // We do not need to serialize a ScopeNode ever as
         // it is not part of the AST
-        case YP_SCOPE_NODE:
+        case PM_SCOPE_NODE:
             return;
-        case YP_ALIAS_GLOBAL_VARIABLE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_alias_global_variable_node_t *)node)->new_name, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_alias_global_variable_node_t *)node)->old_name, buffer);
+        case PM_ALIAS_GLOBAL_VARIABLE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_alias_global_variable_node_t *)node)->new_name, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_alias_global_variable_node_t *)node)->old_name, buffer);
+            pm_serialize_location(parser, &((pm_alias_global_variable_node_t *)node)->keyword_loc, buffer);
             break;
         }
-        case YP_ALIAS_METHOD_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_alias_method_node_t *)node)->new_name, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_alias_method_node_t *)node)->old_name, buffer);
+        case PM_ALIAS_METHOD_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_alias_method_node_t *)node)->new_name, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_alias_method_node_t *)node)->old_name, buffer);
+            pm_serialize_location(parser, &((pm_alias_method_node_t *)node)->keyword_loc, buffer);
             break;
         }
-        case YP_ALTERNATION_PATTERN_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_alternation_pattern_node_t *)node)->left, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_alternation_pattern_node_t *)node)->right, buffer);
+        case PM_ALTERNATION_PATTERN_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_alternation_pattern_node_t *)node)->left, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_alternation_pattern_node_t *)node)->right, buffer);
+            pm_serialize_location(parser, &((pm_alternation_pattern_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_AND_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_and_node_t *)node)->left, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_and_node_t *)node)->right, buffer);
+        case PM_AND_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_and_node_t *)node)->left, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_and_node_t *)node)->right, buffer);
+            pm_serialize_location(parser, &((pm_and_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_ARGUMENTS_NODE: {
-            uint32_t arguments_size = yp_sizet_to_u32(((yp_arguments_node_t *)node)->arguments.size);
-            yp_buffer_append_u32(buffer, arguments_size);
+        case PM_ARGUMENTS_NODE: {
+            uint32_t arguments_size = pm_sizet_to_u32(((pm_arguments_node_t *)node)->arguments.size);
+            pm_buffer_append_u32(buffer, arguments_size);
             for (uint32_t index = 0; index < arguments_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_arguments_node_t *)node)->arguments.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_arguments_node_t *)node)->arguments.nodes[index], buffer);
             }
             break;
         }
-        case YP_ARRAY_NODE: {
-            uint32_t elements_size = yp_sizet_to_u32(((yp_array_node_t *)node)->elements.size);
-            yp_buffer_append_u32(buffer, elements_size);
+        case PM_ARRAY_NODE: {
+            uint32_t elements_size = pm_sizet_to_u32(((pm_array_node_t *)node)->elements.size);
+            pm_buffer_append_u32(buffer, elements_size);
             for (uint32_t index = 0; index < elements_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_array_node_t *)node)->elements.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_array_node_t *)node)->elements.nodes[index], buffer);
+            }
+            if (((pm_array_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_array_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_array_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_array_node_t *)node)->closing_loc, buffer);
             }
             break;
         }
-        case YP_ARRAY_PATTERN_NODE: {
-            if (((yp_array_pattern_node_t *)node)->constant == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_ARRAY_PATTERN_NODE: {
+            if (((pm_array_pattern_node_t *)node)->constant == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_array_pattern_node_t *)node)->constant, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_array_pattern_node_t *)node)->constant, buffer);
             }
-            uint32_t requireds_size = yp_sizet_to_u32(((yp_array_pattern_node_t *)node)->requireds.size);
-            yp_buffer_append_u32(buffer, requireds_size);
+            uint32_t requireds_size = pm_sizet_to_u32(((pm_array_pattern_node_t *)node)->requireds.size);
+            pm_buffer_append_u32(buffer, requireds_size);
             for (uint32_t index = 0; index < requireds_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_array_pattern_node_t *)node)->requireds.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_array_pattern_node_t *)node)->requireds.nodes[index], buffer);
             }
-            if (((yp_array_pattern_node_t *)node)->rest == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_array_pattern_node_t *)node)->rest == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_array_pattern_node_t *)node)->rest, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_array_pattern_node_t *)node)->rest, buffer);
             }
-            uint32_t posts_size = yp_sizet_to_u32(((yp_array_pattern_node_t *)node)->posts.size);
-            yp_buffer_append_u32(buffer, posts_size);
+            uint32_t posts_size = pm_sizet_to_u32(((pm_array_pattern_node_t *)node)->posts.size);
+            pm_buffer_append_u32(buffer, posts_size);
             for (uint32_t index = 0; index < posts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_array_pattern_node_t *)node)->posts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_array_pattern_node_t *)node)->posts.nodes[index], buffer);
+            }
+            if (((pm_array_pattern_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_array_pattern_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_array_pattern_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_array_pattern_node_t *)node)->closing_loc, buffer);
             }
             break;
         }
-        case YP_ASSOC_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_assoc_node_t *)node)->key, buffer);
-            if (((yp_assoc_node_t *)node)->value == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_ASSOC_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_assoc_node_t *)node)->key, buffer);
+            if (((pm_assoc_node_t *)node)->value == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_assoc_node_t *)node)->value, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_assoc_node_t *)node)->value, buffer);
+            }
+            if (((pm_assoc_node_t *)node)->operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_assoc_node_t *)node)->operator_loc, buffer);
             }
             break;
         }
-        case YP_ASSOC_SPLAT_NODE: {
-            if (((yp_assoc_splat_node_t *)node)->value == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_ASSOC_SPLAT_NODE: {
+            if (((pm_assoc_splat_node_t *)node)->value == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_assoc_splat_node_t *)node)->value, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_assoc_splat_node_t *)node)->value, buffer);
+            }
+            pm_serialize_location(parser, &((pm_assoc_splat_node_t *)node)->operator_loc, buffer);
+            break;
+        }
+        case PM_BACK_REFERENCE_READ_NODE: {
+            break;
+        }
+        case PM_BEGIN_NODE: {
+            if (((pm_begin_node_t *)node)->begin_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_begin_node_t *)node)->begin_keyword_loc, buffer);
+            }
+            if (((pm_begin_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_begin_node_t *)node)->statements, buffer);
+            }
+            if (((pm_begin_node_t *)node)->rescue_clause == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_begin_node_t *)node)->rescue_clause, buffer);
+            }
+            if (((pm_begin_node_t *)node)->else_clause == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_begin_node_t *)node)->else_clause, buffer);
+            }
+            if (((pm_begin_node_t *)node)->ensure_clause == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_begin_node_t *)node)->ensure_clause, buffer);
+            }
+            if (((pm_begin_node_t *)node)->end_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_begin_node_t *)node)->end_keyword_loc, buffer);
             }
             break;
         }
-        case YP_BACK_REFERENCE_READ_NODE: {
+        case PM_BLOCK_ARGUMENT_NODE: {
+            if (((pm_block_argument_node_t *)node)->expression == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_block_argument_node_t *)node)->expression, buffer);
+            }
+            pm_serialize_location(parser, &((pm_block_argument_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_BEGIN_NODE: {
-            if (((yp_begin_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
-            } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_begin_node_t *)node)->statements, buffer);
-            }
-            if (((yp_begin_node_t *)node)->rescue_clause == NULL) {
-                yp_buffer_append_u8(buffer, 0);
-            } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_begin_node_t *)node)->rescue_clause, buffer);
-            }
-            if (((yp_begin_node_t *)node)->else_clause == NULL) {
-                yp_buffer_append_u8(buffer, 0);
-            } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_begin_node_t *)node)->else_clause, buffer);
-            }
-            if (((yp_begin_node_t *)node)->ensure_clause == NULL) {
-                yp_buffer_append_u8(buffer, 0);
-            } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_begin_node_t *)node)->ensure_clause, buffer);
-            }
+        case PM_BLOCK_LOCAL_VARIABLE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_block_local_variable_node_t *)node)->name));
             break;
         }
-        case YP_BLOCK_ARGUMENT_NODE: {
-            if (((yp_block_argument_node_t *)node)->expression == NULL) {
-                yp_buffer_append_u8(buffer, 0);
-            } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_block_argument_node_t *)node)->expression, buffer);
-            }
-            break;
-        }
-        case YP_BLOCK_LOCAL_VARIABLE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_block_local_variable_node_t *)node)->name));
-            break;
-        }
-        case YP_BLOCK_NODE: {
-            uint32_t locals_size = yp_sizet_to_u32(((yp_block_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_BLOCK_NODE: {
+            uint32_t locals_size = pm_sizet_to_u32(((pm_block_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_block_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_block_node_t *)node)->locals.ids[index]));
             }
-            if (((yp_block_node_t *)node)->parameters == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_block_node_t *)node)->parameters == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_block_node_t *)node)->parameters, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_block_node_t *)node)->parameters, buffer);
             }
-            if (((yp_block_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_block_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_block_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_block_node_t *)node)->body, buffer);
             }
+            pm_serialize_location(parser, &((pm_block_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_block_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_BLOCK_PARAMETER_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_block_parameter_node_t *)node)->name));
+        case PM_BLOCK_PARAMETER_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_block_parameter_node_t *)node)->name));
+            if (((pm_block_parameter_node_t *)node)->name_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_block_parameter_node_t *)node)->name_loc, buffer);
+            }
+            pm_serialize_location(parser, &((pm_block_parameter_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_BLOCK_PARAMETERS_NODE: {
-            if (((yp_block_parameters_node_t *)node)->parameters == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_BLOCK_PARAMETERS_NODE: {
+            if (((pm_block_parameters_node_t *)node)->parameters == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_block_parameters_node_t *)node)->parameters, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_block_parameters_node_t *)node)->parameters, buffer);
             }
-            uint32_t locals_size = yp_sizet_to_u32(((yp_block_parameters_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+            uint32_t locals_size = pm_sizet_to_u32(((pm_block_parameters_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_block_parameters_node_t *)node)->locals.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_block_parameters_node_t *)node)->locals.nodes[index], buffer);
+            }
+            if (((pm_block_parameters_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_block_parameters_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_block_parameters_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_block_parameters_node_t *)node)->closing_loc, buffer);
             }
             break;
         }
-        case YP_BREAK_NODE: {
-            if (((yp_break_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_BREAK_NODE: {
+            if (((pm_break_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_break_node_t *)node)->arguments, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_break_node_t *)node)->arguments, buffer);
             }
+            pm_serialize_location(parser, &((pm_break_node_t *)node)->keyword_loc, buffer);
             break;
         }
-        case YP_CALL_AND_WRITE_NODE: {
-            if (((yp_call_and_write_node_t *)node)->receiver == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_CALL_AND_WRITE_NODE: {
+            if (((pm_call_and_write_node_t *)node)->receiver == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_and_write_node_t *)node)->receiver, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_and_write_node_t *)node)->receiver, buffer);
             }
-            if (((yp_call_and_write_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_call_and_write_node_t *)node)->call_operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_and_write_node_t *)node)->arguments, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_and_write_node_t *)node)->call_operator_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            yp_serialize_string(parser, &((yp_call_and_write_node_t *)node)->read_name, buffer);
-            yp_serialize_string(parser, &((yp_call_and_write_node_t *)node)->write_name, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_call_and_write_node_t *)node)->value, buffer);
+            if (((pm_call_and_write_node_t *)node)->message_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_and_write_node_t *)node)->message_loc, buffer);
+            }
+            if (((pm_call_and_write_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_and_write_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_call_and_write_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_and_write_node_t *)node)->arguments, buffer);
+            }
+            if (((pm_call_and_write_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_and_write_node_t *)node)->closing_loc, buffer);
+            }
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_and_write_node_t *)node)->read_name));
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_and_write_node_t *)node)->write_name));
+            pm_serialize_location(parser, &((pm_call_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_call_and_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_CALL_NODE: {
-            if (((yp_call_node_t *)node)->receiver == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_CALL_NODE: {
+            if (((pm_call_node_t *)node)->receiver == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_node_t *)node)->receiver, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_node_t *)node)->receiver, buffer);
             }
-            if (((yp_call_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_call_node_t *)node)->call_operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_node_t *)node)->arguments, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_node_t *)node)->call_operator_loc, buffer);
             }
-            if (((yp_call_node_t *)node)->block == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_call_node_t *)node)->message_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_node_t *)node)->block, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_node_t *)node)->message_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            yp_serialize_string(parser, &((yp_call_node_t *)node)->name, buffer);
+            if (((pm_call_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_call_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_node_t *)node)->arguments, buffer);
+            }
+            if (((pm_call_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_node_t *)node)->closing_loc, buffer);
+            }
+            if (((pm_call_node_t *)node)->block == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_node_t *)node)->block, buffer);
+            }
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_node_t *)node)->name));
             break;
         }
-        case YP_CALL_OPERATOR_WRITE_NODE: {
-            if (((yp_call_operator_write_node_t *)node)->receiver == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_CALL_OPERATOR_WRITE_NODE: {
+            if (((pm_call_operator_write_node_t *)node)->receiver == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->receiver, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->receiver, buffer);
             }
-            if (((yp_call_operator_write_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_call_operator_write_node_t *)node)->call_operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->arguments, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_operator_write_node_t *)node)->call_operator_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            yp_serialize_string(parser, &((yp_call_operator_write_node_t *)node)->read_name, buffer);
-            yp_serialize_string(parser, &((yp_call_operator_write_node_t *)node)->write_name, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_call_operator_write_node_t *)node)->operator));
-            yp_serialize_node(parser, (yp_node_t *)((yp_call_operator_write_node_t *)node)->value, buffer);
+            if (((pm_call_operator_write_node_t *)node)->message_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_operator_write_node_t *)node)->message_loc, buffer);
+            }
+            if (((pm_call_operator_write_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_operator_write_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_call_operator_write_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->arguments, buffer);
+            }
+            if (((pm_call_operator_write_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_operator_write_node_t *)node)->closing_loc, buffer);
+            }
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->read_name));
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->write_name));
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->operator));
+            pm_serialize_location(parser, &((pm_call_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_CALL_OR_WRITE_NODE: {
-            if (((yp_call_or_write_node_t *)node)->receiver == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_CALL_OR_WRITE_NODE: {
+            if (((pm_call_or_write_node_t *)node)->receiver == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_or_write_node_t *)node)->receiver, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_or_write_node_t *)node)->receiver, buffer);
             }
-            if (((yp_call_or_write_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_call_or_write_node_t *)node)->call_operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_call_or_write_node_t *)node)->arguments, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_or_write_node_t *)node)->call_operator_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            yp_serialize_string(parser, &((yp_call_or_write_node_t *)node)->read_name, buffer);
-            yp_serialize_string(parser, &((yp_call_or_write_node_t *)node)->write_name, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_call_or_write_node_t *)node)->value, buffer);
+            if (((pm_call_or_write_node_t *)node)->message_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_or_write_node_t *)node)->message_loc, buffer);
+            }
+            if (((pm_call_or_write_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_or_write_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_call_or_write_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_call_or_write_node_t *)node)->arguments, buffer);
+            }
+            if (((pm_call_or_write_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_call_or_write_node_t *)node)->closing_loc, buffer);
+            }
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_or_write_node_t *)node)->read_name));
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_call_or_write_node_t *)node)->write_name));
+            pm_serialize_location(parser, &((pm_call_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_call_or_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_CAPTURE_PATTERN_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_capture_pattern_node_t *)node)->value, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_capture_pattern_node_t *)node)->target, buffer);
+        case PM_CAPTURE_PATTERN_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_capture_pattern_node_t *)node)->value, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_capture_pattern_node_t *)node)->target, buffer);
+            pm_serialize_location(parser, &((pm_capture_pattern_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_CASE_NODE: {
-            if (((yp_case_node_t *)node)->predicate == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_CASE_NODE: {
+            if (((pm_case_node_t *)node)->predicate == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_case_node_t *)node)->predicate, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_case_node_t *)node)->predicate, buffer);
             }
-            uint32_t conditions_size = yp_sizet_to_u32(((yp_case_node_t *)node)->conditions.size);
-            yp_buffer_append_u32(buffer, conditions_size);
+            uint32_t conditions_size = pm_sizet_to_u32(((pm_case_node_t *)node)->conditions.size);
+            pm_buffer_append_u32(buffer, conditions_size);
             for (uint32_t index = 0; index < conditions_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_case_node_t *)node)->conditions.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_case_node_t *)node)->conditions.nodes[index], buffer);
             }
-            if (((yp_case_node_t *)node)->consequent == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_case_node_t *)node)->consequent == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_case_node_t *)node)->consequent, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_case_node_t *)node)->consequent, buffer);
             }
+            pm_serialize_location(parser, &((pm_case_node_t *)node)->case_keyword_loc, buffer);
+            pm_serialize_location(parser, &((pm_case_node_t *)node)->end_keyword_loc, buffer);
             break;
         }
-        case YP_CLASS_NODE: {
-            uint32_t locals_size = yp_sizet_to_u32(((yp_class_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_CLASS_NODE: {
+            uint32_t locals_size = pm_sizet_to_u32(((pm_class_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_node_t *)node)->locals.ids[index]));
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_class_node_t *)node)->constant_path, buffer);
-            if (((yp_class_node_t *)node)->superclass == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_location(parser, &((pm_class_node_t *)node)->class_keyword_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_class_node_t *)node)->constant_path, buffer);
+            if (((pm_class_node_t *)node)->inheritance_operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_class_node_t *)node)->superclass, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_class_node_t *)node)->inheritance_operator_loc, buffer);
             }
-            if (((yp_class_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_class_node_t *)node)->superclass == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_class_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_class_node_t *)node)->superclass, buffer);
             }
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_node_t *)node)->name));
-            break;
-        }
-        case YP_CLASS_VARIABLE_AND_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_and_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_class_variable_and_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_operator_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_class_variable_operator_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_operator_write_node_t *)node)->operator));
-            break;
-        }
-        case YP_CLASS_VARIABLE_OR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_or_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_class_variable_or_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_CLASS_VARIABLE_READ_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_read_node_t *)node)->name));
-            break;
-        }
-        case YP_CLASS_VARIABLE_TARGET_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_target_node_t *)node)->name));
-            break;
-        }
-        case YP_CLASS_VARIABLE_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_class_variable_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_class_variable_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_CONSTANT_AND_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_and_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_and_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_CONSTANT_OPERATOR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_operator_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_operator_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_operator_write_node_t *)node)->operator));
-            break;
-        }
-        case YP_CONSTANT_OR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_or_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_or_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_CONSTANT_PATH_AND_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_and_write_node_t *)node)->target, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_and_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_CONSTANT_PATH_NODE: {
-            if (((yp_constant_path_node_t *)node)->parent == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_class_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_node_t *)node)->parent, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_class_node_t *)node)->body, buffer);
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_node_t *)node)->child, buffer);
+            pm_serialize_location(parser, &((pm_class_node_t *)node)->end_keyword_loc, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_node_t *)node)->name));
             break;
         }
-        case YP_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->target, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_operator_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_path_operator_write_node_t *)node)->operator));
+        case PM_CLASS_VARIABLE_AND_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_and_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_class_variable_and_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_class_variable_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_class_variable_and_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_CONSTANT_PATH_OR_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_or_write_node_t *)node)->target, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_or_write_node_t *)node)->value, buffer);
+        case PM_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_operator_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_class_variable_operator_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_class_variable_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_class_variable_operator_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_operator_write_node_t *)node)->operator));
             break;
         }
-        case YP_CONSTANT_PATH_TARGET_NODE: {
-            if (((yp_constant_path_target_node_t *)node)->parent == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_CLASS_VARIABLE_OR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_or_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_class_variable_or_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_class_variable_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_class_variable_or_write_node_t *)node)->value, buffer);
+            break;
+        }
+        case PM_CLASS_VARIABLE_READ_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_read_node_t *)node)->name));
+            break;
+        }
+        case PM_CLASS_VARIABLE_TARGET_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_target_node_t *)node)->name));
+            break;
+        }
+        case PM_CLASS_VARIABLE_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_class_variable_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_class_variable_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_class_variable_write_node_t *)node)->value, buffer);
+            if (((pm_class_variable_write_node_t *)node)->operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_target_node_t *)node)->parent, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_class_variable_write_node_t *)node)->operator_loc, buffer);
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_target_node_t *)node)->child, buffer);
             break;
         }
-        case YP_CONSTANT_PATH_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_write_node_t *)node)->target, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_path_write_node_t *)node)->value, buffer);
+        case PM_CONSTANT_AND_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_and_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_constant_and_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_constant_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_and_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_CONSTANT_READ_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_read_node_t *)node)->name));
+        case PM_CONSTANT_OPERATOR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_operator_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_constant_operator_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_constant_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_operator_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_operator_write_node_t *)node)->operator));
             break;
         }
-        case YP_CONSTANT_TARGET_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_target_node_t *)node)->name));
+        case PM_CONSTANT_OR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_or_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_constant_or_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_constant_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_or_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_CONSTANT_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_constant_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_constant_write_node_t *)node)->value, buffer);
+        case PM_CONSTANT_PATH_AND_WRITE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_and_write_node_t *)node)->target, buffer);
+            pm_serialize_location(parser, &((pm_constant_path_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_and_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_DEF_NODE: {
+        case PM_CONSTANT_PATH_NODE: {
+            if (((pm_constant_path_node_t *)node)->parent == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_node_t *)node)->parent, buffer);
+            }
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_node_t *)node)->child, buffer);
+            pm_serialize_location(parser, &((pm_constant_path_node_t *)node)->delimiter_loc, buffer);
+            break;
+        }
+        case PM_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_operator_write_node_t *)node)->target, buffer);
+            pm_serialize_location(parser, &((pm_constant_path_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_operator_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_path_operator_write_node_t *)node)->operator));
+            break;
+        }
+        case PM_CONSTANT_PATH_OR_WRITE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_or_write_node_t *)node)->target, buffer);
+            pm_serialize_location(parser, &((pm_constant_path_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_or_write_node_t *)node)->value, buffer);
+            break;
+        }
+        case PM_CONSTANT_PATH_TARGET_NODE: {
+            if (((pm_constant_path_target_node_t *)node)->parent == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_target_node_t *)node)->parent, buffer);
+            }
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_target_node_t *)node)->child, buffer);
+            pm_serialize_location(parser, &((pm_constant_path_target_node_t *)node)->delimiter_loc, buffer);
+            break;
+        }
+        case PM_CONSTANT_PATH_WRITE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_write_node_t *)node)->target, buffer);
+            pm_serialize_location(parser, &((pm_constant_path_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_write_node_t *)node)->value, buffer);
+            break;
+        }
+        case PM_CONSTANT_READ_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_read_node_t *)node)->name));
+            break;
+        }
+        case PM_CONSTANT_TARGET_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_target_node_t *)node)->name));
+            break;
+        }
+        case PM_CONSTANT_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_constant_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_constant_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_constant_write_node_t *)node)->value, buffer);
+            pm_serialize_location(parser, &((pm_constant_write_node_t *)node)->operator_loc, buffer);
+            break;
+        }
+        case PM_DEF_NODE: {
             // serialize length
             // encoding of location u32s make us need to save this offset.
             size_t length_offset = buffer->length;
-            yp_buffer_append_str(buffer, "\0\0\0\0", 4); /* consume 4 bytes, updated below */
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_def_node_t *)node)->name));
-            if (((yp_def_node_t *)node)->receiver == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_buffer_append_str(buffer, "\0\0\0\0", 4); /* consume 4 bytes, updated below */
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_def_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_def_node_t *)node)->name_loc, buffer);
+            if (((pm_def_node_t *)node)->receiver == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_def_node_t *)node)->receiver, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_def_node_t *)node)->receiver, buffer);
             }
-            if (((yp_def_node_t *)node)->parameters == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_def_node_t *)node)->parameters == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_def_node_t *)node)->parameters, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_def_node_t *)node)->parameters, buffer);
             }
-            if (((yp_def_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_def_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_def_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_def_node_t *)node)->body, buffer);
             }
-            uint32_t locals_size = yp_sizet_to_u32(((yp_def_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+            uint32_t locals_size = pm_sizet_to_u32(((pm_def_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_def_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_def_node_t *)node)->locals.ids[index]));
+            }
+            pm_serialize_location(parser, &((pm_def_node_t *)node)->def_keyword_loc, buffer);
+            if (((pm_def_node_t *)node)->operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_def_node_t *)node)->operator_loc, buffer);
+            }
+            if (((pm_def_node_t *)node)->lparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_def_node_t *)node)->lparen_loc, buffer);
+            }
+            if (((pm_def_node_t *)node)->rparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_def_node_t *)node)->rparen_loc, buffer);
+            }
+            if (((pm_def_node_t *)node)->equal_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_def_node_t *)node)->equal_loc, buffer);
+            }
+            if (((pm_def_node_t *)node)->end_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_def_node_t *)node)->end_keyword_loc, buffer);
             }
             // serialize length
-            uint32_t length = yp_sizet_to_u32(buffer->length - offset - sizeof(uint32_t));
+            uint32_t length = pm_sizet_to_u32(buffer->length - offset - sizeof(uint32_t));
             memcpy(buffer->value + length_offset, &length, sizeof(uint32_t));
             break;
         }
-        case YP_DEFINED_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_defined_node_t *)node)->value, buffer);
+        case PM_DEFINED_NODE: {
+            if (((pm_defined_node_t *)node)->lparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_defined_node_t *)node)->lparen_loc, buffer);
+            }
+            pm_serialize_node(parser, (pm_node_t *)((pm_defined_node_t *)node)->value, buffer);
+            if (((pm_defined_node_t *)node)->rparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_defined_node_t *)node)->rparen_loc, buffer);
+            }
+            pm_serialize_location(parser, &((pm_defined_node_t *)node)->keyword_loc, buffer);
             break;
         }
-        case YP_ELSE_NODE: {
-            if (((yp_else_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_ELSE_NODE: {
+            pm_serialize_location(parser, &((pm_else_node_t *)node)->else_keyword_loc, buffer);
+            if (((pm_else_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_else_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_else_node_t *)node)->statements, buffer);
+            }
+            if (((pm_else_node_t *)node)->end_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_else_node_t *)node)->end_keyword_loc, buffer);
             }
             break;
         }
-        case YP_EMBEDDED_STATEMENTS_NODE: {
-            if (((yp_embedded_statements_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_EMBEDDED_STATEMENTS_NODE: {
+            pm_serialize_location(parser, &((pm_embedded_statements_node_t *)node)->opening_loc, buffer);
+            if (((pm_embedded_statements_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_embedded_statements_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_embedded_statements_node_t *)node)->statements, buffer);
             }
+            pm_serialize_location(parser, &((pm_embedded_statements_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_EMBEDDED_VARIABLE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_embedded_variable_node_t *)node)->variable, buffer);
+        case PM_EMBEDDED_VARIABLE_NODE: {
+            pm_serialize_location(parser, &((pm_embedded_variable_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_embedded_variable_node_t *)node)->variable, buffer);
             break;
         }
-        case YP_ENSURE_NODE: {
-            if (((yp_ensure_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_ENSURE_NODE: {
+            pm_serialize_location(parser, &((pm_ensure_node_t *)node)->ensure_keyword_loc, buffer);
+            if (((pm_ensure_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_ensure_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_ensure_node_t *)node)->statements, buffer);
             }
+            pm_serialize_location(parser, &((pm_ensure_node_t *)node)->end_keyword_loc, buffer);
             break;
         }
-        case YP_FALSE_NODE: {
+        case PM_FALSE_NODE: {
             break;
         }
-        case YP_FIND_PATTERN_NODE: {
-            if (((yp_find_pattern_node_t *)node)->constant == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_FIND_PATTERN_NODE: {
+            if (((pm_find_pattern_node_t *)node)->constant == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_find_pattern_node_t *)node)->constant, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_find_pattern_node_t *)node)->constant, buffer);
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_find_pattern_node_t *)node)->left, buffer);
-            uint32_t requireds_size = yp_sizet_to_u32(((yp_find_pattern_node_t *)node)->requireds.size);
-            yp_buffer_append_u32(buffer, requireds_size);
+            pm_serialize_node(parser, (pm_node_t *)((pm_find_pattern_node_t *)node)->left, buffer);
+            uint32_t requireds_size = pm_sizet_to_u32(((pm_find_pattern_node_t *)node)->requireds.size);
+            pm_buffer_append_u32(buffer, requireds_size);
             for (uint32_t index = 0; index < requireds_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_find_pattern_node_t *)node)->requireds.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_find_pattern_node_t *)node)->requireds.nodes[index], buffer);
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_find_pattern_node_t *)node)->right, buffer);
-            break;
-        }
-        case YP_FLIP_FLOP_NODE: {
-            if (((yp_flip_flop_node_t *)node)->left == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_node(parser, (pm_node_t *)((pm_find_pattern_node_t *)node)->right, buffer);
+            if (((pm_find_pattern_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_flip_flop_node_t *)node)->left, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_find_pattern_node_t *)node)->opening_loc, buffer);
             }
-            if (((yp_flip_flop_node_t *)node)->right == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_find_pattern_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_flip_flop_node_t *)node)->right, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_find_pattern_node_t *)node)->closing_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_FLOAT_NODE: {
-            break;
-        }
-        case YP_FOR_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_for_node_t *)node)->index, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_for_node_t *)node)->collection, buffer);
-            if (((yp_for_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_FLIP_FLOP_NODE: {
+            if (((pm_flip_flop_node_t *)node)->left == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_for_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_flip_flop_node_t *)node)->left, buffer);
             }
-            break;
-        }
-        case YP_FORWARDING_ARGUMENTS_NODE: {
-            break;
-        }
-        case YP_FORWARDING_PARAMETER_NODE: {
-            break;
-        }
-        case YP_FORWARDING_SUPER_NODE: {
-            if (((yp_forwarding_super_node_t *)node)->block == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_flip_flop_node_t *)node)->right == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_forwarding_super_node_t *)node)->block, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_flip_flop_node_t *)node)->right, buffer);
+            }
+            pm_serialize_location(parser, &((pm_flip_flop_node_t *)node)->operator_loc, buffer);
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            break;
+        }
+        case PM_FLOAT_NODE: {
+            break;
+        }
+        case PM_FOR_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_for_node_t *)node)->index, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_for_node_t *)node)->collection, buffer);
+            if (((pm_for_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_for_node_t *)node)->statements, buffer);
+            }
+            pm_serialize_location(parser, &((pm_for_node_t *)node)->for_keyword_loc, buffer);
+            pm_serialize_location(parser, &((pm_for_node_t *)node)->in_keyword_loc, buffer);
+            if (((pm_for_node_t *)node)->do_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_for_node_t *)node)->do_keyword_loc, buffer);
+            }
+            pm_serialize_location(parser, &((pm_for_node_t *)node)->end_keyword_loc, buffer);
+            break;
+        }
+        case PM_FORWARDING_ARGUMENTS_NODE: {
+            break;
+        }
+        case PM_FORWARDING_PARAMETER_NODE: {
+            break;
+        }
+        case PM_FORWARDING_SUPER_NODE: {
+            if (((pm_forwarding_super_node_t *)node)->block == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_forwarding_super_node_t *)node)->block, buffer);
             }
             break;
         }
-        case YP_GLOBAL_VARIABLE_AND_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_and_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_global_variable_and_write_node_t *)node)->value, buffer);
+        case PM_GLOBAL_VARIABLE_AND_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_and_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_global_variable_and_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_global_variable_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_global_variable_and_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_operator_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_global_variable_operator_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_operator_write_node_t *)node)->operator));
+        case PM_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_operator_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_global_variable_operator_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_global_variable_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_global_variable_operator_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_operator_write_node_t *)node)->operator));
             break;
         }
-        case YP_GLOBAL_VARIABLE_OR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_or_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_global_variable_or_write_node_t *)node)->value, buffer);
+        case PM_GLOBAL_VARIABLE_OR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_or_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_global_variable_or_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_global_variable_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_global_variable_or_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_GLOBAL_VARIABLE_READ_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_read_node_t *)node)->name));
+        case PM_GLOBAL_VARIABLE_READ_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_read_node_t *)node)->name));
             break;
         }
-        case YP_GLOBAL_VARIABLE_TARGET_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_target_node_t *)node)->name));
+        case PM_GLOBAL_VARIABLE_TARGET_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_target_node_t *)node)->name));
             break;
         }
-        case YP_GLOBAL_VARIABLE_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_global_variable_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_global_variable_write_node_t *)node)->value, buffer);
+        case PM_GLOBAL_VARIABLE_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_global_variable_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_global_variable_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_global_variable_write_node_t *)node)->value, buffer);
+            pm_serialize_location(parser, &((pm_global_variable_write_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_HASH_NODE: {
-            uint32_t elements_size = yp_sizet_to_u32(((yp_hash_node_t *)node)->elements.size);
-            yp_buffer_append_u32(buffer, elements_size);
+        case PM_HASH_NODE: {
+            pm_serialize_location(parser, &((pm_hash_node_t *)node)->opening_loc, buffer);
+            uint32_t elements_size = pm_sizet_to_u32(((pm_hash_node_t *)node)->elements.size);
+            pm_buffer_append_u32(buffer, elements_size);
             for (uint32_t index = 0; index < elements_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_hash_node_t *)node)->elements.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_hash_node_t *)node)->elements.nodes[index], buffer);
             }
+            pm_serialize_location(parser, &((pm_hash_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_HASH_PATTERN_NODE: {
-            if (((yp_hash_pattern_node_t *)node)->constant == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_HASH_PATTERN_NODE: {
+            if (((pm_hash_pattern_node_t *)node)->constant == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_hash_pattern_node_t *)node)->constant, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_hash_pattern_node_t *)node)->constant, buffer);
             }
-            uint32_t assocs_size = yp_sizet_to_u32(((yp_hash_pattern_node_t *)node)->assocs.size);
-            yp_buffer_append_u32(buffer, assocs_size);
+            uint32_t assocs_size = pm_sizet_to_u32(((pm_hash_pattern_node_t *)node)->assocs.size);
+            pm_buffer_append_u32(buffer, assocs_size);
             for (uint32_t index = 0; index < assocs_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_hash_pattern_node_t *)node)->assocs.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_hash_pattern_node_t *)node)->assocs.nodes[index], buffer);
             }
-            if (((yp_hash_pattern_node_t *)node)->kwrest == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_hash_pattern_node_t *)node)->kwrest == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_hash_pattern_node_t *)node)->kwrest, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_hash_pattern_node_t *)node)->kwrest, buffer);
             }
-            break;
-        }
-        case YP_IF_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_if_node_t *)node)->predicate, buffer);
-            if (((yp_if_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_hash_pattern_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_if_node_t *)node)->statements, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_hash_pattern_node_t *)node)->opening_loc, buffer);
             }
-            if (((yp_if_node_t *)node)->consequent == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_hash_pattern_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_if_node_t *)node)->consequent, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_hash_pattern_node_t *)node)->closing_loc, buffer);
             }
             break;
         }
-        case YP_IMAGINARY_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_imaginary_node_t *)node)->numeric, buffer);
-            break;
-        }
-        case YP_IMPLICIT_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_implicit_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_IN_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_in_node_t *)node)->pattern, buffer);
-            if (((yp_in_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_IF_NODE: {
+            if (((pm_if_node_t *)node)->if_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_in_node_t *)node)->statements, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_if_node_t *)node)->if_keyword_loc, buffer);
+            }
+            pm_serialize_node(parser, (pm_node_t *)((pm_if_node_t *)node)->predicate, buffer);
+            if (((pm_if_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_if_node_t *)node)->statements, buffer);
+            }
+            if (((pm_if_node_t *)node)->consequent == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_if_node_t *)node)->consequent, buffer);
+            }
+            if (((pm_if_node_t *)node)->end_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_if_node_t *)node)->end_keyword_loc, buffer);
             }
             break;
         }
-        case YP_INSTANCE_VARIABLE_AND_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_and_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_instance_variable_and_write_node_t *)node)->value, buffer);
+        case PM_IMAGINARY_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_imaginary_node_t *)node)->numeric, buffer);
             break;
         }
-        case YP_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_operator_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_instance_variable_operator_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_operator_write_node_t *)node)->operator));
+        case PM_IMPLICIT_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_implicit_node_t *)node)->value, buffer);
             break;
         }
-        case YP_INSTANCE_VARIABLE_OR_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_or_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_instance_variable_or_write_node_t *)node)->value, buffer);
+        case PM_IN_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_in_node_t *)node)->pattern, buffer);
+            if (((pm_in_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_in_node_t *)node)->statements, buffer);
+            }
+            pm_serialize_location(parser, &((pm_in_node_t *)node)->in_loc, buffer);
+            if (((pm_in_node_t *)node)->then_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_in_node_t *)node)->then_loc, buffer);
+            }
             break;
         }
-        case YP_INSTANCE_VARIABLE_READ_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_read_node_t *)node)->name));
+        case PM_INSTANCE_VARIABLE_AND_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_and_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_instance_variable_and_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_instance_variable_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_instance_variable_and_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_INSTANCE_VARIABLE_TARGET_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_target_node_t *)node)->name));
+        case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_operator_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_instance_variable_operator_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_instance_variable_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_instance_variable_operator_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_operator_write_node_t *)node)->operator));
             break;
         }
-        case YP_INSTANCE_VARIABLE_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_instance_variable_write_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_instance_variable_write_node_t *)node)->value, buffer);
+        case PM_INSTANCE_VARIABLE_OR_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_or_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_instance_variable_or_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_instance_variable_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_instance_variable_or_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_INTEGER_NODE: {
-            yp_buffer_append_u32(buffer, node->flags >> 2);
+        case PM_INSTANCE_VARIABLE_READ_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_read_node_t *)node)->name));
             break;
         }
-        case YP_INTERPOLATED_MATCH_LAST_LINE_NODE: {
-            uint32_t parts_size = yp_sizet_to_u32(((yp_interpolated_match_last_line_node_t *)node)->parts.size);
-            yp_buffer_append_u32(buffer, parts_size);
+        case PM_INSTANCE_VARIABLE_TARGET_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_target_node_t *)node)->name));
+            break;
+        }
+        case PM_INSTANCE_VARIABLE_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_instance_variable_write_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_instance_variable_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_instance_variable_write_node_t *)node)->value, buffer);
+            pm_serialize_location(parser, &((pm_instance_variable_write_node_t *)node)->operator_loc, buffer);
+            break;
+        }
+        case PM_INTEGER_NODE: {
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            break;
+        }
+        case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
+            pm_serialize_location(parser, &((pm_interpolated_match_last_line_node_t *)node)->opening_loc, buffer);
+            uint32_t parts_size = pm_sizet_to_u32(((pm_interpolated_match_last_line_node_t *)node)->parts.size);
+            pm_buffer_append_u32(buffer, parts_size);
             for (uint32_t index = 0; index < parts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_match_last_line_node_t *)node)->parts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_interpolated_match_last_line_node_t *)node)->parts.nodes[index], buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
+            pm_serialize_location(parser, &((pm_interpolated_match_last_line_node_t *)node)->closing_loc, buffer);
+            pm_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
-            uint32_t parts_size = yp_sizet_to_u32(((yp_interpolated_regular_expression_node_t *)node)->parts.size);
-            yp_buffer_append_u32(buffer, parts_size);
+        case PM_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
+            pm_serialize_location(parser, &((pm_interpolated_regular_expression_node_t *)node)->opening_loc, buffer);
+            uint32_t parts_size = pm_sizet_to_u32(((pm_interpolated_regular_expression_node_t *)node)->parts.size);
+            pm_buffer_append_u32(buffer, parts_size);
             for (uint32_t index = 0; index < parts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_regular_expression_node_t *)node)->parts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_interpolated_regular_expression_node_t *)node)->parts.nodes[index], buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
+            pm_serialize_location(parser, &((pm_interpolated_regular_expression_node_t *)node)->closing_loc, buffer);
+            pm_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_INTERPOLATED_STRING_NODE: {
-            uint32_t parts_size = yp_sizet_to_u32(((yp_interpolated_string_node_t *)node)->parts.size);
-            yp_buffer_append_u32(buffer, parts_size);
+        case PM_INTERPOLATED_STRING_NODE: {
+            if (((pm_interpolated_string_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_interpolated_string_node_t *)node)->opening_loc, buffer);
+            }
+            uint32_t parts_size = pm_sizet_to_u32(((pm_interpolated_string_node_t *)node)->parts.size);
+            pm_buffer_append_u32(buffer, parts_size);
             for (uint32_t index = 0; index < parts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_string_node_t *)node)->parts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_interpolated_string_node_t *)node)->parts.nodes[index], buffer);
+            }
+            if (((pm_interpolated_string_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_interpolated_string_node_t *)node)->closing_loc, buffer);
             }
             break;
         }
-        case YP_INTERPOLATED_SYMBOL_NODE: {
-            uint32_t parts_size = yp_sizet_to_u32(((yp_interpolated_symbol_node_t *)node)->parts.size);
-            yp_buffer_append_u32(buffer, parts_size);
+        case PM_INTERPOLATED_SYMBOL_NODE: {
+            if (((pm_interpolated_symbol_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_interpolated_symbol_node_t *)node)->opening_loc, buffer);
+            }
+            uint32_t parts_size = pm_sizet_to_u32(((pm_interpolated_symbol_node_t *)node)->parts.size);
+            pm_buffer_append_u32(buffer, parts_size);
             for (uint32_t index = 0; index < parts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_symbol_node_t *)node)->parts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_interpolated_symbol_node_t *)node)->parts.nodes[index], buffer);
+            }
+            if (((pm_interpolated_symbol_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_interpolated_symbol_node_t *)node)->closing_loc, buffer);
             }
             break;
         }
-        case YP_INTERPOLATED_X_STRING_NODE: {
-            uint32_t parts_size = yp_sizet_to_u32(((yp_interpolated_x_string_node_t *)node)->parts.size);
-            yp_buffer_append_u32(buffer, parts_size);
+        case PM_INTERPOLATED_X_STRING_NODE: {
+            pm_serialize_location(parser, &((pm_interpolated_x_string_node_t *)node)->opening_loc, buffer);
+            uint32_t parts_size = pm_sizet_to_u32(((pm_interpolated_x_string_node_t *)node)->parts.size);
+            pm_buffer_append_u32(buffer, parts_size);
             for (uint32_t index = 0; index < parts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_interpolated_x_string_node_t *)node)->parts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_interpolated_x_string_node_t *)node)->parts.nodes[index], buffer);
             }
+            pm_serialize_location(parser, &((pm_interpolated_x_string_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_KEYWORD_HASH_NODE: {
-            uint32_t elements_size = yp_sizet_to_u32(((yp_keyword_hash_node_t *)node)->elements.size);
-            yp_buffer_append_u32(buffer, elements_size);
+        case PM_KEYWORD_HASH_NODE: {
+            uint32_t elements_size = pm_sizet_to_u32(((pm_keyword_hash_node_t *)node)->elements.size);
+            pm_buffer_append_u32(buffer, elements_size);
             for (uint32_t index = 0; index < elements_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_keyword_hash_node_t *)node)->elements.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_keyword_hash_node_t *)node)->elements.nodes[index], buffer);
             }
             break;
         }
-        case YP_KEYWORD_PARAMETER_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_keyword_parameter_node_t *)node)->name));
-            if (((yp_keyword_parameter_node_t *)node)->value == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_KEYWORD_PARAMETER_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_keyword_parameter_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_keyword_parameter_node_t *)node)->name_loc, buffer);
+            if (((pm_keyword_parameter_node_t *)node)->value == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_keyword_parameter_node_t *)node)->value, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_keyword_parameter_node_t *)node)->value, buffer);
             }
             break;
         }
-        case YP_KEYWORD_REST_PARAMETER_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_keyword_rest_parameter_node_t *)node)->name));
+        case PM_KEYWORD_REST_PARAMETER_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_keyword_rest_parameter_node_t *)node)->name));
+            if (((pm_keyword_rest_parameter_node_t *)node)->name_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_keyword_rest_parameter_node_t *)node)->name_loc, buffer);
+            }
+            pm_serialize_location(parser, &((pm_keyword_rest_parameter_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_LAMBDA_NODE: {
-            uint32_t locals_size = yp_sizet_to_u32(((yp_lambda_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_LAMBDA_NODE: {
+            uint32_t locals_size = pm_sizet_to_u32(((pm_lambda_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_lambda_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_lambda_node_t *)node)->locals.ids[index]));
             }
-            if (((yp_lambda_node_t *)node)->parameters == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_location(parser, &((pm_lambda_node_t *)node)->operator_loc, buffer);
+            pm_serialize_location(parser, &((pm_lambda_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_lambda_node_t *)node)->closing_loc, buffer);
+            if (((pm_lambda_node_t *)node)->parameters == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_lambda_node_t *)node)->parameters, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_lambda_node_t *)node)->parameters, buffer);
             }
-            if (((yp_lambda_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_lambda_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_lambda_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_lambda_node_t *)node)->body, buffer);
             }
             break;
         }
-        case YP_LOCAL_VARIABLE_AND_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_local_variable_and_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_and_write_node_t *)node)->name));
-            yp_buffer_append_u32(buffer, ((yp_local_variable_and_write_node_t *)node)->depth);
+        case PM_LOCAL_VARIABLE_AND_WRITE_NODE: {
+            pm_serialize_location(parser, &((pm_local_variable_and_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_local_variable_and_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_local_variable_and_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_and_write_node_t *)node)->name));
+            pm_buffer_append_u32(buffer, ((pm_local_variable_and_write_node_t *)node)->depth);
             break;
         }
-        case YP_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_local_variable_operator_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_operator_write_node_t *)node)->name));
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_operator_write_node_t *)node)->operator));
-            yp_buffer_append_u32(buffer, ((yp_local_variable_operator_write_node_t *)node)->depth);
+        case PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
+            pm_serialize_location(parser, &((pm_local_variable_operator_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_local_variable_operator_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_local_variable_operator_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_operator_write_node_t *)node)->name));
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_operator_write_node_t *)node)->operator));
+            pm_buffer_append_u32(buffer, ((pm_local_variable_operator_write_node_t *)node)->depth);
             break;
         }
-        case YP_LOCAL_VARIABLE_OR_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_local_variable_or_write_node_t *)node)->value, buffer);
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_or_write_node_t *)node)->name));
-            yp_buffer_append_u32(buffer, ((yp_local_variable_or_write_node_t *)node)->depth);
+        case PM_LOCAL_VARIABLE_OR_WRITE_NODE: {
+            pm_serialize_location(parser, &((pm_local_variable_or_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_local_variable_or_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_local_variable_or_write_node_t *)node)->value, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_or_write_node_t *)node)->name));
+            pm_buffer_append_u32(buffer, ((pm_local_variable_or_write_node_t *)node)->depth);
             break;
         }
-        case YP_LOCAL_VARIABLE_READ_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_read_node_t *)node)->name));
-            yp_buffer_append_u32(buffer, ((yp_local_variable_read_node_t *)node)->depth);
+        case PM_LOCAL_VARIABLE_READ_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_read_node_t *)node)->name));
+            pm_buffer_append_u32(buffer, ((pm_local_variable_read_node_t *)node)->depth);
             break;
         }
-        case YP_LOCAL_VARIABLE_TARGET_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_target_node_t *)node)->name));
-            yp_buffer_append_u32(buffer, ((yp_local_variable_target_node_t *)node)->depth);
+        case PM_LOCAL_VARIABLE_TARGET_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_target_node_t *)node)->name));
+            pm_buffer_append_u32(buffer, ((pm_local_variable_target_node_t *)node)->depth);
             break;
         }
-        case YP_LOCAL_VARIABLE_WRITE_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_local_variable_write_node_t *)node)->name));
-            yp_buffer_append_u32(buffer, ((yp_local_variable_write_node_t *)node)->depth);
-            yp_serialize_node(parser, (yp_node_t *)((yp_local_variable_write_node_t *)node)->value, buffer);
+        case PM_LOCAL_VARIABLE_WRITE_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_local_variable_write_node_t *)node)->name));
+            pm_buffer_append_u32(buffer, ((pm_local_variable_write_node_t *)node)->depth);
+            pm_serialize_location(parser, &((pm_local_variable_write_node_t *)node)->name_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_local_variable_write_node_t *)node)->value, buffer);
+            pm_serialize_location(parser, &((pm_local_variable_write_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_MATCH_LAST_LINE_NODE: {
-            yp_serialize_location(parser, &((yp_match_last_line_node_t *)node)->content_loc, buffer);
-            yp_serialize_string(parser, &((yp_match_last_line_node_t *)node)->unescaped, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 2);
+        case PM_MATCH_LAST_LINE_NODE: {
+            pm_serialize_location(parser, &((pm_match_last_line_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_match_last_line_node_t *)node)->content_loc, buffer);
+            pm_serialize_location(parser, &((pm_match_last_line_node_t *)node)->closing_loc, buffer);
+            pm_serialize_string(parser, &((pm_match_last_line_node_t *)node)->unescaped, buffer);
+            pm_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_MATCH_PREDICATE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_match_predicate_node_t *)node)->value, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_match_predicate_node_t *)node)->pattern, buffer);
+        case PM_MATCH_PREDICATE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_match_predicate_node_t *)node)->value, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_match_predicate_node_t *)node)->pattern, buffer);
+            pm_serialize_location(parser, &((pm_match_predicate_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_MATCH_REQUIRED_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_match_required_node_t *)node)->value, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_match_required_node_t *)node)->pattern, buffer);
+        case PM_MATCH_REQUIRED_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_match_required_node_t *)node)->value, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_match_required_node_t *)node)->pattern, buffer);
+            pm_serialize_location(parser, &((pm_match_required_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_MATCH_WRITE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_match_write_node_t *)node)->call, buffer);
-            uint32_t locals_size = yp_sizet_to_u32(((yp_match_write_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_MATCH_WRITE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_match_write_node_t *)node)->call, buffer);
+            uint32_t locals_size = pm_sizet_to_u32(((pm_match_write_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_match_write_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_match_write_node_t *)node)->locals.ids[index]));
             }
             break;
         }
-        case YP_MISSING_NODE: {
+        case PM_MISSING_NODE: {
             break;
         }
-        case YP_MODULE_NODE: {
-            uint32_t locals_size = yp_sizet_to_u32(((yp_module_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_MODULE_NODE: {
+            uint32_t locals_size = pm_sizet_to_u32(((pm_module_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_module_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_module_node_t *)node)->locals.ids[index]));
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_module_node_t *)node)->constant_path, buffer);
-            if (((yp_module_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_location(parser, &((pm_module_node_t *)node)->module_keyword_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_module_node_t *)node)->constant_path, buffer);
+            if (((pm_module_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_module_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_module_node_t *)node)->body, buffer);
             }
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_module_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_module_node_t *)node)->end_keyword_loc, buffer);
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_module_node_t *)node)->name));
             break;
         }
-        case YP_MULTI_TARGET_NODE: {
-            uint32_t targets_size = yp_sizet_to_u32(((yp_multi_target_node_t *)node)->targets.size);
-            yp_buffer_append_u32(buffer, targets_size);
+        case PM_MULTI_TARGET_NODE: {
+            uint32_t targets_size = pm_sizet_to_u32(((pm_multi_target_node_t *)node)->targets.size);
+            pm_buffer_append_u32(buffer, targets_size);
             for (uint32_t index = 0; index < targets_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_multi_target_node_t *)node)->targets.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_multi_target_node_t *)node)->targets.nodes[index], buffer);
             }
-            break;
-        }
-        case YP_MULTI_WRITE_NODE: {
-            uint32_t targets_size = yp_sizet_to_u32(((yp_multi_write_node_t *)node)->targets.size);
-            yp_buffer_append_u32(buffer, targets_size);
-            for (uint32_t index = 0; index < targets_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_multi_write_node_t *)node)->targets.nodes[index], buffer);
-            }
-            yp_serialize_node(parser, (yp_node_t *)((yp_multi_write_node_t *)node)->value, buffer);
-            break;
-        }
-        case YP_NEXT_NODE: {
-            if (((yp_next_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_multi_target_node_t *)node)->lparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_next_node_t *)node)->arguments, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_multi_target_node_t *)node)->lparen_loc, buffer);
+            }
+            if (((pm_multi_target_node_t *)node)->rparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_multi_target_node_t *)node)->rparen_loc, buffer);
             }
             break;
         }
-        case YP_NIL_NODE: {
+        case PM_MULTI_WRITE_NODE: {
+            uint32_t targets_size = pm_sizet_to_u32(((pm_multi_write_node_t *)node)->targets.size);
+            pm_buffer_append_u32(buffer, targets_size);
+            for (uint32_t index = 0; index < targets_size; index++) {
+                pm_serialize_node(parser, (pm_node_t *) ((pm_multi_write_node_t *)node)->targets.nodes[index], buffer);
+            }
+            if (((pm_multi_write_node_t *)node)->lparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_multi_write_node_t *)node)->lparen_loc, buffer);
+            }
+            if (((pm_multi_write_node_t *)node)->rparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_multi_write_node_t *)node)->rparen_loc, buffer);
+            }
+            pm_serialize_location(parser, &((pm_multi_write_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_multi_write_node_t *)node)->value, buffer);
             break;
         }
-        case YP_NO_KEYWORDS_PARAMETER_NODE: {
+        case PM_NEXT_NODE: {
+            if (((pm_next_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_next_node_t *)node)->arguments, buffer);
+            }
+            pm_serialize_location(parser, &((pm_next_node_t *)node)->keyword_loc, buffer);
             break;
         }
-        case YP_NUMBERED_REFERENCE_READ_NODE: {
-            yp_buffer_append_u32(buffer, ((yp_numbered_reference_read_node_t *)node)->number);
+        case PM_NIL_NODE: {
             break;
         }
-        case YP_OPTIONAL_PARAMETER_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_optional_parameter_node_t *)node)->name));
-            yp_serialize_node(parser, (yp_node_t *)((yp_optional_parameter_node_t *)node)->value, buffer);
+        case PM_NO_KEYWORDS_PARAMETER_NODE: {
+            pm_serialize_location(parser, &((pm_no_keywords_parameter_node_t *)node)->operator_loc, buffer);
+            pm_serialize_location(parser, &((pm_no_keywords_parameter_node_t *)node)->keyword_loc, buffer);
             break;
         }
-        case YP_OR_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_or_node_t *)node)->left, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_or_node_t *)node)->right, buffer);
+        case PM_NUMBERED_REFERENCE_READ_NODE: {
+            pm_buffer_append_u32(buffer, ((pm_numbered_reference_read_node_t *)node)->number);
             break;
         }
-        case YP_PARAMETERS_NODE: {
-            uint32_t requireds_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->requireds.size);
-            yp_buffer_append_u32(buffer, requireds_size);
+        case PM_OPTIONAL_PARAMETER_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_optional_parameter_node_t *)node)->name));
+            pm_serialize_location(parser, &((pm_optional_parameter_node_t *)node)->name_loc, buffer);
+            pm_serialize_location(parser, &((pm_optional_parameter_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_optional_parameter_node_t *)node)->value, buffer);
+            break;
+        }
+        case PM_OR_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_or_node_t *)node)->left, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_or_node_t *)node)->right, buffer);
+            pm_serialize_location(parser, &((pm_or_node_t *)node)->operator_loc, buffer);
+            break;
+        }
+        case PM_PARAMETERS_NODE: {
+            uint32_t requireds_size = pm_sizet_to_u32(((pm_parameters_node_t *)node)->requireds.size);
+            pm_buffer_append_u32(buffer, requireds_size);
             for (uint32_t index = 0; index < requireds_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->requireds.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_parameters_node_t *)node)->requireds.nodes[index], buffer);
             }
-            uint32_t optionals_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->optionals.size);
-            yp_buffer_append_u32(buffer, optionals_size);
+            uint32_t optionals_size = pm_sizet_to_u32(((pm_parameters_node_t *)node)->optionals.size);
+            pm_buffer_append_u32(buffer, optionals_size);
             for (uint32_t index = 0; index < optionals_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->optionals.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_parameters_node_t *)node)->optionals.nodes[index], buffer);
             }
-            if (((yp_parameters_node_t *)node)->rest == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_parameters_node_t *)node)->rest == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_parameters_node_t *)node)->rest, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_parameters_node_t *)node)->rest, buffer);
             }
-            uint32_t posts_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->posts.size);
-            yp_buffer_append_u32(buffer, posts_size);
+            uint32_t posts_size = pm_sizet_to_u32(((pm_parameters_node_t *)node)->posts.size);
+            pm_buffer_append_u32(buffer, posts_size);
             for (uint32_t index = 0; index < posts_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->posts.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_parameters_node_t *)node)->posts.nodes[index], buffer);
             }
-            uint32_t keywords_size = yp_sizet_to_u32(((yp_parameters_node_t *)node)->keywords.size);
-            yp_buffer_append_u32(buffer, keywords_size);
+            uint32_t keywords_size = pm_sizet_to_u32(((pm_parameters_node_t *)node)->keywords.size);
+            pm_buffer_append_u32(buffer, keywords_size);
             for (uint32_t index = 0; index < keywords_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_parameters_node_t *)node)->keywords.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_parameters_node_t *)node)->keywords.nodes[index], buffer);
             }
-            if (((yp_parameters_node_t *)node)->keyword_rest == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_parameters_node_t *)node)->keyword_rest == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_parameters_node_t *)node)->keyword_rest, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_parameters_node_t *)node)->keyword_rest, buffer);
             }
-            if (((yp_parameters_node_t *)node)->block == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_parameters_node_t *)node)->block == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_parameters_node_t *)node)->block, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_parameters_node_t *)node)->block, buffer);
             }
             break;
         }
-        case YP_PARENTHESES_NODE: {
-            if (((yp_parentheses_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_PARENTHESES_NODE: {
+            if (((pm_parentheses_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_parentheses_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_parentheses_node_t *)node)->body, buffer);
             }
+            pm_serialize_location(parser, &((pm_parentheses_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_parentheses_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_PINNED_EXPRESSION_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_pinned_expression_node_t *)node)->expression, buffer);
+        case PM_PINNED_EXPRESSION_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_pinned_expression_node_t *)node)->expression, buffer);
+            pm_serialize_location(parser, &((pm_pinned_expression_node_t *)node)->operator_loc, buffer);
+            pm_serialize_location(parser, &((pm_pinned_expression_node_t *)node)->lparen_loc, buffer);
+            pm_serialize_location(parser, &((pm_pinned_expression_node_t *)node)->rparen_loc, buffer);
             break;
         }
-        case YP_PINNED_VARIABLE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_pinned_variable_node_t *)node)->variable, buffer);
+        case PM_PINNED_VARIABLE_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_pinned_variable_node_t *)node)->variable, buffer);
+            pm_serialize_location(parser, &((pm_pinned_variable_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_POST_EXECUTION_NODE: {
-            if (((yp_post_execution_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_POST_EXECUTION_NODE: {
+            if (((pm_post_execution_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_post_execution_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_post_execution_node_t *)node)->statements, buffer);
             }
+            pm_serialize_location(parser, &((pm_post_execution_node_t *)node)->keyword_loc, buffer);
+            pm_serialize_location(parser, &((pm_post_execution_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_post_execution_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_PRE_EXECUTION_NODE: {
-            if (((yp_pre_execution_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_PRE_EXECUTION_NODE: {
+            if (((pm_pre_execution_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_pre_execution_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_pre_execution_node_t *)node)->statements, buffer);
             }
+            pm_serialize_location(parser, &((pm_pre_execution_node_t *)node)->keyword_loc, buffer);
+            pm_serialize_location(parser, &((pm_pre_execution_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_pre_execution_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_PROGRAM_NODE: {
-            uint32_t locals_size = yp_sizet_to_u32(((yp_program_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_PROGRAM_NODE: {
+            uint32_t locals_size = pm_sizet_to_u32(((pm_program_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_program_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_program_node_t *)node)->locals.ids[index]));
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_program_node_t *)node)->statements, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_program_node_t *)node)->statements, buffer);
             break;
         }
-        case YP_RANGE_NODE: {
-            if (((yp_range_node_t *)node)->left == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_RANGE_NODE: {
+            if (((pm_range_node_t *)node)->left == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_range_node_t *)node)->left, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_range_node_t *)node)->left, buffer);
             }
-            if (((yp_range_node_t *)node)->right == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_range_node_t *)node)->right == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_range_node_t *)node)->right, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_range_node_t *)node)->right, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
+            pm_serialize_location(parser, &((pm_range_node_t *)node)->operator_loc, buffer);
+            pm_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_RATIONAL_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_rational_node_t *)node)->numeric, buffer);
+        case PM_RATIONAL_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_rational_node_t *)node)->numeric, buffer);
             break;
         }
-        case YP_REDO_NODE: {
+        case PM_REDO_NODE: {
             break;
         }
-        case YP_REGULAR_EXPRESSION_NODE: {
-            yp_serialize_location(parser, &((yp_regular_expression_node_t *)node)->content_loc, buffer);
-            yp_serialize_string(parser, &((yp_regular_expression_node_t *)node)->unescaped, buffer);
-            yp_buffer_append_u32(buffer, node->flags >> 2);
+        case PM_REGULAR_EXPRESSION_NODE: {
+            pm_serialize_location(parser, &((pm_regular_expression_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_regular_expression_node_t *)node)->content_loc, buffer);
+            pm_serialize_location(parser, &((pm_regular_expression_node_t *)node)->closing_loc, buffer);
+            pm_serialize_string(parser, &((pm_regular_expression_node_t *)node)->unescaped, buffer);
+            pm_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
-            uint32_t parameters_size = yp_sizet_to_u32(((yp_required_destructured_parameter_node_t *)node)->parameters.size);
-            yp_buffer_append_u32(buffer, parameters_size);
+        case PM_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
+            uint32_t parameters_size = pm_sizet_to_u32(((pm_required_destructured_parameter_node_t *)node)->parameters.size);
+            pm_buffer_append_u32(buffer, parameters_size);
             for (uint32_t index = 0; index < parameters_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_required_destructured_parameter_node_t *)node)->parameters.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_required_destructured_parameter_node_t *)node)->parameters.nodes[index], buffer);
             }
+            pm_serialize_location(parser, &((pm_required_destructured_parameter_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_required_destructured_parameter_node_t *)node)->closing_loc, buffer);
             break;
         }
-        case YP_REQUIRED_PARAMETER_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_required_parameter_node_t *)node)->name));
+        case PM_REQUIRED_PARAMETER_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_required_parameter_node_t *)node)->name));
             break;
         }
-        case YP_RESCUE_MODIFIER_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_rescue_modifier_node_t *)node)->expression, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_rescue_modifier_node_t *)node)->rescue_expression, buffer);
+        case PM_RESCUE_MODIFIER_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_rescue_modifier_node_t *)node)->expression, buffer);
+            pm_serialize_location(parser, &((pm_rescue_modifier_node_t *)node)->keyword_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_rescue_modifier_node_t *)node)->rescue_expression, buffer);
             break;
         }
-        case YP_RESCUE_NODE: {
-            uint32_t exceptions_size = yp_sizet_to_u32(((yp_rescue_node_t *)node)->exceptions.size);
-            yp_buffer_append_u32(buffer, exceptions_size);
+        case PM_RESCUE_NODE: {
+            pm_serialize_location(parser, &((pm_rescue_node_t *)node)->keyword_loc, buffer);
+            uint32_t exceptions_size = pm_sizet_to_u32(((pm_rescue_node_t *)node)->exceptions.size);
+            pm_buffer_append_u32(buffer, exceptions_size);
             for (uint32_t index = 0; index < exceptions_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_rescue_node_t *)node)->exceptions.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_rescue_node_t *)node)->exceptions.nodes[index], buffer);
             }
-            if (((yp_rescue_node_t *)node)->reference == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_rescue_node_t *)node)->operator_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_rescue_node_t *)node)->reference, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_rescue_node_t *)node)->operator_loc, buffer);
             }
-            if (((yp_rescue_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_rescue_node_t *)node)->reference == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_rescue_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_rescue_node_t *)node)->reference, buffer);
             }
-            if (((yp_rescue_node_t *)node)->consequent == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_rescue_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_rescue_node_t *)node)->consequent, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_rescue_node_t *)node)->statements, buffer);
             }
-            break;
-        }
-        case YP_REST_PARAMETER_NODE: {
-            yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_rest_parameter_node_t *)node)->name));
-            break;
-        }
-        case YP_RETRY_NODE: {
-            break;
-        }
-        case YP_RETURN_NODE: {
-            if (((yp_return_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_rescue_node_t *)node)->consequent == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_return_node_t *)node)->arguments, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_rescue_node_t *)node)->consequent, buffer);
             }
             break;
         }
-        case YP_SELF_NODE: {
+        case PM_REST_PARAMETER_NODE: {
+            pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_rest_parameter_node_t *)node)->name));
+            if (((pm_rest_parameter_node_t *)node)->name_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_rest_parameter_node_t *)node)->name_loc, buffer);
+            }
+            pm_serialize_location(parser, &((pm_rest_parameter_node_t *)node)->operator_loc, buffer);
             break;
         }
-        case YP_SINGLETON_CLASS_NODE: {
-            uint32_t locals_size = yp_sizet_to_u32(((yp_singleton_class_node_t *)node)->locals.size);
-            yp_buffer_append_u32(buffer, locals_size);
+        case PM_RETRY_NODE: {
+            break;
+        }
+        case PM_RETURN_NODE: {
+            pm_serialize_location(parser, &((pm_return_node_t *)node)->keyword_loc, buffer);
+            if (((pm_return_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_return_node_t *)node)->arguments, buffer);
+            }
+            break;
+        }
+        case PM_SELF_NODE: {
+            break;
+        }
+        case PM_SINGLETON_CLASS_NODE: {
+            uint32_t locals_size = pm_sizet_to_u32(((pm_singleton_class_node_t *)node)->locals.size);
+            pm_buffer_append_u32(buffer, locals_size);
             for (uint32_t index = 0; index < locals_size; index++) {
-                yp_buffer_append_u32(buffer, yp_sizet_to_u32(((yp_singleton_class_node_t *)node)->locals.ids[index]));
+                pm_buffer_append_u32(buffer, pm_sizet_to_u32(((pm_singleton_class_node_t *)node)->locals.ids[index]));
             }
-            yp_serialize_node(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->expression, buffer);
-            if (((yp_singleton_class_node_t *)node)->body == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_location(parser, &((pm_singleton_class_node_t *)node)->class_keyword_loc, buffer);
+            pm_serialize_location(parser, &((pm_singleton_class_node_t *)node)->operator_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_singleton_class_node_t *)node)->expression, buffer);
+            if (((pm_singleton_class_node_t *)node)->body == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_singleton_class_node_t *)node)->body, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_singleton_class_node_t *)node)->body, buffer);
             }
+            pm_serialize_location(parser, &((pm_singleton_class_node_t *)node)->end_keyword_loc, buffer);
             break;
         }
-        case YP_SOURCE_ENCODING_NODE: {
+        case PM_SOURCE_ENCODING_NODE: {
             break;
         }
-        case YP_SOURCE_FILE_NODE: {
-            yp_serialize_string(parser, &((yp_source_file_node_t *)node)->filepath, buffer);
+        case PM_SOURCE_FILE_NODE: {
+            pm_serialize_string(parser, &((pm_source_file_node_t *)node)->filepath, buffer);
             break;
         }
-        case YP_SOURCE_LINE_NODE: {
+        case PM_SOURCE_LINE_NODE: {
             break;
         }
-        case YP_SPLAT_NODE: {
-            if (((yp_splat_node_t *)node)->expression == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_SPLAT_NODE: {
+            pm_serialize_location(parser, &((pm_splat_node_t *)node)->operator_loc, buffer);
+            if (((pm_splat_node_t *)node)->expression == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_splat_node_t *)node)->expression, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_splat_node_t *)node)->expression, buffer);
             }
             break;
         }
-        case YP_STATEMENTS_NODE: {
-            uint32_t body_size = yp_sizet_to_u32(((yp_statements_node_t *)node)->body.size);
-            yp_buffer_append_u32(buffer, body_size);
+        case PM_STATEMENTS_NODE: {
+            uint32_t body_size = pm_sizet_to_u32(((pm_statements_node_t *)node)->body.size);
+            pm_buffer_append_u32(buffer, body_size);
             for (uint32_t index = 0; index < body_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_statements_node_t *)node)->body.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_statements_node_t *)node)->body.nodes[index], buffer);
             }
             break;
         }
-        case YP_STRING_CONCAT_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_string_concat_node_t *)node)->left, buffer);
-            yp_serialize_node(parser, (yp_node_t *)((yp_string_concat_node_t *)node)->right, buffer);
+        case PM_STRING_CONCAT_NODE: {
+            pm_serialize_node(parser, (pm_node_t *)((pm_string_concat_node_t *)node)->left, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_string_concat_node_t *)node)->right, buffer);
             break;
         }
-        case YP_STRING_NODE: {
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            if (((yp_string_node_t *)node)->opening_loc.start == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_STRING_NODE: {
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            if (((pm_string_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_buffer_append_u8(buffer, 1);
-                yp_serialize_location(parser, &((yp_string_node_t *)node)->opening_loc, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_string_node_t *)node)->opening_loc, buffer);
             }
-            yp_serialize_location(parser, &((yp_string_node_t *)node)->content_loc, buffer);
-            yp_serialize_string(parser, &((yp_string_node_t *)node)->unescaped, buffer);
-            break;
-        }
-        case YP_SUPER_NODE: {
-            if (((yp_super_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_location(parser, &((pm_string_node_t *)node)->content_loc, buffer);
+            if (((pm_string_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_super_node_t *)node)->arguments, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_string_node_t *)node)->closing_loc, buffer);
             }
-            if (((yp_super_node_t *)node)->block == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_string(parser, &((pm_string_node_t *)node)->unescaped, buffer);
+            break;
+        }
+        case PM_SUPER_NODE: {
+            pm_serialize_location(parser, &((pm_super_node_t *)node)->keyword_loc, buffer);
+            if (((pm_super_node_t *)node)->lparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_super_node_t *)node)->block, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_super_node_t *)node)->lparen_loc, buffer);
+            }
+            if (((pm_super_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_super_node_t *)node)->arguments, buffer);
+            }
+            if (((pm_super_node_t *)node)->rparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_super_node_t *)node)->rparen_loc, buffer);
+            }
+            if (((pm_super_node_t *)node)->block == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_super_node_t *)node)->block, buffer);
             }
             break;
         }
-        case YP_SYMBOL_NODE: {
-            yp_serialize_string(parser, &((yp_symbol_node_t *)node)->unescaped, buffer);
+        case PM_SYMBOL_NODE: {
+            if (((pm_symbol_node_t *)node)->opening_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_symbol_node_t *)node)->opening_loc, buffer);
+            }
+            if (((pm_symbol_node_t *)node)->value_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_symbol_node_t *)node)->value_loc, buffer);
+            }
+            if (((pm_symbol_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_symbol_node_t *)node)->closing_loc, buffer);
+            }
+            pm_serialize_string(parser, &((pm_symbol_node_t *)node)->unescaped, buffer);
             break;
         }
-        case YP_TRUE_NODE: {
+        case PM_TRUE_NODE: {
             break;
         }
-        case YP_UNDEF_NODE: {
-            uint32_t names_size = yp_sizet_to_u32(((yp_undef_node_t *)node)->names.size);
-            yp_buffer_append_u32(buffer, names_size);
+        case PM_UNDEF_NODE: {
+            uint32_t names_size = pm_sizet_to_u32(((pm_undef_node_t *)node)->names.size);
+            pm_buffer_append_u32(buffer, names_size);
             for (uint32_t index = 0; index < names_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_undef_node_t *)node)->names.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_undef_node_t *)node)->names.nodes[index], buffer);
+            }
+            pm_serialize_location(parser, &((pm_undef_node_t *)node)->keyword_loc, buffer);
+            break;
+        }
+        case PM_UNLESS_NODE: {
+            pm_serialize_location(parser, &((pm_unless_node_t *)node)->keyword_loc, buffer);
+            pm_serialize_node(parser, (pm_node_t *)((pm_unless_node_t *)node)->predicate, buffer);
+            if (((pm_unless_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_unless_node_t *)node)->statements, buffer);
+            }
+            if (((pm_unless_node_t *)node)->consequent == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_unless_node_t *)node)->consequent, buffer);
+            }
+            if (((pm_unless_node_t *)node)->end_keyword_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_unless_node_t *)node)->end_keyword_loc, buffer);
             }
             break;
         }
-        case YP_UNLESS_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_unless_node_t *)node)->predicate, buffer);
-            if (((yp_unless_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_UNTIL_NODE: {
+            pm_serialize_location(parser, &((pm_until_node_t *)node)->keyword_loc, buffer);
+            if (((pm_until_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_unless_node_t *)node)->statements, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_until_node_t *)node)->closing_loc, buffer);
             }
-            if (((yp_unless_node_t *)node)->consequent == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_node(parser, (pm_node_t *)((pm_until_node_t *)node)->predicate, buffer);
+            if (((pm_until_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_unless_node_t *)node)->consequent, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_until_node_t *)node)->statements, buffer);
             }
+            pm_buffer_append_u32(buffer, node->flags >> 2);
             break;
         }
-        case YP_UNTIL_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_until_node_t *)node)->predicate, buffer);
-            if (((yp_until_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
-            } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_until_node_t *)node)->statements, buffer);
-            }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            break;
-        }
-        case YP_WHEN_NODE: {
-            uint32_t conditions_size = yp_sizet_to_u32(((yp_when_node_t *)node)->conditions.size);
-            yp_buffer_append_u32(buffer, conditions_size);
+        case PM_WHEN_NODE: {
+            pm_serialize_location(parser, &((pm_when_node_t *)node)->keyword_loc, buffer);
+            uint32_t conditions_size = pm_sizet_to_u32(((pm_when_node_t *)node)->conditions.size);
+            pm_buffer_append_u32(buffer, conditions_size);
             for (uint32_t index = 0; index < conditions_size; index++) {
-                yp_serialize_node(parser, (yp_node_t *) ((yp_when_node_t *)node)->conditions.nodes[index], buffer);
+                pm_serialize_node(parser, (pm_node_t *) ((pm_when_node_t *)node)->conditions.nodes[index], buffer);
             }
-            if (((yp_when_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            if (((pm_when_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_when_node_t *)node)->statements, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_when_node_t *)node)->statements, buffer);
             }
             break;
         }
-        case YP_WHILE_NODE: {
-            yp_serialize_node(parser, (yp_node_t *)((yp_while_node_t *)node)->predicate, buffer);
-            if (((yp_while_node_t *)node)->statements == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+        case PM_WHILE_NODE: {
+            pm_serialize_location(parser, &((pm_while_node_t *)node)->keyword_loc, buffer);
+            if (((pm_while_node_t *)node)->closing_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_while_node_t *)node)->statements, buffer);
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_while_node_t *)node)->closing_loc, buffer);
             }
-            yp_buffer_append_u32(buffer, node->flags >> 2);
-            break;
-        }
-        case YP_X_STRING_NODE: {
-            yp_serialize_string(parser, &((yp_x_string_node_t *)node)->unescaped, buffer);
-            break;
-        }
-        case YP_YIELD_NODE: {
-            if (((yp_yield_node_t *)node)->arguments == NULL) {
-                yp_buffer_append_u8(buffer, 0);
+            pm_serialize_node(parser, (pm_node_t *)((pm_while_node_t *)node)->predicate, buffer);
+            if (((pm_while_node_t *)node)->statements == NULL) {
+                pm_buffer_append_u8(buffer, 0);
             } else {
-                yp_serialize_node(parser, (yp_node_t *)((yp_yield_node_t *)node)->arguments, buffer);
+                pm_serialize_node(parser, (pm_node_t *)((pm_while_node_t *)node)->statements, buffer);
+            }
+            pm_buffer_append_u32(buffer, node->flags >> 2);
+            break;
+        }
+        case PM_X_STRING_NODE: {
+            pm_serialize_location(parser, &((pm_x_string_node_t *)node)->opening_loc, buffer);
+            pm_serialize_location(parser, &((pm_x_string_node_t *)node)->content_loc, buffer);
+            pm_serialize_location(parser, &((pm_x_string_node_t *)node)->closing_loc, buffer);
+            pm_serialize_string(parser, &((pm_x_string_node_t *)node)->unescaped, buffer);
+            break;
+        }
+        case PM_YIELD_NODE: {
+            pm_serialize_location(parser, &((pm_yield_node_t *)node)->keyword_loc, buffer);
+            if (((pm_yield_node_t *)node)->lparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_yield_node_t *)node)->lparen_loc, buffer);
+            }
+            if (((pm_yield_node_t *)node)->arguments == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_yield_node_t *)node)->arguments, buffer);
+            }
+            if (((pm_yield_node_t *)node)->rparen_loc.start == NULL) {
+                pm_buffer_append_u8(buffer, 0);
+            } else {
+                pm_buffer_append_u8(buffer, 1);
+                pm_serialize_location(parser, &((pm_yield_node_t *)node)->rparen_loc, buffer);
             }
             break;
         }
@@ -1193,173 +1727,173 @@ yp_serialize_node(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
 }
 
 static void
-yp_serialize_comment(yp_parser_t *parser, yp_comment_t *comment, yp_buffer_t *buffer) {
+pm_serialize_comment(pm_parser_t *parser, pm_comment_t *comment, pm_buffer_t *buffer) {
     // serialize type
-    yp_buffer_append_u8(buffer, (uint8_t) comment->type);
+    pm_buffer_append_u8(buffer, (uint8_t) comment->type);
 
     // serialize location
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(comment->start - parser->start));
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(comment->end - comment->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(comment->start - parser->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(comment->end - comment->start));
 }
 
 static void
-yp_serialize_comment_list(yp_parser_t *parser, yp_list_t *list, yp_buffer_t *buffer) {
-    yp_buffer_append_u32(buffer, yp_sizet_to_u32(yp_list_size(list)));
+pm_serialize_comment_list(pm_parser_t *parser, pm_list_t *list, pm_buffer_t *buffer) {
+    pm_buffer_append_u32(buffer, pm_sizet_to_u32(pm_list_size(list)));
 
-    yp_comment_t *comment;
-    for (comment = (yp_comment_t *) list->head; comment != NULL; comment = (yp_comment_t *) comment->node.next) {
-        yp_serialize_comment(parser, comment, buffer);
+    pm_comment_t *comment;
+    for (comment = (pm_comment_t *) list->head; comment != NULL; comment = (pm_comment_t *) comment->node.next) {
+        pm_serialize_comment(parser, comment, buffer);
     }
 }
 
 static void
-yp_serialize_diagnostic(yp_parser_t *parser, yp_diagnostic_t *diagnostic, yp_buffer_t *buffer) {
+pm_serialize_diagnostic(pm_parser_t *parser, pm_diagnostic_t *diagnostic, pm_buffer_t *buffer) {
     // serialize message
     size_t message_length = strlen(diagnostic->message);
-    yp_buffer_append_u32(buffer, yp_sizet_to_u32(message_length));
-    yp_buffer_append_str(buffer, diagnostic->message, message_length);
+    pm_buffer_append_u32(buffer, pm_sizet_to_u32(message_length));
+    pm_buffer_append_str(buffer, diagnostic->message, message_length);
 
     // serialize location
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(diagnostic->start - parser->start));
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(diagnostic->end - diagnostic->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(diagnostic->start - parser->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(diagnostic->end - diagnostic->start));
 }
 
 static void
-yp_serialize_diagnostic_list(yp_parser_t *parser, yp_list_t *list, yp_buffer_t *buffer) {
-    yp_buffer_append_u32(buffer, yp_sizet_to_u32(yp_list_size(list)));
+pm_serialize_diagnostic_list(pm_parser_t *parser, pm_list_t *list, pm_buffer_t *buffer) {
+    pm_buffer_append_u32(buffer, pm_sizet_to_u32(pm_list_size(list)));
 
-    yp_diagnostic_t *diagnostic;
-    for (diagnostic = (yp_diagnostic_t *) list->head; diagnostic != NULL; diagnostic = (yp_diagnostic_t *) diagnostic->node.next) {
-        yp_serialize_diagnostic(parser, diagnostic, buffer);
+    pm_diagnostic_t *diagnostic;
+    for (diagnostic = (pm_diagnostic_t *) list->head; diagnostic != NULL; diagnostic = (pm_diagnostic_t *) diagnostic->node.next) {
+        pm_serialize_diagnostic(parser, diagnostic, buffer);
     }
 }
 
 static void
-yp_serialize_encoding(yp_encoding_t *encoding, yp_buffer_t *buffer) {
+pm_serialize_encoding(pm_encoding_t *encoding, pm_buffer_t *buffer) {
     size_t encoding_length = strlen(encoding->name);
-    yp_buffer_append_u32(buffer, yp_sizet_to_u32(encoding_length));
-    yp_buffer_append_str(buffer, encoding->name, encoding_length);
+    pm_buffer_append_u32(buffer, pm_sizet_to_u32(encoding_length));
+    pm_buffer_append_str(buffer, encoding->name, encoding_length);
 }
 
 #line 179 "serialize.c.erb"
 void
-yp_serialize_content(yp_parser_t *parser, yp_node_t *node, yp_buffer_t *buffer) {
-    yp_serialize_encoding(&parser->encoding, buffer);
-    yp_serialize_comment_list(parser, &parser->comment_list, buffer);
-    yp_serialize_diagnostic_list(parser, &parser->error_list, buffer);
-    yp_serialize_diagnostic_list(parser, &parser->warning_list, buffer);
+pm_serialize_content(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
+    pm_serialize_encoding(&parser->encoding, buffer);
+    pm_serialize_comment_list(parser, &parser->comment_list, buffer);
+    pm_serialize_diagnostic_list(parser, &parser->error_list, buffer);
+    pm_serialize_diagnostic_list(parser, &parser->warning_list, buffer);
 
     // Here we're going to leave space for the offset of the constant pool in
     // the buffer.
     size_t offset = buffer->length;
-    yp_buffer_append_zeroes(buffer, 4);
+    pm_buffer_append_zeroes(buffer, 4);
 
     // Next, encode the length of the constant pool.
-    yp_buffer_append_u32(buffer, parser->constant_pool.size);
+    pm_buffer_append_u32(buffer, parser->constant_pool.size);
 
     // Now we're going to serialize the content of the node.
-    yp_serialize_node(parser, node, buffer);
+    pm_serialize_node(parser, node, buffer);
 
     // Now we're going to serialize the offset of the constant pool back where
     // we left space for it.
-    uint32_t length = yp_sizet_to_u32(buffer->length);
+    uint32_t length = pm_sizet_to_u32(buffer->length);
     memcpy(buffer->value + offset, &length, sizeof(uint32_t));
 
     // Now we're going to serialize the constant pool.
     offset = buffer->length;
-    yp_buffer_append_zeroes(buffer, parser->constant_pool.size * 8);
+    pm_buffer_append_zeroes(buffer, parser->constant_pool.size * 8);
 
-    yp_constant_t *constant;
     for (uint32_t index = 0; index < parser->constant_pool.capacity; index++) {
-        constant = &parser->constant_pool.constants[index];
+        pm_constant_pool_bucket_t *bucket = &parser->constant_pool.buckets[index];
 
         // If we find a constant at this index, serialize it at the correct
         // index in the buffer.
-        if (constant->id != 0) {
-            size_t buffer_offset = offset + ((((size_t) constant->id) - 1) * 8);
+        if (bucket->id != 0) {
+            pm_constant_t *constant = &parser->constant_pool.constants[bucket->id - 1];
+            size_t buffer_offset = offset + ((((size_t)bucket->id) - 1) * 8);
 
-            if (constant->owned) {
+            if (bucket->owned) {
                 // Since this is an owned constant, we are going to write its
                 // contents into the buffer after the constant pool. So
                 // effectively in place of the source offset, we have a buffer
                 // offset. We will add a leading 1 to indicate that this is a
                 // buffer offset.
-                uint32_t content_offset = yp_sizet_to_u32(buffer->length);
+                uint32_t content_offset = pm_sizet_to_u32(buffer->length);
                 uint32_t owned_mask = (uint32_t) (1 << 31);
 
                 assert(content_offset < owned_mask);
                 content_offset |= owned_mask;
 
                 memcpy(buffer->value + buffer_offset, &content_offset, 4);
-                yp_buffer_append_bytes(buffer, constant->start, constant->length);
+                pm_buffer_append_bytes(buffer, constant->start, constant->length);
             } else {
                 // Since this is a shared constant, we are going to write its
                 // source offset directly into the buffer.
-                uint32_t source_offset = yp_ptrdifft_to_u32(constant->start - parser->start);
+                uint32_t source_offset = pm_ptrdifft_to_u32(constant->start - parser->start);
                 memcpy(buffer->value + buffer_offset, &source_offset, 4);
             }
 
             // Now we can write the length of the constant into the buffer.
-            uint32_t constant_length = yp_sizet_to_u32(constant->length);
+            uint32_t constant_length = pm_sizet_to_u32(constant->length);
             memcpy(buffer->value + buffer_offset + 4, &constant_length, 4);
         }
     }
 }
 
 static void
-serialize_token(void *data, yp_parser_t *parser, yp_token_t *token) {
-    yp_buffer_t *buffer = (yp_buffer_t *) data;
+serialize_token(void *data, pm_parser_t *parser, pm_token_t *token) {
+    pm_buffer_t *buffer = (pm_buffer_t *) data;
 
-    yp_buffer_append_u32(buffer, token->type);
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(token->start - parser->start));
-    yp_buffer_append_u32(buffer, yp_ptrdifft_to_u32(token->end - token->start));
-    yp_buffer_append_u32(buffer, parser->lex_state);
+    pm_buffer_append_u32(buffer, token->type);
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(token->start - parser->start));
+    pm_buffer_append_u32(buffer, pm_ptrdifft_to_u32(token->end - token->start));
+    pm_buffer_append_u32(buffer, parser->lex_state);
 }
 
-YP_EXPORTED_FUNCTION void
-yp_lex_serialize(const uint8_t *source, size_t size, const char *filepath, yp_buffer_t *buffer) {
-    yp_parser_t parser;
-    yp_parser_init(&parser, source, size, filepath);
+PRISM_EXPORTED_FUNCTION void
+pm_lex_serialize(const uint8_t *source, size_t size, const char *filepath, pm_buffer_t *buffer) {
+    pm_parser_t parser;
+    pm_parser_init(&parser, source, size, filepath);
 
-    yp_lex_callback_t lex_callback = (yp_lex_callback_t) {
+    pm_lex_callback_t lex_callback = (pm_lex_callback_t) {
         .data = (void *) buffer,
         .callback = serialize_token,
     };
 
     parser.lex_callback = &lex_callback;
-    yp_node_t *node = yp_parse(&parser);
+    pm_node_t *node = pm_parse(&parser);
 
     // Append 0 to mark end of tokens
-    yp_buffer_append_u8(buffer, 0);
+    pm_buffer_append_u8(buffer, 0);
 
-    yp_serialize_encoding(&parser.encoding, buffer);
-    yp_serialize_comment_list(&parser, &parser.comment_list, buffer);
-    yp_serialize_diagnostic_list(&parser, &parser.error_list, buffer);
-    yp_serialize_diagnostic_list(&parser, &parser.warning_list, buffer);
+    pm_serialize_encoding(&parser.encoding, buffer);
+    pm_serialize_comment_list(&parser, &parser.comment_list, buffer);
+    pm_serialize_diagnostic_list(&parser, &parser.error_list, buffer);
+    pm_serialize_diagnostic_list(&parser, &parser.warning_list, buffer);
 
-    yp_node_destroy(&parser, node);
-    yp_parser_free(&parser);
+    pm_node_destroy(&parser, node);
+    pm_parser_free(&parser);
 }
 
 // Parse and serialize both the AST and the tokens represented by the given
 // source to the given buffer.
-YP_EXPORTED_FUNCTION void
-yp_parse_lex_serialize(const uint8_t *source, size_t size, yp_buffer_t *buffer, const char *metadata) {
-    yp_parser_t parser;
-    yp_parser_init(&parser, source, size, NULL);
-    if (metadata) yp_parser_metadata(&parser, metadata);
+PRISM_EXPORTED_FUNCTION void
+pm_parse_lex_serialize(const uint8_t *source, size_t size, pm_buffer_t *buffer, const char *metadata) {
+    pm_parser_t parser;
+    pm_parser_init(&parser, source, size, NULL);
+    if (metadata) pm_parser_metadata(&parser, metadata);
 
-    yp_lex_callback_t lex_callback = (yp_lex_callback_t) {
+    pm_lex_callback_t lex_callback = (pm_lex_callback_t) {
         .data = (void *) buffer,
         .callback = serialize_token,
     };
 
     parser.lex_callback = &lex_callback;
-    yp_node_t *node = yp_parse(&parser);
+    pm_node_t *node = pm_parse(&parser);
 
-    yp_buffer_append_u8(buffer, 0);
-    yp_serialize(&parser, node, buffer);
+    pm_buffer_append_u8(buffer, 0);
+    pm_serialize(&parser, node, buffer);
 
-    yp_node_destroy(&parser, node);
-    yp_parser_free(&parser);
+    pm_node_destroy(&parser, node);
+    pm_parser_free(&parser);
 }
