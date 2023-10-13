@@ -485,26 +485,14 @@ public final class CompactHashStore {
                 @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
                 @Cached GetHashNextPosInIndexNode getNextHashPos,
                 @Cached @Exclusive InlinedConditionProfile passedKeyIsEqualToFoundKey,
-                @Cached @Exclusive InlinedConditionProfile relocationPossible,
                 @Cached @Exclusive InlinedLoopConditionProfile keyHashFound,
                 @Bind("$node") Node node) {
             int startPos = getIndexPosFromHash(hash, index.length);
-            long result = getNextHashPos.execute(startPos, hash, index, startPos);
+            int nextHashPos = getNextHashPos.execute(startPos, hash, index, startPos);
 
-            int firstHashPosInIndex = IntPair.second(result);
-            int relocationPos = IntPair.first(result);
-
-            int nextHashPos = firstHashPosInIndex;
             while (keyHashFound.profile(node, nextHashPos != HASH_NOT_FOUND)) {
                 int kvPos = index[nextHashPos + 1] - 1;
                 Object otherKey = kvStore[kvPos];
-
-                if (relocationPossible.profile(node, relocationPos != INVALID_ARRAY_POSITION)) {
-                    index[relocationPos] = index[nextHashPos];
-                    index[relocationPos + 1] = index[nextHashPos + 1];
-                    index[nextHashPos + 1] = INDEX_SLOT_DELETED;
-                    nextHashPos = relocationPos;
-                }
 
                 if (passedKeyIsEqualToFoundKey.profile(node,
                         compareHashKeysNode.execute(compareByIdentity, key, otherKey))) {
@@ -512,9 +500,7 @@ public final class CompactHashStore {
                 }
 
                 int next = incrementIndexPos(nextHashPos, index.length);
-                result = getNextHashPos.execute(next, hash, index, startPos);
-                nextHashPos = IntPair.second(result);
-                relocationPos = IntPair.first(result);
+                nextHashPos = getNextHashPos.execute(next, hash, index, startPos);
             }
 
             return KEY_NOT_FOUND;
@@ -538,10 +524,10 @@ public final class CompactHashStore {
     @GenerateUncached
     abstract static class GetHashNextPosInIndexNode extends RubyBaseNode {
 
-        public abstract long execute(int startingFromPos, int hash, int[] index, int stop);
+        public abstract int execute(int startingFromPos, int hash, int[] index, int stop);
 
         @Specialization
-        long getHashNextPos(int startingFromPos, int hash, int[] index, int stop,
+        int getHashNextPos(int startingFromPos, int hash, int[] index, int stop,
                 @Cached @Exclusive InlinedConditionProfile slotIsDeleted,
                 @Cached @Exclusive InlinedConditionProfile slotIsUnused,
                 @Cached @Exclusive InlinedConditionProfile hashFound,
@@ -549,18 +535,15 @@ public final class CompactHashStore {
                 @Cached @Exclusive InlinedLoopConditionProfile stopNotYetReached,
                 @Bind("$node") Node node) {
             int nextHashPos = startingFromPos;
-            int firstDeletedSlot = INVALID_ARRAY_POSITION;
             do {
                 if (slotIsUnused.profile(node, index[nextHashPos + 1] == INDEX_SLOT_UNUSED)) {
                     return HASH_NOT_FOUND;
                 }
 
                 if (slotIsDeleted.profile(node, index[nextHashPos + 1] == INDEX_SLOT_DELETED)) {
-                    if (noValidFirstDeletedSlot.profile(node, firstDeletedSlot == INVALID_ARRAY_POSITION)) {
-                        firstDeletedSlot = nextHashPos;
-                    }
+                    // next
                 } else if (hashFound.profile(node, index[nextHashPos] == hash)) {
-                    return IntPair.mk(firstDeletedSlot, nextHashPos);
+                    return nextHashPos;
                 }
 
                 nextHashPos = incrementIndexPos(nextHashPos, index.length);
@@ -578,35 +561,21 @@ public final class CompactHashStore {
         @Specialization
         int getHashPos(int hash, int kvPos, int[] index,
                 @Cached @Exclusive InlinedConditionProfile keyFound,
-                @Cached @Exclusive InlinedConditionProfile relocationPossible,
                 @Cached @Exclusive InlinedLoopConditionProfile keyHashFound,
                 @Cached GetHashNextPosInIndexNode getNextHashPos,
                 @Bind("$node") Node node) {
             int startPos = getIndexPosFromHash(hash, index.length);
-            long result = getNextHashPos.execute(startPos, hash, index, startPos);
+            int nextPos = getNextHashPos.execute(startPos, hash, index, startPos);
 
-            int firstHashPos = IntPair.second(result);
-            int relocationPos = IntPair.first(result);
-
-            int nextPos = firstHashPos;
             while (keyHashFound.profile(node, nextPos != HASH_NOT_FOUND)) {
                 int kvPosition = index[nextPos + 1] - 1;
-
-                if (relocationPossible.profile(node, relocationPos != INVALID_ARRAY_POSITION)) {
-                    index[relocationPos] = index[nextPos];
-                    index[relocationPos + 1] = index[nextPos + 1];
-                    index[nextPos + 1] = INDEX_SLOT_DELETED;
-                    nextPos = relocationPos;
-                }
 
                 if (keyFound.profile(node, kvPos == kvPosition)) {
                     return nextPos;
                 }
 
                 int next = incrementIndexPos(nextPos, index.length);
-                result = getNextHashPos.execute(next, hash, index, startPos);
-                nextPos = IntPair.second(result);
-                relocationPos = IntPair.first(result);
+                nextPos = getNextHashPos.execute(next, hash, index, startPos);
             }
             return HASH_NOT_FOUND;
         }
