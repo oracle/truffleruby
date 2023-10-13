@@ -255,7 +255,7 @@ public final class CompactHashStore {
         int i = 0;
         int callbackIdx = 0;
         try {
-            for (; loopProfile.inject(node, i < kvStore.length); i += 2) {
+            for (; loopProfile.inject(node, i < kvStoreInsertionPos); i += 2) {
                 if (keyNotNull.profile(node, kvStore[i] != null)) {
                     callback.accept(callbackIdx, kvStore[i], kvStore[i + 1], state);
                     callbackIdx++;
