@@ -423,7 +423,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitCallNode(Nodes.CallNode node) {
-        var methodName = toString(node.name);
+        var methodName = node.name;
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
         final Nodes.Node[] arguments;
 
@@ -1874,11 +1874,6 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.TrueNode ||
                 node instanceof Nodes.FalseNode ||
                 node instanceof Nodes.NilNode;
-    }
-
-    private String toString(byte[] bytes) {
-        return TStringUtils.toJavaStringOrThrow(
-                TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     protected String toString(Nodes.Node node) {
