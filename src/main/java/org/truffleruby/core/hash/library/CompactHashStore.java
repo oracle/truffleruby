@@ -167,7 +167,7 @@ public final class CompactHashStore {
         int pos = kvStoreInsertionPos;
         SetKvAtNode.insertIntoKv(this, key, value);
         SetKvAtNode.insertIntoIndex(hashcode, pos + 1, index,
-                /* profiling args : */ InlinedLoopConditionProfile.getUncached(), null);
+                InlinedLoopConditionProfile.getUncached(), null);
     }
 
     @ExportMessage
@@ -233,7 +233,7 @@ public final class CompactHashStore {
             @Cached @Exclusive InlinedConditionProfile keyGivenIsNotLastKey,
             @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
             @Bind("$node") Node node) {
-        int lastKeyPos = firstNonNullKeyPosFromEnd(/* profiling args : */ nonNullKeyNotYetFound, node);
+        int lastKeyPos = firstNonNullKeyPosFromEnd(nonNullKeyNotYetFound, node);
         if (kvAllNulls.profile(node, lastKeyPos == KEY_NOT_FOUND)) {
             return null;
         }
@@ -301,7 +301,7 @@ public final class CompactHashStore {
             @Cached @Exclusive InlinedConditionProfile nonNullKeyFound,
             @Bind("$node") Node node) {
         int lastKeyPos = firstNonNullKeyPosFromBeginning(
-                /* profiling args : */ nonNullKeyNotYetFound, nonNullKeyFound, node);
+                nonNullKeyNotYetFound, nonNullKeyFound, node);
 
         if (noKvToShift.profile(node, lastKeyPos == KEY_NOT_FOUND)) {
             return null;
@@ -360,7 +360,7 @@ public final class CompactHashStore {
                     }
 
                     SetKvAtNode.insertIntoIndex(newHash, kvOffset, index,
-                            /* profiling args : */ indexSlotUnavailable, node);
+                            indexSlotUnavailable, node);
                     hashesToKvPositions.get(newHash).add(kvOffset - 1);
                 }
             }
@@ -380,13 +380,12 @@ public final class CompactHashStore {
 
         assert (index.length & (index.length - 1)) == 0; //index.length is always a power of 2
 
-        // expensive, uncomment if you're debugging
-        // assertAllKvPositionsAreValid();
+        assertAllKvPositionsAreValid();
 
         return true;
     }
 
-    @SuppressFBWarnings({ "UPM_UNCALLED_PRIVATE_METHOD", "IM_BAD_CHECK_FOR_ODD" })
+    @SuppressFBWarnings("IM_BAD_CHECK_FOR_ODD")
     private void assertAllKvPositionsAreValid() {
         for (int i = 1; i < index.length; i += 2) {
             if (index[i] != INDEX_SLOT_UNUSED && index[i] != INDEX_SLOT_DELETED) {
@@ -603,12 +602,10 @@ public final class CompactHashStore {
                 @Cached @Exclusive InlinedConditionProfile kvResizingIsNeeded,
                 @Cached @Exclusive InlinedConditionProfile indexResizingIsNeeded,
                 @Cached @Exclusive InlinedLoopConditionProfile indexSlotUnavailable,
-                @Cached @Exclusive InlinedLoopConditionProfile idxSlotUnavailable,
-                @Cached @Exclusive InlinedLoopConditionProfile tillIndexArrayEnd,
                 @Bind("$node") Node node) {
             if (indexResizingIsNeeded.profile(node,
                     hash.size >= store.numSlotsForIndexRebuild)) {
-                resizeIndex(store, /* profiling args : */ idxSlotUnavailable, tillIndexArrayEnd, node);
+                resizeIndex(store, node);
             }
             if (kvResizingIsNeeded.profile(node,
                     store.kvStoreInsertionPos >= store.kvStore.length)) {
@@ -616,7 +613,7 @@ public final class CompactHashStore {
             }
             int pos = store.kvStoreInsertionPos;
             insertIntoKv(store, frozenKey, value);
-            insertIntoIndex(keyHash, pos + 1, store.index, /* profiling args : */ indexSlotUnavailable, node);
+            insertIntoIndex(keyHash, pos + 1, store.index, indexSlotUnavailable, node);
 
             hash.size++;
             return true;
@@ -626,10 +623,8 @@ public final class CompactHashStore {
                 InlinedLoopConditionProfile unavailableSlot, Node node) {
             int pos = getIndexPosFromHash(keyHash, index.length);
 
-            boolean slotFilled = index[pos + 1] > INDEX_SLOT_UNUSED;
-            while (unavailableSlot.profile(node, slotFilled)) {
+            while (unavailableSlot.profile(node, index[pos + 1] > INDEX_SLOT_UNUSED)) {
                 pos = incrementIndexPos(pos, index.length);
-                slotFilled = index[pos + 1] > INDEX_SLOT_UNUSED;
             }
 
             index[pos] = keyHash;
@@ -643,26 +638,18 @@ public final class CompactHashStore {
         }
 
         @TruffleBoundary
-        private static void resizeIndex(CompactHashStore store,
-                InlinedLoopConditionProfile indexSlotUnavailable,
-                InlinedLoopConditionProfile loopProfile,
-                Node node) {
+        private static void resizeIndex(CompactHashStore store, Node node) {
             int[] oldIndex = store.index;
             store.index = new int[2 * oldIndex.length];
 
             int i = 0;
-            try {
-                for (; loopProfile.inject(node, i < oldIndex.length); i += 2) {
-                    int hash = oldIndex[i];
-                    int kvPos = oldIndex[i + 1];
+            for (; i < oldIndex.length; i += 2) {
+                int hash = oldIndex[i];
+                int kvPos = oldIndex[i + 1];
 
-                    insertIntoIndex(hash, kvPos, store.index,
-                            /* profiling args */ indexSlotUnavailable, node);
-                }
-                store.numSlotsForIndexRebuild = (int) (oldIndex.length * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
-            } finally {
-                RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i >> 1);
+                insertIntoIndex(hash, kvPos, store.index, InlinedLoopConditionProfile.getUncached(), node);
             }
+            store.numSlotsForIndexRebuild = (int) (oldIndex.length * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
         }
 
         private static void resizeKvStore(CompactHashStore store) {
