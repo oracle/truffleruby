@@ -55,7 +55,7 @@ clean_truffleposix:
 	$(Q) rm -f $(TRUFFLE_POSIX) truffleposix/*.o
 
 clean_trampoline:
-	$(Q) rm -f $(TRAMPOLINE) cext-trampoline/trampoline.c cext-trampoline/*.o
+	$(Q) rm -f $(TRAMPOLINE) cext-trampoline/trampoline.c cext/wrappers.c cext-trampoline/*.o
 
 clean_cexts:
 	$(Q) rm -f cext/Makefile cext/*.o $(LIBTRUFFLERUBY)

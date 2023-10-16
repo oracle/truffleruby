@@ -381,11 +381,13 @@ suite = {
             "buildDependencies": [
                 "sulong:SULONG_BOOTSTRAP_TOOLCHAIN", # graalvm-native-clang
                 "sulong:SULONG_HOME", # polyglot.h
+                "truffle:TRUFFLE_NFI_NATIVE", # trufflenfi.h
                 "TRUFFLERUBY-BOOTSTRAP-LAUNCHER",
             ],
             "buildEnv": {
                 "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
                 "GRAALVM_TOOLCHAIN_CC": "<toolchainGetToolPath:native,CC>",
+                "TRUFFLE_NFI_NATIVE_INCLUDE": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
             },
             "output": ".",
             "results": [

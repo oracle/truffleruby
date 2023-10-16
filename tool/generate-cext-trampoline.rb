@@ -41,7 +41,7 @@ function_regexp = /(^(#{type_regexp})\s*(\w+)(#{arguments_regexp})\s*\{)$/
 functions = []
 
 Dir["src/main/c/cext/*.c"].sort.each do |file|
-  next if %w[cext_constants.c ruby.c st.c].include?(File.basename(file))
+  next if %w[cext_constants.c wrappers.c ruby.c st.c].include?(File.basename(file))
 
   contents = File.read(file)
   found_functions = contents.scan(function_regexp)
@@ -91,9 +91,90 @@ COPYRIGHT
 
 #include <internal_all.h>
 
-// Functions
+#include <trufflenfi.h>
+
+#include <setjmp.h>
+
+static TruffleContext* nfiContext = NULL;
+
+static __thread jmp_buf *rb_tr_jmp_buf = NULL;
+
+static inline bool rb_tr_exception_from_java(void) {
+  TruffleEnv* env = (*nfiContext)->getTruffleEnv(nfiContext);
+  return (*env)->exceptionCheck(env);
+}
+
+RBIMPL_ATTR_NORETURN()
+static inline void rb_tr_exception_from_java_jump(void) {
+  if (LIKELY(rb_tr_jmp_buf != NULL)) {
+    // fprintf(stderr, "There was an exception, longjmp()'ing");
+    RUBY_LONGJMP(*rb_tr_jmp_buf, 1);
+  } else {
+    fprintf(stderr, "ERROR: There was an exception in Java but rb_tr_jmp_buf is NULL.");
+    abort();
+  }
+}
+
 C
 
+  File.open("src/main/c/cext/wrappers.c", "w") do |sulong|
+    sulong.puts <<C
+#include <ruby.h>
+
+C
+
+    signatures = [
+      ['rb_tr_setjmp_wrapper_pointer1_to_void', '(VALUE arg):void'],
+      ['rb_tr_setjmp_wrapper_pointer2_to_void', '(VALUE tracepoint, void *data):void'],
+      ['rb_tr_setjmp_wrapper_pointer3_to_void', '(VALUE val, ID id, VALUE *data):void'],
+      ['rb_tr_setjmp_wrapper_pointer3_to_int', '(VALUE key, VALUE val, VALUE arg):int'],
+      ['rb_tr_setjmp_wrapper_pointer1_to_size_t', '(const void *arg):size_t'],
+      ['rb_tr_setjmp_wrapper_int_pointer2_to_pointer', '(int argc, VALUE *argv, VALUE obj):VALUE'],
+      ['rb_tr_setjmp_wrapper_pointer2_int_to_pointer', '(VALUE g, VALUE h, int r):VALUE'],
+      ['rb_tr_setjmp_wrapper_pointer2_int_pointer2_to_pointer', '(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg):VALUE'],
+    ]
+    (1..16).each do |arity|
+      signatures << [
+        "rb_tr_setjmp_wrapper_pointer#{arity}_to_pointer",
+        "(#{(1..arity).map { |i| "VALUE arg#{i}" }.join(', ')}):VALUE"
+      ]
+    end
+
+    signatures.each do |function_name, signature|
+      argument_types, return_type = signature.split(':')
+      argument_types = argument_types.delete_prefix('(').delete_suffix(')')
+      void = return_type == 'void'
+      f.puts <<C
+#{return_type} #{function_name}(#{return_type} (*func)(#{argument_types}), #{argument_types}) {
+  #{"#{return_type} result;" unless void}
+
+  jmp_buf *prev_jmp_buf = rb_tr_jmp_buf;
+  jmp_buf here;
+  rb_tr_jmp_buf = &here;
+
+  if (RUBY_SETJMP(here) == 0) {
+    #{'result = ' unless void}func(#{argument_types.split(', ').map { |param| param[/\w+$/] }.join(', ')});
+  } else {
+    // fprintf(stderr, "Return from longjmp()");
+    #{'result = Qundef; // The exception should be rethrown as soon as we are back in Java, so the return value should not matter' unless void}
+  }
+
+  rb_tr_jmp_buf = prev_jmp_buf;
+
+  #{'return result;' unless void}
+}
+
+C
+      sulong.puts <<C
+#{return_type} #{function_name}(#{return_type} (*func)(#{argument_types}), #{argument_types}) {
+  #{'return ' unless void}func(#{argument_types.split(', ').map { |param| param[/\w+$/] }.join(', ')});
+}
+
+C
+    end
+  end
+
+  f.puts "\n// Functions\n\n"
   functions.each do |declaration, return_type, function_name, argument_types|
     f.puts "#undef #{function_name}"
     f.puts "static #{declaration.sub(/\{$/, '').rstrip.sub(function_name, "(*impl_#{function_name})")};"
@@ -120,17 +201,30 @@ C
     f.puts declaration
     if return_type.strip == 'void' or no_return
       f.puts "  impl_#{function_name}(#{argument_names});"
+      if no_return
+        f.puts "  if (LIKELY(rb_tr_exception_from_java())) {"
+      else
+        f.puts "  if (UNLIKELY(rb_tr_exception_from_java())) {"
+      end
+      f.puts "    rb_tr_exception_from_java_jump();"
+      f.puts "  }"
+      f.puts "  UNREACHABLE;" if no_return
     else
-      f.puts "  return impl_#{function_name}(#{argument_names});"
+      f.puts "  #{return_type} _result = impl_#{function_name}(#{argument_names});"
+      f.puts "  if (UNLIKELY(rb_tr_exception_from_java())) {"
+      f.puts "    rb_tr_exception_from_java_jump();"
+      f.puts "  }"
+      f.puts "  return _result;"
     end
-    f.puts "  UNREACHABLE;" if no_return
     f.puts "}"
     f.puts
   end
 
   f.puts <<C
 // Init functions
-void rb_tr_trampoline_init_functions(void* (*get_libtruffleruby_function)(const char*)) {
+void rb_tr_trampoline_init_functions(TruffleEnv* env, void* (*get_libtruffleruby_function)(const char*)) {
+  nfiContext = (*env)->getTruffleContext(env);
+
 C
   functions.each do |declaration, return_type, function_name, argument_types|
     f.puts "  impl_#{function_name} = get_libtruffleruby_function(\"#{function_name}\");"

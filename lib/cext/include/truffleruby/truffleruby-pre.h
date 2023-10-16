@@ -76,6 +76,8 @@ void rb_tr_set_flags(VALUE object, unsigned long flags);
 #define RBASIC_SET_FLAGS(obj, flags_to_set) rb_tr_set_flags(obj, flags_to_set)
 
 void rb_exc_set_message(VALUE exc, VALUE message);
+
+// This is used by several C extensions. It is not a public API, but it is a public symbol exposed by CRuby.
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Defines

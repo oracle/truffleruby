@@ -292,7 +292,7 @@ public abstract class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached InlinedConditionProfile ownedProfile) {
-            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+            Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();

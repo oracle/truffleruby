@@ -23,4 +23,4 @@ libtrufflerubytrampoline.$(SOEXT): $(OBJECT_FILES) Makefile
 	$(Q) $(CC) -shared $(LDFLAGS) -o $@ $(OBJECT_FILES)
 
 %.o: %.c Makefile
-	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(RUBY_HDR_DIR) -I$(ROOT)/lib/cext/include/stubs $<
+	$(Q) $(CC) -o $@ -c $(CFLAGS) $(LDFLAGS) -I$(RUBY_HDR_DIR) -I$(ROOT)/lib/cext/include/stubs -I$(TRUFFLE_NFI_NATIVE_INCLUDE) $<

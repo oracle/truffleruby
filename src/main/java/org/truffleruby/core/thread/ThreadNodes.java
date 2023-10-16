@@ -657,8 +657,15 @@ public abstract class ThreadNodes {
 
         @SuppressWarnings("truffle-neverdefault") // GR-43642
         @Specialization(limit = "getCacheLimit()")
-        static Object call(RubyThread thread, Object function, Object arg, Object unblocker, Object unblockerArg,
-                @CachedLibrary("function") InteropLibrary receivers,
+        static Object call(
+                RubyThread thread,
+                Object wrapper,
+                Object function,
+                Object arg,
+                Object unblockWrapper,
+                Object unblocker,
+                Object unblockerArg,
+                @CachedLibrary("wrapper") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Bind("this") Node node,
                 @Cached("new(node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
@@ -667,33 +674,36 @@ public abstract class ThreadNodes {
             if (unblocker == nil) {
                 interrupter = threadManager.getNativeCallInterrupter();
             } else {
-                interrupter = makeInterrupter(getContext(node), unblocker, unblockerArg);
+                interrupter = makeInterrupter(getContext(node), unblockWrapper, unblocker, unblockerArg);
             }
 
-            final Object[] args = { arg };
+            final Object[] args = { function, arg };
             return ThreadManager.executeBlockingCall(
                     thread,
                     interrupter,
-                    function,
+                    wrapper,
                     args,
                     blockingCallInterruptible,
                     node);
         }
 
         @TruffleBoundary
-        private static Interrupter makeInterrupter(RubyContext context, Object function, Object argument) {
-            return new CExtInterrupter(context, function, argument);
+        private static Interrupter makeInterrupter(RubyContext context, Object wrapper, Object function,
+                Object argument) {
+            return new CExtInterrupter(context, wrapper, function, argument);
         }
 
         private static final class CExtInterrupter implements Interrupter {
 
             private final RubyContext context;
+            private final Object wrapper;
             private final Object function;
             private final Object argument;
 
-            public CExtInterrupter(RubyContext context, Object function, Object argument) {
-                assert InteropLibrary.getUncached().isExecutable(function);
+            public CExtInterrupter(RubyContext context, Object wrapper, Object function, Object argument) {
+                assert InteropLibrary.getUncached().isExecutable(wrapper);
                 this.context = context;
+                this.wrapper = wrapper;
                 this.function = function;
                 this.argument = argument;
             }
@@ -720,7 +730,7 @@ public abstract class ThreadNodes {
                 }
 
                 try {
-                    InteropLibrary.getUncached().execute(function, argument);
+                    InteropLibrary.getUncached().execute(wrapper, function, argument);
                 } catch (InteropException e) {
                     throw CompilerDirectives.shouldNotReachHere(e);
                 } finally {

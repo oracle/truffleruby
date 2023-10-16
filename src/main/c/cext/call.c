@@ -16,7 +16,7 @@ void rb_error_arity(int argc, int min, int max) {
   rb_exc_raise(rb_exc_new3(rb_eArgError, rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_arity_error_string", argc, min, max))));
 }
 
-VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
+VALUE rb_iterate(VALUE (*function)(VALUE), VALUE arg1, rb_block_call_func_t block, VALUE arg2) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_iterate", function, rb_tr_unwrap(arg1), block, rb_tr_unwrap(arg2)));
 }
 
@@ -144,42 +144,12 @@ void *rb_thread_call_with_gvl(gvl_call *function, void *data1) {
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_with_gvl", function, data1);
 }
 
-struct gvl_call_data {
-  gvl_call *function;
-  void* data;
-};
-
-struct unblock_function_data {
-  rb_unblock_function_t* function;
-  void* data;
-};
-
-static void* call_gvl_call_function(void *data) {
-  struct gvl_call_data* s = (struct gvl_call_data*) data;
-  return s->function(s->data);
-}
-
-static void call_unblock_function(void *data) {
-  struct unblock_function_data* s = (struct unblock_function_data*) data;
-  s->function(s->data);
-}
-
 void* rb_thread_call_without_gvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
-  // wrap functions to handle native functions
-  // TODO is it needed if we .bind() in Ruby code?
-  struct gvl_call_data call_struct = { function, data1 };
-  struct unblock_function_data unblock_struct = { unblock_function, data2 };
-
-  rb_unblock_function_t *wrapped_unblock_function;
   if (unblock_function == RUBY_UBF_IO) {
-    wrapped_unblock_function = (rb_unblock_function_t*) rb_tr_unwrap(Qnil);
-  } else {
-    wrapped_unblock_function = call_unblock_function;
+    unblock_function = (rb_unblock_function_t*) rb_tr_unwrap(Qnil);
   }
 
-  return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl",
-    call_gvl_call_function, &call_struct,
-    wrapped_unblock_function, &unblock_struct);
+  return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
 }
 
 void* rb_thread_call_without_gvl2(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {

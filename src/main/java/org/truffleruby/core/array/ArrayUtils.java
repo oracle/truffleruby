@@ -224,6 +224,11 @@ public abstract class ArrayUtils {
         return copy;
     }
 
+    public static Object[] shift(Object[] array) {
+        assert array.length > 0;
+        return extractRange(array, 1, array.length);
+    }
+
     public static Object[] unshift(Object[] array, Object element) {
         final Object[] newArray = new Object[1 + array.length];
         newArray[0] = element;

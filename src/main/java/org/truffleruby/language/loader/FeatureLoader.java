@@ -461,15 +461,11 @@ public final class FeatureLoader {
                 final String rubyLibPath = language.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
                 final Object library = loadCExtLibRuby(rubyLibPath, feature, requireNode);
 
-                var initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
-
                 final InteropLibrary interop = InteropLibrary.getUncached();
                 language.getCurrentFiber().extensionCallStack.push(false, nil, nil);
                 try {
                     // Truffle::CExt.register_libtruffleruby(libtruffleruby)
-                    interop.invokeMember(truffleCExt, "register_libtruffleruby", library);
-                    // rb_tr_init(Truffle::CExt)
-                    interop.execute(initFunction, truffleCExt);
+                    interop.invokeMember(truffleCExt, "init_libtruffleruby", library);
 
                     if (!context.getOptions().CEXTS_SULONG) {
                         // Truffle::CExt.init_libtrufflerubytrampoline(libtrampoline)
