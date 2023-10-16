@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Argument descriptors / with double splat operator without variable name (**)"
 notes: >
-  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+  Block parameters are described (as ArgumentDescriptor[]) in the following way:
     - ArgumentDescriptor(name = a, type = keyreq)
     - ArgumentDescriptor(name = b, type = keyreq)
     - ArgumentDescriptor(name = %kwrest, type = keyrest)

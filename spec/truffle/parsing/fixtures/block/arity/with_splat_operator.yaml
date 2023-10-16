@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Arity / with splat operator and preceding and following parameters"
 notes: >
-  Method parameters are described (as Arity object) in the following way:
+  Block parameters are described (as Arity object) in the following way:
     - preRequired=2
     - optional=0
     - hasRest=true

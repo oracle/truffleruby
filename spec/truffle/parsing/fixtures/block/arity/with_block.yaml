@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Arity / with block (def a(&b))"
 notes: >
-  Method parameters are described (as Arity object) in the following way:
+  Block parameters are described (as Arity object) in the following way:
     - preRequired=0
     - optional=0
     - hasRest=false

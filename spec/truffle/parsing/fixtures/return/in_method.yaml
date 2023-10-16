@@ -2,6 +2,8 @@ subject: "Return"
 description: "return operator in a method (with a value)"
 notes: >
   Is represented by LocalReturnNode node
+  
+  Return operator is not the last one to prevent tail optimization that eliminates return operator at all.
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo

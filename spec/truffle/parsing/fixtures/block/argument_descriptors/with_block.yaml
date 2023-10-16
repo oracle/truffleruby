@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Argument descriptors / with block (def a(&b))"
 notes: >
-  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+  Block parameters are described (as ArgumentDescriptor[]) in the following way:
     - ArgumentDescriptor(name = bar, type = block)
   
   So a block argument is described as a `block` variable.

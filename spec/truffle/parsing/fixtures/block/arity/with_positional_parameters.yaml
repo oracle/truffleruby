@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Arity / when multiple positional parameters only"
 notes: >
-  Method parameters are described (as Arity object) in the following way:
+  Block parameters are described (as Arity object) in the following way:
     - preRequired=3
     - optional=0
     - hasRest=false

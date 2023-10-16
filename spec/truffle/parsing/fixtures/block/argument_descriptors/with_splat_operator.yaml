@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Argument descriptors / with splat operator and preceding and following parameters"
 notes: >
-  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+  Block parameters are described (as ArgumentDescriptor[]) in the following way:
     - ArgumentDescriptor(name = a, type = req)
     - ArgumentDescriptor(name = b, type = req)
     - ArgumentDescriptor(name = c, type = rest)

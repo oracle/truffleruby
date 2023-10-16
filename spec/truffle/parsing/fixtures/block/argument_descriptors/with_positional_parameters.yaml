@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Argument descriptors / when multiple positional parameters only"
 notes: >
-  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+  Block parameters are described (as ArgumentDescriptor[]) in the following way:
     - ArgumentDescriptor(name = a, type = req)
     - ArgumentDescriptor(name = b, type = req)
     - ArgumentDescriptor(name = c, type = req)

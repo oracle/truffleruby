@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Arity / with optional keyword arguments"
 notes: >
-  Method parameters are described (as Arity object) in the following way:
+  Block parameters are described (as Arity object) in the following way:
     - preRequired=0
     - optional=0
     - hasRest=false

@@ -1,15 +1,15 @@
 subject: "Return"
-description: "return operator in a method without value"
+description: "return operator in a method with multiple values"
 notes: >
   Is represented by LocalReturnNode node.
-  Missing value is represented by a child NilLiteralNode node.
+  Multiple values are represented by a child ArrayLiteralNode$UninitialisedArrayLiteralNode node.
   
   Return operator is not the last one to prevent tail optimization that eliminates return operator at all.
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo
-    return
-    42
+    return 42, 100500
+    "foo"
   end
 ast: |
   LiteralMethodDefinitionNode
@@ -67,12 +67,24 @@ ast: |
                                           flags = 1
                                       children:
                                           value =
-                                              NilLiteralNode
+                                              ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                   attributes:
                                                       flags = 0
-                                                      isImplicit = false
-                                  IntegerFixnumLiteralNode
+                                                      language = org.truffleruby.RubyLanguage@...
+                                                  children:
+                                                      values = [
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 42
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 100500
+                                                      ]
+                                  StringLiteralNode
                                       attributes:
+                                          encoding = UTF-8
                                           flags = 1
-                                          value = 42
+                                          tstring = foo
                               ]

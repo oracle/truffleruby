@@ -2,6 +2,7 @@ fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
 fails:Parsing a END block (END { ... }) case is parsed correctly
 fails:Parsing a Encoding keyword (__ENCODING__ keyword) case is parsed correctly
 fails:Parsing a begin ... end block (with multiple expressions inside a block) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / when numbered parameters used in a block) case is parsed correctly
 fails:Parsing a Block (Argument descriptors / with block (def a(&b))) case is parsed correctly
 fails:Parsing a Block (Argument descriptors / with double splat operator (**kw)) case is parsed correctly
 fails:Parsing a Block (Argument descriptors / with double splat operator without variable name (**)) case is parsed correctly
@@ -11,13 +12,16 @@ fails:Parsing a Block (Argument descriptors / with optional positional parameter
 fails:Parsing a Block (Argument descriptors / when multiple positional parameters only) case is parsed correctly
 fails:Parsing a Block (Argument descriptors / with splat operator and preceding and following parameters) case is parsed correctly
 fails:Parsing a Block (Argument descriptors / with splat operator without name and preceding and following parameters) case is parsed correctly
+fails:Parsing a Block (Argument descriptors / with implicit rest parameter (|a,|)) case is parsed correctly
 fails:Parsing a Block (Arity / with block (def a(&b))) case is parsed correctly
 fails:Parsing a Block (Arity / with double splat operator (**kw)) case is parsed correctly
 fails:Parsing a Block (Arity / with keyword arguments) case is parsed correctly
 fails:Parsing a Block (Arity / with optional keyword arguments) case is parsed correctly
 fails:Parsing a Block (Arity / with optional positional parameters) case is parsed correctly
 fails:Parsing a Block (Arity / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Block (Arity / when numbered parameters used in a block) case is parsed correctly
 fails:Parsing a Block (Arity / with splat operator and preceding and following parameters) case is parsed correctly
+fails:Parsing a Block (Arity / with implicit rest parameter (|a,|)) case is parsed correctly
 fails:Parsing a Block (Destructuring array argument / when no rest positional parameter but optional parameters count > 1 - it tries to destruct) case is parsed correctly
 fails:Parsing a Block (Destructuring array argument / when no rest positional parameter but required parameters count > 1 - it tries to destruct) case is parsed correctly
 fails:Parsing a Block (Destructuring array argument / when no rest positional parameter but one required parameter and one optional one - it tries to destruct) case is parsed correctly
@@ -37,6 +41,7 @@ fails:Parsing a Block (Parameters to local variables / with keyword arguments) c
 fails:Parsing a Block (Parameters to local variables / with optional keyword arguments) case is parsed correctly
 fails:Parsing a Block (Parameters to local variables / with optional positional parameters) case is parsed correctly
 fails:Parsing a Block (Parameters to local variables / when multiple positional parameters only) case is parsed correctly
+fails:Parsing a Block (Parameters to local variables / when numbered parameters used in a block) case is parsed correctly
 fails:Parsing a Block (Parameters to local variables / with splat operator and preceding and following parameters) case is parsed correctly
 fails:Parsing a Block (Parameters to local variables / without parameters) case is parsed correctly
 fails:Parsing a Block (Tail expression / with explicit return inside then branch of the `if` operator) case is parsed correctly
@@ -170,10 +175,12 @@ fails:Parsing a Rational number (with Float value) case is parsed correctly
 fails:Parsing a Rational number (with Integer value) case is parsed correctly
 fails:Parsing a Rational number (with negative value) case is parsed correctly
 fails:Parsing a Regexp (Regexp literal in boolean context (e.g. condition in if, while, etc)) case is parsed correctly
+fails:Parsing a Regexp (Regexp literal in boolean context with interpolation (e.g. condition in if, while, etc)) case is parsed correctly
 fails:Parsing a Regexp (a literal) case is parsed correctly
 fails:Parsing a Regexp (a literal with interpolation (with #{...})) case is parsed correctly
 fails:Parsing a Regexp (a literal with interpolation but without expression (#{})) case is parsed correctly
 fails:Parsing a Regexp (a literal with options (e.g. i, x, m, o)) case is parsed correctly
+fails:Parsing a Regexp (with named captured group (/(?<a>b)/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
@@ -193,9 +200,11 @@ fails:Parsing a Return (return operator in a block in a class definition body) c
 fails:Parsing a Return (return operator in a block in a module definition body) case is parsed correctly
 fails:Parsing a Return (return operator in a block without a value) case is parsed correctly
 fails:Parsing a Return (return operator in a lambda) case is parsed correctly
-fails:Parsing a Return (return operator in a method (with a value)) case is parsed correctly
-fails:Parsing a Return (return operator in a method without value) case is parsed correctly
-fails:Parsing a Return (return operator with splat operator (return *a)) case is parsed correctly
+fails:Parsing a Return (return operator in a lambda in a class definition body) case is parsed correctly
+fails:Parsing a Return (return operator in a lambda in a module definition body) case is parsed correctly
+fails:Parsing a Return (return operator in a lambda method call) case is parsed correctly
+fails:Parsing a Return (return operator in a lambda method call in a class definition body) case is parsed correctly
+fails:Parsing a Return (return operator in a lambda method call in a module definition body) case is parsed correctly
 fails:Parsing a Sequence of expressions () case is parsed correctly
 fails:Parsing a String (Literal with interpolation when when expressions are % String literals) case is parsed correctly
 fails:Parsing a String (Literal with interpolation when expressions are Strings) case is parsed correctly
