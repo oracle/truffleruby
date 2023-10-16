@@ -1402,12 +1402,18 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStringNode(Nodes.StringNode node) {
+        final RubyNode rubyNode;
         final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
-        final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
-        final RubyNode rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
+
+        if (!node.isFrozen()) {
+            final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
+            rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
+        } else {
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, sourceEncoding);
+            rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
+        }
 
         assignNodePositionInSource(node, rubyNode);
-
         return rubyNode;
     }
 
