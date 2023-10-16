@@ -10,7 +10,12 @@
 
 ```bash
 cd prism
-chruby 3.2.
 bundle exec rake
-bundle exec ruby -Ilib -rprism -e 'pp Prism.parse("1&.itself")'
+bin/parse -e '1&.itself'
+```
+
+We can also see what the AST as Java nodes and without extra location fields looks like on TruffleRuby with:
+```bash
+cd truffleruby
+jt -q ruby -e 'puts Truffle::Debug.yarp_parse(ARGV[0])' -- '1&.itself'
 ```
