@@ -1043,25 +1043,20 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final int radix;
         final int offset;
 
-        if (string.startsWith("0b") || string.startsWith("0B")) {
+        if (node.isBinary()) {
             radix = 2;
             offset = 2;
-        } else if (string.startsWith("0x") || string.startsWith("0X")) {
+        } else if (node.isHexadecimal()) {
             radix = 16;
             offset = 2;
-        } else if (string.startsWith("0d") || string.startsWith("0D")) {
+        } else if (node.isDecimal()) {
             radix = 10;
-            offset = 2;
-        } else if (string.startsWith("0o") || string.startsWith("0O")) {
+            offset = (string.startsWith("0d") || string.startsWith("0D")) ? 2 : 0;
+        } else if (node.isOctal()) {
             radix = 8;
-            offset = 2;
-        } else if (string.startsWith("0") && string.length() > 1) {
-            // check length to distinguish `0` from octal literal `0...`
-            radix = 8;
-            offset = 1;
+            offset = (string.startsWith("0o") || string.startsWith("0O")) ? 2 : 1; // 0oXX, 0OXX, 0XX
         } else {
-            radix = 10;
-            offset = 0;
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final long value = Long.parseLong(string.substring(offset), radix);
