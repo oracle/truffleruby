@@ -138,7 +138,7 @@ suite = {
 
         # ------------- Projects -------------
 
-        "org.yarp": {
+        "org.prism": {
             "dir": "src/yarp",
             "sourceDirs": ["java"],
             "jniHeaders": True,
@@ -219,7 +219,7 @@ suite = {
             "ldflags": ["-pthread"],
         },
 
-        "org.yarp.libyarp": {
+        "org.prism.libyarp": {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
             # "makeTarget": "all-no-debug", # Can use this to build without asserts
@@ -232,13 +232,13 @@ suite = {
             "native": "shared_lib",
             "deliverable": "yarp",
             "buildDependencies": [
-                "org.yarp.libyarp", # librubyparser.a
-                "org.yarp", # for the generated JNI header file
+                "org.prism.libyarp", # librubyparser.a
+                "org.prism", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.yarp.libyarp>/include"],
+            "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.prism.libyarp>/include"],
             "ldflags": ["-pthread"],
-            "ldlibs": ["<path:org.yarp.libyarp>/build/librubyparser.a"],
+            "ldlibs": ["<path:org.prism.libyarp>/build/librubyparser.a"],
             "description": "JNI bindings for YARP"
         },
 
@@ -254,7 +254,7 @@ suite = {
             ],
             "dependencies": [
                 # Projects
-                "org.yarp",
+                "org.prism",
                 # Distributions, keep in sync with TRUFFLERUBY.distDependencies
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
                 "truffleruby:TRUFFLERUBY-SHARED",

@@ -84,10 +84,10 @@ import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.Metrics;
-import org.yarp.Loader;
-import org.yarp.Nodes;
-import org.yarp.ParseResult;
-import org.yarp.Parser;
+import org.prism.Loader;
+import org.prism.Nodes;
+import org.prism.ParseResult;
+import org.prism.Parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -174,7 +174,7 @@ public final class YARPTranslatorDriver {
 
         // Parse to the YARP AST
 
-        final org.yarp.Nodes.Node node;
+        final org.prism.Nodes.Node node;
 
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
 
@@ -395,7 +395,7 @@ public final class YARPTranslatorDriver {
         }
     }
 
-    public static org.yarp.Nodes.Node parseToYARPAST(RubyContext context, RubyLanguage language, RubySource rubySource,
+    public static org.prism.Nodes.Node parseToYARPAST(RubyContext context, RubyLanguage language, RubySource rubySource,
             StaticScope blockScope, ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings) {
         //        LexerSource lexerSource = new LexerSource(rubySource);
         // We only need to pass in current scope if we are evaluating as a block (which
@@ -409,7 +409,7 @@ public final class YARPTranslatorDriver {
 
         // YARP begin
         byte[] sourceBytes = rubySource.getBytes();
-        org.yarp.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
+        org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
 
         var yarpSource = createYARPSource(sourceBytes, rubySource);

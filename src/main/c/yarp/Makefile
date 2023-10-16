@@ -35,7 +35,7 @@ build/librubyparser.a: $(STATIC_OBJECTS)
 build/shared/%.o: src/%.c Makefile $(HEADERS)
 	$(ECHO) "compiling $@"
 	$(Q) mkdir -p $(@D)
-	$(Q) $(CC) $(DEBUG_FLAGS) -DYP_EXPORT_SYMBOLS $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(Q) $(CC) $(DEBUG_FLAGS) -DPRISM_EXPORT_SYMBOLS $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 build/static/%.o: src/%.c Makefile $(HEADERS)
 	$(ECHO) "compiling $@"
@@ -55,20 +55,20 @@ build/fuzz.heisenbug.%: $(SOURCES) fuzz/%.c fuzz/heisenbug.c
 
 fuzz-debug:
 	$(ECHO) "entering debug shell"
-	$(Q) docker run -it --rm -e HISTFILE=/yarp/fuzz/output/.bash_history -v $(shell pwd):/yarp -v $(FUZZ_OUTPUT_DIR):/fuzz_output yarp/fuzz
+	$(Q) docker run -it --rm -e HISTFILE=/prism/fuzz/output/.bash_history -v $(shell pwd):/prism -v $(FUZZ_OUTPUT_DIR):/fuzz_output prism/fuzz
 
 fuzz-docker-build: fuzz/docker/Dockerfile
 	$(ECHO) "building docker image"
-	$(Q) docker build -t yarp/fuzz fuzz/docker/
+	$(Q) docker build -t prism/fuzz fuzz/docker/
 
 fuzz-run-%: FORCE fuzz-docker-build
 	$(ECHO) "generating templates"
 	$(Q) bundle exec rake templates
 	$(ECHO) "running $* fuzzer"
-	$(Q) docker run --rm -v $(shell pwd):/yarp yarp/fuzz /bin/bash -c "FUZZ_FLAGS=\"$(FUZZ_FLAGS)\" make build/fuzz.$*"
+	$(Q) docker run --rm -v $(shell pwd):/prism prism/fuzz /bin/bash -c "FUZZ_FLAGS=\"$(FUZZ_FLAGS)\" make build/fuzz.$*"
 	$(ECHO) "starting AFL++ run"
 	$(Q) mkdir -p $(FUZZ_OUTPUT_DIR)/$*
-	$(Q) docker run -it --rm -v $(shell pwd):/yarp -v $(FUZZ_OUTPUT_DIR):/fuzz_output yarp/fuzz /bin/bash -c "./fuzz/$*.sh /fuzz_output/$*"
+	$(Q) docker run -it --rm -v $(shell pwd):/prism -v $(FUZZ_OUTPUT_DIR):/fuzz_output prism/fuzz /bin/bash -c "./fuzz/$*.sh /fuzz_output/$*"
 FORCE:
 
 fuzz-clean:
