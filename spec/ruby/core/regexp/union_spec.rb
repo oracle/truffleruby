@@ -43,6 +43,24 @@ describe "Regexp.union" do
     Regexp.union("\u00A9".encode("ISO-8859-1"), "a".encode("UTF-8")).encoding.should == Encoding::ISO_8859_1
   end
 
+  it "returns ASCII-8BIT if the regexp encodings are ASCII-8BIT and at least one has non-ASCII characters" do
+    us_ascii_implicit, us_ascii_explicit, binary = /abc/, /[\x00-\x7f]/n, /[\x80-\xBF]/n
+
+    Regexp.union(us_ascii_implicit, us_ascii_explicit, binary).encoding.should == Encoding::BINARY
+    Regexp.union(us_ascii_implicit, binary, us_ascii_explicit).encoding.should == Encoding::BINARY
+    Regexp.union(us_ascii_explicit, us_ascii_implicit, binary).encoding.should == Encoding::BINARY
+    Regexp.union(us_ascii_explicit, binary, us_ascii_implicit).encoding.should == Encoding::BINARY
+    Regexp.union(binary, us_ascii_implicit, us_ascii_explicit).encoding.should == Encoding::BINARY
+    Regexp.union(binary, us_ascii_explicit, us_ascii_implicit).encoding.should == Encoding::BINARY
+  end
+
+  it "return US-ASCII if all patterns are ASCII-only" do
+    Regexp.union(/abc/e, /def/e).encoding.should == Encoding::US_ASCII
+    Regexp.union(/abc/n, /def/n).encoding.should == Encoding::US_ASCII
+    Regexp.union(/abc/s, /def/s).encoding.should == Encoding::US_ASCII
+    Regexp.union(/abc/u, /def/u).encoding.should == Encoding::US_ASCII
+  end
+
   it "returns a Regexp with UTF-8 if one part is UTF-8" do
     Regexp.union(/probl[éeè]me/i, /help/i).encoding.should == Encoding::UTF_8
   end
