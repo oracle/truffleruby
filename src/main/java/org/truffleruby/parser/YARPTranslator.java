@@ -1483,7 +1483,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitXStringNode(Nodes.XStringNode node) {
         // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
-        var stringNode = new Nodes.StringNode((short) 0, null, null, node.unescaped, node.startOffset, node.length);
+        var stringNode = new Nodes.StringNode((short) 0, node.unescaped, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
 
