@@ -6913,6 +6913,15 @@ typedef struct {
     const uint8_t *cursor;
 } pm_token_buffer_t;
 
+static inline bool
+pm_token_buffer_init(pm_token_buffer_t *token_buffer) {
+    if (!pm_buffer_init(&token_buffer->buffer)) {
+        return false;
+    }
+    token_buffer->cursor = NULL;
+    return true;
+}
+
 // Push the given byte into the token buffer.
 static inline void
 pm_token_buffer_push(pm_token_buffer_t *token_buffer, uint8_t byte) {
@@ -8213,7 +8222,8 @@ parser_lex(pm_parser_t *parser) {
 
             // If we haven't found an escape yet, then this buffer will be
             // unallocated since we can refer directly to the source string.
-            pm_token_buffer_t token_buffer = { 0 };
+            pm_token_buffer_t token_buffer;
+            pm_token_buffer_init(&token_buffer);
 
             while (breakpoint != NULL) {
                 // If we hit a null byte, skip directly past it.
@@ -8389,7 +8399,8 @@ parser_lex(pm_parser_t *parser) {
             // characters.
             const uint8_t *breakpoints = lex_mode->as.regexp.breakpoints;
             const uint8_t *breakpoint = pm_strpbrk(parser, parser->current.end, breakpoints, parser->end - parser->current.end);
-            pm_token_buffer_t token_buffer = { 0 };
+            pm_token_buffer_t token_buffer;
+            pm_token_buffer_init(&token_buffer);
 
             while (breakpoint != NULL) {
                 // If we hit a null byte, skip directly past it.
@@ -8578,7 +8589,8 @@ parser_lex(pm_parser_t *parser) {
 
             // If we haven't found an escape yet, then this buffer will be
             // unallocated since we can refer directly to the source string.
-            pm_token_buffer_t token_buffer = { 0 };
+            pm_token_buffer_t token_buffer;
+            pm_token_buffer_init(&token_buffer);
 
             while (breakpoint != NULL) {
                 // If we hit the incrementor, then we'll increment then nesting and
@@ -8839,7 +8851,8 @@ parser_lex(pm_parser_t *parser) {
             }
 
             const uint8_t *breakpoint = pm_strpbrk(parser, parser->current.end, breakpoints, parser->end - parser->current.end);
-            pm_token_buffer_t token_buffer = { 0 };
+            pm_token_buffer_t token_buffer;
+            pm_token_buffer_init(&token_buffer);
             bool was_escaped_newline = false;
 
             while (breakpoint != NULL) {
