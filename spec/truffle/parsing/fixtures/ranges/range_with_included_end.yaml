@@ -4,22 +4,19 @@ focused_on_node: "org.truffleruby.core.range.RangeNodes$RangeLiteralNode"
 ruby: |
   "a".."z"
 ast: |
-  RangeNodes$RangeLiteralNode
+  RangeNodesFactory$RangeLiteralNodeGen
       attributes:
-          excludeEnd = false
           flags = 1
       children:
-          beginNode =
+          beginNode_ =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 0
                       tstring = a
-          endNode =
+          endNode_ =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 0
                       tstring = z
-          newRangeNode =
-              RangeNodesFactory$NewRangeNodeGen
