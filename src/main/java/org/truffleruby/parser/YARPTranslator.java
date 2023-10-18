@@ -251,7 +251,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitBackReferenceReadNode(Nodes.BackReferenceReadNode node) {
-        final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(toString(node));
+        final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(node.name);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
