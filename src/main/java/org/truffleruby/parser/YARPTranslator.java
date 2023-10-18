@@ -251,7 +251,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitBackReferenceReadNode(Nodes.BackReferenceReadNode node) {
-        final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(toString(node));
+        final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(node.name);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
@@ -422,6 +422,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
+    public RubyNode visitCallAndWriteNode(Nodes.CallAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitCallNode(Nodes.CallNode node) {
         var methodName = node.name;
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
@@ -493,6 +498,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitCallOperatorWriteNode(Nodes.CallOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitCallOrWriteNode(Nodes.CallOrWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -661,6 +671,21 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
+    public RubyNode visitClassVariableAndWriteNode(Nodes.ClassVariableAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitClassVariableOperatorWriteNode(Nodes.ClassVariableOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitClassVariableOrWriteNode(Nodes.ClassVariableOrWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitClassVariableReadNode(Nodes.ClassVariableReadNode node) {
         final RubyNode rubyNode = new ReadClassVariableNode(
                 getLexicalScopeNode("class variable lookup", node),
@@ -691,6 +716,26 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
+    public RubyNode visitConstantAndWriteNode(Nodes.ConstantAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitConstantOperatorWriteNode(Nodes.ConstantOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitConstantOrWriteNode(Nodes.ConstantOrWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitConstantPathAndWriteNode(Nodes.ConstantPathAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitConstantPathNode(Nodes.ConstantPathNode node) {
         // The child field should always be ConstantReadNode if there are no syntax errors.
         // MissingNode could be assigned as well as an error recovery means,
@@ -712,6 +757,16 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
+    }
+
+    @Override
+    public RubyNode visitConstantPathOperatorWriteNode(Nodes.ConstantPathOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitConstantPathOrWriteNode(Nodes.ConstantPathOrWriteNode node) {
+        return defaultVisit(node);
     }
 
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
@@ -892,6 +947,21 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
+    public RubyNode visitGlobalVariableAndWriteNode(Nodes.GlobalVariableAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitGlobalVariableOperatorWriteNode(Nodes.GlobalVariableOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitGlobalVariableOrWriteNode(Nodes.GlobalVariableOrWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitGlobalVariableReadNode(Nodes.GlobalVariableReadNode node) {
         final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(node.name);
         assignNodePositionInSource(node, rubyNode);
@@ -1009,7 +1079,27 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
+    public RubyNode visitImplicitNode(Nodes.ImplicitNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitInNode(Nodes.InNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitInstanceVariableAndWriteNode(Nodes.InstanceVariableAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitInstanceVariableOperatorWriteNode(Nodes.InstanceVariableOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitInstanceVariableOrWriteNode(Nodes.InstanceVariableOrWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -1043,25 +1133,20 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final int radix;
         final int offset;
 
-        if (string.startsWith("0b") || string.startsWith("0B")) {
+        if (node.isBinary()) {
             radix = 2;
             offset = 2;
-        } else if (string.startsWith("0x") || string.startsWith("0X")) {
+        } else if (node.isHexadecimal()) {
             radix = 16;
             offset = 2;
-        } else if (string.startsWith("0d") || string.startsWith("0D")) {
+        } else if (node.isDecimal()) {
             radix = 10;
-            offset = 2;
-        } else if (string.startsWith("0o") || string.startsWith("0O")) {
+            offset = (string.startsWith("0d") || string.startsWith("0D")) ? 2 : 0;
+        } else if (node.isOctal()) {
             radix = 8;
-            offset = 2;
-        } else if (string.startsWith("0") && string.length() > 1) {
-            // check length to distinguish `0` from octal literal `0...`
-            radix = 8;
-            offset = 1;
+            offset = (string.startsWith("0o") || string.startsWith("0O")) ? 2 : 1; // 0oXX, 0OXX, 0XX
         } else {
-            radix = 10;
-            offset = 0;
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final long value = Long.parseLong(string.substring(offset), radix);
@@ -1069,6 +1154,10 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
+    }
+
+    public RubyNode visitInterpolatedMatchLastLineNode(Nodes.InterpolatedMatchLastLineNode node) {
+        return defaultVisit(node);
     }
 
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
@@ -1132,6 +1221,21 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
+    public RubyNode visitLocalVariableAndWriteNode(Nodes.LocalVariableAndWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitLocalVariableOperatorWriteNode(Nodes.LocalVariableOperatorWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitLocalVariableOrWriteNode(Nodes.LocalVariableOrWriteNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
         final String name = node.name;
 
@@ -1170,11 +1274,20 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 new Nodes.LocalVariableWriteNode(node.name, node.depth, null, node.startOffset, node.length));
     }
 
+    public RubyNode visitMatchLastLineNode(Nodes.MatchLastLineNode node) {
+        return defaultVisit(node);
+    }
+
     public RubyNode visitMatchPredicateNode(Nodes.MatchPredicateNode node) {
         return defaultVisit(node);
     }
 
     public RubyNode visitMatchRequiredNode(Nodes.MatchRequiredNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitMatchWriteNode(Nodes.MatchWriteNode node) {
         return defaultVisit(node);
     }
 
@@ -1197,6 +1310,11 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
+    }
+
+    @Override
+    public RubyNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
+        return defaultVisit(node);
     }
 
     public RubyNode visitMultiWriteNode(Nodes.MultiWriteNode node) {
@@ -1402,12 +1520,18 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitStringNode(Nodes.StringNode node) {
+        final RubyNode rubyNode;
         final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
-        final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
-        final RubyNode rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
+
+        if (!node.isFrozen()) {
+            final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
+            rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
+        } else {
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, sourceEncoding);
+            rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
+        }
 
         assignNodePositionInSource(node, rubyNode);
-
         return rubyNode;
     }
 
@@ -1483,7 +1607,7 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitXStringNode(Nodes.XStringNode node) {
         // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
-        var stringNode = new Nodes.StringNode((short) 0, null, null, node.unescaped, node.startOffset, node.length);
+        var stringNode = new Nodes.StringNode((short) 0, node.unescaped, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
 

@@ -25,6 +25,7 @@ workingsets.xml
 # C extensions
 *.o
 *.so
+*.a
 *.bundle
 *.dylib
 *.log

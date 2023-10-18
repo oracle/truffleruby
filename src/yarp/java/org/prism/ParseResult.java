@@ -1,5 +1,6 @@
 package org.prism;
 
+// @formatter:off
 public final class ParseResult {
 
     public enum CommentType {
@@ -20,6 +21,16 @@ public final class ParseResult {
         public Comment(CommentType type, Nodes.Location location) {
             this.type = type;
             this.location = location;
+        }
+    }
+
+    public static final class MagicComment {
+        public final Nodes.Location keyLocation;
+        public final Nodes.Location valueLocation;
+
+        public MagicComment(Nodes.Location keyLocation, Nodes.Location valueLocation) {
+            this.keyLocation = keyLocation;
+            this.valueLocation = valueLocation;
         }
     }
 
@@ -45,13 +56,16 @@ public final class ParseResult {
 
     public final Nodes.Node value;
     public final Comment[] comments;
+    public final MagicComment[] magicComments;
     public final Error[] errors;
     public final Warning[] warnings;
 
-    public ParseResult(Nodes.Node value, Comment[] comments, Error[] errors, Warning[] warnings) {
+    public ParseResult(Nodes.Node value, Comment[] comments, MagicComment[] magicComments, Error[] errors, Warning[] warnings) {
         this.value = value;
         this.comments = comments;
+        this.magicComments = magicComments;
         this.errors = errors;
         this.warnings = warnings;
     }
 }
+// @formatter:on

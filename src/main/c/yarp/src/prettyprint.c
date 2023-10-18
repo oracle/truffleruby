@@ -157,6 +157,9 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
         }
         case PM_BACK_REFERENCE_READ_NODE: {
             pm_buffer_append_str(buffer, "BackReferenceReadNode(", 22);
+                        char name_buffer[12];
+            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_back_reference_read_node_t *)node)->name);
+            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
         }
@@ -327,7 +330,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
                 prettyprint_location(buffer, parser, &((pm_call_and_write_node_t *)node)->closing_loc);
             }
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ", ", 2);            char read_name_buffer[12];
             snprintf(read_name_buffer, sizeof(read_name_buffer), "%u", ((pm_call_and_write_node_t *)node)->read_name);
@@ -378,7 +381,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
                 prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_node_t *)node)->block);
             }
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
             snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_call_node_t *)node)->name);
@@ -419,7 +422,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
                 prettyprint_location(buffer, parser, &((pm_call_operator_write_node_t *)node)->closing_loc);
             }
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ", ", 2);            char read_name_buffer[12];
             snprintf(read_name_buffer, sizeof(read_name_buffer), "%u", ((pm_call_operator_write_node_t *)node)->read_name);
@@ -468,7 +471,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
                 prettyprint_location(buffer, parser, &((pm_call_or_write_node_t *)node)->closing_loc);
             }
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ", ", 2);            char read_name_buffer[12];
             snprintf(read_name_buffer, sizeof(read_name_buffer), "%u", ((pm_call_or_write_node_t *)node)->read_name);
@@ -904,7 +907,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
             }
             pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_flip_flop_node_t *)node)->operator_loc);
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1182,7 +1185,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
         case PM_INTEGER_NODE: {
             pm_buffer_append_str(buffer, "IntegerNode(", 12);
                         char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1198,7 +1201,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
             pm_buffer_append_str(buffer, "]", 1);
             pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_interpolated_match_last_line_node_t *)node)->closing_loc);
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1214,7 +1217,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
             pm_buffer_append_str(buffer, "]", 1);
             pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_interpolated_regular_expression_node_t *)node)->closing_loc);
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1433,7 +1436,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
             pm_buffer_append_bytes(buffer, pm_string_source(&((pm_match_last_line_node_t *)node)->unescaped), pm_string_length(&((pm_match_last_line_node_t *)node)->unescaped));
             pm_buffer_append_str(buffer, "\"", 1);
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1717,7 +1720,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
             }
             pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_range_node_t *)node)->operator_loc);
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1742,7 +1745,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
             pm_buffer_append_bytes(buffer, pm_string_source(&((pm_regular_expression_node_t *)node)->unescaped), pm_string_length(&((pm_regular_expression_node_t *)node)->unescaped));
             pm_buffer_append_str(buffer, "\"", 1);
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -1919,7 +1922,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
         case PM_STRING_NODE: {
             pm_buffer_append_str(buffer, "StringNode(", 11);
                         char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ", ", 2);            if (((pm_string_node_t *)node)->opening_loc.start == NULL) {
                 pm_buffer_append_str(buffer, "nil", 3);
@@ -2041,7 +2044,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
                 prettyprint_node(buffer, parser, (pm_node_t *)((pm_until_node_t *)node)->statements);
             }
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
@@ -2078,7 +2081,7 @@ prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
                 prettyprint_node(buffer, parser, (pm_node_t *)((pm_while_node_t *)node)->statements);
             }
             pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", node->flags >> 2);
+            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
             pm_buffer_append_str(buffer, ")", 1);
             break;
