@@ -358,8 +358,10 @@ typedef uint16_t pm_node_flags_t;
 
 // We store the flags enum in every node in the tree. Some flags are common to
 // all nodes (the ones listed below). Others are specific to certain node types.
-static const pm_node_flags_t PM_NODE_FLAG_NEWLINE = 0x1;
-static const pm_node_flags_t PM_NODE_FLAG_STATIC_LITERAL = 0x2;
+#define PM_NODE_FLAG_BITS (sizeof(pm_node_flags_t) * 8)
+static const pm_node_flags_t PM_NODE_FLAG_NEWLINE = (1 << (PM_NODE_FLAG_BITS - 1));
+static const pm_node_flags_t PM_NODE_FLAG_STATIC_LITERAL = (1 << (PM_NODE_FLAG_BITS - 2));
+static const pm_node_flags_t PM_NODE_FLAG_COMMON_MASK = (1 << (PM_NODE_FLAG_BITS - 1)) | (1 << (PM_NODE_FLAG_BITS - 2));
 
 // For easy access, we define some macros to check node type
 #define PM_NODE_TYPE(node) ((enum pm_node_type)node->type)
@@ -474,6 +476,7 @@ typedef struct pm_assoc_splat_node {
 // Type: PM_BACK_REFERENCE_READ_NODE
 typedef struct pm_back_reference_read_node {
     pm_node_t base;
+    pm_constant_id_t name;
 } pm_back_reference_read_node_t;
 
 // BeginNode
@@ -1193,11 +1196,11 @@ typedef struct pm_integer_node {
 //    PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE
 //    PM_REGULAR_EXPRESSION_FLAGS_EXTENDED
 //    PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE
+//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 //    PM_REGULAR_EXPRESSION_FLAGS_EUC_JP
 //    PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT
 //    PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J
 //    PM_REGULAR_EXPRESSION_FLAGS_UTF_8
-//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 typedef struct pm_interpolated_match_last_line_node {
     pm_node_t base;
     pm_location_t opening_loc;
@@ -1212,11 +1215,11 @@ typedef struct pm_interpolated_match_last_line_node {
 //    PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE
 //    PM_REGULAR_EXPRESSION_FLAGS_EXTENDED
 //    PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE
+//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 //    PM_REGULAR_EXPRESSION_FLAGS_EUC_JP
 //    PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT
 //    PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J
 //    PM_REGULAR_EXPRESSION_FLAGS_UTF_8
-//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 typedef struct pm_interpolated_regular_expression_node {
     pm_node_t base;
     pm_location_t opening_loc;
@@ -1369,11 +1372,11 @@ typedef struct pm_local_variable_write_node {
 //    PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE
 //    PM_REGULAR_EXPRESSION_FLAGS_EXTENDED
 //    PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE
+//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 //    PM_REGULAR_EXPRESSION_FLAGS_EUC_JP
 //    PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT
 //    PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J
 //    PM_REGULAR_EXPRESSION_FLAGS_UTF_8
-//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 typedef struct pm_match_last_line_node {
     pm_node_t base;
     pm_location_t opening_loc;
@@ -1616,11 +1619,11 @@ typedef struct pm_redo_node {
 //    PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE
 //    PM_REGULAR_EXPRESSION_FLAGS_EXTENDED
 //    PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE
+//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 //    PM_REGULAR_EXPRESSION_FLAGS_EUC_JP
 //    PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT
 //    PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J
 //    PM_REGULAR_EXPRESSION_FLAGS_UTF_8
-//    PM_REGULAR_EXPRESSION_FLAGS_ONCE
 typedef struct pm_regular_expression_node {
     pm_node_t base;
     pm_location_t opening_loc;
@@ -1888,43 +1891,43 @@ typedef struct pm_yield_node {
 
 // CallNodeFlags
 typedef enum pm_call_node_flags {
-    PM_CALL_NODE_FLAGS_SAFE_NAVIGATION = 1 << 2,
-    PM_CALL_NODE_FLAGS_VARIABLE_CALL = 1 << 3,
+    PM_CALL_NODE_FLAGS_SAFE_NAVIGATION = 1 << 0,
+    PM_CALL_NODE_FLAGS_VARIABLE_CALL = 1 << 1,
 } pm_call_node_flags_t;
 
 // IntegerBaseFlags
 typedef enum pm_integer_base_flags {
-    PM_INTEGER_BASE_FLAGS_BINARY = 1 << 2,
-    PM_INTEGER_BASE_FLAGS_OCTAL = 1 << 3,
-    PM_INTEGER_BASE_FLAGS_DECIMAL = 1 << 4,
-    PM_INTEGER_BASE_FLAGS_HEXADECIMAL = 1 << 5,
+    PM_INTEGER_BASE_FLAGS_BINARY = 1 << 0,
+    PM_INTEGER_BASE_FLAGS_OCTAL = 1 << 1,
+    PM_INTEGER_BASE_FLAGS_DECIMAL = 1 << 2,
+    PM_INTEGER_BASE_FLAGS_HEXADECIMAL = 1 << 3,
 } pm_integer_base_flags_t;
 
 // LoopFlags
 typedef enum pm_loop_flags {
-    PM_LOOP_FLAGS_BEGIN_MODIFIER = 1 << 2,
+    PM_LOOP_FLAGS_BEGIN_MODIFIER = 1 << 0,
 } pm_loop_flags_t;
 
 // RangeFlags
 typedef enum pm_range_flags {
-    PM_RANGE_FLAGS_EXCLUDE_END = 1 << 2,
+    PM_RANGE_FLAGS_EXCLUDE_END = 1 << 0,
 } pm_range_flags_t;
 
 // RegularExpressionFlags
 typedef enum pm_regular_expression_flags {
-    PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE = 1 << 2,
-    PM_REGULAR_EXPRESSION_FLAGS_EXTENDED = 1 << 3,
-    PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE = 1 << 4,
-    PM_REGULAR_EXPRESSION_FLAGS_EUC_JP = 1 << 5,
-    PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT = 1 << 6,
-    PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J = 1 << 7,
-    PM_REGULAR_EXPRESSION_FLAGS_UTF_8 = 1 << 8,
-    PM_REGULAR_EXPRESSION_FLAGS_ONCE = 1 << 9,
+    PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE = 1 << 0,
+    PM_REGULAR_EXPRESSION_FLAGS_EXTENDED = 1 << 1,
+    PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE = 1 << 2,
+    PM_REGULAR_EXPRESSION_FLAGS_ONCE = 1 << 3,
+    PM_REGULAR_EXPRESSION_FLAGS_EUC_JP = 1 << 4,
+    PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT = 1 << 5,
+    PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J = 1 << 6,
+    PM_REGULAR_EXPRESSION_FLAGS_UTF_8 = 1 << 7,
 } pm_regular_expression_flags_t;
 
 // StringFlags
 typedef enum pm_string_flags {
-    PM_STRING_FLAGS_FROZEN = 1 << 2,
+    PM_STRING_FLAGS_FROZEN = 1 << 0,
 } pm_string_flags_t;
 
 #define PRISM_SERIALIZE_ONLY_SEMANTICS_FIELDS 1

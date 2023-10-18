@@ -8,6 +8,7 @@
 #include "prism/util/pm_list.h"
 #include "prism/util/pm_newline_list.h"
 #include "prism/util/pm_state_stack.h"
+#include "prism/util/pm_string.h"
 
 #include <stdbool.h>
 
@@ -172,6 +173,11 @@ typedef struct pm_lex_mode {
             // This is the pointer to the character where lexing should resume
             // once the heredoc has been completely processed.
             const uint8_t *next_start;
+
+            // This is used to track the amount of common whitespace on each
+            // line so that we know how much to dedent each line in the case of
+            // a tilde heredoc.
+            size_t common_whitespace;
         } heredoc;
     } as;
 
@@ -243,6 +249,16 @@ typedef struct pm_comment {
     const uint8_t *end;
     pm_comment_type_t type;
 } pm_comment_t;
+
+// This is a node in the linked list of magic comments that we've found while
+// parsing.
+typedef struct {
+    pm_list_node_t node;
+    const uint8_t *key_start;
+    const uint8_t *value_start;
+    uint32_t key_length;
+    uint32_t value_length;
+} pm_magic_comment_t;
 
 // When the encoding that is being used to parse the source is changed by prism,
 // we provide the ability here to call out to a user-defined function.
@@ -347,6 +363,7 @@ struct pm_parser {
     const uint8_t *heredoc_end;
 
     pm_list_t comment_list;             // the list of comments that have been found while parsing
+    pm_list_t magic_comment_list;       // the list of magic comments that have been found while parsing.
     pm_list_t warning_list;             // the list of warnings that have been found while parsing
     pm_list_t error_list;               // the list of errors that have been found while parsing
     pm_scope_t *current_scope;          // the current local scope
@@ -392,6 +409,10 @@ struct pm_parser {
     // communicate this information. So we store it here and pass it through
     // when we find tokens that we need it for.
     pm_node_flags_t integer_base;
+
+    // This string is used to pass information from the lexer to the parser. It
+    // is particularly necessary because of escape sequences.
+    pm_string_t current_string;
 
     // Whether or not we're at the beginning of a command
     bool command_start;
