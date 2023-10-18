@@ -56,22 +56,26 @@ class Regexp
   end
 
   def self.negotiate_union_encoding(*patterns)
-    res = nil
+    compatible_enc = nil
 
     patterns.each do |pattern|
       converted = Primitive.is_a?(pattern, Regexp) ? pattern : Regexp.quote(pattern)
 
       enc = converted.encoding
 
-      if Primitive.nil?(res)
-        res = enc
+      if Primitive.nil?(compatible_enc)
+        compatible_enc = enc
       else
-        res = Primitive.encoding_compatible?(enc, res)
-        raise ArgumentError, "incompatible encodings: #{enc} and #{res}" unless res
+        if test = Primitive.encoding_compatible?(enc, compatible_enc)
+          compatible_enc = test
+        else
+          raise ArgumentError, "incompatible encodings: #{compatible_enc} and #{enc}"
+        end
+
       end
     end
 
-    res
+    compatible_enc
   end
 
   def self.last_match(index = nil)
