@@ -45,6 +45,9 @@ describe "Regexp.union" do
 
   it "returns ASCII-8BIT if the regexp encodings are ASCII-8BIT and at least one has non-ASCII characters" do
     us_ascii_implicit, us_ascii_explicit, binary = /abc/, /[\x00-\x7f]/n, /[\x80-\xBF]/n
+    us_ascii_implicit.encoding.should == Encoding::US_ASCII
+    us_ascii_explicit.encoding.should == Encoding::US_ASCII
+    binary.encoding.should == Encoding::BINARY
 
     Regexp.union(us_ascii_implicit, us_ascii_explicit, binary).encoding.should == Encoding::BINARY
     Regexp.union(us_ascii_implicit, binary, us_ascii_explicit).encoding.should == Encoding::BINARY
