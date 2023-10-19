@@ -443,6 +443,8 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // If the receiver is explicit or implicit 'self' then we can call private methods
         final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
         final boolean isVariableCall = node.isVariableCall();
+        // this check isn't accurate and doesn't handle cases like #===, #!=, a.foo=(42)
+        // the issue is tracked in https://github.com/ruby/prism/issues/1715
         final boolean isAttrAssign = methodName.endsWith("=");
         final boolean isSafeNavigation = node.isSafeNavigation();
 
@@ -1327,13 +1329,13 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    @Override
-    public RubyNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
-        return defaultVisit(node);
-    }
-
     public RubyNode visitMultiWriteNode(Nodes.MultiWriteNode node) {
-        return defaultVisit(node);
+        final RubyNode rubyNode;
+        var translator = new YARPMultiWriteNodeTranslator(node, language, this);
+        rubyNode = translator.translate();
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     public RubyNode visitNextNode(Nodes.NextNode node) {
@@ -1927,27 +1929,48 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private RubyNode translateRescueException(Nodes.Node exception) {
-        RubyNode writeNode = exception.accept(this);
+        final RubyNode rubyNode;
 
-        if (writeNode instanceof RubyCallNode rubyNode) {
-            if (rubyNode.getName().equals("[]=")) {
-                // rescue => a[:foo]
-                assert rubyNode.getArguments().length == 1;
-
-                final RubyNode[] arguments = new RubyNode[2];
-                arguments[0] = rubyNode.getArguments()[0];
-                arguments[1] = new DeadNode("YARPTranslator#translateRescueException");
-                writeNode = rubyNode.cloneUninitializedWithArguments(arguments);
-            } else if (rubyNode.getName().endsWith("=")) {
-                // rescue => a.foo
-                assert rubyNode.getArguments().length == 0;
-
-                final RubyNode[] arguments = new RubyNode[]{ new DeadNode("YARPTranslator#translateRescueException") };
-                writeNode = rubyNode.cloneUninitializedWithArguments(arguments);
-            }
+        if (exception instanceof Nodes.CallNode callNode) {
+            rubyNode = translateCallTargetNode(callNode);
+        } else {
+            rubyNode = exception.accept(this);
         }
 
-        return new AssignRescueVariableNode((AssignableNode) writeNode);
+        final AssignableNode assignableNode = (AssignableNode) rubyNode;
+        return new AssignRescueVariableNode(assignableNode);
+    }
+
+    public RubyNode translateCallTargetNode(Nodes.CallNode node) {
+        // extra argument should be added before node translation
+        // to trigger correctly replacement with inlined nodes (e.g. InlinedIndexSetNodeGen)
+        // that relies on arguments count
+        if (node.name.endsWith("=")) {
+            final Nodes.Node[] arguments;
+            final Nodes.ArgumentsNode argumentsNode;
+
+            if (node.arguments == null) {
+                arguments = new Nodes.Node[1];
+            } else {
+                arguments = new Nodes.Node[node.arguments.arguments.length + 1];
+                for (int i = 0; i < node.arguments.arguments.length; i++) {
+                    arguments[i] = node.arguments.arguments[i];
+                }
+            }
+
+            arguments[arguments.length - 1] = new Nodes.NilNode(0, 0);
+
+            if (node.arguments == null) {
+                argumentsNode = new Nodes.ArgumentsNode(arguments, (short) 0, 0, 0);
+            } else {
+                argumentsNode = new Nodes.ArgumentsNode(arguments, node.arguments.flags, node.arguments.startOffset,
+                        node.arguments.length);
+            }
+            node = new Nodes.CallNode(node.receiver, argumentsNode, node.block, node.flags, node.name, node.startOffset,
+                    node.length);
+        }
+
+        return node.accept(this);
     }
 
     private RubyNode translateWhileNode(Nodes.Node node, Nodes.Node predicate, Nodes.StatementsNode statements,

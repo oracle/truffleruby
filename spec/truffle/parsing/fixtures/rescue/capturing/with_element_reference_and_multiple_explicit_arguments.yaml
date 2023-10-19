@@ -1,28 +1,13 @@
 subject: "Rescue keyword"
-description: "capturing / with element reference"
+description: "capturing / with element reference and multiple explicit arguments"
 yarp_specific: true # an AssignRescueVariableNode node is introduced,
                     # generate explicit NilLiteralNode (isImplicit = false)
 notes: >
-  Capturing exception to element reference is represented as a `a.[]=()` method call.
-  
-  A local variable is represented with the following simplified AST:
-  
-    (InlinedIndexSetNodeGen
-      (ObjectLiteralNode object = :foo)         # operand 1
-      (ReadGlobalVariableNodeGen name = $!)     # operand 2
-      (RubyCallNode methodName = a              # receiver
-        (SelfNode)))
-  
-  that is equivalent to:
-  
-  ```ruby
-  a[:foo] = $!
-  ```
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin
     "foo"
-  rescue RuntimeError => a[:foo]
+  rescue RuntimeError => a[:foo, :bar]
     42
   end
 ast: |
@@ -62,23 +47,36 @@ ast: |
                                               flags = 0
                                           children:
                                               rescueVariableNode =
-                                                  InlinedIndexSetNodeGen
+                                                  RubyCallNode
                                                       attributes:
-                                                          assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
                                                           flags = 0
-                                                          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                                          isAttrAssign = true
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "[]="
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
                                                       children:
-                                                          operand1Node_ =
+                                                          arguments = [
                                                               ObjectLiteralNode
                                                                   attributes:
                                                                       flags = 0
                                                                       object = :foo
-                                                          operand2Node_ =
+                                                              ObjectLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      object = :bar
                                                               NilLiteralNode
                                                                   attributes:
                                                                       flags = 0
                                                                       isImplicit = false
-                                                          receiver_ =
+                                                          ]
+                                                          receiver =
                                                               RubyCallNode
                                                                   attributes:
                                                                       descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...

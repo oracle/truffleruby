@@ -1,39 +1,34 @@
 subject: "Multi-assignment"
-description: "When there is an attribute on the LHS"
+description: "When there is an element reference on the LHS (a[:key], b = foo )"
 notes: >
   Attribute assignment is represented as a method call `v.foo=(nil)`
 yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
 ruby: |
-  a.attribute, b = 'foo', 'bar', 'baz'
+  a[:key], b = 'foo', 'bar', 'baz'
 ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
       children:
           preNodes = [
-              RubyCallNode
+              InlinedIndexSetNodeGen
                   attributes:
-                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                      dispatchConfig = PROTECTED
-                      emptyKeywordsProfile = false
+                      assumptions = [Assumption(valid, name=set_trace_func is not used)]
                       flags = 0
-                      isAttrAssign = true
-                      isSafeNavigation = false
-                      isSplatted = false
-                      isVCall = false
-                      lastArgIsNotHashProfile = false
-                      methodName = "attribute="
-                      notEmptyKeywordsProfile = false
-                      notRuby2KeywordsHashProfile = false
+                      parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                   children:
-                      arguments = [
+                      operand1Node_ =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :key
+                      operand2Node_ =
                           NilLiteralNode
                               attributes:
                                   flags = 0
                                   isImplicit = false
-                      ]
-                      receiver =
+                      receiver_ =
                           RubyCallNode
                               attributes:
                                   descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...

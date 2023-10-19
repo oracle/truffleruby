@@ -1,28 +1,13 @@
 subject: "Rescue keyword"
-description: "capturing / with element reference"
+description: "capturing / with nested element reference"
 yarp_specific: true # an AssignRescueVariableNode node is introduced,
                     # generate explicit NilLiteralNode (isImplicit = false)
 notes: >
-  Capturing exception to element reference is represented as a `a.[]=()` method call.
-  
-  A local variable is represented with the following simplified AST:
-  
-    (InlinedIndexSetNodeGen
-      (ObjectLiteralNode object = :foo)         # operand 1
-      (ReadGlobalVariableNodeGen name = $!)     # operand 2
-      (RubyCallNode methodName = a              # receiver
-        (SelfNode)))
-  
-  that is equivalent to:
-  
-  ```ruby
-  a[:foo] = $!
-  ```
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin
     "foo"
-  rescue RuntimeError => a[:foo]
+  rescue RuntimeError => a[0][:foo]
     42
   end
 ast: |
@@ -79,25 +64,37 @@ ast: |
                                                                       flags = 0
                                                                       isImplicit = false
                                                           receiver_ =
-                                                              RubyCallNode
+                                                              InlinedIndexGetNodeGen
                                                                   attributes:
-                                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                                                      dispatchConfig = PRIVATE
-                                                                      emptyKeywordsProfile = false
+                                                                      assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                                       flags = 0
-                                                                      isAttrAssign = false
-                                                                      isSafeNavigation = false
-                                                                      isSplatted = false
-                                                                      isVCall = true
-                                                                      lastArgIsNotHashProfile = false
-                                                                      methodName = "a"
-                                                                      notEmptyKeywordsProfile = false
-                                                                      notRuby2KeywordsHashProfile = false
+                                                                      parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
                                                                   children:
-                                                                      receiver =
-                                                                          SelfNode
+                                                                      leftNode_ =
+                                                                          RubyCallNode
+                                                                              attributes:
+                                                                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                                  dispatchConfig = PRIVATE
+                                                                                  emptyKeywordsProfile = false
+                                                                                  flags = 0
+                                                                                  isAttrAssign = false
+                                                                                  isSafeNavigation = false
+                                                                                  isSplatted = false
+                                                                                  isVCall = true
+                                                                                  lastArgIsNotHashProfile = false
+                                                                                  methodName = "a"
+                                                                                  notEmptyKeywordsProfile = false
+                                                                                  notRuby2KeywordsHashProfile = false
+                                                                              children:
+                                                                                  receiver =
+                                                                                      SelfNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                                      rightNode_ =
+                                                                          IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  value = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

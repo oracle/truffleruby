@@ -138,20 +138,6 @@ fails:Parsing a Match (=~ operator) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a RHS) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a LHS (without named capture groups)) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a LHS without interpolation and with named capture groups) case is parsed correctly
-fails:Parsing a Multi-assignment (When assigning class variables) case is parsed correctly
-fails:Parsing a Multi-assignment (When assigning constants) case is parsed correctly
-fails:Parsing a Multi-assignment (When assigning global variables) case is parsed correctly
-fails:Parsing a Multi-assignment (When assigning instance variables) case is parsed correctly
-fails:Parsing a Multi-assignment (When assigning local variables) case is parsed correctly
-fails:Parsing a Multi-assignment (When there is an attribute on the LHS) case is parsed correctly
-fails:Parsing a Multi-assignment (When RHS is a list of multiple values) case is parsed correctly
-fails:Parsing a Multi-assignment (When nested multi assignment (a, (b, c), d = ...)) case is parsed correctly
-fails:Parsing a Multi-assignment (When RHS is a single value) case is parsed correctly
-fails:Parsing a Multi-assignment (When splat operator/in the beginning of the LHS (*array, a = ...)) case is parsed correctly
-fails:Parsing a Multi-assignment (When splat operator/in the end of the LHS (a, b, *array = ...)) case is parsed correctly
-fails:Parsing a Multi-assignment (When splat operator/in the middle of the LHS (a, *array, b = ...)) case is parsed correctly
-fails:Parsing a Multi-assignment (When splat operator/without other variables in the LHS (*a = ...)) case is parsed correctly
-fails:Parsing a Multi-assignment (When splat operator/without variable in the LHS (a, *, c = ...)) case is parsed correctly
 fails:Parsing a Parentheses operator (empty) case is parsed correctly
 fails:Parsing a Parentheses operator (with multiple expressions, e.g. (1; 2; 3)) case is parsed correctly
 fails:Parsing a Parentheses operator (with single expression) case is parsed correctly

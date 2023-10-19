@@ -1,0 +1,93 @@
+subject: "Multi-assignment"
+description: "When nested multi assignment / nested element reference (a[0][:key], b = foo)"
+notes: >
+yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  (a[0][:key], b), c = []
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          preNodes = [
+              MultipleAssignmentNode
+                  attributes:
+                      flags = 0
+                  children:
+                      preNodes = [
+                          InlinedIndexSetNodeGen
+                              attributes:
+                                  assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                  flags = 0
+                                  parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                              children:
+                                  operand1Node_ =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object = :key
+                                  operand2Node_ =
+                                      NilLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              isImplicit = false
+                                  receiver_ =
+                                      InlinedIndexGetNodeGen
+                                          attributes:
+                                              assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                              flags = 0
+                                              parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                          children:
+                                              leftNode_ =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "a"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                              rightNode_ =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 0
+                          WriteFrameSlotNodeGen
+                              attributes:
+                                  frameSlot = 2
+                      ]
+                      splatCastNode =
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_ary
+                                  copy = true
+                                  flags = 0
+                                  nilBehavior = ARRAY_WITH_NIL
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 3
+          ]
+          rhsNode =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL
