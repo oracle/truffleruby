@@ -14,12 +14,6 @@
 #ifndef TRUFFLERUBY_PRE_H
 #define TRUFFLERUBY_PRE_H
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-RUBY_SYMBOL_EXPORT_BEGIN
-
 // Configuration
 
 // We disable USE_FLONUM, as we do not use pointer tagging for Float.
@@ -39,6 +33,17 @@ RUBY_SYMBOL_EXPORT_BEGIN
 // Skip DTrace-generated code
 #define DTRACE_PROBES_DISABLED 1
 
+// Declare VALUE for below
+
+#include "ruby/defines.h"
+#include "ruby/internal/value.h"
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+RUBY_SYMBOL_EXPORT_BEGIN
+
 // Support
 
 #include <truffleruby/truffleruby-abi-version.h>
@@ -51,11 +56,6 @@ const char* rb_tr_abi_version(void) __attribute__((weak));
 const char* rb_tr_abi_version(void) {
   return TRUFFLERUBY_ABI_VERSION;
 }
-
-// Declare VALUE for below
-
-#include "ruby/defines.h"
-#include "ruby/internal/value.h"
 
 // Helpers
 

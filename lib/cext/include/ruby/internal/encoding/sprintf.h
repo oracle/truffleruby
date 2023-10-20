@@ -29,6 +29,7 @@
 #include "ruby/internal/encoding/encoding.h"
 #include "ruby/internal/value.h"
 
+RBIMPL_SYMBOL_EXPORT_BEGIN()
 #ifdef TRUFFLERUBY
 // We need to declare rb_enc_vsprintf() before rb_enc_sprintf()
 RBIMPL_ATTR_NONNULL((2))
@@ -36,7 +37,6 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 0)
 VALUE rb_enc_vsprintf(rb_encoding *enc, const char *fmt, va_list ap);
 #endif
 
-RBIMPL_SYMBOL_EXPORT_BEGIN()
 RBIMPL_ATTR_NONNULL((2))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 3)
 /**

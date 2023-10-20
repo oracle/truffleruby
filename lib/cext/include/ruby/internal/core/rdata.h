@@ -61,7 +61,6 @@
  * @return  The passed object casted to ::RData.
  */
 #ifdef TRUFFLERUBY
-struct RData* rb_tr_rdata(VALUE object);
 #define RDATA(obj)                rb_tr_rdata(obj)
 #else
 #define RDATA(obj)                RBIMPL_CAST((struct RData *)(obj))
@@ -158,6 +157,9 @@ struct RData {
 };
 
 RBIMPL_SYMBOL_EXPORT_BEGIN()
+#ifdef TRUFFLERUBY
+struct RData* rb_tr_rdata(VALUE object);
+#endif
 
 /**
  * This is the primitive way to wrap an existing C struct into ::RData.
