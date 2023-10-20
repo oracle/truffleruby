@@ -1442,7 +1442,10 @@ module Commands
         output_file = 'cext-output.txt'
         dir = "test/truffle/cexts/#{test_name}"
         cextc(dir)
-        run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
+        script = "#{dir}/bin/#{test_name}"
+        # bin/backtraces relies on being run with an absolute path for __FILE__
+        script = "#{TRUFFLERUBY_DIR}/#{script}" if test_name == 'backtraces'
+        run_ruby "-I#{dir}/lib", script, out: output_file
         begin
           actual = File.read(output_file)
           expected_file = "#{dir}/expected.txt"
