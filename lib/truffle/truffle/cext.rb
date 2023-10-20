@@ -102,6 +102,9 @@ module Truffle::CExt
 
   T_MASK     = 0x1f
 
+  RUBY_FIXNUM_MIN = -(1 << 62)
+  RUBY_FIXNUM_MAX = (1 << 62) - 1
+
   # This list of types is derived from MRI's error.c builtin_types array.
   BUILTIN_TYPES = [
     '',
@@ -276,7 +279,11 @@ module Truffle::CExt
         T_OBJECT
       end
     elsif type == T_FIXNUM
-      Truffle::Type.fits_into_long?(value) ? T_FIXNUM : T_BIGNUM
+      if RUBY_FIXNUM_MIN <= value && value <= RUBY_FIXNUM_MAX
+        T_FIXNUM
+      else
+        T_BIGNUM
+      end
     else
       type
     end
@@ -425,6 +432,14 @@ module Truffle::CExt
 
   def rb_num2long(val)
     Primitive.rb_num2long(val)
+  end
+
+  def rb_big_sign(val)
+    val >= 0
+  end
+
+  def rb_big_cmp(x, y)
+    x <=> y
   end
 
   def rb_big2dbl(val)

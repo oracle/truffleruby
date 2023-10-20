@@ -136,7 +136,7 @@ size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
 }
 
 int rb_big_sign(VALUE x) {
-  return RTEST(RUBY_INVOKE(x, ">=", INT2FIX(0))) ? 1 : 0;
+  return RTEST(RUBY_CEXT_INVOKE("rb_big_sign", x)) ? 1 : 0;
 }
 
 int rb_cmpint(VALUE val, VALUE a, VALUE b) {
@@ -144,7 +144,7 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
-  return RUBY_INVOKE(x, "<=>", y);
+  return RUBY_CEXT_INVOKE("rb_big_cmp", x, y);
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
