@@ -88,9 +88,9 @@ cext-trampoline/trampoline.c: $(CEXT_C_FILES) $(BASIC_DEPS) $(ROOT)/tool/generat
 $(TRAMPOLINE): cext-trampoline/Makefile cext-trampoline/trampoline.c cext-trampoline/*.c Makefile
 	$(Q) cd cext-trampoline && $(MAKE)
 
-# libtruffleruby
+# libtruffleruby, must be compiled with the GraalVM LLVM Toolchain as it needs to run on Sulong
 cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS) $(TRAMPOLINE)
-	$(Q) cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+	$(Q) cd cext && $(RUBY) --experimental-options --cexts-sulong extconf.rb || $(IF_EXTCONF_FAIL)
 
 $(LIBTRUFFLERUBY): cext/Makefile cext/*.c cext/*.h
 	$(Q) cd cext && $(MAKE)
