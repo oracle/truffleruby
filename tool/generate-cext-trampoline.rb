@@ -210,6 +210,12 @@ C
       f.puts "  }"
       f.puts "  UNREACHABLE;" if no_return
     else
+      if function_name == 'ruby_native_thread_p'
+        # We need to check if the current thread is attached first before calling to Sulong/Ruby
+        f.puts "  if ((*nfiContext)->getTruffleEnv(nfiContext) == NULL) {"
+        f.puts "    return 0;"
+        f.puts "  }"
+      end
       f.puts "  #{return_type} _result = impl_#{function_name}(#{argument_names});"
       f.puts "  if (UNLIKELY(rb_tr_exception_from_java())) {"
       f.puts "    rb_tr_exception_from_java_jump();"
