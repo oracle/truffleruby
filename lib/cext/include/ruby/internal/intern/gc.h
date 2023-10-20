@@ -388,6 +388,7 @@ VALUE rb_gc_latest_gc_info(VALUE key_or_buf);
 #ifdef TRUFFLERUBY
 static inline void rb_gc_adjust_memory_usage(ssize_t diff) {
     // No-op for now
+    (void) diff; // To silence -Wunused-parameter
 }
 #else
 void rb_gc_adjust_memory_usage(ssize_t diff);

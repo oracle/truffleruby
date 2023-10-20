@@ -557,13 +557,7 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 3, 4)
  * @param[in]  line  The number corresponding to Ruby level `__LINE__`.
  * @param[in]  fmt   Format specifier string compatible with rb_sprintf().
  */
-#ifdef TRUFFLERUBY
-static inline void rb_compile_warning(const char *file, int line, const char *fmt, ...) {
-  rb_tr_not_implemented("rb_compile_warning");
-}
-#else
 void rb_compile_warning(const char *file, int line, const char *fmt, ...);
-#endif
 
 RBIMPL_ATTR_NONNULL((1))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
@@ -621,13 +615,7 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 3, 4)
  * @param[in]  line  The number corresponding to Ruby level `__LINE__`.
  * @param[in]  fmt   Format specifier string compatible with rb_sprintf().
  */
-#ifdef TRUFFLERUBY
-static inline void rb_compile_warn(const char *file, int line, const char *fmt, ...) {
-  rb_tr_not_implemented("rb_compile_warn");
-}
-#else
 void rb_compile_warn(const char *file, int line, const char *fmt, ...);
-#endif
 
 RBIMPL_ATTR_NONNULL((2, 4))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 4, 5)
