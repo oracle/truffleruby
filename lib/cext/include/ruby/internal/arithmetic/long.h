@@ -106,10 +106,8 @@ int rb_long2int(long value);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
-#endif
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Converts a C's `long` into an instance of ::rb_cInteger.
