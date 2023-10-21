@@ -47,7 +47,6 @@ import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-import java.util.Arrays;
 import java.util.Set;
 
 @ExportLibrary(value = HashStoreLibrary.class)
@@ -465,50 +464,21 @@ public final class BucketsHashStore {
 
     @ExportMessage
     protected void rehash(RubyHash hash,
-            @Cached CompareHashKeysNode compareHashKeys,
-            @Cached HashingNodes.ToHash hashNode) {
-
+            @CachedLibrary("this") HashStoreLibrary hashStoreLibrary) {
         assert verify(hash);
-        final Entry[] entries = this.entries;
-        Arrays.fill(entries, null);
+        final Entry[] newEntries = new Entry[entries.length];
 
         Entry entry = this.firstInSequence;
+        BucketsHashStore newStore = new BucketsHashStore(newEntries, null, null);
+        hash.store = newStore;
+        hash.size = 0;
+
         while (entry != null) {
-            final int newHash = hashNode.execute(entry.getKey(), hash.compareByIdentity);
-            entry.setHashed(newHash);
-            entry.setNextInLookup(null);
-
-            final int index = getBucketIndex(newHash, entries.length);
-            Entry bucketEntry = entries[index];
-
-            if (bucketEntry == null) {
-                entries[index] = entry;
-            } else {
-                Entry previousEntry = entry;
-
-                int size = hash.size;
-                do {
-                    if (compareHashKeys.execute(
-                            hash.compareByIdentity,
-                            entry.getKey(),
-                            newHash,
-                            bucketEntry.getKey(),
-                            bucketEntry.getHashed())) {
-                        removeFromSequenceChain(entry);
-                        size--;
-                        break;
-                    }
-                    previousEntry = bucketEntry;
-                    bucketEntry = bucketEntry.getNextInLookup();
-                } while (bucketEntry != null);
-
-                previousEntry.setNextInLookup(entry);
-                hash.size = size;
-            }
+            hashStoreLibrary.set(newStore, hash, entry.getKey(), entry.getValue(), hash.compareByIdentity);
             entry = entry.getNextInSequence();
         }
 
-        assert verify(hash);
+        assert newStore.verify(hash);
     }
 
     @TruffleBoundary

@@ -14,10 +14,6 @@ import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 import static com.oracle.truffle.api.dsl.Cached.Exclusive;
 import static org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
@@ -119,10 +115,6 @@ public final class CompactHashStore {
     // returned by methods doing array search which don't find what they're looking for
     static final int KEY_NOT_FOUND = -2;
     private static final int HASH_NOT_FOUND = KEY_NOT_FOUND;
-
-    // a generic "not a valid array position" value to be used by all code doing array searches for things other than
-    // keys and hashes
-    private static final int INVALID_ARRAY_POSITION = Integer.MIN_VALUE;
 
     // In hash entries, not array positions (in general, capacities and sizes are always in entries)
     public static final int DEFAULT_INITIAL_CAPACITY = 8;
@@ -317,54 +309,25 @@ public final class CompactHashStore {
     @TruffleBoundary
     @ExportMessage
     void rehash(RubyHash hash,
-            @Cached @Shared HashingNodes.ToHash hashFunction,
-            @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
             @Cached @Exclusive InlinedConditionProfile slotUsed,
-            @Cached @Exclusive InlinedConditionProfile duplicateIndexEntry,
-            @Cached @Exclusive InlinedLoopConditionProfile indexSlotUnavailable,
             @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
+            @CachedLibrary("this") HashStoreLibrary hashlib,
             @Bind("$node") Node node) {
-        int[] oldIndex = index;
-        this.index = new int[oldIndex.length];
-        Map<Integer, List<Integer>> hashesToKvPositions = new HashMap<>();
+        Object[] oldKvStore = kvStore;
+        int oldKvStoreInsertionPos = kvStoreInsertionPos;
+
+        this.kvStore = new Object[oldKvStore.length];
+        this.kvStoreInsertionPos = 0;
+        this.index = new int[index.length];
+        hash.size = 0;
 
         int i = 0;
         try {
-            int numDuplicates = 0;
-            for (; loopProfile.inject(node, i < oldIndex.length); i += 2) {
-                int kvOffset = oldIndex[i + 1];
-
-                if (slotUsed.profile(node, kvOffset > INDEX_SLOT_UNUSED)) {
-                    Object key = kvStore[kvOffset - 1];
-                    Integer newHash = hashFunction.execute(key, hash.compareByIdentity);
-
-                    List<Integer> kvPositions = hashesToKvPositions.get(newHash);
-                    if (kvPositions != null) {
-                        boolean duplicate = false;
-                        for (int kvPos : kvPositions) {
-                            Object possiblyEqualKey = kvStore[kvPos];
-                            if (compareHashKeysNode.execute(hash.compareByIdentity, key, possiblyEqualKey)) {
-                                duplicate = true;
-                                break;
-                            }
-                        }
-                        if (duplicateIndexEntry.profile(node, duplicate)) {
-                            numDuplicates++;
-                            kvStore[kvOffset - 1] = null;
-                            kvStore[kvOffset] = null;
-                            continue;
-                        }
-
-                    } else {
-                        hashesToKvPositions.put(newHash, new ArrayList<>());
-                    }
-
-                    SetKvAtNode.insertIntoIndex(newHash, kvOffset, index,
-                            indexSlotUnavailable, node);
-                    hashesToKvPositions.get(newHash).add(kvOffset - 1);
+            for (; loopProfile.inject(node, i < oldKvStoreInsertionPos); i += 2) {
+                if (slotUsed.profile(node, oldKvStore[i] != null)) {
+                    hashlib.set(this, hash, oldKvStore[i], oldKvStore[i + 1], hash.compareByIdentity);
                 }
             }
-            hash.size -= numDuplicates;
         } finally {
             RubyBaseNode.profileAndReportLoopCount(node, loopProfile, i >> 1);
         }
@@ -527,22 +490,22 @@ public final class CompactHashStore {
 
         @Specialization
         int getHashNextPos(int startingFromPos, int hash, int[] index, int stop,
-                @Cached @Exclusive InlinedConditionProfile slotIsDeleted,
+                @Cached @Exclusive InlinedConditionProfile slotIsNotDeleted,
                 @Cached @Exclusive InlinedConditionProfile slotIsUnused,
                 @Cached @Exclusive InlinedConditionProfile hashFound,
-                @Cached @Exclusive InlinedConditionProfile noValidFirstDeletedSlot,
                 @Cached @Exclusive InlinedLoopConditionProfile stopNotYetReached,
                 @Bind("$node") Node node) {
             int nextHashPos = startingFromPos;
+
             do {
                 if (slotIsUnused.profile(node, index[nextHashPos + 1] == INDEX_SLOT_UNUSED)) {
                     return HASH_NOT_FOUND;
                 }
 
-                if (slotIsDeleted.profile(node, index[nextHashPos + 1] == INDEX_SLOT_DELETED)) {
-                    // next
-                } else if (hashFound.profile(node, index[nextHashPos] == hash)) {
-                    return nextHashPos;
+                if (slotIsNotDeleted.profile(node, index[nextHashPos + 1] != INDEX_SLOT_DELETED)) {
+                    if (hashFound.profile(node, index[nextHashPos] == hash)) {
+                        return nextHashPos;
+                    }
                 }
 
                 nextHashPos = incrementIndexPos(nextHashPos, index.length);
@@ -595,7 +558,7 @@ public final class CompactHashStore {
             return false;
         }
 
-        // setting the key is a relatively expensive insertion
+        // setting a new key is a relatively expensive insertion
         @Specialization(guards = "kvPos == KEY_NOT_FOUND")
         static boolean keyDoesntExist(
                 RubyHash hash, CompactHashStore store, int kvPos, int keyHash, Object frozenKey, Object value,
