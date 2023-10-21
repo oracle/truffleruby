@@ -9,6 +9,8 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -49,7 +51,7 @@ public final class ProxyForeignObject implements TruffleObject {
             @Cached DispatchNode dispatchNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedLibrary("this.delegate") ReflectionLibrary reflections,
-            @CachedLibrary("this") ReflectionLibrary node) throws Exception {
+            @Bind("$node") Node node) throws Exception {
 
         if (message == IS_META_INSTANCE) { // Workaround StackOverflowError in asserts (GR-37197)
             rawArgs = rawArgs.clone();
@@ -75,7 +77,7 @@ public final class ProxyForeignObject implements TruffleObject {
                 }
             }
 
-            Object[] convertedArgs = foreignToRubyArgumentsNode.executeConvert(loggingArgs);
+            Object[] convertedArgs = foreignToRubyArgumentsNode.executeConvert(node, loggingArgs);
             dispatchNode.call(logger, "<<", convertedArgs);
         }
 

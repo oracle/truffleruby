@@ -9,6 +9,9 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
@@ -17,23 +20,25 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
+@GenerateCached(false)
+@GenerateInline
 public abstract class ToPathNode extends RubyBaseNode {
 
-    public abstract Object execute(Object value);
+    public abstract Object execute(Node node, Object value);
 
     @Specialization
-    RubyString coerceRubyString(RubyString path) {
+    static RubyString coerceRubyString(RubyString path) {
         return path;
     }
 
     @Specialization
-    ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString path) {
+    static ImmutableRubyString coerceImmutableRubyString(ImmutableRubyString path) {
         return path;
     }
 
     @Specialization(guards = "isNotRubyString(object)")
-    RubyString coerceObject(Object object,
-            @Cached DispatchNode toPathNode) {
-        return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);
+    static RubyString coerceObject(Node node, Object object,
+            @Cached(inline = false) DispatchNode toPathNode) {
+        return (RubyString) toPathNode.call(coreLibrary(node).truffleTypeModule, "coerce_to_path", object);
     }
 }

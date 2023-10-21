@@ -11,6 +11,7 @@ package org.truffleruby.core.hash.library;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -118,6 +119,7 @@ public abstract class HashStoreLibrary extends Library {
     /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
      * otherwise passes an array containing the key and the value as single argument. */
     @GenerateUncached
+    @GenerateInline(false)
     public abstract static class YieldPairNode extends RubyBaseNode {
 
         public static YieldPairNode create() {

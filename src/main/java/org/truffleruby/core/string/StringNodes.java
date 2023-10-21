@@ -222,7 +222,7 @@ public abstract class StringNodes {
                 @Cached ToStrNode toStrNode,
                 @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
             final var otherAsString = toStrNode.execute(this, other);
-            return stringAppendNode.executeStringAppend(string, otherAsString);
+            return stringAppendNode.executeStringAppend(this, string, otherAsString);
         }
     }
 
@@ -1406,19 +1406,18 @@ public abstract class StringNodes {
     @CoreMethod(names = "getbyte", required = 1, lowerFixnum = 1)
     public abstract static class StringGetByteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringHelperNodes.NormalizeIndexNode normalizeIndexNode = StringHelperNodes.NormalizeIndexNode
-                .create();
         @Child private TruffleString.ReadByteNode readByteNode = TruffleString.ReadByteNode.create();
 
         @Specialization
         Object getByte(Object string, int index,
                 @Cached InlinedConditionProfile indexOutOfBoundsProfile,
-                @Cached RubyStringLibrary libString) {
+                @Cached RubyStringLibrary libString,
+                @Cached StringHelperNodes.NormalizeIndexNode normalizeIndexNode) {
             var tstring = libString.getTString(string);
             var encoding = libString.getEncoding(string).tencoding;
             int byteLength = tstring.byteLength(encoding);
 
-            final int normalizedIndex = normalizeIndexNode.executeNormalize(index, byteLength);
+            final int normalizedIndex = normalizeIndexNode.executeNormalize(this, index, byteLength);
 
             if (indexOutOfBoundsProfile.profile(this, (normalizedIndex < 0) || (normalizedIndex >= byteLength))) {
                 return nil;
@@ -1612,7 +1611,7 @@ public abstract class StringNodes {
                 @Cached InlinedConditionProfile noopProfile,
                 @Bind("this") Node node) {
             var tstring = string.tstring;
-            var encoding = getActualEncodingNode.execute(tstring, libString.getEncoding(string));
+            var encoding = getActualEncodingNode.execute(node, tstring, libString.getEncoding(string));
             var tencoding = encoding.tencoding;
 
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
@@ -1682,7 +1681,8 @@ public abstract class StringNodes {
         int ord(Object string,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached StringHelperNodes.GetCodePointNode getCodePointNode) {
-            return getCodePointNode.executeGetCodePoint(strings.getTString(string), strings.getEncoding(string), 0);
+            return getCodePointNode.executeGetCodePoint(this, strings.getTString(string), strings.getEncoding(string),
+                    0);
         }
 
     }
@@ -1751,7 +1751,7 @@ public abstract class StringNodes {
                 @Cached @Exclusive InlinedConditionProfile noopProfile,
                 @Bind("this") Node node) {
             var tstring = string.tstring;
-            var encoding = getActualEncodingNode.execute(tstring, libString.getEncoding(string));
+            var encoding = getActualEncodingNode.execute(node, tstring, libString.getEncoding(string));
             var tencoding = encoding.tencoding;
 
             var iterator = createBackwardCodePointIteratorNode.execute(tstring, tencoding,
@@ -3105,9 +3105,6 @@ public abstract class StringNodes {
     @Primitive(name = "string_append")
     public abstract static class StringAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringHelperNodes.StringAppendNode stringAppendNode = StringHelperNodes.StringAppendNode
-                .create();
-
         @NeverDefault
         public static StringAppendPrimitiveNode create() {
             return StringAppendPrimitiveNodeFactory.create(null);
@@ -3116,8 +3113,9 @@ public abstract class StringNodes {
         public abstract RubyString executeStringAppend(RubyString string, Object other);
 
         @Specialization
-        RubyString stringAppend(RubyString string, Object other) {
-            final RubyString result = stringAppendNode.executeStringAppend(string, other);
+        RubyString stringAppend(RubyString string, Object other,
+                @Cached StringHelperNodes.StringAppendNode stringAppendNode) {
+            final RubyString result = stringAppendNode.executeStringAppend(this, string, other);
             string.setTString(result.tstring, result.getEncodingUnprofiled());
             return string;
         }
@@ -3329,18 +3327,16 @@ public abstract class StringNodes {
     @Primitive(name = "string_byte_substring", lowerFixnum = { 1, 2 })
     public abstract static class StringByteSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringHelperNodes.NormalizeIndexNode normalizeIndexNode = StringHelperNodes.NormalizeIndexNode
-                .create();
-
         @Specialization
         Object stringByteSubstring(Object string, int index, NotProvided length,
                 @Cached @Exclusive InlinedConditionProfile indexOutOfBoundsProfile,
                 @Cached @Shared RubyStringLibrary libString,
-                @Cached @Shared TruffleString.SubstringByteIndexNode substringNode) {
+                @Cached @Shared TruffleString.SubstringByteIndexNode substringNode,
+                @Cached @Shared StringHelperNodes.NormalizeIndexNode normalizeIndexNode) {
             var tString = libString.getTString(string);
             var encoding = libString.getEncoding(string);
             final int stringByteLength = tString.byteLength(encoding.tencoding);
-            final int normalizedIndex = normalizeIndexNode.executeNormalize(index, stringByteLength);
+            final int normalizedIndex = normalizeIndexNode.executeNormalize(this, index, stringByteLength);
 
             if (indexOutOfBoundsProfile.profile(this, normalizedIndex < 0 || normalizedIndex >= stringByteLength)) {
                 return nil;
@@ -3355,7 +3351,8 @@ public abstract class StringNodes {
                 @Cached @Exclusive InlinedConditionProfile indexOutOfBoundsProfile,
                 @Cached @Exclusive InlinedConditionProfile lengthTooLongProfile,
                 @Cached @Shared RubyStringLibrary libString,
-                @Cached @Shared TruffleString.SubstringByteIndexNode substringNode) {
+                @Cached @Shared TruffleString.SubstringByteIndexNode substringNode,
+                @Cached @Shared StringHelperNodes.NormalizeIndexNode normalizeIndexNode) {
             if (negativeLengthProfile.profile(this, length < 0)) {
                 return nil;
             }
@@ -3363,7 +3360,7 @@ public abstract class StringNodes {
             var tString = libString.getTString(string);
             var encoding = libString.getEncoding(string);
             final int stringByteLength = tString.byteLength(encoding.tencoding);
-            final int normalizedIndex = normalizeIndexNode.executeNormalize(index, stringByteLength);
+            final int normalizedIndex = normalizeIndexNode.executeNormalize(this, index, stringByteLength);
 
             if (indexOutOfBoundsProfile.profile(this, normalizedIndex < 0 || normalizedIndex > stringByteLength)) {
                 return nil;
@@ -3423,7 +3420,7 @@ public abstract class StringNodes {
                 @Bind("strings.getTString(string)") AbstractTruffleString originalTString,
                 @Bind("strings.getEncoding(string)") RubyEncoding originalEncoding,
                 @Bind("this") Node node) {
-            final RubyEncoding actualEncoding = getActualEncodingNode.execute(originalTString, originalEncoding);
+            final RubyEncoding actualEncoding = getActualEncodingNode.execute(node, originalTString, originalEncoding);
             var tstring = forceEncodingNode.execute(originalTString, originalEncoding.tencoding,
                     actualEncoding.tencoding);
 
@@ -4280,7 +4277,8 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            int normalizedCodePointOffset = normalizeIndexNode.executeNormalize(codePointOffset, stringCodePointLength);
+            int normalizedCodePointOffset = normalizeIndexNode.executeNormalize(this, codePointOffset,
+                    stringCodePointLength);
             if (negativeIndexProfile.profile(this, normalizedCodePointOffset < 0)) {
                 return nil;
             }

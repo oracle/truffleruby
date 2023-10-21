@@ -84,7 +84,7 @@ public abstract class UnboundMethodNodes {
             final RubyClass objectMetaClass = metaClassNode.execute(this, object);
 
             if (!canBindMethodToModuleNode
-                    .executeCanBindMethodToModule(unboundMethod.method, objectMetaClass)) {
+                    .executeCanBindMethodToModule(this, unboundMethod.method, objectMetaClass)) {
                 errorProfile.enter(this);
                 final RubyModule declaringModule = unboundMethod.method.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {

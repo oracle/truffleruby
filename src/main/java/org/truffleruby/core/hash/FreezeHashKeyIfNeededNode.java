@@ -10,7 +10,10 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyBaseNode;
@@ -19,35 +22,37 @@ import org.truffleruby.language.dispatch.DispatchNode;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
+@GenerateInline
+@GenerateCached(false)
 public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
 
-    public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
+    public abstract Object executeFreezeIfNeeded(Node node, Object key, boolean compareByIdentity);
 
     @Specialization
-    Object immutable(ImmutableRubyString string, boolean compareByIdentity) {
+    static Object immutable(ImmutableRubyString string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = "string.isFrozen()")
-    Object alreadyFrozen(RubyString string, boolean compareByIdentity) {
+    static Object alreadyFrozen(RubyString string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = { "!string.isFrozen()", "!compareByIdentity" })
-    Object dupAndFreeze(RubyString string, boolean compareByIdentity,
-            @Cached DispatchNode dupNode) {
+    static Object dupAndFreeze(RubyString string, boolean compareByIdentity,
+            @Cached(inline = false) DispatchNode dupNode) {
         final RubyString copy = (RubyString) dupNode.call(string, "dup");
         copy.freeze();
         return copy;
     }
 
     @Specialization(guards = { "!string.isFrozen()", "compareByIdentity" })
-    Object compareByIdentity(RubyString string, boolean compareByIdentity) {
+    static Object compareByIdentity(RubyString string, boolean compareByIdentity) {
         return string;
     }
 
     @Specialization(guards = "isNotRubyString(value)")
-    Object passThrough(Object value, boolean compareByIdentity) {
+    static Object passThrough(Object value, boolean compareByIdentity) {
         return value;
     }
 }

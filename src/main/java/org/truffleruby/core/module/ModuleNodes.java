@@ -617,9 +617,9 @@ public abstract class ModuleNodes {
         static Object autoload(RubyModule module, Object nameObject, Object filename,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ToPathNode toPathNode,
-                @Bind("toPathNode.execute(filename)") Object filenameAsPath,
-                @Cached RubyStringLibrary libFilename,
-                @Bind("this") Node node) {
+                @Bind("this") Node node,
+                @Bind("toPathNode.execute(node, filename)") Object filenameAsPath,
+                @Cached RubyStringLibrary libFilename) {
             final var name = nameToJavaStringNode.execute(node, nameObject);
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
@@ -694,7 +694,7 @@ public abstract class ModuleNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return classExecNode.execute(EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+            return classExecNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 
@@ -786,7 +786,7 @@ public abstract class ModuleNodes {
         @Specialization
         Object withBlock(VirtualFrame frame, RubyModule self, Object[] args, RubyProc block,
                 @Cached ClassExecBlockNode classExecBlockNode) {
-            return classExecBlockNode.execute(RubyArguments.getDescriptor(frame), self, args, block);
+            return classExecBlockNode.execute(this, RubyArguments.getDescriptor(frame), self, args, block);
         }
 
         @Specialization
@@ -796,19 +796,23 @@ public abstract class ModuleNodes {
     }
 
     @GenerateUncached
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class ClassExecBlockNode extends RubyBaseNode {
 
-        public abstract Object execute(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block);
+        public abstract Object execute(Node node, ArgumentsDescriptor descriptor, RubyModule self, Object[] args,
+                RubyProc block);
 
         @Specialization
-        Object classExec(ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block,
+        static Object classExec(
+                Node node, ArgumentsDescriptor descriptor, RubyModule self, Object[] args, RubyProc block,
                 @Cached CallBlockNode callBlockNode) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new FixedDefaultDefinee(self),
                     block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(this, declarationContext, block, self, nil, descriptor, args);
+            return callBlockNode.executeCallBlock(node, declarationContext, block, self, nil, descriptor, args);
         }
     }
 
@@ -821,7 +825,7 @@ public abstract class ModuleNodes {
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached LookupClassVariableNode lookupClassVariableNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             return lookupClassVariableNode.execute(module, name) != null;
         }
 
@@ -837,7 +841,7 @@ public abstract class ModuleNodes {
                 @Cached LookupClassVariableNode lookupClassVariableNode,
                 @Cached InlinedConditionProfile undefinedProfile) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             final Object value = lookupClassVariableNode.execute(module, name);
 
             if (undefinedProfile.profile(this, value == null)) {
@@ -860,7 +864,7 @@ public abstract class ModuleNodes {
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode,
                 @Cached SetClassVariableNode setClassVariableNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             setClassVariableNode.execute(module, name, value);
             return value;
         }
@@ -1452,7 +1456,7 @@ public abstract class ModuleNodes {
         @Specialization
         RubyModule initialize(RubyModule module, RubyProc block,
                 @Cached ClassExecBlockNode classExecBlockNode) {
-            classExecBlockNode.execute(EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
+            classExecBlockNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
             return module;
         }
 
@@ -1999,7 +2003,7 @@ public abstract class ModuleNodes {
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached CheckClassVariableNameNode checkClassVariableNameNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
-            checkClassVariableNameNode.execute(module, name);
+            checkClassVariableNameNode.execute(this, module, name);
             return ModuleOperations.removeClassVariable(module.fields, getContext(), this, name);
         }
 

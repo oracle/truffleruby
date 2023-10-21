@@ -32,7 +32,7 @@ public abstract class LookupClassVariableNode extends RubyBaseNode {
             @Cached LookupClassVariableStorageNode lookupClassVariableStorageNode,
             @Cached InlinedConditionProfile noStorageProfile,
             @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary) {
-        final ClassVariableStorage classVariables = lookupClassVariableStorageNode.execute(module, name);
+        final ClassVariableStorage classVariables = lookupClassVariableStorageNode.execute(this, module, name);
 
         if (noStorageProfile.profile(this, classVariables == null)) {
             return null;

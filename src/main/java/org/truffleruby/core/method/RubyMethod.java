@@ -11,6 +11,8 @@ package org.truffleruby.core.method;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -69,8 +71,9 @@ public final class RubyMethod extends RubyDynamicObject implements ObjectGraphNo
     @ExportMessage
     public Object execute(Object[] arguments,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @Cached CallInternalMethodNode callInternalMethodNode) {
-        final Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
+            @Cached CallInternalMethodNode callInternalMethodNode,
+            @Bind("$node") Node node) {
+        final Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(node, arguments);
         final Object[] frameArgs = RubyArguments.pack(null, null, method, null, receiver, nil,
                 EmptyArgumentsDescriptor.INSTANCE, convertedArguments);
         return callInternalMethodNode.execute(null, method, receiver, frameArgs);

@@ -443,19 +443,16 @@ public abstract class StringHelperNodes {
 
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class NormalizeIndexNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static NormalizeIndexNode create() {
-            return StringHelperNodesFactory.NormalizeIndexNodeGen.create();
-        }
-
-        public abstract int executeNormalize(int index, int length);
+        public abstract int executeNormalize(Node node, int index, int length);
 
         @Specialization
-        int normalizeIndex(int index, int length,
+        static int normalizeIndex(Node node, int index, int length,
                 @Cached InlinedConditionProfile negativeIndexProfile) {
-            if (negativeIndexProfile.profile(this, index < 0)) {
+            if (negativeIndexProfile.profile(node, index < 0)) {
                 return index + length;
             }
 
@@ -572,42 +569,41 @@ public abstract class StringHelperNodes {
     }
 
     @ImportStatic(StringGuards.class)
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class GetCodePointNode extends RubyBaseNode {
 
-        public abstract int executeGetCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex);
+        public abstract int executeGetCodePoint(Node node, AbstractTruffleString string, RubyEncoding encoding,
+                int byteIndex);
 
         @Specialization
-        int getCodePoint(AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
-                @Cached TruffleString.CodePointAtByteIndexNode getCodePointNode,
+        static int getCodePoint(Node node, AbstractTruffleString string, RubyEncoding encoding, int byteIndex,
+                @Cached(inline = false) TruffleString.CodePointAtByteIndexNode getCodePointNode,
                 @Cached InlinedBranchProfile badCodePointProfile) {
             int codePoint = getCodePointNode.execute(string, byteIndex, encoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
             if (codePoint == -1) {
-                badCodePointProfile.enter(this);
-                throw new RaiseException(getContext(),
-                        coreExceptions().argumentErrorInvalidByteSequence(encoding, this));
+                badCodePointProfile.enter(node);
+                throw new RaiseException(getContext(node),
+                        coreExceptions(node).argumentErrorInvalidByteSequence(encoding, node));
             }
             return codePoint;
         }
 
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     public abstract static class StringAppendNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static StringAppendNode create() {
-            return StringHelperNodesFactory.StringAppendNodeGen.create();
-        }
-
-        public abstract RubyString executeStringAppend(Object string, Object other);
+        public abstract RubyString executeStringAppend(Node node, Object string, Object other);
 
         @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
-        static RubyString stringAppend(Object string, Object other,
+        static RubyString stringAppend(Node node, Object string, Object other,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached EncodingNodes.CheckStringEncodingNode checkEncodingNode,
-                @Cached TruffleString.ConcatNode concatNode,
-                @Bind("this") Node node) {
+                @Cached(inline = false) TruffleString.ConcatNode concatNode) {
 
             var left = libString.getTString(string);
             var leftEncoding = libString.getEncoding(string);

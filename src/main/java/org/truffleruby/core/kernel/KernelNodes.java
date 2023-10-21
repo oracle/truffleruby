@@ -994,7 +994,7 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             return objectLibrary.containsKey(object, nameString);
         }
 
@@ -1013,7 +1013,7 @@ public abstract class KernelNodes {
                 @CachedLibrary(limit = "getDynamicObjectCacheLimit()") DynamicObjectLibrary objectLibrary,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             return objectLibrary.getOrDefault(object, nameString, nil);
         }
 
@@ -1022,7 +1022,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             return nil;
         }
     }
@@ -1037,7 +1037,7 @@ public abstract class KernelNodes {
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             raiseIfFrozenNode.execute(this, object);
             writeNode.execute(this, object, nameString, value);
             return value;
@@ -1048,7 +1048,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
     }
@@ -1062,7 +1062,7 @@ public abstract class KernelNodes {
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode,
                 @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             raiseIfFrozenNode.execute(this, object);
             return removeIVar(object, nameString);
         }
@@ -1072,7 +1072,7 @@ public abstract class KernelNodes {
                 @Cached @Shared CheckIVarNameNode checkIVarNameNode,
                 @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
             final String nameString = nameToJavaStringNode.execute(this, name);
-            checkIVarNameNode.execute(object, nameString, name);
+            checkIVarNameNode.execute(this, object, nameString, name);
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }
 

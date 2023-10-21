@@ -177,7 +177,7 @@ public final class PackedHashStoreLibrary {
                 @Cached @Shared PropagateSharingNode propagateSharingValue,
                 @Bind("this") Node node) {
 
-            final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
+            final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(node, key, byIdentity);
             propagateSharingKey.execute(node, hash, key2);
             propagateSharingValue.execute(node, hash, value);
             setHashedKeyValue(store, 0, hashNode.execute(key2, byIdentity), key2, value);
@@ -199,7 +199,7 @@ public final class PackedHashStoreLibrary {
 
             assert verify(store, hash);
             final int size = hash.size;
-            final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(key, byIdentity);
+            final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(node, key, byIdentity);
             final int hashed = hashNode.execute(key2, byIdentity);
             propagateSharingKey.execute(node, hash, key2);
             propagateSharingValue.execute(node, hash, value);
@@ -499,7 +499,7 @@ public final class PackedHashStoreLibrary {
 
             for (int n = 0; n < keyValues.length / 2; n++) {
                 Object key = keyValues[n * 2].execute(frame);
-                key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(key, false);
+                key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(this, key, false);
 
                 final int hashed = hash(key);
 

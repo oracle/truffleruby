@@ -17,6 +17,7 @@ import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
+import org.truffleruby.language.methods.BlockDefinitionNodeGen;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -178,7 +179,7 @@ public final class MethodTranslator extends BodyTranslator {
             callTargets = new ProcCallTargets(procCompiler.get(), null, lambdaCompiler);
         }
 
-        final BlockDefinitionNode ret = new BlockDefinitionNode(
+        final BlockDefinitionNode ret = BlockDefinitionNodeGen.create(
                 emitLambda ? ProcType.LAMBDA : ProcType.PROC,
                 environment.getSharedMethodInfo(),
                 callTargets,
