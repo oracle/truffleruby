@@ -20,9 +20,10 @@ class Bug::StNumHash
     end
 
     def test_update
-      assert_equal(true, @tbl.update(0) {@tbl[5] = :x})
-      assert_equal(:x, @tbl[0])
-      assert_equal(:x, @tbl[5])
+      value = 42
+      assert_equal(true, @tbl.update(0) {@tbl[5] = value})
+      assert_equal(value, @tbl[0])
+      assert_equal(value, @tbl[5])
     end
 
     def test_size_after_delete_safe

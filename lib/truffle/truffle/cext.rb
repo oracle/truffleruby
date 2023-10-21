@@ -1281,10 +1281,6 @@ module Truffle::CExt
     Primitive.object_ivar_set object, name, value
   end
 
-  def rb_special_const_p(object)
-    Truffle::Type.is_special_const?(object)
-  end
-
   def rb_id2str(sym)
     sym.name
   end

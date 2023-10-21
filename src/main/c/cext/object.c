@@ -38,16 +38,6 @@ bool RB_TYPE_P(VALUE value, enum ruby_value_type type) {
   return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_TYPE_P", rb_tr_unwrap(value), type));
 }
 
-bool rb_tr_special_const_p(VALUE object) {
-  // Ripper calls this from add_mark_object
-  // Cannot unwrap a natively-allocated NODE*
-  if (rb_tr_is_native_object(object)) {
-    return false;
-  }
-
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_special_const_p", object));
-}
-
 void rb_check_type(VALUE value, int type) {
   polyglot_invoke(RUBY_CEXT, "rb_check_type", rb_tr_unwrap(value), type);
 }

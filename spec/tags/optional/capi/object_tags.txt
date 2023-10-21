@@ -1,0 +1,1 @@
+fails:CApiObject rb_special_const_p returns true if passed a Symbol

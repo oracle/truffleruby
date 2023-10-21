@@ -31,12 +31,6 @@
 #include "ruby/internal/stdbool.h"
 #include "ruby/internal/value.h"
 
-#ifdef TRUFFLERUBY
-RBIMPL_SYMBOL_EXPORT_BEGIN()
-bool rb_tr_special_const_p(VALUE object);
-RBIMPL_SYMBOL_EXPORT_END()
-#endif
-
 /**
  * @private
  * @warning  Do not touch this macro.
@@ -338,11 +332,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_SPECIAL_CONST_P(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_tr_special_const_p(obj);
-#else
     return RB_IMMEDIATE_P(obj) || obj == RUBY_Qfalse;
-#endif
 }
 
 RBIMPL_ATTR_CONST()
