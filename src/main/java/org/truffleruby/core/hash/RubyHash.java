@@ -150,7 +150,8 @@ public final class RubyHash extends RubyDynamicObject implements ObjectGraphNode
     @ExportMessage(limit = "hashStrategyLimit()")
     public Object readHashValue(Object key,
             @CachedLibrary("this.store") HashStoreLibrary hashStores,
-            @Cached @Shared ForeignToRubyNode toRuby,
+            // @Exclusive to fix truffle-interpreted-performance warning
+            @Cached @Exclusive ForeignToRubyNode toRuby,
             @Cached InlinedConditionProfile unknownKey,
             @Bind("$node") Node node)
             throws UnknownKeyException {

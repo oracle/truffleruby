@@ -25,11 +25,11 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.InteropNodes;
-import org.truffleruby.interop.InteropNodes.ReadMemberNode;
+import org.truffleruby.interop.InteropNodes.InvokeMemberNode;
 import org.truffleruby.interop.InteropNodes.WriteMemberWithoutConversionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.Nil;
@@ -135,24 +135,21 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
 
         public abstract Object execute(Node node, Object receiver, String identifier, Object[] args);
 
-        @Specialization(guards = "args.length == 0", limit = "getInteropCacheLimit()")
+        @Specialization(limit = "getInteropCacheLimit()")
         static Object readOrInvoke(Node node, Object receiver, String name, Object[] args,
-                @Cached ToSymbolNode toSymbolNode,
-                @Cached @Shared InteropNodes.InvokeMemberNode invokeNode,
-                @Cached ReadMemberNode readNode,
+                @Cached InlinedConditionProfile hasArguments,
                 @Cached InlinedConditionProfile invocable,
-                @CachedLibrary("receiver") InteropLibrary receivers) {
-            if (invocable.profile(node, receivers.isMemberInvocable(receiver, name))) {
-                return invokeNode.execute(node, receiver, name, args);
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            final Object foreign;
+            if (hasArguments.profile(node, args.length != 0) ||
+                    invocable.profile(node, receivers.isMemberInvocable(receiver, name))) {
+                foreign = InteropNodes.invokeMember(node, receivers, receiver, name, args, translateInteropException);
             } else {
-                return readNode.execute(node, receiver, toSymbolNode.execute(node, name));
+                foreign = InteropNodes.readMember(node, receivers, receiver, name, translateInteropException);
             }
-        }
-
-        @Specialization(guards = "args.length != 0")
-        static Object invoke(Node node, Object receiver, String name, Object[] args,
-                @Cached @Shared InteropNodes.InvokeMemberNode invokeNode) {
-            return invokeNode.execute(node, receiver, name, args);
+            return foreignToRubyNode.execute(node, foreign);
         }
     }
 
@@ -244,7 +241,7 @@ public abstract class CallForeignMethodNode extends RubyBaseNode {
                 limit = "getInteropCacheLimit()")
         static Object call(Node node, Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached InteropNodes.InvokeMemberNode invokeNode) {
+                @Cached InvokeMemberNode invokeNode) {
             return invokeNode.execute(node, receiver, name, args);
         }
     }

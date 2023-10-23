@@ -55,7 +55,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -121,7 +120,6 @@ public abstract class TypeNodes {
         }
     }
 
-    // GR-44289: Using only dispatched libraries in this node as a workaround for that issue
     public abstract static class ObjectFreezeNode extends RubyBaseNode {
 
         public abstract Object execute(Object self);
@@ -133,28 +131,22 @@ public abstract class TypeNodes {
             return self;
         }
 
-        @Specialization(guards = "!metaClass.isSingleton")
-        Object freezeNormalObject(RubyDynamicObject self,
-                @Cached @Shared FreezeNode freezeNode,
-                @Cached @Shared MetaClassNode metaClassNode,
-                @Bind("metaClassNode.execute(this, self)") RubyClass metaClass) {
-            freezeNode.execute(this, self);
-            return self;
-        }
-
-        @Specialization(guards = "metaClass.isSingleton")
+        @Specialization
         static Object freezeSingletonObject(RubyDynamicObject self,
-                @Cached @Shared FreezeNode freezeNode,
-                @Cached @Exclusive FreezeNode freezeMetaClasNode,
-                @Cached IsFrozenNode isFrozenMetaClassNode,
+                @Cached @Exclusive FreezeNode freezeNode,
+                @Cached MetaClassNode metaClassNode,
                 @Cached InlinedConditionProfile singletonClassUnfrozenProfile,
-                @Cached @Shared MetaClassNode metaClassNode,
-                @Bind("metaClassNode.execute(this, self)") RubyClass metaClass,
+                @Cached IsFrozenNode isFrozenMetaClassNode,
+                @Cached @Exclusive FreezeNode freezeMetaClasNode,
                 @Bind("this") Node node) {
-            if (singletonClassUnfrozenProfile.profile(node,
-                    !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {
-                freezeMetaClasNode.execute(node, metaClass);
+            RubyClass metaClass = metaClassNode.execute(node, self);
+            if (metaClass.isSingleton) {
+                if (singletonClassUnfrozenProfile.profile(node,
+                        !RubyGuards.isSingletonClass(self) && !isFrozenMetaClassNode.execute(metaClass))) {
+                    freezeMetaClasNode.execute(node, metaClass);
+                }
             }
+
             freezeNode.execute(node, self);
             return self;
         }

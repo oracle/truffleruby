@@ -76,17 +76,14 @@ public abstract class RubyBaseNode extends Node {
         // Checkstyle: resume
     }
 
+    protected void profileAndReportLoopCount(LoopConditionProfile loopProfile, int count) {
+        profileAndReportLoopCount(this, loopProfile, count);
+    }
+
     public static void profileAndReportLoopCount(Node node, InlinedLoopConditionProfile loopProfile, int count) {
         // Checkstyle: stop
         loopProfile.profileCounted(node, count);
         LoopNode.reportLoopCount(node, count);
-        // Checkstyle: resume
-    }
-
-    protected void profileAndReportLoopCount(LoopConditionProfile loopProfile, int count) {
-        // Checkstyle: stop
-        loopProfile.profileCounted(count);
-        LoopNode.reportLoopCount(this, count);
         // Checkstyle: resume
     }
 

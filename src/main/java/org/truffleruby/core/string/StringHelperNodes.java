@@ -33,6 +33,7 @@ import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.EncodingNodes;
+import org.truffleruby.core.encoding.EncodingNodesFactory;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -235,6 +236,9 @@ public abstract class StringHelperNodes {
 
     public abstract static class TrTableNode extends RubyBaseNode {
 
+        static final EncodingNodes.CheckStringEncodingNode UNCACHED_CHECK_ENCODING_NODE = EncodingNodesFactory.CheckStringEncodingNodeGen
+                .getUncached();
+
         protected boolean[] squeeze() {
             return new boolean[StringSupport.TRANS_SIZE + 1];
         }
@@ -315,11 +319,10 @@ public abstract class StringHelperNodes {
         static Object deleteBangFast(Node node, RubyString string, TStringWithEncoding[] args,
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached(inline = false) TruffleString.EqualNode equalNode,
-                @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("libString.getEncoding(string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(node, libString.getTString(string), libString.getEncoding(string), cachedArgs, checkEncodingNode)") RubyEncoding compatEncoding,
+                @Cached("findEncoding(node, libString.getTString(string), libString.getEncoding(string), cachedArgs, UNCACHED_CHECK_ENCODING_NODE)") RubyEncoding compatEncoding,
                 @Cached("makeTables(node, cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
                 @Cached @Exclusive InlinedBranchProfile nullProfile) {
             var processedTString = processStr(node, string, squeeze, compatEncoding, tables);
@@ -335,7 +338,7 @@ public abstract class StringHelperNodes {
         @Specialization(guards = "!string.tstring.isEmpty()", replaces = "deleteBangFast")
         static Object deleteBangSlow(Node node, RubyString string, TStringWithEncoding[] args,
                 @Cached @Shared RubyStringLibrary libString,
-                @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
+                @Cached EncodingNodes.CheckStringEncodingNode checkEncodingNode,
                 @Cached @Exclusive InlinedBranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter(node);

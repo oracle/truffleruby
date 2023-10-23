@@ -115,7 +115,6 @@ import org.truffleruby.language.dispatch.LazyDispatchNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.loader.EvalLoader;
-import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
@@ -252,21 +251,13 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
         static Object findFile(Object featureString,
-                @Cached @Shared InlinedBranchProfile notFoundProfile,
-                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
+                @Cached InlinedBranchProfile notFoundProfile,
+                @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Bind("this") Node node) {
             String feature = toJavaStringNode.execute(node, featureString);
-            return findFileString(feature, notFoundProfile, fromJavaStringNode, node);
-        }
-
-        @Specialization
-        static Object findFileString(String featureString,
-                @Cached @Shared InlinedBranchProfile notFoundProfile,
-                @Cached @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
-                @Bind("this") Node node) {
-            final String expandedPath = getContext(node).getFeatureLoader().findFeature(featureString);
+            final String expandedPath = getContext(node).getFeatureLoader().findFeature(feature);
             if (expandedPath == null) {
                 notFoundProfile.enter(node);
                 return nil;
@@ -1638,66 +1629,34 @@ public abstract class KernelNodes {
     @ReportPolymorphism
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ReadGlobalVariableNode readDebugGlobalNode = ReadGlobalVariableNodeGen.create("$DEBUG");
+        static final String GVAR_DEBUG = "$DEBUG";
 
-        @Specialization(
-                guards = {
-                        "libFormat.isRubyString(formatAsString)",
-                        "equalNode.execute(node, libFormat, formatAsString, cachedTString, cachedEncoding)",
-                        "isDebug == cachedIsDebug" },
-                limit = "3")
-        static RubyString formatCached(VirtualFrame frame, Object format, Object[] arguments,
-                @Cached @Shared ToStrNode toStrNode,
-                @Cached @Shared BooleanCastNode booleanCastNode,
-                @Bind("isDebug(frame, booleanCastNode)") boolean isDebug,
+        @Specialization(guards = "libFormat.isRubyString(formatAsString)", limit = "1")
+        static RubyString sprintf(VirtualFrame frame, Object format, Object[] arguments,
+                @Cached ToStrNode toStrNode,
                 @Bind("toStrNode.execute(this, format)") Object formatAsString,
-                @Cached @Shared RubyStringLibrary libFormat,
-                @Cached("isDebug") boolean cachedIsDebug,
-                @Cached("asTruffleStringUncached(formatAsString)") TruffleString cachedTString,
-                @Cached("libFormat.getEncoding(formatAsString)") RubyEncoding cachedEncoding,
-                @Cached("cachedTString.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(cachedTString, cachedEncoding, arguments, isDebug))") DirectCallNode callPackNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
-                @Cached @Shared InlinedBranchProfile exceptionProfile,
-                @Cached @Shared InlinedConditionProfile resizeProfile,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached(parameters = "GVAR_DEBUG") ReadGlobalVariableNode readDebugGlobalNode,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached RubyStringLibrary libFormat,
+                @Cached InlinedBranchProfile exceptionProfile,
+                @Cached InlinedConditionProfile resizeProfile,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached SprintfInnerNode sprintfInnerNode,
                 @Bind("this") Node node) {
+            var tstring = libFormat.getTString(formatAsString);
+            var encoding = libFormat.getEncoding(formatAsString);
+
+            boolean isDebug = booleanCastNode.execute(node, readDebugGlobalNode.execute(frame));
+
             final BytesResult result;
             try {
-                result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length, null });
+                result = sprintfInnerNode.execute(node, tstring, encoding, arguments, isDebug);
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
-        }
-
-        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "formatCached")
-        RubyString formatUncached(VirtualFrame frame, Object format, Object[] arguments,
-                @Cached @Shared ToStrNode toStrNode,
-                @Cached IndirectCallNode callPackNode,
-                @Cached @Shared BooleanCastNode booleanCastNode,
-                @Cached @Shared InlinedBranchProfile exceptionProfile,
-                @Cached @Shared InlinedConditionProfile resizeProfile,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared RubyStringLibrary libFormat) {
-            final var formatAsString = toStrNode.execute(this, format);
-            final BytesResult result;
-            final boolean isDebug = isDebug(frame, booleanCastNode);
-            var tstring = libFormat.getTString(formatAsString);
-            var encoding = libFormat.getEncoding(formatAsString);
-            try {
-                result = (BytesResult) callPackNode.call(
-                        compileFormat(tstring, encoding, arguments, isDebug),
-                        new Object[]{ arguments, arguments.length, null });
-            } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
-            }
-
-            return finishFormat(this, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
+            return finishFormat(node, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
         }
 
         private static RubyString finishFormat(Node node, int formatLength, BytesResult result,
@@ -1711,22 +1670,49 @@ public abstract class KernelNodes {
             return createString(node, fromByteArrayNode, bytes,
                     result.getEncoding().getEncodingForLength(formatLength));
         }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class SprintfInnerNode extends RubyBaseNode {
+
+        public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,
+                Object[] arguments, boolean isDebug);
+
+        @Specialization(
+                guards = {
+                        "equalNode.execute(node, format, encoding, cachedFormat, cachedEncoding)",
+                        "isDebug == cachedIsDebug" },
+                limit = "3")
+        static BytesResult formatCached(
+                Node node, AbstractTruffleString format, RubyEncoding encoding, Object[] arguments, boolean isDebug,
+                @Cached("isDebug") boolean cachedIsDebug,
+                @Cached("format.asTruffleStringUncached(encoding.tencoding)") TruffleString cachedFormat,
+                @Cached("encoding") RubyEncoding cachedEncoding,
+                @Cached(value = "create(compileFormat(cachedFormat, cachedEncoding, arguments, isDebug, node))",
+                        inline = false) DirectCallNode callPackNode,
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+            return (BytesResult) callPackNode.call(new Object[]{ arguments, arguments.length, null });
+        }
+
+        @Specialization(replaces = "formatCached")
+        static BytesResult formatUncached(
+                Node node, AbstractTruffleString format, RubyEncoding encoding, Object[] arguments, boolean isDebug,
+                @Cached(inline = false) IndirectCallNode callPackNode) {
+            return (BytesResult) callPackNode.call(
+                    compileFormat(format, encoding, arguments, isDebug, node),
+                    new Object[]{ arguments, arguments.length, null });
+        }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(AbstractTruffleString tstring, RubyEncoding encoding, Object[] arguments,
-                boolean isDebug) {
+        static RootCallTarget compileFormat(AbstractTruffleString tstring, RubyEncoding encoding, Object[] arguments,
+                boolean isDebug, Node node) {
             try {
-                return new PrintfCompiler(getLanguage(), this)
-                        .compile(tstring, encoding, arguments, isDebug);
+                return new PrintfCompiler(getLanguage(node), node).compile(tstring, encoding, arguments, isDebug);
             } catch (InvalidFormatException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
             }
         }
-
-        protected boolean isDebug(VirtualFrame frame, BooleanCastNode booleanCastNode) {
-            return booleanCastNode.execute(this, readDebugGlobalNode.execute(frame));
-        }
-
     }
 
     @CoreMethod(names = "global_variables", isModuleFunction = true)

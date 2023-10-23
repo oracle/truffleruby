@@ -14,6 +14,7 @@ package org.truffleruby.core.encoding;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.nodes.Node;
@@ -68,6 +69,7 @@ public abstract class EncodingNodes {
     @ImportStatic(TruffleString.CodeRange.class)
     @GenerateCached(false)
     @GenerateInline
+    @GenerateUncached
     public abstract static class NegotiateCompatibleStringEncodingNode extends RubyBaseNode {
 
         public abstract RubyEncoding execute(Node node, AbstractTruffleString first, RubyEncoding firstEncoding,
@@ -778,6 +780,7 @@ public abstract class EncodingNodes {
     // MRI: rb_enc_check_str / rb_encoding_check (with RopeWithEncoding arguments)
     @GenerateInline
     @GenerateCached(false)
+    @GenerateUncached
     public abstract static class CheckStringEncodingNode extends RubyBaseNode {
 
         public abstract RubyEncoding executeCheckEncoding(Node node, AbstractTruffleString first,

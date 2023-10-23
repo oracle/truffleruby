@@ -11,6 +11,7 @@ package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -28,7 +29,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
-    public abstract boolean executeIsShared(Node node, RubyDynamicObject object);
+    public abstract boolean execute(Node node, RubyDynamicObject object);
 
     @Specialization(
             guards = "object.getShape() == cachedShape",
@@ -43,12 +44,14 @@ public abstract class IsSharedNode extends RubyBaseNode {
     @Specialization(guards = "updateShape(object)")
     static boolean updateShapeAndIsShared(Node node, RubyDynamicObject object,
             @Cached(inline = false) IsSharedNode isSharedNode) {
-        return isSharedNode.executeIsShared(node, object);
+        return isSharedNode.execute(isSharedNode, object);
     }
 
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
-    static boolean isSharedUncached(Node node, RubyDynamicObject object) {
-        return getLanguage(node).options.SHARED_OBJECTS_ENABLED && SharedObjects.isShared(object);
+    static boolean isSharedUncached(Node node, RubyDynamicObject object,
+            @Cached InlinedConditionProfile profile) {
+        return getLanguage(node).options.SHARED_OBJECTS_ENABLED &&
+                profile.profile(node, SharedObjects.isShared(object));
     }
 
 }

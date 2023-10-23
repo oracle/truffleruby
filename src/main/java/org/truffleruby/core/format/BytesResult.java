@@ -9,8 +9,10 @@
  */
 package org.truffleruby.core.format;
 
+import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import org.truffleruby.extra.ffi.Pointer;
 
+@ValueType
 public final class BytesResult {
 
     private final byte[] output;

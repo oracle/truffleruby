@@ -10,7 +10,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
@@ -38,20 +38,20 @@ public abstract class DurationToNanoSecondsNode extends RubyBaseNode {
 
     @Specialization
     static long duration(Node node, long duration,
-            @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile) {
+            @Cached @Exclusive InlinedConditionProfile durationLessThanZeroProfile) { // @Exclusive to fix truffle-interpreted-performance warning
         return validate(node, TimeUnit.SECONDS.toNanos(duration), durationLessThanZeroProfile);
     }
 
     @Specialization
     static long duration(Node node, double duration,
-            @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile) {
+            @Cached @Exclusive InlinedConditionProfile durationLessThanZeroProfile) {
         return validate(node, (long) (duration * 1e9), durationLessThanZeroProfile);
     }
 
     @Fallback
     static long duration(Node node, Object duration,
             @Cached(inline = false) DispatchNode durationToNanoSeconds,
-            @Cached @Shared InlinedConditionProfile durationLessThanZeroProfile,
+            @Cached @Exclusive InlinedConditionProfile durationLessThanZeroProfile,
             @Cached ToLongNode toLongNode) {
         final Object nanoseconds = durationToNanoSeconds.call(
                 coreLibrary(node).truffleKernelOperationsModule,

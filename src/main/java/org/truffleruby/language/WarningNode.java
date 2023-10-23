@@ -9,11 +9,17 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.DenyReplace;
 
 /** Warns only if $VERBOSE is true. Corresponds to Kernel#warn(message, uplevel: 1) if $VERBOSE, but in Java with a
  * given SourceSection. */
 public final class WarningNode extends WarnNode {
+
+    @NeverDefault
+    public static WarningNode create() {
+        return new WarningNode();
+    }
 
     @Override
     public boolean shouldWarn() {

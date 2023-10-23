@@ -78,10 +78,10 @@ import com.oracle.truffle.api.source.Source;
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
-    public static Object execute(Node node, Object receiver, Object[] args, InteropLibrary receivers,
+    public static Object execute(Node node, Object receiver, Object[] args, InteropLibrary interop,
             TranslateInteropExceptionNode translateInteropExceptionNode) {
         try {
-            return receivers.execute(receiver, args);
+            return interop.execute(receiver, args);
         } catch (InteropException e) {
             throw translateInteropExceptionNode.execute(node, e);
         }
@@ -93,6 +93,15 @@ public abstract class InteropNodes {
             return interop.readMember(receiver, name);
         } catch (InteropException e) {
             throw translateInteropException.execute(node, e);
+        }
+    }
+
+    public static Object invokeMember(Node node, InteropLibrary interop, Object receiver, String member, Object[] args,
+            TranslateInteropExceptionNode translateInteropExceptionNode) {
+        try {
+            return interop.invokeMember(receiver, member, args);
+        } catch (InteropException e) {
+            throw translateInteropExceptionNode.executeInInvokeMember(node, e, receiver, args);
         }
     }
 
@@ -1387,15 +1396,6 @@ public abstract class InteropNodes {
     @GenerateCached(false)
     public abstract static class InvokeMemberNode extends RubyBaseNode {
 
-        private static Object invoke(Node node, InteropLibrary receivers, Object receiver, String member, Object[] args,
-                TranslateInteropExceptionNode translateInteropExceptionNode) {
-            try {
-                return receivers.invokeMember(receiver, member, args);
-            } catch (InteropException e) {
-                throw translateInteropExceptionNode.executeInInvokeMember(node, e, receiver, args);
-            }
-        }
-
         public abstract Object execute(Node node, Object receiver, Object identifier, Object[] args);
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1405,7 +1405,7 @@ public abstract class InteropNodes {
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             final String name = toJavaStringNode.execute(node, identifier);
-            final Object foreign = invoke(node, receivers, receiver, name, args, translateInteropException);
+            final Object foreign = invokeMember(node, receivers, receiver, name, args, translateInteropException);
             return foreignToRubyNode.execute(node, foreign);
         }
     }

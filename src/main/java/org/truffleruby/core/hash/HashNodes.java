@@ -10,6 +10,7 @@
 package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -327,8 +328,8 @@ public abstract class HashNodes {
         static Object delete(RubyHash hash, Object key, Object maybeBlock,
                 @CachedLibrary("hash.store") HashStoreLibrary hashes,
                 @Cached CallBlockNode yieldNode,
-                @Cached @Shared InlinedConditionProfile hasValue,
-                @Cached @Shared InlinedConditionProfile hasBlock,
+                @Cached @Exclusive InlinedConditionProfile hasValue,
+                @Cached @Exclusive InlinedConditionProfile hasBlock,
                 @Bind("this") Node node) {
             final Object value = hashes.delete(hash.store, hash, key);
             if (hasValue.profile(node, value != null)) {
