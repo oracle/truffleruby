@@ -27,6 +27,7 @@ import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.cast.StringToSymbolNodeGen;
+import org.truffleruby.core.cast.ToProcNodeGen;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.cast.ToSNodeGen;
 import org.truffleruby.core.encoding.Encodings;
@@ -60,6 +61,7 @@ import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.BreakNode;
 import org.truffleruby.language.control.DynamicReturnNode;
+import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.IfNodeGen;
@@ -105,6 +107,7 @@ import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
@@ -127,6 +130,7 @@ import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
+import org.truffleruby.parser.parser.ParserSupport;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -143,12 +147,11 @@ import java.util.List;
 public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     protected final RubyLanguage language;
-    private final YARPTranslator parent;
     protected final TranslatorEnvironment environment;
     private final byte[] sourceBytes;
-    protected final Source source;
-    protected final ParserContext parserContext;
-    protected final Node currentNode;
+    private final Source source;
+    private final ParserContext parserContext;
+    private final Node currentNode;
     private final RubyDeferredWarnings rubyWarnings;
     private final RubyEncoding sourceEncoding;
 
@@ -161,10 +164,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private boolean translatingWhile = false;
 
     private boolean translatingNextExpression = false;
+    private boolean translatingForStatement = false;
+
+    private String currentCallMethodName = null;
 
     public YARPTranslator(
             RubyLanguage language,
-            YARPTranslator parent,
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
@@ -172,7 +177,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             Node currentNode,
             RubyDeferredWarnings rubyWarnings) {
         this.language = language;
-        this.parent = parent;
         this.environment = environment;
         this.sourceBytes = sourceBytes;
         this.source = source;
@@ -212,10 +216,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitAlternationPatternNode(Nodes.AlternationPatternNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitAndNode(Nodes.AndNode node) {
         RubyNode left = node.left.accept(this);
         RubyNode right = node.right.accept(this);
@@ -225,6 +231,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitArgumentsNode(Nodes.ArgumentsNode node) {
         final Nodes.Node[] values = node.arguments;
 
@@ -239,6 +246,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitArrayNode(Nodes.ArrayNode node) {
         RubyNode[] elements = translate(node.elements);
         RubyNode rubyNode = ArrayLiteralNode.create(language, elements);
@@ -246,26 +254,31 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitArrayPatternNode(Nodes.ArrayPatternNode node) {
         return defaultVisit(node);
     }
 
     // handled in #visitHashNode
+    @Override
     public RubyNode visitAssocNode(Nodes.AssocNode node) {
         return defaultVisit(node);
     }
 
     // handled in #visitHashNode
+    @Override
     public RubyNode visitAssocSplatNode(Nodes.AssocSplatNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitBackReferenceReadNode(Nodes.BackReferenceReadNode node) {
         final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(node.name);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitBeginNode(Nodes.BeginNode node) {
         RubyNode rubyNode;
 
@@ -403,14 +416,108 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rescueNode;
     }
 
+    @Override
     public RubyNode visitBlockArgumentNode(Nodes.BlockArgumentNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitBlockNode(Nodes.BlockNode node) {
-        return defaultVisit(node);
+        final boolean isStabbyLambda = false; // TODO: handle lambda literal as well in visitLambdaNode
+        final boolean hasOwnScope = true;
+        final boolean isProc = !isStabbyLambda;
+
+        TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
+        final String methodName = methodParent.getMethodName();
+
+        final int blockDepth = environment.getBlockDepth() + 1;
+
+        final Nodes.ParametersNode parameters;
+        if (node.parameters != null) {
+            parameters = node.parameters.parameters;
+        } else {
+            // handle numbered parameters
+            int max = 0;
+
+            // don't rely on locals order and find the largest index
+            for (var name : node.locals) {
+                if (ParserSupport.isNumberedParameter(name)) {
+                    int n = name.charAt(1) - '0';
+                    if (n > max) {
+                        max = n;
+                    }
+                }
+            }
+
+            if (max > 0) {
+                final var requireds = new Nodes.RequiredParameterNode[max];
+                for (int i = 1; i <= max; i++) {
+                    requireds[i - 1] = new Nodes.RequiredParameterNode("_" + i, 0, 0);
+                }
+                parameters = new Nodes.ParametersNode(requireds, Nodes.Node.EMPTY_ARRAY, null, Nodes.Node.EMPTY_ARRAY,
+                        Nodes.Node.EMPTY_ARRAY, null, null, 0, 0);
+            } else {
+                // no numbered parameters
+                parameters = null;
+            }
+        }
+
+        final Arity arity = createArity(parameters);
+        final ArgumentDescriptor[] argumentDescriptors = parametersNodeToArgumentDescriptors(parameters);
+
+        // "block in foo"
+        String originalName = SharedMethodInfo.getBlockName(blockDepth, methodName);
+        // "block (2 levels) in M::C.foo"
+        String parseName = SharedMethodInfo.getBlockName(blockDepth, methodParent.getSharedMethodInfo().getParseName());
+        final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
+                getSourceSection(node),
+                environment.getStaticLexicalScopeOrNull(),
+                arity,
+                originalName,
+                blockDepth,
+                parseName,
+                methodName,
+                argumentDescriptors);
+
+        final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
+        // "stabby lambda" is a common name for the `->() {}` lambda syntax
+        final ReturnID returnID = isStabbyLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
+
+        final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
+                environment,
+                parseEnvironment,
+                returnID,
+                hasOwnScope,
+                false,
+                sharedMethodInfo,
+                environment.getMethodName(),
+                blockDepth,
+                parseEnvironment.allocateBreakID(),
+                null,
+                environment.modulePath);
+        final YARPBlockNodeTranslator methodCompiler = new YARPBlockNodeTranslator(
+                language,
+                newEnvironment,
+                sourceBytes,
+                source,
+                parameters,
+                arity,
+                currentCallMethodName,
+                this);
+
+        methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
+
+        final RubyNode rubyNode = methodCompiler.compileBlockNode(
+                node.body,
+                node.locals,
+                isStabbyLambda,
+                getSourceSection(node));
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
+    @Override
     public RubyNode visitBreakNode(Nodes.BreakNode node) {
         // detect syntax error
         // YARP doesn't emit errors for incorrect usage of break/redo/next
@@ -437,6 +544,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitCallNode(Nodes.CallNode node) {
         var methodName = node.name;
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
@@ -469,7 +577,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         isSplatted = isSplatFound;
 
         // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
-        if (isSplatted && translatedArguments.length == 1 && translatedArguments[0] instanceof SplatCastNode splatNode) {
+        if (isSplatted && translatedArguments.length == 1 &&
+                translatedArguments[0] instanceof SplatCastNode splatNode) {
             splatNode.doNotCopy();
         }
 
@@ -507,10 +616,44 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             return rubyNode;
         }
 
+        // TODO: use visit... methods instead of explicit checks
+        final RubyNode blockNode;
+        final int frameOnStackMarkerSlot;
+        if (node.block != null) {
+            if (node.block instanceof Nodes.BlockNode) {
+                // a() {}
+                final String oldCurrentCallMethodName = currentCallMethodName;
+                currentCallMethodName = methodName;
+
+                frameOnStackMarkerSlot = environment.declareLocalTemp("frame_on_stack_marker");
+                frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
+
+                try {
+                    blockNode = node.block.accept(this);
+                } finally {
+                    frameOnStackMarkerSlotStack.pop();
+                }
+
+                currentCallMethodName = oldCurrentCallMethodName;
+            } else if (node.block instanceof Nodes.BlockArgumentNode blockArgument) {
+                // def a(&) b(&) end
+                assert blockArgument.expression != null; // Ruby 3.1's anonymous block parameter, that we don't support yet
+
+                // a(&:b)
+                blockNode = ToProcNodeGen.create(blockArgument.expression.accept(this));
+                frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        } else {
+            blockNode = null;
+            frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
+        }
+
         final var callNodeParameters = new RubyCallNodeParameters(
                 receiver,
                 methodName,
-                null,
+                blockNode,
                 argumentsDescriptor,
                 translatedArguments,
                 isSplatted,
@@ -518,7 +661,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 isVariableCall,
                 isSafeNavigation,
                 isAttrAssign);
-        final RubyNode rubyNode = language.coreMethodAssumptions.createCallNode(callNodeParameters);
+        final RubyNode callNode = language.coreMethodAssumptions.createCallNode(callNodeParameters);
+        final RubyNode rubyNode;
+
+        // wrap call node with literal block
+        if (blockNode instanceof BlockDefinitionNode) {
+            // if we have a literal block, `break` breaks out of this call site
+            final var frameOnStackNode = new FrameOnStackNode(callNode, frameOnStackMarkerSlot);
+            final var blockDef = (BlockDefinitionNode) blockNode;
+            rubyNode = new CatchBreakNode(blockDef.getBreakID(), frameOnStackNode, false);
+        } else {
+            rubyNode = callNode;
+        }
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -553,6 +707,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return descriptor;
     }
 
+    @Override
     public RubyNode visitCallOperatorWriteNode(Nodes.CallOperatorWriteNode node) {
         return defaultVisit(node);
     }
@@ -562,10 +717,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitCapturePatternNode(Nodes.CapturePatternNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitCaseNode(Nodes.CaseNode node) {
         // There are two sorts of case
         // - one compares a list of expressions against a value,
@@ -703,6 +860,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitClassNode(Nodes.ClassNode node) {
         final RubyNode lexicalParent = translateCPath(node.constant_path);
         final RubyNode superClass;
@@ -742,6 +900,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitClassVariableReadNode(Nodes.ClassVariableReadNode node) {
         final RubyNode rubyNode = new ReadClassVariableNode(
                 getLexicalScopeNode("class variable lookup", node),
@@ -751,6 +910,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitClassVariableWriteNode(Nodes.ClassVariableWriteNode node) {
         final RubyNode rhs = node.value.accept(this);
         final RubyNode rubyNode = new WriteClassVariableNode(
@@ -762,6 +922,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitClassVariableTargetNode(Nodes.ClassVariableTargetNode node) {
         final RubyNode rubyNode = new WriteClassVariableNode(
                 getLexicalScopeNode("set dynamic class variable", node),
@@ -792,6 +953,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitConstantPathNode(Nodes.ConstantPathNode node) {
         // The child field should always be ConstantReadNode if there are no syntax errors.
         // MissingNode could be assigned as well as an error recovery means,
@@ -825,6 +987,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitConstantPathWriteNode(Nodes.ConstantPathWriteNode node) {
         final Nodes.ConstantPathNode constantPathNode = node.target;
 
@@ -845,6 +1008,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitConstantPathTargetNode(Nodes.ConstantPathTargetNode node) {
         final RubyNode moduleNode;
         if (node.parent != null) {
@@ -862,6 +1026,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitConstantReadNode(Nodes.ConstantReadNode node) {
         final RubyNode rubyNode;
 
@@ -881,6 +1046,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitConstantWriteNode(Nodes.ConstantWriteNode node) {
         final RubyNode value = node.value.accept(this);
         final RubyNode moduleNode = getLexicalScopeModuleNode("set dynamic constant", node);
@@ -890,6 +1056,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitConstantTargetNode(Nodes.ConstantTargetNode node) {
         final RubyNode moduleNode = getLexicalScopeModuleNode("set dynamic constant", node);
         final RubyNode rubyNode = new WriteConstantNode(node.name, moduleNode, null);
@@ -898,6 +1065,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitDefNode(Nodes.DefNode node) {
         final SingletonClassASTNode singletonClassNode;
 
@@ -939,7 +1107,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final var defNodeTranslator = new YARPDefNodeTranslator(
                 language,
-                this,
                 newEnvironment,
                 sourceBytes,
                 source,
@@ -961,6 +1128,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitDefinedNode(Nodes.DefinedNode node) {
         // Handle defined?(yield) explicitly otherwise it would raise SyntaxError
         if (node.value instanceof Nodes.YieldNode && isInvalidYield()) {
@@ -976,6 +1144,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitElseNode(Nodes.ElseNode node) {
         if (node.statements == null) {
             final RubyNode rubyNode = new NilLiteralNode();
@@ -985,6 +1154,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return node.statements.accept(this);
     }
 
+    @Override
     public RubyNode visitEmbeddedStatementsNode(Nodes.EmbeddedStatementsNode node) {
         // empty interpolation expression, e.g. in "a #{} b"
         if (node.statements == null) {
@@ -997,10 +1167,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return node.statements.accept(this);
     }
 
+    @Override
     public RubyNode visitEmbeddedVariableNode(Nodes.EmbeddedVariableNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitEnsureNode(Nodes.EnsureNode node) {
         if (node.statements == null) {
             final RubyNode rubyNode = new NilLiteralNode();
@@ -1011,16 +1183,19 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return node.statements.accept(this);
     }
 
+    @Override
     public RubyNode visitFalseNode(Nodes.FalseNode node) {
         RubyNode rubyNode = new BooleanLiteralNode(false);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitFindPatternNode(Nodes.FindPatternNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitFlipFlopNode(Nodes.FlipFlopNode node) {
         final RubyNode begin = node.left.accept(this);
         final RubyNode end = node.right.accept(this);
@@ -1033,6 +1208,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitFloatNode(Nodes.FloatNode node) {
         // parse Integer literal ourselves
         // See https://github.com/ruby/yarp/issues/1098
@@ -1050,14 +1226,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitForNode(Nodes.ForNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitForwardingArgumentsNode(Nodes.ForwardingArgumentsNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitForwardingSuperNode(Nodes.ForwardingSuperNode node) {
         return defaultVisit(node);
     }
@@ -1077,12 +1256,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitGlobalVariableReadNode(Nodes.GlobalVariableReadNode node) {
         final RubyNode rubyNode = ReadGlobalVariableNodeGen.create(node.name);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitGlobalVariableWriteNode(Nodes.GlobalVariableWriteNode node) {
         final RubyNode value = node.value.accept(this);
         final RubyNode rubyNode = WriteGlobalVariableNodeGen.create(node.name, value);
@@ -1091,6 +1272,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
         final RubyNode rubyNode = WriteGlobalVariableNodeGen.create(node.name, null);
 
@@ -1098,6 +1280,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitHashNode(Nodes.HashNode node) {
         if (node.elements.length == 0) { // an empty Hash literal like h = {}
             final RubyNode rubyNode = HashLiteralNode.create(RubyNode.EMPTY_ARRAY);
@@ -1151,10 +1334,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitHashPatternNode(Nodes.HashPatternNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitIfNode(Nodes.IfNode node) {
         final RubyNode conditionNode = node.predicate.accept(this);
         final RubyNode thenNode = node.statements == null ? null : node.statements.accept(this);
@@ -1179,6 +1364,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitImaginaryNode(Nodes.ImaginaryNode node) {
         // Translate as Complex.convert(0, b) ignoring visibility
 
@@ -1199,6 +1385,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitInNode(Nodes.InNode node) {
         return defaultVisit(node);
     }
@@ -1233,6 +1420,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitInstanceVariableReadNode(Nodes.InstanceVariableReadNode node) {
         final RubyNode rubyNode = new ReadInstanceVariableNode(node.name);
 
@@ -1240,6 +1428,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitInstanceVariableWriteNode(Nodes.InstanceVariableWriteNode node) {
         final RubyNode value = node.value.accept(this);
         final RubyNode rubyNode = WriteInstanceVariableNodeGen.create(node.name, value);
@@ -1248,6 +1437,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitInstanceVariableTargetNode(Nodes.InstanceVariableTargetNode node) {
         final RubyNode rubyNode = WriteInstanceVariableNodeGen.create(node.name, null);
 
@@ -1255,6 +1445,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
         // parse Integer literal ourselves
         // See https://github.com/ruby/yarp/issues/1098
@@ -1286,14 +1477,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitInterpolatedMatchLastLineNode(Nodes.InterpolatedMatchLastLineNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitInterpolatedStringNode(Nodes.InterpolatedStringNode node) {
         final ToSNode[] children = new ToSNode[node.parts.length];
 
@@ -1309,6 +1503,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitInterpolatedSymbolNode(Nodes.InterpolatedSymbolNode node) {
         final ToSNode[] children = new ToSNode[node.parts.length];
 
@@ -1324,6 +1519,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitInterpolatedXStringNode(Nodes.InterpolatedXStringNode node) {
         var stringNode = new Nodes.InterpolatedStringNode(node.parts, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
@@ -1333,16 +1529,19 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitKeywordHashNode(Nodes.KeywordHashNode node) {
         // store keyword arguments as a literal Hash
         final var hash = new Nodes.HashNode(node.elements, node.startOffset, node.length);
         return hash.accept(this);
     }
 
+    @Override
     public RubyNode visitLambdaNode(Nodes.LambdaNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitLocalVariableReadNode(Nodes.LocalVariableReadNode node) {
         final String name = node.name;
 
@@ -1368,6 +1567,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
         final String name = node.name;
 
@@ -1400,20 +1600,24 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
         // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
         return visitLocalVariableWriteNode(
                 new Nodes.LocalVariableWriteNode(node.name, node.depth, null, node.startOffset, node.length));
     }
 
+    @Override
     public RubyNode visitMatchLastLineNode(Nodes.MatchLastLineNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitMatchPredicateNode(Nodes.MatchPredicateNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitMatchRequiredNode(Nodes.MatchRequiredNode node) {
         return defaultVisit(node);
     }
@@ -1423,10 +1627,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitMissingNode(Nodes.MissingNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitModuleNode(Nodes.ModuleNode node) {
         final RubyNode lexicalParent = translateCPath(node.constant_path);
 
@@ -1444,6 +1650,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitMultiWriteNode(Nodes.MultiWriteNode node) {
         final RubyNode rubyNode;
         var translator = new YARPMultiWriteNodeTranslator(node, language, this);
@@ -1453,6 +1660,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitNextNode(Nodes.NextNode node) {
         // detect syntax error
         // YARP doesn't emit errors for incorrect usage of break/redo/next
@@ -1482,12 +1690,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitNilNode(Nodes.NilNode node) {
         final RubyNode rubyNode = new NilLiteralNode();
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitNumberedReferenceReadNode(Nodes.NumberedReferenceReadNode node) {
         final RubyNode lastMatchNode = ReadGlobalVariableNodeGen.create("$~");
         final RubyNode rubyNode = new ReadMatchReferenceNodes.ReadNthMatchNode(lastMatchNode, node.number);
@@ -1496,6 +1706,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitOrNode(Nodes.OrNode node) {
         final RubyNode left = node.left.accept(this);
         final RubyNode right = node.right.accept(this);
@@ -1505,6 +1716,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitParenthesesNode(Nodes.ParenthesesNode node) {
         if (node.body == null) {
             final RubyNode rubyNode = new NilLiteralNode();
@@ -1514,30 +1726,37 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return node.body.accept(this);
     }
 
+    @Override
     public RubyNode visitPinnedExpressionNode(Nodes.PinnedExpressionNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitPinnedVariableNode(Nodes.PinnedVariableNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitPostExecutionNode(Nodes.PostExecutionNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitPreExecutionNode(Nodes.PreExecutionNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitProgramNode(Nodes.ProgramNode node) {
         return node.statements.accept(this);
     }
 
+    @Override
     public RubyNode visitRangeNode(Nodes.RangeNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitRationalNode(Nodes.RationalNode node) {
         // Translate as Rational.convert(n, 1) ignoring visibility
 
@@ -1555,6 +1774,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitRedoNode(Nodes.RedoNode node) {
         // detect syntax error
         // YARP doesn't emit errors for incorrect usage of break/redo/next
@@ -1574,10 +1794,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitRegularExpressionNode(Nodes.RegularExpressionNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitRescueModifierNode(Nodes.RescueModifierNode node) {
         RubyNode tryNode = node.expression.accept(this);
 
@@ -1598,20 +1820,24 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitRescueNode(Nodes.RescueNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitRetryNode(Nodes.RetryNode node) {
         final RubyNode rubyNode = new RetryNode();
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitReturnNode(Nodes.ReturnNode node) {
         final RubyNode rubyNode;
         final RubyNode argumentsNode = translateControlFlowArguments(node.arguments);
 
+        // either in block or lambda
         if (environment.isBlock()) {
             // Lambda behaves a bit differently from block and "return" to a class/module body is correct -
             // so DynamicReturnNode should be used instead of InvalidReturnNode.
@@ -1630,28 +1856,34 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitSelfNode(Nodes.SelfNode node) {
         final RubyNode rubyNode = new SelfNode();
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitSingletonClassNode(Nodes.SingletonClassNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitSourceEncodingNode(Nodes.SourceEncodingNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitSourceFileNode(Nodes.SourceFileNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitSourceLineNode(Nodes.SourceLineNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitSplatNode(Nodes.SplatNode node) {
         final RubyNode value = translateNodeOrNil(node.expression);
         final RubyNode rubyNode = SplatCastNodeGen.create(language, SplatCastNode.NilBehavior.CONVERT, false, value);
@@ -1660,15 +1892,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitStatementsNode(Nodes.StatementsNode node) {
         RubyNode[] rubyNodes = translate(node.body);
         return sequence(node, Arrays.asList(rubyNodes));
     }
 
+    @Override
     public RubyNode visitStringConcatNode(Nodes.StringConcatNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitStringNode(Nodes.StringNode node) {
         final RubyNode rubyNode;
         final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
@@ -1685,10 +1920,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitSuperNode(Nodes.SuperNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitSymbolNode(Nodes.SymbolNode node) {
         var tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
         final RubySymbol symbol = language.getSymbol(tstring, sourceEncoding);
@@ -1699,12 +1936,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitTrueNode(Nodes.TrueNode node) {
         final RubyNode rubyNode = new BooleanLiteralNode(true);
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitUndefNode(Nodes.UndefNode node) {
         final RubyNode[] names = translate(node.names);
         final RubyNode rubyNode = new ModuleNodes.UndefNode(names);
@@ -1712,6 +1951,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitUnlessNode(Nodes.UnlessNode node) {
         final RubyNode conditionNode = node.predicate.accept(this);
         final RubyNode thenNode = node.statements == null ? null : node.statements.accept(this);
@@ -1736,6 +1976,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitUntilNode(Nodes.UntilNode node) {
         final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, true,
                 !node.isBeginModifier());
@@ -1744,10 +1985,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     // handled in #visitCaseNode method
+    @Override
     public RubyNode visitWhenNode(Nodes.WhenNode node) {
         return defaultVisit(node);
     }
 
+    @Override
     public RubyNode visitWhileNode(Nodes.WhileNode node) {
         final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, false,
                 !node.isBeginModifier());
@@ -1755,6 +1998,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitXStringNode(Nodes.XStringNode node) {
         // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
         var stringNode = new Nodes.StringNode((short) 0, node.unescaped, node.startOffset, node.length);
@@ -1765,6 +2009,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitYieldNode(Nodes.YieldNode node) {
         return defaultVisit(node);
     }
@@ -1911,7 +2156,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final YARPTranslator moduleTranslator = new YARPTranslator(
                 language,
-                this,
                 newEnvironment,
                 sourceBytes,
                 source,

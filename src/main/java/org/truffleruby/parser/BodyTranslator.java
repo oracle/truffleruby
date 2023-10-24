@@ -1864,7 +1864,7 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = node.getPosition();
         final ArgsParseNode argsNode = node.getArgsNode();
 
-        // Unset this flag for any for any blocks within the for statement's body
+        // Unset this flag for any blocks within the `for` statement's body
         final boolean hasOwnScope = isStabbyLambda || !translatingForStatement;
 
         final boolean isProc = !isStabbyLambda;

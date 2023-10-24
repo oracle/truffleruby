@@ -88,6 +88,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
+    @Override
     public AssignableNode visitCallNode(Nodes.CallNode node) {
         final RubyNode rubyNode = yarpTranslator.translateCallTargetNode(node);
         return ((AssignableNode) rubyNode).toAssignableNode();
@@ -131,6 +132,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         return multipleAssignmentNode.toAssignableNode();
     }
 
+    @Override
     public AssignableNode visitSplatNode(Nodes.SplatNode node) {
         if (node.expression != null) {
             return node.expression.accept(this);
@@ -139,6 +141,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         }
     }
 
+    @Override
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
         // TODO: depth is not suppose to be used anyway so pass 0 value.

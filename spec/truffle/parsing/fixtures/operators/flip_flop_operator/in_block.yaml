@@ -69,7 +69,7 @@ ast: |
                                   CatchBreakNode
                                       attributes:
                                           breakID = org.truffleruby.language.control.BreakID@...
-                                          flags = 0
+                                          flags = 1
                                           isWhile = false
                                       children:
                                           body =
@@ -163,13 +163,13 @@ ast: |
                                                                                                                           begin =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
-                                                                                                                                      flags = 1
+                                                                                                                                      flags = 0
                                                                                                                                       frameSlot = 1
                                                                                                                                       type = FRAME_LOCAL
                                                                                                                           end =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
-                                                                                                                                      flags = 1
+                                                                                                                                      flags = 0
                                                                                                                                       frameSlot = 1
                                                                                                                                       type = FRAME_LOCAL
                                                                                                               thenBody =

@@ -125,8 +125,8 @@ public final class MethodTranslator extends BodyTranslator {
                 this).translate();
 
         final RubyNode preludeProc = !isStabbyLambda
-                ? preludeProc(sourceSection, isStabbyLambda, arity, loadArguments)
-                : null; // proc will never compiled for stabby lambdas
+                ? preludeProc(sourceSection, arity, loadArguments)
+                : null; // proc will never be compiled for stabby lambdas
 
         if (!translatingForStatement) {
             // Make sure to declare block-local variables
@@ -191,7 +191,6 @@ public final class MethodTranslator extends BodyTranslator {
 
     private RubyNode preludeProc(
             SourceIndexLength sourceSection,
-            boolean isStabbyLambda,
             Arity arity,
             RubyNode loadArguments) {
 
@@ -213,7 +212,7 @@ public final class MethodTranslator extends BodyTranslator {
                     language,
                     source,
                     parserContext,
-                    !isStabbyLambda,
+                    true,
                     false,
                     this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
@@ -372,7 +371,7 @@ public final class MethodTranslator extends BodyTranslator {
 
         body = sequence(sourceSection, Arrays.asList(prelude, body));
 
-        if (environment.getFlipFlopStates().size() > 0) {
+        if (environment.getFlipFlopStates().size() > 0) { // TODO: it could be called twice in case of conversion block->lambda or vise versa
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
@@ -396,7 +395,7 @@ public final class MethodTranslator extends BodyTranslator {
 
         body = sequence(sourceSection, Arrays.asList(loadArguments, body));
 
-        if (environment.getFlipFlopStates().size() > 0) {
+        if (environment.getFlipFlopStates().size() > 0) { // should be called after translating body
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 

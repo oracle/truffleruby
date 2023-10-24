@@ -158,7 +158,7 @@ public final class CoreMethodAssumptions {
         final RubyNode[] args = callParameters.getArguments();
         int n = 1 /* self */ + args.length;
 
-        if (callParameters.getBlock() != null) {
+        if (callParameters.getBlock() != null) { // TODO: could we also handle a `proc` call?
             if (callParameters.getMethodName().equals("lambda") &&
                     (callParameters.getBlock() instanceof BlockDefinitionNode)) {
 
