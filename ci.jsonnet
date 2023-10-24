@@ -381,6 +381,7 @@ local part_definitions = {
 
     generate_native_config: {
       setup+: [
+        ["ruby", "-e", "pp RbConfig::MAKEFILE_CONFIG"], # For convenience
         ["mx", "sforceimports"], # clone the graal repo
         ["mx", "-p", "../graal/sulong", "build"],
         ["set-export", "TOOLCHAIN_PATH", ["mx", "-p", "../graal/sulong", "lli", "--print-toolchain-path"]],
