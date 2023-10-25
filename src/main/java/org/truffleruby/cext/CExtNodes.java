@@ -80,14 +80,14 @@ import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.language.LazyWarnNode;
+import org.truffleruby.language.LazyWarningNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
@@ -1046,55 +1046,47 @@ public abstract class CExtNodes {
     @Primitive(name = "rb_gv_get")
     @ReportPolymorphism
     public abstract static class RbGvGetNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-        static Object rbGvGetCached(VirtualFrame frame, String name,
-                @Cached("name") String cachedName,
-                @Cached("create(cachedName)") ReadGlobalVariableNode readGlobalVariableNode,
+        @Specialization
+        Object rbGvGet(VirtualFrame frame, String name,
                 @Cached InlinedBranchProfile notExistsProfile,
-                @Cached @Shared LazyWarnNode lazyWarnNode,
-                @Bind("this") Node node) {
-            boolean exists = getContext(node).getCoreLibrary().globalVariables.contains(cachedName);
+                @Cached LazyWarningNode lazyWarningNode,
+                @Cached RbGvGetInnerNode rbGvGetInnerNode) {
+            boolean exists = getContext().getCoreLibrary().globalVariables.contains(name);
 
+            // Check if it exists and return if not, before creating the GlobalVariableStorage
             if (!exists) {
-                notExistsProfile.enter(node);
-                warn(node, lazyWarnNode.get(node),
-                        StringUtils.format("global variable `%s' not initialized", cachedName));
-
+                notExistsProfile.enter(this);
+                WarningNode warningNode = lazyWarningNode.get(this);
+                if (warningNode.shouldWarn()) {
+                    warningNode.warningMessage(getContext(this).getCallStack().getTopMostUserSourceSection(),
+                            StringUtils.format("global variable `%s' not initialized", name));
+                }
                 return nil;
             }
 
+            return rbGvGetInnerNode.execute(frame, this, name);
+        }
+    }
+
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class RbGvGetInnerNode extends RubyBaseNode {
+
+        public abstract Object execute(VirtualFrame frame, Node node, String name);
+
+        @Specialization(guards = "name == cachedName", limit = "getDefaultCacheLimit()")
+        static Object rbGvGetCached(VirtualFrame frame, Node node, String name,
+                @Cached("name") String cachedName,
+                @Cached(value = "create(cachedName)", inline = false) ReadGlobalVariableNode readGlobalVariableNode) {
             return readGlobalVariableNode.execute(frame);
         }
 
-        @TruffleBoundary
         @Specialization
-        Object rbGvGetUncached(String name,
-                @Cached DispatchNode dispatchNode,
-                @Cached @Shared LazyWarnNode lazyWarnNode) {
-            boolean exists = getContext().getCoreLibrary().globalVariables.contains(name);
-
-            if (!exists) {
-                warn(this, lazyWarnNode.get(this), StringUtils.format("global variable `%s' not initialized", name));
-
-                return nil;
-            }
-
-            return dispatchNode.call(coreLibrary().topLevelBinding, "eval", name);
+        static Object rbGvGetUncached(Node node, String name,
+                @Cached(inline = false) DispatchNode dispatchNode) {
+            return dispatchNode.call(coreLibrary(node).topLevelBinding, "eval", name);
         }
-
-        private static void warn(Node node, WarnNode warnNode, String message) {
-            if (warnNode.shouldWarn()) {
-                warnNode.warningMessage(
-                        getContext(node).getCallStack().getTopMostUserSourceSection(),
-                        message);
-            }
-        }
-
-        protected int getCacheLimit() {
-            return getLanguage().options.DEFAULT_CACHE;
-        }
-
     }
 
     @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
@@ -1988,60 +1980,28 @@ public abstract class CExtNodes {
     @ReportPolymorphism
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(
-                guards = {
-                        "libFormat.isRubyString(format)",
-                        "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
-                limit = "2")
-        static RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
-                @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached @Shared RubyStringLibrary libFormat,
-                @Cached @Shared InlinedBranchProfile exceptionProfile,
-                @Cached @Shared InlinedConditionProfile resizeProfile,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
-                @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(cachedFormat, cachedEncoding, stringReader))") DirectCallNode formatNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
+        @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
+        static RubyString format(Object format, Object stringReader, RubyArray argArray,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached RubyStringLibrary libFormat,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached RBSprintfInnerNode rbSprintfInnerNode,
+                @Cached InlinedBranchProfile exceptionProfile,
+                @Cached InlinedConditionProfile resizeProfile,
                 @Bind("this") Node node) {
-            final BytesResult result;
+            var tstring = libFormat.getTString(format);
+            var encoding = libFormat.getEncoding(format);
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
+
+            final BytesResult result;
             try {
-                result = (BytesResult) formatNode.call(new Object[]{ arguments, arguments.length, null });
+                result = rbSprintfInnerNode.execute(node, tstring, encoding, stringReader, arguments);
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
 
-            return finishFormat(node, cachedFormatLength, result, resizeProfile, fromByteArrayNode);
-        }
-
-        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "formatCached")
-        RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
-                @Cached IndirectCallNode formatNode,
-                @Cached @Shared InlinedBranchProfile exceptionProfile,
-                @Cached @Shared InlinedConditionProfile resizeProfile,
-                @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached @Shared ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached @Shared RubyStringLibrary libFormat) {
-            var tstring = libFormat.getTString(format);
-            var encoding = libFormat.getEncoding(format);
-            final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
-            final BytesResult result;
-            try {
-                result = (BytesResult) formatNode.call(compileFormat(tstring, encoding, stringReader),
-                        new Object[]{ arguments, arguments.length, null });
-            } catch (FormatException e) {
-                exceptionProfile.enter(this);
-                throw FormatExceptionTranslator.translate(getContext(), this, e);
-            }
-
-            return finishFormat(this, tstring.byteLength(encoding.tencoding), result, resizeProfile, fromByteArrayNode);
-        }
-
-        private static RubyString finishFormat(Node node, int formatLength, BytesResult result,
-                InlinedConditionProfile resizeProfile, TruffleString.FromByteArrayNode fromByteArrayNode) {
+            int formatLength = tstring.byteLength(encoding.tencoding);
             byte[] bytes = result.getOutput();
 
             if (resizeProfile.profile(node, bytes.length != result.getOutputLength())) {
@@ -2052,14 +2012,43 @@ public abstract class CExtNodes {
                     result.getEncoding().getEncodingForLength(formatLength));
         }
 
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class RBSprintfInnerNode extends RubyBaseNode {
+
+        public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,
+                Object stringReader, Object[] arguments);
+
+        @Specialization(
+                guards = "equalNode.execute(node, format, encoding, cachedFormat, cachedEncoding)",
+                limit = "2")
+        static BytesResult formatCached(
+                Node node, AbstractTruffleString format, RubyEncoding encoding, Object stringReader, Object[] arguments,
+                @Cached("format.asTruffleStringUncached(encoding.tencoding)") TruffleString cachedFormat,
+                @Cached("encoding") RubyEncoding cachedEncoding,
+                @Cached(value = "create(compileFormat(cachedFormat, cachedEncoding, stringReader, node))",
+                        inline = false) DirectCallNode formatNode,
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
+            return (BytesResult) formatNode.call(new Object[]{ arguments, arguments.length, null });
+        }
+
+        @Specialization(replaces = "formatCached")
+        static BytesResult formatUncached(
+                Node node, AbstractTruffleString format, RubyEncoding encoding, Object stringReader, Object[] arguments,
+                @Cached(inline = false) IndirectCallNode formatNode) {
+            return (BytesResult) formatNode.call(compileFormat(format, encoding, stringReader, node),
+                    new Object[]{ arguments, arguments.length, null });
+        }
+
         @TruffleBoundary
-        protected RootCallTarget compileFormat(AbstractTruffleString format, RubyEncoding encoding,
-                Object stringReader) {
+        protected static RootCallTarget compileFormat(AbstractTruffleString format, RubyEncoding encoding,
+                Object stringReader, Node node) {
             try {
-                return new RBSprintfCompiler(getLanguage(), this)
-                        .compile(format, encoding, stringReader);
+                return new RBSprintfCompiler(getLanguage(node), node).compile(format, encoding, stringReader);
             } catch (InvalidFormatException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
             }
         }
     }

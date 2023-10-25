@@ -11,26 +11,22 @@ package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.annotations.SuppressFBWarnings;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.LazyDispatchNode;
-import org.truffleruby.language.loader.FeatureLoader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -78,20 +74,18 @@ public abstract class GetConstantNode extends RubyBaseNode {
             String name,
             RubyConstant autoloadConstant,
             LookupConstantInterface lookupConstantNode,
-            boolean callConstMissing,
-            @Cached @Shared LazyDispatchNode constMissingNode,
-            @Cached DispatchNode callRequireNode) {
+            boolean callConstMissing) {
 
         final Object feature = autoloadConstant.getAutoloadConstant().getFeature();
 
         if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
-            return doMissingConstant(module, name, getSymbol(name), callConstMissing, constMissingNode.get(this));
+            return doMissingConstant(module, name, callConstMissing);
         }
 
-        final FeatureLoader featureLoader = getContext().getFeatureLoader();
-        final String expandedPath = featureLoader
-                .findFeature(autoloadConstant.getAutoloadConstant().getAutoloadPath());
+        var featureLoader = getContext().getFeatureLoader();
+        var expandedPath = featureLoader.findFeature(autoloadConstant.getAutoloadConstant().getAutoloadPath());
+
         if (expandedPath != null && featureLoader.getFileLocks().isCurrentThreadHoldingLock(expandedPath)) {
             // We found an autoload constant while we are already require-ing the autoload file,
             // consider it missing to avoid circular require warnings and calling #require twice.
@@ -105,7 +99,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
                         name,
                         expandedPath));
             }
-            return doMissingConstant(module, name, getSymbol(name), callConstMissing, constMissingNode.get(this));
+            return doMissingConstant(module, name, callConstMissing);
         }
 
         if (getContext().getOptions().LOG_AUTOLOAD) {
@@ -119,7 +113,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         // Mark the autoload constant as loading already here and not in RequireNode so that recursive lookups act as "being loaded"
         autoloadConstantStart(getContext(), autoloadConstant, this);
         try {
-            callRequireNode.call(coreLibrary().mainObject, "require", feature);
+            RubyContext.send(this, coreLibrary().mainObject, "require", feature);
 
             // This needs to run while the autoload is marked as isAutoloading(), to avoid infinite recursion
             return autoloadResolveConstant(lexicalScope, module, name, autoloadConstant, lookupConstantNode,
@@ -191,41 +185,29 @@ public abstract class GetConstantNode extends RubyBaseNode {
         return executeGetConstant(lexicalScope, module, name, resolvedConstant, lookupConstantNode, callConstMissing);
     }
 
-    @Specialization(
-            guards = { "isNullOrUndefined(constant)", "guardName(node, name, cachedName, sameNameProfile)" },
-            limit = "getCacheLimit()")
-    static Object missingConstantCached(
-            LexicalScope lexicalScope,
-            RubyModule module,
-            String name,
-            Object constant,
-            LookupConstantInterface lookupConstantNode,
-            boolean callConstMissing,
-            @Cached("name") String cachedName,
-            @Cached("getSymbol(name)") RubySymbol symbolName,
-            @Cached InlinedConditionProfile sameNameProfile,
-            @Cached @Shared LazyDispatchNode constMissingNode,
-            @Bind("this") Node node) {
-        return doMissingConstant(module, name, symbolName, callConstMissing, constMissingNode.get(node));
-    }
-
     @Specialization(guards = "isNullOrUndefined(constant)")
-    Object missingConstantUncached(
+    static Object missingConstant(
             LexicalScope lexicalScope,
             RubyModule module,
             String name,
             Object constant,
             LookupConstantInterface lookupConstantNode,
             boolean callConstMissing,
-            @Cached @Shared LazyDispatchNode constMissingNode) {
-        return doMissingConstant(module, name, getSymbol(name), callConstMissing, constMissingNode.get(this));
-    }
-
-    private static Object doMissingConstant(RubyModule module, String name, RubySymbol symbolName,
-            boolean callConstMissing, DispatchNode constMissingNode) {
+            @Cached ToSymbolNode toSymbolNode,
+            @Cached @Exclusive LazyDispatchNode constMissingNode,
+            @Bind("this") Node node) {
         CompilerAsserts.partialEvaluationConstant(callConstMissing);
         if (callConstMissing) {
-            return constMissingNode.call(module, "const_missing", symbolName);
+            return constMissingNode.get(node).call(module, "const_missing", toSymbolNode.execute(node, name));
+        } else {
+            return null;
+        }
+    }
+
+    @TruffleBoundary
+    private Object doMissingConstant(RubyModule module, String name, boolean callConstMissing) {
+        if (callConstMissing) {
+            return RubyContext.send(this, module, "const_missing", getSymbol(name));
         } else {
             return null;
         }
@@ -233,17 +215,6 @@ public abstract class GetConstantNode extends RubyBaseNode {
 
     protected boolean isNullOrUndefined(Object constant) {
         return constant == null || ((RubyConstant) constant).isUndefined();
-    }
-
-    @SuppressFBWarnings("ES")
-    protected boolean guardName(Node node, String name, String cachedName, InlinedConditionProfile sameNameProfile) {
-        // This is likely as for literal constant lookup the name does not change and Symbols
-        // always return the same String.
-        if (sameNameProfile.profile(node, name == cachedName)) {
-            return true;
-        } else {
-            return name.equals(cachedName);
-        }
     }
 
     protected int getCacheLimit() {

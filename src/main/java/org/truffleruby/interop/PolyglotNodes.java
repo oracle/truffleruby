@@ -217,6 +217,7 @@ public abstract class PolyglotNodes {
 
     }
 
+    // Inlined profiles/nodes are @Exclusive to fix truffle-interpreted-performance warning
     @Primitive(name = "inner_context_eval")
     public abstract static class InnerContextEvalNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = {
@@ -227,7 +228,7 @@ public abstract class PolyglotNodes {
                 "codeEqualNode.execute(codeLib, code, cachedCode, cachedCodeEnc)",
                 "filenameEqualNode.execute(filenameLib, filename, cachedFilename, cachedFilenameEnc)" },
                 limit = "getCacheLimit()")
-        Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
+        static Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
                 @Cached @Shared RubyStringLibrary idLib,
                 @Cached @Shared RubyStringLibrary codeLib,
                 @Cached @Shared RubyStringLibrary filenameLib,
@@ -241,9 +242,10 @@ public abstract class PolyglotNodes {
                 @Cached StringHelperNodes.EqualNode idEqualNode,
                 @Cached StringHelperNodes.EqualNode codeEqualNode,
                 @Cached StringHelperNodes.EqualNode filenameEqualNode,
-                @Cached @Shared ForeignToRubyNode foreignToRubyNode,
-                @Cached @Shared InlinedBranchProfile errorProfile) {
-            return eval(this, rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
+                @Cached @Exclusive ForeignToRubyNode foreignToRubyNode,
+                @Cached @Exclusive InlinedBranchProfile errorProfile,
+                @Bind("this") Node node) {
+            return eval(node, rubyInnerContext, cachedSource, foreignToRubyNode, errorProfile);
         }
 
         @Specialization(
@@ -256,8 +258,8 @@ public abstract class PolyglotNodes {
                 @Cached ToJavaStringNode toJavaStringIDNode,
                 @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached ToJavaStringNode toJavaStringFileNode,
-                @Cached @Shared ForeignToRubyNode foreignToRubyNode,
-                @Cached @Shared InlinedBranchProfile errorProfile,
+                @Cached @Exclusive ForeignToRubyNode foreignToRubyNode,
+                @Cached @Exclusive InlinedBranchProfile errorProfile,
                 @Bind("this") Node node) {
             final String idString = toJavaStringIDNode.execute(node, langId);
             final String codeString = toJavaStringCodeNode.execute(node, code);

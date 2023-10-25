@@ -78,7 +78,6 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -287,6 +286,8 @@ public abstract class TruffleRegexpNodes {
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
     public abstract static class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
 
+        static final InlinedBranchProfile UNCACHED_BRANCH_PROFILE = InlinedBranchProfile.getUncached();
+
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
         @Child ToSNode toSNode = ToSNode.create();
@@ -297,18 +298,16 @@ public abstract class TruffleRegexpNodes {
                 guards = "argsMatch(node, frame, cachedArgs, args, sameOrEqualNode)",
                 limit = "getDefaultCacheLimit()")
         static Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
-                @Cached DispatchNode copyNode,
                 @Cached SameOrEqualNode sameOrEqualNode,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
-                @Cached @Shared InlinedBranchProfile errorProfile,
-                @Cached("buildUnion(str, sep, args, errorProfile)") RubyRegexp union,
+                @Cached("buildUnion(str, sep, args, UNCACHED_BRANCH_PROFILE)") RubyRegexp union,
                 @Bind("this") Node node) {
-            return copyNode.call(union, "clone");
+            return union;
         }
 
         @Specialization(replaces = "fastUnion")
         Object slowUnion(RubyString str, Object sep, Object[] args,
-                @Cached @Shared InlinedBranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile) {
             return buildUnion(str, sep, args, errorProfile);
         }
 

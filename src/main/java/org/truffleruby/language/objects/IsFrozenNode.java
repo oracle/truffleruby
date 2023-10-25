@@ -25,7 +25,6 @@ import static org.truffleruby.Layouts.FROZEN_FLAG;
 @GenerateUncached
 public abstract class IsFrozenNode extends RubyBaseNode {
 
-
     public abstract boolean execute(Object object);
 
     @Specialization

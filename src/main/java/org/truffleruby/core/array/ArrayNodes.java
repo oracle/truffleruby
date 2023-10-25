@@ -474,10 +474,9 @@ public abstract class ArrayNodes {
 
         @Specialization
         RubyArray clear(RubyArray array,
-                @Cached IsSharedNode isSharedNode,
-                @Cached ConditionProfile sharedProfile) {
+                @Cached IsSharedNode isSharedNode) {
             setStoreAndSize(array,
-                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(this, array))),
+                    ArrayStoreLibrary.initialStorage(isSharedNode.execute(this, array)),
                     0);
             return array;
         }
@@ -1031,13 +1030,15 @@ public abstract class ArrayNodes {
 
         private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
+        // Inlined profiles/nodes are @Exclusive to fix truffle-interpreted-performance warning
+
         @Specialization(limit = "storageStrategyLimit()")
-        static long hash(VirtualFrame frame, RubyArray array,
+        static long hash(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode,
-                @Cached @Shared InlinedIntValueProfile arraySizeProfile,
-                @Cached @Shared InlinedLoopConditionProfile loopProfile,
+                @Cached @Exclusive InlinedIntValueProfile arraySizeProfile,
+                @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
                 @Bind("this") Node node) {
             final int size = arraySizeProfile.profile(node, array.size);
             long h = getContext(node).getHashing(node).start(size);
@@ -1107,12 +1108,13 @@ public abstract class ArrayNodes {
         protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
                 Object block);
 
+        // Inlined profiles/nodes are @Exclusive to fix truffle-interpreted-performance warning
+
         @Specialization
         RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
-                @Cached @Shared IsSharedNode isSharedNode,
-                @Cached @Shared ConditionProfile sharedProfile) {
+                @Cached @Shared IsSharedNode isSharedNode) {
             setStoreAndSize(array,
-                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(this, array))),
+                    ArrayStoreLibrary.initialStorage(isSharedNode.execute(this, array)),
                     0);
             return array;
         }
@@ -1120,7 +1122,6 @@ public abstract class ArrayNodes {
         @Specialization
         RubyArray initializeOnlyBlock(RubyArray array, NotProvided size, NotProvided fillingValue, RubyProc block,
                 @Cached @Shared IsSharedNode isSharedNode,
-                @Cached @Shared ConditionProfile sharedProfile,
                 @Cached("new()") WarningNode warningNode) {
             if (warningNode.shouldWarn()) {
                 final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
@@ -1128,7 +1129,7 @@ public abstract class ArrayNodes {
             }
 
             setStoreAndSize(array,
-                    ArrayStoreLibrary.initialStorage(sharedProfile.profile(isSharedNode.executeIsShared(this, array))),
+                    ArrayStoreLibrary.initialStorage(isSharedNode.execute(this, array)),
                     0);
             return array;
         }
@@ -1157,10 +1158,9 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
                 @Cached @Shared IsSharedNode isSharedNode,
-                @Cached @Shared ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores) {
             final Object store;
-            if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
+            if (isSharedNode.execute(this, array)) {
                 store = new SharedArrayStorage(new Object[size]);
             } else {
                 store = new Object[size];
@@ -1209,8 +1209,8 @@ public abstract class ArrayNodes {
         static Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores,
-                @Cached @Shared IsSharedNode isSharedNode,
-                @Cached @Shared ConditionProfile sharedProfile,
+                // @Exclusive to fix truffle-interpreted-performance warning
+                @Cached @Exclusive IsSharedNode isSharedNode,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached CallBlockNode yieldNode,
                 @Bind("this") Node node) {
@@ -1225,7 +1225,7 @@ public abstract class ArrayNodes {
             } finally {
                 profileAndReportLoopCount(node, loopProfile, n);
                 Object store = arrayBuilder.finish(state, n);
-                if (sharedProfile.profile(isSharedNode.executeIsShared(node, array))) {
+                if (isSharedNode.execute(node, array)) {
                     store = stores.makeShared(store, n);
                 }
                 setStoreAndSize(array, store, n);
@@ -1796,12 +1796,11 @@ public abstract class ArrayNodes {
                 @Cached ToAryNode toAryNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached IsSharedNode isSharedNode,
-                @Cached ConditionProfile sharedProfile,
                 @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
             final var other = toAryNode.execute(this, otherObject);
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
-            if (sharedProfile.profile(isSharedNode.executeIsShared(this, array))) {
+            if (isSharedNode.execute(this, array)) {
                 store = stores.makeShared(store, size);
             }
             setStoreAndSize(array, store, size);

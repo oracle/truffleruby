@@ -3131,20 +3131,23 @@ public abstract class StringNodes {
         private static final int SUBSTRING_CREATED = -1;
         private static final int DEFAULT_SPLIT_VALUES_SIZE = 10;
 
+        // Inlined profiles/nodes are @Exclusive to fix truffle-interpreted-performance warning
+
         @Specialization(guards = "is7Bit(tstring, encoding, codeRangeNode)")
-        Object stringAwkSplitAsciiOnly(Object string, int limit, Object block,
+        static Object stringAwkSplitAsciiOnly(Object string, int limit, Object block,
                 @Cached @Shared RubyStringLibrary strings,
-                @Cached @Shared InlinedConditionProfile executeBlockProfile,
-                @Cached @Shared InlinedConditionProfile growArrayProfile,
+                @Cached @Exclusive InlinedConditionProfile executeBlockProfile,
+                @Cached @Exclusive InlinedConditionProfile growArrayProfile,
                 @Cached @Exclusive InlinedConditionProfile trailingSubstringProfile,
                 @Cached @Exclusive InlinedConditionProfile trailingEmptyStringProfile,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode,
-                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Exclusive CallBlockNode yieldNode,
                 @Cached @Exclusive TruffleString.SubstringByteIndexNode substringNode,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
-                @Bind("strings.getEncoding(string)") RubyEncoding encoding) {
+                @Bind("strings.getEncoding(string)") RubyEncoding encoding,
+                @Bind("this") Node node) {
             int retSize = limit > 0 && limit < DEFAULT_SPLIT_VALUES_SIZE ? limit : DEFAULT_SPLIT_VALUES_SIZE;
             Object[] ret = new Object[retSize];
             int storeIndex = 0;
@@ -3162,10 +3165,10 @@ public abstract class StringNodes {
                         if (findingSubstringEnd) {
                             findingSubstringEnd = false;
 
-                            final RubyString substring = createSubString(substringNode, tstring, encoding,
+                            final RubyString substring = createSubString(node, substringNode, tstring, encoding,
                                     substringStart, i - substringStart);
                             ret = addSubstring(
-                                    this,
+                                    node,
                                     yieldNode,
                                     ret,
                                     storeIndex++,
@@ -3186,28 +3189,28 @@ public abstract class StringNodes {
                         }
                     }
 
-                    TruffleSafepoint.poll(this);
+                    TruffleSafepoint.poll(node);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, i);
+                profileAndReportLoopCount(node, loopProfile, i);
             }
 
-            if (trailingSubstringProfile.profile(this, findingSubstringEnd)) {
-                final RubyString substring = createSubString(substringNode, tstring, encoding, substringStart,
+            if (trailingSubstringProfile.profile(node, findingSubstringEnd)) {
+                final RubyString substring = createSubString(node, substringNode, tstring, encoding, substringStart,
                         byteLength - substringStart);
-                ret = addSubstring(this, yieldNode, ret, storeIndex++, substring, block, executeBlockProfile,
+                ret = addSubstring(node, yieldNode, ret, storeIndex++, substring, block, executeBlockProfile,
                         growArrayProfile);
             }
 
-            if (trailingEmptyStringProfile.profile(this, (limit < 0 || storeIndex < limit) &&
+            if (trailingEmptyStringProfile.profile(node, (limit < 0 || storeIndex < limit) &&
                     StringSupport.isAsciiSpace(readByteNode.execute(tstring, byteLength - 1, encoding.tencoding)))) {
-                final RubyString substring = createSubString(substringNode, tstring, encoding, byteLength - 1, 0);
-                ret = addSubstring(this, yieldNode, ret, storeIndex++, substring, block, executeBlockProfile,
+                final RubyString substring = createSubString(node, substringNode, tstring, encoding, byteLength - 1, 0);
+                ret = addSubstring(node, yieldNode, ret, storeIndex++, substring, block, executeBlockProfile,
                         growArrayProfile);
             }
 
             if (block == nil) {
-                return createArray(ret, storeIndex);
+                return createArray(node, ret, storeIndex);
             } else {
                 return string;
             }
@@ -3216,14 +3219,14 @@ public abstract class StringNodes {
         @Specialization(guards = "isValid(tstring, encoding, codeRangeNode)")
         static Object stringAwkSplit(Object string, int limit, Object block,
                 @Cached @Shared RubyStringLibrary strings,
-                @Cached @Shared InlinedConditionProfile executeBlockProfile,
-                @Cached @Shared InlinedConditionProfile growArrayProfile,
+                @Cached @Exclusive InlinedConditionProfile executeBlockProfile,
+                @Cached @Exclusive InlinedConditionProfile growArrayProfile,
                 @Cached @Exclusive InlinedConditionProfile trailingSubstringProfile,
                 @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
                 @Cached TruffleStringIterator.NextNode nextNode,
                 @Cached @Exclusive TruffleString.SubstringByteIndexNode substringNode,
                 @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode,
+                @Cached @Exclusive CallBlockNode yieldNode,
                 @Bind("strings.getTString(string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(string)") RubyEncoding encoding,
                 @Bind("this") Node node) {

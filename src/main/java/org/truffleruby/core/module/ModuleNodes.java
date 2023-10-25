@@ -1567,10 +1567,11 @@ public abstract class ModuleNodes {
     @ImportStatic(RubyArguments.class)
     @CoreMethod(names = "module_function", rest = true, visibility = Visibility.PRIVATE, alwaysInlined = true)
     public abstract static class ModuleFunctionNode extends AlwaysInlinedMethodNode {
+
         @Specialization(guards = "names.length == 0")
         Object frame(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
-                @Cached @Shared InlinedBranchProfile errorProfile) {
+                @Cached @Exclusive InlinedBranchProfile errorProfile) {
             checkNotClass(this, module, errorProfile);
             needCallerFrame(callerFrame, "Module#module_function with no arguments");
             DeclarationContext.setCurrentVisibility(callerFrame, Visibility.MODULE_FUNCTION);
@@ -1581,7 +1582,7 @@ public abstract class ModuleNodes {
         static Object methods(Frame callerFrame, RubyModule module, Object[] rubyArgs, RootCallTarget target,
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached @Shared InlinedBranchProfile errorProfile,
+                @Cached @Exclusive InlinedBranchProfile errorProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
                 @Cached SingleValueCastNode singleValueCastNode,
                 @Bind("this") Node node) {
