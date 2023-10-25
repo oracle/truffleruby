@@ -188,7 +188,7 @@ public final class CompactHashStore {
             @Cached @Exclusive PropagateSharingNode propagateSharingForVal,
             @Cached SetKvAtNode setKv,
             @Bind("$node") Node node) {
-        var frozenKey = freezeKey.executeFreezeIfNeeded(key, byIdentity);
+        var frozenKey = freezeKey.executeFreezeIfNeeded(node, key, byIdentity);
         int keyHash = hashFunction.execute(frozenKey, byIdentity);
         int keyKvPos = IntPair.second(
                 getHashPosAndKvPos.execute(frozenKey, keyHash, byIdentity, index, kvStore));
