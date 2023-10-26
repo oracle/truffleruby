@@ -300,8 +300,8 @@ module RbConfig
   mkconfig['CFLAGS'] = '$(cflags)'
 
   cxxflags = \
-  expanded['cxxflags'] = "#{optflags} #{debugflags} #{warnflags}"
-  mkconfig['cxxflags'] = '$(optflags) $(debugflags) $(warnflags)'
+  expanded['cxxflags'] = "#{optflags} #{debugflags}"
+  mkconfig['cxxflags'] = '$(optflags) $(debugflags)'
   expanded['CXXFLAGS'] = cxxflags
   mkconfig['CXXFLAGS'] = '$(cxxflags)'
   cppflags_hardcoded = Truffle::Platform.darwin? ? ' -D_DARWIN_C_SOURCE' : ''
