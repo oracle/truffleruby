@@ -46,6 +46,7 @@ module Truffle::CExt
     POINTER2_TO_POINTER_WRAPPER = POINTER_TO_POINTER_WRAPPERS[2]
     POINTER3_TO_POINTER_WRAPPER = POINTER_TO_POINTER_WRAPPERS[3]
 
+    VOID_TO_VOID_WRAPPER = Primitive.interop_eval_nfi('(pointer):void').bind(lib[:rb_tr_setjmp_wrapper_void_to_void])
     POINTER_TO_VOID_WRAPPER = Primitive.interop_eval_nfi('(pointer,pointer):void').bind(lib[:rb_tr_setjmp_wrapper_pointer1_to_void])
     POINTER2_TO_VOID_WRAPPER = Primitive.interop_eval_nfi('(pointer,pointer,pointer):void').bind(lib[:rb_tr_setjmp_wrapper_pointer2_to_void])
     POINTER3_TO_VOID_WRAPPER = Primitive.interop_eval_nfi('(pointer,pointer,pointer,pointer):void').bind(lib[:rb_tr_setjmp_wrapper_pointer3_to_void])
@@ -202,6 +203,17 @@ module Truffle::CExt
     SETUP_WRAPPERS.call(libtrampoline)
 
     @init_libtrufflerubytrampoline_keep_alive = keep_alive.freeze
+  end
+
+  def init_extension(library, library_path)
+    name = File.basename(library_path, '.*')
+    function_name = "Init_#{name}"
+    init_function = library[function_name]
+    begin
+      Primitive.call_with_c_mutex_and_frame(VOID_TO_VOID_WRAPPER, [init_function], nil, nil)
+    ensure
+      resolve_registered_addresses
+    end
   end
 
   def supported?

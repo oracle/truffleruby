@@ -124,6 +124,7 @@ C
 C
 
     signatures = [
+      ['rb_tr_setjmp_wrapper_void_to_void', '(void):void'],
       ['rb_tr_setjmp_wrapper_pointer1_to_void', '(VALUE arg):void'],
       ['rb_tr_setjmp_wrapper_pointer2_to_void', '(VALUE tracepoint, void *data):void'],
       ['rb_tr_setjmp_wrapper_pointer3_to_void', '(VALUE val, ID id, VALUE *data):void'],
@@ -143,9 +144,11 @@ C
     signatures.each do |function_name, signature|
       argument_types, return_type = signature.split(':')
       argument_types = argument_types.delete_prefix('(').delete_suffix(')')
+      original_argument_types = argument_types
+      argument_types = '' if argument_types == 'void'
       void = return_type == 'void'
       f.puts <<C
-#{return_type} #{function_name}(#{return_type} (*func)(#{argument_types}), #{argument_types}) {
+#{return_type} #{function_name}(#{return_type} (*func)(#{original_argument_types})#{', ' unless argument_types.empty?}#{argument_types}) {
   #{"#{return_type} result;" unless void}
 
   jmp_buf *prev_jmp_buf = rb_tr_jmp_buf;
@@ -166,7 +169,7 @@ C
 
 C
       sulong.puts <<C
-#{return_type} #{function_name}(#{return_type} (*func)(#{argument_types}), #{argument_types}) {
+#{return_type} #{function_name}(#{return_type} (*func)(#{original_argument_types})#{', ' unless argument_types.empty?}#{argument_types}) {
   #{'return ' unless void}func(#{argument_types.split(', ').map { |param| param[/\w+$/] }.join(', ')});
 }
 
