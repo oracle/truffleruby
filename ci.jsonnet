@@ -308,6 +308,7 @@ local part_definitions = {
       run+: jt(["test", "specs", ":all"]) +
             jt(["test", "specs", ":tracepoint"]) +
             jt(["test", "specs", ":next"]) +
+            [["env", "SPEC_CAPI_CXX=true"] + jt(["test", "specs", "--timeout", "180", ":capi"])[0]] +
             jt(["test", "basictest"]),
     },
 
