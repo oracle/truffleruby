@@ -41,7 +41,7 @@ function_regexp = /(^(#{type_regexp})\s*(\w+)(#{arguments_regexp})\s*\{)$/
 functions = []
 
 Dir["src/main/c/cext/*.c"].sort.each do |file|
-  next if %w[cext_constants.c wrappers.c ruby.c st.c].include?(File.basename(file))
+  next if %w[cext_constants.c wrappers.c ruby.c st.c strlcpy.c].include?(File.basename(file))
 
   contents = File.read(file)
   found_functions = contents.scan(function_regexp)

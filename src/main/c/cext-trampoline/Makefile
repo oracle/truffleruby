@@ -24,7 +24,7 @@ LDFLAGS := -m64
 ROOT := $(realpath ../../../..)
 RUBY_HDR_DIR := $(ROOT)/lib/cext/include
 
-OBJECT_FILES := trampoline.o st.o cext_constants.o
+OBJECT_FILES := trampoline.o st.o strlcpy.o cext_constants.o
 
 libtrufflerubytrampoline.$(SOEXT): $(OBJECT_FILES) Makefile
 	$(Q) $(CC) -shared $(LDFLAGS) -o $@ $(OBJECT_FILES)
