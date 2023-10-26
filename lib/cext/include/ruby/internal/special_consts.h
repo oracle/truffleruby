@@ -33,7 +33,7 @@
 
 #ifdef TRUFFLERUBY
 RBIMPL_SYMBOL_EXPORT_BEGIN()
-bool rb_tr_special_const_p(VALUE object);
+bool rb_tr_special_const_symbol_p(VALUE object);
 RBIMPL_SYMBOL_EXPORT_END()
 #endif
 
@@ -339,7 +339,7 @@ static inline bool
 RB_SPECIAL_CONST_P(VALUE obj)
 {
 #ifdef TRUFFLERUBY
-    return rb_tr_special_const_p(obj);
+    return RB_IMMEDIATE_P(obj) || obj == RUBY_Qfalse || rb_tr_special_const_symbol_p(obj);
 #else
     return RB_IMMEDIATE_P(obj) || obj == RUBY_Qfalse;
 #endif
