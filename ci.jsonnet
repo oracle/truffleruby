@@ -214,6 +214,7 @@ local part_definitions = {
         "--extra-image-builder-argument=rubyvm:-H:+UnlockExperimentalVMOptions",
         "--extra-image-builder-argument=rubyvm:-H:Log=HostInliningPhase,~CanonicalizerPhase,~GraphBuilderPhase",
         "--extra-image-builder-argument=rubyvm:-H:+TruffleHostInliningPrintExplored",
+        "--extra-image-builder-argument=rubyvm:-H:MethodFilter=org.truffleruby.*.*",
         "--extra-image-builder-argument=rubyvm:-H:-UnlockExperimentalVMOptions",
         "--extra-image-builder-argument=rubyvm:-Dgraal.LogFile=host-inlining.txt",
       ],

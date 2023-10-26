@@ -2,7 +2,7 @@ GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/truffleruby-enterprise,/graal-enterprise,/vm-enterprise,/sulong-managed,/substratevm-enterprise,substratevm-enterprise-gcs
 COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterprise,GraalVM enterprise license files,LLVM Runtime Native Enterprise,SubstrateVM Enterprise,Truffle Macro Enterprise,suite:substratevm-enterprise-gcs
 NATIVE_IMAGES=lib:rubyvm
-EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:+UnlockExperimentalVMOptions rubyvm:-H:BuildOutputJSONFile=native-image-build-rubyvm.json rubyvm:-H:Log=HostInliningPhase,~CanonicalizerPhase,~GraphBuilderPhase rubyvm:-H:+TruffleHostInliningPrintExplored rubyvm:-H:-UnlockExperimentalVMOptions rubyvm:-Dgraal.LogFile=host-inlining.txt
+EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:+UnlockExperimentalVMOptions rubyvm:-H:BuildOutputJSONFile=native-image-build-rubyvm.json rubyvm:-H:Log=HostInliningPhase,~CanonicalizerPhase,~GraphBuilderPhase rubyvm:-H:+TruffleHostInliningPrintExplored rubyvm:-H:MethodFilter=org.truffleruby.*.* rubyvm:-H:-UnlockExperimentalVMOptions rubyvm:-Dgraal.LogFile=host-inlining.txt
 GENERATE_DEBUGINFO=false
 # To also create the standalone
 INSTALLABLES=TruffleRuby
