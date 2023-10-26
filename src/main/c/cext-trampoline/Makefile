@@ -19,7 +19,7 @@ CC := gcc
 endif
 
 CFLAGS := -Wall -Werror -fPIC -std=c99 -g
-LDFLAGS := -m64
+LDFLAGS :=
 
 ROOT := $(realpath ../../../..)
 RUBY_HDR_DIR := $(ROOT)/lib/cext/include

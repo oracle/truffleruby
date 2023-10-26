@@ -9,7 +9,7 @@ endif
 
 CC := cc
 CFLAGS := -Wall -Werror -fPIC -std=c99 -g
-LDFLAGS := -m64
+LDFLAGS :=
 
 ifeq ($(OS),Linux)
 LDFLAGS += -lrt
