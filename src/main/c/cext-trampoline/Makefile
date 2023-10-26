@@ -10,7 +10,14 @@ endif
 # cc should be enough to compile this library but might produce different warnings based on the system compiler.
 # If that is the case and fails the build, it might be better to use instead:
 # CC := $(GRAALVM_TOOLCHAIN_CC)
-CC := cc
+
+# Same values as in RbConfig
+ifeq ($(OS),Darwin)
+CC := clang -fdeclspec
+else
+CC := gcc
+endif
+
 CFLAGS := -Wall -Werror -fPIC -std=c99 -g
 LDFLAGS := -m64
 
