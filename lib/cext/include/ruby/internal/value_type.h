@@ -169,6 +169,9 @@ void rb_check_type(VALUE obj, int t);
 #ifdef TRUFFLERUBY
 enum ruby_value_type rb_type(VALUE obj);
 bool RB_TYPE_P(VALUE value, enum ruby_value_type type);
+bool rb_tr_integer_type_p(VALUE obj);
+bool rb_tr_float_type_p(VALUE obj);
+bool rb_tr_symbol_p(VALUE obj);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
@@ -198,10 +201,6 @@ RB_BUILTIN_TYPE(VALUE obj)
     return RBIMPL_CAST((enum ruby_value_type)ret);
 #endif
 }
-
-#ifdef TRUFFLERUBY
-bool rb_tr_integer_type_p(VALUE obj);
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 /**
@@ -268,10 +267,6 @@ rb_type(VALUE obj)
 }
 #endif
 
-#ifdef TRUFFLERUBY
-bool rb_tr_float_type_p(VALUE obj);
-#endif
-
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -319,10 +314,6 @@ RB_DYNAMIC_SYM_P(VALUE obj)
         return RB_BUILTIN_TYPE(obj) == RUBY_T_SYMBOL;
     }
 }
-
-#ifdef TRUFFLERUBY
-bool rb_tr_symbol_p(VALUE obj);
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
