@@ -1,6 +1,6 @@
 Q$(MX_VERBOSE) = @
 
-CC := $(GRAALVM_TOOLCHAIN_CC)
+CC := cc
 CFLAGS := -Wall -Werror -std=c99
 LDFLAGS := -m64
 

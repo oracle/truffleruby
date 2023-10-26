@@ -7,7 +7,7 @@ else
 SOEXT := so
 endif
 
-CC := $(GRAALVM_TOOLCHAIN_CC)
+CC := cc
 CFLAGS := -Wall -Werror -fPIC -std=c99 -g
 LDFLAGS := -m64
 
