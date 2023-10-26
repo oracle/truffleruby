@@ -55,8 +55,7 @@ public final class BacktraceInterleaver {
         // GR-47041: we need com.oracle.truffle.api.impl.Accessor.RuntimeSupport.isGuestCallStackFrame but it's not public
         String className = element.getClassName();
         String methodName = element.getMethodName();
-        return ((className.equals("com.oracle.truffle.runtime.OptimizedCallTarget") ||
-                className.equals("org.graalvm.compiler.truffle.runtime.OptimizedCallTarget")) &&
+        return (className.equals("com.oracle.truffle.runtime.OptimizedCallTarget") &&
                 methodName.equals("executeRootNode")) ||
                 (className.equals("com.oracle.truffle.api.impl.DefaultCallTarget") &&
                         methodName.equals("callDirectOrIndirect"));

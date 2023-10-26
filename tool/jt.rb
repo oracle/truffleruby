@@ -2260,7 +2260,7 @@ module Commands
       raise "The process did not compile #{method}" unless compiled
 
       unless igv
-        # See org.graalvm.compiler.debug.StandardPathUtilitiesProvider#sanitizeFileName
+        # See StandardPathUtilitiesProvider#sanitizeFileName in graal
         method_glob_pattern = method.gsub(/[ \/\p{Cntrl}]/, '_')
         if truffleruby_native?
           method_glob_pattern = "{Isolated:_,}#{method_glob_pattern}"
