@@ -278,7 +278,7 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "yarp_parse", onSingleton = true, required = 1)
+    @CoreMethod(names = { "yarp_parse", "prism_parse" }, onSingleton = true, required = 1)
     public abstract static class YARPParseNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(code)", limit = "1")
