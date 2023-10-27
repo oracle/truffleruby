@@ -8,7 +8,7 @@ do
    continue
   fi
 
-  bad=$(ruby -e 'puts STDIN.read.scan /^.+\)\s*\n\s*\{/' < "$f" || exit 0)
+  bad=$(ruby --disable-gems -e 'puts STDIN.read.scan /^.+\)\s*\n\s*\{/' < "$f" || exit 0)
   if [ -n "$bad" ]; then
     echo "Error in $f"
     echo "The function definition opening brace should be on the same line: ...args) {"
