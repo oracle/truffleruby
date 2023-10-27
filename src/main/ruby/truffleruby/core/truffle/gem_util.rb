@@ -81,7 +81,7 @@ module Truffle::GemUtil
 
   MARKER_NAME = 'truffleruby_gem_dir_marker.txt'
 
-  ABI_VERSION = -Truffle::Boot.read_abi_version
+  ABI_VERSION = -Truffle::Boot.read_abi_version if Truffle::Boot.ruby_home
 
   def self.upgraded_default_gem?(feature)
     if i = feature.index('/')
