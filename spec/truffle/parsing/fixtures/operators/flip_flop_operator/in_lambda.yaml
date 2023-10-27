@@ -67,7 +67,7 @@ ast: |
                                       attributes:
                                           flags = 0
                                           slot = 2
-                                  BlockDefinitionNode
+                                  BlockDefinitionNodeGen
                                       attributes:
                                           breakID = org.truffleruby.language.control.BreakID@...
                                           callTargets = ProcCallTargets(callTargetForProc = null, callTargetForLambda = block in Object#foo, altCallTargetCompiler = null)
@@ -75,9 +75,6 @@ ast: |
                                           frameOnStackMarkerSlot = -1
                                           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=7, characters=  -> do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
                                           type = LAMBDA
-                                      children:
-                                          readSpecialVariableStorageNode =
-                                              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
                                       call targets:
                                           RubyLambdaRootNode
                                               attributes:

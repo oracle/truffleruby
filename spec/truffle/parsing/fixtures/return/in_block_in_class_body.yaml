@@ -95,7 +95,7 @@ ast: |
                                                                               notRuby2KeywordsHashProfile = false
                                                                           children:
                                                                               block =
-                                                                                  BlockDefinitionNode
+                                                                                  BlockDefinitionNodeGen
                                                                                       attributes:
                                                                                           breakID = org.truffleruby.language.control.BreakID@...
                                                                                           callTargets = ProcCallTargets(callTargetForProc = block in <class:Foo>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
@@ -103,9 +103,6 @@ ast: |
                                                                                           frameOnStackMarkerSlot = 2
                                                                                           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=10, length=12, characters=  1.times do), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <class:Foo>, blockDepth = 1, parseName = block in <class:Foo>, notes = <class:Foo>, argumentDescriptors = [])
                                                                                           type = PROC
-                                                                                      children:
-                                                                                          readSpecialVariableStorageNode =
-                                                                                              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
                                                                                       call targets:
                                                                                           RubyProcRootNode
                                                                                               attributes:

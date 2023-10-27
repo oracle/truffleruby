@@ -90,7 +90,7 @@ ast: |
                                                                   notRuby2KeywordsHashProfile = false
                                                               children:
                                                                   block =
-                                                                      BlockDefinitionNode
+                                                                      BlockDefinitionNodeGen
                                                                           attributes:
                                                                               breakID = org.truffleruby.language.control.BreakID@...
                                                                               callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
@@ -98,9 +98,6 @@ ast: |
                                                                               frameOnStackMarkerSlot = 3
                                                                               sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {}), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
                                                                               type = PROC
-                                                                          children:
-                                                                              readSpecialVariableStorageNode =
-                                                                                  TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
                                                                           call targets:
                                                                               RubyProcRootNode
                                                                                   attributes:

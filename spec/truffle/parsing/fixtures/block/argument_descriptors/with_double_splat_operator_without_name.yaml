@@ -13,7 +13,7 @@ ruby: |
   proc do |a:, b:, **|
   end
 ast: |
-  BlockDefinitionNode
+  BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
@@ -21,9 +21,6 @@ ast: |
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=20, characters=proc do |a:, b:, **|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = keyrest)])
           type = PROC
-      children:
-          readSpecialVariableStorageNode =
-              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
       call targets:
           RubyProcRootNode
               attributes:
