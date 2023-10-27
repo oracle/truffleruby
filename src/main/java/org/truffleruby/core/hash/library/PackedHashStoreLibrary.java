@@ -63,12 +63,6 @@ public final class PackedHashStoreLibrary {
     private static final int ELEMENTS_PER_ENTRY = 3;
     public static final int TOTAL_ELEMENTS = MAX_ENTRIES * ELEMENTS_PER_ENTRY;
 
-    private static final boolean bigHashTypeIsCompact;
-    static {
-        String hashType = System.getProperty("BigHashStrategy");
-        bigHashTypeIsCompact = hashType != null && hashType.equalsIgnoreCase("compact");
-    }
-
     // region Utilities
 
     public static Object[] createStore() {
@@ -241,13 +235,18 @@ public final class PackedHashStoreLibrary {
                 return true;
             }
 
-            if (bigHashTypeIsCompact) {
-                promoteToCompact(hash, store, size);
-            } else {
-                promoteToBuckets(hash, store, size);
-            }
+            promoteToBigHash(store, hash, size);
+
             hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
+        }
+
+        private static void promoteToBigHash(Object[] store, RubyHash hash, int size) {
+            if (HashLiteralNode.BigHashConfiguredStrategy.isBuckets) {
+                promoteToBuckets(hash, store, size);
+            } else {
+                promoteToCompact(hash, store, size);
+            }
         }
     }
 

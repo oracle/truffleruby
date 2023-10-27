@@ -64,6 +64,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACES_INTERLEAVE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACES_OMIT_UNUSED_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> BIG_HASH_STRATEGY_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_INTERRUPT_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_SIGALRM_KEY = new OptionKey<>(!EMBEDDED_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BACKTRACE_ON_RAISE_KEY = new OptionKey<>(false);
@@ -514,6 +515,14 @@ public final class OptionsCatalog {
     public static final OptionDescriptor BACKTRACES_OMIT_UNUSED = OptionDescriptor
             .newBuilder(BACKTRACES_OMIT_UNUSED_KEY, "ruby.backtraces-omit-unused")
             .help("Omit backtraces that should be unused as they have pure rescue expressions")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor BIG_HASH_STRATEGY = OptionDescriptor
+            .newBuilder(BIG_HASH_STRATEGY_KEY, "ruby.buckets-big-hash")
+            .help("Whether to use chaining-style bukcets hash store for hash tables exceeding the small hash limit")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1425,6 +1434,8 @@ public final class OptionsCatalog {
                 return BACKTRACES_INTERLEAVE_JAVA;
             case "ruby.backtraces-omit-unused":
                 return BACKTRACES_OMIT_UNUSED;
+            case "ruby.buckets-big-hash":
+                return BIG_HASH_STRATEGY;
             case "ruby.backtraces-on-interrupt":
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces-sigalrm":
@@ -1680,6 +1691,7 @@ public final class OptionsCatalog {
             EXCEPTIONS_WARN_OUT_OF_MEMORY,
             BACKTRACES_INTERLEAVE_JAVA,
             BACKTRACES_OMIT_UNUSED,
+            BIG_HASH_STRATEGY,
             BACKTRACE_ON_INTERRUPT,
             BACKTRACE_ON_SIGALRM,
             BACKTRACE_ON_RAISE,
