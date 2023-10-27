@@ -277,79 +277,81 @@ enum pm_node_type {
     PM_IMAGINARY_NODE = 66,
     PM_IMPLICIT_NODE = 67,
     PM_IN_NODE = 68,
-    PM_INSTANCE_VARIABLE_AND_WRITE_NODE = 69,
-    PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE = 70,
-    PM_INSTANCE_VARIABLE_OR_WRITE_NODE = 71,
-    PM_INSTANCE_VARIABLE_READ_NODE = 72,
-    PM_INSTANCE_VARIABLE_TARGET_NODE = 73,
-    PM_INSTANCE_VARIABLE_WRITE_NODE = 74,
-    PM_INTEGER_NODE = 75,
-    PM_INTERPOLATED_MATCH_LAST_LINE_NODE = 76,
-    PM_INTERPOLATED_REGULAR_EXPRESSION_NODE = 77,
-    PM_INTERPOLATED_STRING_NODE = 78,
-    PM_INTERPOLATED_SYMBOL_NODE = 79,
-    PM_INTERPOLATED_X_STRING_NODE = 80,
-    PM_KEYWORD_HASH_NODE = 81,
-    PM_KEYWORD_PARAMETER_NODE = 82,
-    PM_KEYWORD_REST_PARAMETER_NODE = 83,
-    PM_LAMBDA_NODE = 84,
-    PM_LOCAL_VARIABLE_AND_WRITE_NODE = 85,
-    PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE = 86,
-    PM_LOCAL_VARIABLE_OR_WRITE_NODE = 87,
-    PM_LOCAL_VARIABLE_READ_NODE = 88,
-    PM_LOCAL_VARIABLE_TARGET_NODE = 89,
-    PM_LOCAL_VARIABLE_WRITE_NODE = 90,
-    PM_MATCH_LAST_LINE_NODE = 91,
-    PM_MATCH_PREDICATE_NODE = 92,
-    PM_MATCH_REQUIRED_NODE = 93,
-    PM_MATCH_WRITE_NODE = 94,
-    PM_MISSING_NODE = 95,
-    PM_MODULE_NODE = 96,
-    PM_MULTI_TARGET_NODE = 97,
-    PM_MULTI_WRITE_NODE = 98,
-    PM_NEXT_NODE = 99,
-    PM_NIL_NODE = 100,
-    PM_NO_KEYWORDS_PARAMETER_NODE = 101,
-    PM_NUMBERED_REFERENCE_READ_NODE = 102,
-    PM_OPTIONAL_PARAMETER_NODE = 103,
-    PM_OR_NODE = 104,
-    PM_PARAMETERS_NODE = 105,
-    PM_PARENTHESES_NODE = 106,
-    PM_PINNED_EXPRESSION_NODE = 107,
-    PM_PINNED_VARIABLE_NODE = 108,
-    PM_POST_EXECUTION_NODE = 109,
-    PM_PRE_EXECUTION_NODE = 110,
-    PM_PROGRAM_NODE = 111,
-    PM_RANGE_NODE = 112,
-    PM_RATIONAL_NODE = 113,
-    PM_REDO_NODE = 114,
-    PM_REGULAR_EXPRESSION_NODE = 115,
-    PM_REQUIRED_DESTRUCTURED_PARAMETER_NODE = 116,
-    PM_REQUIRED_PARAMETER_NODE = 117,
-    PM_RESCUE_MODIFIER_NODE = 118,
-    PM_RESCUE_NODE = 119,
-    PM_REST_PARAMETER_NODE = 120,
-    PM_RETRY_NODE = 121,
-    PM_RETURN_NODE = 122,
-    PM_SELF_NODE = 123,
-    PM_SINGLETON_CLASS_NODE = 124,
-    PM_SOURCE_ENCODING_NODE = 125,
-    PM_SOURCE_FILE_NODE = 126,
-    PM_SOURCE_LINE_NODE = 127,
-    PM_SPLAT_NODE = 128,
-    PM_STATEMENTS_NODE = 129,
-    PM_STRING_CONCAT_NODE = 130,
-    PM_STRING_NODE = 131,
-    PM_SUPER_NODE = 132,
-    PM_SYMBOL_NODE = 133,
-    PM_TRUE_NODE = 134,
-    PM_UNDEF_NODE = 135,
-    PM_UNLESS_NODE = 136,
-    PM_UNTIL_NODE = 137,
-    PM_WHEN_NODE = 138,
-    PM_WHILE_NODE = 139,
-    PM_X_STRING_NODE = 140,
-    PM_YIELD_NODE = 141,
+    PM_INDEX_AND_WRITE_NODE = 69,
+    PM_INDEX_OPERATOR_WRITE_NODE = 70,
+    PM_INDEX_OR_WRITE_NODE = 71,
+    PM_INSTANCE_VARIABLE_AND_WRITE_NODE = 72,
+    PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE = 73,
+    PM_INSTANCE_VARIABLE_OR_WRITE_NODE = 74,
+    PM_INSTANCE_VARIABLE_READ_NODE = 75,
+    PM_INSTANCE_VARIABLE_TARGET_NODE = 76,
+    PM_INSTANCE_VARIABLE_WRITE_NODE = 77,
+    PM_INTEGER_NODE = 78,
+    PM_INTERPOLATED_MATCH_LAST_LINE_NODE = 79,
+    PM_INTERPOLATED_REGULAR_EXPRESSION_NODE = 80,
+    PM_INTERPOLATED_STRING_NODE = 81,
+    PM_INTERPOLATED_SYMBOL_NODE = 82,
+    PM_INTERPOLATED_X_STRING_NODE = 83,
+    PM_KEYWORD_HASH_NODE = 84,
+    PM_KEYWORD_PARAMETER_NODE = 85,
+    PM_KEYWORD_REST_PARAMETER_NODE = 86,
+    PM_LAMBDA_NODE = 87,
+    PM_LOCAL_VARIABLE_AND_WRITE_NODE = 88,
+    PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE = 89,
+    PM_LOCAL_VARIABLE_OR_WRITE_NODE = 90,
+    PM_LOCAL_VARIABLE_READ_NODE = 91,
+    PM_LOCAL_VARIABLE_TARGET_NODE = 92,
+    PM_LOCAL_VARIABLE_WRITE_NODE = 93,
+    PM_MATCH_LAST_LINE_NODE = 94,
+    PM_MATCH_PREDICATE_NODE = 95,
+    PM_MATCH_REQUIRED_NODE = 96,
+    PM_MATCH_WRITE_NODE = 97,
+    PM_MISSING_NODE = 98,
+    PM_MODULE_NODE = 99,
+    PM_MULTI_TARGET_NODE = 100,
+    PM_MULTI_WRITE_NODE = 101,
+    PM_NEXT_NODE = 102,
+    PM_NIL_NODE = 103,
+    PM_NO_KEYWORDS_PARAMETER_NODE = 104,
+    PM_NUMBERED_REFERENCE_READ_NODE = 105,
+    PM_OPTIONAL_PARAMETER_NODE = 106,
+    PM_OR_NODE = 107,
+    PM_PARAMETERS_NODE = 108,
+    PM_PARENTHESES_NODE = 109,
+    PM_PINNED_EXPRESSION_NODE = 110,
+    PM_PINNED_VARIABLE_NODE = 111,
+    PM_POST_EXECUTION_NODE = 112,
+    PM_PRE_EXECUTION_NODE = 113,
+    PM_PROGRAM_NODE = 114,
+    PM_RANGE_NODE = 115,
+    PM_RATIONAL_NODE = 116,
+    PM_REDO_NODE = 117,
+    PM_REGULAR_EXPRESSION_NODE = 118,
+    PM_REQUIRED_PARAMETER_NODE = 119,
+    PM_RESCUE_MODIFIER_NODE = 120,
+    PM_RESCUE_NODE = 121,
+    PM_REST_PARAMETER_NODE = 122,
+    PM_RETRY_NODE = 123,
+    PM_RETURN_NODE = 124,
+    PM_SELF_NODE = 125,
+    PM_SINGLETON_CLASS_NODE = 126,
+    PM_SOURCE_ENCODING_NODE = 127,
+    PM_SOURCE_FILE_NODE = 128,
+    PM_SOURCE_LINE_NODE = 129,
+    PM_SPLAT_NODE = 130,
+    PM_STATEMENTS_NODE = 131,
+    PM_STRING_CONCAT_NODE = 132,
+    PM_STRING_NODE = 133,
+    PM_SUPER_NODE = 134,
+    PM_SYMBOL_NODE = 135,
+    PM_TRUE_NODE = 136,
+    PM_UNDEF_NODE = 137,
+    PM_UNLESS_NODE = 138,
+    PM_UNTIL_NODE = 139,
+    PM_WHEN_NODE = 140,
+    PM_WHILE_NODE = 141,
+    PM_X_STRING_NODE = 142,
+    PM_YIELD_NODE = 143,
     PM_SCOPE_NODE
 };
 
@@ -424,6 +426,8 @@ typedef struct pm_and_node {
 // ArgumentsNode
 //
 // Type: PM_ARGUMENTS_NODE
+// Flags:
+//    PM_ARGUMENTS_NODE_FLAGS_KEYWORD_SPLAT
 typedef struct pm_arguments_node {
     pm_node_t base;
     struct pm_node_list arguments;
@@ -562,9 +566,6 @@ typedef struct pm_call_and_write_node {
     struct pm_node *receiver;
     pm_location_t call_operator_loc;
     pm_location_t message_loc;
-    pm_location_t opening_loc;
-    struct pm_arguments_node *arguments;
-    pm_location_t closing_loc;
     pm_constant_id_t read_name;
     pm_constant_id_t write_name;
     pm_location_t operator_loc;
@@ -600,9 +601,6 @@ typedef struct pm_call_operator_write_node {
     struct pm_node *receiver;
     pm_location_t call_operator_loc;
     pm_location_t message_loc;
-    pm_location_t opening_loc;
-    struct pm_arguments_node *arguments;
-    pm_location_t closing_loc;
     pm_constant_id_t read_name;
     pm_constant_id_t write_name;
     pm_constant_id_t operator;
@@ -621,9 +619,6 @@ typedef struct pm_call_or_write_node {
     struct pm_node *receiver;
     pm_location_t call_operator_loc;
     pm_location_t message_loc;
-    pm_location_t opening_loc;
-    struct pm_arguments_node *arguments;
-    pm_location_t closing_loc;
     pm_constant_id_t read_name;
     pm_constant_id_t write_name;
     pm_location_t operator_loc;
@@ -1071,8 +1066,8 @@ typedef struct pm_hash_node {
 typedef struct pm_hash_pattern_node {
     pm_node_t base;
     struct pm_node *constant;
-    struct pm_node_list assocs;
-    struct pm_node *kwrest;
+    struct pm_node_list elements;
+    struct pm_node *rest;
     pm_location_t opening_loc;
     pm_location_t closing_loc;
 } pm_hash_pattern_node_t;
@@ -1115,6 +1110,61 @@ typedef struct pm_in_node {
     pm_location_t in_loc;
     pm_location_t then_loc;
 } pm_in_node_t;
+
+// IndexAndWriteNode
+//
+// Type: PM_INDEX_AND_WRITE_NODE
+// Flags:
+//    PM_CALL_NODE_FLAGS_SAFE_NAVIGATION
+//    PM_CALL_NODE_FLAGS_VARIABLE_CALL
+typedef struct pm_index_and_write_node {
+    pm_node_t base;
+    struct pm_node *receiver;
+    pm_location_t call_operator_loc;
+    pm_location_t opening_loc;
+    struct pm_arguments_node *arguments;
+    pm_location_t closing_loc;
+    struct pm_node *block;
+    pm_location_t operator_loc;
+    struct pm_node *value;
+} pm_index_and_write_node_t;
+
+// IndexOperatorWriteNode
+//
+// Type: PM_INDEX_OPERATOR_WRITE_NODE
+// Flags:
+//    PM_CALL_NODE_FLAGS_SAFE_NAVIGATION
+//    PM_CALL_NODE_FLAGS_VARIABLE_CALL
+typedef struct pm_index_operator_write_node {
+    pm_node_t base;
+    struct pm_node *receiver;
+    pm_location_t call_operator_loc;
+    pm_location_t opening_loc;
+    struct pm_arguments_node *arguments;
+    pm_location_t closing_loc;
+    struct pm_node *block;
+    pm_constant_id_t operator;
+    pm_location_t operator_loc;
+    struct pm_node *value;
+} pm_index_operator_write_node_t;
+
+// IndexOrWriteNode
+//
+// Type: PM_INDEX_OR_WRITE_NODE
+// Flags:
+//    PM_CALL_NODE_FLAGS_SAFE_NAVIGATION
+//    PM_CALL_NODE_FLAGS_VARIABLE_CALL
+typedef struct pm_index_or_write_node {
+    pm_node_t base;
+    struct pm_node *receiver;
+    pm_location_t call_operator_loc;
+    pm_location_t opening_loc;
+    struct pm_arguments_node *arguments;
+    pm_location_t closing_loc;
+    struct pm_node *block;
+    pm_location_t operator_loc;
+    struct pm_node *value;
+} pm_index_or_write_node_t;
 
 // InstanceVariableAndWriteNode
 //
@@ -1439,7 +1489,9 @@ typedef struct pm_module_node {
 // Type: PM_MULTI_TARGET_NODE
 typedef struct pm_multi_target_node {
     pm_node_t base;
-    struct pm_node_list targets;
+    struct pm_node_list lefts;
+    struct pm_node *rest;
+    struct pm_node_list rights;
     pm_location_t lparen_loc;
     pm_location_t rparen_loc;
 } pm_multi_target_node_t;
@@ -1449,7 +1501,9 @@ typedef struct pm_multi_target_node {
 // Type: PM_MULTI_WRITE_NODE
 typedef struct pm_multi_write_node {
     pm_node_t base;
-    struct pm_node_list targets;
+    struct pm_node_list lefts;
+    struct pm_node *rest;
+    struct pm_node_list rights;
     pm_location_t lparen_loc;
     pm_location_t rparen_loc;
     pm_location_t operator_loc;
@@ -1631,16 +1685,6 @@ typedef struct pm_regular_expression_node {
     pm_location_t closing_loc;
     pm_string_t unescaped;
 } pm_regular_expression_node_t;
-
-// RequiredDestructuredParameterNode
-//
-// Type: PM_REQUIRED_DESTRUCTURED_PARAMETER_NODE
-typedef struct pm_required_destructured_parameter_node {
-    pm_node_t base;
-    struct pm_node_list parameters;
-    pm_location_t opening_loc;
-    pm_location_t closing_loc;
-} pm_required_destructured_parameter_node_t;
 
 // RequiredParameterNode
 //
@@ -1888,6 +1932,11 @@ typedef struct pm_yield_node {
     struct pm_arguments_node *arguments;
     pm_location_t rparen_loc;
 } pm_yield_node_t;
+
+// ArgumentsNodeFlags
+typedef enum pm_arguments_node_flags {
+    PM_ARGUMENTS_NODE_FLAGS_KEYWORD_SPLAT = 1 << 0,
+} pm_arguments_node_flags_t;
 
 // CallNodeFlags
 typedef enum pm_call_node_flags {
