@@ -1089,6 +1089,21 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     @Override
+    public RubyNode visitIndexAndWriteNode(Nodes.IndexAndWriteNode node) {
+        return super.visitIndexAndWriteNode(node);
+    }
+
+    @Override
+    public RubyNode visitIndexOperatorWriteNode(Nodes.IndexOperatorWriteNode node) {
+        return super.visitIndexOperatorWriteNode(node);
+    }
+
+    @Override
+    public RubyNode visitIndexOrWriteNode(Nodes.IndexOrWriteNode node) {
+        return super.visitIndexOrWriteNode(node);
+    }
+
+    @Override
     public RubyNode visitInstanceVariableAndWriteNode(Nodes.InstanceVariableAndWriteNode node) {
         return defaultVisit(node);
     }
@@ -2079,4 +2094,5 @@ public final class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         return rubyNodes;
     }
+
 }

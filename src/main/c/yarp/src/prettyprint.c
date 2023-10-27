@@ -5,2135 +5,8216 @@
 /* if you are looking to modify the                                           */
 /* template                                                                   */
 /******************************************************************************/
-#include "prism/defines.h"
-
-#include <stdio.h>
-
-#include "prism/ast.h"
-#include "prism/parser.h"
-#include "prism/util/pm_buffer.h"
+#include "prism/prettyprint.h"
 
 static void
-prettyprint_location(pm_buffer_t *buffer, pm_parser_t *parser, pm_location_t *location) {
-    char printed[] = "[0000-0000]";
-    snprintf(printed, sizeof(printed), "[%04ld-%04ld]", (long int)(location->start - parser->start), (long int)(location->end - parser->start));
-    pm_buffer_append_str(buffer, printed, strlen(printed));
+prettyprint_source(pm_buffer_t *output_buffer, const uint8_t *source, size_t length) {
+    for (size_t index = 0; index < length; index++) {
+        const uint8_t byte = source[index];
+
+        if ((byte <= 0x06) || (byte >= 0x0E && byte <= 0x1F) || (byte >= 0x7F)) {
+            pm_buffer_append_format(output_buffer, "\\x%02X", byte);
+        } else {
+            switch (byte) {
+                case '\a': pm_buffer_append_string(output_buffer, "\\a", 2); break;
+                case '\b': pm_buffer_append_string(output_buffer, "\\b", 2); break;
+                case '\t': pm_buffer_append_string(output_buffer, "\\t", 2); break;
+                case '\n': pm_buffer_append_string(output_buffer, "\\n", 2); break;
+                case '\v': pm_buffer_append_string(output_buffer, "\\v", 2); break;
+                case '\f': pm_buffer_append_string(output_buffer, "\\f", 2); break;
+                case '\r': pm_buffer_append_string(output_buffer, "\\r", 2); break;
+                case '"': pm_buffer_append_string(output_buffer, "\\\"", 2); break;
+                case '#': {
+                    if (index + 1 < length) {
+                        const uint8_t next_byte = source[index + 1];
+                        if (next_byte == '{' || next_byte == '@' || next_byte == '$') {
+                            pm_buffer_append_byte(output_buffer, '\\');
+                        }
+                    }
+
+                    pm_buffer_append_byte(output_buffer, '#');
+                    break;
+                }
+                case '\\': pm_buffer_append_string(output_buffer, "\\\\", 2); break;
+                default: pm_buffer_append_byte(output_buffer, byte); break;
+            }
+        }
+    }
+}
+
+static inline void
+prettyprint_location(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_location_t *location) {
+    pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start);
+    pm_line_column_t end = pm_newline_list_line_column(&parser->newline_list, location->end);
+    pm_buffer_append_format(output_buffer, "(%d,%d)-(%d,%d)", start.line + 1, start.column, end.line + 1, end.column);
+}
+
+static inline void
+prettyprint_constant(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_constant_id_t constant_id) {
+    pm_constant_t *constant = pm_constant_pool_id_to_constant(&parser->constant_pool, constant_id);
+    pm_buffer_append_format(output_buffer, ":%.*s", (int) constant->length, constant->start);
 }
 
 static void
-prettyprint_node(pm_buffer_t *buffer, pm_parser_t *parser, pm_node_t *node) {
+prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_node_t *node, pm_buffer_t *prefix_buffer) {
     switch (PM_NODE_TYPE(node)) {
-        // We do not need to print a ScopeNode as it's not part
-        // of the AST
         case PM_SCOPE_NODE:
+            // We do not need to print a ScopeNode as it's not part of the AST.
             return;
         case PM_ALIAS_GLOBAL_VARIABLE_NODE: {
-            pm_buffer_append_str(buffer, "AliasGlobalVariableNode(", 24);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_alias_global_variable_node_t *)node)->new_name);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_alias_global_variable_node_t *)node)->old_name);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_alias_global_variable_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_alias_global_variable_node_t *cast = (pm_alias_global_variable_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ AliasGlobalVariableNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // new_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── new_name:", 19);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->new_name, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // old_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── old_name:", 19);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->old_name, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_ALIAS_METHOD_NODE: {
-            pm_buffer_append_str(buffer, "AliasMethodNode(", 16);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_alias_method_node_t *)node)->new_name);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_alias_method_node_t *)node)->old_name);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_alias_method_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_alias_method_node_t *cast = (pm_alias_method_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ AliasMethodNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // new_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── new_name:", 19);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->new_name, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // old_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── old_name:", 19);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->old_name, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_ALTERNATION_PATTERN_NODE: {
-            pm_buffer_append_str(buffer, "AlternationPatternNode(", 23);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_alternation_pattern_node_t *)node)->left);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_alternation_pattern_node_t *)node)->right);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_alternation_pattern_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_alternation_pattern_node_t *cast = (pm_alternation_pattern_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ AlternationPatternNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── right:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_AND_NODE: {
-            pm_buffer_append_str(buffer, "AndNode(", 8);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_and_node_t *)node)->left);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_and_node_t *)node)->right);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_and_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_and_node_t *cast = (pm_and_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ AndNode (location: ", 21);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── right:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_ARGUMENTS_NODE: {
-            pm_buffer_append_str(buffer, "ArgumentsNode(", 14);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_arguments_node_t *)node)->arguments.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_arguments_node_t *) node)->arguments.nodes[index]);
+            pm_arguments_node_t *cast = (pm_arguments_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ArgumentsNode (location: ", 27);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->arguments.size);
+
+                size_t last_index = cast->arguments.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_KEYWORD_SPLAT) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " keyword_splat", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_ARRAY_NODE: {
-            pm_buffer_append_str(buffer, "ArrayNode(", 10);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_array_node_t *)node)->elements.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_array_node_t *) node)->elements.nodes[index]);
+            pm_array_node_t *cast = (pm_array_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ArrayNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // elements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── elements:", 19);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+
+                size_t last_index = cast->elements.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_array_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_array_node_t *)node)->opening_loc);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_array_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_array_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_ARRAY_PATTERN_NODE: {
-            pm_buffer_append_str(buffer, "ArrayPatternNode(", 17);
-                        if (((pm_array_pattern_node_t *)node)->constant == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_array_pattern_node_t *)node)->constant);
+            pm_array_pattern_node_t *cast = (pm_array_pattern_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ArrayPatternNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // constant
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── constant:", 19);
+                if (cast->constant == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_array_pattern_node_t *)node)->requireds.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_array_pattern_node_t *) node)->requireds.nodes[index]);
+
+            // requireds
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── requireds:", 20);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->requireds.size);
+
+                size_t last_index = cast->requireds.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->requireds.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_array_pattern_node_t *)node)->rest == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_array_pattern_node_t *)node)->rest);
+
+            // rest
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rest:", 15);
+                if (cast->rest == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_array_pattern_node_t *)node)->posts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_array_pattern_node_t *) node)->posts.nodes[index]);
+
+            // posts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── posts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->posts.size);
+
+                size_t last_index = cast->posts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->posts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_array_pattern_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_array_pattern_node_t *)node)->opening_loc);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_array_pattern_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_array_pattern_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_ASSOC_NODE: {
-            pm_buffer_append_str(buffer, "AssocNode(", 10);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_assoc_node_t *)node)->key);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_assoc_node_t *)node)->value == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_assoc_node_t *)node)->value);
+            pm_assoc_node_t *cast = (pm_assoc_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ AssocNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // key
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── key:", 14);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->key, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_assoc_node_t *)node)->operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_assoc_node_t *)node)->operator_loc);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                if (cast->value == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_ASSOC_SPLAT_NODE: {
-            pm_buffer_append_str(buffer, "AssocSplatNode(", 15);
-                        if (((pm_assoc_splat_node_t *)node)->value == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_assoc_splat_node_t *)node)->value);
+            pm_assoc_splat_node_t *cast = (pm_assoc_splat_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ AssocSplatNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                if (cast->value == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_assoc_splat_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_BACK_REFERENCE_READ_NODE: {
-            pm_buffer_append_str(buffer, "BackReferenceReadNode(", 22);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_back_reference_read_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_back_reference_read_node_t *cast = (pm_back_reference_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BackReferenceReadNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_BEGIN_NODE: {
-            pm_buffer_append_str(buffer, "BeginNode(", 10);
-                        if (((pm_begin_node_t *)node)->begin_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_begin_node_t *)node)->begin_keyword_loc);
+            pm_begin_node_t *cast = (pm_begin_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BeginNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // begin_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── begin_keyword_loc:", 28);
+                pm_location_t *location = &cast->begin_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_begin_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_begin_node_t *)node)->statements);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_begin_node_t *)node)->rescue_clause == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_begin_node_t *)node)->rescue_clause);
+
+            // rescue_clause
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rescue_clause:", 24);
+                if (cast->rescue_clause == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rescue_clause, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_begin_node_t *)node)->else_clause == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_begin_node_t *)node)->else_clause);
+
+            // else_clause
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── else_clause:", 22);
+                if (cast->else_clause == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->else_clause, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_begin_node_t *)node)->ensure_clause == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_begin_node_t *)node)->ensure_clause);
+
+            // ensure_clause
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── ensure_clause:", 24);
+                if (cast->ensure_clause == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->ensure_clause, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_begin_node_t *)node)->end_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_begin_node_t *)node)->end_keyword_loc);
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_BLOCK_ARGUMENT_NODE: {
-            pm_buffer_append_str(buffer, "BlockArgumentNode(", 18);
-                        if (((pm_block_argument_node_t *)node)->expression == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_block_argument_node_t *)node)->expression);
+            pm_block_argument_node_t *cast = (pm_block_argument_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BlockArgumentNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // expression
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── expression:", 21);
+                if (cast->expression == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_block_argument_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_BLOCK_LOCAL_VARIABLE_NODE: {
-            pm_buffer_append_str(buffer, "BlockLocalVariableNode(", 23);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_block_local_variable_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_block_local_variable_node_t *cast = (pm_block_local_variable_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BlockLocalVariableNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_BLOCK_NODE: {
-            pm_buffer_append_str(buffer, "BlockNode(", 10);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_block_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_block_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_block_node_t *cast = (pm_block_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BlockNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_block_node_t *)node)->parameters == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_block_node_t *)node)->parameters);
+
+            // parameters
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parameters:", 21);
+                if (cast->parameters == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_block_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_block_node_t *)node)->body);
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_block_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_block_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_BLOCK_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "BlockParameterNode(", 19);
-                        if (((pm_block_parameter_node_t *)node)->name == 0) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                char name_buffer[12];
-                snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_block_parameter_node_t *)node)->name);
-                pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            pm_block_parameter_node_t *cast = (pm_block_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BlockParameterNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                if (cast->name == 0) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_constant(output_buffer, parser, cast->name);
+                    pm_buffer_append_byte(output_buffer, '\n');
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_block_parameter_node_t *)node)->name_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_block_parameter_node_t *)node)->name_loc);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_block_parameter_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_BLOCK_PARAMETERS_NODE: {
-            pm_buffer_append_str(buffer, "BlockParametersNode(", 20);
-                        if (((pm_block_parameters_node_t *)node)->parameters == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_block_parameters_node_t *)node)->parameters);
+            pm_block_parameters_node_t *cast = (pm_block_parameters_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BlockParametersNode (location: ", 33);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // parameters
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parameters:", 21);
+                if (cast->parameters == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_block_parameters_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_block_parameters_node_t *) node)->locals.nodes[index]);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->locals.size);
+
+                size_t last_index = cast->locals.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->locals.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_block_parameters_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_block_parameters_node_t *)node)->opening_loc);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_block_parameters_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_block_parameters_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_BREAK_NODE: {
-            pm_buffer_append_str(buffer, "BreakNode(", 10);
-                        if (((pm_break_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_break_node_t *)node)->arguments);
+            pm_break_node_t *cast = (pm_break_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ BreakNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_break_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_CALL_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "CallAndWriteNode(", 17);
-                        if (((pm_call_and_write_node_t *)node)->receiver == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_and_write_node_t *)node)->receiver);
+            pm_call_and_write_node_t *cast = (pm_call_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ CallAndWriteNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_and_write_node_t *)node)->call_operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_and_write_node_t *)node)->call_operator_loc);
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_and_write_node_t *)node)->message_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_and_write_node_t *)node)->message_loc);
+
+            // message_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── message_loc:", 22);
+                pm_location_t *location = &cast->message_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_and_write_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_and_write_node_t *)node)->opening_loc);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_and_write_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_and_write_node_t *)node)->arguments);
+
+            // read_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── read_name:", 20);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->read_name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_and_write_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_and_write_node_t *)node)->closing_loc);
+
+            // write_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── write_name:", 21);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->write_name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char read_name_buffer[12];
-            snprintf(read_name_buffer, sizeof(read_name_buffer), "%u", ((pm_call_and_write_node_t *)node)->read_name);
-            pm_buffer_append_str(buffer, read_name_buffer, strlen(read_name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char write_name_buffer[12];
-            snprintf(write_name_buffer, sizeof(write_name_buffer), "%u", ((pm_call_and_write_node_t *)node)->write_name);
-            pm_buffer_append_str(buffer, write_name_buffer, strlen(write_name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_call_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CALL_NODE: {
-            pm_buffer_append_str(buffer, "CallNode(", 9);
-                        if (((pm_call_node_t *)node)->receiver == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_node_t *)node)->receiver);
+            pm_call_node_t *cast = (pm_call_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ CallNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_node_t *)node)->call_operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_node_t *)node)->call_operator_loc);
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_node_t *)node)->message_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_node_t *)node)->message_loc);
+
+            // message_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── message_loc:", 22);
+                pm_location_t *location = &cast->message_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_node_t *)node)->opening_loc);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_node_t *)node)->arguments);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_node_t *)node)->block == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_node_t *)node)->block);
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_call_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CALL_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "CallOperatorWriteNode(", 22);
-                        if (((pm_call_operator_write_node_t *)node)->receiver == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->receiver);
+            pm_call_operator_write_node_t *cast = (pm_call_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ CallOperatorWriteNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_operator_write_node_t *)node)->call_operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_operator_write_node_t *)node)->call_operator_loc);
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_operator_write_node_t *)node)->message_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_operator_write_node_t *)node)->message_loc);
+
+            // message_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── message_loc:", 22);
+                pm_location_t *location = &cast->message_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_operator_write_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_operator_write_node_t *)node)->opening_loc);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_operator_write_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->arguments);
+
+            // read_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── read_name:", 20);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->read_name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_operator_write_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_operator_write_node_t *)node)->closing_loc);
+
+            // write_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── write_name:", 21);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->write_name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char read_name_buffer[12];
-            snprintf(read_name_buffer, sizeof(read_name_buffer), "%u", ((pm_call_operator_write_node_t *)node)->read_name);
-            pm_buffer_append_str(buffer, read_name_buffer, strlen(read_name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char write_name_buffer[12];
-            snprintf(write_name_buffer, sizeof(write_name_buffer), "%u", ((pm_call_operator_write_node_t *)node)->write_name);
-            pm_buffer_append_str(buffer, write_name_buffer, strlen(write_name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_call_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_call_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CALL_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "CallOrWriteNode(", 16);
-                        if (((pm_call_or_write_node_t *)node)->receiver == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_or_write_node_t *)node)->receiver);
+            pm_call_or_write_node_t *cast = (pm_call_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ CallOrWriteNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_or_write_node_t *)node)->call_operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_or_write_node_t *)node)->call_operator_loc);
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_or_write_node_t *)node)->message_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_or_write_node_t *)node)->message_loc);
+
+            // message_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── message_loc:", 22);
+                pm_location_t *location = &cast->message_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_or_write_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_or_write_node_t *)node)->opening_loc);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_or_write_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_or_write_node_t *)node)->arguments);
+
+            // read_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── read_name:", 20);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->read_name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_call_or_write_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_call_or_write_node_t *)node)->closing_loc);
+
+            // write_name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── write_name:", 21);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->write_name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char read_name_buffer[12];
-            snprintf(read_name_buffer, sizeof(read_name_buffer), "%u", ((pm_call_or_write_node_t *)node)->read_name);
-            pm_buffer_append_str(buffer, read_name_buffer, strlen(read_name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char write_name_buffer[12];
-            snprintf(write_name_buffer, sizeof(write_name_buffer), "%u", ((pm_call_or_write_node_t *)node)->write_name);
-            pm_buffer_append_str(buffer, write_name_buffer, strlen(write_name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_call_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_call_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CAPTURE_PATTERN_NODE: {
-            pm_buffer_append_str(buffer, "CapturePatternNode(", 19);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_capture_pattern_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_capture_pattern_node_t *)node)->target);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_capture_pattern_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_capture_pattern_node_t *cast = (pm_capture_pattern_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ CapturePatternNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // target
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── target:", 17);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_CASE_NODE: {
-            pm_buffer_append_str(buffer, "CaseNode(", 9);
-                        if (((pm_case_node_t *)node)->predicate == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_case_node_t *)node)->predicate);
+            pm_case_node_t *cast = (pm_case_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ CaseNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // predicate
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── predicate:", 20);
+                if (cast->predicate == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_case_node_t *)node)->conditions.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_case_node_t *) node)->conditions.nodes[index]);
+
+            // conditions
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── conditions:", 21);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->conditions.size);
+
+                size_t last_index = cast->conditions.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->conditions.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_case_node_t *)node)->consequent == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_case_node_t *)node)->consequent);
+
+            // consequent
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── consequent:", 21);
+                if (cast->consequent == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_case_node_t *)node)->case_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_case_node_t *)node)->end_keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // case_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── case_keyword_loc:", 27);
+                pm_location_t *location = &cast->case_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_CLASS_NODE: {
-            pm_buffer_append_str(buffer, "ClassNode(", 10);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_class_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_class_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_class_node_t *cast = (pm_class_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_node_t *)node)->class_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_node_t *)node)->constant_path);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_class_node_t *)node)->inheritance_operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_class_node_t *)node)->inheritance_operator_loc);
+
+            // class_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── class_keyword_loc:", 28);
+                pm_location_t *location = &cast->class_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_class_node_t *)node)->superclass == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_node_t *)node)->superclass);
+
+            // constant_path
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── constant_path:", 24);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant_path, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_class_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_node_t *)node)->body);
+
+            // inheritance_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── inheritance_operator_loc:", 35);
+                pm_location_t *location = &cast->inheritance_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_node_t *)node)->end_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // superclass
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── superclass:", 21);
+                if (cast->superclass == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->superclass, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CLASS_VARIABLE_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ClassVariableAndWriteNode(", 26);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_variable_and_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_and_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_variable_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_class_variable_and_write_node_t *cast = (pm_class_variable_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassVariableAndWriteNode (location: ", 39);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ClassVariableOperatorWriteNode(", 31);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_variable_operator_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_operator_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_variable_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_class_variable_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_class_variable_operator_write_node_t *cast = (pm_class_variable_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassVariableOperatorWriteNode (location: ", 44);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CLASS_VARIABLE_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ClassVariableOrWriteNode(", 25);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_variable_or_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_or_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_variable_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_class_variable_or_write_node_t *cast = (pm_class_variable_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassVariableOrWriteNode (location: ", 38);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CLASS_VARIABLE_READ_NODE: {
-            pm_buffer_append_str(buffer, "ClassVariableReadNode(", 22);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_variable_read_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_class_variable_read_node_t *cast = (pm_class_variable_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassVariableReadNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CLASS_VARIABLE_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "ClassVariableTargetNode(", 24);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_variable_target_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_class_variable_target_node_t *cast = (pm_class_variable_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassVariableTargetNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CLASS_VARIABLE_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ClassVariableWriteNode(", 23);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_class_variable_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_class_variable_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_class_variable_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_class_variable_write_node_t *)node)->operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_class_variable_write_node_t *)node)->operator_loc);
+            pm_class_variable_write_node_t *cast = (pm_class_variable_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ClassVariableWriteNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_CONSTANT_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantAndWriteNode(", 21);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_constant_and_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_and_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_and_write_node_t *cast = (pm_constant_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantAndWriteNode (location: ", 34);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CONSTANT_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantOperatorWriteNode(", 26);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_constant_operator_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_operator_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_constant_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_operator_write_node_t *cast = (pm_constant_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantOperatorWriteNode (location: ", 39);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CONSTANT_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantOrWriteNode(", 20);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_constant_or_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_or_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_or_write_node_t *cast = (pm_constant_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantOrWriteNode (location: ", 33);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CONSTANT_PATH_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantPathAndWriteNode(", 25);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_and_write_node_t *)node)->target);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_path_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_path_and_write_node_t *cast = (pm_constant_path_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantPathAndWriteNode (location: ", 38);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // target
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── target:", 17);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CONSTANT_PATH_NODE: {
-            pm_buffer_append_str(buffer, "ConstantPathNode(", 17);
-                        if (((pm_constant_path_node_t *)node)->parent == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_node_t *)node)->parent);
+            pm_constant_path_node_t *cast = (pm_constant_path_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantPathNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // parent
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parent:", 17);
+                if (cast->parent == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parent, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_node_t *)node)->child);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_path_node_t *)node)->delimiter_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // child
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── child:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->child, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // delimiter_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── delimiter_loc:", 24);
+                pm_location_t *location = &cast->delimiter_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantPathOperatorWriteNode(", 30);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_operator_write_node_t *)node)->target);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_path_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_constant_path_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_path_operator_write_node_t *cast = (pm_constant_path_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantPathOperatorWriteNode (location: ", 43);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // target
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── target:", 17);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CONSTANT_PATH_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantPathOrWriteNode(", 24);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_or_write_node_t *)node)->target);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_path_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_path_or_write_node_t *cast = (pm_constant_path_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantPathOrWriteNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // target
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── target:", 17);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CONSTANT_PATH_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "ConstantPathTargetNode(", 23);
-                        if (((pm_constant_path_target_node_t *)node)->parent == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_target_node_t *)node)->parent);
+            pm_constant_path_target_node_t *cast = (pm_constant_path_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantPathTargetNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // parent
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parent:", 17);
+                if (cast->parent == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parent, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_target_node_t *)node)->child);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_path_target_node_t *)node)->delimiter_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // child
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── child:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->child, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // delimiter_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── delimiter_loc:", 24);
+                pm_location_t *location = &cast->delimiter_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_CONSTANT_PATH_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantPathWriteNode(", 22);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_write_node_t *)node)->target);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_path_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_path_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_path_write_node_t *cast = (pm_constant_path_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantPathWriteNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // target
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── target:", 17);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_CONSTANT_READ_NODE: {
-            pm_buffer_append_str(buffer, "ConstantReadNode(", 17);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_constant_read_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_read_node_t *cast = (pm_constant_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantReadNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CONSTANT_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "ConstantTargetNode(", 19);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_constant_target_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_target_node_t *cast = (pm_constant_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantTargetNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_CONSTANT_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "ConstantWriteNode(", 18);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_constant_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_constant_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_constant_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_constant_write_node_t *cast = (pm_constant_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ConstantWriteNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_DEF_NODE: {
-            pm_buffer_append_str(buffer, "DefNode(", 8);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_def_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->receiver == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_def_node_t *)node)->receiver);
+            pm_def_node_t *cast = (pm_def_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ DefNode (location: ", 21);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->parameters == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_def_node_t *)node)->parameters);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_def_node_t *)node)->body);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_def_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_def_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+
+            // parameters
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parameters:", 21);
+                if (cast->parameters == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->def_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->operator_loc);
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->lparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->lparen_loc);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->rparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->rparen_loc);
+
+            // def_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── def_keyword_loc:", 26);
+                pm_location_t *location = &cast->def_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->equal_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->equal_loc);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_def_node_t *)node)->end_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_def_node_t *)node)->end_keyword_loc);
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // equal_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── equal_loc:", 20);
+                pm_location_t *location = &cast->equal_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_DEFINED_NODE: {
-            pm_buffer_append_str(buffer, "DefinedNode(", 12);
-                        if (((pm_defined_node_t *)node)->lparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_defined_node_t *)node)->lparen_loc);
+            pm_defined_node_t *cast = (pm_defined_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ DefinedNode (location: ", 25);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_defined_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_defined_node_t *)node)->rparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_defined_node_t *)node)->rparen_loc);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_defined_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_ELSE_NODE: {
-            pm_buffer_append_str(buffer, "ElseNode(", 9);
-                        prettyprint_location(buffer, parser, &((pm_else_node_t *)node)->else_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_else_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_else_node_t *)node)->statements);
+            pm_else_node_t *cast = (pm_else_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ElseNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // else_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── else_keyword_loc:", 27);
+                pm_location_t *location = &cast->else_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_else_node_t *)node)->end_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_else_node_t *)node)->end_keyword_loc);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_EMBEDDED_STATEMENTS_NODE: {
-            pm_buffer_append_str(buffer, "EmbeddedStatementsNode(", 23);
-                        prettyprint_location(buffer, parser, &((pm_embedded_statements_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_embedded_statements_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_embedded_statements_node_t *)node)->statements);
+            pm_embedded_statements_node_t *cast = (pm_embedded_statements_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ EmbeddedStatementsNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_embedded_statements_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_EMBEDDED_VARIABLE_NODE: {
-            pm_buffer_append_str(buffer, "EmbeddedVariableNode(", 21);
-                        prettyprint_location(buffer, parser, &((pm_embedded_variable_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_embedded_variable_node_t *)node)->variable);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_embedded_variable_node_t *cast = (pm_embedded_variable_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ EmbeddedVariableNode (location: ", 34);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // variable
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── variable:", 19);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->variable, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_ENSURE_NODE: {
-            pm_buffer_append_str(buffer, "EnsureNode(", 11);
-                        prettyprint_location(buffer, parser, &((pm_ensure_node_t *)node)->ensure_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_ensure_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_ensure_node_t *)node)->statements);
+            pm_ensure_node_t *cast = (pm_ensure_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ EnsureNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // ensure_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── ensure_keyword_loc:", 29);
+                pm_location_t *location = &cast->ensure_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_ensure_node_t *)node)->end_keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_FALSE_NODE: {
-            pm_buffer_append_str(buffer, "FalseNode(", 10);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ FalseNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_FIND_PATTERN_NODE: {
-            pm_buffer_append_str(buffer, "FindPatternNode(", 16);
-                        if (((pm_find_pattern_node_t *)node)->constant == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_find_pattern_node_t *)node)->constant);
+            pm_find_pattern_node_t *cast = (pm_find_pattern_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ FindPatternNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // constant
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── constant:", 19);
+                if (cast->constant == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_find_pattern_node_t *)node)->left);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_find_pattern_node_t *)node)->requireds.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_find_pattern_node_t *) node)->requireds.nodes[index]);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_find_pattern_node_t *)node)->right);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_find_pattern_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_find_pattern_node_t *)node)->opening_loc);
+
+            // requireds
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── requireds:", 20);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->requireds.size);
+
+                size_t last_index = cast->requireds.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->requireds.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_find_pattern_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_find_pattern_node_t *)node)->closing_loc);
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── right:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_FLIP_FLOP_NODE: {
-            pm_buffer_append_str(buffer, "FlipFlopNode(", 13);
-                        if (((pm_flip_flop_node_t *)node)->left == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_flip_flop_node_t *)node)->left);
+            pm_flip_flop_node_t *cast = (pm_flip_flop_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ FlipFlopNode (location: ", 26);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                if (cast->left == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_flip_flop_node_t *)node)->right == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_flip_flop_node_t *)node)->right);
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── right:", 16);
+                if (cast->right == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_flip_flop_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_RANGE_FLAGS_EXCLUDE_END) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " exclude_end", 12);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_FLOAT_NODE: {
-            pm_buffer_append_str(buffer, "FloatNode(", 10);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ FloatNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_FOR_NODE: {
-            pm_buffer_append_str(buffer, "ForNode(", 8);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_for_node_t *)node)->index);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_for_node_t *)node)->collection);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_for_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_for_node_t *)node)->statements);
+            pm_for_node_t *cast = (pm_for_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ForNode (location: ", 21);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // index
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── index:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->index, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_for_node_t *)node)->for_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_for_node_t *)node)->in_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_for_node_t *)node)->do_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_for_node_t *)node)->do_keyword_loc);
+
+            // collection
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── collection:", 21);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->collection, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_for_node_t *)node)->end_keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // for_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── for_keyword_loc:", 26);
+                pm_location_t *location = &cast->for_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // in_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── in_keyword_loc:", 25);
+                pm_location_t *location = &cast->in_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // do_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── do_keyword_loc:", 25);
+                pm_location_t *location = &cast->do_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_FORWARDING_ARGUMENTS_NODE: {
-            pm_buffer_append_str(buffer, "ForwardingArgumentsNode(", 24);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ ForwardingArgumentsNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_FORWARDING_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "ForwardingParameterNode(", 24);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ ForwardingParameterNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_FORWARDING_SUPER_NODE: {
-            pm_buffer_append_str(buffer, "ForwardingSuperNode(", 20);
-                        if (((pm_forwarding_super_node_t *)node)->block == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_forwarding_super_node_t *)node)->block);
+            pm_forwarding_super_node_t *cast = (pm_forwarding_super_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ForwardingSuperNode (location: ", 33);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_GLOBAL_VARIABLE_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "GlobalVariableAndWriteNode(", 27);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_global_variable_and_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_and_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_global_variable_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_global_variable_and_write_node_t *cast = (pm_global_variable_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ GlobalVariableAndWriteNode (location: ", 40);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "GlobalVariableOperatorWriteNode(", 32);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_global_variable_operator_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_operator_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_global_variable_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_global_variable_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_global_variable_operator_write_node_t *cast = (pm_global_variable_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ GlobalVariableOperatorWriteNode (location: ", 45);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_GLOBAL_VARIABLE_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "GlobalVariableOrWriteNode(", 26);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_global_variable_or_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_or_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_global_variable_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_global_variable_or_write_node_t *cast = (pm_global_variable_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ GlobalVariableOrWriteNode (location: ", 39);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_GLOBAL_VARIABLE_READ_NODE: {
-            pm_buffer_append_str(buffer, "GlobalVariableReadNode(", 23);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_global_variable_read_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_global_variable_read_node_t *cast = (pm_global_variable_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ GlobalVariableReadNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_GLOBAL_VARIABLE_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "GlobalVariableTargetNode(", 25);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_global_variable_target_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_global_variable_target_node_t *cast = (pm_global_variable_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ GlobalVariableTargetNode (location: ", 38);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_GLOBAL_VARIABLE_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "GlobalVariableWriteNode(", 24);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_global_variable_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_global_variable_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_global_variable_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_global_variable_write_node_t *cast = (pm_global_variable_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ GlobalVariableWriteNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_HASH_NODE: {
-            pm_buffer_append_str(buffer, "HashNode(", 9);
-                        prettyprint_location(buffer, parser, &((pm_hash_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_hash_node_t *)node)->elements.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_hash_node_t *) node)->elements.nodes[index]);
+            pm_hash_node_t *cast = (pm_hash_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ HashNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_hash_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // elements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── elements:", 19);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+
+                size_t last_index = cast->elements.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_HASH_PATTERN_NODE: {
-            pm_buffer_append_str(buffer, "HashPatternNode(", 16);
-                        if (((pm_hash_pattern_node_t *)node)->constant == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_hash_pattern_node_t *)node)->constant);
+            pm_hash_pattern_node_t *cast = (pm_hash_pattern_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ HashPatternNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // constant
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── constant:", 19);
+                if (cast->constant == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_hash_pattern_node_t *)node)->assocs.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_hash_pattern_node_t *) node)->assocs.nodes[index]);
+
+            // elements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── elements:", 19);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+
+                size_t last_index = cast->elements.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_hash_pattern_node_t *)node)->kwrest == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_hash_pattern_node_t *)node)->kwrest);
+
+            // rest
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rest:", 15);
+                if (cast->rest == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_hash_pattern_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_hash_pattern_node_t *)node)->opening_loc);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_hash_pattern_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_hash_pattern_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_IF_NODE: {
-            pm_buffer_append_str(buffer, "IfNode(", 7);
-                        if (((pm_if_node_t *)node)->if_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_if_node_t *)node)->if_keyword_loc);
+            pm_if_node_t *cast = (pm_if_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ IfNode (location: ", 20);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // if_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── if_keyword_loc:", 25);
+                pm_location_t *location = &cast->if_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_if_node_t *)node)->predicate);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_if_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_if_node_t *)node)->statements);
+
+            // predicate
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── predicate:", 20);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_if_node_t *)node)->consequent == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_if_node_t *)node)->consequent);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_if_node_t *)node)->end_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_if_node_t *)node)->end_keyword_loc);
+
+            // consequent
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── consequent:", 21);
+                if (cast->consequent == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_IMAGINARY_NODE: {
-            pm_buffer_append_str(buffer, "ImaginaryNode(", 14);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_imaginary_node_t *)node)->numeric);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_imaginary_node_t *cast = (pm_imaginary_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ImaginaryNode (location: ", 27);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // numeric
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── numeric:", 18);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->numeric, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_IMPLICIT_NODE: {
-            pm_buffer_append_str(buffer, "ImplicitNode(", 13);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_implicit_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_implicit_node_t *cast = (pm_implicit_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ImplicitNode (location: ", 26);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_IN_NODE: {
-            pm_buffer_append_str(buffer, "InNode(", 7);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_in_node_t *)node)->pattern);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_in_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_in_node_t *)node)->statements);
+            pm_in_node_t *cast = (pm_in_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InNode (location: ", 20);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // pattern
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── pattern:", 18);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->pattern, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_in_node_t *)node)->in_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_in_node_t *)node)->then_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_in_node_t *)node)->then_loc);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // in_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── in_loc:", 17);
+                pm_location_t *location = &cast->in_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // then_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── then_loc:", 19);
+                pm_location_t *location = &cast->then_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            break;
+        }
+        case PM_INDEX_AND_WRITE_NODE: {
+            pm_index_and_write_node_t *cast = (pm_index_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ IndexAndWriteNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            break;
+        }
+        case PM_INDEX_OPERATOR_WRITE_NODE: {
+            pm_index_operator_write_node_t *cast = (pm_index_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ IndexOperatorWriteNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            break;
+        }
+        case PM_INDEX_OR_WRITE_NODE: {
+            pm_index_or_write_node_t *cast = (pm_index_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ IndexOrWriteNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // receiver
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── receiver:", 19);
+                if (cast->receiver == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // call_operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call_operator_loc:", 28);
+                pm_location_t *location = &cast->call_operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " safe_navigation", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_VARIABLE_CALL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " variable_call", 14);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_INSTANCE_VARIABLE_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "InstanceVariableAndWriteNode(", 29);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_instance_variable_and_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_and_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_instance_variable_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_instance_variable_and_write_node_t *cast = (pm_instance_variable_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InstanceVariableAndWriteNode (location: ", 42);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "InstanceVariableOperatorWriteNode(", 34);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_instance_variable_operator_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_operator_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_instance_variable_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_instance_variable_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_instance_variable_operator_write_node_t *cast = (pm_instance_variable_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InstanceVariableOperatorWriteNode (location: ", 47);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_INSTANCE_VARIABLE_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "InstanceVariableOrWriteNode(", 28);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_instance_variable_or_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_or_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_instance_variable_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_instance_variable_or_write_node_t *cast = (pm_instance_variable_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InstanceVariableOrWriteNode (location: ", 41);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_INSTANCE_VARIABLE_READ_NODE: {
-            pm_buffer_append_str(buffer, "InstanceVariableReadNode(", 25);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_instance_variable_read_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_instance_variable_read_node_t *cast = (pm_instance_variable_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InstanceVariableReadNode (location: ", 38);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_INSTANCE_VARIABLE_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "InstanceVariableTargetNode(", 27);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_instance_variable_target_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_instance_variable_target_node_t *cast = (pm_instance_variable_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InstanceVariableTargetNode (location: ", 40);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_INSTANCE_VARIABLE_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "InstanceVariableWriteNode(", 26);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_instance_variable_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_instance_variable_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_instance_variable_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_instance_variable_write_node_t *cast = (pm_instance_variable_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InstanceVariableWriteNode (location: ", 39);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_INTEGER_NODE: {
-            pm_buffer_append_str(buffer, "IntegerNode(", 12);
-                        char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_integer_node_t *cast = (pm_integer_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ IntegerNode (location: ", 25);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_BINARY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " binary", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_OCTAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " octal", 6);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_DECIMAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " decimal", 8);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_HEXADECIMAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " hexadecimal", 12);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
-            pm_buffer_append_str(buffer, "InterpolatedMatchLastLineNode(", 30);
-                        prettyprint_location(buffer, parser, &((pm_interpolated_match_last_line_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_interpolated_match_last_line_node_t *)node)->parts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_interpolated_match_last_line_node_t *) node)->parts.nodes[index]);
+            pm_interpolated_match_last_line_node_t *cast = (pm_interpolated_match_last_line_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InterpolatedMatchLastLineNode (location: ", 43);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_interpolated_match_last_line_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // parts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+
+                size_t last_index = cast->parts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_case", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EXTENDED) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " extended", 9);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " multi_line", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ONCE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " once", 5);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EUC_JP) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " euc_jp", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ascii_8bit", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " windows_31j", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_UTF_8) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " utf_8", 6);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
-            pm_buffer_append_str(buffer, "InterpolatedRegularExpressionNode(", 34);
-                        prettyprint_location(buffer, parser, &((pm_interpolated_regular_expression_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_interpolated_regular_expression_node_t *)node)->parts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_interpolated_regular_expression_node_t *) node)->parts.nodes[index]);
+            pm_interpolated_regular_expression_node_t *cast = (pm_interpolated_regular_expression_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InterpolatedRegularExpressionNode (location: ", 47);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_interpolated_regular_expression_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // parts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+
+                size_t last_index = cast->parts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_case", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EXTENDED) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " extended", 9);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " multi_line", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ONCE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " once", 5);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EUC_JP) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " euc_jp", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ascii_8bit", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " windows_31j", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_UTF_8) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " utf_8", 6);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_INTERPOLATED_STRING_NODE: {
-            pm_buffer_append_str(buffer, "InterpolatedStringNode(", 23);
-                        if (((pm_interpolated_string_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_interpolated_string_node_t *)node)->opening_loc);
+            pm_interpolated_string_node_t *cast = (pm_interpolated_string_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InterpolatedStringNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_interpolated_string_node_t *)node)->parts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_interpolated_string_node_t *) node)->parts.nodes[index]);
+
+            // parts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+
+                size_t last_index = cast->parts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_interpolated_string_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_interpolated_string_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_INTERPOLATED_SYMBOL_NODE: {
-            pm_buffer_append_str(buffer, "InterpolatedSymbolNode(", 23);
-                        if (((pm_interpolated_symbol_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_interpolated_symbol_node_t *)node)->opening_loc);
+            pm_interpolated_symbol_node_t *cast = (pm_interpolated_symbol_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InterpolatedSymbolNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_interpolated_symbol_node_t *)node)->parts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_interpolated_symbol_node_t *) node)->parts.nodes[index]);
+
+            // parts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+
+                size_t last_index = cast->parts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_interpolated_symbol_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_interpolated_symbol_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_INTERPOLATED_X_STRING_NODE: {
-            pm_buffer_append_str(buffer, "InterpolatedXStringNode(", 24);
-                        prettyprint_location(buffer, parser, &((pm_interpolated_x_string_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_interpolated_x_string_node_t *)node)->parts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_interpolated_x_string_node_t *) node)->parts.nodes[index]);
+            pm_interpolated_x_string_node_t *cast = (pm_interpolated_x_string_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ InterpolatedXStringNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_interpolated_x_string_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // parts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+
+                size_t last_index = cast->parts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_KEYWORD_HASH_NODE: {
-            pm_buffer_append_str(buffer, "KeywordHashNode(", 16);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_keyword_hash_node_t *)node)->elements.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_keyword_hash_node_t *) node)->elements.nodes[index]);
+            pm_keyword_hash_node_t *cast = (pm_keyword_hash_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ KeywordHashNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // elements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── elements:", 19);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+
+                size_t last_index = cast->elements.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_KEYWORD_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "KeywordParameterNode(", 21);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_keyword_parameter_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_keyword_parameter_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_keyword_parameter_node_t *)node)->value == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_keyword_parameter_node_t *)node)->value);
+            pm_keyword_parameter_node_t *cast = (pm_keyword_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ KeywordParameterNode (location: ", 34);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                if (cast->value == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_KEYWORD_REST_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "KeywordRestParameterNode(", 25);
-                        if (((pm_keyword_rest_parameter_node_t *)node)->name == 0) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                char name_buffer[12];
-                snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_keyword_rest_parameter_node_t *)node)->name);
-                pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            pm_keyword_rest_parameter_node_t *cast = (pm_keyword_rest_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ KeywordRestParameterNode (location: ", 38);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                if (cast->name == 0) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_constant(output_buffer, parser, cast->name);
+                    pm_buffer_append_byte(output_buffer, '\n');
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_keyword_rest_parameter_node_t *)node)->name_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_keyword_rest_parameter_node_t *)node)->name_loc);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_keyword_rest_parameter_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_LAMBDA_NODE: {
-            pm_buffer_append_str(buffer, "LambdaNode(", 11);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_lambda_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_lambda_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_lambda_node_t *cast = (pm_lambda_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LambdaNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_lambda_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_lambda_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_lambda_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_lambda_node_t *)node)->parameters == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_lambda_node_t *)node)->parameters);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_lambda_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_lambda_node_t *)node)->body);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // parameters
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── parameters:", 21);
+                if (cast->parameters == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_LOCAL_VARIABLE_AND_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "LocalVariableAndWriteNode(", 26);
-                        prettyprint_location(buffer, parser, &((pm_local_variable_and_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_local_variable_and_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_local_variable_and_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_local_variable_and_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char depth_buffer[12];
-            snprintf(depth_buffer, sizeof(depth_buffer), "+%d", ((pm_local_variable_and_write_node_t *)node)->depth);
-            pm_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_local_variable_and_write_node_t *cast = (pm_local_variable_and_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LocalVariableAndWriteNode (location: ", 39);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // depth
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── depth:", 16);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+            }
+
             break;
         }
         case PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "LocalVariableOperatorWriteNode(", 31);
-                        prettyprint_location(buffer, parser, &((pm_local_variable_operator_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_local_variable_operator_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_local_variable_operator_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_local_variable_operator_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char operator_buffer[12];
-            snprintf(operator_buffer, sizeof(operator_buffer), "%u", ((pm_local_variable_operator_write_node_t *)node)->operator);
-            pm_buffer_append_str(buffer, operator_buffer, strlen(operator_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char depth_buffer[12];
-            snprintf(depth_buffer, sizeof(depth_buffer), "+%d", ((pm_local_variable_operator_write_node_t *)node)->depth);
-            pm_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_local_variable_operator_write_node_t *cast = (pm_local_variable_operator_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LocalVariableOperatorWriteNode (location: ", 44);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // operator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator:", 19);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->operator);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // depth
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── depth:", 16);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+            }
+
             break;
         }
         case PM_LOCAL_VARIABLE_OR_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "LocalVariableOrWriteNode(", 25);
-                        prettyprint_location(buffer, parser, &((pm_local_variable_or_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_local_variable_or_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_local_variable_or_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_local_variable_or_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char depth_buffer[12];
-            snprintf(depth_buffer, sizeof(depth_buffer), "+%d", ((pm_local_variable_or_write_node_t *)node)->depth);
-            pm_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_local_variable_or_write_node_t *cast = (pm_local_variable_or_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LocalVariableOrWriteNode (location: ", 38);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // depth
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── depth:", 16);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+            }
+
             break;
         }
         case PM_LOCAL_VARIABLE_READ_NODE: {
-            pm_buffer_append_str(buffer, "LocalVariableReadNode(", 22);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_local_variable_read_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char depth_buffer[12];
-            snprintf(depth_buffer, sizeof(depth_buffer), "+%d", ((pm_local_variable_read_node_t *)node)->depth);
-            pm_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_local_variable_read_node_t *cast = (pm_local_variable_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LocalVariableReadNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // depth
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── depth:", 16);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+            }
+
             break;
         }
         case PM_LOCAL_VARIABLE_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "LocalVariableTargetNode(", 24);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_local_variable_target_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char depth_buffer[12];
-            snprintf(depth_buffer, sizeof(depth_buffer), "+%d", ((pm_local_variable_target_node_t *)node)->depth);
-            pm_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_local_variable_target_node_t *cast = (pm_local_variable_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LocalVariableTargetNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // depth
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── depth:", 16);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+            }
+
             break;
         }
         case PM_LOCAL_VARIABLE_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "LocalVariableWriteNode(", 23);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_local_variable_write_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            char depth_buffer[12];
-            snprintf(depth_buffer, sizeof(depth_buffer), "+%d", ((pm_local_variable_write_node_t *)node)->depth);
-            pm_buffer_append_str(buffer, depth_buffer, strlen(depth_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_local_variable_write_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_local_variable_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_local_variable_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_local_variable_write_node_t *cast = (pm_local_variable_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ LocalVariableWriteNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // depth
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── depth:", 16);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_MATCH_LAST_LINE_NODE: {
-            pm_buffer_append_str(buffer, "MatchLastLineNode(", 18);
-                        prettyprint_location(buffer, parser, &((pm_match_last_line_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_match_last_line_node_t *)node)->content_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_match_last_line_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_bytes(buffer, pm_string_source(&((pm_match_last_line_node_t *)node)->unescaped), pm_string_length(&((pm_match_last_line_node_t *)node)->unescaped));
-            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_match_last_line_node_t *cast = (pm_match_last_line_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ MatchLastLineNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // content_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── content_loc:", 22);
+                pm_location_t *location = &cast->content_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // unescaped
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── unescaped:", 20);
+                pm_buffer_append_string(output_buffer, " \"", 2);
+                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_case", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EXTENDED) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " extended", 9);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " multi_line", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ONCE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " once", 5);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EUC_JP) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " euc_jp", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ascii_8bit", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " windows_31j", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_UTF_8) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " utf_8", 6);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_MATCH_PREDICATE_NODE: {
-            pm_buffer_append_str(buffer, "MatchPredicateNode(", 19);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_match_predicate_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_match_predicate_node_t *)node)->pattern);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_match_predicate_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_match_predicate_node_t *cast = (pm_match_predicate_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ MatchPredicateNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // pattern
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── pattern:", 18);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->pattern, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_MATCH_REQUIRED_NODE: {
-            pm_buffer_append_str(buffer, "MatchRequiredNode(", 18);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_match_required_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_match_required_node_t *)node)->pattern);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_match_required_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_match_required_node_t *cast = (pm_match_required_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ MatchRequiredNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // pattern
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── pattern:", 18);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->pattern, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_MATCH_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "MatchWriteNode(", 15);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_match_write_node_t *)node)->call);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_match_write_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_match_write_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_match_write_node_t *cast = (pm_match_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ MatchWriteNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // call
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── call:", 15);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->call, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
+            }
+
             break;
         }
         case PM_MISSING_NODE: {
-            pm_buffer_append_str(buffer, "MissingNode(", 12);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ MissingNode (location: ", 25);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_MODULE_NODE: {
-            pm_buffer_append_str(buffer, "ModuleNode(", 11);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_module_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_module_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_module_node_t *cast = (pm_module_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ModuleNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_module_node_t *)node)->module_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_module_node_t *)node)->constant_path);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_module_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_module_node_t *)node)->body);
+
+            // module_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── module_keyword_loc:", 29);
+                pm_location_t *location = &cast->module_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_module_node_t *)node)->end_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_module_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // constant_path
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── constant_path:", 24);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant_path, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_MULTI_TARGET_NODE: {
-            pm_buffer_append_str(buffer, "MultiTargetNode(", 16);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_multi_target_node_t *)node)->targets.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_multi_target_node_t *) node)->targets.nodes[index]);
+            pm_multi_target_node_t *cast = (pm_multi_target_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ MultiTargetNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // lefts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lefts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->lefts.size);
+
+                size_t last_index = cast->lefts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->lefts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_multi_target_node_t *)node)->lparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_multi_target_node_t *)node)->lparen_loc);
+
+            // rest
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rest:", 15);
+                if (cast->rest == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_multi_target_node_t *)node)->rparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_multi_target_node_t *)node)->rparen_loc);
+
+            // rights
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rights:", 17);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->rights.size);
+
+                size_t last_index = cast->rights.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rights.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_MULTI_WRITE_NODE: {
-            pm_buffer_append_str(buffer, "MultiWriteNode(", 15);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_multi_write_node_t *)node)->targets.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_multi_write_node_t *) node)->targets.nodes[index]);
+            pm_multi_write_node_t *cast = (pm_multi_write_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ MultiWriteNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // lefts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lefts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->lefts.size);
+
+                size_t last_index = cast->lefts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->lefts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_multi_write_node_t *)node)->lparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_multi_write_node_t *)node)->lparen_loc);
+
+            // rest
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rest:", 15);
+                if (cast->rest == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_multi_write_node_t *)node)->rparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_multi_write_node_t *)node)->rparen_loc);
+
+            // rights
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rights:", 17);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->rights.size);
+
+                size_t last_index = cast->rights.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rights.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_multi_write_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_multi_write_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_NEXT_NODE: {
-            pm_buffer_append_str(buffer, "NextNode(", 9);
-                        if (((pm_next_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_next_node_t *)node)->arguments);
+            pm_next_node_t *cast = (pm_next_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ NextNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_next_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_NIL_NODE: {
-            pm_buffer_append_str(buffer, "NilNode(", 8);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ NilNode (location: ", 21);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_NO_KEYWORDS_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "NoKeywordsParameterNode(", 24);
-                        prettyprint_location(buffer, parser, &((pm_no_keywords_parameter_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_no_keywords_parameter_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_no_keywords_parameter_node_t *cast = (pm_no_keywords_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ NoKeywordsParameterNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_NUMBERED_REFERENCE_READ_NODE: {
-            pm_buffer_append_str(buffer, "NumberedReferenceReadNode(", 26);
-                        char number_buffer[12];
-            snprintf(number_buffer, sizeof(number_buffer), "+%d", ((pm_numbered_reference_read_node_t *)node)->number);
-            pm_buffer_append_str(buffer, number_buffer, strlen(number_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_numbered_reference_read_node_t *cast = (pm_numbered_reference_read_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ NumberedReferenceReadNode (location: ", 39);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // number
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── number:", 17);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->number);
+            }
+
             break;
         }
         case PM_OPTIONAL_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "OptionalParameterNode(", 22);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_optional_parameter_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_optional_parameter_node_t *)node)->name_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_optional_parameter_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_optional_parameter_node_t *)node)->value);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_optional_parameter_node_t *cast = (pm_optional_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ OptionalParameterNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_OR_NODE: {
-            pm_buffer_append_str(buffer, "OrNode(", 7);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_or_node_t *)node)->left);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_or_node_t *)node)->right);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_or_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_or_node_t *cast = (pm_or_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ OrNode (location: ", 20);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── right:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_PARAMETERS_NODE: {
-            pm_buffer_append_str(buffer, "ParametersNode(", 15);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_parameters_node_t *)node)->requireds.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_parameters_node_t *) node)->requireds.nodes[index]);
+            pm_parameters_node_t *cast = (pm_parameters_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ParametersNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // requireds
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── requireds:", 20);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->requireds.size);
+
+                size_t last_index = cast->requireds.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->requireds.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_parameters_node_t *)node)->optionals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_parameters_node_t *) node)->optionals.nodes[index]);
+
+            // optionals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── optionals:", 20);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->optionals.size);
+
+                size_t last_index = cast->optionals.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->optionals.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_parameters_node_t *)node)->rest == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_parameters_node_t *)node)->rest);
+
+            // rest
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rest:", 15);
+                if (cast->rest == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_parameters_node_t *)node)->posts.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_parameters_node_t *) node)->posts.nodes[index]);
+
+            // posts
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── posts:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->posts.size);
+
+                size_t last_index = cast->posts.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->posts.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_parameters_node_t *)node)->keywords.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_parameters_node_t *) node)->keywords.nodes[index]);
+
+            // keywords
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keywords:", 19);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->keywords.size);
+
+                size_t last_index = cast->keywords.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->keywords.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_parameters_node_t *)node)->keyword_rest == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_parameters_node_t *)node)->keyword_rest);
+
+            // keyword_rest
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_rest:", 23);
+                if (cast->keyword_rest == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->keyword_rest, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_parameters_node_t *)node)->block == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_parameters_node_t *)node)->block);
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_PARENTHESES_NODE: {
-            pm_buffer_append_str(buffer, "ParenthesesNode(", 16);
-                        if (((pm_parentheses_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_parentheses_node_t *)node)->body);
+            pm_parentheses_node_t *cast = (pm_parentheses_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ParenthesesNode (location: ", 29);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_parentheses_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_parentheses_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_PINNED_EXPRESSION_NODE: {
-            pm_buffer_append_str(buffer, "PinnedExpressionNode(", 21);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_pinned_expression_node_t *)node)->expression);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pinned_expression_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pinned_expression_node_t *)node)->lparen_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pinned_expression_node_t *)node)->rparen_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_pinned_expression_node_t *cast = (pm_pinned_expression_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ PinnedExpressionNode (location: ", 34);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // expression
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── expression:", 21);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_PINNED_VARIABLE_NODE: {
-            pm_buffer_append_str(buffer, "PinnedVariableNode(", 19);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_pinned_variable_node_t *)node)->variable);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pinned_variable_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_pinned_variable_node_t *cast = (pm_pinned_variable_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ PinnedVariableNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // variable
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── variable:", 19);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->variable, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_POST_EXECUTION_NODE: {
-            pm_buffer_append_str(buffer, "PostExecutionNode(", 18);
-                        if (((pm_post_execution_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_post_execution_node_t *)node)->statements);
+            pm_post_execution_node_t *cast = (pm_post_execution_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ PostExecutionNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_post_execution_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_post_execution_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_post_execution_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_PRE_EXECUTION_NODE: {
-            pm_buffer_append_str(buffer, "PreExecutionNode(", 17);
-                        if (((pm_pre_execution_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_pre_execution_node_t *)node)->statements);
+            pm_pre_execution_node_t *cast = (pm_pre_execution_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ PreExecutionNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pre_execution_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pre_execution_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_pre_execution_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_PROGRAM_NODE: {
-            pm_buffer_append_str(buffer, "ProgramNode(", 12);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_program_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_program_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_program_node_t *cast = (pm_program_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ProgramNode (location: ", 25);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_program_node_t *)node)->statements);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── statements:", 21);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_RANGE_NODE: {
-            pm_buffer_append_str(buffer, "RangeNode(", 10);
-                        if (((pm_range_node_t *)node)->left == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_range_node_t *)node)->left);
+            pm_range_node_t *cast = (pm_range_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RangeNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                if (cast->left == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_range_node_t *)node)->right == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_range_node_t *)node)->right);
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── right:", 16);
+                if (cast->right == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_range_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_RANGE_FLAGS_EXCLUDE_END) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " exclude_end", 12);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_RATIONAL_NODE: {
-            pm_buffer_append_str(buffer, "RationalNode(", 13);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_rational_node_t *)node)->numeric);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_rational_node_t *cast = (pm_rational_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RationalNode (location: ", 26);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // numeric
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── numeric:", 18);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->numeric, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_REDO_NODE: {
-            pm_buffer_append_str(buffer, "RedoNode(", 9);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ RedoNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_REGULAR_EXPRESSION_NODE: {
-            pm_buffer_append_str(buffer, "RegularExpressionNode(", 22);
-                        prettyprint_location(buffer, parser, &((pm_regular_expression_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_regular_expression_node_t *)node)->content_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_regular_expression_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_bytes(buffer, pm_string_source(&((pm_regular_expression_node_t *)node)->unescaped), pm_string_length(&((pm_regular_expression_node_t *)node)->unescaped));
-            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
-            break;
-        }
-        case PM_REQUIRED_DESTRUCTURED_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "RequiredDestructuredParameterNode(", 34);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_required_destructured_parameter_node_t *)node)->parameters.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_required_destructured_parameter_node_t *) node)->parameters.nodes[index]);
+            pm_regular_expression_node_t *cast = (pm_regular_expression_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RegularExpressionNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_required_destructured_parameter_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_required_destructured_parameter_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // content_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── content_loc:", 22);
+                pm_location_t *location = &cast->content_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // unescaped
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── unescaped:", 20);
+                pm_buffer_append_string(output_buffer, " \"", 2);
+                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_case", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EXTENDED) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " extended", 9);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_MULTI_LINE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " multi_line", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ONCE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " once", 5);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_EUC_JP) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " euc_jp", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_ASCII_8BIT) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ascii_8bit", 11);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_WINDOWS_31J) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " windows_31j", 12);
+                    found = true;
+                }
+                if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_UTF_8) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " utf_8", 6);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_REQUIRED_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "RequiredParameterNode(", 22);
-                        char name_buffer[12];
-            snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_required_parameter_node_t *)node)->name);
-            pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_required_parameter_node_t *cast = (pm_required_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RequiredParameterNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_RESCUE_MODIFIER_NODE: {
-            pm_buffer_append_str(buffer, "RescueModifierNode(", 19);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_rescue_modifier_node_t *)node)->expression);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_rescue_modifier_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_rescue_modifier_node_t *)node)->rescue_expression);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_rescue_modifier_node_t *cast = (pm_rescue_modifier_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RescueModifierNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // expression
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── expression:", 21);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // rescue_expression
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── rescue_expression:", 28);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rescue_expression, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_RESCUE_NODE: {
-            pm_buffer_append_str(buffer, "RescueNode(", 11);
-                        prettyprint_location(buffer, parser, &((pm_rescue_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_rescue_node_t *)node)->exceptions.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_rescue_node_t *) node)->exceptions.nodes[index]);
+            pm_rescue_node_t *cast = (pm_rescue_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RescueNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_rescue_node_t *)node)->operator_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_rescue_node_t *)node)->operator_loc);
+
+            // exceptions
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── exceptions:", 21);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->exceptions.size);
+
+                size_t last_index = cast->exceptions.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->exceptions.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_rescue_node_t *)node)->reference == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_rescue_node_t *)node)->reference);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_rescue_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_rescue_node_t *)node)->statements);
+
+            // reference
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── reference:", 20);
+                if (cast->reference == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->reference, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_rescue_node_t *)node)->consequent == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_rescue_node_t *)node)->consequent);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // consequent
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── consequent:", 21);
+                if (cast->consequent == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_REST_PARAMETER_NODE: {
-            pm_buffer_append_str(buffer, "RestParameterNode(", 18);
-                        if (((pm_rest_parameter_node_t *)node)->name == 0) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                char name_buffer[12];
-                snprintf(name_buffer, sizeof(name_buffer), "%u", ((pm_rest_parameter_node_t *)node)->name);
-                pm_buffer_append_str(buffer, name_buffer, strlen(name_buffer));
+            pm_rest_parameter_node_t *cast = (pm_rest_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RestParameterNode (location: ", 31);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                if (cast->name == 0) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_constant(output_buffer, parser, cast->name);
+                    pm_buffer_append_byte(output_buffer, '\n');
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_rest_parameter_node_t *)node)->name_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_rest_parameter_node_t *)node)->name_loc);
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_rest_parameter_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_RETRY_NODE: {
-            pm_buffer_append_str(buffer, "RetryNode(", 10);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ RetryNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_RETURN_NODE: {
-            pm_buffer_append_str(buffer, "ReturnNode(", 11);
-                        prettyprint_location(buffer, parser, &((pm_return_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_return_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_return_node_t *)node)->arguments);
+            pm_return_node_t *cast = (pm_return_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ReturnNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_SELF_NODE: {
-            pm_buffer_append_str(buffer, "SelfNode(", 9);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ SelfNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_SINGLETON_CLASS_NODE: {
-            pm_buffer_append_str(buffer, "SingletonClassNode(", 19);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_singleton_class_node_t *)node)->locals.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                char locals_buffer[12];
-                snprintf(locals_buffer, sizeof(locals_buffer), "%u", ((pm_singleton_class_node_t *)node)->locals.ids[index]);
-                pm_buffer_append_str(buffer, locals_buffer, strlen(locals_buffer));
+            pm_singleton_class_node_t *cast = (pm_singleton_class_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ SingletonClassNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // locals
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── locals:", 17);
+                pm_buffer_append_string(output_buffer, " [", 2);
+                for (uint32_t index = 0; index < cast->locals.size; index++) {
+                    if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
+                    prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
+                }
+                pm_buffer_append_string(output_buffer, "]\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_singleton_class_node_t *)node)->class_keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_singleton_class_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_singleton_class_node_t *)node)->expression);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_singleton_class_node_t *)node)->body == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_singleton_class_node_t *)node)->body);
+
+            // class_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── class_keyword_loc:", 28);
+                pm_location_t *location = &cast->class_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_singleton_class_node_t *)node)->end_keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // expression
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── expression:", 21);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── body:", 15);
+                if (cast->body == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_SOURCE_ENCODING_NODE: {
-            pm_buffer_append_str(buffer, "SourceEncodingNode(", 19);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ SourceEncodingNode (location: ", 32);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_SOURCE_FILE_NODE: {
-            pm_buffer_append_str(buffer, "SourceFileNode(", 15);
-                        pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_bytes(buffer, pm_string_source(&((pm_source_file_node_t *)node)->filepath), pm_string_length(&((pm_source_file_node_t *)node)->filepath));
-            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_source_file_node_t *cast = (pm_source_file_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ SourceFileNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // filepath
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── filepath:", 19);
+                pm_buffer_append_string(output_buffer, " \"", 2);
+                prettyprint_source(output_buffer, pm_string_source(&cast->filepath), pm_string_length(&cast->filepath));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_SOURCE_LINE_NODE: {
-            pm_buffer_append_str(buffer, "SourceLineNode(", 15);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ SourceLineNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_SPLAT_NODE: {
-            pm_buffer_append_str(buffer, "SplatNode(", 10);
-                        prettyprint_location(buffer, parser, &((pm_splat_node_t *)node)->operator_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_splat_node_t *)node)->expression == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_splat_node_t *)node)->expression);
+            pm_splat_node_t *cast = (pm_splat_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ SplatNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // operator_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── operator_loc:", 23);
+                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // expression
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── expression:", 21);
+                if (cast->expression == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_STATEMENTS_NODE: {
-            pm_buffer_append_str(buffer, "StatementsNode(", 15);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_statements_node_t *)node)->body.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_statements_node_t *) node)->body.nodes[index]);
+            pm_statements_node_t *cast = (pm_statements_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ StatementsNode (location: ", 28);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // body
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── body:", 15);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->body.size);
+
+                size_t last_index = cast->body.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+
             break;
         }
         case PM_STRING_CONCAT_NODE: {
-            pm_buffer_append_str(buffer, "StringConcatNode(", 17);
-                        prettyprint_node(buffer, parser, (pm_node_t *)((pm_string_concat_node_t *)node)->left);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_string_concat_node_t *)node)->right);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_string_concat_node_t *cast = (pm_string_concat_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ StringConcatNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // left
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── left:", 15);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // right
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── right:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
             break;
         }
         case PM_STRING_NODE: {
-            pm_buffer_append_str(buffer, "StringNode(", 11);
-                        char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_string_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_string_node_t *)node)->opening_loc);
+            pm_string_node_t *cast = (pm_string_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ StringNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_STRING_FLAGS_FROZEN) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " frozen", 7);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_string_node_t *)node)->content_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_string_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_string_node_t *)node)->closing_loc);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_bytes(buffer, pm_string_source(&((pm_string_node_t *)node)->unescaped), pm_string_length(&((pm_string_node_t *)node)->unescaped));
-            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // content_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── content_loc:", 22);
+                pm_location_t *location = &cast->content_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
+            // unescaped
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── unescaped:", 20);
+                pm_buffer_append_string(output_buffer, " \"", 2);
+                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_SUPER_NODE: {
-            pm_buffer_append_str(buffer, "SuperNode(", 10);
-                        prettyprint_location(buffer, parser, &((pm_super_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_super_node_t *)node)->lparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_super_node_t *)node)->lparen_loc);
+            pm_super_node_t *cast = (pm_super_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ SuperNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_super_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_super_node_t *)node)->arguments);
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_super_node_t *)node)->rparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_super_node_t *)node)->rparen_loc);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_super_node_t *)node)->block == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_super_node_t *)node)->block);
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // block
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── block:", 16);
+                if (cast->block == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_SYMBOL_NODE: {
-            pm_buffer_append_str(buffer, "SymbolNode(", 11);
-                        if (((pm_symbol_node_t *)node)->opening_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_symbol_node_t *)node)->opening_loc);
+            pm_symbol_node_t *cast = (pm_symbol_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ SymbolNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_symbol_node_t *)node)->value_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_symbol_node_t *)node)->value_loc);
+
+            // value_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── value_loc:", 20);
+                pm_location_t *location = &cast->value_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_symbol_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_symbol_node_t *)node)->closing_loc);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_bytes(buffer, pm_string_source(&((pm_symbol_node_t *)node)->unescaped), pm_string_length(&((pm_symbol_node_t *)node)->unescaped));
-            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // unescaped
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── unescaped:", 20);
+                pm_buffer_append_string(output_buffer, " \"", 2);
+                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_TRUE_NODE: {
-            pm_buffer_append_str(buffer, "TrueNode(", 9);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_buffer_append_string(output_buffer, "@ TrueNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
             break;
         }
         case PM_UNDEF_NODE: {
-            pm_buffer_append_str(buffer, "UndefNode(", 10);
-                        pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_undef_node_t *)node)->names.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_undef_node_t *) node)->names.nodes[index]);
+            pm_undef_node_t *cast = (pm_undef_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ UndefNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // names
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── names:", 16);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->names.size);
+
+                size_t last_index = cast->names.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->names.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_undef_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_UNLESS_NODE: {
-            pm_buffer_append_str(buffer, "UnlessNode(", 11);
-                        prettyprint_location(buffer, parser, &((pm_unless_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_unless_node_t *)node)->predicate);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_unless_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_unless_node_t *)node)->statements);
+            pm_unless_node_t *cast = (pm_unless_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ UnlessNode (location: ", 24);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_unless_node_t *)node)->consequent == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_unless_node_t *)node)->consequent);
+
+            // predicate
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── predicate:", 20);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_unless_node_t *)node)->end_keyword_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_unless_node_t *)node)->end_keyword_loc);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // consequent
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── consequent:", 21);
+                if (cast->consequent == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // end_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── end_keyword_loc:", 26);
+                pm_location_t *location = &cast->end_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
         case PM_UNTIL_NODE: {
-            pm_buffer_append_str(buffer, "UntilNode(", 10);
-                        prettyprint_location(buffer, parser, &((pm_until_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_until_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_until_node_t *)node)->closing_loc);
+            pm_until_node_t *cast = (pm_until_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ UntilNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_until_node_t *)node)->predicate);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_until_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_until_node_t *)node)->statements);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // predicate
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── predicate:", 20);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_LOOP_FLAGS_BEGIN_MODIFIER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " begin_modifier", 15);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_WHEN_NODE: {
-            pm_buffer_append_str(buffer, "WhenNode(", 9);
-                        prettyprint_location(buffer, parser, &((pm_when_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "[", 1);
-            for (uint32_t index = 0; index < ((pm_when_node_t *)node)->conditions.size; index++) {
-                if (index != 0) pm_buffer_append_str(buffer, ", ", 2);
-                prettyprint_node(buffer, parser, (pm_node_t *) ((pm_when_node_t *) node)->conditions.nodes[index]);
+            pm_when_node_t *cast = (pm_when_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ WhenNode (location: ", 22);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, "]", 1);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_when_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_when_node_t *)node)->statements);
+
+            // conditions
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── conditions:", 21);
+                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->conditions.size);
+
+                size_t last_index = cast->conditions.size;
+                for (uint32_t index = 0; index < last_index; index++) {
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+
+                    if (index == last_index - 1) {
+                        pm_buffer_append_string(output_buffer, "└── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    } else {
+                        pm_buffer_append_string(output_buffer, "├── ", 10);
+                        pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    }
+
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->conditions.nodes[index], prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "    ", 4);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
             break;
         }
         case PM_WHILE_NODE: {
-            pm_buffer_append_str(buffer, "WhileNode(", 10);
-                        prettyprint_location(buffer, parser, &((pm_while_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_while_node_t *)node)->closing_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_while_node_t *)node)->closing_loc);
+            pm_while_node_t *cast = (pm_while_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ WhileNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_node(buffer, parser, (pm_node_t *)((pm_while_node_t *)node)->predicate);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_while_node_t *)node)->statements == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_while_node_t *)node)->statements);
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            char flags_buffer[12];
-            snprintf(flags_buffer, sizeof(flags_buffer), "+%d", (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_str(buffer, flags_buffer, strlen(flags_buffer));
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // predicate
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── predicate:", 20);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            // statements
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── statements:", 21);
+                if (cast->statements == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_LOOP_FLAGS_BEGIN_MODIFIER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " begin_modifier", 15);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " ∅", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             break;
         }
         case PM_X_STRING_NODE: {
-            pm_buffer_append_str(buffer, "XStringNode(", 12);
-                        prettyprint_location(buffer, parser, &((pm_x_string_node_t *)node)->opening_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_x_string_node_t *)node)->content_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            prettyprint_location(buffer, parser, &((pm_x_string_node_t *)node)->closing_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_bytes(buffer, pm_string_source(&((pm_x_string_node_t *)node)->unescaped), pm_string_length(&((pm_x_string_node_t *)node)->unescaped));
-            pm_buffer_append_str(buffer, "\"", 1);
-            pm_buffer_append_str(buffer, ")", 1);
+            pm_x_string_node_t *cast = (pm_x_string_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ XStringNode (location: ", 25);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // opening_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── opening_loc:", 22);
+                pm_location_t *location = &cast->opening_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // content_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── content_loc:", 22);
+                pm_location_t *location = &cast->content_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // closing_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── closing_loc:", 22);
+                pm_location_t *location = &cast->closing_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // unescaped
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── unescaped:", 20);
+                pm_buffer_append_string(output_buffer, " \"", 2);
+                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
             break;
         }
         case PM_YIELD_NODE: {
-            pm_buffer_append_str(buffer, "YieldNode(", 10);
-                        prettyprint_location(buffer, parser, &((pm_yield_node_t *)node)->keyword_loc);
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_yield_node_t *)node)->lparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_yield_node_t *)node)->lparen_loc);
+            pm_yield_node_t *cast = (pm_yield_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ YieldNode (location: ", 23);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── keyword_loc:", 22);
+                pm_location_t *location = &cast->keyword_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_yield_node_t *)node)->arguments == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_node(buffer, parser, (pm_node_t *)((pm_yield_node_t *)node)->arguments);
+
+            // lparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── lparen_loc:", 21);
+                pm_location_t *location = &cast->lparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
-            pm_buffer_append_str(buffer, ", ", 2);            if (((pm_yield_node_t *)node)->rparen_loc.start == NULL) {
-                pm_buffer_append_str(buffer, "nil", 3);
-            } else {
-                prettyprint_location(buffer, parser, &((pm_yield_node_t *)node)->rparen_loc);
+
+            // arguments
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── arguments:", 20);
+                if (cast->arguments == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, '\n');
+
+                    size_t prefix_length = prefix_buffer->length;
+                    pm_buffer_append_string(prefix_buffer, "│   ", 6);
+                    pm_buffer_concat(output_buffer, prefix_buffer);
+                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
+                    prefix_buffer->length = prefix_length;
+                }
             }
-            pm_buffer_append_str(buffer, ")", 1);
+
+            // rparen_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── rparen_loc:", 21);
+                pm_location_t *location = &cast->rparen_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             break;
         }
     }
 }
 
-void
-pm_print_node(pm_parser_t *parser, pm_node_t *node) {
-    pm_buffer_t buffer;
-    if (!pm_buffer_init(&buffer)) return;
-
-    prettyprint_node(&buffer, parser, node);
-    printf("%.*s\n", (int) buffer.length, buffer.value);
-
-    pm_buffer_free(&buffer);
-}
-
 // Pretty-prints the AST represented by the given node to the given buffer.
 PRISM_EXPORTED_FUNCTION void
-pm_prettyprint(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
-    prettyprint_node(buffer, parser, node);
+pm_prettyprint(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_node_t *node) {
+    pm_buffer_t prefix_buffer = { 0 };
+    prettyprint_node(output_buffer, parser, node, &prefix_buffer);
+    pm_buffer_free(&prefix_buffer);
 }
