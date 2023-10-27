@@ -24,6 +24,8 @@ import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.DetailedInspectingSupport;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
 
@@ -231,6 +233,26 @@ public abstract class TruffleASTPrinter {
             // avoid confusing 'emptyTString = '
             if (value instanceof String || string.isEmpty()) {
                 string = "\"" + string + "\"";
+            }
+
+            if (value instanceof ReturnID) {
+                // unknown ReturnID instances (in case they are created) will be printed as any ordinal object:
+                // org.truffleruby.language.control.ReturnID@...
+                if (value == ReturnID.MODULE_BODY) {
+                    string = "MODULE_BODY";
+                } else if (value == ReturnID.INVALID) {
+                    string = "INVALID";
+                }
+            }
+
+            if (value instanceof BreakID) {
+                // unknown BreakID instances (in case they are created) will be printed as any ordinal object:
+                // org.truffleruby.language.control.BreakID@...
+                if (value == BreakID.ANY_BLOCK) {
+                    string = "ANY_BLOCK";
+                } else if (value == BreakID.INVALID) {
+                    string = "INVALID";
+                }
             }
 
             out.append(name + " = " + string);
