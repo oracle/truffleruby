@@ -9,8 +9,14 @@
  */
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.strings.InternalByteArray;
-import com.oracle.truffle.api.strings.TruffleString;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
 
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
@@ -18,6 +24,7 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
@@ -49,12 +56,12 @@ import org.truffleruby.core.regexp.MatchDataNodes.GetFixedNameMatchNode;
 import org.truffleruby.core.regexp.RegexWarnDeferredCallback;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.core.string.InterpolatedStringNode;
-import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.TStringConstants;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -96,10 +103,10 @@ import org.truffleruby.language.defined.DefinedNode;
 import org.truffleruby.language.defined.DefinedWrapperNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.exceptions.EnsureNodeGen;
-import org.truffleruby.language.exceptions.RescueStandardErrorNode;
 import org.truffleruby.language.exceptions.RescueClassesNode;
 import org.truffleruby.language.exceptions.RescueNode;
 import org.truffleruby.language.exceptions.RescueSplatNode;
+import org.truffleruby.language.exceptions.RescueStandardErrorNode;
 import org.truffleruby.language.exceptions.TryNodeGen;
 import org.truffleruby.language.globals.AliasGlobalVarNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
@@ -127,7 +134,6 @@ import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.annotations.Split;
 import org.truffleruby.language.objects.DefineClassNode;
 import org.truffleruby.language.objects.DefineModuleNode;
 import org.truffleruby.language.objects.DefineModuleNodeGen;
@@ -135,13 +141,13 @@ import org.truffleruby.language.objects.DynamicLexicalScopeNode;
 import org.truffleruby.language.objects.GetDynamicLexicalScopeNode;
 import org.truffleruby.language.objects.InsideModuleDefinitionNode;
 import org.truffleruby.language.objects.LexicalScopeNode;
-import org.truffleruby.language.objects.WriteInstanceVariableNodeGen;
-import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.RunModuleDefinitionNode;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.objects.SingletonClassNode.SingletonClassASTNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTNodeGen;
+import org.truffleruby.language.objects.WriteInstanceVariableNodeGen;
+import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
@@ -261,15 +267,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.List;
+import com.oracle.truffle.api.strings.InternalByteArray;
+import com.oracle.truffle.api.strings.TruffleString;
 
 /** A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes. */
 public class BodyTranslator extends BaseTranslator {
@@ -1704,7 +1703,7 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         if (node.isEmpty()) { // an empty Hash literal like h = {}
-            final RubyNode ret = HashLiteralNode.create(RubyNode.EMPTY_ARRAY);
+            final RubyNode ret = HashLiteralNode.create(RubyNode.EMPTY_ARRAY, language);
             ret.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, ret);
         }
@@ -1717,7 +1716,7 @@ public class BodyTranslator extends BaseTranslator {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
                 if (!keyValues.isEmpty()) {
                     final RubyNode hashLiteralSoFar = HashLiteralNode
-                            .create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
+                            .create(keyValues.toArray(RubyNode.EMPTY_ARRAY), language);
                     hashConcats.add(hashLiteralSoFar);
                 }
                 hashConcats.add(HashCastASTNodeGen.create(pair.getValue().accept(this)));
@@ -1734,7 +1733,7 @@ public class BodyTranslator extends BaseTranslator {
         }
 
         if (!keyValues.isEmpty()) {
-            final RubyNode hashLiteralSoFar = HashLiteralNode.create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
+            final RubyNode hashLiteralSoFar = HashLiteralNode.create(keyValues.toArray(RubyNode.EMPTY_ARRAY), language);
             hashConcats.add(hashLiteralSoFar);
         }
 

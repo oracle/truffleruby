@@ -93,8 +93,6 @@ public final class Options {
     public final boolean EXCEPTIONS_WARN_OUT_OF_MEMORY;
     /** --backtraces-interleave-java=false */
     public final boolean BACKTRACES_INTERLEAVE_JAVA;
-    /** --buckets-big-hash=false */
-    public final boolean BIG_HASH_STRATEGY;
     /** --backtraces-on-interrupt=false */
     public final boolean BACKTRACE_ON_INTERRUPT;
     /** --backtraces-sigalrm=!EMBEDDED */
@@ -249,7 +247,6 @@ public final class Options {
         EXCEPTIONS_WARN_STACKOVERFLOW = options.get(OptionsCatalog.EXCEPTIONS_WARN_STACKOVERFLOW_KEY);
         EXCEPTIONS_WARN_OUT_OF_MEMORY = options.get(OptionsCatalog.EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY);
         BACKTRACES_INTERLEAVE_JAVA = options.get(OptionsCatalog.BACKTRACES_INTERLEAVE_JAVA_KEY);
-        BIG_HASH_STRATEGY = options.get(OptionsCatalog.BIG_HASH_STRATEGY_KEY);
         BACKTRACE_ON_INTERRUPT = options.get(OptionsCatalog.BACKTRACE_ON_INTERRUPT_KEY);
         BACKTRACE_ON_SIGALRM = options.hasBeenSet(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) ? options.get(OptionsCatalog.BACKTRACE_ON_SIGALRM_KEY) : !EMBEDDED;
         BACKTRACE_ON_RAISE = options.get(OptionsCatalog.BACKTRACE_ON_RAISE_KEY);
@@ -381,8 +378,6 @@ public final class Options {
                 return EXCEPTIONS_WARN_OUT_OF_MEMORY;
             case "ruby.backtraces-interleave-java":
                 return BACKTRACES_INTERLEAVE_JAVA;
-            case "ruby.buckets-big-hash":
-                return BIG_HASH_STRATEGY;
             case "ruby.backtraces-on-interrupt":
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces-sigalrm":

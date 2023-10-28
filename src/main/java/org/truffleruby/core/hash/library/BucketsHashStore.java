@@ -571,12 +571,12 @@ public final class BucketsHashStore {
 
     }
 
-    public static final class GenericHashLiteralNode extends HashLiteralNode {
+    public static final class BucketHashLiteralNode extends HashLiteralNode {
 
         @Child HashStoreLibrary hashes;
         private final int bucketsCount;
 
-        public GenericHashLiteralNode(RubyNode[] keyValues) {
+        public BucketHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
             bucketsCount = growthCapacityGreaterThan(keyValues.length / 2);
         }
@@ -608,7 +608,7 @@ public final class BucketsHashStore {
 
         @Override
         public RubyNode cloneUninitialized() {
-            var copy = new GenericHashLiteralNode(cloneUninitialized(keyValues));
+            var copy = new BucketHashLiteralNode(cloneUninitialized(keyValues));
             return copy.copyFlags(this);
         }
 

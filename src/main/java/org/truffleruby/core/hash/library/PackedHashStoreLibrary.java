@@ -39,6 +39,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -208,6 +209,7 @@ public final class PackedHashStoreLibrary {
                 @Cached @Shared CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "hashStrategyLimit()") HashStoreLibrary hashes,
                 @Cached InlinedConditionProfile withinCapacity,
+                @Cached(inline = true) PromoteToBigHashNode promoteToBigHash,
                 @Bind("this") Node node) {
 
             assert verify(store, hash);
@@ -235,18 +237,12 @@ public final class PackedHashStoreLibrary {
                 return true;
             }
 
-            promoteToBigHash(store, hash, size);
+
+            assert size == MAX_ENTRIES;
+            promoteToBigHash.execute(node, store, hash, MAX_ENTRIES);
 
             hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
-        }
-
-        private static void promoteToBigHash(Object[] store, RubyHash hash, int size) {
-            if (HashLiteralNode.BigHashConfiguredStrategy.isBuckets) {
-                promoteToBuckets(hash, store, size);
-            } else {
-                promoteToCompact(hash, store, size);
-            }
         }
     }
 
@@ -415,6 +411,21 @@ public final class PackedHashStoreLibrary {
 
     // endregion
     // region Nodes
+
+    @GenerateUncached
+    @GenerateInline
+    abstract static class PromoteToBigHashNode extends RubyBaseNode {
+        public abstract void execute(Node node, Object[] store, RubyHash hash, int size);
+
+        @Specialization
+        void promoteToBigHash(Object[] store, RubyHash hash, int size) {
+            if (getLanguage().options.BIG_HASH_STRATEGY_IS_BUCKETS) {
+                promoteToBuckets(hash, store, size);
+            } else {
+                promoteToCompact(hash, store, size);
+            }
+        }
+    }
 
     @GenerateUncached
     @ImportStatic(HashGuards.class)

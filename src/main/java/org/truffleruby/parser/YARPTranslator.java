@@ -1358,7 +1358,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitHashNode(Nodes.HashNode node) {
         if (node.elements.length == 0) { // an empty Hash literal like h = {}
-            final RubyNode rubyNode = HashLiteralNode.create(RubyNode.EMPTY_ARRAY);
+            final RubyNode rubyNode = HashLiteralNode.create(RubyNode.EMPTY_ARRAY, language);
             return assignPositionAndFlags(node, rubyNode);
         }
 
@@ -1370,7 +1370,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 // This case is for splats {a: 1, **{b: 2}, c: 3}
                 if (!keyValues.isEmpty()) {
                     final RubyNode hashLiteralSoFar = HashLiteralNode
-                            .create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
+                            .create(keyValues.toArray(RubyNode.EMPTY_ARRAY), language);
                     hashConcats.add(hashLiteralSoFar);
                 }
                 hashConcats.add(HashCastNodeGen.HashCastASTNodeGen.create(assocSplatNode.value.accept(this)));
@@ -1393,7 +1393,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         if (!keyValues.isEmpty()) {
-            final RubyNode hashLiteralSoFar = HashLiteralNode.create(keyValues.toArray(RubyNode.EMPTY_ARRAY));
+            final RubyNode hashLiteralSoFar = HashLiteralNode.create(keyValues.toArray(RubyNode.EMPTY_ARRAY), language);
             hashConcats.add(hashLiteralSoFar);
         }
 

@@ -92,7 +92,7 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
                 keyValues[2 * i] = key;
                 keyValues[2 * i + 1] = value;
             }
-            kwArgsNode = HashLiteralNode.create(keyValues);
+            kwArgsNode = HashLiteralNode.create(keyValues, language);
         }
 
         if (parametersNode.keyword_rest != null) {

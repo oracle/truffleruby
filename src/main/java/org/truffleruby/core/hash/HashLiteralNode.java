@@ -9,12 +9,12 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.BucketsHashStore;
 import org.truffleruby.core.hash.library.CompactHashStore;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -30,24 +30,14 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         this.keyValues = keyValues;
     }
 
-    public static final class BigHashConfiguredStrategy extends RubyBaseNode {
-        private BigHashConfiguredStrategy() {
-            isBuckets = getContext().getOptions().BIG_HASH_STRATEGY;
-        }
-
-        // dummy instance, so we can call getContext instance method, never used
-        private static final BigHashConfiguredStrategy bh = new BigHashConfiguredStrategy();
-        public static boolean isBuckets;
-    }
-
-    public static HashLiteralNode create(RubyNode[] keyValues) {
+    public static HashLiteralNode create(RubyNode[] keyValues, RubyLanguage rubyLanguage) {
         if (keyValues.length == 0) {
             return new EmptyHashStore.EmptyHashLiteralNode();
         } else if (keyValues.length <= PackedHashStoreLibrary.MAX_ENTRIES * 2) {
             return PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen.create(keyValues);
         } else {
-            return BigHashConfiguredStrategy.isBuckets
-                    ? new BucketsHashStore.GenericHashLiteralNode(keyValues)
+            return rubyLanguage.options.BIG_HASH_STRATEGY_IS_BUCKETS
+                    ? new BucketsHashStore.BucketHashLiteralNode(keyValues)
                     : new CompactHashStore.CompactHashLiteralNode(keyValues);
         }
     }

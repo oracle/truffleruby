@@ -64,7 +64,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACES_INTERLEAVE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACES_OMIT_UNUSED_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> BIG_HASH_STRATEGY_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> BIG_HASH_STRATEGY_IS_BUCKETS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_INTERRUPT_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_SIGALRM_KEY = new OptionKey<>(!EMBEDDED_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BACKTRACE_ON_RAISE_KEY = new OptionKey<>(false);
@@ -520,8 +520,8 @@ public final class OptionsCatalog {
             .usageSyntax("")
             .build();
 
-    public static final OptionDescriptor BIG_HASH_STRATEGY = OptionDescriptor
-            .newBuilder(BIG_HASH_STRATEGY_KEY, "ruby.buckets-big-hash")
+    public static final OptionDescriptor BIG_HASH_STRATEGY_IS_BUCKETS = OptionDescriptor
+            .newBuilder(BIG_HASH_STRATEGY_IS_BUCKETS_KEY, "ruby.buckets-big-hash")
             .help("Whether to use chaining-style bukcets hash store for hash tables exceeding the small hash limit")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
@@ -1435,7 +1435,7 @@ public final class OptionsCatalog {
             case "ruby.backtraces-omit-unused":
                 return BACKTRACES_OMIT_UNUSED;
             case "ruby.buckets-big-hash":
-                return BIG_HASH_STRATEGY;
+                return BIG_HASH_STRATEGY_IS_BUCKETS;
             case "ruby.backtraces-on-interrupt":
                 return BACKTRACE_ON_INTERRUPT;
             case "ruby.backtraces-sigalrm":
@@ -1691,7 +1691,7 @@ public final class OptionsCatalog {
             EXCEPTIONS_WARN_OUT_OF_MEMORY,
             BACKTRACES_INTERLEAVE_JAVA,
             BACKTRACES_OMIT_UNUSED,
-            BIG_HASH_STRATEGY,
+            BIG_HASH_STRATEGY_IS_BUCKETS,
             BACKTRACE_ON_INTERRUPT,
             BACKTRACE_ON_SIGALRM,
             BACKTRACE_ON_RAISE,

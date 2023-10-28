@@ -134,7 +134,7 @@ public final class CompactHashStore {
     }
 
     public CompactHashStore(int capacity) {
-        if (capacity < 1 || capacity > (1 << 28)) {
+        if (capacity < 1 || capacity >= (1 << 28)) {
             throw shouldNotReachHere();
         }
 
@@ -152,7 +152,7 @@ public final class CompactHashStore {
     }
 
     private static int roundUpwardsToNearestPowerOf2(int num) {
-        return Integer.highestOneBit(num - 1) << 1;
+        return Integer.highestOneBit(num) << 1; // rounds powers of 2 themselves : 1 => 2, 2 => 4, 3 => 4, 4 => 8, ...
     }
 
     public void putHashKeyValue(int hashcode, Object key, Object value) {
