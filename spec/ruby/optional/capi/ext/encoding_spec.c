@@ -271,7 +271,7 @@ static VALUE encoding_spec_rb_enc_str_asciionly_p(VALUE self, VALUE str) {
   }
 }
 
-static void encoding_spec_rb_enc_raise(VALUE self, VALUE encoding, VALUE exception_class, VALUE format) {
+static VALUE encoding_spec_rb_enc_raise(VALUE self, VALUE encoding, VALUE exception_class, VALUE format) {
   rb_encoding *e = rb_to_encoding(encoding);
   const char *f = RSTRING_PTR(format);
 
