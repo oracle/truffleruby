@@ -1,1 +1,2 @@
 fails:TCPServer.new raises a SocketError when the host is unknown
+fails:TCPServer.new does not use the given block and warns to use TCPServer::open

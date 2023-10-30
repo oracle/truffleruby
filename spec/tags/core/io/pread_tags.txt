@@ -4,3 +4,17 @@ fails:IO#pread does not advance the file pointer
 fails:IO#pread raises EOFError if end-of-file is reached
 fails:IO#pread raises IOError when file is not open in read mode
 fails:IO#pread raises IOError when file is closed
+fails:IO#pread shrinks the buffer in case of less bytes read
+fails:IO#pread grows the buffer in case of more bytes read
+fails:IO#pread ignores the current offset
+fails:IO#pread returns an empty string for maxlen = 0
+fails:IO#pread ignores the offset for maxlen = 0, even if it is out of file bounds
+fails:IO#pread does not reset the buffer when reading with maxlen = 0
+fails:IO#pread converts maxlen to Integer using #to_int
+fails:IO#pread converts offset to Integer using #to_int
+fails:IO#pread converts a buffer to String using to_str
+fails:IO#pread raises TypeError if maxlen is not an Integer and cannot be coerced into Integer
+fails:IO#pread raises TypeError if offset is not an Integer and cannot be coerced into Integer
+fails:IO#pread raises ArgumentError for negative values of maxlen
+fails:IO#pread raised Errno::EINVAL for negative values of offset
+fails:IO#pread raises TypeError if the buffer is not a String and cannot be coerced into String

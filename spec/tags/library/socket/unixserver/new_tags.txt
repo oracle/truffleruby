@@ -1,0 +1,1 @@
+fails:UNIXServer.new does not use the given block and warns to use UNIXServer::open
