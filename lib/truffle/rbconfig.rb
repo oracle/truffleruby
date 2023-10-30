@@ -62,6 +62,7 @@ module RbConfig
 
   prefix = ruby_home
   rubyhdrdir = "#{prefix}/lib/cext/include"
+  cflags_pre = ''
 
   if sulong
     ar = Truffle::Boot.toolchain_executable(:AR)
@@ -82,11 +83,12 @@ module RbConfig
       gcc, clang = true, false
     elsif Truffle::Platform.darwin?
       ar = 'ar'
-      cc = 'clang -fdeclspec'
-      cxx = 'clang++ -fdeclspec'
+      cc = 'clang'
+      cxx = 'clang++'
       ranlib = 'ranlib'
       strip = 'strip -A -n'
       gcc, clang = false, true
+      cflags_pre = '-fdeclspec '
     else
       raise 'Unknown platform'
     end
@@ -294,14 +296,14 @@ module RbConfig
   mkconfig['LDSHAREDXX'] = "$(CXX) #{ldshared_flags}"
 
   cflags = \
-  expanded['cflags'] = "#{optflags} #{debugflags} #{warnflags}"
-  mkconfig['cflags'] = '$(optflags) $(debugflags) $(warnflags)'
+  expanded['cflags'] = "#{cflags_pre}#{optflags} #{debugflags} #{warnflags}"
+  mkconfig['cflags'] = "#{cflags_pre}$(optflags) $(debugflags) $(warnflags)"
   expanded['CFLAGS'] = cflags
   mkconfig['CFLAGS'] = '$(cflags)'
 
   cxxflags = \
-  expanded['cxxflags'] = "#{optflags} #{debugflags}"
-  mkconfig['cxxflags'] = '$(optflags) $(debugflags)'
+  expanded['cxxflags'] = "#{cflags_pre}#{optflags} #{debugflags}"
+  mkconfig['cxxflags'] = "#{cflags_pre}$(optflags) $(debugflags)"
   expanded['CXXFLAGS'] = cxxflags
   mkconfig['CXXFLAGS'] = '$(cxxflags)'
   cppflags_hardcoded = Truffle::Platform.darwin? ? ' -D_DARWIN_C_SOURCE' : ''
