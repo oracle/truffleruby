@@ -543,10 +543,15 @@ module Truffle
             external, internal = encoding.split(':', 2)
           end
         end
+
+        path = options[:path]
+        unless Primitive.nil? path
+          path = StringValue(path)
+        end
       end
       external = Encoding::BINARY if binary and !external and !internal
       perm ||= 0666
-      [mode, binary, external, internal, autoclose, perm]
+      [mode, binary, external, internal, autoclose, perm, path]
     end
   end
 end

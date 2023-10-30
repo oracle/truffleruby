@@ -14,6 +14,7 @@ Compatibility:
 * Add `Exception#detailed_message` method (#3257, @andrykonchin).
 * Fix `rb_enc_vsprintf` and force String encoding instead of converting it (@andrykonchin).
 * Add `rb_gc_mark_movable` function (@andrykonchin).
+* Promote `File#path` and `File#to_path` to `IO#path` and `IO#to_path` and make IO#new accept an optional `path:` keyword argument (#3039, @moste00)
 
 Performance:
 
