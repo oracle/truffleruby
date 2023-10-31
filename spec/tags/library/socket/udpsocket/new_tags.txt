@@ -1,0 +1,1 @@
+fails:UDPSocket.new does not use the given block and warns to use UDPSocket::open

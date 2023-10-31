@@ -3,3 +3,7 @@ fails:IO#pwrite accepts a string and an offset
 fails:IO#pwrite does not advance the pointer in the file
 fails:IO#pwrite raises IOError when file is not open in write mode
 fails:IO#pwrite raises IOError when file is closed
+fails:IO#pwrite calls #to_s on the object to be written
+fails:IO#pwrite calls #to_int on the offset
+fails:IO#pwrite raises a NoMethodError if object does not respond to #to_s
+fails:IO#pwrite raises a TypeError if the offset cannot be converted to an Integer
