@@ -203,30 +203,6 @@ ast: |
                                                                                           flags = 0
                                                                                           frameSlot = 3
                                                                                           type = FRAME_LOCAL
-                                                          IfElseNodeGen
-                                                              attributes:
-                                                                  flags = 0
-                                                              children:
-                                                                  condition =
-                                                                      ArrayIsAtLeastAsLargeAsNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              requiredSize = 1
-                                                                          children:
-                                                                              child =
-                                                                                  ReadLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 3
-                                                                                          type = FRAME_LOCAL
-                                                                  elseBody =
-                                                                      NilLiteralNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                  thenBody =
-                                                                      NilLiteralNode
-                                                                          attributes:
-                                                                              flags = 0
                                                       ]
                                   NilLiteralNode
                                       attributes:

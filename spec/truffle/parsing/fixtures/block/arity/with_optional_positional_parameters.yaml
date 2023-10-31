@@ -295,9 +295,6 @@ ast: |
                                                                                                       flags = 0
                                                                                                       frameSlot = 4
                                                                                                       type = FRAME_LOCAL
-                                                          NilLiteralNode
-                                                              attributes:
-                                                                  flags = 0
                                                       ]
                                   NilLiteralNode
                                       attributes:

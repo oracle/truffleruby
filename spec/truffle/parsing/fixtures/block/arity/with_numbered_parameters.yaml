@@ -284,9 +284,6 @@ ast: |
                                                                                           flags = 0
                                                                                           frameSlot = 2
                                                                                           type = FRAME_LOCAL
-                                                          NilLiteralNode
-                                                              attributes:
-                                                                  flags = 0
                                                       ]
                                   ReadLocalVariableNode
                                       attributes:
