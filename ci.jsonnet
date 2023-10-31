@@ -304,9 +304,9 @@ local part_definitions = {
     },
 
     test_specs: {
-      run+: jt(["test", "specs", "--timeout", "180", ":all"]) +
-            jt(["test", "specs", "--timeout", "180", ":tracepoint"]) +
-            jt(["test", "specs", "--timeout", "180", ":next"]) +
+      run+: jt(["test", "specs", ":all"]) +
+            jt(["test", "specs", ":tracepoint"]) +
+            jt(["test", "specs", ":next"]) +
             jt(["test", "basictest"]),
     },
 
