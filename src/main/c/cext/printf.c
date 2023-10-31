@@ -36,7 +36,7 @@ char* rb_value_to_str(const VALUE *arg, int showsign) {
   return cstr;
 }
 
-VALUE rb_tr_get_sprintf_args(va_list args, VALUE types);
+static VALUE rb_tr_get_sprintf_args(va_list args, VALUE types);
 
 VALUE rb_tr_vsprintf_new_cstr(char *cstr) {
   if (cstr == NULL) {
@@ -106,7 +106,7 @@ enum printf_arg_types {
   TYPE_SLONGLONG,
 };
 
-VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
+static VALUE rb_tr_get_sprintf_args(va_list args, VALUE types) {
   VALUE ary = rb_ary_new();
 
   long len = RARRAY_LEN(types);
