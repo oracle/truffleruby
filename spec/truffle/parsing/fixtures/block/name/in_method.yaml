@@ -92,7 +92,7 @@ ast: |
                                                                       BlockDefinitionNodeGen
                                                                           attributes:
                                                                               breakID = org.truffleruby.language.control.BreakID@...
-                                                                              callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                                              callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
                                                                               flags = 0
                                                                               frameOnStackMarkerSlot = 3
                                                                               sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])

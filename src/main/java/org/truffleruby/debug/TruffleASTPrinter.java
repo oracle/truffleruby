@@ -227,8 +227,8 @@ public abstract class TruffleASTPrinter {
             // e.g. "org.truffleruby.parser.MethodTranslator$$Lambda$839/0x00000008012ec000@..."
             // or "org.truffleruby.parser.MethodTranslator$$Lambda/0x00000008012d5c70@..."
             string = string.replaceAll(
-                    "\\$\\$Lambda[^@]+@",
-                    Matcher.quoteReplacement("$$Lambda$.../0x...@"));
+                    "[\\w.]*\\$\\$Lambda[^@]+@",
+                    Matcher.quoteReplacement("...$$Lambda$.../0x...@"));
 
             // avoid confusing 'emptyTString = '
             if (value instanceof String || string.isEmpty()) {
