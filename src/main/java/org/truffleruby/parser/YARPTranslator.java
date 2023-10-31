@@ -2280,29 +2280,26 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         if (parametersNode.keyword_rest != null) {
-            final ArgumentType type;
-            final String name;
-
             if (parametersNode.keyword_rest instanceof Nodes.KeywordRestParameterNode) {
-                var keywordRestParameterNode = (Nodes.KeywordRestParameterNode) parametersNode.keyword_rest;
-                type = (keywordRestParameterNode.name == null) ? ArgumentType.anonkeyrest : ArgumentType.keyrest;
+                final var keywordRestParameterNode = (Nodes.KeywordRestParameterNode) parametersNode.keyword_rest;
 
-                if (keywordRestParameterNode.name != null) {
-                    name = keywordRestParameterNode.name;
+                if (keywordRestParameterNode.name == null) {
+                    descriptors.add(new ArgumentDescriptor(ArgumentType.anonkeyrest,
+                            YARPDefNodeTranslator.DEFAULT_KEYWORD_REST_NAME));
                 } else {
-                    name = YARPDefNodeTranslator.DEFAULT_KEYWORD_REST_NAME;
+                    descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, keywordRestParameterNode.name));
                 }
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
-                type = ArgumentType.keyrest;
-                name = YARPLoadArgumentsTranslator.DEFAULT_NO_KEYWORD_REST_NAME;
+                final var descriptor = new ArgumentDescriptor(ArgumentType.keyrest, YARPLoadArgumentsTranslator.DEFAULT_NO_KEYWORD_REST_NAME);
+                descriptors.add(descriptor);
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
-
-            descriptors.add(new ArgumentDescriptor(type, name));
         }
 
         if (parametersNode.block != null) {
+            // we don't support yet Ruby 3.1's anonymous block parameter
+            assert parametersNode.block.name != null;
             descriptors.add(new ArgumentDescriptor(ArgumentType.block, parametersNode.block.name));
         }
 

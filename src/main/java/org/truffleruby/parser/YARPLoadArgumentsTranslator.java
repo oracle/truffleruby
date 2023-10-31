@@ -251,7 +251,9 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     }
 
     public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
-        // TODO: name could be null
+        // we don't support yet Ruby 3.1's anonymous block parameter
+        assert node.name != null;
+
         final int slot = environment.findFrameSlot(node.name);
         return new SaveMethodBlockNode(slot);
     }
