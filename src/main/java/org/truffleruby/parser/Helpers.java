@@ -132,7 +132,9 @@ public final class Helpers {
 
         if (argsNode.getKeyRest() != null) {
             String argName = argsNode.getKeyRest().getName();
-            if (argName == null || argName.length() == 0 || argName.equals(ParserSupport.KWREST_VAR)) {
+            assert !(argName == null || argName.length() == 0);
+
+            if (argName.equals(ParserSupport.KWREST_VAR)) {
                 descs.add(new ArgumentDescriptor(ArgumentType.anonkeyrest, argName));
             } else {
                 descs.add(new ArgumentDescriptor(ArgumentType.keyrest, argsNode.getKeyRest().getName()));
