@@ -86,7 +86,10 @@ module RbConfig
       cc = 'clang'
       cxx = 'clang++'
       ranlib = 'ranlib'
-      strip = 'strip -A -n'
+      # We add -x here, `strip -A -n` always fails, like `error: symbols referenced by indirect symbol table entries that can't be stripped` even on CRuby.
+      # This is notably necessary for grpc where the current logic does not append -x for TruffleRuby:
+      # https://github.com/grpc/grpc/blob/54f65e0dbd2151a3ba2ad364327c0c31b200a5ae/src/ruby/ext/grpc/extconf.rb#L125-L126
+      strip = 'strip -A -n -x'
       gcc, clang = false, true
       cflags_pre = '-fdeclspec '
     else
