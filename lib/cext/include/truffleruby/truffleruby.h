@@ -44,8 +44,8 @@ typedef void* (gvl_call)(void *);
 
 // Exceptions
 
-#define rb_raise(EXCEPTION, FORMAT, ...) \
-  rb_exc_raise(rb_exc_new_str(EXCEPTION, rb_sprintf(FORMAT, ##__VA_ARGS__)))
+#define rb_raise(EXCEPTION, ...) \
+  rb_exc_raise(rb_exc_new_str(EXCEPTION, rb_sprintf(__VA_ARGS__)))
 
 // Macros for rb_funcall(). As written they currently only work on Sulong.
 //
