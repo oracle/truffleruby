@@ -272,12 +272,6 @@ public abstract class ObjectSpaceNodes {
 
             return nil;
         }
-
-
-        @TruffleBoundary
-        private void startSharing() {
-            getContext().getSharedObjects().startSharing(getLanguage(), "creating finalizer");
-        }
     }
 
     @CoreMethod(names = "undefine_finalizer", isModuleFunction = true, required = 1)

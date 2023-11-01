@@ -346,17 +346,6 @@ public abstract class RequireNode extends RubyBaseNode {
         return null;
     }
 
-    @TruffleBoundary
-    private String getBaseName(String path) {
-        final String name = new File(path).getName();
-        final int firstDot = name.indexOf('.');
-        if (firstDot == -1) {
-            return name;
-        } else {
-            return name.substring(0, firstDot);
-        }
-    }
-
     public boolean isFeatureLoaded(Object feature) {
         final Object included = isInLoadedFeatures
                 .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
