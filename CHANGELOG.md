@@ -11,6 +11,7 @@ Bug fixes:
 
 Compatibility:
 
+* Fix problems with the LLVM toolchain wrappers with Xcode 15 on macOS.
 * Add `Exception#detailed_message` method (#3257, @andrykonchin).
 * Fix `rb_enc_vsprintf` and force String encoding instead of converting it (@andrykonchin).
 * Add `rb_gc_mark_movable` function (@andrykonchin).
