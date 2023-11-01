@@ -197,15 +197,8 @@ static VALUE copy_ary(RB_BLOCK_CALL_FUNC_ARGLIST(el, new_ary)) {
 }
 
 // Suppress deprecations warnings for rb_iterate(), we want to test it while it exists
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#elif defined(__clang__) && defined(__has_warning)
-# if __has_warning("-Wdeprecated-declarations")
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
-# endif
-#endif
+RBIMPL_WARNING_PUSH()
+RBIMPL_WARNING_IGNORED(-Wdeprecated-declarations)
 
 static VALUE array_spec_rb_iterate(VALUE self, VALUE ary) {
   VALUE new_ary = rb_ary_new();
@@ -262,13 +255,7 @@ static VALUE array_spec_rb_block_call_then_yield(VALUE self, VALUE obj) {
   return Qnil;
 }
 
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-# pragma GCC diagnostic pop
-#elif defined(__clang__) && defined(__has_warning)
-# if __has_warning("-Wdeprecated-declarations")
-#  pragma clang diagnostic pop
-# endif
-#endif
+RBIMPL_WARNING_POP()
 
 static VALUE array_spec_rb_mem_clear(VALUE self, VALUE obj) {
   VALUE ary[1];
