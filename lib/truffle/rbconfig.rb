@@ -85,7 +85,7 @@ module RbConfig
   defs = "-DTRUFFLERUBY_ABI_VERSION=#{ruby_abi_version}"
   cppflags = ''
   ldflags = ''
-  dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress' : ''
+  dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup' : ''
 
   cext_dir = "#{prefix}/lib/cext"
   soext = Truffle::Platform::SOEXT
