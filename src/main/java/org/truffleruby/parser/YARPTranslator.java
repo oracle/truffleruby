@@ -423,7 +423,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitBlockNode(Nodes.BlockNode node) {
-        final boolean isStabbyLambda = false; // TODO: handle lambda literal as well in visitLambdaNode
+        return translateBlockAndLambda(node, node.parameters, node.body, node.locals);
+    }
+
+    private RubyNode translateBlockAndLambda(Nodes.Node node, Nodes.BlockParametersNode blockParameters,
+            Nodes.Node body, String[] locals) {
+        final boolean isStabbyLambda = node instanceof Nodes.LambdaNode;
         final boolean hasOwnScope = true;
         final boolean isProc = !isStabbyLambda;
 
@@ -433,14 +438,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final int blockDepth = environment.getBlockDepth() + 1;
 
         final Nodes.ParametersNode parameters;
-        if (node.parameters != null) {
-            parameters = node.parameters.parameters;
+        if (blockParameters != null) {
+            parameters = blockParameters.parameters;
         } else {
             // handle numbered parameters
             int max = 0;
 
             // don't rely on locals order and find the largest index
-            for (var name : node.locals) {
+            for (var name : locals) {
                 if (ParserSupport.isNumberedParameter(name)) {
                     int n = name.charAt(1) - '0';
                     if (n > max) {
@@ -508,8 +513,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
 
         final RubyNode rubyNode = methodCompiler.compileBlockNode(
-                node.body,
-                node.locals,
+                body,
+                locals,
                 isStabbyLambda,
                 getSourceSection(node));
 
@@ -1538,7 +1543,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitLambdaNode(Nodes.LambdaNode node) {
-        return defaultVisit(node);
+        return translateBlockAndLambda(node, node.parameters, node.body, node.locals);
     }
 
     @Override

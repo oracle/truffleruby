@@ -19,13 +19,10 @@ fails:Parsing a defined? (with yield in a method body (defined? yield)) case is 
 fails:Parsing a Ensure keyword (ensure in a method) case is parsed correctly
 fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
 fails:Parsing a Integer (when doesn't fit into Java Long (>= 64 bits)) case is parsed correctly
-fails:Parsing a Lambda (literal `-> () { ... }`) case is parsed correctly
 fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
 fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
 fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
 fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #lambda (Kernel#lambda)) case is parsed correctly
-fails:Parsing a Method call (Special cases/method #lambda (not Kernel#lambda)) case is parsed correctly
 fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
 fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
 fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
@@ -39,7 +36,6 @@ fails:Parsing a &&= (Variable assignment/fully qualified constant (::A &&= b)) c
 fails:Parsing a &&= (Variable assignment/global variable ($a &&= b)) case is parsed correctly
 fails:Parsing a &&= (Variable assignment/instance variable (@a &&= b)) case is parsed correctly
 fails:Parsing a &&= (Variable assignment/local variable (a &&= b)) case is parsed correctly
-fails:Parsing a Flip-flop operator (in a lambda) case is parsed correctly
 fails:Parsing a Match (=~ operator) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a RHS) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a LHS (without named capture groups)) case is parsed correctly
@@ -85,12 +81,6 @@ fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / wh
 fails:Parsing a Rescue keyword (with exception and variable) case is parsed correctly
 fails:Parsing a Rescue keyword (with multiple rescue branches) case is parsed correctly
 fails:Parsing a Rescue keyword (without exception but with a variable) case is parsed correctly
-fails:Parsing a Return (return operator in a lambda) case is parsed correctly
-fails:Parsing a Return (return operator in a lambda in a class definition body) case is parsed correctly
-fails:Parsing a Return (return operator in a lambda in a module definition body) case is parsed correctly
-fails:Parsing a Return (return operator in a lambda method call) case is parsed correctly
-fails:Parsing a Return (return operator in a lambda method call in a class definition body) case is parsed correctly
-fails:Parsing a Return (return operator in a lambda method call in a module definition body) case is parsed correctly
 fails:Parsing a Sequence of expressions () case is parsed correctly
 fails:Parsing a String (Literal with interpolation when when expressions are % String literals) case is parsed correctly
 fails:Parsing a String (Literal with interpolation when expressions are Strings) case is parsed correctly

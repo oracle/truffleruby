@@ -143,13 +143,13 @@ ast: |
                                                                                       begin =
                                                                                           ReadLocalVariableNode
                                                                                               attributes:
-                                                                                                  flags = 1
+                                                                                                  flags = 0
                                                                                                   frameSlot = 1
                                                                                                   type = FRAME_LOCAL
                                                                                       end =
                                                                                           ReadLocalVariableNode
                                                                                               attributes:
-                                                                                                  flags = 1
+                                                                                                  flags = 0
                                                                                                   frameSlot = 1
                                                                                                   type = FRAME_LOCAL
                                                                           thenBody =
