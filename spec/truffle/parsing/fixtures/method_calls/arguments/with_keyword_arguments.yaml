@@ -2,9 +2,8 @@ subject: "Method call"
 description: "Arguments/with keyword arguments"
 notes: |
   Keyword arguments are represented with PackedHashStoreLibrary$SmallHashLiteralNode node.
-  The only difference between keyword arguments and a Hash literal argument is a descriptor attribute:
-    `descriptor = org.truffleruby.language.arguments.KeywordArgumentsDescriptor@...`
-
+  The only difference between keyword arguments and a Hash literal argument is a `descriptor` attribute:
+    descriptor = KeywordArgumentsDescriptor(keywords = [bar])
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   foo(bar: :baz)

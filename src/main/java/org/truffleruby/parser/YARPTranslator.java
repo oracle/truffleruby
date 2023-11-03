@@ -49,6 +49,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -249,10 +250,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    // handled in #visitHashNode
     public RubyNode visitAssocNode(Nodes.AssocNode node) {
         return defaultVisit(node);
     }
 
+    // handled in #visitHashNode
     public RubyNode visitAssocSplatNode(Nodes.AssocSplatNode node) {
         return defaultVisit(node);
     }
@@ -446,6 +449,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         var translatedArguments = translate(arguments);
+        var argumentsDescriptor = getKeywordArgumentsDescriptor(arguments);
 
         // If the receiver is explicit or implicit 'self' then we can call private methods
         final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
@@ -493,7 +497,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 receiver,
                 methodName,
                 null,
-                EmptyArgumentsDescriptor.INSTANCE,
+                argumentsDescriptor,
                 translatedArguments,
                 false,
                 ignoreVisibility,
@@ -504,6 +508,35 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
+    }
+
+    private ArgumentsDescriptor getKeywordArgumentsDescriptor(Nodes.Node[] arguments) {
+        if (arguments.length == 0) {
+            return EmptyArgumentsDescriptor.INSTANCE;
+        }
+
+        Nodes.Node last = arguments[arguments.length - 1];
+
+        if (!(last instanceof Nodes.KeywordHashNode)) {
+            return EmptyArgumentsDescriptor.INSTANCE;
+        }
+
+        var keywords = (Nodes.KeywordHashNode) last;
+
+        final List<String> names = new ArrayList<>();
+
+        for (var n : keywords.elements) {
+            // TODO: we ignore InterpolatedSymbolNode and other arbitrary possible key types here
+            //      not sure whether we need keys at all
+            if (n instanceof Nodes.AssocNode assoc && assoc.key instanceof Nodes.SymbolNode symbol) {
+                names.add(toString(symbol.unescaped));
+            }
+        }
+
+        var array = names.toArray(StringUtils.EMPTY_STRING_ARRAY);
+        var manager = language.keywordArgumentsDescriptorManager;
+        var descriptor = manager.getArgumentsDescriptor(array);
+        return descriptor;
     }
 
     public RubyNode visitCallOperatorWriteNode(Nodes.CallOperatorWriteNode node) {
@@ -1287,7 +1320,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitKeywordHashNode(Nodes.KeywordHashNode node) {
-        return defaultVisit(node);
+        // store keyword arguments as a literal Hash
+        final var hash = new Nodes.HashNode(node.elements, node.startOffset, node.length);
+        return hash.accept(this);
     }
 
     public RubyNode visitLambdaNode(Nodes.LambdaNode node) {
@@ -2152,6 +2187,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     protected String toString(Nodes.Node node) {
         return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset,
                 node.length, sourceEncoding.tencoding, false), sourceEncoding);
+    }
+
+    protected String toString(byte[] bytes) {
+        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(bytes, 0,
+                bytes.length, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     protected SourceSection getSourceSection(Nodes.Node yarpNode) {

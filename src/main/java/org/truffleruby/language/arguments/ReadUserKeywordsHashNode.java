@@ -26,7 +26,7 @@ public final class ReadUserKeywordsHashNode extends RubyBaseNode {
         if (keywordArgumentsProfile.profile(descriptor instanceof KeywordArgumentsDescriptor)) {
             final RubyHash keywords = (RubyHash) RubyArguments.getLastArgument(frame);
             assert !keywords.empty();
-            assert assertHashMatchesDescriptor(keywords, (KeywordArgumentsDescriptor) descriptor);
+            assert assertHashMatchesDescriptor(keywords, (KeywordArgumentsDescriptor) descriptor); // TODO: seems incorrect as far as descriptor contains keyword names from the arguments, not declared in a called method
             return keywords;
         } else {
             return null;
