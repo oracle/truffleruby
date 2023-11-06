@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
@@ -31,8 +30,6 @@ import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 
 public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
-
-    static final String DEFAULT_NO_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "nil_kwrest";
 
     private final Arity arity;
     private final boolean isProc;

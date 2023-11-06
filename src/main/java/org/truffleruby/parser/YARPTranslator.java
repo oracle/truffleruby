@@ -2290,7 +2290,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, keywordRestParameterNode.name));
                 }
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
-                final var descriptor = new ArgumentDescriptor(ArgumentType.keyrest, YARPLoadArgumentsTranslator.DEFAULT_NO_KEYWORD_REST_NAME);
+                final var descriptor = new ArgumentDescriptor(ArgumentType.nokey);
                 descriptors.add(descriptor);
             } else {
                 throw CompilerDirectives.shouldNotReachHere();

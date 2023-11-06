@@ -37,6 +37,7 @@ import org.truffleruby.parser.ast.DAsgnParseNode;
 import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.NoKeywordsArgParseNode;
 import org.truffleruby.parser.ast.OptArgParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
@@ -136,6 +137,8 @@ public final class Helpers {
 
             if (argName.equals(ParserSupport.KWREST_VAR)) {
                 descs.add(new ArgumentDescriptor(ArgumentType.anonkeyrest, argName));
+            } else if (argsNode.getKeyRest() instanceof NoKeywordsArgParseNode) {
+                descs.add(new ArgumentDescriptor(ArgumentType.nokey));
             } else {
                 descs.add(new ArgumentDescriptor(ArgumentType.keyrest, argsNode.getKeyRest().getName()));
             }

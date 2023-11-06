@@ -7,6 +7,7 @@ describe "Method#parameters" do
     def one_keyrest(**a); end
 
     def one_keyreq(a:); end
+    def one_nokey(**nil); end
 
     def one_splat_one_req(*a,b); end
     def one_splat_two_req(*a,b,c); end
@@ -176,6 +177,11 @@ describe "Method#parameters" do
   it "returns [[:keyreq,:a]] for a method with a single required keyword argument" do
     m = MethodSpecs::Methods.instance_method(:one_keyreq)
     m.parameters.should == [[:keyreq,:a]]
+  end
+
+  it "returns [[:nokey]] for a method with a single **nil parameter" do
+    m = MethodSpecs::Methods.instance_method(:one_nokey)
+    m.parameters.should == [[:nokey]]
   end
 
   it "works with ->(){} as the value of an optional argument" do
