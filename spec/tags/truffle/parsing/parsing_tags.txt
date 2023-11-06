@@ -75,10 +75,6 @@ fails:Parsing a Method call (super / outside a method body with explicit argumen
 fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
 fails:Parsing a Method call (Arguments/with a &-deconstruction to a block argument (&bar)) case is parsed correctly
 fails:Parsing a Method call (Arguments/with block literal argument) case is parsed correctly
-fails:Parsing a Method call (Arguments/with double splat operator (**kw)) case is parsed correctly
-fails:Parsing a Method call (Arguments/with positional argument and splat operator (a, *args)) case is parsed correctly
-fails:Parsing a Method call (Arguments/with splat operator (*args)) case is parsed correctly
-fails:Parsing a Method call (Arguments/with splat operator and positional arguments (*args, a)) case is parsed correctly
 fails:Parsing a Method call (Special cases/method #lambda (Kernel#lambda)) case is parsed correctly
 fails:Parsing a Method call (Special cases/method #lambda (not Kernel#lambda)) case is parsed correctly
 fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly

@@ -459,6 +459,20 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final boolean isAttrAssign = methodName.endsWith("=");
         final boolean isSafeNavigation = node.isSafeNavigation();
 
+        final boolean isSplatted;
+        boolean isSplatFound = false;
+        for (var n : arguments) { // check if there is splat operator in the arguments list
+            if (n instanceof Nodes.SplatNode) {
+                isSplatFound = true;
+            }
+        }
+        isSplatted = isSplatFound;
+
+        // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
+        if (isSplatted && translatedArguments.length == 1 && translatedArguments[0] instanceof SplatCastNode splatNode) {
+            splatNode.doNotCopy();
+        }
+
         // TODO (pitr-ch 02-Dec-2019): replace with a primitive
         if (environment.getParseEnvironment().inCore() && isVariableCall && methodName.equals("undefined")) {
             // translate undefined
@@ -499,7 +513,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 null,
                 argumentsDescriptor,
                 translatedArguments,
-                false,
+                isSplatted,
                 ignoreVisibility,
                 isVariableCall,
                 isSafeNavigation,
