@@ -79,6 +79,10 @@ public final class FileLoader {
 
     public static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {
         final Env env = context.getEnv();
+        if (env.isFileIOAllowed()) {
+            return env.getPublicTruffleFile(path);
+        }
+
         final TruffleFile file;
         try {
             file = env.getInternalTruffleFile(path).getCanonicalFile();
