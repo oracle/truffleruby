@@ -11,6 +11,7 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 import com.oracle.truffle.api.nodes.Node;
 import org.graalvm.collections.Pair;
@@ -56,6 +57,7 @@ public final class FileLoader {
         }
     }
 
+
     public Pair<Source, TStringWithEncoding> loadFile(String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
@@ -77,10 +79,6 @@ public final class FileLoader {
 
     public static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {
         final Env env = context.getEnv();
-        if (env.isFileIOAllowed()) {
-            return env.getPublicTruffleFile(path);
-        }
-
         final TruffleFile file;
         try {
             file = env.getInternalTruffleFile(path).getCanonicalFile();
@@ -90,29 +88,36 @@ public final class FileLoader {
                     context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
         }
 
-        String homeLibDir = language.getRubyHome() + "/lib/";
-        if (file.getPath().startsWith(homeLibDir)) {
-            String homeRelativePath = file.getPath().substring(language.getRubyHome().length() + 1);
-            TruffleFile internalResourceFile = language.getRubyHomeTruffleFile().resolve(homeRelativePath);
-            if (isStdLibRubyOrCExtFile(internalResourceFile.getPath())) {
-                return internalResourceFile;
+        final TruffleFile home = language.getRubyHomeTruffleFile();
+        if (file.startsWith(home) && isStdLibRubyOrCExtFile(home.relativize(file))) {
+            return file;
+        } else {
+            try {
+                return env.getPublicTruffleFile(path);
+            } catch (SecurityException e) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(
+                                "Permission denied (" + e.getMessage() + ") -- " + path,
+                                path,
+                                null));
             }
-        }
-
-        try {
-            return env.getPublicTruffleFile(path);
-        } catch (SecurityException e) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().loadError(
-                            "Permission denied (" + e.getMessage() + ") -- " + path,
-                            path,
-                            null));
         }
     }
 
-    private static boolean isStdLibRubyOrCExtFile(String path) {
-        return path.endsWith(TruffleRuby.EXTENSION) || path.endsWith(RubyLanguage.CEXT_EXTENSION);
+    private static boolean isStdLibRubyOrCExtFile(TruffleFile relativePathFromHome) {
+        final String fileName = relativePathFromHome.getName();
+        if (fileName == null) {
+            return false;
+        }
+
+        final String lowerCaseFileName = fileName.toLowerCase(Locale.ROOT);
+        if (!lowerCaseFileName.endsWith(TruffleRuby.EXTENSION) &&
+                !lowerCaseFileName.endsWith(RubyLanguage.CEXT_EXTENSION)) {
+            return false;
+        }
+
+        return relativePathFromHome.startsWith("lib");
     }
 
     Source buildSource(TruffleFile file, String path, TStringWithEncoding sourceTStringWithEncoding, boolean internal,
