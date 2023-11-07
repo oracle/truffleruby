@@ -252,7 +252,7 @@ public final class TranslatorEnvironment {
     public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
         RubyNode node = findLocalVarNode(name, sourceSection);
         if (node == null) {
-            node = new NilLiteralNode(true);
+            node = new NilLiteralNode();
             node.unsafeSetSourceSection(sourceSection);
         }
         return node;

@@ -45,7 +45,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         final RubyNode rhsNode;
 
         if (readNode == null) {
-            rhsNode = new NilLiteralNode(false);
+            rhsNode = new NilLiteralNode();
         } else {
             rhsNode = readNode;
         }

@@ -22,12 +22,6 @@ import org.truffleruby.language.RubyNode;
 @NodeInfo(cost = NodeCost.NONE)
 public final class NilLiteralNode extends RubyContextSourceNode {
 
-    private final boolean isImplicit;
-
-    public NilLiteralNode(boolean isImplicit) {
-        this.isImplicit = isImplicit;
-    }
-
     @Override
     public Object execute(VirtualFrame frame) {
         return nil;
@@ -38,13 +32,9 @@ public final class NilLiteralNode extends RubyContextSourceNode {
         return FrozenStrings.NIL;
     }
 
-    public boolean isImplicit() {
-        return isImplicit;
-    }
-
     @Override
     public RubyNode cloneUninitialized() {
-        var copy = new NilLiteralNode(isImplicit);
+        var copy = new NilLiteralNode();
         return copy.copyFlags(this);
     }
 

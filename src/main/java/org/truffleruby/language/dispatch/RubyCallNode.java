@@ -143,7 +143,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
     // - exception in rescue (rescue => a.b)
     @Override
     public void assign(VirtualFrame frame, Object value) {
-        assert ((getLastArgumentNode() instanceof NilLiteralNode nilLiteralNode && !nilLiteralNode.hasSource()) ||
+        assert ((getLastArgumentNode() instanceof NilLiteralNode) ||
                 getLastArgumentNode() instanceof DeadNode) : getLastArgumentNode();
 
         final Object receiverObject = receiver.execute(frame);

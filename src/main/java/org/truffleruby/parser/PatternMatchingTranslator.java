@@ -214,7 +214,7 @@ public final class PatternMatchingTranslator extends BaseTranslator {
 
     @Override
     public RubyNode visitHashPatternNode(HashPatternParseNode node) {
-        var deconstructed = createCallNode(currentValueToMatch, "deconstruct_keys", new NilLiteralNode(true));
+        var deconstructed = createCallNode(currentValueToMatch, "deconstruct_keys", new NilLiteralNode());
 
         return createCallNode(
                 new TruffleInternalModuleLiteralNode(),

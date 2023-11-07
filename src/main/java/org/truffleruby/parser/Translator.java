@@ -55,7 +55,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         final List<RubyNode> flattened = flatten(sequence, true);
 
         if (flattened.isEmpty()) {
-            final RubyNode literal = new NilLiteralNode(true);
+            final RubyNode literal = new NilLiteralNode();
             literal.unsafeSetSourceSection(sourceSection);
             return literal;
         } else if (flattened.size() == 1) {
@@ -99,11 +99,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
             final boolean lastNode = n == sequence.size() - 1;
             final RubyNode node = sequence.get(n);
 
-            if (node instanceof NilLiteralNode && ((NilLiteralNode) node).isImplicit()) {
-                if (allowTrailingNil && lastNode) {
-                    flattened.add(node);
-                }
-            } else if (node instanceof SequenceNode) {
+            if (node instanceof SequenceNode) {
                 flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence()), lastNode));
             } else if (node.canSubsumeFollowing() && !lastNode) {
                 List<RubyNode> rest = flattenFromN(sequence, allowTrailingNil, n + 1);
@@ -122,7 +118,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected RubyNode nilNode(SourceIndexLength sourceSection) {
-        final RubyNode literal = new NilLiteralNode(false);
+        final RubyNode literal = new NilLiteralNode();
         literal.unsafeSetSourceSection(sourceSection);
         return literal;
     }

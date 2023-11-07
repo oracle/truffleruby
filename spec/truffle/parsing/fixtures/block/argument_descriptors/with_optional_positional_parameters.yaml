@@ -175,10 +175,6 @@ ast: |
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           value = 100500
-                                                          NilLiteralNode
-                                                              attributes:
-                                                                  flags = 0
-                                                                  isImplicit = true
                                                       ]
                                           thenBody =
                                               SequenceNode
@@ -298,10 +294,8 @@ ast: |
                                                           NilLiteralNode
                                                               attributes:
                                                                   flags = 0
-                                                                  isImplicit = true
                                                       ]
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
-                                          isImplicit = false
                               ]

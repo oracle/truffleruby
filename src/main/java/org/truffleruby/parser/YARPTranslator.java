@@ -268,7 +268,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // empty begin/end block
         if (node.statements == null) {
-            return new NilLiteralNode(true);
+            return new NilLiteralNode();
         }
 
         rubyNode = node.statements.accept(this);
@@ -917,7 +917,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitDefinedNode(Nodes.DefinedNode node) {
         // Handle defined?(yield) explicitly otherwise it would raise SyntaxError
         if (node.value instanceof Nodes.YieldNode && isInvalidYield()) {
-            final var nilNode = new NilLiteralNode(false);
+            final var nilNode = new NilLiteralNode();
             assignNodePositionInSource(node, nilNode);
 
             return nilNode;
@@ -931,7 +931,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitElseNode(Nodes.ElseNode node) {
         if (node.statements == null) {
-            final RubyNode rubyNode = new NilLiteralNode(true);
+            final RubyNode rubyNode = new NilLiteralNode();
             assignNodePositionInSource(node, rubyNode);
             return rubyNode;
         }
@@ -956,7 +956,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitEnsureNode(Nodes.EnsureNode node) {
         if (node.statements == null) {
-            final RubyNode rubyNode = new NilLiteralNode(true);
+            final RubyNode rubyNode = new NilLiteralNode();
             assignNodePositionInSource(node, rubyNode);
             return rubyNode;
         }
@@ -1126,7 +1126,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             // if (condition)
             // end
-            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode(true)));
+            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode()));
         }
 
         return rubyNode;
@@ -1434,7 +1434,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public RubyNode visitNilNode(Nodes.NilNode node) {
-        final RubyNode rubyNode = new NilLiteralNode(false);
+        final RubyNode rubyNode = new NilLiteralNode();
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
     }
@@ -1458,7 +1458,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public RubyNode visitParenthesesNode(Nodes.ParenthesesNode node) {
         if (node.body == null) {
-            final RubyNode rubyNode = new NilLiteralNode(true);
+            final RubyNode rubyNode = new NilLiteralNode();
             assignNodePositionInSource(node, rubyNode);
             return rubyNode;
         }
@@ -1681,7 +1681,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             // unless (condition)
             // end
-            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode(true)));
+            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode()));
         }
 
         return rubyNode;
@@ -1997,7 +1997,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     protected RubyNode translateNodeOrNil(Nodes.Node node) {
         final RubyNode rubyNode;
         if (node == null) {
-            rubyNode = new NilLiteralNode(false); // TODO: it should be `new NilLiteralNode(isImplicit: true)`
+            rubyNode = new NilLiteralNode();
         } else {
             rubyNode = node.accept(this);
         }
@@ -2024,7 +2024,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     // break/next/return operators treat arguments in a bit different way than method call.
     private RubyNode translateControlFlowArguments(Nodes.ArgumentsNode node) {
         if (node == null) {
-            return new NilLiteralNode(false);
+            return new NilLiteralNode();
         }
 
         final Nodes.Node[] values = node.arguments;
@@ -2185,7 +2185,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final List<RubyNode> flattened = Translator.flatten(sequence, true);
 
         if (flattened.isEmpty()) {
-            final RubyNode nilNode = new NilLiteralNode(true);
+            final RubyNode nilNode = new NilLiteralNode();
             return nilNode;
         } else if (flattened.size() == 1) {
             return flattened.get(0);
