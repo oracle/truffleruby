@@ -90,24 +90,20 @@ public final class FileLoader {
                     context.getCoreExceptions().loadError("Failed to canonicalize -- " + path, path, null));
         }
 
-        String homeLibDir = language.getRubyHome() + "/lib/";
-        if (file.getPath().startsWith(homeLibDir)) {
-            String homeRelativePath = file.getPath().substring(language.getRubyHome().length() + 1);
-            TruffleFile internalResourceFile = language.getRubyHomeTruffleFile().resolve(homeRelativePath);
-            if (isStdLibRubyOrCExtFile(internalResourceFile.getPath())) {
-                return internalResourceFile;
+        final TruffleFile home = language.getRubyHomeTruffleFile();
+        if (file.startsWith(home.resolve("lib")) && isStdLibRubyOrCExtFile(file.getPath())) {
+            return file;
+        } else {
+            try {
+                return env.getPublicTruffleFile(path);
+            } catch (SecurityException e) {
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().loadError(
+                                "Permission denied (" + e.getMessage() + ") -- " + path,
+                                path,
+                                null));
             }
-        }
-
-        try {
-            return env.getPublicTruffleFile(path);
-        } catch (SecurityException e) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().loadError(
-                            "Permission denied (" + e.getMessage() + ") -- " + path,
-                            path,
-                            null));
         }
     }
 
