@@ -48,7 +48,7 @@ class TimeoutAction
 
               show_backtraces
               if MSpec.subprocesses.empty?
-                exit 2
+                exit! 2
               else
                 # Do not exit but signal the subprocess so we can get their output
                 MSpec.subprocesses.each do |pid|
@@ -81,7 +81,7 @@ class TimeoutAction
 
     if @fail
       STDERR.puts "\n\nThe last example #{@error_message}. See above for the subprocess stacktrace."
-      exit 2
+      exit! 2
     end
   end
 
