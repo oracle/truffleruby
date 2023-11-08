@@ -29,8 +29,8 @@ VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
   return RUBY_INVOKE(thread, "[]=", ID2SYM(id), val);
 }
 
-void rb_thread_wait_for(struct timeval time) {
-  double seconds = (double)time.tv_sec + (double)time.tv_usec/1000000;
+void rb_tr_thread_wait_for(struct timeval* time) {
+  double seconds = (double)time->tv_sec + (double)time->tv_usec/1000000;
   polyglot_invoke(rb_tr_unwrap(rb_mKernel), "sleep", seconds);
 }
 

@@ -55,13 +55,17 @@ Dir["src/main/c/cext/*.c"].sort.each do |file|
   functions.concat found_functions
 end
 
+def struct_by_value?(type)
+  type =~ /\bstruct\b/ and !type.include?('*')
+end
+
 functions.each do |declaration, return_type, function_name, argument_types|
   raise declaration if /\bstatic\b/ =~ declaration
   raise declaration if function_name.start_with?('rb_tr_init') and function_name != 'rb_tr_init_exception'
   if declaration.include? "\n"
     abort "This declaration includes newlines but should not:\n#{declaration}\n\n"
   end
-  if return_type =~ /\bstruct\s/ and !return_type.include?('*')
+  if struct_by_value? return_type
     abort "Returning a struct by value from Sulong to NFI is not supported for:\n#{declaration}"
   end
 end
@@ -188,6 +192,10 @@ C
     argument_names = argument_types.delete_prefix('(').delete_suffix(')')
     argument_names = argument_names.scan(/(?:^|,)\s*(#{argument_regexp})\s*(?=,|$)/o)
     argument_names = argument_names.map { |full_arg, name1, name2|
+      if struct_by_value? full_arg
+        abort "struct by value argument not well supported from NFI to Sulong: #{full_arg}\n#{declaration}"
+      end
+
       if full_arg == "void"
         ""
       elsif full_arg == "..."
