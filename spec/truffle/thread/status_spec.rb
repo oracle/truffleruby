@@ -29,11 +29,15 @@ describe "Thread#status" do
       regexp =~ string
     end
 
+    saw_status = false
     while status = t.status
+      saw_status = true
       status.should == "run"
       Thread.pass
     end
     t.join
+
+    skip 'unfair scheduling' unless saw_status
   end
 
 end
