@@ -61,8 +61,10 @@ module EnvUtil
     end
   end
 
-  # TruffleRuby: startup can take longer, especially on highly loaded CI machines
-  self.timeout_scale = 3 if defined?(::TruffleRuby)
+  # TruffleRuby: startup can take longer, especially on highly loaded CI machines.
+  # Note that EnvUtil.invoke_ruby has a timeout of 10 seconds * the scale.
+  # We use 60 * 10 = 600s which is the same as the timeout for ruby/spec in jt.rb.
+  self.timeout_scale = 60 if defined?(::TruffleRuby)
 
   def apply_timeout_scale(t)
     if scale = EnvUtil.timeout_scale
