@@ -703,11 +703,12 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   manual_builds: {
     local shared = $.use.common + $.cap.manual + { timelimit: "15:00" },
+    local native_config = $.run.generate_native_config + $.run.check_native_config,
 
-    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.stable + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.stable + shared + native_config,
+    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + shared + native_config,
+    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + shared + native_config,
+    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + shared + native_config,
   },
 
   builds:
