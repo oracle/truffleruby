@@ -383,18 +383,11 @@ local part_definitions = {
     generate_native_config: {
       setup+: [
         ["ruby", "-e", "pp RbConfig::MAKEFILE_CONFIG"], # For convenience
-        ["mx", "sforceimports"], # clone the graal repo
-        ["mx", "-p", "../graal/sulong", "build"],
-        ["set-export", "TOOLCHAIN_PATH", ["mx", "-p", "../graal/sulong", "lli", "--print-toolchain-path"]],
       ],
       run+: [
-        ["env",
-          "LD_LIBRARY_PATH=$BUILD_DIR/graal/sulong/mxbuild/" + self.os + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH", # for finding libc++
-          "PATH=$TOOLCHAIN_PATH:$PATH",
-          "ruby", "tool/generate-native-config.rb"],
+        ["ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
 
-        # Uses the system compiler as using the toolchain for this does not work on macOS
         ["tool/generate-config-header.sh"],
         ["cat", "lib/cext/include/truffleruby/config_" + self.os + "_" + self.arch + ".h"],
       ],

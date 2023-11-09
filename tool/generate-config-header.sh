@@ -22,14 +22,6 @@ arch=${arch/arm64/aarch64}
 
 mx_platform="${os}_${arch}"
 
-if [ "$os" != "darwin" ]; then
-    if [ -z "$TOOLCHAIN_PATH" ]; then
-        echo "TOOLCHAIN_PATH must be set"
-        exit 1
-    fi
-    export PATH="$TOOLCHAIN_PATH:$PATH"
-fi
-
 archive=$(basename "$url")
 
 if [ ! -e "$archive" ]; then

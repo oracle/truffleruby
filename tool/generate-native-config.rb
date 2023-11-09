@@ -188,7 +188,7 @@ class StructGenerator < Generator
   end
 
   def cc
-    ENV.fetch('CXX', 'clang++')
+    ENV.fetch('CXX', 'c++')
   end
 
   def source_file
