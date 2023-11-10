@@ -232,14 +232,18 @@ local part_definitions = {
   },
 
   platform: {
-    local common_deps = common.deps.truffleruby + common.deps.sulong,
-    local linux_amd64_extra_deps = {
-      packages+: {
-        binutils: ">=2.30",
-      },
+    local devtoolset = { # Until there is a proper object in common.jsonnet for it
+      packages+: if self.os == "linux" then
+        (if self.arch == "aarch64" then {
+          "00:devtoolset": "==10",
+        } else {
+          "00:devtoolset": "==11",
+        })
+      else {},
     },
+    local common_deps = common.deps.truffleruby + common.deps.sulong + devtoolset,
 
-    linux: common.linux_amd64 + common_deps + linux_amd64_extra_deps + {
+    linux: common.linux_amd64 + common_deps + {
       platform_name:: "LinuxAMD64",
       "$.cap":: {
         normal_machine: [],
