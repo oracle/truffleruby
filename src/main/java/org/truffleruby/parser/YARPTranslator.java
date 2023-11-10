@@ -51,7 +51,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.constants.ReadConstantNode;
@@ -685,13 +685,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private ArgumentsDescriptor getKeywordArgumentsDescriptor(Nodes.Node[] arguments) {
         if (arguments.length == 0) {
-            return EmptyArgumentsDescriptor.INSTANCE;
+            return NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
         Nodes.Node last = arguments[arguments.length - 1];
 
         if (!(last instanceof Nodes.KeywordHashNode)) {
-            return EmptyArgumentsDescriptor.INSTANCE;
+            return NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
         var keywords = (Nodes.KeywordHashNode) last;
@@ -2425,7 +2425,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 receiver,
                 method,
                 null,
-                EmptyArgumentsDescriptor.INSTANCE,
+                NoKeywordArgumentsDescriptor.INSTANCE,
                 arguments,
                 true);
         return language.coreMethodAssumptions.createCallNode(parameters);

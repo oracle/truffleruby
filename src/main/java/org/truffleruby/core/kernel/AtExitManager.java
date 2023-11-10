@@ -21,7 +21,7 @@ import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -72,7 +72,7 @@ public final class AtExitManager {
             }
 
             try {
-                ProcOperations.rootCall(block, EmptyArgumentsDescriptor.INSTANCE, RubyBaseNode.EMPTY_ARGUMENTS);
+                ProcOperations.rootCall(block, NoKeywordArgumentsDescriptor.INSTANCE, RubyBaseNode.EMPTY_ARGUMENTS);
             } catch (AbstractTruffleException e) {
                 handleAtExitException(context, e);
                 lastException = e;

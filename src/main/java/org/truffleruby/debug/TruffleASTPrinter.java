@@ -219,7 +219,7 @@ public abstract class TruffleASTPrinter {
             String string = valueOrArrayToString(value);
 
             // remove variable suffix when value is a custom class instance,
-            // e.g. org.truffleruby.language.arguments.EmptyArgumentsDescriptor@359b650b
+            // e.g. org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@359b650b
             // ignore class and instance variable names, e.g. values `@foo` or `@@bar`
             string = string.replaceAll("(?<!^|@)@[0-9a-f]+", "@...");
 

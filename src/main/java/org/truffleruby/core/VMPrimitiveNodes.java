@@ -76,7 +76,7 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -318,7 +318,7 @@ public abstract class VMPrimitiveNodes {
             return new SafepointAction("Handling of signal " + signal, rootThread, true, false) {
                 @Override
                 public void run(RubyThread rubyThread, Node currentNode) {
-                    ProcOperations.rootCall(proc, EmptyArgumentsDescriptor.INSTANCE, signal.getNumber());
+                    ProcOperations.rootCall(proc, NoKeywordArgumentsDescriptor.INSTANCE, signal.getNumber());
                 }
             };
         }
@@ -617,7 +617,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private RubyArray descriptorToArray(ArgumentsDescriptor descriptor) {
-            if (descriptor == EmptyArgumentsDescriptor.INSTANCE) {
+            if (descriptor == NoKeywordArgumentsDescriptor.INSTANCE) {
                 return createEmptyArray();
             } else if (descriptor instanceof KeywordArgumentsDescriptor keywordArgumentsDescriptor) {
                 var keywords = keywordArgumentsDescriptor.getKeywords();

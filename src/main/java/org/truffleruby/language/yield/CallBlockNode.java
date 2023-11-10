@@ -17,7 +17,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 
@@ -48,7 +48,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
 
     public static Object yieldUncached(RubyProc block, Object... args) {
         return CallBlockNodeGen.getUncached().executeCallBlock(null, block.declarationContext, block,
-                ProcOperations.getSelf(block), nil, EmptyArgumentsDescriptor.INSTANCE, args);
+                ProcOperations.getSelf(block), nil, NoKeywordArgumentsDescriptor.INSTANCE, args);
     }
 
     public final Object yieldCached(RubyProc block, ArgumentsDescriptor descriptor, Object... args) {
@@ -58,12 +58,12 @@ public abstract class CallBlockNode extends RubyBaseNode {
 
     public final Object yield(Node node, RubyProc block, Object... args) {
         return executeCallBlock(node, block.declarationContext, block, ProcOperations.getSelf(block), nil,
-                EmptyArgumentsDescriptor.INSTANCE, args);
+                NoKeywordArgumentsDescriptor.INSTANCE, args);
     }
 
     public final Object yieldCached(RubyProc block, Object... args) {
         return executeCallBlock(this, block.declarationContext, block, ProcOperations.getSelf(block), nil,
-                EmptyArgumentsDescriptor.INSTANCE, args);
+                NoKeywordArgumentsDescriptor.INSTANCE, args);
     }
 
     public abstract Object executeCallBlock(Node node, DeclarationContext declarationContext, RubyProc block,

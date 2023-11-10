@@ -19,7 +19,7 @@ import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.control.SequenceNode;
@@ -184,7 +184,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
                 receiver,
                 method,
                 null,
-                EmptyArgumentsDescriptor.INSTANCE,
+                NoKeywordArgumentsDescriptor.INSTANCE,
                 arguments,
                 true);
         return language.coreMethodAssumptions.createCallNode(parameters);

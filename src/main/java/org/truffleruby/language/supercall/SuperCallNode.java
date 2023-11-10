@@ -14,7 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.LiteralCallNode;
@@ -52,7 +52,7 @@ public final class SuperCallNode extends LiteralCallNode {
         // Remove empty kwargs in the caller, so the callee does not need to care about this special case
         if (descriptor instanceof KeywordArgumentsDescriptor && emptyKeywordArguments(superArguments)) {
             superArguments = removeEmptyKeywordArguments(superArguments);
-            descriptor = EmptyArgumentsDescriptor.INSTANCE;
+            descriptor = NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
         // Execute the block

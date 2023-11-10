@@ -73,7 +73,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -332,7 +332,7 @@ public abstract class TruffleDebugNodes {
                     null,
                     coreLibrary().mainObject,
                     Nil.INSTANCE,
-                    EmptyArgumentsDescriptor.INSTANCE,
+                    NoKeywordArgumentsDescriptor.INSTANCE,
                     EMPTY_ARGUMENTS));
         }
     }

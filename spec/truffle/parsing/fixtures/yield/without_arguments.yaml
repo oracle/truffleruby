@@ -61,7 +61,7 @@ ast: |
                                           slot = 2
                                   YieldExpressionNode
                                       attributes:
-                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                           emptyKeywordsProfile = false
                                           flags = 1
                                           isSplatted = false

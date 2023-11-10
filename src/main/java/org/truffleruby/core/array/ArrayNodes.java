@@ -83,7 +83,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.WarningNode;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -1019,7 +1019,7 @@ public abstract class ArrayNodes {
         Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
                 @Cached @Shared DispatchNode callFillInternal) {
             return callFillInternal.callWithDescriptor(array, "fill_internal", block,
-                    EmptyArgumentsDescriptor.INSTANCE, args);
+                    NoKeywordArgumentsDescriptor.INSTANCE, args);
         }
 
     }

@@ -27,7 +27,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SpecialVariablesSendingNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -65,7 +65,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         return execute(null, receiver, method, rubyArgs, config);
     }
 
@@ -73,7 +73,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
@@ -81,7 +81,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         return execute(null, receiver, method, rubyArgs, config);
     }
@@ -90,7 +90,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
@@ -99,7 +99,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         return execute(null, receiver, method, rubyArgs, config);
@@ -109,7 +109,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         return execute(null, receiver, method, rubyArgs, PRIVATE);
@@ -119,7 +119,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
@@ -130,7 +130,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArguments(rubyArgs, arguments);
         return execute(null, receiver, method, rubyArgs, config);
     }
@@ -139,7 +139,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArguments(rubyArgs, arguments);
         return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
@@ -159,7 +159,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
 
@@ -167,7 +167,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         return execute(null, receiver, method, rubyArgs, PRIVATE);
     }
@@ -177,7 +177,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         return execute(null, receiver, method, rubyArgs, config);
@@ -188,7 +188,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, block);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
@@ -209,7 +209,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         return execute(frame, receiver, method, rubyArgs, PRIVATE);
     }
 
@@ -218,7 +218,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(1);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         return execute(frame, receiver, method, rubyArgs, config);
     }
@@ -228,7 +228,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         return execute(frame, receiver, method, rubyArgs, config);
@@ -239,7 +239,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(3);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, arg2);
         RubyArguments.setArgument(rubyArgs, 2, arg3);
@@ -251,7 +251,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(arguments.length);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, EmptyArgumentsDescriptor.INSTANCE);
+        RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
         RubyArguments.setArguments(rubyArgs, arguments);
         return execute(frame, receiver, method, rubyArgs, config);
     }

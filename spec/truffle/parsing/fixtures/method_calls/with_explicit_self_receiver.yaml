@@ -8,7 +8,7 @@ ruby: |
 ast: |
   RubyCallNode
       attributes:
-          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
           flags = 1
