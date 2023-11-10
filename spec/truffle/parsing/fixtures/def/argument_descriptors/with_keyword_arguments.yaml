@@ -17,14 +17,14 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=19, characters=def foo(a:, b:)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq)])
       call targets:
           RubyMethodRootNode
               attributes:
                   arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:a, #4:b}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:%method_block_arg}
                   instrumentationBits = 0
                   keywordArguments = true
                   localReturnProfile = false
@@ -34,8 +34,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=19, characters=def foo(a:, b:)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq)])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=19, characters=def foo(a:, b:)\nend)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq)])
                   split = HEURISTIC
               children:
                   body =
@@ -61,11 +60,11 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 2
+                                          slot = 4
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 2
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -78,7 +77,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4
+                                          frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -91,7 +90,6 @@ ast: |
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
-                                          isImplicit = false
                               ]
                   checkKeywordArityNode =
                       CheckKeywordArityNode

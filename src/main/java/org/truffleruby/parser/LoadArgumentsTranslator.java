@@ -226,7 +226,9 @@ public final class LoadArgumentsTranslator extends Translator {
             }
         } else {
             // TODO CS 10-Jan-16 needn't have created notNilSmaller
-            sequence.add(notNilAtLeastAsLarge);
+            if (!notNilAtLeastAsLargeSequence.isEmpty()) { // don't add excessive NilLiteralNode
+                sequence.add(notNilAtLeastAsLarge);
+            }
         }
 
         if (hasKeywordArguments) {
@@ -528,7 +530,7 @@ public final class LoadArgumentsTranslator extends Translator {
                                     .findOrAddLocalVarNodeDangerous(name, sourceSection)
                                     .makeWriteNode(
                                             ArrayLiteralNode
-                                                    .create(language, new RubyNode[]{ new NilLiteralNode(true) })));
+                                                    .create(language, new RubyNode[]{ new NilLiteralNode() })));
                 } else {
                     nilSequence.add(
                             methodBodyTranslator

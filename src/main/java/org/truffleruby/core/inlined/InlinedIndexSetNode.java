@@ -71,8 +71,7 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
 
     @Override
     public AssignableNode toAssignableNode() {
-        assert getOperand2Node() instanceof NilLiteralNode &&
-                ((NilLiteralNode) getOperand2Node()).isImplicit() : getOperand2Node();
+        assert getOperand2Node() instanceof NilLiteralNode : getOperand2Node();
         return this;
     }
 

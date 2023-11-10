@@ -10,17 +10,14 @@ ruby: |
     proc {}
   end
 ast: |
-  BlockDefinitionNode
+  BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=7, characters=proc do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
           type = PROC
-      children:
-          readSpecialVariableStorageNode =
-              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
       call targets:
           RubyProcRootNode
               attributes:
@@ -33,8 +30,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=7, characters=proc do), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=7, characters=proc do)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
                   split = HEURISTIC
               children:
                   body =
@@ -86,17 +82,14 @@ ast: |
                                                                   notRuby2KeywordsHashProfile = false
                                                               children:
                                                                   block =
-                                                                      BlockDefinitionNode
+                                                                      BlockDefinitionNodeGen
                                                                           attributes:
                                                                               breakID = org.truffleruby.language.control.BreakID@...
                                                                               callTargets = ProcCallTargets(callTargetForProc = block (2 levels) in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
                                                                               flags = 0
                                                                               frameOnStackMarkerSlot = 1
-                                                                              sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {}), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block (2 levels) in <top (required)>, blockDepth = 2, parseName = block (2 levels) in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                                              sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block (2 levels) in <top (required)>, blockDepth = 2, parseName = block (2 levels) in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
                                                                               type = PROC
-                                                                          children:
-                                                                              readSpecialVariableStorageNode =
-                                                                                  TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
                                                                           call targets:
                                                                               RubyProcRootNode
                                                                                   attributes:
@@ -109,8 +102,7 @@ ast: |
                                                                                       redoProfile = false
                                                                                       retryProfile = false
                                                                                       returnID = org.truffleruby.language.control.ReturnID@...
-                                                                                      sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {}), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block (2 levels) in <top (required)>, blockDepth = 2, parseName = block (2 levels) in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
-                                                                                      sourceSection = SourceSection(source=<parse_ast> [2 - 2], index=8, length=9, characters=  proc {})
+                                                                                      sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block (2 levels) in <top (required)>, blockDepth = 2, parseName = block (2 levels) in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
                                                                                       split = HEURISTIC
                                                                                   children:
                                                                                       body =
@@ -136,7 +128,6 @@ ast: |
                                                                                                       NilLiteralNode
                                                                                                           attributes:
                                                                                                               flags = 0
-                                                                                                              isImplicit = false
                                                                                                   ]
                                                                   receiver =
                                                                       SelfNode

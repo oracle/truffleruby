@@ -6,17 +6,14 @@ focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   -> { super }
 ast: |
-  BlockDefinitionNode
+  BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
           callTargets = ProcCallTargets(callTargetForProc = null, callTargetForLambda = block in <top (required)>, altCallTargetCompiler = null)
           flags = 1
           frameOnStackMarkerSlot = -1
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=12, characters=-> { super }), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
           type = LAMBDA
-      children:
-          readSpecialVariableStorageNode =
-              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
       call targets:
           RubyLambdaRootNode
               attributes:
@@ -38,8 +35,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=12, characters=-> { super }), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=12, characters=-> { super })
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
                   split = HEURISTIC
               children:
                   body =

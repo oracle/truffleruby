@@ -16,6 +16,7 @@ notes: >
   ```ruby
   a.foo = $!
   ```
+yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin
@@ -76,10 +77,9 @@ ast: |
                                                           notRuby2KeywordsHashProfile = false
                                                       children:
                                                           arguments = [
-                                                              DeadNode
+                                                              NilLiteralNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      reason = "YARPTranslator#translateRescueException"
                                                           ]
                                                           receiver =
                                                               RubyCallNode

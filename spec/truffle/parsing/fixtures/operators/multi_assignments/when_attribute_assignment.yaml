@@ -2,6 +2,7 @@ subject: "Multi-assignment"
 description: "When there is an attribute on the LHS"
 notes: >
   Attribute assignment is represented as a method call `v.foo=(nil)`
+yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
 ruby: |
   a.attribute, b = 'foo', 'bar', 'baz'
@@ -30,7 +31,6 @@ ast: |
                           NilLiteralNode
                               attributes:
                                   flags = 0
-                                  isImplicit = true
                       ]
                       receiver =
                           RubyCallNode

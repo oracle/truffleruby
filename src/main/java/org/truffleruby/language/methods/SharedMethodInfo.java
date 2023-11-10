@@ -237,9 +237,10 @@ public final class SharedMethodInfo implements DetailedInspectingSupport {
     public String toStringWithDetails() {
         final String string = Arrays.deepToString(argumentDescriptors);
 
+        // skip sourceSection as far as it contains not accurate location details (provided by JRuby parser)
         return StringUtils.format(
-                "SharedMethodInfo(sourceSection = %s, staticLexicalScope = %s, arity = %s, originName = %s, blockDepth = %s, parseName = %s, notes = %s, argumentDescriptors = %s)",
-                sourceSection, staticLexicalScope, arity, originalName, blockDepth, parseName, notes, string);
+                "SharedMethodInfo(staticLexicalScope = %s, arity = %s, originName = %s, blockDepth = %s, parseName = %s, notes = %s, argumentDescriptors = %s)",
+                staticLexicalScope, arity, originalName, blockDepth, parseName, notes, string);
     }
 
 }

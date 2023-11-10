@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Arity / with optional keyword arguments"
 notes: >
-  Method parameters are described (as Arity object) in the following way:
+  Block parameters are described (as Arity object) in the following way:
     - preRequired=0
     - optional=0
     - hasRest=false
@@ -19,17 +19,14 @@ ruby: |
   proc do |a:, b: 42, c:, d: 100500|
   end
 ast: |
-  BlockDefinitionNode
+  BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=34, characters=proc do |a:, b: 42, c:, d: 100500|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
           type = PROC
-      children:
-          readSpecialVariableStorageNode =
-              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
       call targets:
           RubyProcRootNode
               attributes:
@@ -42,8 +39,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=34, characters=proc do |a:, b: 42, c:, d: 100500|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=34, characters=proc do |a:, b: 42, c:, d: 100500|)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
                   split = HEURISTIC
               children:
                   body =
@@ -131,7 +127,6 @@ ast: |
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
-                                          isImplicit = false
                               ]
                   checkKeywordArityNode =
                       CheckKeywordArityNode

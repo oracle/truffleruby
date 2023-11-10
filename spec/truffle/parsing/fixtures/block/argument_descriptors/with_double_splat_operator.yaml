@@ -1,7 +1,7 @@
 subject: "Block"
 description: "Argument descriptors / with double splat operator (**kw)"
 notes: >
-  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+  Block parameters are described (as ArgumentDescriptor[]) in the following way:
     - ArgumentDescriptor(name = a, type = keyreq)
     - ArgumentDescriptor(name = b, type = keyreq)
     - ArgumentDescriptor(name = other, type = keyrest)
@@ -12,22 +12,19 @@ ruby: |
   proc do |a:, b:, **other|
   end
 ast: |
-  BlockDefinitionNode
+  BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=25, characters=proc do |a:, b:, **other|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = other, type = keyrest)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = other, type = keyrest)])
           type = PROC
-      children:
-          readSpecialVariableStorageNode =
-              TruffleKernelNodesFactory$GetSpecialVariableStorageNodeGen
       call targets:
           RubyProcRootNode
               attributes:
                   callTarget = block in <top (required)>
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:other, #2:a, #3:b}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:b, #3:other}
                   instrumentationBits = 0
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   nextProfile = false
@@ -35,8 +32,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=25, characters=proc do |a:, b:, **other|), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = other, type = keyrest)])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 1], index=0, length=25, characters=proc do |a:, b:, **other|)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = other, type = keyrest)])
                   split = HEURISTIC
               children:
                   body =
@@ -62,7 +58,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2
+                                          frameSlot = 1
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -75,7 +71,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 2
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -88,7 +84,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 1
+                                          frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadKeywordRestArgumentNode
@@ -105,5 +101,4 @@ ast: |
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
-                                          isImplicit = false
                               ]

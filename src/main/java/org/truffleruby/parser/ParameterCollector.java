@@ -19,6 +19,7 @@ import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
@@ -131,6 +132,12 @@ public final class ParameterCollector extends AbstractNodeVisitor<Object> {
     @Override
     public Object visitRestArgNode(RestArgParseNode node) {
         parameters.add(node.getName());
+        return null;
+    }
+
+    @Override
+    public Object visitKeywordArgNode(KeywordArgParseNode node) {
+        node.getAssignable().accept(this); // it should process nested LocalAsgnParseNode node
         return null;
     }
 

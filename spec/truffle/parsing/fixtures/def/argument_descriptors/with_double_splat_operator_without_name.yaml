@@ -4,10 +4,9 @@ notes: >
   Method parameters are described (as ArgumentDescriptor[]) in the following way:
     - ArgumentDescriptor(name = a, type = keyreq)
     - ArgumentDescriptor(name = b, type = keyreq)
-    - ArgumentDescriptor(name = %kwrest, type = keyrest)
+    - ArgumentDescriptor(name = %kwrest, type = anonkeyrest)
   
-  So the rest keyword arguments are described as a `keyrest` variable with surrogate name `%kwrest`.
-# TODO: why not anonrest?
+  So the rest keyword arguments are described as a `anonkeyrest` variable with surrogate name `%kwrest`.
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(a:, b:, **)
@@ -19,14 +18,14 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=23, characters=def foo(a:, b:, **)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = keyrest)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = anonkeyrest)])
       call targets:
           RubyMethodRootNode
               attributes:
                   arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%kwrest, #3:%method_block_arg, #4:a, #5:b}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:%kwrest, #5:%method_block_arg}
                   instrumentationBits = 0
                   keywordArguments = true
                   localReturnProfile = false
@@ -36,8 +35,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=23, characters=def foo(a:, b:, **)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = keyrest)])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=23, characters=def foo(a:, b:, **)\nend)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, b], requiredKeywordArgumentsCount = 2, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = keyreq), ArgumentDescriptor(name = %kwrest, type = anonkeyrest)])
                   split = HEURISTIC
               children:
                   body =
@@ -63,11 +61,11 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 3
+                                          slot = 5
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4
+                                          frameSlot = 2
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -80,7 +78,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 5
+                                          frameSlot = 3
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -93,7 +91,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2
+                                          frameSlot = 4
                                       children:
                                           valueNode =
                                               ReadKeywordRestArgumentNode
@@ -110,5 +108,4 @@ ast: |
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
-                                          isImplicit = false
                               ]

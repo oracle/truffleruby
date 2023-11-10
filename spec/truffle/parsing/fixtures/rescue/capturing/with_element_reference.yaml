@@ -1,6 +1,7 @@
 subject: "Rescue keyword"
 description: "capturing / with element reference"
-yarp_specific: true # an AssignRescueVariableNode node is introduced
+yarp_specific: true # an AssignRescueVariableNode node is introduced,
+                    # generate explicit NilLiteralNode (isImplicit = false)
 notes: >
   Capturing exception to element reference is represented as a `a.[]=()` method call.
   
@@ -73,10 +74,9 @@ ast: |
                                                                       flags = 0
                                                                       object = :foo
                                                           operand2Node_ =
-                                                              DeadNode
+                                                              NilLiteralNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      reason = "YARPTranslator#translateRescueException"
                                                           receiver_ =
                                                               RubyCallNode
                                                                   attributes:

@@ -1,0 +1,140 @@
+subject: "Def"
+description: "Argument descriptors / with destructured Array argument"
+notes: >
+  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+    - ArgumentDescriptor(name = a, type = req)
+    - ArgumentDescriptor(name = null, type = anonreq)
+    - ArgumentDescriptor(name = e, type = req)
+  
+  So the destructured argument is described as a `anonreq` variable.
+yarp_specific: true # destructuring was optimized and generating a sequence of AST nodes is replaced by MultipleAssignmentNode
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo(a, (b, *c, d), e)
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = null, type = anonreq), ArgumentDescriptor(name = e, type = req)])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 3, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:c, #5:d, #6:e, #7:%method_block_arg}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = null, type = anonreq), ArgumentDescriptor(name = e, type = req)])
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 2
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 0
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                  MultipleAssignmentNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          postNodes = [
+                                              WriteFrameSlotNodeGen
+                                                  attributes:
+                                                      frameSlot = 5
+                                          ]
+                                          preNodes = [
+                                              WriteFrameSlotNodeGen
+                                                  attributes:
+                                                      frameSlot = 3
+                                          ]
+                                          restNode =
+                                              WriteFrameSlotNodeGen
+                                                  attributes:
+                                                      frameSlot = 4
+                                          rhsNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 1
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                          splatCastNode =
+                                              SplatCastNodeGen
+                                                  attributes:
+                                                      conversionMethod = :to_ary
+                                                      copy = true
+                                                      flags = 0
+                                                      nilBehavior = ARRAY_WITH_NIL
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 6
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 2
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 7
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                              ]

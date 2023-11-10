@@ -1,4 +1,6 @@
-fails:Proc#parameters sets the first element of each sub-Array to :req if argument would be required if a lambda if lambda keyword used
+fails:Proc#parameters sets the first element of each sub-Array to :req for required argument if lambda keyword used
 fails:Proc#parameters regards named parameters in procs as required if lambda keyword used
 fails:Proc#parameters regards named parameters in lambda as optional if lambda: false keyword used
-fails:Proc#parameters adds * rest arg for "star" argument
+fails:Proc#parameters adds rest arg with name * for "star" argument
+fails:Proc#parameters adds keyrest arg with ** as a name for "double star" argument
+fails:Proc#parameters adds block arg with name & for anonymous block argument

@@ -17,7 +17,7 @@ ast: |
   RunModuleDefinitionNode
       attributes:
           flags = 1
-          moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=14, characters=module Foo\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -40,9 +40,8 @@ ast: |
                   instrumentationBits = 0
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   polyglotRef = org.truffleruby.RubyLanguage@...
-                  returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=14, characters=module Foo\nend), staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null)
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=14, characters=module Foo\nend)
+                  returnID = MODULE_BODY
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null)
                   split = NEVER
               children:
                   body =
@@ -73,5 +72,4 @@ ast: |
                                               NilLiteralNode
                                                   attributes:
                                                       flags = 0
-                                                      isImplicit = false
                               ]

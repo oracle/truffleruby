@@ -21,14 +21,14 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=46, characters=def foo(a, b = 42, *c, d:, e: 100500, **f)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
       call targets:
           RubyMethodRootNode
               attributes:
                   arityForCheck = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:c, #5:f, #6:%method_block_arg, #7:d, #8:e}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:c, #5:d, #6:e, #7:f, #8:%method_block_arg}
                   instrumentationBits = 0
                   keywordArguments = true
                   localReturnProfile = false
@@ -38,8 +38,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=46, characters=def foo(a, b = 42, *c, d:, e: 100500, **f)\nend), staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
-                  sourceSection = SourceSection(source=<parse_ast> [1 - 2], index=0, length=46, characters=def foo(a, b = 42, *c, d:, e: 100500, **f)\nend)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
                   split = HEURISTIC
               children:
                   body =
@@ -82,7 +81,7 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 6
+                                          slot = 8
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
@@ -117,7 +116,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 7
+                                          frameSlot = 5
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -130,7 +129,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 8
+                                          frameSlot = 6
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -148,7 +147,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 5
+                                          frameSlot = 7
                                       children:
                                           valueNode =
                                               ReadKeywordRestArgumentNode
@@ -165,5 +164,4 @@ ast: |
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
-                                          isImplicit = false
                               ]

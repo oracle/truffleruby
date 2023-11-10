@@ -1,0 +1,109 @@
+subject: "Rescue keyword"
+description: "capturing / with element reference and multiple explicit arguments"
+yarp_specific: true # an AssignRescueVariableNode node is introduced,
+                    # generate explicit NilLiteralNode (isImplicit = false)
+notes: >
+focused_on_node: "org.truffleruby.language.exceptions.TryNode"
+ruby: |
+  begin
+    "foo"
+  rescue RuntimeError => a[:foo, :bar]
+    42
+  end
+ast: |
+  TryNodeGen
+      attributes:
+          canOmitBacktrace = false
+          flags = 0
+      children:
+          rescueParts = [
+              RescueClassesNode
+                  attributes:
+                      flags = 0
+                  children:
+                      handlingClassNodes = [
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "RuntimeError"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "RuntimeError"
+                      ]
+                      rescueBody =
+                          SequenceNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  body = [
+                                      AssignRescueVariableNode
+                                          attributes:
+                                              flags = 0
+                                          children:
+                                              rescueVariableNode =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = true
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "[]="
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          arguments = [
+                                                              ObjectLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      object = :foo
+                                                              ObjectLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      object = :bar
+                                                              NilLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                          ]
+                                                          receiver =
+                                                              RubyCallNode
+                                                                  attributes:
+                                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                      dispatchConfig = PRIVATE
+                                                                      emptyKeywordsProfile = false
+                                                                      flags = 0
+                                                                      isAttrAssign = false
+                                                                      isSafeNavigation = false
+                                                                      isSplatted = false
+                                                                      isVCall = true
+                                                                      lastArgIsNotHashProfile = false
+                                                                      methodName = "a"
+                                                                      notEmptyKeywordsProfile = false
+                                                                      notRuby2KeywordsHashProfile = false
+                                                                  children:
+                                                                      receiver =
+                                                                          SelfNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 1
+                                              value = 42
+                                  ]
+          ]
+          tryPart =
+              StringLiteralNode
+                  attributes:
+                      encoding = UTF-8
+                      flags = 1
+                      tstring = foo

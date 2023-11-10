@@ -1,0 +1,10 @@
+subject: "Regexp"
+description: "with named captured group (/(?<a>b)/)"
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  /(?<foo>abc)/
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = RubyRegexp(source = (?<foo>abc), options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
