@@ -277,6 +277,22 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     }
 
     @Override
+    public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
+        ArrayList<RubyNode> sequence = new ArrayList<>();
+
+        // desugar ... to *, **, and & parameters
+        final var rest = new Nodes.RestParameterNode(YARPDefNodeTranslator.FORWARDED_REST_NAME, 0, 0);
+        final var keyrest = new Nodes.KeywordRestParameterNode(YARPDefNodeTranslator.FORWARDED_KEYWORD_REST_NAME, 0, 0);
+        final var block = new Nodes.BlockParameterNode(YARPDefNodeTranslator.FORWARDED_BLOCK_NAME, 0, 0);
+
+        sequence.add(rest.accept(this));
+        sequence.add(keyrest.accept(this));
+        sequence.add(block.accept(this));
+
+        return YARPTranslator.sequence(sequence);
+    }
+
+    @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
         // For normal expressions in the default value for optional arguments, use the normal body translator
         return node.accept(yarpTranslator);
@@ -288,10 +304,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     private boolean hasKeywordArguments() {
         return parametersNode.keywords.length != 0 || parametersNode.keyword_rest != null;
-    }
-
-    public TranslatorEnvironment getEnvironment() {
-        return environment;
     }
 
 }

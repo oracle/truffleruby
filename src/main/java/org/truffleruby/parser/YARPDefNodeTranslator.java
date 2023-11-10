@@ -25,8 +25,12 @@ import org.prism.Nodes;
 import org.truffleruby.parser.parser.ParserSupport;
 
 public final class YARPDefNodeTranslator extends YARPTranslator {
-    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR;
-    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR;
+    // TODO: not the best place for these constants. Is YARPLoadArgumentsTranslator better? Or YARPTranslator?
+    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR; // local variable name for ** parameter
+    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR; // local variable name for * parameter
+    static final String FORWARDED_REST_NAME = ParserSupport.FORWARD_ARGS_REST_VAR; // local variable name for * parameter caused by desugaring ...
+    static final String FORWARDED_KEYWORD_REST_NAME = ParserSupport.FORWARD_ARGS_KWREST_VAR; // local variable name for ** parameter caused by desugaring ...
+    static final String FORWARDED_BLOCK_NAME = ParserSupport.FORWARD_ARGS_BLOCK_VAR; // local variable name for & parameter caused by desugaring ...
 
     private final boolean shouldLazyTranslate;
 
@@ -96,7 +100,9 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
     }
 
     private void declareLocalVariables(Nodes.DefNode node) {
-        // YARP adds hidden locals when there are rest/keyrest/block anonymous parameters or ... declared
+        // YARP adds hidden local variables when there are anonymous rest, keyrest,
+        // and block parameters or ... declared
+
         for (String name : node.locals) {
             switch (name) {
                 case "*" -> environment.declareVar(DEFAULT_REST_NAME);
@@ -104,7 +110,10 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
                 case "&" ->
                     // we don't support yet Ruby 3.1's anonymous block parameter
                     throw CompilerDirectives.shouldNotReachHere("Anonymous block parameters aren't supported yet");
-                case "..." -> { // YARP adds "..." to locals by some reason
+                case "..." -> {
+                    environment.declareVar(YARPDefNodeTranslator.FORWARDED_REST_NAME);
+                    environment.declareVar(YARPDefNodeTranslator.FORWARDED_KEYWORD_REST_NAME);
+                    environment.declareVar(YARPDefNodeTranslator.FORWARDED_BLOCK_NAME);
                 }
                 default -> environment.declareVar(name);
             }

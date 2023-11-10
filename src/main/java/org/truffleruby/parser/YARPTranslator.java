@@ -2598,6 +2598,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 } else {
                     descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, keywordRestParameterNode.name));
                 }
+            } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+                // ... => *, **, &
+                descriptors.add(new ArgumentDescriptor(ArgumentType.rest,
+                        YARPDefNodeTranslator.FORWARDED_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest,
+                        YARPDefNodeTranslator.FORWARDED_KEYWORD_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.block,
+                        YARPDefNodeTranslator.FORWARDED_BLOCK_NAME));
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
                 final var descriptor = new ArgumentDescriptor(ArgumentType.nokey);
                 descriptors.add(descriptor);
@@ -2647,10 +2655,19 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             requiredKeywordArgumentsCount = 0;
         }
 
+        final boolean hasRest;
+        if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+            hasRest = true;
+        } else {
+            hasRest = parametersNode.rest != null;
+        }
+
+        // NOTE: when ... parameter is present then YARP keeps ForwardingParameterNode in ParametersNode#keyword_rest field.
+        //      So `parametersNode.keyword_rest != null` works correctly to check if there is a keyword rest argument.
         return new Arity(
                 parametersNode.requireds.length,
                 parametersNode.optionals.length,
-                parametersNode.rest != null,
+                hasRest,
                 parametersNode.posts.length,
                 keywordArguments,
                 requiredKeywordArgumentsCount,
