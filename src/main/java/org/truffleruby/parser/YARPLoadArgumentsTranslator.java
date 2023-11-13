@@ -119,7 +119,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
         if (hasKeywordArguments()) {
             for (var node : parametersNode.keywords) {
-                sequence.add(node.accept(this)); // Nodes.KeywordParameterNode is expected here
+                sequence.add(node.accept(this)); // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
             }
         }
 
@@ -173,6 +173,14 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return rubyNode;
     }
 
+    public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
+        final int slot = environment.declareVar(node.name);
+        final var name = language.getSymbol(node.name);
+        final var readNode = ReadKeywordArgumentNode.create(name, null);
+
+        return new WriteLocalVariableNode(slot, readNode);
+    }
+
     public RubyNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         final RubyNode readNode;
 
@@ -191,6 +199,15 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         }
 
         final int slot = environment.findFrameSlot(node.name);
+        return new WriteLocalVariableNode(slot, readNode);
+    }
+
+    public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
+        final int slot = environment.declareVar(node.name);
+        final var name = language.getSymbol(node.name);
+        final var value = node.value.accept(this);
+        final var readNode = ReadKeywordArgumentNode.create(name, value);
+
         return new WriteLocalVariableNode(slot, readNode);
     }
 
@@ -218,20 +235,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
         final String name = (node.name != null) ? node.name : YARPDefNodeTranslator.DEFAULT_REST_NAME;
         final int slot = environment.findFrameSlot(name);
-        return new WriteLocalVariableNode(slot, readNode);
-    }
-
-    public RubyNode visitKeywordParameterNode(Nodes.KeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
-        final RubyNode defaultValue;
-
-        if (node.value != null) {
-            defaultValue = yarpTranslator.translateNodeOrNil(node.value);
-        } else {
-            defaultValue = null;
-        }
-
-        final RubyNode readNode = ReadKeywordArgumentNode.create(language.getSymbol(node.name), defaultValue);
         return new WriteLocalVariableNode(slot, readNode);
     }
 
