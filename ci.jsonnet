@@ -376,6 +376,13 @@ local part_definitions = {
             jt(["test", "bundle"]),
     },
 
+    test_cexts_sulong: {
+      environment+: {
+        TRUFFLERUBYOPT: "--experimental-options --cexts-sulong",
+      },
+      run+: jt(["test", "specs", ":cext"]),
+    },
+
     testdownstream_aot: { run+: [["mx", "ruby_testdownstream_aot", "$RUBY_BIN"]] },
 
     test_make_standalone_distribution: {
@@ -536,6 +543,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
       "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:30:00" },
       "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "00:40:00" },
+      "ruby-test-cexts-sulong":         $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.run.test_cexts_sulong + { timelimit: "20:00" },
       "ruby-test-gems-linux-amd64":     $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,

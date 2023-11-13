@@ -11,9 +11,11 @@ require_relative '../../ruby/optional/capi/spec_helper'
 extension_path = load_extension("unimplemented")
 
 describe "Unimplemented functions in the C-API" do
-  it "abort the process and show an error including the function name" do
-    expected_status = platform_is(:darwin) ? :SIGABRT : 127
-    out = ruby_exe('require ARGV[0]; CApiRbTrErrorSpecs.new.not_implemented_function("foo")', args: "#{extension_path} 2>&1", exit_status: expected_status)
-    out.should =~ /undefined symbol: rb_str_shared_replace|Symbol not found: _rb_str_shared_replace/
+  guard_not -> { Truffle::Boot.get_option('cexts-sulong') } do
+    it "abort the process and show an error including the function name" do
+      expected_status = platform_is(:darwin) ? :SIGABRT : 127
+      out = ruby_exe('require ARGV[0]; CApiRbTrErrorSpecs.new.not_implemented_function("foo")', args: "#{extension_path} 2>&1", exit_status: expected_status)
+      out.should =~ /undefined symbol: rb_str_shared_replace|Symbol not found: _rb_str_shared_replace/
+    end
   end
 end
