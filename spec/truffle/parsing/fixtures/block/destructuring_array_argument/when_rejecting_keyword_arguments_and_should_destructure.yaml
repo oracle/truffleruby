@@ -1,38 +1,15 @@
 subject: "Block"
-description: "Destructuring single array argument / when rest positional parameter and multiple required leading ones - it tries to destruct"
+description: "Destructuring single array argument / when rejecting keyword arguments (with **nil) and should destructure"
 notes: >
+  It handles no-keyword-arguments as usually.
   A simplified AST for array argument destructuring:
   
-    (IfElseNode 
-  
-      (AndNode                                                      # condition
-        (ShouldDestructureNode)
-        (SequenceNode
-          (WriteLocalVariableNode frameSlot = 4
-            (SplatCastNodeGen nilBehavior = NIL
-              (ReadPreArgumentNode index = 0)))
-          (NotNode
-            (IsNilNode
-              (ReadLocalVariableNode frameSlot = 4)))))
-  
-      (SequenceNode                                                 # then branch 
-        (WriteLocalVariableNode frameSlot = 1
-          (ArrayIndexNodesFactory$ReadConstantIndexNodeGen index = 0
-            (ReadLocalVariableNode frameSlot = 4)))
-  
-        (WriteLocalVariableNode frameSlot = 2
-          (ArrayIndexNodesFactory$ReadConstantIndexNodeGen index = 1
-            (ReadLocalVariableNode frameSlot = 4)))
-  
-        (WriteLocalVariableNode frameSlot = 3
-          (ArraySliceNodeGen from = 2, to = 0
-            (ReadLocalVariableNode frameSlot = 4)))
-  
-      ordinal parameters processing without destructing             # else branch
-    )
+    (CheckNoKeywordArgumentsNode
+      (ReadUserKeywordsHashNode))
+
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
-  proc do |foo, bar, *other|
+  proc do |a, b, **nil|
   end
 ast: |
   BlockDefinitionNodeGen
@@ -41,13 +18,13 @@ ast: |
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req), ArgumentDescriptor(name = other, type = rest)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = null, type = nokey)])
           type = PROC
       call targets:
           RubyProcRootNode
               attributes:
                   callTarget = block in <top (required)>
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:foo, #2:bar, #3:other, #4:%destructure_1}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:b, #3:%destructure_1}
                   instrumentationBits = 0
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   nextProfile = false
@@ -55,7 +32,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req), ArgumentDescriptor(name = other, type = rest)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = true}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = null, type = nokey)])
                   split = HEURISTIC
               children:
                   body =
@@ -77,7 +54,7 @@ ast: |
                                                           ShouldDestructureNode
                                                               attributes:
                                                                   flags = 0
-                                                                  keywordArguments = false
+                                                                  keywordArguments = true
                                                       right =
                                                           SequenceNode
                                                               attributes:
@@ -87,7 +64,7 @@ ast: |
                                                                       WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              frameSlot = 4
+                                                                              frameSlot = 3
                                                                           children:
                                                                               valueNode =
                                                                                   SplatCastNodeGen
@@ -107,7 +84,7 @@ ast: |
                                                                                                               attributes:
                                                                                                                   flags = 0
                                                                                                                   index = 0
-                                                                                                                  keywordArguments = false
+                                                                                                                  keywordArguments = true
                                                                                                                   missingArgumentBehavior = RUNTIME_ERROR
                                                                       NotNodeGen
                                                                           attributes:
@@ -122,7 +99,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 3
                                                                                                       type = FRAME_LOCAL
                                                                   ]
                                           elseBody =
@@ -160,7 +137,7 @@ ast: |
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           index = 0
-                                                                                          keywordArguments = false
+                                                                                          keywordArguments = true
                                                                                           missingArgumentBehavior = NIL
                                                           WriteLocalVariableNode
                                                               attributes:
@@ -177,21 +154,14 @@ ast: |
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           index = 1
-                                                                                          keywordArguments = false
+                                                                                          keywordArguments = true
                                                                                           missingArgumentBehavior = NIL
-                                                          WriteLocalVariableNode
+                                                          CheckNoKeywordArgumentsNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3
                                                               children:
-                                                                  valueNode =
-                                                                      ReadRestArgumentNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              keywordArguments = false
-                                                                              markKeywordHashWithFlag = false
-                                                                              postArgumentsCount = 0
-                                                                              startIndex = 2
+                                                                  readUserKeywordsHashNode =
+                                                                      ReadUserKeywordsHashNode
                                                       ]
                                           thenBody =
                                               SequenceNode
@@ -228,7 +198,7 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 4
+                                                                                          frameSlot = 3
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
@@ -245,26 +215,14 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 4
+                                                                                          frameSlot = 3
                                                                                           type = FRAME_LOCAL
-                                                          WriteLocalVariableNode
+                                                          CheckNoKeywordArgumentsNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3
                                                               children:
-                                                                  valueNode =
-                                                                      ArraySliceNodeGen
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              from = 2
-                                                                              to = 0
-                                                                          children:
-                                                                              arrayNode_ =
-                                                                                  ReadLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 4
-                                                                                          type = FRAME_LOCAL
+                                                                  readUserKeywordsHashNode =
+                                                                      ReadUserKeywordsHashNode
                                                       ]
                                   NilLiteralNode
                                       attributes:
