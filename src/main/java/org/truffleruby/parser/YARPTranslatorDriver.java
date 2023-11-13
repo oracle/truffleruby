@@ -516,7 +516,7 @@ public final class YARPTranslatorDriver {
             lineOffsets[line - 1] = source.getLineStartOffset(line);
         }
 
-        return new Nodes.Source(sourceBytes, lineOffsets);
+        return new Nodes.Source(sourceBytes, 1, lineOffsets);
     }
 
     private TranslatorEnvironment environmentForFrame(RubyContext context, MaterializedFrame frame, int blockDepth) {
