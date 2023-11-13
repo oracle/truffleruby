@@ -88,3 +88,9 @@ clean:
 all-no-debug: DEBUG_FLAGS := -DNDEBUG=1
 all-no-debug: OPTFLAGS := -O3
 all-no-debug: all
+
+run: Makefile $(STATIC_OBJECTS) $(HEADERS) test.c
+	$(ECHO) "compiling test.c"
+	$(Q) $(CC) $(CPPFLAGS) $(CFLAGS) $(STATIC_OBJECTS) test.c
+	$(ECHO) "running test.c"
+	$(Q) ./a.out

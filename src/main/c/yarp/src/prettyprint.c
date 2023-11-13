@@ -46,7 +46,7 @@ static inline void
 prettyprint_location(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_location_t *location) {
     pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start);
     pm_line_column_t end = pm_newline_list_line_column(&parser->newline_list, location->end);
-    pm_buffer_append_format(output_buffer, "(%d,%d)-(%d,%d)", start.line + 1, start.column, end.line + 1, end.column);
+    pm_buffer_append_format(output_buffer, "(%lu,%lu)-(%lu,%lu)", (unsigned long) (start.line + 1), (unsigned long) start.column, (unsigned long) (end.line + 1), (unsigned long) end.column);
 }
 
 static inline void
@@ -255,7 +255,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── arguments:", 20);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->arguments.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->arguments.size));
 
                 size_t last_index = cast->arguments.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -302,7 +302,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── elements:", 19);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -384,7 +384,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── requireds:", 20);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->requireds.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->requireds.size));
 
                 size_t last_index = cast->requireds.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -426,7 +426,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── posts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->posts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->posts.size));
 
                 size_t last_index = cast->posts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -905,7 +905,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── locals:", 17);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->locals.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->locals.size));
 
                 size_t last_index = cast->locals.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -1587,7 +1587,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── conditions:", 21);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->conditions.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->conditions.size));
 
                 size_t last_index = cast->conditions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -3062,7 +3062,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── requireds:", 20);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->requireds.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->requireds.size));
 
                 size_t last_index = cast->requireds.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -3628,7 +3628,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── elements:", 19);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -3690,7 +3690,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── elements:", 19);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -4713,7 +4713,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── parts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -4819,7 +4819,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── parts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -4929,7 +4929,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── parts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -4994,7 +4994,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── parts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -5055,7 +5055,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── parts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->parts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -5100,7 +5100,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "└── elements:", 19);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->elements.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -5117,52 +5117,6 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     }
 
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
-                    prefix_buffer->length = prefix_length;
-                }
-            }
-
-            break;
-        }
-        case PM_KEYWORD_PARAMETER_NODE: {
-            pm_keyword_parameter_node_t *cast = (pm_keyword_parameter_node_t *) node;
-            pm_buffer_append_string(output_buffer, "@ KeywordParameterNode (location: ", 34);
-            prettyprint_location(output_buffer, parser, &node->location);
-            pm_buffer_append_string(output_buffer, ")\n", 2);
-
-            // name
-            {
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "├── name:", 15);
-                pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->name);
-                pm_buffer_append_byte(output_buffer, '\n');
-            }
-
-            // name_loc
-            {
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
-                pm_location_t *location = &cast->name_loc;
-                pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_location(output_buffer, parser, location);
-                pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
-                pm_buffer_append_string(output_buffer, "\"\n", 2);
-            }
-
-            // value
-            {
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "└── value:", 16);
-                if (cast->value == NULL) {
-                    pm_buffer_append_string(output_buffer, " ∅\n", 5);
-                } else {
-                    pm_buffer_append_byte(output_buffer, '\n');
-
-                    size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    pm_buffer_concat(output_buffer, prefix_buffer);
-                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
             }
@@ -5936,7 +5890,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── lefts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->lefts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->lefts.size));
 
                 size_t last_index = cast->lefts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -5978,7 +5932,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── rights:", 17);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->rights.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->rights.size));
 
                 size_t last_index = cast->rights.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -6043,7 +5997,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── lefts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->lefts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->lefts.size));
 
                 size_t last_index = cast->lefts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -6085,7 +6039,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── rights:", 17);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->rights.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->rights.size));
 
                 size_t last_index = cast->rights.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -6256,6 +6210,48 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
 
             break;
         }
+        case PM_OPTIONAL_KEYWORD_PARAMETER_NODE: {
+            pm_optional_keyword_parameter_node_t *cast = (pm_optional_keyword_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ OptionalKeywordParameterNode (location: ", 42);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── value:", 16);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            break;
+        }
         case PM_OPTIONAL_PARAMETER_NODE: {
             pm_optional_parameter_node_t *cast = (pm_optional_parameter_node_t *) node;
             pm_buffer_append_string(output_buffer, "@ OptionalParameterNode (location: ", 35);
@@ -6366,7 +6362,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── requireds:", 20);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->requireds.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->requireds.size));
 
                 size_t last_index = cast->requireds.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -6391,7 +6387,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── optionals:", 20);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->optionals.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->optionals.size));
 
                 size_t last_index = cast->optionals.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -6433,7 +6429,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── posts:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->posts.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->posts.size));
 
                 size_t last_index = cast->posts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -6458,7 +6454,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── keywords:", 19);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->keywords.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->keywords.size));
 
                 size_t last_index = cast->keywords.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -7007,6 +7003,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
 
             break;
         }
+        case PM_REQUIRED_KEYWORD_PARAMETER_NODE: {
+            pm_required_keyword_parameter_node_t *cast = (pm_required_keyword_parameter_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ RequiredKeywordParameterNode (location: ", 42);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // name
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "├── name:", 15);
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_constant(output_buffer, parser, cast->name);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "└── name_loc:", 19);
+                pm_location_t *location = &cast->name_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            break;
+        }
         case PM_REQUIRED_PARAMETER_NODE: {
             pm_required_parameter_node_t *cast = (pm_required_parameter_node_t *) node;
             pm_buffer_append_string(output_buffer, "@ RequiredParameterNode (location: ", 35);
@@ -7092,7 +7117,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── exceptions:", 21);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->exceptions.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->exceptions.size));
 
                 size_t last_index = cast->exceptions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -7446,7 +7471,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "└── body:", 15);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->body.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->body.size));
 
                 size_t last_index = cast->body.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -7746,7 +7771,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── names:", 16);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->names.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->names.size));
 
                 size_t last_index = cast->names.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -7966,7 +7991,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "├── conditions:", 21);
-                pm_buffer_append_format(output_buffer, " (length: %d)\n", cast->conditions.size);
+                pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->conditions.size));
 
                 size_t last_index = cast->conditions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
@@ -8211,7 +8236,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
     }
 }
 
-// Pretty-prints the AST represented by the given node to the given buffer.
+/**
+ * Pretty-prints the AST represented by the given node to the given buffer.
+ */
 PRISM_EXPORTED_FUNCTION void
 pm_prettyprint(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_node_t *node) {
     pm_buffer_t prefix_buffer = { 0 };

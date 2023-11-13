@@ -54,7 +54,7 @@ pm_serialize_string(pm_parser_t *parser, pm_string_t *string, pm_buffer_t *buffe
     }
 }
 
-void
+static void
 pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
     pm_buffer_append_byte(buffer, (uint8_t) PM_NODE_TYPE(node));
 
@@ -775,15 +775,6 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             }
             break;
         }
-        case PM_KEYWORD_PARAMETER_NODE: {
-            pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_keyword_parameter_node_t *)node)->name));
-            if (((pm_keyword_parameter_node_t *)node)->value == NULL) {
-                pm_buffer_append_byte(buffer, 0);
-            } else {
-                pm_serialize_node(parser, (pm_node_t *)((pm_keyword_parameter_node_t *)node)->value, buffer);
-            }
-            break;
-        }
         case PM_KEYWORD_REST_PARAMETER_NODE: {
             pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_keyword_rest_parameter_node_t *)node)->name));
             break;
@@ -938,6 +929,11 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             pm_buffer_append_varint(buffer, ((pm_numbered_reference_read_node_t *)node)->number);
             break;
         }
+        case PM_OPTIONAL_KEYWORD_PARAMETER_NODE: {
+            pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_optional_keyword_parameter_node_t *)node)->name));
+            pm_serialize_node(parser, (pm_node_t *)((pm_optional_keyword_parameter_node_t *)node)->value, buffer);
+            break;
+        }
         case PM_OPTIONAL_PARAMETER_NODE: {
             pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_optional_parameter_node_t *)node)->name));
             pm_serialize_node(parser, (pm_node_t *)((pm_optional_parameter_node_t *)node)->value, buffer);
@@ -1051,6 +1047,10 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_REGULAR_EXPRESSION_NODE: {
             pm_serialize_string(parser, &((pm_regular_expression_node_t *)node)->unescaped, buffer);
             pm_buffer_append_varint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
+            break;
+        }
+        case PM_REQUIRED_KEYWORD_PARAMETER_NODE: {
+            pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_required_keyword_parameter_node_t *)node)->name));
             break;
         }
         case PM_REQUIRED_PARAMETER_NODE: {
@@ -1253,7 +1253,10 @@ pm_serialize_comment(pm_parser_t *parser, pm_comment_t *comment, pm_buffer_t *bu
     pm_buffer_append_varint(buffer, pm_ptrdifft_to_u32(comment->end - comment->start));
 }
 
-static void
+/**
+ * Serialize the given list of comments to the given buffer.
+ */
+void
 pm_serialize_comment_list(pm_parser_t *parser, pm_list_t *list, pm_buffer_t *buffer) {
     pm_buffer_append_varint(buffer, pm_sizet_to_u32(pm_list_size(list)));
 
@@ -1306,17 +1309,24 @@ pm_serialize_diagnostic_list(pm_parser_t *parser, pm_list_t *list, pm_buffer_t *
     }
 }
 
-static void
+/**
+ * Serialize the name of the encoding to the buffer.
+ */
+void
 pm_serialize_encoding(pm_encoding_t *encoding, pm_buffer_t *buffer) {
     size_t encoding_length = strlen(encoding->name);
     pm_buffer_append_varint(buffer, pm_sizet_to_u32(encoding_length));
     pm_buffer_append_string(buffer, encoding->name, encoding_length);
 }
 
-#line 200 "serialize.c.erb"
+#line 206 "serialize.c.erb"
+/**
+ * Serialize the encoding, metadata, nodes, and constant pool.
+ */
 void
 pm_serialize_content(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
     pm_serialize_encoding(&parser->encoding, buffer);
+    pm_buffer_append_varint(buffer, parser->start_line);
     pm_serialize_magic_comment_list(parser, &parser->magic_comment_list, buffer);
     pm_serialize_diagnostic_list(parser, &parser->error_list, buffer);
     pm_serialize_diagnostic_list(parser, &parser->warning_list, buffer);
@@ -1388,10 +1398,16 @@ serialize_token(void *data, pm_parser_t *parser, pm_token_t *token) {
     pm_buffer_append_varint(buffer, parser->lex_state);
 }
 
+/**
+ * Lex the given source and serialize to the given buffer.
+ */
 PRISM_EXPORTED_FUNCTION void
-pm_lex_serialize(const uint8_t *source, size_t size, const char *filepath, pm_buffer_t *buffer) {
+pm_serialize_lex(pm_buffer_t *buffer, const uint8_t *source, size_t size, const char *data) {
+    pm_options_t options = { 0 };
+    if (data != NULL) pm_options_read(&options, data);
+
     pm_parser_t parser;
-    pm_parser_init(&parser, source, size, filepath);
+    pm_parser_init(&parser, source, size, &options);
 
     pm_lex_callback_t lex_callback = (pm_lex_callback_t) {
         .data = (void *) buffer,
@@ -1401,10 +1417,11 @@ pm_lex_serialize(const uint8_t *source, size_t size, const char *filepath, pm_bu
     parser.lex_callback = &lex_callback;
     pm_node_t *node = pm_parse(&parser);
 
-    // Append 0 to mark end of tokens
+    // Append 0 to mark end of tokens.
     pm_buffer_append_byte(buffer, 0);
 
     pm_serialize_encoding(&parser.encoding, buffer);
+    pm_buffer_append_varint(buffer, parser.start_line);
     pm_serialize_comment_list(&parser, &parser.comment_list, buffer);
     pm_serialize_magic_comment_list(&parser, &parser.magic_comment_list, buffer);
     pm_serialize_diagnostic_list(&parser, &parser.error_list, buffer);
@@ -1412,15 +1429,20 @@ pm_lex_serialize(const uint8_t *source, size_t size, const char *filepath, pm_bu
 
     pm_node_destroy(&parser, node);
     pm_parser_free(&parser);
+    pm_options_free(&options);
 }
 
-// Parse and serialize both the AST and the tokens represented by the given
-// source to the given buffer.
+/**
+ * Parse and serialize both the AST and the tokens represented by the given
+ * source to the given buffer.
+ */
 PRISM_EXPORTED_FUNCTION void
-pm_parse_lex_serialize(const uint8_t *source, size_t size, pm_buffer_t *buffer, const char *metadata) {
+pm_serialize_parse_lex(pm_buffer_t *buffer, const uint8_t *source, size_t size, const char *data) {
+    pm_options_t options = { 0 };
+    if (data != NULL) pm_options_read(&options, data);
+
     pm_parser_t parser;
-    pm_parser_init(&parser, source, size, NULL);
-    if (metadata) pm_parser_metadata(&parser, metadata);
+    pm_parser_init(&parser, source, size, &options);
 
     pm_lex_callback_t lex_callback = (pm_lex_callback_t) {
         .data = (void *) buffer,
@@ -1435,4 +1457,5 @@ pm_parse_lex_serialize(const uint8_t *source, size_t size, pm_buffer_t *buffer, 
 
     pm_node_destroy(&parser, node);
     pm_parser_free(&parser);
+    pm_options_free(&options);
 }
