@@ -29,7 +29,6 @@ void rb_gvar_var_setter(VALUE val, ID id, VALUE *data) {
 }
 
 void rb_define_hooked_variable(const char *name, VALUE *var, rb_gvar_getter_t *getter, rb_gvar_setter_t *setter) {
-// void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS)) {
   if (!getter) {
     getter = rb_gvar_var_getter;
   }

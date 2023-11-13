@@ -306,7 +306,7 @@ static inline int rb_tr_scan_args_kw_int(int kw_flag, int argc, VALUE *argv, str
   }
 
   if (argn < argc) {
-	rb_error_arity(argc, n_mand, parse_data.rest ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
+    rb_error_arity(argc, n_mand, parse_data.rest ? UNLIMITED_ARGUMENTS : n_mand + n_opt);
   }
 
   return argc;

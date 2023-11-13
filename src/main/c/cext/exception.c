@@ -26,7 +26,7 @@ VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
 }
 
 void rb_exc_raise(VALUE exception) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_exc_raise", exception); // TODO
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_exc_raise", exception);
   UNREACHABLE;
 }
 

@@ -121,9 +121,9 @@ void rb_tr_time_interval(VALUE num, struct timeval *result);
  */
 #ifdef TRUFFLERUBY
 static inline struct timeval rb_time_interval(VALUE num) {
-  struct timeval result;
-	rb_tr_time_interval(num, &result);
-	return result;
+    struct timeval result;
+    rb_tr_time_interval(num, &result);
+    return result;
 }
 #else
 struct timeval rb_time_interval(VALUE num);
@@ -144,9 +144,9 @@ void rb_tr_time_timeval(VALUE time, struct timeval *result);
  */
 #ifdef TRUFFLERUBY
 static inline struct timeval rb_time_timeval(VALUE time) {
-  struct timeval result;
-	rb_tr_time_timeval(time, &result);
-	return result;
+    struct timeval result;
+    rb_tr_time_timeval(time, &result);
+    return result;
 }
 #else
 struct timeval rb_time_timeval(VALUE time);
@@ -165,9 +165,9 @@ void rb_tr_time_timespec(VALUE time, struct timespec *result);
  */
 #ifdef TRUFFLERUBY
 static inline struct timespec rb_time_timespec(VALUE time) {
-  struct timespec result;
-	rb_tr_time_timespec(time, &result);
-	return result;
+    struct timespec result;
+    rb_tr_time_timespec(time, &result);
+    return result;
 }
 #else
 struct timespec rb_time_timespec(VALUE time);

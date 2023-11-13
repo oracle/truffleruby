@@ -247,11 +247,4 @@ C
     f.puts "  impl_#{function_name} = get_libtruffleruby_function(\"#{function_name}\");"
   end
   f.puts "}"
-
-#   f.puts
-#   f.puts <<C
-# void rb_tr_trampoline_init_globals(void* impl_rb_tr_longwrap) {
-#   rb_tr_longwrap = impl_rb_tr_longwrap;
-# }
-# C
 end
