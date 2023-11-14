@@ -30,6 +30,10 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         this.keyValues = keyValues;
     }
 
+    protected int getNumberOfEntries() {
+        return keyValues.length >> 1;
+    }
+
     public static HashLiteralNode create(RubyNode[] keyValues, RubyLanguage language) {
         if (keyValues.length == 0) {
             return new EmptyHashStore.EmptyHashLiteralNode();

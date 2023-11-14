@@ -628,18 +628,18 @@ public final class CompactHashStore {
         @ExplodeLoop
         @Override
         public Object execute(VirtualFrame frame) {
-            CompactHashStore store = new CompactHashStore(keyValues.length);
+            CompactHashStore store = new CompactHashStore(getNumberOfEntries());
             RubyHash hash = new RubyHash(coreLibrary().hashClass,
                     getLanguage().hashShape,
                     getContext(),
                     store,
                     0,
                     false);
+
             for (int i = 0; i < keyValues.length; i += 2) {
                 Object key = keyValues[i].execute(frame);
-                Object val = keyValues[i + 1].execute(frame);
-
-                hashes.set(store, hash, key, val, false);
+                Object value = keyValues[i + 1].execute(frame);
+                hashes.set(store, hash, key, value, false);
             }
             return hash;
         }

@@ -578,7 +578,7 @@ public final class BucketsHashStore {
 
         public BucketHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
-            bucketsCount = growthCapacityGreaterThan(keyValues.length / 2);
+            bucketsCount = growthCapacityGreaterThan(getNumberOfEntries());
         }
 
         @ExplodeLoop
