@@ -1,1 +1,0 @@
-fails:Exception#detailed_message returns 'unhandled exception' for an instance of RuntimeError with empty message
