@@ -30,13 +30,13 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         this.keyValues = keyValues;
     }
 
-    public static HashLiteralNode create(RubyNode[] keyValues, RubyLanguage rubyLanguage) {
+    public static HashLiteralNode create(RubyNode[] keyValues, RubyLanguage language) {
         if (keyValues.length == 0) {
             return new EmptyHashStore.EmptyHashLiteralNode();
         } else if (keyValues.length <= PackedHashStoreLibrary.MAX_ENTRIES * 2) {
             return PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen.create(keyValues);
         } else {
-            return rubyLanguage.options.BIG_HASH_STRATEGY_IS_BUCKETS
+            return language.options.BIG_HASH_STRATEGY_IS_BUCKETS
                     ? new BucketsHashStore.BucketHashLiteralNode(keyValues)
                     : new CompactHashStore.CompactHashLiteralNode(keyValues);
         }

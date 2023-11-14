@@ -11,7 +11,6 @@ package org.truffleruby.core.hash.library;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -39,7 +38,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -127,7 +125,6 @@ public final class PackedHashStoreLibrary {
         return true;
     }
 
-    @SuppressFBWarnings("UPM_UNCALLED_PRIVATE_METHOD")
     @TruffleBoundary
     private static void promoteToBuckets(RubyHash hash, Object[] store, int size) {
         final Entry[] buckets = new Entry[BucketsHashStore.growthCapacityGreaterThan(size)];
@@ -158,14 +155,13 @@ public final class PackedHashStoreLibrary {
         hash.size = size;
     }
 
-    @TruffleBoundary
-    private static void promoteToCompact(RubyHash hash, Object[] store, int size) {
-        CompactHashStore newStore = new CompactHashStore(size);
-        for (int n = 0; n < size; n++) {
+    private static void promoteToCompact(RubyHash hash, Object[] store) {
+        CompactHashStore newStore = new CompactHashStore(MAX_ENTRIES);
+        for (int n = 0; n < MAX_ENTRIES; n++) {
             newStore.putHashKeyValue(getHashed(store, n), getKey(store, n), getValue(store, n));
         }
         hash.store = newStore;
-        hash.size = size;
+        hash.size = MAX_ENTRIES;
     }
 
     // endregion
@@ -209,7 +205,6 @@ public final class PackedHashStoreLibrary {
                 @Cached @Shared CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "hashStrategyLimit()") HashStoreLibrary hashes,
                 @Cached InlinedConditionProfile withinCapacity,
-                @Cached(inline = true) PromoteToBigHashNode promoteToBigHash,
                 @Bind("this") Node node) {
 
             assert verify(store, hash);
@@ -239,7 +234,11 @@ public final class PackedHashStoreLibrary {
 
 
             assert size == MAX_ENTRIES;
-            promoteToBigHash.execute(node, store, hash, MAX_ENTRIES);
+            if (RubyLanguage.get(node).options.BIG_HASH_STRATEGY_IS_BUCKETS) {
+                promoteToBuckets(hash, store, MAX_ENTRIES);
+            } else {
+                promoteToCompact(hash, store);
+            }
 
             hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
@@ -411,21 +410,6 @@ public final class PackedHashStoreLibrary {
 
     // endregion
     // region Nodes
-
-    @GenerateUncached
-    @GenerateInline
-    abstract static class PromoteToBigHashNode extends RubyBaseNode {
-        public abstract void execute(Node node, Object[] store, RubyHash hash, int size);
-
-        @Specialization
-        void promoteToBigHash(Object[] store, RubyHash hash, int size) {
-            if (getLanguage().options.BIG_HASH_STRATEGY_IS_BUCKETS) {
-                promoteToBuckets(hash, store, size);
-            } else {
-                promoteToCompact(hash, store, size);
-            }
-        }
-    }
 
     @GenerateUncached
     @ImportStatic(HashGuards.class)

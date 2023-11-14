@@ -49,9 +49,10 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 
-/* The Compact hash strategy from Hash Maps That Dont Hate You
- * See https://blog.toit.io/hash-maps-that-dont-hate-you-1a96150b492a for more details (archived at
- * https://archive.ph/wip/sucRY) */
+/** The Compact hash strategy from Hash Maps That Don't Hate You. See
+ * https://blog.toit.io/hash-maps-that-dont-hate-you-1a96150b492a for more details (archived at
+ * https://archive.ph/wip/sucRY). Specifically that blog post has good visualizations of the index and kvStore arrays.
+ * We do not currently implement the deletion optimization. */
 @ExportLibrary(value = HashStoreLibrary.class)
 @GenerateUncached
 public final class CompactHashStore {
@@ -77,12 +78,12 @@ public final class CompactHashStore {
     //       multiple not-equal hashes can map to the same position in the index array, that's a different sort of
     //       "collision" in addition to the usual collision of equal hash values coming from different keys. Both kinds
     //       of collisions actually result in the same outcome: contention on an index slot. So both are automatically
-    //       handled by the same collision-resolution strategy: open-addressing-with linear probing.)
+    //       handled by the same collision-resolution strategy: open-addressing with linear probing.)
     //  -----------------------------------------------
     //  (3) tl;dr: Compact Hashes give you both insertion-order iteration AND the usual const-time guarantees
     //  ---------------------------------------------------------------------------------------------------------------
 
-    /** We view the index array as consisting of "Slots", each slot is 2 array positions. index[0] and index[1] is one
+    /** We view the index array as consisting of "slots", each slot is 2 array positions. index[0] and index[1] is one
      * slot, index[2] and index[3] is another,... The first position of a slot holds the hash of a key and the second
      * holds an offsetted index into the KV store (index + 1) where the key is stored. The reason we store an offsetted
      * index and not the index itself is so that 0 is not a valid index, thus we can use it as unused slot marker, and
@@ -98,8 +99,8 @@ public final class CompactHashStore {
      * factor of 0.75 and an index of total size 64 slots, that number is 48 slots. (Technically, that's redundant
      * information that is derived from the load factor and the index size, but deriving it requires a float
      * multiplication or division, and we want to check for it on every insertion, so it's inefficient to keep
-     * calculating it every time its needed) */
-    private int numSlotsForIndexRebuild;
+     * calculating it every time it is needed) */
+    private int indexGrowthThreshold;
 
     /** Each slot in the index array can be in one of 3 states, depending on the value of its second (offset) field:
      * <li>Offset >= 1: Filled, the data in the hash field and the offset field is valid. Subtracting one from the
@@ -112,26 +113,11 @@ public final class CompactHashStore {
     private static final int INDEX_SLOT_UNUSED = 0;
     private static final int INDEX_SLOT_DELETED = -1;
 
-    // returned by methods doing array search which don't find what they're looking for
+    // Returned by methods doing array search which don't find what they are looking for
     static final int KEY_NOT_FOUND = -2;
-    private static final int HASH_NOT_FOUND = KEY_NOT_FOUND;
-
-    // In hash entries, not array positions (in general, capacities and sizes are always in entries)
-    public static final int DEFAULT_INITIAL_CAPACITY = 8;
+    static final int HASH_NOT_FOUND = KEY_NOT_FOUND;
 
     public static final float THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD = 0.75f;
-
-    public CompactHashStore() {
-        this(DEFAULT_INITIAL_CAPACITY);
-    }
-
-    // private non-allocating constructor for .copy(), not part of the interface
-    private CompactHashStore(int[] index, Object[] kvs, int kvStoreInsertionPos, int numSlotsForIndexRebuild) {
-        this.index = index;
-        this.kvStore = kvs;
-        this.kvStoreInsertionPos = kvStoreInsertionPos;
-        this.numSlotsForIndexRebuild = numSlotsForIndexRebuild;
-    }
 
     public CompactHashStore(int capacity) {
         if (capacity < 1 || capacity >= (1 << 28)) {
@@ -144,17 +130,27 @@ public final class CompactHashStore {
         // This way the initial load factor (for capacity entries) is between and 0.25 and 0.5.
         int indexCapacity = 2 * kvCapacity;
 
-        // All 0s by default, so all slots are marked empty for free
+        // All zeros by default, so all slots are marked empty for free
         this.index = new int[2 * indexCapacity];
         this.kvStore = new Object[2 * kvCapacity];
-        this.kvStoreInsertionPos = 0; // always increases by 2, never decreases
-        this.numSlotsForIndexRebuild = (int) (indexCapacity * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
+        this.kvStoreInsertionPos = 0;
+        this.indexGrowthThreshold = (int) (indexCapacity * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
     }
 
+    // private non-allocating constructor for .copy()
+    private CompactHashStore(int[] index, Object[] kvStore, int kvStoreInsertionPos, int indexGrowthThreshold) {
+        this.index = index;
+        this.kvStore = kvStore;
+        this.kvStoreInsertionPos = kvStoreInsertionPos;
+        this.indexGrowthThreshold = indexGrowthThreshold;
+    }
+
+    /** Rounds up powers of 2 themselves : 1 => 2, 2 => 4, 3 => 4, 4 => 8, ... */
     private static int roundUpwardsToNearestPowerOf2(int num) {
-        return Integer.highestOneBit(num) << 1; // rounds powers of 2 themselves : 1 => 2, 2 => 4, 3 => 4, 4 => 8, ...
+        return Integer.highestOneBit(num) << 1;
     }
 
+    // For promoting from packed to compact
     public void putHashKeyValue(int hashcode, Object key, Object value) {
         int pos = kvStoreInsertionPos;
         SetKvAtNode.insertIntoKv(this, key, value);
@@ -313,12 +309,12 @@ public final class CompactHashStore {
             @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
             @CachedLibrary("this") HashStoreLibrary hashlib,
             @Bind("$node") Node node) {
-        Object[] oldKvStore = kvStore;
-        int oldKvStoreInsertionPos = kvStoreInsertionPos;
+        Object[] oldKvStore = this.kvStore;
+        int oldKvStoreInsertionPos = this.kvStoreInsertionPos;
 
         this.kvStore = new Object[oldKvStore.length];
         this.kvStoreInsertionPos = 0;
-        this.index = new int[index.length];
+        this.index = new int[this.index.length];
         hash.size = 0;
 
         int i = 0;
@@ -401,7 +397,7 @@ public final class CompactHashStore {
     }
 
     private CompactHashStore copy() {
-        return new CompactHashStore(index.clone(), kvStore.clone(), kvStoreInsertionPos, numSlotsForIndexRebuild);
+        return new CompactHashStore(index.clone(), kvStore.clone(), kvStoreInsertionPos, indexGrowthThreshold);
     }
 
     /** @param hash a hash code
@@ -567,7 +563,7 @@ public final class CompactHashStore {
                 @Cached @Exclusive InlinedLoopConditionProfile indexSlotUnavailable,
                 @Bind("$node") Node node) {
             if (indexResizingIsNeeded.profile(node,
-                    hash.size >= store.numSlotsForIndexRebuild)) {
+                    hash.size >= store.indexGrowthThreshold)) {
                 resizeIndex(store, node);
             }
             if (kvResizingIsNeeded.profile(node,
@@ -612,7 +608,7 @@ public final class CompactHashStore {
 
                 insertIntoIndex(hash, kvPos, store.index, InlinedLoopConditionProfile.getUncached(), node);
             }
-            store.numSlotsForIndexRebuild = (int) (oldIndex.length * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
+            store.indexGrowthThreshold = (int) (oldIndex.length * THRESHOLD_LOAD_FACTOR_FOR_INDEX_REBUILD);
         }
 
         private static void resizeKvStore(CompactHashStore store) {
