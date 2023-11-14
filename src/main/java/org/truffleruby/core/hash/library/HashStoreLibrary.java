@@ -11,6 +11,7 @@ package org.truffleruby.core.hash.library;
 
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.hash.HashGuards;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
@@ -64,7 +65,7 @@ public abstract class HashStoreLibrary extends Library {
 
     /** Associates the key with the value and returns true only if the hash didn't contain the key before the operation
      * (i.e. returns false if and only if the key was already associated with any value). {@code byIdentity} indicates
-     * whether the key should be compared using Java identity,or using {@link SameOrEqlNode} semantics. */
+     * whether the key should be compared using {@link ReferenceEqualNode} or {@link SameOrEqlNode}. */
     @Abstract
     public abstract boolean set(Object store, RubyHash hash, Object key, Object value, boolean byIdentity);
 
@@ -99,8 +100,8 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract void replace(Object store, RubyHash hash, RubyHash dest);
 
-    /** Removes a key-value pair from the hash and returns it as the two-item array [key, value], or null if the hash is
-     * empty. */
+    /** Removes the first key-value pair in insertion order from the hash and returns it as the two-item array [key,
+     * value]. */
     @Abstract
     public abstract RubyArray shift(Object store, RubyHash hash);
 
