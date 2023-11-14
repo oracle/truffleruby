@@ -180,12 +180,16 @@ module Utilities
     ee?
   end
 
+  def graal_common_json
+    "#{GRAAL_DIR}/common.json"
+  end
+
   def jvmci_version
     @jvmci_version ||= begin
-      ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
+      common_json = File.read(graal_common_json)
       edition = ee_jdk? ? 'ee' : 'ce'
       regex = /"labsjdk-#{edition}-#{@jdk_version}":\s*\{\s*"name":\s*"labsjdk"\s*,\s*"version":\s*"[^"]+-(jvmci-[^"]+)"\s*,/
-      raise "JVMCI version not found for labsjdk-#{edition}-#{@jdk_version} in common.json" unless regex =~ ci
+      raise "JVMCI version not found for labsjdk-#{edition}-#{@jdk_version} in #{graal_common_json}" unless regex =~ common_json
       $1
     end
   end
@@ -592,6 +596,7 @@ module Utilities
         end
       end
       java_home ||= ENV['JAVA_HOME']
+      fix = 'Run `unset JAVA_HOME` and retry to automatically download the correct JDK.'
 
       if java_home
         java_home = File.realpath(java_home)
@@ -603,10 +608,10 @@ module Utilities
         if java_version_output.include?(jvmci_version)
           :use_env_java_home
         elsif java_version_output.include?('jvmci')
-          warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in common.json (#{jvmci_version})"
+          warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in #{graal_common_json} (#{jvmci_version}).\n#{fix}"
           :use_env_java_home
         else
-          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (`#{java_home}/bin/java -version` does not contain 'jvmci')"
+          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (`#{java_home}/bin/java -version` does not contain 'jvmci').\n#{fix}"
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
@@ -2329,7 +2334,7 @@ module Commands
   ruby2_keywords :cfg2asm if respond_to?(:ruby2_keywords, true)
 
   def igv
-    compiler = File.expand_path '../graal/compiler', TRUFFLERUBY_DIR
+    compiler = "#{GRAAL_DIR}/compiler"
     mx('igv', chdir: compiler)
   end
 
@@ -2358,7 +2363,7 @@ module Commands
         jdk_binaries = File.expand_path '../graal-enterprise/ci/jdk-binaries.json', TRUFFLERUBY_DIR
       end
       mx '-y', 'fetch-jdk',
-         '--configuration', "#{TRUFFLERUBY_DIR}/common.json",
+         '--configuration', graal_common_json,
          *(['--jdk-binaries', jdk_binaries] if jdk_binaries),
          '--java-distribution', jdk_name,
          '--to', JDKS_CACHE_DIR,
@@ -2468,7 +2473,9 @@ module Commands
   end
 
   private def sforceimports?(mx_base_args)
-    scheckimports_output = mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only', primary_suite: TRUFFLERUBY_DIR, capture: :both)
+    return true unless File.directory?(GRAAL_DIR)
+
+    scheckimports_output = mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only', java_home: :none, primary_suite: TRUFFLERUBY_DIR, capture: :both)
 
     unless scheckimports_output.empty?
       # Don't ask to update, just warn.
@@ -2537,14 +2544,14 @@ module Commands
     checkout_enterprise_revision(env) if cloned
 
     if options.delete('--sforceimports') || sforceimports?(mx_base_args)
-      mx('sforceimports', primary_suite: TRUFFLERUBY_DIR)
+      mx('sforceimports', java_home: :none, primary_suite: TRUFFLERUBY_DIR)
       if ee
         checkout_enterprise_revision(env) if !cloned
         # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
         vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
-        mx('--env', env_path(env), 'sforceimports', primary_suite: vm_enterprise)
+        mx('--env', env_path(env), 'sforceimports', java_home: :none, primary_suite: vm_enterprise)
         # And still make sure we import the graal revision as in mx.truffleruby/suite.py
-        mx('sforceimports', primary_suite: TRUFFLERUBY_DIR)
+        mx('sforceimports', java_home: :none, primary_suite: TRUFFLERUBY_DIR)
       end
     end
 
