@@ -23,7 +23,7 @@ jobs:
       run: echo "$PWD/bin" >> $GITHUB_PATH
 
     - name: Restore ~/.mx/cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.mx/cache
         key: mx-cache-lint-${{ runner.os }}-${{ hashFiles('common.json') }}
@@ -59,7 +59,7 @@ jobs:
       run: echo "$PWD/bin" >> $GITHUB_PATH
 
     - name: Restore ~/.mx/cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.mx/cache
         key: mx-cache-build-${{ runner.os }}-${{ hashFiles('build/common.json') }}
@@ -100,7 +100,7 @@ jobs:
         run: echo "$PWD/bin" >> $GITHUB_PATH
 
       - name: Restore ~/.mx/cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.mx/cache
           key: mx-cache-build-native-${{ runner.os }}-${{ hashFiles('build/common.json') }}
