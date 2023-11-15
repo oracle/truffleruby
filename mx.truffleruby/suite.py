@@ -223,7 +223,7 @@ suite = {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
             # "makeTarget": "all-no-debug", # Can use this to build without asserts
-            "results": ["build/librubyparser.a"],
+            "results": ["build/libprism.a"],
             "description": "YARP used as a static library"
         },
 
@@ -232,13 +232,13 @@ suite = {
             "native": "shared_lib",
             "deliverable": "yarp",
             "buildDependencies": [
-                "org.prism.libyarp", # librubyparser.a
+                "org.prism.libyarp", # libprism.a
                 "org.prism", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
             "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.prism.libyarp>/include"],
             "ldflags": ["-pthread"],
-            "ldlibs": ["<path:org.prism.libyarp>/build/librubyparser.a"],
+            "ldlibs": ["<path:org.prism.libyarp>/build/libprism.a"],
             "description": "JNI bindings for YARP"
         },
 
