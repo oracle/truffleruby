@@ -39,6 +39,7 @@ public enum ArgumentType {
     anonopt("opt", true),
     anonrest("rest", true),
     anonkeyrest("keyrest", true),
+    anonblock("block", true),
     nokey("nokey", true); // **nil
 
     ArgumentType(String symbolicName, boolean anonymous) {

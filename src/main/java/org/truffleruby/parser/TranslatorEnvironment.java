@@ -57,11 +57,11 @@ public final class TranslatorEnvironment {
     static final String DEFAULT_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "kwrest";
 
     /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_REST_NAME = Layouts.TEMP_PREFIX + "forward_rest";
+    public static final String FORWARDED_REST_NAME = Layouts.TEMP_PREFIX + "forward_rest";
     /** local variable name for ** parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "forward_kwrest";
+    public static final String FORWARDED_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "forward_kwrest";
     /** local variable name for & parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_BLOCK_NAME = Layouts.TEMP_PREFIX + "forward_block";
+    public static final String FORWARDED_BLOCK_NAME = Layouts.TEMP_PREFIX + "forward_block";
 
     /** A prefix for duplicated '_' local variables to build unique names */
     public static final String UNDERSCORE_PREFIX = "_$";
