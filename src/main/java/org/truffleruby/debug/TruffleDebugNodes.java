@@ -256,7 +256,7 @@ public abstract class TruffleDebugNodes {
 
     private static byte[] yarpSerialize(RubyLanguage language, byte[] source) {
         // TODO: load it once during context initialization (when YARP is used as the main parser)
-        Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
+        Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
         return Parser.parseAndSerialize(source);
     }
 
