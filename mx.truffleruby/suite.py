@@ -219,7 +219,7 @@ suite = {
             "ldflags": ["-pthread"],
         },
 
-        "org.prism.libyarp": {
+        "org.prism.libprism": {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
             # "makeTarget": "all-no-debug", # Can use this to build without asserts
@@ -230,15 +230,15 @@ suite = {
         "org.truffleruby.yarp.bindings": {
             "dir": "src/main/c/yarp_bindings",
             "native": "shared_lib",
-            "deliverable": "yarp",
+            "deliverable": "yarpbindings",
             "buildDependencies": [
-                "org.prism.libyarp", # libprism.a
+                "org.prism.libprism", # libprism.a
                 "org.prism", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.prism.libyarp>/include"],
+            "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.prism.libprism>/include"],
             "ldflags": ["-pthread"],
-            "ldlibs": ["<path:org.prism.libyarp>/build/libprism.a"],
+            "ldlibs": ["<path:org.prism.libprism>/build/libprism.a"],
             "description": "JNI bindings for YARP"
         },
 

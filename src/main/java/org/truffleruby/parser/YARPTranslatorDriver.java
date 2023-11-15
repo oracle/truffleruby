@@ -409,7 +409,7 @@ public final class YARPTranslatorDriver {
 
         // YARP begin
         byte[] sourceBytes = rubySource.getBytes();
-        org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarp" + Platform.LIB_SUFFIX);
+        org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
 
         var yarpSource = createYARPSource(sourceBytes, rubySource);
