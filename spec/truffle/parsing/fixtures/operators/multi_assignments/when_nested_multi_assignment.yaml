@@ -13,7 +13,7 @@ ast: |
           preNodes = [
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 2
+                      frameSlot = 2 # a
               MultipleAssignmentNode
                   attributes:
                       flags = 0
@@ -21,10 +21,10 @@ ast: |
                       preNodes = [
                           WriteFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 3
+                                  frameSlot = 3 # b
                           WriteFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 4
+                                  frameSlot = 4 # c
                       ]
                       splatCastNode =
                           SplatCastNodeGen
@@ -35,7 +35,7 @@ ast: |
                                   nilBehavior = ARRAY_WITH_NIL
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 5
+                      frameSlot = 5 # d
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

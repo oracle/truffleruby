@@ -47,7 +47,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -65,7 +65,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2
+                                          frameSlot = 2 # %forward_rest
                                       children:
                                           valueNode =
                                               ReadRestArgumentNode
@@ -78,7 +78,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 3 # %forward_kwrest
                                       children:
                                           valueNode =
                                               ReadKeywordRestArgumentNode

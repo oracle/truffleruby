@@ -54,7 +54,7 @@ ast: |
                                               flags = 0
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 2
+                      frameSlot = 2 # b
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

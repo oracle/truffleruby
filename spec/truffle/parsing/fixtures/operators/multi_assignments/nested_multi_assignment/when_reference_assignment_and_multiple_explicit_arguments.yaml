@@ -66,7 +66,7 @@ ast: |
                                                           flags = 0
                           WriteFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 2
+                                  frameSlot = 2 # b
                       ]
                       splatCastNode =
                           SplatCastNodeGen
@@ -77,7 +77,7 @@ ast: |
                                   nilBehavior = ARRAY_WITH_NIL
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 3
+                      frameSlot = 3 # c
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

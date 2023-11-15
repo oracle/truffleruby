@@ -49,7 +49,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -63,7 +63,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2
+                                          frameSlot = 2 # a
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -80,7 +80,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 3 # b
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -101,7 +101,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4
+                                          frameSlot = 4 # c
                                       children:
                                           valueNode =
                                               ReadRestArgumentNode
@@ -114,7 +114,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 6
+                                          frameSlot = 6 # f
                                       children:
                                           valueNode =
                                               ReadPostArgumentNode
@@ -126,7 +126,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 5
+                                          frameSlot = 5 # d
                                       children:
                                           valueNode =
                                               ReadPostArgumentNode

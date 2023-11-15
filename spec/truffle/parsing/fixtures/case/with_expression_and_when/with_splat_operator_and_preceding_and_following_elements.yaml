@@ -100,7 +100,7 @@ ast: |
                           ReadLocalVariableNode
                               attributes:
                                   flags = 0
-                                  frameSlot = 2
+                                  frameSlot = 2 # %case_0
                                   type = FRAME_LOCAL
                       ]
                       receiver =

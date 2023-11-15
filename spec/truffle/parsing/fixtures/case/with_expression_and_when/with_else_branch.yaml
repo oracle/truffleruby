@@ -34,7 +34,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 0
+                      frameSlot = 0 # (self)
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
@@ -48,7 +48,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2
+                      frameSlot = 2 # %case_0
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
@@ -76,7 +76,7 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
+                                              frameSlot = 2 # %case_0
                                               type = FRAME_LOCAL
                       elseBody =
                           IfElseNodeGen
@@ -100,7 +100,7 @@ ast: |
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 2
+                                                          frameSlot = 2 # %case_0
                                                           type = FRAME_LOCAL
                                   elseBody =
                                       StringLiteralNode

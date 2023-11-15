@@ -49,7 +49,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -67,7 +67,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2
+                                          frameSlot = 2 # a
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
@@ -80,7 +80,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3
+                                          frameSlot = 3 # b
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen

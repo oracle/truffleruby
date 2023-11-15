@@ -14,7 +14,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 0
+                      frameSlot = 0 # (self)
                   children:
                       valueNode =
                           ProfileArgumentNodeGen

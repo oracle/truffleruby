@@ -42,7 +42,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -65,7 +65,7 @@ ast: |
                                                       preNodes = [
                                                           WriteFrameSlotNodeGen
                                                               attributes:
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # a
                                                       ]
                                                       splatCastNode =
                                                           SplatCastNodeGen
@@ -76,7 +76,7 @@ ast: |
                                                                   nilBehavior = ARRAY_WITH_NIL
                                               WriteFrameSlotNodeGen
                                                   attributes:
-                                                      frameSlot = 3
+                                                      frameSlot = 3 # b
                                           ]
                                           rhsNode =
                                               ProfileArgumentNodeGen
@@ -100,7 +100,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4
+                                          frameSlot = 4 # c
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen

@@ -13,12 +13,12 @@ ast: |
           postNodes = [
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 3
+                      frameSlot = 3 # b
           ]
           preNodes = [
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 2
+                      frameSlot = 2 # a
           ]
           restNode =
               NoopAssignableNode

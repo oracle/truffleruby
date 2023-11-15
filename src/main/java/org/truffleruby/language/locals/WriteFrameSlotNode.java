@@ -35,6 +35,10 @@ public abstract class WriteFrameSlotNode extends RubyBaseNode implements Assigna
 
     public abstract void executeWrite(Frame frame, Object value);
 
+    public int getFrameSlot() {
+        return frameSlot;
+    }
+
     @Override
     public void assign(VirtualFrame frame, Object value) {
         executeWrite(frame, value);

@@ -51,7 +51,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -127,7 +127,7 @@ ast: |
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 0
-                                                                                                              frameSlot = 0
+                                                                                                              frameSlot = 0 # (self)
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   ProfileArgumentNodeGen
@@ -141,7 +141,7 @@ ast: |
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 1
-                                                                                                              frameSlot = 1
+                                                                                                              frameSlot = 1 # x
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   IntegerFixnumLiteralNode
@@ -164,13 +164,13 @@ ast: |
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
                                                                                                                                       flags = 0
-                                                                                                                                      frameSlot = 1
+                                                                                                                                      frameSlot = 1 # x
                                                                                                                                       type = FRAME_LOCAL
                                                                                                                           end =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
                                                                                                                                       flags = 0
-                                                                                                                                      frameSlot = 1
+                                                                                                                                      frameSlot = 1 # x
                                                                                                                                       type = FRAME_LOCAL
                                                                                                               thenBody =
                                                                                                                   IntegerFixnumLiteralNode
