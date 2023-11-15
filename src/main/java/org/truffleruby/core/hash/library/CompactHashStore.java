@@ -19,7 +19,6 @@ import java.util.Set;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayUtils;
@@ -112,7 +111,6 @@ public final class CompactHashStore {
      * <li>Offset == -1: Deleted, the data in the hash field and the offset field is NOT valid, but the slot was
      * occupied with valid data before.</li> */
     private static final int INDEX_SLOT_UNUSED = 0;
-    private static final int INDEX_SLOT_DELETED = -1;
 
     // Returned by methods doing array search which don't find what they are looking for
     static final int KEY_NOT_FOUND = -2;
@@ -333,7 +331,8 @@ public final class CompactHashStore {
     @ExportMessage
     boolean verify(RubyHash hash) {
         assert hash.store == this;
-        assert kvStoreInsertionPos > 0 && kvStoreInsertionPos < kvStore.length;
+        assert kvStoreInsertionPos > 0;
+        assert kvStoreInsertionPos <= kvStore.length;
         assert kvStoreInsertionPos % 2 == 0;
         assert kvStoreInsertionPos >= hash.size; // because deletes only decrease hash.size
 
@@ -348,24 +347,68 @@ public final class CompactHashStore {
         return true;
     }
 
-    @SuppressFBWarnings("IM_BAD_CHECK_FOR_ODD")
     private void assertAllKvPositionsAreValid() {
-        for (int i = 1; i < index.length; i += 2) {
-            if (index[i] != INDEX_SLOT_UNUSED && index[i] != INDEX_SLOT_DELETED) {
-                assert index[i] > 0;
-                assert index[i] < kvStoreInsertionPos;
-                assert index[i] % 2 == 1;
-                assert kvStore[index[i] - 1] != null;
+        boolean foundAtLeastOneUnusedSlot = false;
+        for (int indexPos = 0; indexPos < index.length; indexPos += 2) {
+            int valuePos = indexPosToValuePos(index, indexPos);
+            if (valuePos == INDEX_SLOT_UNUSED) {
+                foundAtLeastOneUnusedSlot = true;
+            }
+            if (valuePos != INDEX_SLOT_UNUSED) {
+                assert valuePos > 0;
+                assert valuePos < kvStoreInsertionPos;
+                assert (valuePos & 1) == 1;
+                int keyPos = valuePos - 1;
+                assert kvStore[keyPos] != null;
+                assert kvStore[valuePos] != null;
+
+                int hashCode = index[indexPos];
+                int startPos = indexPosFromHashCode(hashCode, index.length);
+                for (int i = startPos; i != indexPos; i = incrementIndexPos(i, index.length)) {
+                    assert indexPosToValuePos(index, i) > INDEX_SLOT_UNUSED;
+                }
             }
         }
+        assert foundAtLeastOneUnusedSlot;
     }
 
     private Object deleteKvAndGetV(RubyHash hash, int indexPos, int keyPos) {
         assert verify(hash);
 
-        Object deletedValue = kvStore[keyPos + 1];
+        // Remove the index slot, move entries following it to avoid tombstones which would make the code
+        // more complex, lookup slower and could fill the entire index array with tombstones,
+        // in which case lookup would become linear.
 
-        index[indexPos + 1] = INDEX_SLOT_DELETED;
+        // From https://en.wikipedia.org/wiki/Open_addressing#Example_pseudocode,
+        // https://stackoverflow.com/a/60709252/388803 and https://stackoverflow.com/a/60644631/388803
+
+        // First let's override this slot so in case nothing follows it is correctly marked as unused.
+        // An alternative would be to clear at reusePos after the loop but then the intermediate state is less clear.
+        index[indexPos] = 0;
+        index[indexPos + 1] = INDEX_SLOT_UNUSED;
+
+        int reusePos = indexPos; // i
+        int nextPos = incrementIndexPos(indexPos, index.length); // j
+        while (indexPosToValuePos(index, nextPos) != INDEX_SLOT_UNUSED) { // not found an unused slot
+            int hashCode = index[nextPos];
+            int startPos = indexPosFromHashCode(hashCode, index.length); // k
+            if (nextPos < reusePos ^ startPos <= reusePos ^ startPos > nextPos) {
+                // move the slot to the reuse slot and keep going
+                assert index[reusePos + 1] == INDEX_SLOT_UNUSED : "safe to move the slot to reuse slot";
+                index[reusePos] = index[nextPos];
+                index[reusePos + 1] = index[nextPos + 1];
+                index[nextPos] = 0;
+                index[nextPos + 1] = INDEX_SLOT_UNUSED;
+                reusePos = nextPos;
+            }
+
+            nextPos = incrementIndexPos(nextPos, index.length);
+            assert nextPos != indexPos;
+        }
+
+        // Remove the kvStore slot
+
+        Object deletedValue = kvStore[keyPos + 1];
 
         // TODO: Instead of naively nulling out the key-value, which can produce long gaps of nulls in the kvStore,
         //       See if we can annotate each gap with its length so that iteration code can "jump" over it
@@ -436,7 +479,6 @@ public final class CompactHashStore {
         @Specialization
         int findIndexPos(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore,
                 @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
-                @Cached @Exclusive InlinedConditionProfile notDeleted,
                 @Cached @Exclusive InlinedConditionProfile unused,
                 @Cached @Exclusive InlinedConditionProfile sameHash,
                 @Bind("$node") Node node) {
@@ -446,8 +488,7 @@ public final class CompactHashStore {
                 int valuePos = indexPosToValuePos(index, indexPos);
                 if (unused.profile(node, valuePos == INDEX_SLOT_UNUSED)) {
                     return KEY_NOT_FOUND;
-                } else if (notDeleted.profile(node, valuePos != INDEX_SLOT_DELETED) &&
-                        sameHash.profile(node, index[indexPos] == hash) &&
+                } else if (sameHash.profile(node, index[indexPos] == hash) &&
                         compareHashKeysNode.execute(compareByIdentity, key, kvStore[valuePos - 1])) { // keyPos == valuePos - 1
                     return indexPos;
                 }
@@ -467,21 +508,15 @@ public final class CompactHashStore {
         @Specialization
         int findIndexPos(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore,
                 @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
-                @Cached @Exclusive InlinedConditionProfile deleted,
                 @Cached @Exclusive InlinedConditionProfile unused,
                 @Cached @Exclusive InlinedConditionProfile sameHash,
                 @Bind("$node") Node node) {
             int startPos = indexPosFromHashCode(hash, index.length);
             int indexPos = startPos;
-            int insertionPos = -1;
             while (true) {
                 int valuePos = indexPosToValuePos(index, indexPos);
                 if (unused.profile(node, valuePos == INDEX_SLOT_UNUSED)) {
-                    return insertionPos != -1 ? insertionPos : indexPos;
-                } else if (deleted.profile(node, valuePos == INDEX_SLOT_DELETED)) {
-                    if (insertionPos == -1) {
-                        insertionPos = indexPos;
-                    }
+                    return indexPos;
                 } else {
                     int keyPos = valuePos - 1;
                     if (sameHash.profile(node, index[indexPos] == hash) &&
@@ -502,7 +537,6 @@ public final class CompactHashStore {
 
         @Specialization
         int getHashNextPos(int startingFromPos, int hash, int[] index, int stop,
-                @Cached @Exclusive InlinedConditionProfile slotIsNotDeleted,
                 @Cached @Exclusive InlinedConditionProfile slotIsUnused,
                 @Cached @Exclusive InlinedConditionProfile hashFound,
                 @Cached @Exclusive InlinedLoopConditionProfile stopNotYetReached,
@@ -514,10 +548,8 @@ public final class CompactHashStore {
                     return HASH_NOT_FOUND;
                 }
 
-                if (slotIsNotDeleted.profile(node, index[nextHashPos + 1] != INDEX_SLOT_DELETED)) {
-                    if (hashFound.profile(node, index[nextHashPos] == hash)) {
-                        return nextHashPos;
-                    }
+                if (hashFound.profile(node, index[nextHashPos] == hash)) {
+                    return nextHashPos;
                 }
 
                 nextHashPos = incrementIndexPos(nextHashPos, index.length);
@@ -625,7 +657,6 @@ public final class CompactHashStore {
         @TruffleBoundary
         private static void resizeIndex(CompactHashStore store, Node node) {
             int[] oldIndex = store.index;
-            // TODO: doubling size is not good if many deletes
             int[] newIndex = new int[2 * oldIndex.length];
             int newIndexCapacity = newIndex.length >> 1;
 
