@@ -1456,7 +1456,8 @@ public abstract class ModuleNodes {
         @Specialization
         RubyModule initialize(RubyModule module, RubyProc block,
                 @Cached ClassExecBlockNode classExecBlockNode) {
-            classExecBlockNode.execute(this, NoKeywordArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
+            classExecBlockNode.execute(this, NoKeywordArgumentsDescriptor.INSTANCE, module, new Object[]{ module },
+                    block);
             return module;
         }
 

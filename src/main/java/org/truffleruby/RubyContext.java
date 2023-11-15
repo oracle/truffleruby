@@ -339,7 +339,8 @@ public final class RubyContext {
                     .getSourceSection()
                     .getSource();
             TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
-            ProcOperations.rootCall((RubyProc) proc, NoKeywordArgumentsDescriptor.INSTANCE, RubyBaseNode.EMPTY_ARGUMENTS);
+            ProcOperations.rootCall((RubyProc) proc, NoKeywordArgumentsDescriptor.INSTANCE,
+                    RubyBaseNode.EMPTY_ARGUMENTS);
             TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
         Metrics.printTime("after-run-delayed-initialization");
