@@ -2272,9 +2272,15 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         for (var node : parametersNode.keywords) {
-            var keywordParameterNode = (Nodes.KeywordParameterNode) node;
-            var type = (keywordParameterNode.value == null) ? ArgumentType.keyreq : ArgumentType.key;
-            var descriptor = new ArgumentDescriptor(type, keywordParameterNode.name);
+            final ArgumentDescriptor descriptor;
+
+            if (node instanceof Nodes.RequiredKeywordParameterNode required) {
+                descriptor = new ArgumentDescriptor(ArgumentType.keyreq, required.name);
+            } else if (node instanceof Nodes.OptionalKeywordParameterNode optional) {
+                descriptor = new ArgumentDescriptor(ArgumentType.key, optional.name);
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
 
             descriptors.add(descriptor);
         }
@@ -2319,13 +2325,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             final List<String> optionalKeywords = new ArrayList<>();
 
             for (var node : parametersNode.keywords) {
-                final var keywordParameterNode = (Nodes.KeywordParameterNode) node;
-                final String name = keywordParameterNode.name;
-
-                if (keywordParameterNode.value == null) {
-                    requiredKeywords.add(name);
+                if (node instanceof Nodes.RequiredKeywordParameterNode required) {
+                    requiredKeywords.add(required.name);
+                } else if (node instanceof Nodes.OptionalKeywordParameterNode optional) {
+                    optionalKeywords.add(optional.name);
                 } else {
-                    optionalKeywords.add(name);
+                    throw CompilerDirectives.shouldNotReachHere();
                 }
             }
 

@@ -11,7 +11,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_prism_Parser_parseAndSerialize(JNIEnv *env
   pm_buffer_t buffer;
   pm_buffer_init(&buffer);
 
-  pm_parse_serialize((uint8_t*) bytes, size, &buffer, NULL);
+  pm_serialize_parse(&buffer, (uint8_t*) bytes, size, NULL);
 
   free(bytes);
 

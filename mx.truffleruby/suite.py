@@ -224,6 +224,11 @@ suite = {
             "dir": "src/main/c/yarp",
             # "makeTarget": "all-no-debug", # Can use this to build without asserts
             "results": ["build/librubyparser.a"],
+            "buildEnv": {
+                # system clang on macOS Mojave warns+errors for `mystruct s = { 0 };` when there are struct fields.
+                # newer compiler do not warn for this.
+                "EXTRA_CFLAGS": "-Wno-missing-braces",
+            },
             "description": "YARP used as a static library"
         },
 
