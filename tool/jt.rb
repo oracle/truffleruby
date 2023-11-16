@@ -186,6 +186,7 @@ module Utilities
 
   def jvmci_version
     @jvmci_version ||= begin
+      sforceimports unless File.directory?(GRAAL_DIR)
       common_json = File.read(graal_common_json)
       edition = ee_jdk? ? 'ee' : 'ce'
       regex = /"labsjdk-#{edition}-#{@jdk_version}":\s*\{\s*"name":\s*"labsjdk"\s*,\s*"version":\s*"[^"]+-(jvmci-[^"]+)"\s*,/
@@ -2512,6 +2513,10 @@ module Commands
     end
   end
 
+  def sforceimports
+    mx('sforceimports', java_home: :none, primary_suite: TRUFFLERUBY_DIR)
+  end
+
   private def build_graalvm(*options)
     raise 'use --env jvm-ce instead' if options.delete('--graal')
     raise 'use --env native instead' if options.delete('--native')
@@ -2547,14 +2552,14 @@ module Commands
     checkout_enterprise_revision(env) if cloned
 
     if options.delete('--sforceimports') || sforceimports?(mx_base_args)
-      mx('sforceimports', java_home: :none, primary_suite: TRUFFLERUBY_DIR)
+      sforceimports
       if ee
         checkout_enterprise_revision(env) if !cloned
         # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
         vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
         mx('--env', env_path(env), 'sforceimports', java_home: :none, primary_suite: vm_enterprise)
         # And still make sure we import the graal revision as in mx.truffleruby/suite.py
-        mx('sforceimports', java_home: :none, primary_suite: TRUFFLERUBY_DIR)
+        sforceimports
       end
     end
 

@@ -2,6 +2,11 @@ name: 'Install JVMCI, set JAVA_HOME and clone Graal'
 runs:
   using: "composite"
   steps:
+    - name: Clone Graal
+      run: jt sforceimports
+      shell: bash
+      working-directory: ${{ github.action_path }}
+
     - name: Install JVMCI
       run: jt install jvmci
       shell: bash
@@ -9,10 +14,5 @@ runs:
 
     - name: Set JAVA_HOME
       run: echo "JAVA_HOME=$(jt install jvmci)" >> $GITHUB_ENV
-      shell: bash
-      working-directory: ${{ github.action_path }}
-
-    - name: Clone Graal
-      run: jt mx sforceimports
       shell: bash
       working-directory: ${{ github.action_path }}
