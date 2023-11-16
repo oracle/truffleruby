@@ -368,6 +368,7 @@ local part_definitions = {
     },
 
     test_cexts_sulong: {
+      mx_env:: "toolchain",
       environment+: {
         TRUFFLERUBYOPT: "--experimental-options --cexts-sulong",
       },

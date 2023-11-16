@@ -119,8 +119,6 @@ module RbConfig
   cext_dir = "#{prefix}/lib/cext"
   soext = Truffle::Platform::SOEXT
 
-  toolchain_path = Truffle::Boot.toolchain_paths(:PATH)
-
   # Make C extensions use the same libssl as the one used for the openssl C extension
   if Truffle::Platform.darwin?
     require 'truffle/openssl-prefix'
@@ -225,7 +223,6 @@ module RbConfig
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
-    'toolchain_path'    => toolchain_path,
     'UNICODE_VERSION'   => Primitive.encoding_unicode_version,
     'UNICODE_EMOJI_VERSION' => Primitive.encoding_unicode_emoji_version,
     'warnflags'         => warnflags,

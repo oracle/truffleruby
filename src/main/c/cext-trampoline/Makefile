@@ -7,10 +7,6 @@ else
 SOEXT := so
 endif
 
-# cc should be enough to compile this library but might produce different warnings based on the system compiler.
-# If that is the case and fails the build, it might be better to use instead:
-# CC := $(GRAALVM_TOOLCHAIN_CC)
-
 # Similar values as in RbConfig
 ifeq ($(OS),Darwin)
 CC := clang
