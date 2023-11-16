@@ -21,14 +21,12 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.source.Source;
 import org.graalvm.collections.Pair;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
-import org.truffleruby.interop.InteropNodes;
-import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -45,7 +43,6 @@ import org.truffleruby.shared.Metrics;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
@@ -268,46 +265,25 @@ public abstract class RequireNode extends RubyBaseNode {
                         .info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
-            library = featureLoader.loadCExtLibrary(feature, expandedPath, currentNode);
+            library = featureLoader.loadCExtLibrary(feature, expandedPath, currentNode,
+                    getContext().getOptions().CEXTS_SULONG);
         } catch (Exception e) {
             handleCExtensionException(feature, e);
             throw e;
         }
 
-        final String initFunctionName = "Init_" + getBaseName(expandedPath);
-        final Object initFunction = featureLoader.findFunctionInLibrary(library, initFunctionName, expandedPath);
-
-        final InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
-        if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, currentNode));
-        }
-
         requireMetric("before-execute-" + feature);
-        ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
         var currentFiber = getLanguage().getCurrentFiber();
 
+        ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
         var prevGlobals = currentFiber.cGlobalVariablesDuringInitFunction;
         currentFiber.cGlobalVariablesDuringInitFunction = createEmptyArray();
-        currentFiber.extensionCallStack.push(false, nil, nil);
         try {
-            InteropNodes
-                    .execute(
-                            null,
-                            initFunction,
-                            ArrayUtils.EMPTY_ARRAY,
-                            initFunctionInteropLibrary,
-                            TranslateInteropExceptionNodeGen.getUncached());
+            RubyContext.send(currentNode, coreLibrary().truffleCExtModule, "init_extension", library, expandedPath);
         } finally {
-            try {
-                DispatchNode.getUncached().call(coreLibrary().truffleCExtModule, "resolve_registered_addresses");
-            } finally {
-                currentFiber.extensionCallStack.pop();
-                currentFiber.cGlobalVariablesDuringInitFunction = prevGlobals;
-                ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
-                requireMetric("after-execute-" + feature);
-            }
+            currentFiber.cGlobalVariablesDuringInitFunction = prevGlobals;
+            ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
+            requireMetric("after-execute-" + feature);
         }
     }
 
@@ -368,17 +344,6 @@ public abstract class RequireNode extends RubyBaseNode {
         }
 
         return null;
-    }
-
-    @TruffleBoundary
-    private String getBaseName(String path) {
-        final String name = new File(path).getName();
-        final int firstDot = name.indexOf('.');
-        if (firstDot == -1) {
-            return name;
-        } else {
-            return name.substring(0, firstDot);
-        }
     }
 
     public boolean isFeatureLoaded(Object feature) {

@@ -120,6 +120,10 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
             '--disable-gems',
             '--disable-rubyopt',
         ]
+        trufflerubyopt = os.environ.get("TRUFFLERUBYOPT")
+        if trufflerubyopt and '--cexts-sulong' in trufflerubyopt:
+            ruby_options.append('--cexts-sulong')
+
         command = [jdk.java] + jvm_args + ['-m', 'org.graalvm.ruby.launcher/' + main_class] + ruby_options + ['"$@"']
         return "#!/usr/bin/env bash\n" + "exec " + " ".join(command) + "\n"
 

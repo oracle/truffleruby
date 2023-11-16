@@ -37,7 +37,10 @@ find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
 
 # *.c
-cp ../ruby/st.c src/main/c/cext/st.c
+cp ../ruby/st.c src/main/c/cext
+cp ../ruby/st.c src/main/c/cext-trampoline
+cp ../ruby/missing/strlcpy.c src/main/c/cext
+cp ../ruby/missing/strlcpy.c src/main/c/cext-trampoline
 
 # Copy Ruby files in ext/, sorted alphabetically
 cp -R ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri

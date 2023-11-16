@@ -111,8 +111,6 @@ public final class Options {
     public final boolean CEXT_LOCK;
     /** --cexts-prepend-toolchain-to-path=true */
     public final boolean CEXTS_PREPEND_TOOLCHAIN_TO_PATH;
-    /** --keep-handles-alive=false */
-    public final boolean CEXTS_KEEP_HANDLES_ALIVE;
     /** --options-log=false */
     public final boolean OPTIONS_LOG;
     /** --log-load=false */
@@ -171,6 +169,10 @@ public final class Options {
     public final boolean CEXTS_TO_NATIVE_COUNT;
     /** --backtraces-to-native=false */
     public final boolean BACKTRACE_ON_TO_NATIVE;
+    /** --keep-handles-alive=false */
+    public final boolean CEXTS_KEEP_HANDLES_ALIVE;
+    /** --cexts-sulong=false */
+    public final boolean CEXTS_SULONG;
     /** --basic-ops-log-rewrite=false */
     public final boolean BASICOPS_LOG_REWRITE;
     /** --array-small=3 */
@@ -254,7 +256,6 @@ public final class Options {
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
         CEXTS_PREPEND_TOOLCHAIN_TO_PATH = options.get(OptionsCatalog.CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY);
-        CEXTS_KEEP_HANDLES_ALIVE = options.get(OptionsCatalog.CEXTS_KEEP_HANDLES_ALIVE_KEY);
         OPTIONS_LOG = options.get(OptionsCatalog.OPTIONS_LOG_KEY);
         LOG_LOAD = options.get(OptionsCatalog.LOG_LOAD_KEY);
         LOG_AUTOLOAD = options.get(OptionsCatalog.LOG_AUTOLOAD_KEY);
@@ -284,6 +285,8 @@ public final class Options {
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
         CEXTS_TO_NATIVE_COUNT = options.hasBeenSet(OptionsCatalog.CEXTS_TO_NATIVE_COUNT_KEY) ? options.get(OptionsCatalog.CEXTS_TO_NATIVE_COUNT_KEY) : CEXTS_TO_NATIVE_STATS;
         BACKTRACE_ON_TO_NATIVE = options.get(OptionsCatalog.BACKTRACE_ON_TO_NATIVE_KEY);
+        CEXTS_KEEP_HANDLES_ALIVE = options.get(OptionsCatalog.CEXTS_KEEP_HANDLES_ALIVE_KEY);
+        CEXTS_SULONG = options.get(OptionsCatalog.CEXTS_SULONG_KEY);
         BASICOPS_LOG_REWRITE = options.get(OptionsCatalog.BASICOPS_LOG_REWRITE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
@@ -393,8 +396,6 @@ public final class Options {
                 return CEXT_LOCK;
             case "ruby.cexts-prepend-toolchain-to-path":
                 return CEXTS_PREPEND_TOOLCHAIN_TO_PATH;
-            case "ruby.keep-handles-alive":
-                return CEXTS_KEEP_HANDLES_ALIVE;
             case "ruby.options-log":
                 return OPTIONS_LOG;
             case "ruby.log-load":
@@ -453,6 +454,10 @@ public final class Options {
                 return CEXTS_TO_NATIVE_COUNT;
             case "ruby.backtraces-to-native":
                 return BACKTRACE_ON_TO_NATIVE;
+            case "ruby.keep-handles-alive":
+                return CEXTS_KEEP_HANDLES_ALIVE;
+            case "ruby.cexts-sulong":
+                return CEXTS_SULONG;
             case "ruby.basic-ops-log-rewrite":
                 return BASICOPS_LOG_REWRITE;
             case "ruby.array-small":

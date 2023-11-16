@@ -1415,7 +1415,7 @@ module Commands
 
   ALL_CEXTS_TESTS = %w[
     tools postinstallhook
-    minimum method module globals backtraces xopenssl werror stripped
+    minimum module method globals backtraces xopenssl werror stripped
     oily_png psd_native
     puma sqlite3 unf_ext json grpc RubyInline msgpack
   ]
@@ -1442,13 +1442,16 @@ module Commands
         # Test tools
         run_ruby 'test/truffle/cexts/test_preprocess.rb'
 
-      when 'minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl', 'werror', 'stripped'
+      when 'minimum', 'module', 'method', 'globals', 'backtraces', 'xopenssl', 'werror', 'stripped'
         # Test that we can compile and run some very basic C extensions
+        output_file = 'cext-output.txt'
+        dir = "test/truffle/cexts/#{test_name}"
+        cextc(dir)
+        script = "#{dir}/bin/#{test_name}"
+        # bin/backtraces relies on being run with an absolute path for __FILE__
+        script = "#{TRUFFLERUBY_DIR}/#{script}" if test_name == 'backtraces'
+        run_ruby "-I#{dir}/lib", script, out: output_file
         begin
-          output_file = 'cext-output.txt'
-          dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{test_name}"
-          cextc(dir)
-          run_ruby "-I#{dir}/lib", "#{dir}/bin/#{test_name}", out: output_file
           actual = File.read(output_file)
           expected_file = "#{dir}/expected.txt"
           expected = File.read(expected_file)
@@ -3093,7 +3096,7 @@ module Commands
 
     # Lint
     rubocop if changed['.rb']
-    sh 'tool/lint.sh' if changed['.c']
+    sh ruby_running_jt_env, 'tool/c-linter.rb' if changed['.c']
     checkstyle(changed['.java']) if changed['.java']
     command_format(changed['.java']) if changed['.java']
     shellcheck if changed['.sh'] or changed['.inc']
@@ -3122,7 +3125,7 @@ module Commands
     end
   end
 
-  ABI_VERSION_FILE = 'lib/cext/ABI_version.txt'
+  ABI_VERSION_FILE = 'lib/cext/include/truffleruby/truffleruby-abi-version.h'
   ABI_CHECK_FILE = 'lib/cext/ABI_check.txt'
 
   def check_abi(fail: true)
@@ -3139,6 +3142,7 @@ module Commands
       src/main/c/cext/extconf.rb
       src/main/c/cext/*.{c,h}
     ].flat_map { |pattern| Dir[pattern].sort }
+    abi_files.delete ABI_VERSION_FILE
 
     changed_abi_files = changed_files & abi_files
     unless changed_abi_files.empty?

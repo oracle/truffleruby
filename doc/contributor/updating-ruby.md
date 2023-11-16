@@ -142,7 +142,7 @@ Also update the list of `provided_executables` in `mx_truffleruby.py` if some la
 Update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
-* Reset `lib/cext/ABI_version.txt` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
+* Reset `truffleruby-abi-version.h` to `$RUBY_VERSION.1` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
 * Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems | sort`, `ls -l lib/gems/specifications/default` and `grep 'VERSION =' lib/mri/rubygems.rb`)
 * Also update version numbers for `debug` and `rbs` in `src/main/c/Makefile` and in `mx.truffleruby/suite.py`.
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)

@@ -14,6 +14,10 @@
 
 // Symbol and ID, rb_sym*, rb_id*
 
+bool rb_tr_symbol_p(VALUE obj) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("SYMBOL_P", obj));
+}
+
 static VALUE string_for_symbol(VALUE name) {
   if (!RB_TYPE_P(name, T_STRING)) {
     VALUE tmp = rb_check_string_type(name);
@@ -94,9 +98,9 @@ VALUE rb_sym_to_s(VALUE sym) {
   return RUBY_INVOKE(sym, "to_s");
 }
 
-#undef rb_sym2id
+// TODO: rb_tr_sym2id() has a single call site since native cexts, the one below, so the inline cache in it is global.
 ID rb_sym2id(VALUE sym) {
-  return rb_tr_sym2id(sym);;
+  return rb_tr_sym2id(sym);
 }
 
 #undef rb_id2sym
@@ -155,7 +159,7 @@ static int rb_sym_constant_char_p(const char *name, long nlen, rb_encoding *enc)
       static const UChar cname[] = "titlecaseletter";
       static const UChar *const end = cname + sizeof(cname) - 1;
 #ifdef TRUFFLERUBY
-      rb_tr_error("ONIGENC_PROPERTY_NAME_TO_CTYPE not yet implemented");
+      rb_tr_not_implemented("ONIGENC_PROPERTY_NAME_TO_CTYPE");
 #else
       ctype_titlecase = ONIGENC_PROPERTY_NAME_TO_CTYPE(enc, cname, end);
 #endif

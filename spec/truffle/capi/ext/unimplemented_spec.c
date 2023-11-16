@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 static VALUE unimplemented_spec_not_implemented(VALUE self, VALUE str) {
-  // One of the functions not implemented in ruby.c
+  // One of the functions not implemented
   rb_str_shared_replace(str, str);
   return Qnil;
 }

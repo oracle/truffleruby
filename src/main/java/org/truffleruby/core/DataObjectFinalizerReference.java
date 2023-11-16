@@ -11,20 +11,23 @@ package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
 
-import org.truffleruby.cext.DataHolder;
+import org.truffleruby.core.ReferenceProcessingService.PhantomProcessingReference;
 
-public class DataObjectFinalizerReference
+public final class DataObjectFinalizerReference
         extends
-        ReferenceProcessingService.PhantomProcessingReference<DataObjectFinalizerReference, Object> {
+        PhantomProcessingReference<DataObjectFinalizerReference, Object> {
 
-    public final DataHolder dataHolder;
+    public final Object finalizerCFunction;
+    public final Object dataStruct;
 
     DataObjectFinalizerReference(
             Object object,
             ReferenceQueue<? super Object> queue,
             DataObjectFinalizationService service,
-            DataHolder dataHolder) {
+            Object finalizerCFunction,
+            Object dataStruct) {
         super(object, queue, service);
-        this.dataHolder = dataHolder;
+        this.finalizerCFunction = finalizerCFunction;
+        this.dataStruct = dataStruct;
     }
 }

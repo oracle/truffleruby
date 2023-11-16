@@ -140,8 +140,10 @@ typedef struct rb_io_t {
     /** The IO's Ruby level counterpart. */
     VALUE self;
 
+#ifndef TRUFFLERUBY
     /** stdio ptr for read/write, if available. */
     FILE *stdio_file;
+#endif
 
     /** file descriptor. */
     int fd;
@@ -149,15 +151,18 @@ typedef struct rb_io_t {
     /** mode flags: FMODE_XXXs */
     int mode;
 
+#ifndef TRUFFLERUBY
     /** child's pid (for pipes) */
     rb_pid_t pid;
 
     /** number of lines read */
     int lineno;
+#endif
 
     /** pathname for file */
     VALUE pathv;
 
+#ifndef TRUFFLERUBY
     /** finalize proc */
     void (*finalize)(struct rb_io_t*,int);
 
@@ -169,6 +174,7 @@ typedef struct rb_io_t {
      * ::rb_io_t::cbuf, which also concerns read IO.
      */
     rb_io_buffer_t rbuf;
+#endif
 
     /**
      * Duplex IO object, if set.
@@ -177,6 +183,7 @@ typedef struct rb_io_t {
      */
     VALUE tied_io_for_writing;
 
+#ifndef TRUFFLERUBY
     struct rb_io_enc_t encs; /**< Decomposed encoding flags. */
 
     /** Encoding converter used when reading from this IO. */
@@ -227,6 +234,7 @@ typedef struct rb_io_t {
      * The timeout associated with this IO when performing blocking operations.
      */
     VALUE timeout;
+#endif
 } rb_io_t;
 
 /** @alias{rb_io_enc_t} */
@@ -354,8 +362,8 @@ typedef struct rb_io_enc_t rb_io_enc_t;
  * @post        `fp` holds `obj`'s underlying IO.
  */
 #ifdef TRUFFLERUBY
-POLYGLOT_DECLARE_STRUCT(rb_io_t)
-#define RB_IO_POINTER(obj,fp) rb_io_check_closed((fp) = polyglot_as_rb_io_t(RUBY_CEXT_INVOKE_NO_WRAP("GetOpenFile", obj)))
+rb_io_t* rb_tr_io_get_rb_io_t(VALUE io);
+#define RB_IO_POINTER(obj,fp) rb_io_check_closed((fp) = rb_tr_io_get_rb_io_t(rb_io_taint_check(obj)))
 #else
 #define RB_IO_POINTER(obj,fp) rb_io_check_closed((fp) = RFILE(rb_io_taint_check(obj))->fptr)
 #endif

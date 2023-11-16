@@ -30,6 +30,6 @@ describe "TruffleRuby C-ext lock" do
   end
 
   it "is released inside rb_funcall" do
-    @t.has_lock_in_rb_funcall?(Truffle::CExt).should == false
+    @t.has_lock_in_rb_funcall?.should == false
   end
 end

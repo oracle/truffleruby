@@ -23,24 +23,32 @@ char* ruby_strdup(const char *str) {
   return tmp;
 }
 
-VALUE rb_string_value(VALUE *value_pointer) {
-  return rb_tr_string_value(value_pointer);
+VALUE rb_string_value(volatile VALUE *ptr) {
+  VALUE value = *ptr;
+  if (!RB_TYPE_P(value, T_STRING)) {
+    value = rb_str_to_str(value);
+    *ptr = value;
+  }
+  return value;
 }
 
-char *rb_string_value_ptr(VALUE *value_pointer) {
-  return rb_tr_string_value_ptr(value_pointer);
+char *rb_string_value_ptr(volatile VALUE *ptr) {
+  VALUE string = rb_string_value(ptr);
+  return RSTRING_PTR(string);
 }
 
-char *rb_string_value_cstr(VALUE *value_pointer) {
-  return rb_tr_string_value_cstr(value_pointer);
+char *rb_string_value_cstr(volatile VALUE *ptr) {
+  VALUE string = rb_string_value(ptr);
+  RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
+  return RSTRING_PTR(string);
 }
 
-char *RSTRING_PTR_IMPL(VALUE string) {
-  return NATIVE_RSTRING_PTR(string);
+char* rb_tr_rstring_ptr(VALUE string) {
+  return (char*) polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string));
 }
 
-char *RSTRING_END_IMPL(VALUE string) {
-  return NATIVE_RSTRING_PTR(string) + RSTRING_LEN(string);
+char* rb_tr_rstring_end(VALUE string) {
+  return rb_tr_rstring_ptr(string) + RSTRING_LEN(string);
 }
 
 int rb_tr_str_len(VALUE string) {

@@ -14,12 +14,67 @@
 
 // IO, rb_io_*
 
+typedef struct {
+  struct RFile rfile;
+  rb_io_t io_struct;
+} RFile_and_rb_io_t;
+
+static inline int rb_tr_io_raw_descriptor(VALUE io) {
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_io_descriptor", io));
+}
+
 int rb_io_descriptor(VALUE io) {
-  int fd = polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_io_descriptor", io));
+  int fd = rb_tr_io_raw_descriptor(io);
   if (fd < 0) {
     rb_raise(rb_eIOError, "closed stream");
   }
   return fd;
+}
+
+int rb_io_mode(VALUE io) {
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_io_mode", io));
+}
+
+VALUE rb_io_path(VALUE io) {
+  return RUBY_CEXT_INVOKE("rb_io_path", io);
+}
+
+static RFile_and_rb_io_t* get_RFile_and_rb_io_t(VALUE io) {
+  RFile_and_rb_io_t* pointer = RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_io_pointer", io);
+  if (!polyglot_is_null(pointer)) {
+    return pointer;
+  }
+
+  pointer = polyglot_invoke(RUBY_CEXT, "new_memory_pointer", sizeof(RFile_and_rb_io_t));
+  rb_io_t* fptr = &pointer->io_struct;
+  fptr->self = io;
+  fptr->fd = rb_tr_io_raw_descriptor(io);
+  fptr->mode = rb_io_mode(io);
+  fptr->pathv = rb_io_path(io);
+  VALUE write_io = rb_io_get_write_io(io);
+  fptr->tied_io_for_writing = (write_io != io) ? write_io : Qfalse;
+
+  pointer->rfile.fptr = fptr;
+
+  polyglot_invoke(RUBY_CEXT, "rb_tr_io_attach_pointer", rb_tr_unwrap(io), pointer);
+
+  return pointer;
+}
+
+rb_io_t* rb_tr_io_get_rb_io_t(VALUE io) {
+  return &get_RFile_and_rb_io_t(io)->io_struct;
+}
+
+struct RFile* rb_tr_io_get_rfile(VALUE io) {
+  return &get_RFile_and_rb_io_t(io)->rfile;
+}
+
+static inline int rb_tr_readable(int mode) {
+  return mode & FMODE_READABLE;
+}
+
+static inline int rb_tr_writable(int mode) {
+  return mode & FMODE_WRITABLE;
 }
 
 void rb_io_check_writable(rb_io_t *io) {
@@ -209,6 +264,10 @@ VALUE rb_io_close(VALUE io) {
   return RUBY_INVOKE(io, "close");
 }
 
+VALUE rb_io_gets(VALUE io) {
+  return RUBY_INVOKE(io, "gets");
+}
+
 VALUE rb_io_print(int argc, const VALUE *argv, VALUE out) {
   return RUBY_CEXT_INVOKE("rb_io_print", out, rb_ary_new4(argc, argv));
 }
@@ -227,6 +286,14 @@ VALUE rb_io_write(VALUE io, VALUE str) {
 
 VALUE rb_io_binmode(VALUE io) {
   return RUBY_INVOKE(io, "binmode");
+}
+
+VALUE rb_io_flush(VALUE io) {
+  return RUBY_INVOKE(io, "flush");
+}
+
+VALUE rb_io_get_write_io(VALUE io) {
+  return RUBY_CEXT_INVOKE("rb_io_get_write_io", io);
 }
 
 int rb_thread_fd_writable(int fd) {
@@ -251,14 +318,6 @@ VALUE rb_file_open_str(VALUE fname, const char *modestr) {
 
 VALUE rb_get_path(VALUE object) {
   return RUBY_INVOKE(rb_cFile, "path", object);
-}
-
-int rb_tr_readable(int mode) {
-  return mode & FMODE_READABLE;
-}
-
-int rb_tr_writable(int mode) {
-  return mode & FMODE_WRITABLE;
 }
 
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
@@ -293,7 +352,7 @@ void rb_io_set_nonblock(rb_io_t *fptr) {
 
 // For 'gem install curb'
 FILE *rb_io_stdio_file(rb_io_t *fptr) {
-  rb_tr_error("rb_io_stdio_file not yet implemented");
+  rb_tr_not_implemented("rb_io_stdio_file");
 }
 
 VALUE rb_lastline_get(void) {
@@ -304,3 +363,6 @@ void rb_lastline_set(VALUE str) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_lastline_set", str);
 }
 
+VALUE rb_io_getbyte(VALUE io) {
+  return RUBY_INVOKE(io, "getbyte");
+}

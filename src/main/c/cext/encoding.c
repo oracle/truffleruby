@@ -111,6 +111,11 @@ void rb_enc_set_index(VALUE obj, int idx) {
   polyglot_invoke(RUBY_CEXT, "rb_enc_set_index", rb_tr_unwrap(obj), idx);
 }
 
+int rb_enc_alias(const char *alias, const char *orig) {
+  VALUE enc = RUBY_CEXT_INVOKE("rb_enc_alias", rb_str_new_cstr(alias), rb_str_new_cstr(orig));
+  return rb_enc_get_index(enc);
+}
+
 rb_encoding* rb_ascii8bit_encoding(void) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("ascii8bit_encoding"));
 }
@@ -366,14 +371,6 @@ VALUE rb_enc_str_new_static(const char *ptr, long len, rb_encoding *enc) {
   return string;
 }
 
-void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  VALUE mesg = rb_enc_vsprintf(enc, fmt, args);
-  va_end(args);
-  rb_exc_raise(rb_exc_new_str(exc, mesg));
-}
-
 #define castchar(from) (char)((from) & 0xff)
 
 int rb_uv_to_utf8(char buf[6], unsigned long uv) {
@@ -471,7 +468,7 @@ static int char_to_option(int c) {
   return val;
 }
 
-extern int rb_char_to_option_kcode(int c, int *option, int *kcode) {
+int rb_char_to_option_kcode(int c, int *option, int *kcode) {
   *option = 0;
 
   switch (c) {

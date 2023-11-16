@@ -12,8 +12,8 @@
 
 // Integer, rb_integer_*, rb_*int*, rb_big_*
 
-bool RB_FIXNUM_P(VALUE value) {
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FIXNUM_P", value));
+bool rb_tr_integer_type_p(VALUE obj) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_integer_type_p", obj));
 }
 
 VALUE rb_Integer(VALUE value) {
@@ -120,7 +120,7 @@ VALUE rb_int_positive_pow(long x, unsigned long y) {
 
 // Needed to gem install cbor
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
-  rb_tr_error("rb_integer_unpack not implemented");
+  rb_tr_not_implemented("rb_integer_unpack");
 }
 
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
@@ -136,7 +136,7 @@ size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
 }
 
 int rb_big_sign(VALUE x) {
-  return RTEST(RUBY_INVOKE(x, ">=", INT2FIX(0))) ? 1 : 0;
+  return RTEST(RUBY_CEXT_INVOKE("rb_big_sign", x)) ? 1 : 0;
 }
 
 int rb_cmpint(VALUE val, VALUE a, VALUE b) {
@@ -144,7 +144,7 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
-  return RUBY_INVOKE(x, "<=>", y);
+  return RUBY_CEXT_INVOKE("rb_big_cmp", x, y);
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {

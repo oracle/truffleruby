@@ -82,7 +82,6 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.LazyWarningNode;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -293,7 +292,7 @@ public abstract class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached InlinedConditionProfile ownedProfile) {
-            final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+            Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
@@ -2072,71 +2071,4 @@ public abstract class CExtNodes {
         }
     }
 
-    @Primitive(name = "data_holder_create")
-    public abstract static class DataHolderCreate extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        DataHolder create(Object address, Object marker, Object free) {
-            return new DataHolder(address, marker, free);
-        }
-    }
-
-    @Primitive(name = "data_holder_get_data")
-    public abstract static class DataHolderGetData extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        Object getData(DataHolder data) {
-            return data.getPointer();
-        }
-    }
-
-    @Primitive(name = "data_holder_set_data")
-    public abstract static class DataHolderSetData extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        Object setData(DataHolder data, Object address) {
-            data.setPointer(address);
-            return nil;
-        }
-    }
-
-    @Primitive(name = "data_holder_get_marker")
-    public abstract static class DataHolderGetMarker extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        Object getMarker(DataHolder data) {
-            return data.getMarker();
-        }
-
-        @Specialization // For Truffle::CExt#run_marker
-        Object getMarker(Nil data) {
-            return data;
-        }
-    }
-
-    @Primitive(name = "data_holder_get_free")
-    public abstract static class DataHolderGetFree extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        Object getFree(DataHolder data) {
-            return data.getFree();
-        }
-    }
-
-    @Primitive(name = "data_holder_set_free")
-    public abstract static class DataHolderSetFree extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        Object setFree(DataHolder data, Object dfree) {
-            data.setFree(dfree);
-            return dfree;
-        }
-    }
-
-    @Primitive(name = "data_holder_is_holder?")
-    public abstract static class DataHolderIsHolder extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        boolean setData(Object dataHolder) {
-            return dataHolder instanceof DataHolder;
-        }
-    }
 }

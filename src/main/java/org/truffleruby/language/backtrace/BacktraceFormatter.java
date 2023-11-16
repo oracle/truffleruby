@@ -26,10 +26,10 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.RubySource;
 
@@ -137,7 +137,8 @@ public final class BacktraceFormatter {
                     "get_formatted_backtrace",
                     exceptionObject);
             final String formatted = fullMessage != null
-                    ? RubyGuards.getJavaString(fullMessage)
+                    // Use toJavaStringUncached() instead of RubyGuards.getJavaString() here so it still shows something if BINARY encoding and there are non-ASCII bytes
+                    ? RubyStringLibrary.getUncached().getTString(fullMessage).toJavaStringUncached()
                     : "<no message>";
             if (formatted.endsWith("\n")) {
                 printer.print(formatted);

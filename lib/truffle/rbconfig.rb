@@ -41,6 +41,8 @@ module RbConfig
   raise 'The TruffleRuby home needs to be set to require RbConfig' unless ruby_home
   TOPDIR = ruby_home
 
+  sulong = Truffle::Boot.get_option('cexts-sulong')
+
   host_os = Truffle::System.host_os
   host_cpu = Truffle::System.host_cpu
   host_vendor = 'unknown'
@@ -52,7 +54,7 @@ module RbConfig
   ruby_install_name = 'truffleruby'
   ruby_base_name = 'ruby'
 
-  ruby_abi_version = Truffle::GemUtil.abi_version
+  ruby_abi_version = Truffle::GemUtil::ABI_VERSION
 
   arch = "#{host_cpu}-#{host_os}"
   libs = ''
@@ -60,29 +62,56 @@ module RbConfig
 
   prefix = ruby_home
   rubyhdrdir = "#{prefix}/lib/cext/include"
+  cflags_pre = ''
 
-  ar = Truffle::Boot.toolchain_executable(:AR)
-  cc = Truffle::Boot.toolchain_executable(:CC)
-  cxx = Truffle::Boot.toolchain_executable(:CXX)
-  ranlib = Truffle::Boot.toolchain_executable(:RANLIB)
-  strip = Truffle::Boot.toolchain_executable(:STRIP)
+  if sulong
+    ar = Truffle::Boot.toolchain_executable(:AR)
+    cc = Truffle::Boot.toolchain_executable(:CC)
+    cxx = Truffle::Boot.toolchain_executable(:CXX)
+    ranlib = Truffle::Boot.toolchain_executable(:RANLIB)
+    strip = Truffle::Boot.toolchain_executable(:STRIP)
 
-  strip = "#{strip} --keep-section=.llvmbc" unless Truffle::Platform.darwin?
+    strip = "#{strip} --keep-section=.llvmbc" unless Truffle::Platform.darwin?
+    gcc, clang = false, true
+  else
+    if Truffle::Platform.linux?
+      ar = 'gcc-ar'
+      cc = 'gcc' # -std=gnu99 ?
+      cxx = 'g++'
+      ranlib = 'gcc-ranlib'
+      strip = 'strip -S -x'
+      gcc, clang = true, false
+    elsif Truffle::Platform.darwin?
+      ar = 'ar'
+      cc = 'clang'
+      cxx = 'clang++'
+      ranlib = 'ranlib'
+      # We add -x here, `strip -A -n` always fails, like `error: symbols referenced by indirect symbol table entries that can't be stripped` even on CRuby.
+      # This is notably necessary for grpc where the current logic does not append -x for TruffleRuby:
+      # https://github.com/grpc/grpc/blob/54f65e0dbd2151a3ba2ad364327c0c31b200a5ae/src/ruby/ext/grpc/extconf.rb#L125-L126
+      strip = 'strip -A -n -x'
+      gcc, clang = false, true
+      cflags_pre = '-fdeclspec '
+    else
+      raise 'Unknown platform'
+    end
+  end
 
   # Determine the various flags for native compilation
-  optflags = ''
-  debugflags = ''
+  optflags = sulong ? '' : '-O3 -fno-fast-math'
+  debugflags = sulong ? '' : '-ggdb3'
   warnflags = [
     '-Werror=implicit-function-declaration', # https://bugs.ruby-lang.org/issues/18615
     '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
     '-Wno-int-to-pointer-cast',        # Same as above
     '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
-    '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
     '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
-    '-ferror-limit=500'
   ]
+  warnflags << '-Wno-format-invalid-specifier' if clang # Our PRIsVALUE generates this because compilers ignore printf extensions
+  # TODO fix it, happens in openssl
+  warnflags << '-Wno-discarded-qualifiers' if gcc
 
-  defs = "-DTRUFFLERUBY_ABI_VERSION=#{ruby_abi_version}"
+  defs = ''
   cppflags = ''
   ldflags = ''
   dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup' : ''
@@ -107,6 +136,7 @@ module RbConfig
   # Set extra flags needed for --building-core-cexts
   if Truffle::Boot.get_option 'building-core-cexts'
     libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{soext}"
+    libtrufflerubytrampoline = "#{ruby_home}/src/main/c/cext-trampoline/libtrufflerubytrampoline.#{soext}"
 
     relative_debug_paths = " -fdebug-prefix-map=#{ruby_home}=."
     cppflags << relative_debug_paths
@@ -115,10 +145,11 @@ module RbConfig
     warnflags << '-Werror' # Make sure there are no warnings in core C extensions
   else
     libtruffleruby = "#{cext_dir}/libtruffleruby.#{soext}"
+    libtrufflerubytrampoline = "#{cext_dir}/libtrufflerubytrampoline.#{soext}"
   end
 
   # We do not link to libtruffleruby here to workaround GR-29448
-  librubyarg = '-lgraalvm-llvm'
+  librubyarg = ''
 
   warnflags = warnflags.join(' ')
 
@@ -166,6 +197,7 @@ module RbConfig
     'LIBRUBY_SO'        => "cext/libtruffleruby.#{soext}",
     'LIBS'              => libs,
     'libtruffleruby'    => libtruffleruby,
+    'libtrufflerubytrampoline' => libtrufflerubytrampoline,
     'MAKEDIRS'          => 'mkdir -p',
     'MKDIR_P'           => 'mkdir -p',
     'NULLCMD'           => ':',
@@ -267,14 +299,14 @@ module RbConfig
   mkconfig['LDSHAREDXX'] = "$(CXX) #{ldshared_flags}"
 
   cflags = \
-  expanded['cflags'] = "#{optflags} #{debugflags} #{warnflags}"
-  mkconfig['cflags'] = '$(optflags) $(debugflags) $(warnflags)'
+  expanded['cflags'] = "#{cflags_pre}#{optflags} #{debugflags} #{warnflags}"
+  mkconfig['cflags'] = "#{cflags_pre}$(optflags) $(debugflags) $(warnflags)"
   expanded['CFLAGS'] = cflags
   mkconfig['CFLAGS'] = '$(cflags)'
 
   cxxflags = \
-  expanded['cxxflags'] = "#{optflags} #{debugflags} #{warnflags}"
-  mkconfig['cxxflags'] = '$(optflags) $(debugflags) $(warnflags)'
+  expanded['cxxflags'] = "#{cflags_pre}#{optflags} #{debugflags}"
+  mkconfig['cxxflags'] = "#{cflags_pre}$(optflags) $(debugflags)"
   expanded['CXXFLAGS'] = cxxflags
   mkconfig['CXXFLAGS'] = '$(cxxflags)'
   cppflags_hardcoded = Truffle::Platform.darwin? ? ' -D_DARWIN_C_SOURCE' : ''

@@ -172,6 +172,10 @@ VALUE rb_uint2inum(uintptr_t n) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", n));
 }
 
+VALUE rb_uint2big(uintptr_t i) {
+  return rb_uint2inum(i);
+}
+
 VALUE rb_ll2inum(LONG_LONG n) {
   /* Long and long long are both 64-bits with clang x86-64. */
   return LONG2NUM(n);
@@ -226,10 +230,6 @@ long rb_big2long(VALUE x) {
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_num2long", x));
 }
 
-VALUE rb_big2str(VALUE x, int base) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(x), "to_s", base));
-}
-
 unsigned long rb_big2ulong(VALUE x) {
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_num2ulong", x));
 }
@@ -256,6 +256,10 @@ VALUE rb_str2inum(VALUE string, int base) {
 
 VALUE rb_fix2str(VALUE x, int base) {
   return RUBY_CEXT_INVOKE("rb_fix2str", x, INT2FIX(base));
+}
+
+VALUE rb_big2str(VALUE x, int base) {
+  return rb_fix2str(x, base);
 }
 
 VALUE rb_to_int(VALUE object) {

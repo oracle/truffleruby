@@ -283,6 +283,7 @@ VALUE rb_tr_rarray_aref(VALUE array, long index);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
+#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -312,7 +313,6 @@ RARRAY_EMBED_LEN(VALUE ary)
     return RBIMPL_CAST((long)f);
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 /**
  * Queries the length of the array.

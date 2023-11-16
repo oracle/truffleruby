@@ -21,13 +21,13 @@ describe "Calling a method needing the caller frame" do
     }.should raise_error(RuntimeError, 'Kernel#binding needs the caller frame but it was not passed (cannot be called directly from a foreign language)')
   end
 
-  it "using rb_funcall() yields the Binding of rb_funcall()" do
+  it "using rb_funcall() yields the Binding of rb_funcallv()" do
     caller_variable = nil
     binding = @s.call_binding_rb_funcall
     binding.should be_kind_of(Binding)
 
     # On CRuby it would instead return the Binding of the caller Ruby frame
-    binding.local_variables.should.include?(:args)
+    binding.local_variables.should.include?(:argv)
     binding.local_variables.should_not.include?(:caller_variable)
 
     caller_variable.should == nil

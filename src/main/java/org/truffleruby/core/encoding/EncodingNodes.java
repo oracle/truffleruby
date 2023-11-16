@@ -37,6 +37,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -507,6 +508,16 @@ public abstract class EncodingNodes {
                         Encodings.getBuiltInEncoding(entry.value.getEncoding()));
             }
             return nil;
+        }
+    }
+
+    @Primitive(name = "encoding_define_alias")
+    public abstract static class DefineAliasNode extends PrimitiveArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization
+        RubyEncoding defineAlias(RubyEncoding encoding, RubySymbol aliasName) {
+            getContext().getEncodingManager().defineAlias(encoding.jcoding, aliasName.getString());
+            return encoding;
         }
     }
 

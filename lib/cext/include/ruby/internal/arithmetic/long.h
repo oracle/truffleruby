@@ -106,10 +106,8 @@ int rb_long2int(long value);
 #endif
 RBIMPL_SYMBOL_EXPORT_END()
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
-#endif
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * Converts a C's `long` into an instance of ::rb_cInteger.
@@ -231,10 +229,7 @@ rbimpl_right_shift_is_arithmetic_p(void)
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
-#endif
-
 /**
  * Converts a Fixnum into C's `long`.
  *
@@ -245,16 +240,12 @@ RBIMPL_ATTR_CONSTEXPR_UNLESS_DEBUG(CXX14)
 static inline long
 rb_fix2long(VALUE x)
 {
-#ifdef TRUFFLERUBY
-    return ((long)polyglot_as_i64(rb_tr_unwrap(x)));
-#else
     if /* constexpr */ (rbimpl_right_shift_is_arithmetic_p()) {
         return rbimpl_fix2long_by_shift(x);
     }
     else {
         return rbimpl_fix2long_by_idiv(x);
     }
-#endif
 }
 
 RBIMPL_ATTR_CONST_UNLESS_DEBUG()
@@ -344,11 +335,7 @@ rb_ulong2num_inline(unsigned long v)
     if (RB_POSFIXABLE(v))
         return RB_LONG2FIX(v);
     else
-#ifdef TRUFFLERUBY
-        return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ulong2num", (long) v));
-#else
         return rb_uint2big(v);
-#endif
 }
 
 /**

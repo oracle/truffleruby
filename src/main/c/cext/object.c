@@ -18,6 +18,13 @@ enum ruby_value_type rb_type(VALUE value) {
   return RBIMPL_CAST((enum ruby_value_type) int_type);
 }
 
+struct RBasicWithFlags {
+  VALUE flags;
+  struct RBasic _basic;
+};
+
+#define RB_BUILTIN_TYPE_NATIVE(x) RBIMPL_CAST((enum ruby_value_type) (((struct RBasicWithFlags*)(x))->flags & RUBY_T_MASK))
+
 bool RB_TYPE_P(VALUE value, enum ruby_value_type type) {
   if (value == Qundef) {
     return 0;
@@ -31,14 +38,14 @@ bool RB_TYPE_P(VALUE value, enum ruby_value_type type) {
   return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_TYPE_P", rb_tr_unwrap(value), type));
 }
 
-bool rb_tr_special_const_p(VALUE object) {
+bool rb_tr_special_const_symbol_p(VALUE object) {
   // Ripper calls this from add_mark_object
   // Cannot unwrap a natively-allocated NODE*
   if (rb_tr_is_native_object(object)) {
     return false;
   }
 
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_special_const_p", object));
+  return rb_tr_symbol_p(object);
 }
 
 void rb_check_type(VALUE value, int type) {
@@ -108,7 +115,7 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
 }
 
 VALUE rb_obj_clone(VALUE obj) {
-  return rb_funcall(obj, rb_intern("clone"), 0);
+  return RUBY_INVOKE(obj, "clone");
 }
 
 VALUE rb_obj_dup(VALUE object) {

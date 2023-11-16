@@ -89,7 +89,8 @@ constants = [
     IO::WaitReadable,
     IO::WaitWritable,
     [ZeroDivisionError, 'ZeroDivError'],
-    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'Fatal'],
+    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'rb_eFatal'],
+    ['$0', 'rb_argv0']
 ].map do |const|
   if const.is_a?(Array)
     value, name = const
@@ -103,19 +104,20 @@ constants = [
     end
   end
 
-  expr = value.to_s
-
-  if (value.is_a?(Class) && value <= Exception) or name == 'Fatal'
-    tag = 'rb_e'
-  elsif value.is_a?(Class)
-    tag = 'rb_c'
-  elsif value.is_a?(Module)
-    tag = 'rb_m'
-  else
-    raise value.inspect
+  unless value.is_a?(String)
+    if value.is_a?(Class) && value <= Exception
+      tag = 'rb_e'
+    elsif value.is_a?(Class)
+      tag = 'rb_c'
+    elsif value.is_a?(Module)
+      tag = 'rb_m'
+    else
+      raise value.inspect
+    end
+    name = "#{tag}#{name}"
   end
 
-  name = "#{tag}#{name}"
+  expr = value.to_s
 
   [name, expr]
 end
@@ -143,15 +145,20 @@ COPYRIGHT
   end
 
   f.puts
-  f.puts "void rb_tr_init_global_constants(void) {"
+  f.puts "void rb_tr_init_global_constants(VALUE (*get_constant)(const char*)) {"
   constants.each do |name, expr|
-    f.puts "  #{name} = RUBY_CEXT_INVOKE(\"#{name}\");"
+    f.puts "  #{name} = get_constant(\"#{name}\");"
   end
   f.puts "}"
 end
 
+File.write "src/main/c/cext-trampoline/cext_constants.c",
+  File.read("src/main/c/cext/cext_constants.c").sub('rb_tr_init_global_constants', 'rb_tr_trampoline_init_global_constants')
+
 File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|
   f.puts <<COPYRIGHT
+# frozen_string_literal: true
+
 # #{copyright} and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:

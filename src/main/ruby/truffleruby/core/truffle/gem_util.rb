@@ -81,6 +81,8 @@ module Truffle::GemUtil
 
   MARKER_NAME = 'truffleruby_gem_dir_marker.txt'
 
+  ABI_VERSION = -Truffle::Boot.read_abi_version if Truffle::Boot.ruby_home
+
   def self.upgraded_default_gem?(feature)
     if i = feature.index('/')
       first_component = feature[0...i]
@@ -145,7 +147,7 @@ module Truffle::GemUtil
       data_home = (ENV['XDG_DATA_HOME'] || "#{user_home}/.local/share")
       gem_dir = "#{data_home}/gem"
     end
-    user_dir = "#{gem_dir}/truffleruby/#{abi_version}"
+    user_dir = "#{gem_dir}/truffleruby/#{ABI_VERSION}"
 
     # From Gem.default_dir, overridden in lib/truffle/rubygems/defaults/truffleruby.rb
     default_dir = "#{Truffle::Boot.ruby_home}/lib/gems"
@@ -170,10 +172,6 @@ module Truffle::GemUtil
     end
 
     paths.map { |path| expand(path) }.uniq
-  end
-
-  def self.abi_version
-    @abi_version ||= "#{RUBY_VERSION}.#{Truffle::Boot.basic_abi_version}".freeze
   end
 
   def self.expand(path)

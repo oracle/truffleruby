@@ -19,13 +19,15 @@ RUBY := $(TRUFFLERUBY_BOOTSTRAP_LAUNCHER)
 
 TRUFFLE_POSIX := truffleposix/libtruffleposix.$(SOEXT)
 SPAWN_HELPER := spawn-helper/spawn-helper
+TRAMPOLINE := cext-trampoline/libtrufflerubytrampoline.$(SOEXT)
 
 RUBY_HEADERS := $(shell find $(ROOT)/lib/cext/include -name '*.h')
-ABI_VERSION := $(ROOT)/lib/cext/ABI_version.txt
+CEXT_C_FILES := $(shell find cext -name '*.c')
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 LIBTRUFFLERUBY = cext/libtruffleruby.$(SOEXT)
-BASIC_EXTCONF_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(ABI_VERSION) $(RBCONFIG) $(MKMF)
+BASIC_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS)
+BASIC_EXTCONF_DEPS := $(BASIC_DEPS) $(RBCONFIG) $(MKMF)
 # C extensions link against libtruffleruby (and might do have_func() checks against it), so it needs to be there before.
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
@@ -42,15 +44,18 @@ RBS_GEM_LIB_SO := $(RBS_GEM)/lib/rbs_extension.$(DLEXT)
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
-all: $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
+all: $(TRAMPOLINE) $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
 			psych/psych.$(DLEXT) ripper/ripper.$(DLEXT) syslog/syslog.$(DLEXT) nkf/nkf.$(DLEXT) \
 			bigdecimal/bigdecimal.$(DLEXT) date/date_core.$(DLEXT) io-console/console.$(DLEXT) etc/etc.$(DLEXT) \
 			rbconfig-sizeof/sizeof.$(DLEXT) $(DEBUG_GEM_LIB_SO) $(RBS_GEM_LIB_SO)
 
-clean: clean_cexts clean_truffleposix
+clean: clean_cexts clean_truffleposix clean_trampoline
 
 clean_truffleposix:
 	$(Q) rm -f $(TRUFFLE_POSIX) truffleposix/*.o
+
+clean_trampoline:
+	$(Q) rm -f $(TRAMPOLINE) cext-trampoline/trampoline.c cext/wrappers.c cext-trampoline/*.o
 
 clean_cexts:
 	$(Q) rm -f cext/Makefile cext/*.o $(LIBTRUFFLERUBY)
@@ -76,9 +81,16 @@ $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
 $(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
 	$(Q) cd truffleposix && $(MAKE)
 
-# libtruffleruby
-cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
-	$(Q) cd cext && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+# cext-trampoline
+cext-trampoline/trampoline.c: $(CEXT_C_FILES) $(BASIC_DEPS) $(ROOT)/tool/generate-cext-trampoline.rb
+	$(Q) cd $(ROOT) && $(RUBY) tool/generate-cext-trampoline.rb
+
+$(TRAMPOLINE): cext-trampoline/Makefile cext-trampoline/trampoline.c cext-trampoline/*.c Makefile
+	$(Q) cd cext-trampoline && $(MAKE)
+
+# libtruffleruby, must be compiled with the GraalVM LLVM Toolchain as it needs to run on Sulong
+cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS) $(TRAMPOLINE)
+	$(Q) cd cext && $(RUBY) --experimental-options --cexts-sulong extconf.rb || $(IF_EXTCONF_FAIL)
 
 $(LIBTRUFFLERUBY): cext/Makefile cext/*.c cext/*.h
 	$(Q) cd cext && $(MAKE)

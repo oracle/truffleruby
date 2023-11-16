@@ -100,6 +100,11 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 3)
  */
 void rb_raise(VALUE exc, const char *fmt, ...);
 
+#ifdef TRUFFLERUBY
+RBIMPL_ATTR_NORETURN()
+void rb_tr_fatal_va_list(const char *fmt, va_list args);
+#endif
+
 RBIMPL_ATTR_NORETURN()
 RBIMPL_ATTR_NONNULL((1))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
@@ -112,7 +117,21 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  * @exception  rb_eFatal  An exception that you cannot rescue.
  * @note       It never returns.
  */
+#ifdef TRUFFLERUBY
+static inline void rb_fatal(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    rb_tr_fatal_va_list(fmt, args);
+    va_end(args);
+}
+#else
 void rb_fatal(const char *fmt, ...);
+#endif
+
+#ifdef TRUFFLERUBY
+RBIMPL_ATTR_NORETURN()
+void rb_tr_bug_va_list(const char *fmt, va_list args);
+#endif
 
 RBIMPL_ATTR_COLD()
 RBIMPL_ATTR_NORETURN()
@@ -134,7 +153,16 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
  * @note       It never returns.
  */
+#ifdef TRUFFLERUBY
+static inline void rb_bug(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    rb_tr_bug_va_list(fmt, args);
+    va_end(args);
+}
+#else
 void rb_bug(const char *fmt, ...);
+#endif
 
 RBIMPL_ATTR_NORETURN()
 RBIMPL_ATTR_NONNULL(())
@@ -469,6 +497,10 @@ VALUE *rb_ruby_debug_ptr(void);
  */
 #define ruby_debug   (*rb_ruby_debug_ptr())
 
+#ifdef TRUFFLERUBY
+void rb_tr_warn_va_list(const char *fmt, va_list args);
+#endif
+
 /* reports if `-W' specified */
 RBIMPL_ATTR_NONNULL((1))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
@@ -491,7 +523,18 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  *
  * Above description is in fact inaccurate.  This API interfaces with Ractors.
  */
+#ifdef TRUFFLERUBY
+static inline void rb_warning(const char *fmt, ...) {
+    if (RTEST(ruby_verbose)) {
+        va_list args;
+        va_start(args, fmt);
+        rb_tr_warn_va_list(fmt, args);
+        va_end(args);
+    }
+}
+#else
 void rb_warning(const char *fmt, ...);
+#endif
 
 RBIMPL_ATTR_NONNULL((2))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 3)
@@ -537,7 +580,18 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  *
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
  */
+#ifdef TRUFFLERUBY
+static inline void rb_warn(const char *fmt, ...) {
+    if (!NIL_P(ruby_verbose)) {
+        va_list args;
+        va_start(args, fmt);
+        rb_tr_warn_va_list(fmt, args);
+        va_end(args);
+    }
+}
+#else
 void rb_warn(const char *fmt, ...);
+#endif
 
 RBIMPL_ATTR_COLD()
 RBIMPL_ATTR_NONNULL((2))

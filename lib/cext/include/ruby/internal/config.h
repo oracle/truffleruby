@@ -56,6 +56,11 @@
 #  define HAVE_VA_ARGS_MACRO
 # else
 #  /* NG, not known. */
+// Always define HAVE_VA_ARGS_MACRO on TruffleRuby, as it leads to cleaner macros and more optimizations:
+// clang++ on macOS Ventura has __cplusplus defined as 199711 but it supports newer standards like c++11
+#ifdef TRUFFLERUBY
+#define HAVE_VA_ARGS_MACRO
+#endif
 # endif
 #endif
 
@@ -155,7 +160,7 @@
 #endif
 
 #define TRUFFLERUBY
-// Loaded at the end of config.h, included from defines.h. Needs STRINGIZE().
+// Loaded at the end of config.h, included from defines.h.
 #include <truffleruby/truffleruby-pre.h>
 
 #endif /* RBIMPL_CONFIG_H */

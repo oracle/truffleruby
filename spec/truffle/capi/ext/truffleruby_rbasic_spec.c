@@ -15,21 +15,21 @@
 extern "C" {
 #endif
 
-VALUE rbasic_spec_finalize_flag(VALUE self) {
+static VALUE rbasic_spec_finalize_flag(VALUE self) {
   return INT2FIX(RUBY_FL_FINALIZE);
 }
 
-VALUE rbasic_spec_promoted_flag(VALUE self) {
+static VALUE rbasic_spec_promoted_flag(VALUE self) {
   return INT2FIX(RUBY_FL_PROMOTED);
 }
 
-VALUE rbasic_spec_get_flags(VALUE self, VALUE val) {
-  return INT2FIX(RBASIC(val)->flags);
+static VALUE rbasic_spec_get_flags(VALUE self, VALUE obj) {
+  return INT2FIX(RBASIC_FLAGS(obj));
 }
 
-VALUE rbasic_spec_set_flags(VALUE self, VALUE val, VALUE flags) {
-  RBASIC(val)->flags = FIX2INT(flags);
-  return INT2FIX(RBASIC(val)->flags);
+static VALUE rbasic_spec_set_flags(VALUE self, VALUE obj, VALUE flags) {
+  RBASIC_SET_FLAGS(obj, FIX2INT(flags));
+  return INT2FIX(RBASIC_FLAGS(obj));
 }
 
 void Init_truffleruby_rbasic_spec(void) {

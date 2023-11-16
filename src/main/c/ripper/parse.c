@@ -1077,7 +1077,7 @@ void
 rb_strterm_mark(VALUE obj)
 {
     rb_strterm_t *strterm = (rb_strterm_t*)obj;
-    if (RBASIC(obj)->flags & STRTERM_HEREDOC) {
+    if (RBASIC_FLAGS(obj) & STRTERM_HEREDOC) {
 	rb_strterm_heredoc_t *heredoc = &strterm->u.heredoc;
 	rb_gc_mark(heredoc->lastline);
     }
@@ -21633,7 +21633,11 @@ const_decl_path(struct parser_params *p, NODE **dest)
     return n;
 }
 
+#ifdef TRUFFLERUBY
+#define rb_mRubyVMFrozenCore Qnil
+#else
 extern VALUE rb_mRubyVMFrozenCore;
+#endif
 
 static NODE *
 make_shareable_node(struct parser_params *p, NODE *value, bool copy, const YYLTYPE *loc)

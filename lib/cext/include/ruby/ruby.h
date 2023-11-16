@@ -108,7 +108,6 @@ VALUE rb_get_path_no_checksafe(VALUE);
 #define FilePathStringValue(v) ((v) = rb_get_path(v))
 
 /** @cond INTERNAL_MACRO */
-#ifndef TRUFFLERUBY
 #if defined(HAVE_BUILTIN___BUILTIN_CONSTANT_P) && defined(HAVE_STMT_AND_DECL_IN_EXPR)
 # define rb_varargs_argc_check_runtime(argc, vargc) \
     (((argc) <= (vargc)) ? (argc) : \
@@ -133,7 +132,6 @@ ERRORFUNC((" argument length doesn't match"), int rb_varargs_bad_length(int,int)
 #   define rb_varargs_argc_check(argc, vargc) \
         rb_varargs_argc_check_runtime(argc, vargc)
 # endif
-#endif
 #endif
 /** @endcond */
 
@@ -278,9 +276,15 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 3, 0)
 int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
 
 /** @cond INTERNAL_MACRO */
+// TruffleRuby: enable this optimization in all cases,
+// by commenting/nesting the below checks under `#ifndef TRUFFLERUBY`/`#endif`.
+#ifndef TRUFFLERUBY
 #if RBIMPL_HAS_WARNING("-Wgnu-zero-variadic-macro-arguments")
 # /* Skip it; clang -pedantic doesn't like the following */
 #elif defined(__GNUC__) && defined(HAVE_VA_ARGS_MACRO) && defined(__OPTIMIZE__)
+#endif
+#endif
+#if 1 /* always enabled on TruffleRuby */
 # define rb_yield_values(argc, ...) \
 __extension__({ \
         const int rb_yield_values_argc = (argc); \

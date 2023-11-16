@@ -27,12 +27,15 @@ require 'mkmf'
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
 
-# Add internal files in include path, st.c needs some of them
+# Add internal files in include path, lib/cext/include/internal_all.h needs them
 $INCFLAGS << ' -I$(top_srcdir)'
+
+# libtruffleruby is executed on Sulong
+$LIBS << ' -lgraalvm-llvm'
 
 # libruby depends on librt on Linux, and C extensions like date rely on that because they then
 # automatically depend on librt (e.g., for clock_gettime).
-$LIBS << '-lrt' if Truffle::Platform.linux?
+$LIBS << ' -lrt' if Truffle::Platform.linux?
 
 if Truffle::Platform.darwin?
   # Set the install_name of libtruffleruby on macOS, so mkmf executables linking to it

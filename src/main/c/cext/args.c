@@ -11,6 +11,8 @@
 #include <internal.h>
 #include <internal/hash.h>
 
+#include <ctype.h> // isdigit
+
 // Parsing Ruby arguments from C functions
 
 static VALUE rb_keyword_error_new(const char *error, VALUE keys) {
@@ -31,11 +33,13 @@ static VALUE rb_keyword_error_new(const char *error, VALUE keys) {
   return rb_exc_new_str(rb_eArgError, error_message);
 }
 
-NORETURN(static void rb_keyword_error(const char *error, VALUE keys)) {
+RBIMPL_ATTR_NORETURN()
+static void rb_keyword_error(const char *error, VALUE keys) {
   rb_exc_raise(rb_keyword_error_new(error, keys));
 }
 
-NORETURN(static void unknown_keyword_error(VALUE hash, const ID *table, int keywords)) {
+RBIMPL_ATTR_NORETURN()
+static void unknown_keyword_error(VALUE hash, const ID *table, int keywords) {
   int i;
   for (i = 0; i < keywords; i++) {
     VALUE key = table[i];
@@ -145,4 +149,8 @@ void rb_tr_scan_args_kw_parse(const char *format, struct rb_tr_scan_args_parse_d
   if (*formatp != '\0') {
     rb_raise(rb_eArgError, "bad rb_scan_args format");
   }
+}
+
+bool rb_tr_scan_args_test_kwargs(VALUE kwargs, VALUE raise_error) {
+  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("test_kwargs", kwargs, raise_error));
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'backtraces'
-
+abort "This test's expected output assumes not using --cexts-sulong" if Truffle::Boot.get_option('cexts-sulong')
 TEST_DIR = File.expand_path("../..", __FILE__)
 SRC_DIR = File.expand_path("../../../../../..", __FILE__)
 
@@ -11,7 +11,7 @@ def puts_backtrace(backtrace)
 end
 
 puts "Test error in Ruby => C ext support => Ruby"
-RB_FUNCALLV = Truffle::Interop.import('rb_funcallv')
+RB_FUNCALLV = Truffle::CExt::LIBTRUFFLERUBY[:rb_funcallv]
 
 def callback
   raise 'Ruby callback error'
@@ -35,7 +35,7 @@ end
 puts
 puts "Test with an internal error from rb_mutex_lock()"
 LOCK = Mutex.new
-RB_MUTEX_LOCK = Truffle::Interop.import('rb_mutex_lock')
+RB_MUTEX_LOCK = Truffle::CExt::LIBTRUFFLERUBY[:rb_mutex_lock]
 
 LOCK.lock
 

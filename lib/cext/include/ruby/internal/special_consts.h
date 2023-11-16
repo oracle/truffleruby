@@ -33,8 +33,7 @@
 
 #ifdef TRUFFLERUBY
 RBIMPL_SYMBOL_EXPORT_BEGIN()
-bool RB_FIXNUM_P(VALUE value);
-bool rb_tr_special_const_p(VALUE object);
+bool rb_tr_special_const_symbol_p(VALUE object);
 RBIMPL_SYMBOL_EXPORT_END()
 #endif
 
@@ -238,6 +237,7 @@ RB_NIL_OR_UNDEF_P(VALUE obj)
     const VALUE common_bits = RUBY_Qundef & RUBY_Qnil;
     return (obj & mask) == common_bits;
 }
+#endif
 
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX11)
@@ -256,7 +256,6 @@ RB_FIXNUM_P(VALUE obj)
 {
     return obj & RUBY_FIXNUM_FLAG;
 }
-#endif
 
 RBIMPL_ATTR_CONST()
 RBIMPL_ATTR_CONSTEXPR(CXX14)
@@ -340,7 +339,7 @@ static inline bool
 RB_SPECIAL_CONST_P(VALUE obj)
 {
 #ifdef TRUFFLERUBY
-    return rb_tr_special_const_p(obj);
+    return RB_IMMEDIATE_P(obj) || obj == RUBY_Qfalse || rb_tr_special_const_symbol_p(obj);
 #else
     return RB_IMMEDIATE_P(obj) || obj == RUBY_Qfalse;
 #endif

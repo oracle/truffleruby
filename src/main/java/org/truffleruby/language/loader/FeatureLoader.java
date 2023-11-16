@@ -11,6 +11,7 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,6 +86,8 @@ public final class FeatureLoader {
 
     private Source mainScriptSource;
     private String mainScriptAbsolutePath;
+
+    private final List<Object> keepLibrariesAlive = Collections.synchronizedList(new ArrayList<>());
 
     public FeatureLoader(RubyContext context, RubyLanguage language) {
         this.context = context;
@@ -444,18 +447,30 @@ public final class FeatureLoader {
                 final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = truffleModule.fields.getConstant("CExt").getValue();
 
+                Object libTrampoline = null;
+                if (!context.getOptions().CEXTS_SULONG) {
+                    var libTrampolinePath = language.getRubyHome() + "/lib/cext/libtrufflerubytrampoline" +
+                            Platform.LIB_SUFFIX;
+                    if (context.getOptions().CEXTS_LOG_LOAD) {
+                        RubyLanguage.LOGGER
+                                .info(() -> String.format("loading libtrufflerubytrampoline %s", libTrampolinePath));
+                    }
+                    libTrampoline = loadCExtLibrary("libtrufflerubytrampoline", libTrampolinePath, requireNode, false);
+                }
+
                 final String rubyLibPath = language.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
                 final Object library = loadCExtLibRuby(rubyLibPath, feature, requireNode);
 
-                final Object initFunction = findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
-
-                final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
+                final InteropLibrary interop = InteropLibrary.getUncached();
                 language.getCurrentFiber().extensionCallStack.push(false, nil, nil);
                 try {
                     // Truffle::CExt.register_libtruffleruby(libtruffleruby)
-                    interop.invokeMember(truffleCExt, "register_libtruffleruby", library);
-                    // rb_tr_init(Truffle::CExt)
-                    interop.execute(initFunction, truffleCExt);
+                    interop.invokeMember(truffleCExt, "init_libtruffleruby", library);
+
+                    if (!context.getOptions().CEXTS_SULONG) {
+                        // Truffle::CExt.init_libtrufflerubytrampoline(libtrampoline)
+                        interop.invokeMember(truffleCExt, "init_libtrufflerubytrampoline", libTrampoline);
+                    }
                 } catch (InteropException e) {
                     throw TranslateInteropExceptionNode.executeUncached(e);
                 } finally {
@@ -484,20 +499,31 @@ public final class FeatureLoader {
                             null));
         }
 
-        return loadCExtLibrary("libtruffleruby", rubyLibPath, currentNode);
+        return loadCExtLibrary("libtruffleruby", rubyLibPath, currentNode, true);
     }
 
     @TruffleBoundary
-    public Object loadCExtLibrary(String feature, String path, Node currentNode) {
+    public Object loadCExtLibrary(String feature, String path, Node currentNode, boolean sulong) {
         Metrics.printTime("before-load-cext-" + feature);
         try {
             final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(language, context, path);
             FileLoader.ensureReadable(context, truffleFile, currentNode);
-            final Source source = Source
-                    .newBuilder("nfi", "with llvm load (RTLD_GLOBAL) '" + path + "'",
-                            "load RTLD_GLOBAL with Sulong through NFI")
-                    .build();
+            final Source source;
+            if (sulong) {
+                source = Source
+                        .newBuilder("nfi", "with llvm load (RTLD_GLOBAL) '" + path + "'",
+                                "load RTLD_GLOBAL with Sulong through NFI")
+                        .build();
+            } else {
+                source = Source
+                        .newBuilder("nfi", "load (RTLD_GLOBAL | RTLD_LAZY) '" + path + "'", "load RTLD_GLOBAL with NFI")
+                        .build();
+            }
             final Object library = context.getEnv().parseInternal(source).call();
+
+            // It is crucial to keep every native library alive, otherwise NFI will unload it and segfault later
+            keepLibrariesAlive.add(library);
+
             final Object embeddedABIVersion = getEmbeddedABIVersion(library);
             DispatchNode.getUncached().call(context.getCoreLibrary().truffleCExtModule, "check_abi_version",
                     embeddedABIVersion, path);
@@ -509,23 +535,36 @@ public final class FeatureLoader {
     }
 
     private Object getEmbeddedABIVersion(Object library) {
-        final Object abiVersionFunction;
+        InteropLibrary interop = InteropLibrary.getUncached();
+
+        Object abiVersionFunction;
         try {
-            abiVersionFunction = InteropLibrary.getFactory().getUncached(library).readMember(library,
-                    "rb_tr_abi_version");
+            abiVersionFunction = interop.readMember(library, "rb_tr_abi_version");
         } catch (UnknownIdentifierException e) {
             return nil;
         } catch (UnsupportedMessageException e) {
             throw TranslateInteropExceptionNode.executeUncached(e);
         }
 
-        final InteropLibrary abiFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(abiVersionFunction);
-        final String abiVersion = (String) InteropNodes.execute(
+        abiVersionFunction = TruffleNFIPlatform.bind(context, abiVersionFunction, "():string");
+
+        var abiVersionNativeString = InteropNodes.execute(
                 null,
                 abiVersionFunction,
                 ArrayUtils.EMPTY_ARRAY,
-                abiFunctionInteropLibrary,
+                interop,
                 TranslateInteropExceptionNodeGen.getUncached());
+
+        long address;
+        try {
+            address = interop.asPointer(abiVersionNativeString);
+        } catch (UnsupportedMessageException e) {
+            throw CompilerDirectives.shouldNotReachHere(e);
+        }
+
+        var pointer = new Pointer(context, address);
+        byte[] bytes = pointer.readZeroTerminatedByteArray(context, interop, 0);
+        String abiVersion = new String(bytes, StandardCharsets.US_ASCII);
 
         return StringOperations.createUTF8String(context, language, abiVersion);
     }

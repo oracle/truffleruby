@@ -48,7 +48,7 @@ if defined?(::TruffleRuby)
   end
 end
 
-if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-prepend-toolchain-to-path')
+if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-prepend-toolchain-to-path') and Truffle::Boot.get_option('cexts-sulong')
   ENV['PATH'] = "#{RbConfig::CONFIG['toolchain_path']}:#{ENV['PATH']}"
 end
 
@@ -2346,11 +2346,14 @@ RULES
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
   def create_makefile(target, srcprefix = nil)
-    if defined?(::TruffleRuby) and $LIBRUBYARG.to_s.strip.empty?
+    if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-sulong') and ($LIBRUBYARG == nil or !Truffle::Boot.get_option('building-core-cexts'))
       # $LIBRUBYARG was explicitly unset, the built library is not a C extension but used with FFI (e.g., sassc does).
       # Since $LIBRUBYARG is unset we won't link to libgraalvm-llvm.so, which is expected.
       # In the case the library uses C++ code, libc++.so/libc++abi.so will be linked and needs to be found by NFI.
       # The toolchain does not pass -rpath automatically for libc++.so/libc++abi.so, so we do it.
+      #
+      # We also add this rpath for C++ extensions (which have $LIBRUBYARG != nil)
+      # so that libc++.so/libc++abi.so can be found.
       libcxx_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
       raise 'libcxx_dir should not be empty' if libcxx_dir.empty?
       $DLDFLAGS << " -rpath #{libcxx_dir}"
@@ -2891,10 +2894,16 @@ MESSAGE
     # We need to link to libtruffleruby for MakeMakefile#try_link to succeed.
     # The created executable will link against both libgraalvm-llvm.so and libtruffleruby and
     # might be executed for #try_constant and #try_run so we also need -rpath for both.
-    libtruffleruby_dir = File.dirname(RbConfig::CONFIG['libtruffleruby'])
-    TRY_LINK << " -L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby"
-    libgraalvm_llvm_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
-    TRY_LINK << " -rpath #{libgraalvm_llvm_dir}"
+    # TODO: could likely always use the second branch here
+    if Truffle::Boot.get_option('cexts-sulong')
+      libtruffleruby_dir = File.dirname(RbConfig::CONFIG['libtruffleruby'])
+      TRY_LINK << " -L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby"
+      libgraalvm_llvm_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
+      TRY_LINK << " -rpath #{libgraalvm_llvm_dir}"
+    else
+      libtrufflerubytrampoline_dir = File.dirname(RbConfig::CONFIG['libtrufflerubytrampoline'])
+      TRY_LINK << " -L#{libtrufflerubytrampoline_dir} -Wl,-rpath,#{libtrufflerubytrampoline_dir} -ltrufflerubytrampoline"
+    end
   end
 
   ##

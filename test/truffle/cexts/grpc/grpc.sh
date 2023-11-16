@@ -19,7 +19,7 @@ cd "$truffle/cexts/grpc" || exit 1
 bundle config --local cache_path "$gem_test_pack/gem-cache"
 bundle install --local --no-cache
 
-output=$(bundle exec ruby -e 'require "grpc"; p GRPC')
+output=$(bundle exec ruby -rzlib -ropenssl -e 'require "grpc"; p GRPC')
 
 if [ "$output" = 'GRPC' ]; then
   echo Success

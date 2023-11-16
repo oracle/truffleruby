@@ -232,14 +232,18 @@ local part_definitions = {
   },
 
   platform: {
-    local common_deps = common.deps.truffleruby + common.deps.sulong,
-    local linux_amd64_extra_deps = {
-      packages+: {
-        binutils: ">=2.30",
-      },
+    local devtoolset = { # Until there is a proper object in common.jsonnet for it
+      packages+: if self.os == "linux" then
+        (if self.arch == "aarch64" then {
+          "00:devtoolset": "==10",
+        } else {
+          "00:devtoolset": "==11",
+        })
+      else {},
     },
+    local common_deps = common.deps.truffleruby + common.deps.sulong + devtoolset,
 
-    linux: common.linux_amd64 + common_deps + linux_amd64_extra_deps + {
+    linux: common.linux_amd64 + common_deps + {
       platform_name:: "LinuxAMD64",
       "$.cap":: {
         normal_machine: [],
@@ -308,6 +312,7 @@ local part_definitions = {
       run+: jt(["test", "specs", ":all"]) +
             jt(["test", "specs", ":tracepoint"]) +
             jt(["test", "specs", ":next"]) +
+            [["env", "SPEC_CAPI_CXX=true"] + jt(["test", "specs", "--timeout", "180", ":capi"])[0]] +
             jt(["test", "basictest"]),
     },
 
@@ -371,6 +376,13 @@ local part_definitions = {
             jt(["test", "bundle"]),
     },
 
+    test_cexts_sulong: {
+      environment+: {
+        TRUFFLERUBYOPT: "--experimental-options --cexts-sulong",
+      },
+      run+: jt(["test", "specs", ":cext"]),
+    },
+
     testdownstream_aot: { run+: [["mx", "ruby_testdownstream_aot", "$RUBY_BIN"]] },
 
     test_make_standalone_distribution: {
@@ -381,18 +393,12 @@ local part_definitions = {
 
     generate_native_config: {
       setup+: [
-        ["mx", "sforceimports"], # clone the graal repo
-        ["mx", "-p", "../graal/sulong", "build"],
-        ["set-export", "TOOLCHAIN_PATH", ["mx", "-p", "../graal/sulong", "lli", "--print-toolchain-path"]],
+        ["ruby", "-e", "pp RbConfig::MAKEFILE_CONFIG"], # For convenience
       ],
       run+: [
-        ["env",
-          "LD_LIBRARY_PATH=$BUILD_DIR/graal/sulong/mxbuild/" + self.os + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH", # for finding libc++
-          "PATH=$TOOLCHAIN_PATH:$PATH",
-          "ruby", "tool/generate-native-config.rb"],
+        ["ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
 
-        # Uses the system compiler as using the toolchain for this does not work on macOS
         ["tool/generate-config-header.sh"],
         ["cat", "lib/cext/include/truffleruby/config_" + self.os + "_" + self.arch + ".h"],
       ],
@@ -537,6 +543,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-cexts-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.use.sqlite331 + $.run.test_cexts,
       "ruby-test-cexts-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:30:00" },
       "ruby-test-cexts-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "00:40:00" },
+      "ruby-test-cexts-sulong":         $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.run.test_cexts_sulong + { timelimit: "20:00" },
       "ruby-test-gems-linux-amd64":     $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
@@ -701,11 +708,12 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   manual_builds: {
     local shared = $.use.common + $.cap.manual + { timelimit: "15:00" },
+    local native_config = $.run.generate_native_config + $.run.check_native_config,
 
-    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.stable + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-amd64":    $.platform.linux + $.jdk.stable + shared + native_config,
+    "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.stable + shared + native_config,
+    "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.stable + shared + native_config,
+    "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.stable + shared + native_config,
   },
 
   builds:

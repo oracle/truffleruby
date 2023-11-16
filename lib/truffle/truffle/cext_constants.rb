@@ -8,7 +8,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# From ./tool/generate-cext-constants.rb
+# From tool/generate-cext-constants.rb
 
 module Truffle::CExt
   def rb_cArray
@@ -317,6 +317,10 @@ module Truffle::CExt
 
   def rb_eFatal
     Truffle::CExt.rb_const_get(Object, 'fatal')
+  end
+
+  def rb_argv0
+    $0
   end
 
 end

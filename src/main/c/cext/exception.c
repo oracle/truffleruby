@@ -27,7 +27,11 @@ VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
 
 void rb_exc_raise(VALUE exception) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_exc_raise", exception);
-  rb_tr_error("rb_exc_raise should not return");
+  UNREACHABLE;
+}
+
+void rb_exc_set_message(VALUE exc, VALUE message) {
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_exc_set_message", exc, message);
 }
 
 static void rb_protect_write_status(int *status, int value) {
@@ -46,7 +50,7 @@ void rb_jump_tag(int status) {
   if (status) {
     polyglot_invoke(RUBY_CEXT, "rb_jump_tag", status);
   }
-  rb_tr_error("rb_jump_tag should not return");
+  UNREACHABLE;
 }
 
 void rb_set_errinfo(VALUE error) {
@@ -59,7 +63,7 @@ VALUE rb_errinfo(void) {
 
 void rb_syserr_fail(int eno, const char *message) {
   polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(rb_str_new_cstr(message == NULL ? "" : message)));
-  rb_tr_error("rb_syserr_fail should not return");
+  UNREACHABLE;
 }
 
 void rb_sys_fail(const char *message) {
@@ -99,32 +103,24 @@ void rb_sys_fail_str(VALUE mesg) {
 
 VALUE (*cext_rb_ensure)(VALUE (*b_proc)(VALUE), void* data1, VALUE (*e_proc)(VALUE), void* data2);
 
-VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
+VALUE rb_ensure(VALUE (*b_proc)(VALUE), VALUE data1, VALUE (*e_proc)(VALUE), VALUE data2) {
   return cext_rb_ensure(b_proc, data1, e_proc, data2);
 }
 
 VALUE (*cext_rb_rescue)(VALUE (*b_proc)(VALUE data), void* data1, VALUE (*r_proc)(VALUE data, VALUE e), void* data2);
 
-VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
+VALUE rb_rescue(VALUE (*b_proc)(VALUE), VALUE data1, VALUE (*r_proc)(VALUE, VALUE), VALUE data2) {
   return cext_rb_rescue(b_proc, data1, r_proc, data2);
 }
 
 VALUE (*cext_rb_rescue2)(VALUE (*b_proc)(VALUE data), void* data1, VALUE (*r_proc)(VALUE data, VALUE e), void* data2, void* rescued);
 
-VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
+VALUE rb_tr_rescue2_va_list(VALUE (*b_proc)(VALUE), VALUE data1, VALUE (*r_proc)(VALUE, VALUE), VALUE data2, va_list args) {
   VALUE rescued = rb_ary_new();
-  va_list args;
-  va_start(args, data2);
-  int total = polyglot_get_array_size(&args);
-  for (int n = 0; n < total; n++) {
-    VALUE arg = polyglot_get_array_element(&args, n);
-    if (arg == (VALUE)0) { /* A 0 marks the end of the arguments so we break here rather than adding it to the array.*/
-      break;
-    }
-
+  VALUE arg;
+  while ((arg = va_arg(args, VALUE)) != (VALUE)0) {
     rb_ary_push(rescued, arg);
   }
-  va_end(args);
   return cext_rb_rescue2(b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
 }
 
@@ -138,28 +134,33 @@ void rb_throw(const char *tag, VALUE val) {
 
 void rb_throw_obj(VALUE tag, VALUE value) {
   RUBY_INVOKE_NO_WRAP(rb_mKernel, "throw", tag, value ? value : Qnil);
-  rb_tr_error("rb_throw_obj should not return");
+  UNREACHABLE;
 }
 
 VALUE rb_catch(const char *tag, VALUE (*func)(ANYARGS), VALUE data) {
   return rb_catch_obj(rb_intern(tag), func, data);
 }
 
-VALUE rb_catch_obj(VALUE t, VALUE (*func)(ANYARGS), VALUE data) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_catch_obj", rb_tr_unwrap(t), func, rb_tr_unwrap(data)));
+VALUE rb_catch_obj(VALUE tag, rb_block_call_func_t func, VALUE data) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_catch_obj", rb_tr_unwrap(tag), func, rb_tr_unwrap(data)));
 }
 
 void rb_memerror(void) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_memerror");
-  rb_tr_error("rb_memerror should not return");
+  UNREACHABLE;
 }
 
-NORETURN(void rb_eof_error(void)) {
+RBIMPL_ATTR_NORETURN()
+void rb_eof_error(void) {
   rb_raise(rb_eEOFError, "end of file reached");
 }
 
-void rb_bug(const char *fmt, ...) {
-  rb_tr_error("rb_bug not yet implemented");
+void rb_tr_bug_va_list(const char *fmt, va_list args) {
+  rb_tr_not_implemented("rb_bug");
+}
+
+void rb_tr_fatal_va_list(const char *fmt, va_list args) {
+  rb_tr_not_implemented("rb_fatal");
 }
 
 VALUE rb_make_exception(int argc, const VALUE *argv) {

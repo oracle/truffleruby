@@ -25,8 +25,17 @@ void* (*rb_tr_id2sym)(ID id);
 ID (*rb_tr_sym2id)(VALUE val);
 bool (*rb_tr_is_native_object)(VALUE value);
 void* (*rb_tr_force_native)(VALUE obj);
+VALUE (*rb_tr_rb_f_notimplement)(int argc, const VALUE *argv, VALUE obj, VALUE marker);
 
-VALUE rb_argv0;
+void set_rb_tr_rb_f_notimplement(VALUE (*function)(int argc, const VALUE *argv, VALUE obj, VALUE marker)) {
+  rb_tr_rb_f_notimplement = function;
+}
+
+void rb_tr_init_global_constants(VALUE (*get_constant)(const char*));
+
+static VALUE sulong_get_constant(const char* name) {
+  return RUBY_CEXT_INVOKE(name);
+}
 
 void rb_tr_init_exception(void);
 
@@ -40,10 +49,10 @@ void rb_tr_init(void *ruby_cext) {
   rb_tr_wrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
   rb_tr_longwrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
   rb_tr_force_native = polyglot_invoke(rb_tr_cext, "rb_tr_force_native_function");
+  set_rb_tr_rb_f_notimplement(rb_f_notimplement); // the Sulong definition of rb_f_notimplement
 
   polyglot_invoke(rb_tr_cext, "cext_start_new_handle_block");
   rb_tr_init_exception();
-  rb_tr_init_global_constants();
-  rb_argv0 = rb_gv_get("$0");
+  rb_tr_init_global_constants(sulong_get_constant);
   polyglot_invoke(rb_tr_cext, "cext_start_new_handle_block");
 }

@@ -131,8 +131,10 @@ typedef struct rb_imemo_tmpbuf_struct rb_imemo_tmpbuf_t;
 rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt);
 struct vm_ifunc *rb_vm_ifunc_new(rb_block_call_func_t func, const void *data, int min_argc, int max_argc);
 void rb_strterm_mark(VALUE obj);
+#ifndef TRUFFLERUBY
 static inline enum imemo_type imemo_type(VALUE imemo);
 static inline int imemo_type_p(VALUE imemo, enum imemo_type imemo_type);
+#endif
 static inline bool imemo_throw_data_p(VALUE imemo);
 static inline struct vm_ifunc *rb_vm_ifunc_proc_new(rb_block_call_func_t func, const void *data);
 #ifdef TRUFFLERUBY
@@ -160,6 +162,7 @@ VALUE rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 const char *rb_imemo_name(enum imemo_type type);
 RUBY_SYMBOL_EXPORT_END
 
+#ifndef TRUFFLERUBY
 static inline enum imemo_type
 imemo_type(VALUE imemo)
 {
@@ -182,6 +185,7 @@ imemo_type_p(VALUE imemo, enum imemo_type imemo_type)
 }
 
 #define IMEMO_TYPE_P(v, t) imemo_type_p((VALUE)v, t)
+#endif
 
 static inline bool
 imemo_throw_data_p(VALUE imemo)

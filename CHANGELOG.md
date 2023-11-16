@@ -2,6 +2,7 @@
 
 New features:
 
+* C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility and faster installation for C/C++ extensions (#3118, @eregon).
 
 Bug fixes:
 
@@ -11,7 +12,6 @@ Bug fixes:
 
 Compatibility:
 
-* Fix problems with the LLVM toolchain wrappers with Xcode 15 on macOS.
 * Add `Exception#detailed_message` method (#3257, @andrykonchin).
 * Fix `rb_enc_vsprintf` and force String encoding instead of converting it (@andrykonchin).
 * Add `rb_gc_mark_movable` function (@andrykonchin).

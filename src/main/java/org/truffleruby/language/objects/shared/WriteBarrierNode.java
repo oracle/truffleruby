@@ -12,7 +12,6 @@ package org.truffleruby.language.objects.shared;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
-import org.truffleruby.core.DataObjectFinalizerReference;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
@@ -102,15 +101,8 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
         }
     }
 
-
-    @Specialization
-    @TruffleBoundary
-    static void writeBarrierDataFinalizer(Node node, DataObjectFinalizerReference ref, int depth) {
-        SharedObjects.writeBarrier(getLanguage(node), ref.dataHolder);
-    }
-
     protected static boolean isFinalizer(Object object) {
-        return object instanceof FinalizerReference || object instanceof DataObjectFinalizerReference;
+        return object instanceof FinalizerReference;
     }
 
 }
