@@ -84,11 +84,11 @@ SIZEOF = {
       transform = -> value { "get_pointer_value(#{value})" }
       code << <<-RUBY
   private def get_pointer_value(value)
-    if Truffle::FFI::Pointer === value
+    if Primitive.is_a?(value, Truffle::FFI::Pointer)
       value.address
-    elsif nil.equal?(value)
+    elsif Primitive.nil?(value)
       0
-    elsif Integer === value
+    elsif Primitive.is_a?(value, Integer)
       value
     elsif value.respond_to?(:to_ptr)
       value.to_ptr.address
