@@ -67,7 +67,7 @@ ast: |
                                                           readSelfSlotNode =
                                                               ReadFrameSlotNodeGen
                                                                   attributes:
-                                                                      frameSlot = 0
+                                                                      frameSlot = 0 # (self)
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

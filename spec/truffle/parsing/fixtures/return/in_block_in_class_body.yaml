@@ -49,7 +49,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -80,7 +80,7 @@ ast: |
                                                                   child =
                                                                       RubyCallNode
                                                                           attributes:
-                                                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                                                               dispatchConfig = PROTECTED
                                                                               emptyKeywordsProfile = false
                                                                               flags = 0
@@ -97,7 +97,7 @@ ast: |
                                                                                   BlockDefinitionNodeGen
                                                                                       attributes:
                                                                                           breakID = org.truffleruby.language.control.BreakID@...
-                                                                                          callTargets = ProcCallTargets(callTargetForProc = block in <class:Foo>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                                                          callTargets = ProcCallTargets(callTargetForProc = block in <class:Foo>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
                                                                                           flags = 0
                                                                                           frameOnStackMarkerSlot = 2
                                                                                           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <class:Foo>, blockDepth = 1, parseName = block in <class:Foo>, notes = <class:Foo>, argumentDescriptors = [])
@@ -126,7 +126,7 @@ ast: |
                                                                                                                   WriteLocalVariableNode
                                                                                                                       attributes:
                                                                                                                           flags = 0
-                                                                                                                          frameSlot = 0
+                                                                                                                          frameSlot = 0 # (self)
                                                                                                                       children:
                                                                                                                           valueNode =
                                                                                                                               ProfileArgumentNodeGen

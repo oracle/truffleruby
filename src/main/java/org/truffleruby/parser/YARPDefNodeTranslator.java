@@ -22,24 +22,19 @@ import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import org.prism.Nodes;
-import org.truffleruby.parser.parser.ParserSupport;
 
 public final class YARPDefNodeTranslator extends YARPTranslator {
-    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR;
-    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR;
-
     private final boolean shouldLazyTranslate;
 
     public YARPDefNodeTranslator(
             RubyLanguage language,
-            YARPTranslator parent,
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
             ParserContext parserContext,
             Node currentNode,
             RubyDeferredWarnings rubyWarnings) {
-        super(language, parent, environment, sourceBytes, source, parserContext, currentNode, rubyWarnings);
+        super(language, environment, sourceBytes, source, parserContext, currentNode, rubyWarnings);
 
         if (parserContext.isEval() || environment.getParseEnvironment().isCoverageEnabled()) {
             shouldLazyTranslate = false;
@@ -97,15 +92,20 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
     }
 
     private void declareLocalVariables(Nodes.DefNode node) {
-        // YARP adds hidden locals when there are rest/keyrest/block anonymous parameters or ... declared
+        // YARP adds hidden local variables when there are anonymous rest, keyrest,
+        // and block parameters or ... declared
+
         for (String name : node.locals) {
             switch (name) {
-                case "*" -> environment.declareVar(DEFAULT_REST_NAME);
-                case "**" -> environment.declareVar(DEFAULT_KEYWORD_REST_NAME);
+                case "*" -> environment.declareVar(TranslatorEnvironment.DEFAULT_REST_NAME);
+                case "**" -> environment.declareVar(TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME);
                 case "&" ->
                     // we don't support yet Ruby 3.1's anonymous block parameter
                     throw CompilerDirectives.shouldNotReachHere("Anonymous block parameters aren't supported yet");
-                case "..." -> { // YARP adds "..." to locals by some reason
+                case "..." -> {
+                    environment.declareVar(TranslatorEnvironment.FORWARDED_REST_NAME);
+                    environment.declareVar(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME);
+                    environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
                 }
                 default -> environment.declareVar(name);
             }

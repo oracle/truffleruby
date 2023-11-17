@@ -43,6 +43,10 @@ public abstract class WriteLocalNode extends RubyContextSourceNode implements As
         this.valueNode = valueNode;
     }
 
+    public int getFrameSlot() {
+        return frameSlot;
+    }
+
     @Override
     public boolean hasTag(Class<? extends Tag> tag) {
         return tag == WriteVariableTag.class || super.hasTag(tag);

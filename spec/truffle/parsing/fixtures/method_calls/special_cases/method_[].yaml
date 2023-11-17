@@ -15,7 +15,7 @@ ast: |
               ReadLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2
+                      frameSlot = 2 # a
                       type = FRAME_LOCAL
           rightNode_ =
               IntegerFixnumLiteralNode

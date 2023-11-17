@@ -24,7 +24,7 @@ ast: |
                           ReadLocalVariableNode
                               attributes:
                                   flags = 0
-                                  frameSlot = 2
+                                  frameSlot = 2 # bar
                                   type = FRAME_LOCAL
           ]
           tryPart =

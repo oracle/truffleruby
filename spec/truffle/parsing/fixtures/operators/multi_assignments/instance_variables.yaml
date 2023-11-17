@@ -20,7 +20,7 @@ ast: |
                       readSelfSlotNode =
                           ReadFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 0
+                                  frameSlot = 0 # (self)
               WriteInstanceVariableNodeGen
                   attributes:
                       flags = 0
@@ -30,7 +30,7 @@ ast: |
                       readSelfSlotNode =
                           ReadFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 0
+                                  frameSlot = 0 # (self)
               WriteInstanceVariableNodeGen
                   attributes:
                       flags = 0
@@ -40,7 +40,7 @@ ast: |
                       readSelfSlotNode =
                           ReadFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 0
+                                  frameSlot = 0 # (self)
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

@@ -51,7 +51,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -69,7 +69,7 @@ ast: |
                                   CatchBreakNode
                                       attributes:
                                           breakID = org.truffleruby.language.control.BreakID@...
-                                          flags = 0
+                                          flags = 1
                                           isWhile = false
                                       children:
                                           body =
@@ -81,7 +81,7 @@ ast: |
                                                       child =
                                                           RubyCallNode
                                                               attributes:
-                                                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                                                   dispatchConfig = PRIVATE
                                                                   emptyKeywordsProfile = false
                                                                   flags = 0
@@ -98,7 +98,7 @@ ast: |
                                                                       BlockDefinitionNodeGen
                                                                           attributes:
                                                                               breakID = org.truffleruby.language.control.BreakID@...
-                                                                              callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+                                                                              callTargets = ProcCallTargets(callTargetForProc = block in Object#foo, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
                                                                               flags = 0
                                                                               frameOnStackMarkerSlot = 3
                                                                               sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
@@ -127,7 +127,7 @@ ast: |
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 0
-                                                                                                              frameSlot = 0
+                                                                                                              frameSlot = 0 # (self)
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   ProfileArgumentNodeGen
@@ -141,7 +141,7 @@ ast: |
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 1
-                                                                                                              frameSlot = 1
+                                                                                                              frameSlot = 1 # x
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   IntegerFixnumLiteralNode
@@ -163,14 +163,14 @@ ast: |
                                                                                                                           begin =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
-                                                                                                                                      flags = 1
-                                                                                                                                      frameSlot = 1
+                                                                                                                                      flags = 0
+                                                                                                                                      frameSlot = 1 # x
                                                                                                                                       type = FRAME_LOCAL
                                                                                                                           end =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
-                                                                                                                                      flags = 1
-                                                                                                                                      frameSlot = 1
+                                                                                                                                      flags = 0
+                                                                                                                                      frameSlot = 1 # x
                                                                                                                                       type = FRAME_LOCAL
                                                                                                               thenBody =
                                                                                                                   IntegerFixnumLiteralNode

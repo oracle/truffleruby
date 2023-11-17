@@ -62,7 +62,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.constants.OrAssignConstantNodeGen;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
@@ -1864,7 +1864,7 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = node.getPosition();
         final ArgsParseNode argsNode = node.getArgsNode();
 
-        // Unset this flag for any for any blocks within the for statement's body
+        // Unset this flag for any blocks within the `for` statement's body
         final boolean hasOwnScope = isStabbyLambda || !translatingForStatement;
 
         final boolean isProc = !isStabbyLambda;
@@ -3037,7 +3037,7 @@ public class BodyTranslator extends BaseTranslator {
         }
 
         if (keywordHashArgumentNode == null || !keywordHashArgumentNode.isKeywordArguments()) {
-            return EmptyArgumentsDescriptor.INSTANCE;
+            return NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
         final List<String> keywords = new ArrayList<>();
@@ -3064,7 +3064,7 @@ public class BodyTranslator extends BaseTranslator {
             return language.keywordArgumentsDescriptorManager
                     .getArgumentsDescriptor(keywords.toArray(StringUtils.EMPTY_STRING_ARRAY));
         } else {
-            return EmptyArgumentsDescriptor.INSTANCE;
+            return NoKeywordArgumentsDescriptor.INSTANCE;
         }
     }
 

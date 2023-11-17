@@ -9,6 +9,7 @@ notes: >
     - ArgumentDescriptor(name = f, type = req)
   
   So the * operator is described as `rest` variable.
+yarp_specific: true # destructuring of a single Array argument was optimized
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, *c, d, f|
@@ -17,7 +18,7 @@ ast: |
   BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = req), ArgumentDescriptor(name = f, type = req)])
@@ -66,7 +67,7 @@ ast: |
                                                                       WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              frameSlot = 6
+                                                                              frameSlot = 6 # %destructure_1
                                                                           children:
                                                                               valueNode =
                                                                                   SplatCastNodeGen
@@ -101,7 +102,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 6
+                                                                                                      frameSlot = 6 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                                   ]
                                           elseBody =
@@ -113,7 +114,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 0
+                                                                  frameSlot = 0 # (self)
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -127,7 +128,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # a
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -144,7 +145,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # b
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -161,7 +162,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3
+                                                                  frameSlot = 3 # c
                                                               children:
                                                                   valueNode =
                                                                       ReadRestArgumentNode
@@ -174,7 +175,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 5
+                                                                  frameSlot = 5 # f
                                                               children:
                                                                   valueNode =
                                                                       ReadPostArgumentNode
@@ -186,7 +187,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 4
+                                                                  frameSlot = 4 # d
                                                               children:
                                                                   valueNode =
                                                                       ReadPostArgumentNode
@@ -205,7 +206,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 0
+                                                                  frameSlot = 0 # (self)
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -219,7 +220,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # a
                                                               children:
                                                                   valueNode =
                                                                       ArrayIndexNodesFactory$ReadConstantIndexNodeGen
@@ -231,12 +232,12 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 6
+                                                                                          frameSlot = 6 # %destructure_1
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # b
                                                               children:
                                                                   valueNode =
                                                                       ArrayIndexNodesFactory$ReadConstantIndexNodeGen
@@ -248,12 +249,12 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 6
+                                                                                          frameSlot = 6 # %destructure_1
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3
+                                                                  frameSlot = 3 # c
                                                               children:
                                                                   valueNode =
                                                                       ArraySliceNodeGen
@@ -266,106 +267,42 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 6
+                                                                                          frameSlot = 6 # %destructure_1
                                                                                           type = FRAME_LOCAL
-                                                          IfElseNodeGen
+                                                          WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
+                                                                  frameSlot = 5 # f
                                                               children:
-                                                                  condition =
-                                                                      ArrayIsAtLeastAsLargeAsNode
+                                                                  valueNode =
+                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
                                                                           attributes:
                                                                               flags = 0
-                                                                              requiredSize = 4
+                                                                              index = -1
                                                                           children:
-                                                                              child =
+                                                                              arrayNode_ =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 6
+                                                                                          frameSlot = 6 # %destructure_1
                                                                                           type = FRAME_LOCAL
-                                                                  elseBody =
-                                                                      SequenceNode
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 4 # d
+                                                              children:
+                                                                  valueNode =
+                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
                                                                           attributes:
                                                                               flags = 0
+                                                                              index = -2
                                                                           children:
-                                                                              body = [
-                                                                                  WriteLocalVariableNode
+                                                                              arrayNode_ =
+                                                                                  ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 4
-                                                                                      children:
-                                                                                          valueNode =
-                                                                                              ArrayIndexNodesFactory$ReadConstantIndexNodeGen
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                                      index = 2
-                                                                                                  children:
-                                                                                                      arrayNode_ =
-                                                                                                          ReadLocalVariableNode
-                                                                                                              attributes:
-                                                                                                                  flags = 0
-                                                                                                                  frameSlot = 6
-                                                                                                                  type = FRAME_LOCAL
-                                                                                  WriteLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 5
-                                                                                      children:
-                                                                                          valueNode =
-                                                                                              ArrayIndexNodesFactory$ReadConstantIndexNodeGen
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                                      index = 3
-                                                                                                  children:
-                                                                                                      arrayNode_ =
-                                                                                                          ReadLocalVariableNode
-                                                                                                              attributes:
-                                                                                                                  flags = 0
-                                                                                                                  frameSlot = 6
-                                                                                                                  type = FRAME_LOCAL
-                                                                              ]
-                                                                  thenBody =
-                                                                      SequenceNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                          children:
-                                                                              body = [
-                                                                                  WriteLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 5
-                                                                                      children:
-                                                                                          valueNode =
-                                                                                              ArrayIndexNodesFactory$ReadConstantIndexNodeGen
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                                      index = -1
-                                                                                                  children:
-                                                                                                      arrayNode_ =
-                                                                                                          ReadLocalVariableNode
-                                                                                                              attributes:
-                                                                                                                  flags = 0
-                                                                                                                  frameSlot = 6
-                                                                                                                  type = FRAME_LOCAL
-                                                                                  WriteLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 4
-                                                                                      children:
-                                                                                          valueNode =
-                                                                                              ArrayIndexNodesFactory$ReadConstantIndexNodeGen
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                                      index = -2
-                                                                                                  children:
-                                                                                                      arrayNode_ =
-                                                                                                          ReadLocalVariableNode
-                                                                                                              attributes:
-                                                                                                                  flags = 0
-                                                                                                                  frameSlot = 6
-                                                                                                                  type = FRAME_LOCAL
-                                                                              ]
+                                                                                          frameSlot = 6 # %destructure_1
+                                                                                          type = FRAME_LOCAL
                                                       ]
                                   NilLiteralNode
                                       attributes:

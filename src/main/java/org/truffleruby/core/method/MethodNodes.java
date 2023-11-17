@@ -36,7 +36,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
@@ -313,7 +313,8 @@ public abstract class MethodNodes {
 
         private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments
-                    .pack(null, null, method, null, receiver, nil, EmptyArgumentsDescriptor.INSTANCE, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, null, receiver, nil, NoKeywordArgumentsDescriptor.INSTANCE,
+                            EMPTY_ARGUMENTS);
             final var variables = new SpecialVariableStorage();
             final MaterializedFrame declarationFrame = getLanguage().createEmptyDeclarationFrame(packedArgs, variables);
             return ProcOperations.createRubyProc(

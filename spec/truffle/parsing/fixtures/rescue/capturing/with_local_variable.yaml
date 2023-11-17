@@ -60,7 +60,7 @@ ast: |
                                                   WriteLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 2
+                                                          frameSlot = 2 # error
                                                       children:
                                                           valueNode =
                                                               DeadNode

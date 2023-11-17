@@ -16,15 +16,15 @@ ast: |
           preNodes = [
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 2
+                      frameSlot = 2 # a
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 3
+                      frameSlot = 3 # b
           ]
           restNode =
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 4
+                      frameSlot = 4 # c
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:

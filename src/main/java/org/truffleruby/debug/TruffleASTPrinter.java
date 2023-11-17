@@ -10,9 +10,11 @@
 package org.truffleruby.debug;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -26,6 +28,10 @@ import org.truffleruby.core.support.DetailedInspectingSupport;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.locals.ReadFrameSlotNode;
+import org.truffleruby.language.locals.ReadLocalVariableNode;
+import org.truffleruby.language.locals.WriteFrameSlotNode;
+import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
 
@@ -83,6 +89,7 @@ public abstract class TruffleASTPrinter {
         // - its own attributes/properties - int, String, boolean, etc fields
         // So print them separately.
         final var attributes = getNodeAttributes(node);
+        final var attributeAnnotations = getNodeAttributeAnnotations(node);
         final var children = getNodeChildren(node);
 
         // instances of CallTarget class - either attributes or attribute's own field
@@ -97,7 +104,7 @@ public abstract class TruffleASTPrinter {
 
         // node's non-AST fields (attributes)
         if (!attributes.isEmpty()) {
-            printAttributes(attributes, out, level);
+            printAttributes(attributes, attributeAnnotations, out, level);
         }
 
         // node's AST fields (children nodes)
@@ -139,7 +146,35 @@ public abstract class TruffleASTPrinter {
                 attributes.add(Pair.create(name, value));
             }
         }
+
         return attributes;
+    }
+
+    // map frame slots to local variable names
+    private static Map<String, String> getNodeAttributeAnnotations(Node node) {
+        final int frameSlot;
+
+        // ignore WriteDeclarationVariableNode and ReadDeclarationVariableNode
+        // because they access local variable declared in an outer scope, and
+        // it cannot be accessed using the parents chain
+        if (node instanceof WriteLocalVariableNode writeLocalVariableNodeNode) {
+            frameSlot = writeLocalVariableNodeNode.getFrameSlot();
+        } else if (node instanceof WriteFrameSlotNode writeFrameSlotNode) {
+            frameSlot = writeFrameSlotNode.getFrameSlot();
+        } else if (node instanceof ReadLocalVariableNode readLocalVariableNode) {
+            frameSlot = readLocalVariableNode.getFrameSlot();
+        } else if (node instanceof ReadFrameSlotNode readFrameSlotNode) {
+            frameSlot = readFrameSlotNode.getFrameSlot();
+        } else {
+            return Collections.emptyMap();
+        }
+
+        final var rootNode = node.getRootNode();
+        final var frameDescriptor = rootNode.getFrameDescriptor();
+        final String variableName = frameDescriptor.getSlotName(frameSlot).toString();
+
+        // all the mentioned above classes use the same field name - "frameSlot", so just hardcode it
+        return Collections.singletonMap("frameSlot", variableName);
     }
 
     private static List<Pair<String, Object>> getNodeChildren(Node node) {
@@ -206,8 +241,8 @@ public abstract class TruffleASTPrinter {
         return rootCallTargets;
     }
 
-    private static void printAttributes(List<Pair<String, Object>> attributes, StringBuilder out, int level) {
-
+    private static void printAttributes(List<Pair<String, Object>> attributes, Map<String, String> attributeAnnotations,
+            StringBuilder out, int level) {
         printNewLine(out, level + 1);
         out.append("attributes:");
 
@@ -219,7 +254,7 @@ public abstract class TruffleASTPrinter {
             String string = valueOrArrayToString(value);
 
             // remove variable suffix when value is a custom class instance,
-            // e.g. org.truffleruby.language.arguments.EmptyArgumentsDescriptor@359b650b
+            // e.g. org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@359b650b
             // ignore class and instance variable names, e.g. values `@foo` or `@@bar`
             string = string.replaceAll("(?<!^|@)@[0-9a-f]+", "@...");
 
@@ -227,8 +262,8 @@ public abstract class TruffleASTPrinter {
             // e.g. "org.truffleruby.parser.MethodTranslator$$Lambda$839/0x00000008012ec000@..."
             // or "org.truffleruby.parser.MethodTranslator$$Lambda/0x00000008012d5c70@..."
             string = string.replaceAll(
-                    "\\$\\$Lambda[^@]+@",
-                    Matcher.quoteReplacement("$$Lambda$.../0x...@"));
+                    "[\\w.]*\\$\\$Lambda[^@]+@",
+                    Matcher.quoteReplacement("...$$Lambda$.../0x...@"));
 
             // avoid confusing 'emptyTString = '
             if (value instanceof String || string.isEmpty()) {
@@ -256,6 +291,10 @@ public abstract class TruffleASTPrinter {
             }
 
             out.append(name + " = " + string);
+
+            if (attributeAnnotations.containsKey(name)) {
+                out.append(" # " + attributeAnnotations.get(name));
+            }
         }
     }
 

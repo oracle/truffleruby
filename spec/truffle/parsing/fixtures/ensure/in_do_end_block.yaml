@@ -15,7 +15,7 @@ ast: |
   BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
@@ -44,7 +44,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -62,7 +62,7 @@ ast: |
                                           ensurePart =
                                               RubyCallNode
                                                   attributes:
-                                                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                      descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                                       dispatchConfig = PRIVATE
                                                       emptyKeywordsProfile = false
                                                       flags = 1

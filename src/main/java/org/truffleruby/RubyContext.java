@@ -69,7 +69,7 @@ import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SafepointManager;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.globals.GlobalVariableStorage;
@@ -339,7 +339,8 @@ public final class RubyContext {
                     .getSourceSection()
                     .getSource();
             TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
-            ProcOperations.rootCall((RubyProc) proc, EmptyArgumentsDescriptor.INSTANCE, RubyBaseNode.EMPTY_ARGUMENTS);
+            ProcOperations.rootCall((RubyProc) proc, NoKeywordArgumentsDescriptor.INSTANCE,
+                    RubyBaseNode.EMPTY_ARGUMENTS);
             TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
         Metrics.printTime("after-run-delayed-initialization");

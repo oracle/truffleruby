@@ -51,7 +51,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -282,7 +282,7 @@ public abstract class BasicObjectNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return instanceExecNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+            return instanceExecNode.execute(this, NoKeywordArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 

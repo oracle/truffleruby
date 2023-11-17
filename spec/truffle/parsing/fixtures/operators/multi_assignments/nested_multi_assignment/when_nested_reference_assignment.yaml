@@ -41,7 +41,7 @@ ast: |
                                               leftNode_ =
                                                   RubyCallNode
                                                       attributes:
-                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                                           dispatchConfig = PRIVATE
                                                           emptyKeywordsProfile = false
                                                           flags = 0
@@ -65,7 +65,7 @@ ast: |
                                                           value = 0
                           WriteFrameSlotNodeGen
                               attributes:
-                                  frameSlot = 2
+                                  frameSlot = 2 # b
                       ]
                       splatCastNode =
                           SplatCastNodeGen
@@ -76,7 +76,7 @@ ast: |
                                   nilBehavior = ARRAY_WITH_NIL
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 3
+                      frameSlot = 3 # c
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

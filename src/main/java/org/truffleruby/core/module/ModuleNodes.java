@@ -86,7 +86,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.WarningNode.UncachedWarningNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.constants.ConstantEntry;
@@ -694,7 +694,7 @@ public abstract class ModuleNodes {
             }
 
             final Object block = RubyArguments.getBlock(rubyArgs);
-            return classExecNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
+            return classExecNode.execute(this, NoKeywordArgumentsDescriptor.INSTANCE, self, new Object[]{ self },
                     (RubyProc) block);
         }
 
@@ -1456,7 +1456,8 @@ public abstract class ModuleNodes {
         @Specialization
         RubyModule initialize(RubyModule module, RubyProc block,
                 @Cached ClassExecBlockNode classExecBlockNode) {
-            classExecBlockNode.execute(this, EmptyArgumentsDescriptor.INSTANCE, module, new Object[]{ module }, block);
+            classExecBlockNode.execute(this, NoKeywordArgumentsDescriptor.INSTANCE, module, new Object[]{ module },
+                    block);
             return module;
         }
 
@@ -2272,7 +2273,7 @@ public abstract class ModuleNodes {
                     block,
                     refinement,
                     nil,
-                    EmptyArgumentsDescriptor.INSTANCE,
+                    NoKeywordArgumentsDescriptor.INSTANCE,
                     EMPTY_ARGUMENTS);
             return refinement;
         }

@@ -18,7 +18,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 
@@ -41,7 +41,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
     protected ArgumentsDescriptor getArgumentsDescriptorAndCheckRuby2KeywordsHash(Object[] args, int userArgsCount) {
         assert isSplatted : "this is only needed if isSplatted";
 
-        if (descriptor == EmptyArgumentsDescriptor.INSTANCE) { // *rest and no kwargs passed explicitly (k: v/k => v/**kw)
+        if (descriptor == NoKeywordArgumentsDescriptor.INSTANCE) { // *rest and no kwargs passed explicitly (k: v/k => v/**kw)
             if (userArgsCount > 0) {
                 final Object lastArgument = ArrayUtils.getLast(args);
                 assert lastArgument != null;

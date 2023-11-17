@@ -16,7 +16,7 @@ ast: |
           condition =
               RubyCallNode
                   attributes:
-                      descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                      descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                       dispatchConfig = PRIVATE
                       emptyKeywordsProfile = false
                       flags = 0
@@ -56,7 +56,7 @@ ast: |
                                               childNode_ =
                                                   RubyCallNode
                                                       attributes:
-                                                          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                                           dispatchConfig = PRIVATE
                                                           emptyKeywordsProfile = false
                                                           flags = 0
@@ -77,7 +77,7 @@ ast: |
                           ReadLocalVariableNode
                               attributes:
                                   flags = 0
-                                  frameSlot = 2
+                                  frameSlot = 2 # %case_0
                                   type = FRAME_LOCAL
                       ]
                       receiver =

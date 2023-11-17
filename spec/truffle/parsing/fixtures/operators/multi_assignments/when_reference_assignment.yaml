@@ -30,7 +30,7 @@ ast: |
                       receiver_ =
                           RubyCallNode
                               attributes:
-                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
                                   flags = 0
@@ -49,7 +49,7 @@ ast: |
                                               flags = 0
               WriteFrameSlotNodeGen
                   attributes:
-                      frameSlot = 2
+                      frameSlot = 2 # b
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

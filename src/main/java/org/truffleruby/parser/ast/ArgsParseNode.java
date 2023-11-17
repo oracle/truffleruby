@@ -294,7 +294,7 @@ public final class ArgsParseNode extends ParseNode {
             args = Arrays.copyOf(args, ordinal);
             for (int i = oldLength; i < ordinal; ++i) {
                 // implicitly define the preceding arguments
-                args[i] = new ArgumentParseNode(position, ("_" + (char) ('0' + ordinal)).intern());
+                args[i] = new ArgumentParseNode(position, ("_" + (char) ('0' + i + 1)).intern());
                 optIndex = postIndex = keywordsIndex = (short) ordinal;
             }
         }

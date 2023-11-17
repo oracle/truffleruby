@@ -32,8 +32,8 @@ import org.prism.Nodes;
 public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private final Arity arity;
-    private final boolean isProc;
-    private final boolean isMethod;
+    private final boolean isProc; // block or lambda/method
+    private final boolean isMethod; // method or proc
     private final YARPTranslator yarpTranslator;
 
     private enum State {
@@ -151,6 +151,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return new SaveMethodBlockNode(slot);
     }
 
+    @Override
     public RubyNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
         final RubyNode readNode;
 
@@ -173,6 +174,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return rubyNode;
     }
 
+    @Override
     public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
         final int slot = environment.declareVar(node.name);
         final var name = language.getSymbol(node.name);
@@ -181,6 +183,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return new WriteLocalVariableNode(slot, readNode);
     }
 
+    @Override
     public RubyNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         final RubyNode readNode;
 
@@ -202,6 +205,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return new WriteLocalVariableNode(slot, readNode);
     }
 
+    @Override
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
         final int slot = environment.declareVar(node.name);
         final var name = language.getSymbol(node.name);
@@ -211,6 +215,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return new WriteLocalVariableNode(slot, readNode);
     }
 
+    @Override
     public RubyNode visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
         final RubyNode readNode;
         final RubyNode defaultValue = node.value.accept(this);
@@ -226,6 +231,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return new WriteLocalVariableNode(slot, readNode);
     }
 
+    @Override
     public RubyNode visitRestParameterNode(Nodes.RestParameterNode node) {
         final RubyNode readNode;
 
@@ -233,29 +239,57 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         int to = -parametersNode.posts.length;
         readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments());
 
-        final String name = (node.name != null) ? node.name : YARPDefNodeTranslator.DEFAULT_REST_NAME;
-        final int slot = environment.findFrameSlot(name);
-        return new WriteLocalVariableNode(slot, readNode);
-    }
+        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_REST_NAME;
 
-    public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
-        final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
-        final String name = (node.name != null) ? node.name : YARPDefNodeTranslator.DEFAULT_KEYWORD_REST_NAME;
+        // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
+        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
+        // declare this hidden variable beforehand. So declare it here right before usage.
         final int slot = environment.declareVar(name);
 
         return new WriteLocalVariableNode(slot, readNode);
     }
 
+    @Override
+    public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
+        final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
+        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+
+        // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
+        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
+        // hidden variable beforehand. So declare it here right before usage.
+        final int slot = environment.declareVar(name);
+
+        return new WriteLocalVariableNode(slot, readNode);
+    }
+
+    @Override
     public RubyNode visitNoKeywordsParameterNode(Nodes.NoKeywordsParameterNode node) {
         return new CheckNoKeywordArgumentsNode();
     }
 
+    @Override
     public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
         // we don't support yet Ruby 3.1's anonymous block parameter
         assert node.name != null;
 
         final int slot = environment.findFrameSlot(node.name);
         return new SaveMethodBlockNode(slot);
+    }
+
+    @Override
+    public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
+        ArrayList<RubyNode> sequence = new ArrayList<>();
+
+        // desugar ... to *, **, and & parameters
+        final var rest = new Nodes.RestParameterNode(TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
+        final var keyrest = new Nodes.KeywordRestParameterNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
+        final var block = new Nodes.BlockParameterNode(TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
+
+        sequence.add(rest.accept(this));
+        sequence.add(keyrest.accept(this));
+        sequence.add(block.accept(this));
+
+        return YARPTranslator.sequence(sequence);
     }
 
     @Override
@@ -270,10 +304,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     private boolean hasKeywordArguments() {
         return parametersNode.keywords.length != 0 || parametersNode.keyword_rest != null;
-    }
-
-    public TranslatorEnvironment getEnvironment() {
-        return environment;
     }
 
 }

@@ -51,7 +51,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -74,7 +74,7 @@ ast: |
                                                       ensurePart =
                                                           RubyCallNode
                                                               attributes:
-                                                                  descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+                                                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                                                   dispatchConfig = PRIVATE
                                                                   emptyKeywordsProfile = false
                                                                   flags = 1

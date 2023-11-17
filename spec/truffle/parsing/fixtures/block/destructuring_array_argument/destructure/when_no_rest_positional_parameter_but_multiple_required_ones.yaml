@@ -1,5 +1,5 @@
 subject: "Block"
-description: "Destructuring array argument / when no rest positional parameter but required parameters count > 1 - it tries to destruct"
+description: "Destructuring single array argument / when no rest positional parameter but required parameters count > 1 - it tries to destruct"
 notes: >
   A simplified AST for array argument destructuring:
   
@@ -33,7 +33,7 @@ ast: |
   BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req)])
@@ -82,7 +82,7 @@ ast: |
                                                                       WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              frameSlot = 3
+                                                                              frameSlot = 3 # %destructure_1
                                                                           children:
                                                                               valueNode =
                                                                                   SplatCastNodeGen
@@ -117,7 +117,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 3
+                                                                                                      frameSlot = 3 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                                   ]
                                           elseBody =
@@ -129,7 +129,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 0
+                                                                  frameSlot = 0 # (self)
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -143,7 +143,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # foo
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -160,7 +160,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # bar
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -184,7 +184,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 0
+                                                                  frameSlot = 0 # (self)
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -198,7 +198,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # foo
                                                               children:
                                                                   valueNode =
                                                                       ArrayIndexNodesFactory$ReadConstantIndexNodeGen
@@ -210,12 +210,12 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 3
+                                                                                          frameSlot = 3 # %destructure_1
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # bar
                                                               children:
                                                                   valueNode =
                                                                       ArrayIndexNodesFactory$ReadConstantIndexNodeGen
@@ -227,11 +227,8 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 3
+                                                                                          frameSlot = 3 # %destructure_1
                                                                                           type = FRAME_LOCAL
-                                                          NilLiteralNode
-                                                              attributes:
-                                                                  flags = 0
                                                       ]
                                   NilLiteralNode
                                       attributes:

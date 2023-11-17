@@ -30,10 +30,6 @@ public final class ReadDeclarationVariableNode extends ReadLocalNode {
         return frameDepth;
     }
 
-    public int getFrameSlot() {
-        return frameSlot;
-    }
-
     @Override
     public Object execute(VirtualFrame frame) {
         return readFrameSlot(frame);

@@ -75,6 +75,7 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
+    @Override
     public AssignableNode visitCallNode(Nodes.CallNode node) {
         final RubyNode rubyNode = yarpTranslator.translateCallTargetNode(node);
         return ((AssignableNode) rubyNode).toAssignableNode();
@@ -118,6 +119,7 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
         return multipleAssignmentNode.toAssignableNode();
     }
 
+    @Override
     public AssignableNode visitSplatNode(Nodes.SplatNode node) {
         if (node.expression != null) {
             final RubyNode rubyNode = node.expression.accept(yarpTranslator);

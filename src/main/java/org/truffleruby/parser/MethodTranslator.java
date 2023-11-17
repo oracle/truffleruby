@@ -31,7 +31,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyProcRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
@@ -125,8 +125,8 @@ public final class MethodTranslator extends BodyTranslator {
                 this).translate();
 
         final RubyNode preludeProc = !isStabbyLambda
-                ? preludeProc(sourceSection, isStabbyLambda, arity, loadArguments)
-                : null; // proc will never compiled for stabby lambdas
+                ? preludeProc(sourceSection, arity, loadArguments)
+                : null; // proc will never be compiled for stabby lambdas
 
         if (!translatingForStatement) {
             // Make sure to declare block-local variables
@@ -191,7 +191,6 @@ public final class MethodTranslator extends BodyTranslator {
 
     private RubyNode preludeProc(
             SourceIndexLength sourceSection,
-            boolean isStabbyLambda,
             Arity arity,
             RubyNode loadArguments) {
 
@@ -213,7 +212,7 @@ public final class MethodTranslator extends BodyTranslator {
                     language,
                     source,
                     parserContext,
-                    !isStabbyLambda,
+                    true,
                     false,
                     this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
@@ -396,7 +395,7 @@ public final class MethodTranslator extends BodyTranslator {
 
         body = sequence(sourceSection, Arrays.asList(loadArguments, body));
 
-        if (environment.getFlipFlopStates().size() > 0) {
+        if (environment.getFlipFlopStates().size() > 0) { // should be called after translating body
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
@@ -499,7 +498,7 @@ public final class MethodTranslator extends BodyTranslator {
 
         final ArgumentsDescriptor descriptor = argsNode.hasKwargs()
                 ? KeywordArgumentsDescriptorManager.EMPTY
-                : EmptyArgumentsDescriptor.INSTANCE;
+                : NoKeywordArgumentsDescriptor.INSTANCE;
         final int restParamIndex = reloadTranslator.getRestParameterIndex();
         final RubyNode arguments = new ReadZSuperArgumentsNode(restParamIndex, reloadSequence);
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock(), node);

@@ -65,7 +65,6 @@ public final class WriteDeclarationVariableNode extends WriteLocalNode {
         return descriptor.getSlotName(frameSlot).toString();
     }
 
-
     @Override
     public RubyNode cloneUninitialized() {
         var copy = new WriteDeclarationVariableNode(

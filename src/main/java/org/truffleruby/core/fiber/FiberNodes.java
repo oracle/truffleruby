@@ -34,7 +34,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -245,11 +245,11 @@ public abstract class FiberNodes {
                         currentFiber,
                         fiber,
                         FiberOperation.RAISE,
-                        EmptyArgumentsDescriptor.INSTANCE,
+                        NoKeywordArgumentsDescriptor.INSTANCE,
                         new Object[]{ exception });
             } else {
                 return fiberResumeNode.execute(this, FiberOperation.RAISE, fiber,
-                        EmptyArgumentsDescriptor.INSTANCE, new Object[]{ exception });
+                        NoKeywordArgumentsDescriptor.INSTANCE, new Object[]{ exception });
             }
         }
     }

@@ -1,5 +1,5 @@
 subject: "Block"
-description: "Destructuring array argument / when one optional positional parameter - it doesn't try to destruct"
+description: "Destructuring single array argument / when one optional positional parameter - it doesn't try to destruct"
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |foo = 42|
@@ -8,7 +8,7 @@ ast: |
   BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 1, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt)])
@@ -37,7 +37,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -51,7 +51,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 1
+                                          frameSlot = 1 # foo
                                       children:
                                           valueNode =
                                               ReadOptionalArgumentNode

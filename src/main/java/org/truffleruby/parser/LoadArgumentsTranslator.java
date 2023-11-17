@@ -217,12 +217,16 @@ public final class LoadArgumentsTranslator extends Translator {
 
         if (useArray()) {
             if (argsNode.getPreCount() == 0 || argsNode.hasRestArg()) {
-                sequence.add(IfElseNodeGen.create(
-                        new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
-                        notNilAtLeastAsLarge,
-                        notNilSmaller));
+                if (!notNilAtLeastAsLargeSequence.isEmpty() || !notNilSmallerSequence.isEmpty()) { // don't add 'if () then nil else nil';
+                    sequence.add(IfElseNodeGen.create(
+                            new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
+                            notNilAtLeastAsLarge,
+                            notNilSmaller));
+                }
             } else {
-                sequence.add(noRest);
+                if (!noRestSequence.isEmpty()) { // prevent adding NilLiteralNode
+                    sequence.add(noRest);
+                }
             }
         } else {
             // TODO CS 10-Jan-16 needn't have created notNilSmaller

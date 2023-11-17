@@ -4,8 +4,7 @@ notes: >
   An additional node InitFlipFlopSlotNode is created
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
-  def foo
-    x = 42
+  def foo(x)
     1 if (x) .. (x)
   end
 ast: |
@@ -15,14 +14,14 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = x, type = req)])
       call targets:
           RubyMethodRootNode
               attributes:
-                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  arityForCheck = Arity{preRequired = 1, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:x, #4:%flipflop_0}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:x, #3:%method_block_arg, #4:%flipflop_0}
                   instrumentationBits = 0
                   keywordArguments = false
                   localReturnProfile = false
@@ -32,7 +31,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = x, type = req)])
                   split = HEURISTIC
               children:
                   body =
@@ -48,7 +47,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -59,20 +58,27 @@ ast: |
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 2 # x
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 0
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 2
-                                  WriteLocalVariableNode
-                                      attributes:
-                                          flags = 1
-                                          frameSlot = 3
-                                      children:
-                                          valueNode =
-                                              IntegerFixnumLiteralNode
-                                                  attributes:
-                                                      flags = 0
-                                                      value = 42
+                                          slot = 3
                                   IfNodeGen
                                       attributes:
                                           flags = 0
@@ -88,14 +94,14 @@ ast: |
                                                       begin =
                                                           ReadLocalVariableNode
                                                               attributes:
-                                                                  flags = 1
-                                                                  frameSlot = 3
+                                                                  flags = 0
+                                                                  frameSlot = 2 # x
                                                                   type = FRAME_LOCAL
                                                       end =
                                                           ReadLocalVariableNode
                                                               attributes:
-                                                                  flags = 1
-                                                                  frameSlot = 3
+                                                                  flags = 0
+                                                                  frameSlot = 2 # x
                                                                   type = FRAME_LOCAL
                                           thenBody =
                                               IntegerFixnumLiteralNode

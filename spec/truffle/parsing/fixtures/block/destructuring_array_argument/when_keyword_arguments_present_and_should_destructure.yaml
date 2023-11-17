@@ -1,0 +1,246 @@
+subject: "Block"
+description: "Destructuring single array argument / when keyword arguments present and should destructure"
+notes: >
+  It handles keyword arguments as usually.
+  A simplified AST for array argument destructuring:
+  
+    (ReadKeywordArgumentNodeGen name = :c)
+yarp_specific: true # there is optimization in destructuring a single array argument
+                    # to return ReadKeywordArgumentNodeGen for required keyword parameter
+                    # instead of (WriteLocalVariableNode (ReadKeywordArgumentNodeGen))
+focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
+ruby: |
+  proc do |a, b, c:|
+  end
+ast: |
+  BlockDefinitionNodeGen
+      attributes:
+          breakID = org.truffleruby.language.control.BreakID@...
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
+          flags = 0
+          frameOnStackMarkerSlot = 2
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [c], requiredKeywordArgumentsCount = 1, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = c, type = keyreq)])
+          type = PROC
+      call targets:
+          RubyProcRootNode
+              attributes:
+                  callTarget = block in <top (required)>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:b, #3:c, #4:%destructure_1}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  nextProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  redoProfile = false
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [c], requiredKeywordArgumentsCount = 1, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = c, type = keyreq)])
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  IfElseNodeGen
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          condition =
+                                              AndNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      left =
+                                                          ShouldDestructureNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  keywordArguments = true
+                                                      right =
+                                                          SequenceNode
+                                                              attributes:
+                                                                  flags = 0
+                                                              children:
+                                                                  body = [
+                                                                      WriteLocalVariableNode
+                                                                          attributes:
+                                                                              flags = 0
+                                                                              frameSlot = 4 # %destructure_1
+                                                                          children:
+                                                                              valueNode =
+                                                                                  SplatCastNodeGen
+                                                                                      attributes:
+                                                                                          conversionMethod = :to_ary
+                                                                                          copy = false
+                                                                                          flags = 0
+                                                                                          nilBehavior = NIL
+                                                                                      children:
+                                                                                          childNode_ =
+                                                                                              ProfileArgumentNodeGen
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                  children:
+                                                                                                      childNode_ =
+                                                                                                          ReadPreArgumentNode
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                                                  index = 0
+                                                                                                                  keywordArguments = true
+                                                                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                                                      NotNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              child =
+                                                                                  IsNilNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                      children:
+                                                                                          child =
+                                                                                              ReadLocalVariableNode
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                      frameSlot = 4 # %destructure_1
+                                                                                                      type = FRAME_LOCAL
+                                                                  ]
+                                          elseBody =
+                                              SequenceNode
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      body = [
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 0 # (self)
+                                                              children:
+                                                                  valueNode =
+                                                                      ProfileArgumentNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              childNode_ =
+                                                                                  ReadSelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 1 # a
+                                                              children:
+                                                                  valueNode =
+                                                                      ProfileArgumentNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              childNode_ =
+                                                                                  ReadPreArgumentNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          index = 0
+                                                                                          keywordArguments = true
+                                                                                          missingArgumentBehavior = NIL
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 2 # b
+                                                              children:
+                                                                  valueNode =
+                                                                      ProfileArgumentNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              childNode_ =
+                                                                                  ReadPreArgumentNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          index = 1
+                                                                                          keywordArguments = true
+                                                                                          missingArgumentBehavior = NIL
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 3 # c
+                                                              children:
+                                                                  valueNode =
+                                                                      ReadKeywordArgumentNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                              name = :c
+                                                                          children:
+                                                                              readUserKeywordsHashNode =
+                                                                                  ReadUserKeywordsHashNode
+                                                      ]
+                                          thenBody =
+                                              SequenceNode
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      body = [
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 0 # (self)
+                                                              children:
+                                                                  valueNode =
+                                                                      ProfileArgumentNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              childNode_ =
+                                                                                  ReadSelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 1 # a
+                                                              children:
+                                                                  valueNode =
+                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                              index = 0
+                                                                          children:
+                                                                              arrayNode_ =
+                                                                                  ReadLocalVariableNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          frameSlot = 4 # %destructure_1
+                                                                                          type = FRAME_LOCAL
+                                                          WriteLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 2 # b
+                                                              children:
+                                                                  valueNode =
+                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                              index = 1
+                                                                          children:
+                                                                              arrayNode_ =
+                                                                                  ReadLocalVariableNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          frameSlot = 4 # %destructure_1
+                                                                                          type = FRAME_LOCAL
+                                                          ReadKeywordArgumentNodeGen
+                                                              attributes:
+                                                                  flags = 0
+                                                                  name = :c
+                                                              children:
+                                                                  readUserKeywordsHashNode =
+                                                                      ReadUserKeywordsHashNode
+                                                      ]
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                              ]
+                  checkKeywordArityNode =
+                      CheckKeywordArityNode
+                          attributes:
+                              arity = Arity{preRequired = 2, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [c], requiredKeywordArgumentsCount = 1, hasKeywordsRest = false}
+                          children:
+                              readUserKeywordsHashNode =
+                                  ReadUserKeywordsHashNode

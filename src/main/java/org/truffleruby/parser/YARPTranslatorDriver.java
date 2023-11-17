@@ -243,7 +243,6 @@ public final class YARPTranslatorDriver {
         byte[] sourceBytes = rubySource.getBytes();
         final YARPTranslator translator = new YARPTranslator(
                 language,
-                null,
                 environment,
                 sourceBytes,
                 source,

@@ -9,6 +9,8 @@ notes: >
     - keywordArguments = []
     - requiredKeywordArgumentsCount = 0
     - hasKeywordsRest = true
+  
+  So the keyword arguments are reflected in the `hasKeywordsRest=true` attribute.
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(**nil)
@@ -49,7 +51,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen

@@ -2,13 +2,14 @@ subject: "Method call"
 description: "Arguments/with positional argument and splat operator (a, *args)"
 notes: |
   is represented by ArrayConcatNode and SplatCastNodeGen
+yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   foo(bar, *baz)
 ast: |
   RubyCallNode
       attributes:
-          descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
+          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
           dispatchConfig = PRIVATE
           emptyKeywordsProfile = false
           flags = 1
@@ -22,65 +23,52 @@ ast: |
           notRuby2KeywordsHashProfile = false
       children:
           arguments = [
-              ArrayConcatNode
+              RubyCallNode
                   attributes:
+                      descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "bar"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
                   children:
-                      children = [
-                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                      receiver =
+                          SelfNode
                               attributes:
                                   flags = 0
-                                  language = org.truffleruby.RubyLanguage@...
-                              children:
-                                  values = [
-                                      RubyCallNode
-                                          attributes:
-                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                              dispatchConfig = PRIVATE
-                                              emptyKeywordsProfile = false
-                                              flags = 0
-                                              isAttrAssign = false
-                                              isSafeNavigation = false
-                                              isSplatted = false
-                                              isVCall = true
-                                              lastArgIsNotHashProfile = false
-                                              methodName = "bar"
-                                              notEmptyKeywordsProfile = false
-                                              notRuby2KeywordsHashProfile = false
-                                          children:
-                                              receiver =
-                                                  SelfNode
-                                                      attributes:
-                                                          flags = 0
-                                  ]
-                          SplatCastNodeGen
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_a
+                      copy = true
+                      flags = 0
+                      nilBehavior = CONVERT
+                  children:
+                      childNode_ =
+                          RubyCallNode
                               attributes:
-                                  conversionMethod = :to_a
-                                  copy = true
+                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
                                   flags = 0
-                                  nilBehavior = CONVERT
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "baz"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
                               children:
-                                  childNode_ =
-                                      RubyCallNode
+                                  receiver =
+                                      SelfNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.EmptyArgumentsDescriptor@...
-                                              dispatchConfig = PRIVATE
-                                              emptyKeywordsProfile = false
                                               flags = 0
-                                              isAttrAssign = false
-                                              isSafeNavigation = false
-                                              isSplatted = false
-                                              isVCall = true
-                                              lastArgIsNotHashProfile = false
-                                              methodName = "baz"
-                                              notEmptyKeywordsProfile = false
-                                              notRuby2KeywordsHashProfile = false
-                                          children:
-                                              receiver =
-                                                  SelfNode
-                                                      attributes:
-                                                          flags = 0
-                      ]
           ]
           receiver =
               SelfNode

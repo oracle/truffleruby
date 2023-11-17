@@ -10,7 +10,7 @@ ast: |
   BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req)])
@@ -203,30 +203,6 @@ ast: |
                                                                                           flags = 0
                                                                                           frameSlot = 3
                                                                                           type = FRAME_LOCAL
-                                                          IfElseNodeGen
-                                                              attributes:
-                                                                  flags = 0
-                                                              children:
-                                                                  condition =
-                                                                      ArrayIsAtLeastAsLargeAsNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              requiredSize = 1
-                                                                          children:
-                                                                              child =
-                                                                                  ReadLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 3
-                                                                                          type = FRAME_LOCAL
-                                                                  elseBody =
-                                                                      NilLiteralNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                  thenBody =
-                                                                      NilLiteralNode
-                                                                          attributes:
-                                                                              flags = 0
                                                       ]
                                   NilLiteralNode
                                       attributes:

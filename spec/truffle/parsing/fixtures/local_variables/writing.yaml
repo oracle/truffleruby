@@ -10,7 +10,7 @@ ast: |
   WriteLocalVariableNode
       attributes:
           flags = 1
-          frameSlot = 2
+          frameSlot = 2 # foo
       children:
           valueNode =
               IntegerFixnumLiteralNode

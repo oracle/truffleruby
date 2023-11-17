@@ -19,7 +19,7 @@ ast: |
   BlockDefinitionNodeGen
       attributes:
           breakID = org.truffleruby.language.control.BreakID@...
-          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = org.truffleruby.parser.MethodTranslator$$Lambda$.../0x...@...)
+          callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 2, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = opt)])
@@ -68,7 +68,7 @@ ast: |
                                                                       WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              frameSlot = 4
+                                                                              frameSlot = 4 # %destructure_1
                                                                           children:
                                                                               valueNode =
                                                                                   SplatCastNodeGen
@@ -103,7 +103,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 4 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                                   ]
                                           elseBody =
@@ -115,7 +115,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 0
+                                                                  frameSlot = 0 # (self)
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -129,7 +129,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # a
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -146,7 +146,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # b
                                                               children:
                                                                   valueNode =
                                                                       ReadOptionalArgumentNode
@@ -164,7 +164,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3
+                                                                  frameSlot = 3 # c
                                                               children:
                                                                   valueNode =
                                                                       ReadOptionalArgumentNode
@@ -189,7 +189,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 0
+                                                                  frameSlot = 0 # (self)
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
@@ -203,7 +203,7 @@ ast: |
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # a
                                                               children:
                                                                   valueNode =
                                                                       ArrayIndexNodesFactory$ReadConstantIndexNodeGen
@@ -215,12 +215,12 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 4
+                                                                                          frameSlot = 4 # %destructure_1
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # b
                                                               children:
                                                                   valueNode =
                                                                       IfElseNodeGen
@@ -237,7 +237,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 4 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                                               elseBody =
                                                                                   IntegerFixnumLiteralNode
@@ -254,12 +254,12 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 4 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3
+                                                                  frameSlot = 3 # c
                                                               children:
                                                                   valueNode =
                                                                       IfElseNodeGen
@@ -276,7 +276,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 4 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                                               elseBody =
                                                                                   IntegerFixnumLiteralNode
@@ -293,11 +293,8 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 4 # %destructure_1
                                                                                                       type = FRAME_LOCAL
-                                                          NilLiteralNode
-                                                              attributes:
-                                                                  flags = 0
                                                       ]
                                   NilLiteralNode
                                       attributes:

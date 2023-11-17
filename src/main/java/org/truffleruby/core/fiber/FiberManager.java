@@ -30,7 +30,7 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
@@ -147,7 +147,7 @@ public final class FiberManager {
             final Object result = ProcOperations.rootCall(block, descriptorAndArgs.descriptor, descriptorAndArgs.args);
 
             lastMessage = new FiberResumeMessage(FiberOperation.YIELD, fiber,
-                    EmptyArgumentsDescriptor.INSTANCE, new Object[]{ result });
+                    NoKeywordArgumentsDescriptor.INSTANCE, new Object[]{ result });
 
             // Handlers in the same order as in ThreadManager
         } catch (KillException | ExitException | RaiseException e) {
@@ -239,7 +239,7 @@ public final class FiberManager {
             safepointMessage.action.run(fiber.rubyThread, currentNode);
             final RubyFiber sendingFiber = safepointMessage.sendingFiber;
             message = resumeAndWait(fiber, sendingFiber, FiberOperation.TRANSFER,
-                    EmptyArgumentsDescriptor.INSTANCE, SAFEPOINT_ARGS, currentNode);
+                    NoKeywordArgumentsDescriptor.INSTANCE, SAFEPOINT_ARGS, currentNode);
         }
 
         if (message instanceof FiberShutdownMessage) {

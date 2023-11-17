@@ -10,5 +10,5 @@ ast: |
   ReadLocalVariableNode
       attributes:
           flags = 1
-          frameSlot = 2
+          frameSlot = 2 # foo
           type = FRAME_LOCAL

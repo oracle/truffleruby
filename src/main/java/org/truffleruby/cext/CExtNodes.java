@@ -88,7 +88,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.EmptyArgumentsDescriptor;
+import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -354,7 +354,7 @@ public abstract class CExtNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
-            return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+            return sendWithoutCExtLock(frame, receiver, method, block, NoKeywordArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, PRIVATE, ownedProfile);
         }
 
@@ -368,7 +368,7 @@ public abstract class CExtNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
-            return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+            return sendWithoutCExtLock(frame, receiver, method, block, NoKeywordArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, PRIVATE, ownedProfile);
         }
     }
@@ -388,7 +388,7 @@ public abstract class CExtNodes {
             final RubyHash keywords = hashCastNode.execute(this, ArrayUtils.getLast(args));
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
-                return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                return sendWithoutCExtLock(frame, receiver, method, block, NoKeywordArgumentsDescriptor.INSTANCE, args,
                         dispatchNode, PRIVATE, ownedProfile);
             } else {
                 return sendWithoutCExtLock(frame, receiver, method, block,
@@ -406,7 +406,7 @@ public abstract class CExtNodes {
                 @Cached DispatchNode dispatchNode,
                 @Cached InlinedConditionProfile ownedProfile) {
             final Object[] args = unwrapCArrayNode.execute(argv);
-            return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+            return sendWithoutCExtLock(frame, receiver, method, block, NoKeywordArgumentsDescriptor.INSTANCE, args,
                     dispatchNode, PUBLIC, ownedProfile);
         }
     }
@@ -426,7 +426,7 @@ public abstract class CExtNodes {
             final RubyHash keywords = hashCastNode.execute(this, ArrayUtils.getLast(args));
             if (emptyProfile.profile(this, keywords.empty())) {
                 args = LiteralCallNode.removeEmptyKeywordArguments(args);
-                return sendWithoutCExtLock(frame, receiver, method, block, EmptyArgumentsDescriptor.INSTANCE, args,
+                return sendWithoutCExtLock(frame, receiver, method, block, NoKeywordArgumentsDescriptor.INSTANCE, args,
                         dispatchNode, PUBLIC, ownedProfile);
             } else {
                 return sendWithoutCExtLock(frame, receiver, method, block,
@@ -1235,7 +1235,7 @@ public abstract class CExtNodes {
             final InternalMethod superMethod = superMethodLookup.getMethod();
             // This C API only passes positional arguments, but maybe it should be influenced by ruby2_keywords hashes?
             return callSuperMethodNode.execute(
-                    frame, callingSelf, superMethod, EmptyArgumentsDescriptor.INSTANCE, args, nil);
+                    frame, callingSelf, superMethod, NoKeywordArgumentsDescriptor.INSTANCE, args, nil);
         }
 
         @TruffleBoundary
