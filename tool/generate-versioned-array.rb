@@ -6,6 +6,8 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
+abort "this file should be run on TruffleRuby to list TruffleRuby's Array methods" unless RUBY_ENGINE == 'truffleruby'
+
 copyright = File.read(__FILE__)[/Copyright \(c\) \d+, \d+ Oracle/]
 file = 'src/main/ruby/truffleruby/core/truffle/versioned_array.rb'
 
