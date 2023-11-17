@@ -91,26 +91,33 @@ module Truffle
       end
     end
 
+    # default implementation of Exception#detailed_message hook
     def self.detailed_message(exception, highlight)
       message = StringValue exception.message.to_s
 
-      klass = Primitive.class(exception).to_s
+      exception_class = Primitive.class(exception)
+      class_name = exception_class.to_s
+
       if Primitive.is_a?(exception, Polyglot::ForeignException) and
           Truffle::Interop.has_meta_object?(exception)
-        klass = "#{klass}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
+        class_name = "#{class_name}: #{Truffle::Interop.meta_qualified_name Truffle::Interop.meta_object(exception)}"
       end
 
       if message.empty?
-        return highlight ? "\n\e[1m#{klass}\e[m" : klass
+        message = Primitive.equal?(exception_class, RuntimeError) ? 'unhandled exception' : class_name
+        message = "\n\e[1m#{message}\e[m" if highlight
+        return message
       end
 
       anonymous_class = Primitive.module_anonymous?(Primitive.class(exception))
 
       if highlight
-        highlighted_class_string = !anonymous_class ? " (\e[1;4m#{klass}\e[m\e[1m)" : ''
+        highlighted_class_string = !anonymous_class ? " (\e[1;4m#{class_name}\e[m\e[1m)" : ''
+
         if message.include?("\n")
           first = true
           result = +''
+
           message.each_line do |line|
             if first
               first = false
@@ -119,12 +126,13 @@ module Truffle
               result << "\n\e[1m#{line.chomp}\e[m"
             end
           end
+
           result
         else
           "\e[1m#{message}#{highlighted_class_string}\e[m"
         end
       else
-        class_string = !anonymous_class ? " (#{klass})" : ''
+        class_string = !anonymous_class ? " (#{class_name})" : ''
 
         if i = message.index("\n")
           "#{message[0...i]}#{class_string}#{message[i..-1]}"
@@ -134,6 +142,9 @@ module Truffle
       end
     end
 
+    # User can customise exception and override/undefine Exception#detailed_message method.
+    # This way we need to handle corner cases when #detailed_message is undefined or
+    # returns something other than String.
     def self.detailed_message_or_fallback(exception, options)
       unless Primitive.respond_to?(exception, :detailed_message, false)
         return detailed_message_fallback(exception, options)
@@ -177,15 +188,18 @@ module Truffle
 
       result = ''.b
       bt = exception.backtrace || caller(2)
+
       if reverse
         traceback_msg = if highlight
                           "\e[1mTraceback\e[m (most recent call last):\n"
                         else
                           "Traceback (most recent call last):\n"
                         end
+
         result << traceback_msg
         append_causes(result, exception, {}.compare_by_identity, reverse, highlight, options)
         backtrace_message = backtrace_message(highlight, reverse, bt, exception, options)
+
         if backtrace_message.empty?
           result << detailed_message_or_fallback(exception, options)
         else
@@ -193,13 +207,16 @@ module Truffle
         end
       else
         backtrace_message = backtrace_message(highlight, reverse, bt, exception, options)
+
         if backtrace_message.empty?
           result << detailed_message_or_fallback(exception, options)
         else
           result << backtrace_message
         end
+
         append_causes(result, exception, {}.compare_by_identity, reverse, highlight, options)
       end
+
       result
     end
 
@@ -255,6 +272,8 @@ module Truffle
       end
     end
 
+    # Return user provided message if it was specified.
+    # A message might be computed (and assigned) lazily in some cases (e.g. for NoMethodError).
     def self.compute_message(exception)
       message = Primitive.exception_message(exception)
       # mimic CRuby behaviour and explicitly convert a user provided message to String
