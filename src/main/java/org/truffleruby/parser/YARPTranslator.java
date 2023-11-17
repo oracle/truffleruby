@@ -100,7 +100,7 @@ import org.truffleruby.language.literal.ObjectClassLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 import org.truffleruby.language.literal.StringLiteralNode;
 import org.truffleruby.language.literal.TruffleInternalModuleLiteralNode;
-import org.truffleruby.language.locals.FindDeclarationVariableNodes;
+import org.truffleruby.language.locals.FindDeclarationVariableNodes.FrameSlotAndDepth;
 import org.truffleruby.language.locals.FlipFlopNodeGen;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.ReadLocalNode;
@@ -499,8 +499,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 source,
                 parameters,
                 arity,
-                currentCallMethodName,
-                this);
+                currentCallMethodName);
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
 
@@ -1201,7 +1200,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode begin = node.left.accept(this);
         final RubyNode end = node.right.accept(this);
 
-        final FindDeclarationVariableNodes.FrameSlotAndDepth slotAndDepth = createFlipFlopState(0);
+        final var slotAndDepth = createFlipFlopState();
         final RubyNode rubyNode = FlipFlopNodeGen.create(begin, end, node.isExcludeEnd(), slotAndDepth.depth,
                 slotAndDepth.slot);
 
@@ -2014,10 +2013,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         throw new Error("Unknown node: " + node);
     }
 
-    protected FindDeclarationVariableNodes.FrameSlotAndDepth createFlipFlopState(int depth) {
-        final int frameSlot = environment.declareLocalTemp("flipflop");
-        environment.getFlipFlopStates().add(frameSlot);
-        return new FindDeclarationVariableNodes.FrameSlotAndDepth(frameSlot, depth);
+    /** Declare variable in the nearest non-block outer lexical scope - either method, class or top-level */
+    protected FrameSlotAndDepth createFlipFlopState() {
+        final var target = environment.getSurroundingMethodEnvironment();
+        final int frameSlot = target.declareLocalTemp("flipflop");
+        target.getFlipFlopStates().add(frameSlot);
+
+        return new FrameSlotAndDepth(frameSlot, environment.getBlockDepth());
     }
 
     /** Translate a list of nodes, e.g. break/return operands, into an array producing node. It returns ArrayLiteralNode

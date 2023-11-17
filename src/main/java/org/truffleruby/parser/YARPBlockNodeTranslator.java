@@ -33,7 +33,6 @@ import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.locals.FindDeclarationVariableNodes;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
@@ -47,8 +46,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
     private final Nodes.ParametersNode parameters;
     private final Arity arity;
     private final String currentCallMethodName;
-    // used to find the nearest outer non-block lexical scope
-    private final YARPTranslator parent;
 
     public YARPBlockNodeTranslator(
             RubyLanguage language,
@@ -57,13 +54,11 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             Source source,
             Nodes.ParametersNode parameters,
             Arity arity,
-            String currentCallMethodName,
-            YARPTranslator parent) {
+            String currentCallMethodName) {
         super(language, environment, sourceBytes, source, null, null, null);
         this.parameters = parameters;
         this.arity = arity;
         this.currentCallMethodName = currentCallMethodName;
-        this.parent = parent;
     }
 
     public RubyNode compileBlockNode(Nodes.Node body, String[] locals, boolean isStabbyLambda,
@@ -342,12 +337,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         } else {
             return true;
         }
-    }
-
-    @Override
-    // local variable will be declared in the nearest outer non-block lexical scope
-    protected FindDeclarationVariableNodes.FrameSlotAndDepth createFlipFlopState(int depth) {
-        return parent.createFlipFlopState(depth + 1);
     }
 
 }
