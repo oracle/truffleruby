@@ -133,13 +133,11 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     @Override
     public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
+        // Passing single array argument to a block with required keyword arguments should lead
+        // to ArgumentError 'missing keyword' in runtime.
+        // So use ReadKeywordArgumentNode to raise this exception.
         final var name = language.getSymbol(node.name);
-        final RubyNode readNode = ReadKeywordArgumentNode.create(name, null);
-
-        // actually if there is required keyword argument then ArgumentError 'missing keyword'
-        // should be raised in runtime before executing this node
-        return new WriteLocalVariableNode(slot, readNode);
+        return ReadKeywordArgumentNode.create(name, null);
     }
 
     @Override

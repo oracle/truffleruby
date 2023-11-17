@@ -4,8 +4,10 @@ notes: >
   It handles keyword arguments as usually.
   A simplified AST for array argument destructuring:
   
-    (WriteLocalVariableNode frameSlot = 3
-      (ReadKeywordArgumentNodeGen name = :c))
+    (ReadKeywordArgumentNodeGen name = :c)
+yarp_specific: true # there is optimization in destructuring a single array argument
+                    # to return ReadKeywordArgumentNodeGen for required keyword parameter
+                    # instead of (WriteLocalVariableNode (ReadKeywordArgumentNodeGen))
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, c:|
@@ -223,19 +225,13 @@ ast: |
                                                                                           flags = 0
                                                                                           frameSlot = 4 # %destructure_1
                                                                                           type = FRAME_LOCAL
-                                                          WriteLocalVariableNode
+                                                          ReadKeywordArgumentNodeGen
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3 # c
+                                                                  name = :c
                                                               children:
-                                                                  valueNode =
-                                                                      ReadKeywordArgumentNodeGen
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              name = :c
-                                                                          children:
-                                                                              readUserKeywordsHashNode =
-                                                                                  ReadUserKeywordsHashNode
+                                                                  readUserKeywordsHashNode =
+                                                                      ReadUserKeywordsHashNode
                                                       ]
                                   NilLiteralNode
                                       attributes:
