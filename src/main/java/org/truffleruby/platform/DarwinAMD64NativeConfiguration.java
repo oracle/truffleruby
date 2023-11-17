@@ -425,8 +425,8 @@ public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfigura
         configuration.config("platform.socket.PF_ISDN", 28);
         configuration.config("platform.socket.AF_LOCAL", 1);
         configuration.config("platform.socket.PF_LOCAL", 1);
-        configuration.config("platform.socket.AF_MAX", 40);
-        configuration.config("platform.socket.PF_MAX", 40);
+        configuration.config("platform.socket.AF_MAX", 41);
+        configuration.config("platform.socket.PF_MAX", 41);
         configuration.config("platform.socket.AF_ROUTE", 17);
         configuration.config("platform.socket.PF_ROUTE", 17);
         configuration.config("platform.socket.AF_SNA", 11);
@@ -544,6 +544,7 @@ public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfigura
         configuration.config("platform.socket.MSG_DONTROUTE", 4);
         configuration.config("platform.socket.MSG_DONTWAIT", 128);
         configuration.config("platform.socket.MSG_EOR", 8);
+        configuration.config("platform.socket.MSG_NOSIGNAL", 524288);
         configuration.config("platform.socket.MSG_OOB", 1);
         configuration.config("platform.socket.MSG_PEEK", 2);
         configuration.config("platform.socket.MSG_TRUNC", 16);
