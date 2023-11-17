@@ -36,10 +36,30 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
+import org.truffleruby.parser.parser.ParserSupport;
 
 public final class TranslatorEnvironment {
 
+    /* Names of hidden local variables.
+     * 
+     * For each parameter in methods and blocks a local variable is declared to keep actual argument value. Use the
+     * following names for parameters that don't have explicit names - anonymous rest, keyword rest and block.
+     * 
+     * Store values of anonymous parameters to forward them either implicitly to a super method call or explicitly to a
+     * method call with *, **, & or "...". */
+
+    /** local variable to access a block argument */
     public static final String METHOD_BLOCK_NAME = Layouts.TEMP_PREFIX + "method_block_arg";
+    /** local variable name for * parameter */
+    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR;
+    /** local variable name for ** parameter */
+    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR;
+    /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
+    static final String FORWARDED_REST_NAME = ParserSupport.FORWARD_ARGS_REST_VAR;
+    /** local variable name for ** parameter caused by desugaring ... parameter (forward-everything) */
+    static final String FORWARDED_KEYWORD_REST_NAME = ParserSupport.FORWARD_ARGS_KWREST_VAR;
+    /** local variable name for & parameter caused by desugaring ... parameter (forward-everything) */
+    static final String FORWARDED_BLOCK_NAME = ParserSupport.FORWARD_ARGS_BLOCK_VAR;
 
     private final ParseEnvironment parseEnvironment;
 

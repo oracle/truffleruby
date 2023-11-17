@@ -22,16 +22,8 @@ import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import org.prism.Nodes;
-import org.truffleruby.parser.parser.ParserSupport;
 
 public final class YARPDefNodeTranslator extends YARPTranslator {
-    // TODO: not the best place for these constants. Is YARPLoadArgumentsTranslator better? Or YARPTranslator?
-    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR; // local variable name for ** parameter
-    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR; // local variable name for * parameter
-    static final String FORWARDED_REST_NAME = ParserSupport.FORWARD_ARGS_REST_VAR; // local variable name for * parameter caused by desugaring ...
-    static final String FORWARDED_KEYWORD_REST_NAME = ParserSupport.FORWARD_ARGS_KWREST_VAR; // local variable name for ** parameter caused by desugaring ...
-    static final String FORWARDED_BLOCK_NAME = ParserSupport.FORWARD_ARGS_BLOCK_VAR; // local variable name for & parameter caused by desugaring ...
-
     private final boolean shouldLazyTranslate;
 
     public YARPDefNodeTranslator(
@@ -105,15 +97,15 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
 
         for (String name : node.locals) {
             switch (name) {
-                case "*" -> environment.declareVar(DEFAULT_REST_NAME);
-                case "**" -> environment.declareVar(DEFAULT_KEYWORD_REST_NAME);
+                case "*" -> environment.declareVar(TranslatorEnvironment.DEFAULT_REST_NAME);
+                case "**" -> environment.declareVar(TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME);
                 case "&" ->
                     // we don't support yet Ruby 3.1's anonymous block parameter
                     throw CompilerDirectives.shouldNotReachHere("Anonymous block parameters aren't supported yet");
                 case "..." -> {
-                    environment.declareVar(YARPDefNodeTranslator.FORWARDED_REST_NAME);
-                    environment.declareVar(YARPDefNodeTranslator.FORWARDED_KEYWORD_REST_NAME);
-                    environment.declareVar(YARPDefNodeTranslator.FORWARDED_BLOCK_NAME);
+                    environment.declareVar(TranslatorEnvironment.FORWARDED_REST_NAME);
+                    environment.declareVar(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME);
+                    environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
                 }
                 default -> environment.declareVar(name);
             }

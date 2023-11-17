@@ -144,7 +144,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     @Override
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
-        // TODO: depth is not suppose to be used anyway so pass 0 value.
+        // NOTE: depth is not supposed to be used anyway so pass 0 value.
         final RubyNode rubyNode = yarpTranslator.visitLocalVariableWriteNode(
                 new Nodes.LocalVariableWriteNode(node.name, 0, null, node.startOffset, node.length));
         return ((AssignableNode) rubyNode).toAssignableNode();

@@ -40,9 +40,7 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNodeGen;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.function.Supplier;
 
 public final class YARPBlockNodeTranslator extends YARPTranslator {
@@ -139,7 +137,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         } else {
             // 100% proc
 
-            // it could be converted lately to lambda, e.g. if passed as argument to Module#define_method
+            // it could be converted later to lambda, e.g. if passed as argument to Module#define_method
             callTargets = new ProcCallTargets(procCompiler.get(), null, lambdaCompiler);
         }
 
@@ -225,8 +223,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
                     ? body.cloneUninitialized() // previously compiled as lambda, must copy
                     : body;
 
-            // TODO: shouldn't we clone preludeProc as well?
-            //      It contains loadArguments node that could be used for lambda
             final RubyNode bodyProc = composeBody(environment, preludeProc, bodyForProc);
 
             final RubyProcRootNode newRootNodeForProcs = new RubyProcRootNode(
@@ -249,8 +245,8 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
                 // Note that the compilation to lambda does not alter the original returnID (instead it's "hijacked"
                 // and used in RubyLambdaRootNode).
                 //
-                // This needs to run after nodes are adopted for replace() (during callTarget initialisation) to work
-                // and nodes to know their parent.
+                // replace() should be called **after** nodes are adopted (in RootNode#getCallTarget() using adoptChildren())
+                // so nodes know their parent.
                 for (DynamicReturnNode returnNode : NodeUtil
                         .findAllNodeInstances(bodyForProc, DynamicReturnNode.class)) {
                     if (returnNode.returnID == ReturnID.MODULE_BODY) {

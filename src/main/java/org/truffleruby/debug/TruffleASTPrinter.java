@@ -10,12 +10,12 @@
 package org.truffleruby.debug;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 
@@ -152,7 +152,6 @@ public abstract class TruffleASTPrinter {
 
     // map frame slots to local variable names
     private static Map<String, String> getNodeAttributeAnnotations(Node node) {
-        final TreeMap<String, String> annotations = new TreeMap<>();
         final int frameSlot;
 
         // ignore WriteDeclarationVariableNode and ReadDeclarationVariableNode
@@ -167,25 +166,15 @@ public abstract class TruffleASTPrinter {
         } else if (node instanceof ReadFrameSlotNode readFrameSlotNode) {
             frameSlot = readFrameSlotNode.getFrameSlot();
         } else {
-            return annotations;
+            return Collections.emptyMap();
         }
 
-        Node parent = node.getParent();
-
-        while (parent != null && !(parent instanceof RootNode)) {
-            parent = parent.getParent();
-        }
-
-        assert parent != null;
-
-        final var rootNode = (RootNode) parent;
+        final var rootNode = node.getRootNode();
         final var frameDescriptor = rootNode.getFrameDescriptor();
         final String variableName = frameDescriptor.getSlotName(frameSlot).toString();
 
         // all the mentioned above classes use the same field name - "frameSlot", so just hardcode it
-        annotations.put("frameSlot", variableName);
-
-        return annotations;
+        return Collections.singletonMap("frameSlot", variableName);
     }
 
     private static List<Pair<String, Object>> getNodeChildren(Node node) {

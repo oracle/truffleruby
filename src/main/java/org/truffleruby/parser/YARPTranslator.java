@@ -138,6 +138,11 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
+import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
+import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME;
+import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_REST_NAME;
+
 // NOTE: we should avoid SourceIndexLength in YARPTranslator, instead pass a Nodes.Node as location, because
 // * it does not copy the newline flag properly,
 // * it is inefficient,
@@ -256,18 +261,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitArrayPatternNode(Nodes.ArrayPatternNode node) {
-        return defaultVisit(node);
-    }
-
-    // handled in #visitHashNode
-    @Override
-    public RubyNode visitAssocNode(Nodes.AssocNode node) {
-        return defaultVisit(node);
-    }
-
-    // handled in #visitHashNode
-    @Override
-    public RubyNode visitAssocSplatNode(Nodes.AssocSplatNode node) {
         return defaultVisit(node);
     }
 
@@ -430,7 +423,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             Nodes.Node body, String[] locals) {
         final boolean isStabbyLambda = node instanceof Nodes.LambdaNode;
         final boolean hasOwnScope = true;
-        final boolean isProc = !isStabbyLambda;
 
         TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
         final String methodName = methodParent.getMethodName();
@@ -572,14 +564,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final boolean isAttrAssign = methodName.endsWith("=");
         final boolean isSafeNavigation = node.isSafeNavigation();
 
-        final boolean isSplatted;
-        boolean isSplatFound = false;
+        boolean isSplatted = false;
         for (var n : arguments) { // check if there is splat operator in the arguments list
             if (n instanceof Nodes.SplatNode) {
-                isSplatFound = true;
+                isSplatted = true;
+                break;
             }
         }
-        isSplatted = isSplatFound;
 
         // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
         if (isSplatted && translatedArguments.length == 1 &&
@@ -621,7 +612,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             return rubyNode;
         }
 
-        // TODO: use visit... methods instead of explicit checks
         final RubyNode blockNode;
         final int frameOnStackMarkerSlot;
         if (node.block != null) {
@@ -690,26 +680,32 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         Nodes.Node last = arguments[arguments.length - 1];
 
-        if (!(last instanceof Nodes.KeywordHashNode)) {
+        if (!(last instanceof Nodes.KeywordHashNode keywords)) {
             return NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
-        var keywords = (Nodes.KeywordHashNode) last;
-
         final List<String> names = new ArrayList<>();
+        boolean splat = false;          // splat operator, e.g. foo(a: 1, *h)
+        boolean nonKeywordKeys = false; // not Symbol keys, e.g. foo("a" => 1)
 
         for (var n : keywords.elements) {
-            // TODO: we ignore InterpolatedSymbolNode and other arbitrary possible key types here
-            //      not sure whether we need keys at all
             if (n instanceof Nodes.AssocNode assoc && assoc.key instanceof Nodes.SymbolNode symbol) {
                 names.add(toString(symbol.unescaped));
+            } else if (n instanceof Nodes.AssocNode assoc && !(assoc.key instanceof Nodes.SymbolNode)) {
+                nonKeywordKeys = true;
+            } else if (n instanceof Nodes.AssocSplatNode) {
+                splat = true;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
             }
         }
 
-        var array = names.toArray(StringUtils.EMPTY_STRING_ARRAY);
-        var manager = language.keywordArgumentsDescriptorManager;
-        var descriptor = manager.getArgumentsDescriptor(array);
-        return descriptor;
+        if (splat || nonKeywordKeys || !names.isEmpty()) {
+            return language.keywordArgumentsDescriptorManager
+                    .getArgumentsDescriptor(names.toArray(StringUtils.EMPTY_STRING_ARRAY));
+        } else {
+            return NoKeywordArgumentsDescriptor.INSTANCE;
+        }
     }
 
     @Override
@@ -1536,7 +1532,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitKeywordHashNode(Nodes.KeywordHashNode node) {
-        // store keyword arguments as a literal Hash
+        // translate it like a HashNode, whether it is keywords or not is checked in getKeywordArgumentsDescriptor()
         final var hash = new Nodes.HashNode(node.elements, node.startOffset, node.length);
         return hash.accept(this);
     }
@@ -1987,12 +1983,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 !node.isBeginModifier());
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
-    }
-
-    // handled in #visitCaseNode method
-    @Override
-    public RubyNode visitWhenNode(Nodes.WhenNode node) {
-        return defaultVisit(node);
     }
 
     @Override
@@ -2453,8 +2443,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected String toString(byte[] bytes) {
-        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(bytes, 0,
-                bytes.length, sourceEncoding.tencoding, false), sourceEncoding);
+        return TStringUtils.toJavaStringOrThrow(
+                TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false), sourceEncoding);
     }
 
     protected SourceSection getSourceSection(Nodes.Node yarpNode) {
@@ -2593,19 +2583,15 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 final var keywordRestParameterNode = (Nodes.KeywordRestParameterNode) parametersNode.keyword_rest;
 
                 if (keywordRestParameterNode.name == null) {
-                    descriptors.add(new ArgumentDescriptor(ArgumentType.anonkeyrest,
-                            YARPDefNodeTranslator.DEFAULT_KEYWORD_REST_NAME));
+                    descriptors.add(new ArgumentDescriptor(ArgumentType.anonkeyrest, DEFAULT_KEYWORD_REST_NAME));
                 } else {
                     descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, keywordRestParameterNode.name));
                 }
             } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
                 // ... => *, **, &
-                descriptors.add(new ArgumentDescriptor(ArgumentType.rest,
-                        YARPDefNodeTranslator.FORWARDED_REST_NAME));
-                descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest,
-                        YARPDefNodeTranslator.FORWARDED_KEYWORD_REST_NAME));
-                descriptors.add(new ArgumentDescriptor(ArgumentType.block,
-                        YARPDefNodeTranslator.FORWARDED_BLOCK_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.rest, FORWARDED_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, FORWARDED_KEYWORD_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.block, FORWARDED_BLOCK_NAME));
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
                 final var descriptor = new ArgumentDescriptor(ArgumentType.nokey);
                 descriptors.add(descriptor);

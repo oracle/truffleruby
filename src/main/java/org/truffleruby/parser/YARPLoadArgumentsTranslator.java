@@ -239,11 +239,11 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         int to = -parametersNode.posts.length;
         readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments());
 
-        final String name = (node.name != null) ? node.name : YARPDefNodeTranslator.DEFAULT_REST_NAME;
+        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_REST_NAME;
 
-        // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals,
-        // and we don't declare this hidden variable beforehand.
-        // So declare it here right before usage.
+        // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
+        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
+        // declare this hidden variable beforehand. So declare it here right before usage.
         final int slot = environment.declareVar(name);
 
         return new WriteLocalVariableNode(slot, readNode);
@@ -252,11 +252,11 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
-        final String name = (node.name != null) ? node.name : YARPDefNodeTranslator.DEFAULT_KEYWORD_REST_NAME;
+        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
 
-        // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals,
-        // and we don't declare this hidden variable beforehand.
-        // So declare it here right before usage.
+        // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
+        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
+        // hidden variable beforehand. So declare it here right before usage.
         final int slot = environment.declareVar(name);
 
         return new WriteLocalVariableNode(slot, readNode);
@@ -281,9 +281,9 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         ArrayList<RubyNode> sequence = new ArrayList<>();
 
         // desugar ... to *, **, and & parameters
-        final var rest = new Nodes.RestParameterNode(YARPDefNodeTranslator.FORWARDED_REST_NAME, 0, 0);
-        final var keyrest = new Nodes.KeywordRestParameterNode(YARPDefNodeTranslator.FORWARDED_KEYWORD_REST_NAME, 0, 0);
-        final var block = new Nodes.BlockParameterNode(YARPDefNodeTranslator.FORWARDED_BLOCK_NAME, 0, 0);
+        final var rest = new Nodes.RestParameterNode(TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
+        final var keyrest = new Nodes.KeywordRestParameterNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
+        final var block = new Nodes.BlockParameterNode(TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
 
         sequence.add(rest.accept(this));
         sequence.add(keyrest.accept(this));

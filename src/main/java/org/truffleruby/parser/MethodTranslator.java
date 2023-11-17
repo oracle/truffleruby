@@ -371,7 +371,7 @@ public final class MethodTranslator extends BodyTranslator {
 
         body = sequence(sourceSection, Arrays.asList(prelude, body));
 
-        if (environment.getFlipFlopStates().size() > 0) { // TODO: it could be called twice in case of conversion block->lambda or vise versa
+        if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(sourceSection, Arrays.asList(initFlipFlopStates(environment, sourceSection), body));
         }
 
