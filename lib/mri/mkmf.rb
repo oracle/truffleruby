@@ -48,10 +48,6 @@ if defined?(::TruffleRuby)
   end
 end
 
-if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-prepend-toolchain-to-path') and Truffle::Boot.get_option('cexts-sulong')
-  ENV['PATH'] = "#{RbConfig::CONFIG['toolchain_path']}:#{ENV['PATH']}"
-end
-
 class String # :nodoc:
   # Wraps a string in escaped quotes if it contains whitespace.
   def quote
