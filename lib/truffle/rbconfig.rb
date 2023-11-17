@@ -108,8 +108,6 @@ module RbConfig
     '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
   ]
   warnflags << '-Wno-format-invalid-specifier' if clang # Our PRIsVALUE generates this because compilers ignore printf extensions
-  # TODO fix it, happens in openssl
-  warnflags << '-Wno-discarded-qualifiers' if gcc
 
   defs = ''
   cppflags = ''
