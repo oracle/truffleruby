@@ -72,7 +72,6 @@ module RbConfig
     strip = Truffle::Boot.toolchain_executable(:STRIP)
 
     strip = "#{strip} --keep-section=.llvmbc" unless Truffle::Platform.darwin?
-    gcc, clang = false, true
   else
     if Truffle::Platform.linux?
       ar = 'gcc-ar'
@@ -80,7 +79,6 @@ module RbConfig
       cxx = 'g++'
       ranlib = 'gcc-ranlib'
       strip = 'strip -S -x'
-      gcc, clang = true, false
     elsif Truffle::Platform.darwin?
       ar = 'ar'
       cc = 'clang'
@@ -90,7 +88,6 @@ module RbConfig
       # This is notably necessary for grpc where the current logic does not append -x for TruffleRuby:
       # https://github.com/grpc/grpc/blob/54f65e0dbd2151a3ba2ad364327c0c31b200a5ae/src/ruby/ext/grpc/extconf.rb#L125-L126
       strip = 'strip -A -n -x'
-      gcc, clang = false, true
       cflags_pre = '-fdeclspec '
     else
       raise 'Unknown platform'
@@ -107,7 +104,6 @@ module RbConfig
     '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
     '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
   ]
-  warnflags << '-Wno-format-invalid-specifier' if clang # Our PRIsVALUE generates this because compilers ignore printf extensions
 
   defs = ''
   cppflags = ''
