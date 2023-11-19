@@ -302,8 +302,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException frozenError(String message, Node currentNode, Object receiver) {
         RubyClass exceptionClass = context.getCoreLibrary().frozenErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, errorMessage, backtrace);
@@ -329,16 +328,14 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException runtimeError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
     public RubyException runtimeError(String message, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
@@ -346,8 +343,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException runtimeError(String message, Backtrace backtrace) {
         RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, backtrace);
     }
 
@@ -362,8 +358,7 @@ public final class CoreExceptions {
                 : "<empty Java stacktrace>";
         final String message = coreStrings().STACK_LEVEL_TOO_DEEP + "\n\tfrom " + topOfTheStack;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 0, javaThrowable);
-        final RubyString messageString = StringOperations
-                .createUTF8String(context, language, message);
+        final RubyString messageString = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createSystemStackError(context, messageString, backtrace, showExceptionIfDebug);
     }
 
@@ -452,8 +447,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException indexError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().indexErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -497,8 +491,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException keyError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().keyErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -512,8 +505,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException stopIteration(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().stopIterationClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -522,8 +514,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException localJumpError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().localJumpErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
@@ -690,8 +681,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException typeError(String message, Node currentNode, Throwable javaThrowable) {
         RubyClass exceptionClass = context.getCoreLibrary().typeErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
@@ -830,7 +820,7 @@ public final class CoreExceptions {
     public RubyNameError nameErrorUnknownIdentifierException(
             UnknownIdentifierException exception, Object receiver, Node currentNode) {
         return nameError(
-                "Unknown identifier: " + exception.getUnknownIdentifier(),
+                exception.getMessage(),
                 receiver,
                 exception.getUnknownIdentifier(),
                 currentNode);
@@ -838,8 +828,7 @@ public final class CoreExceptions {
 
     @TruffleBoundary
     public RubyNameError nameError(String message, Object receiver, String name, Node currentNode) {
-        final RubyString messageString = StringOperations
-                .createUTF8String(context, language, message);
+        final RubyString messageString = StringOperations.createUTF8String(context, language, message);
         final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(language);
@@ -948,9 +937,10 @@ public final class CoreExceptions {
                 Nil.INSTANCE);
     }
 
+    @TruffleBoundary
     public RubyNoMethodError noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,
             UnknownIdentifierException exception, Node currentNode) {
-        return noMethodError(ExceptionOperations.getMessage(exception), receiver, name, args, currentNode);
+        return noMethodError(exception.getMessage(), receiver, name, args, currentNode);
     }
 
     // LoadError
@@ -1239,8 +1229,7 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException ffiNullPointerError(String message, Node currentNode) {
         RubyClass exceptionClass = context.getCoreLibrary().truffleFFINullPointerErrorClass;
-        RubyString errorMessage = StringOperations
-                .createUTF8String(context, language, message);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
