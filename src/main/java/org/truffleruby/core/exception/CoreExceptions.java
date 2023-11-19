@@ -698,9 +698,13 @@ public final class CoreExceptions {
 
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
-        RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
-        String formattedValues = RubyGuards.getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
-        return typeError("unsupported type " + formattedValues, currentNode);
+        String message = exception.getMessage();
+        if (message == null) {
+            RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
+            String formattedValues = RubyGuards.getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
+            message = "unsupported type " + formattedValues;
+        }
+        return typeError(message, currentNode);
     }
 
     // NameError
