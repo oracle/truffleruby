@@ -1887,7 +1887,44 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSingletonClassNode(Nodes.SingletonClassNode node) {
-        return defaultVisit(node);
+        final RubyNode receiverNode = node.expression.accept(this);
+        var singletonClassNode = SingletonClassASTNodeGen.create(receiverNode);
+        assignNodePositionOnly(node, singletonClassNode);
+
+        boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
+
+        String modulePath = "<singleton class>";
+        if (!dynamicConstantLookup) {
+            if (environment.isModuleBody() && node.expression instanceof Nodes.SelfNode) {
+                // Common case of class << self in a module body, the constant lookup scope is still static.
+                if (environment.isTopLevelObjectScope()) {
+                    // Special pattern recognized by #modulePathAndMethodName:
+                    modulePath = "main::<singleton class>";
+                } else {
+                    modulePath = TranslatorEnvironment.composeModulePath(environment.modulePath, "<singleton class>");
+                }
+            } else if (environment.isTopLevelScope()) {
+                // At the top-level of a file, opening the singleton class of an expression executed only once
+            } else {
+                // Switch to dynamic constant lookup
+                dynamicConstantLookup = true;
+                if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                    RubyLanguage.LOGGER.info(
+                            () -> "start dynamic constant lookup at " +
+                                    RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+                }
+            }
+        }
+
+        final RubyNode rubyNode = openModule(
+                node,
+                singletonClassNode,
+                modulePath,
+                node.body,
+                OpenModule.SINGLETON_CLASS,
+                dynamicConstantLookup);
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     @Override
@@ -2480,8 +2517,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private static void assignNodePositionInSource(Nodes.Node yarpNode, RubyNode rubyNode) {
-        rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        assignNodePositionOnly(yarpNode, rubyNode);
         copyNewlineFlag(yarpNode, rubyNode);
+    }
+
+    private static void assignNodePositionOnly(Nodes.Node yarpNode, RubyNode rubyNode) {
+        rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
     }
 
     private static void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
