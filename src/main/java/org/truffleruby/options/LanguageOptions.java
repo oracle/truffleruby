@@ -127,6 +127,8 @@ public final class LanguageOptions {
     public final boolean RUN_TWICE;
     /** --experimental-engine-caching=RUN_TWICE */
     public final boolean EXPERIMENTAL_ENGINE_CACHING;
+    /** --prism=false */
+    public final boolean PRISM;
 
     public LanguageOptions(Env env, OptionValues options, boolean singleContext) {
         NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
@@ -181,6 +183,7 @@ public final class LanguageOptions {
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
         RUN_TWICE = options.get(OptionsCatalog.RUN_TWICE_KEY);
         EXPERIMENTAL_ENGINE_CACHING = options.hasBeenSet(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) ? options.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) : RUN_TWICE;
+        PRISM = options.get(OptionsCatalog.PRISM_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
@@ -289,6 +292,8 @@ public final class LanguageOptions {
                 return RUN_TWICE;
             case "ruby.experimental-engine-caching":
                 return EXPERIMENTAL_ENGINE_CACHING;
+            case "ruby.prism":
+                return PRISM;
             default:
                 return null;
         }
@@ -346,7 +351,8 @@ public final class LanguageOptions {
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY)) &&
                one.get(OptionsCatalog.RUN_TWICE_KEY).equals(two.get(OptionsCatalog.RUN_TWICE_KEY)) &&
-               one.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY).equals(two.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY));
+               one.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY).equals(two.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY)) &&
+               one.get(OptionsCatalog.PRISM_KEY).equals(two.get(OptionsCatalog.PRISM_KEY));
     }
 
     public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
@@ -714,6 +720,13 @@ public final class LanguageOptions {
         newValue = newOptions.EXPERIMENTAL_ENGINE_CACHING;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --experimental-engine-caching differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.PRISM;
+        newValue = newOptions.PRISM;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --prism differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 
