@@ -166,6 +166,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
+    protected static final short NO_FLAGS = 0;
+
     private boolean translatingWhile = false;
 
     private boolean translatingNextExpression = false;
@@ -892,7 +894,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitClassVariableOperatorWriteNode(Nodes.ClassVariableOperatorWriteNode node) {
-        return defaultVisit(node);
+        int startOffset = node.startOffset;
+        int length = node.length;
+        var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length);
+        var desugared = new Nodes.ClassVariableWriteNode(node.name,
+                callNode(node, readNode, node.operator, node.value), startOffset, length);
+        return desugared.accept(this);
     }
 
     @Override
@@ -1248,7 +1255,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitGlobalVariableOperatorWriteNode(Nodes.GlobalVariableOperatorWriteNode node) {
-        return defaultVisit(node);
+        int startOffset = node.startOffset;
+        int length = node.length;
+        var readNode = new Nodes.GlobalVariableReadNode(node.name, startOffset, length);
+        var desugared = new Nodes.GlobalVariableWriteNode(node.name,
+                callNode(node, readNode, node.operator, node.value), startOffset, length);
+        return desugared.accept(this);
     }
 
     @Override
@@ -1412,7 +1424,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInstanceVariableOperatorWriteNode(Nodes.InstanceVariableOperatorWriteNode node) {
-        return defaultVisit(node);
+        int startOffset = node.startOffset;
+        int length = node.length;
+        var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length);
+        var desugared = new Nodes.InstanceVariableWriteNode(node.name,
+                callNode(node, readNode, node.operator, node.value), startOffset, length);
+        return desugared.accept(this);
     }
 
     @Override
@@ -1559,7 +1576,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitLocalVariableOperatorWriteNode(Nodes.LocalVariableOperatorWriteNode node) {
-        return defaultVisit(node);
+        int startOffset = node.startOffset;
+        int length = node.length;
+        var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length);
+        var desugared = new Nodes.LocalVariableWriteNode(node.name, node.depth,
+                callNode(node, readNode, node.operator, node.value), startOffset, length);
+        return desugared.accept(this);
     }
 
     @Override
@@ -2493,6 +2515,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             var sequenceNode = new SequenceNode(flatSequence);
             return sequenceNode;
         }
+    }
+
+    protected static Nodes.CallNode callNode(Nodes.Node location, Nodes.Node receiver, String methodName,
+            Nodes.Node... arguments) {
+        return new Nodes.CallNode(receiver,
+                new Nodes.ArgumentsNode(arguments, NO_FLAGS, location.startOffset, location.length), null, NO_FLAGS,
+                methodName, location.startOffset, location.length);
     }
 
     // assign position based on a list of nodes (arguments list, exception classes list in a rescue section, etc)
