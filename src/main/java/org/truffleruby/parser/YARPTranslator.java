@@ -36,7 +36,9 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
+import org.truffleruby.core.string.ConvertBytes;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.InterpolatedStringNode;
@@ -95,6 +97,7 @@ import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
 import org.truffleruby.language.literal.FrozenStringLiteralNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
+import org.truffleruby.language.literal.LongFixnumLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.ObjectClassLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
@@ -1466,29 +1469,20 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
         // parse Integer literal ourselves
         // See https://github.com/ruby/yarp/issues/1098
-        final String string = toString(node).replaceAll("_", "");
+        var tstring = toTString(node);
+        Object integer = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring, sourceEncoding, 0,
+                true);
 
-        final int radix;
-        final int offset;
-
-        if (node.isBinary()) {
-            radix = 2;
-            offset = 2;
-        } else if (node.isHexadecimal()) {
-            radix = 16;
-            offset = 2;
-        } else if (node.isDecimal()) {
-            radix = 10;
-            offset = (string.startsWith("0d") || string.startsWith("0D")) ? 2 : 0;
-        } else if (node.isOctal()) {
-            radix = 8;
-            offset = (string.startsWith("0o") || string.startsWith("0O")) ? 2 : 1; // 0oXX, 0OXX, 0XX
+        final RubyNode rubyNode;
+        if (integer instanceof Integer i) {
+            rubyNode = new IntegerFixnumLiteralNode(i);
+        } else if (integer instanceof Long l) {
+            rubyNode = new LongFixnumLiteralNode(l);
+        } else if (integer instanceof RubyBignum bignum) {
+            rubyNode = new ObjectLiteralNode(bignum);
         } else {
-            throw CompilerDirectives.shouldNotReachHere();
+            throw CompilerDirectives.shouldNotReachHere(integer.getClass().getName());
         }
-
-        final long value = Long.parseLong(string.substring(offset), radix);
-        final RubyNode rubyNode = Translator.integerOrLongLiteralNode(value);
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
@@ -2502,9 +2496,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.NilNode;
     }
 
+    private TruffleString toTString(Nodes.Node node) {
+        return TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding,
+                false);
+    }
+
     protected String toString(Nodes.Node node) {
-        return TStringUtils.toJavaStringOrThrow(TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset,
-                node.length, sourceEncoding.tencoding, false), sourceEncoding);
+        return TStringUtils.toJavaStringOrThrow(toTString(node), sourceEncoding);
     }
 
     protected String toString(byte[] bytes) {
