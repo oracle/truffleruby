@@ -2010,7 +2010,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
-        throw new Error("Unknown node: " + node);
+        String code = toString(node);
+        throw new Error(
+                this.getClass().getSimpleName() + " does not know how to translate " + node.getClass().getSimpleName() +
+                        " at " + RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)) +
+                        "\nCode snippet:\n" + code + "\nPrism AST:\n" + node);
     }
 
     /** Declare variable in the nearest non-block outer lexical scope - either method, class or top-level */
