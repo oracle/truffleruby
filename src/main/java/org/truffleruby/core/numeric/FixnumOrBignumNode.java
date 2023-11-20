@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -24,11 +25,15 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 @GenerateCached(false)
 @GenerateInline
+@GenerateUncached
 public abstract class FixnumOrBignumNode extends RubyBaseNode {
 
     private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);
 
+    public static Object executeUncached(BigInteger value) {
+        return FixnumOrBignumNodeGen.getUncached().execute(null, value);
+    }
 
     public abstract Object execute(Node node, BigInteger value);
 

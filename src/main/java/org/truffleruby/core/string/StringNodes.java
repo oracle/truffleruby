@@ -127,7 +127,6 @@ import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
-import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -3682,8 +3681,7 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization
         Object stringToF(Object string,
-                @Cached RubyStringLibrary strings,
-                @Cached FixnumOrBignumNode fixnumOrBignumNode) {
+                @Cached RubyStringLibrary strings) {
             var tstring = strings.getTString(string);
             var encoding = strings.getEncoding(string);
             if (tstring.isEmpty()) {
@@ -3696,15 +3694,13 @@ public abstract class StringNodes {
                     return Double.parseDouble(javaString);
                 } catch (NumberFormatException e) {
                     // Try falling back to this implementation if the first fails, neither 100% complete
-                    final Object result = ConvertBytes
-                            .bytesToInum(
-                                    getContext(),
-                                    this,
-                                    fixnumOrBignumNode,
-                                    tstring,
-                                    encoding,
-                                    16,
-                                    true);
+                    final Object result = ConvertBytes.bytesToInum(
+                            getContext(),
+                            this,
+                            tstring,
+                            encoding,
+                            16,
+                            true);
                     if (result instanceof Integer) {
                         return ((Integer) result).doubleValue();
                     } else if (result instanceof Long) {
@@ -4135,7 +4131,6 @@ public abstract class StringNodes {
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared TruffleString.ParseLongNode parseLongNode,
                 @Cached @Shared InlinedBranchProfile notLazyLongProfile,
-                @Cached @Shared FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile) {
             var tstring = libString.getTString(string);
             try {
@@ -4143,8 +4138,7 @@ public abstract class StringNodes {
             } catch (TruffleString.NumberFormatException e) {
                 notLazyLongProfile.enter(this);
                 var encoding = libString.getEncoding(string);
-                return bytesToInum(this, tstring, encoding, base, strict, raiseOnError, fixnumOrBignumNode,
-                        exceptionProfile);
+                return bytesToInum(tstring, encoding, base, strict, raiseOnError, exceptionProfile);
             }
         }
 
@@ -4155,7 +4149,6 @@ public abstract class StringNodes {
                 @Cached TruffleString.CodePointAtByteIndexNode codePointNode,
                 @Cached InlinedConditionProfile notEmptyProfile,
                 @Cached @Shared InlinedBranchProfile notLazyLongProfile,
-                @Cached @Shared FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile) {
             var tstring = libString.getTString(string);
             var enc = libString.getEncoding(string);
@@ -4177,36 +4170,30 @@ public abstract class StringNodes {
             }
 
             var encoding = libString.getEncoding(string);
-            return bytesToInum(this, tstring, encoding, base, strict, raiseOnError, fixnumOrBignumNode,
-                    exceptionProfile);
+            return bytesToInum(tstring, encoding, base, strict, raiseOnError, exceptionProfile);
         }
 
         @Specialization(guards = { "base != 10", "base != 0" })
         Object otherBase(Object string, int base, boolean strict, boolean raiseOnError,
                 @Cached @Shared RubyStringLibrary libString,
-                @Cached @Shared FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached @Shared InlinedBranchProfile exceptionProfile) {
             var tstring = libString.getTString(string);
             var encoding = libString.getEncoding(string);
-            return bytesToInum(this, tstring, encoding, base, strict, raiseOnError, fixnumOrBignumNode,
-                    exceptionProfile);
+            return bytesToInum(tstring, encoding, base, strict, raiseOnError, exceptionProfile);
         }
 
-        private Object bytesToInum(Node node, AbstractTruffleString tstring, RubyEncoding encoding, int base,
-                boolean strict,
-                boolean raiseOnError, FixnumOrBignumNode fixnumOrBignumNode,
-                InlinedBranchProfile exceptionProfile) {
+        private Object bytesToInum(AbstractTruffleString tstring, RubyEncoding encoding, int base,
+                boolean strict, boolean raiseOnError, InlinedBranchProfile exceptionProfile) {
             try {
                 return ConvertBytes.bytesToInum(
                         getContext(),
                         this,
-                        fixnumOrBignumNode,
                         tstring,
                         encoding,
                         base,
                         strict);
             } catch (RaiseException e) {
-                exceptionProfile.enter(node);
+                exceptionProfile.enter(this);
                 if (!raiseOnError) {
                     return nil;
                 }
