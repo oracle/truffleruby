@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.source.Source;
+import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.language.control.BreakID;
@@ -23,6 +24,8 @@ public final class ParseEnvironment {
     public final Source source;
     private final boolean inCore;
     private final boolean coverageEnabled;
+
+    public Nodes.Source yarpSource = null;
 
     // Set once after parsing and before translating
     public Boolean allowTruffleRubyPrimitives = null;

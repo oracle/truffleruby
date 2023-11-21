@@ -2023,12 +2023,22 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSourceFileNode(Nodes.SourceFileNode node) {
-        return defaultVisit(node);
+        // Note: ideally we would use the filesystem encoding here, but it is too early to get that.
+        // The filesystem encoding on Linux and macOS is UTF-8 anyway, so keep it simple.
+        RubyEncoding encoding = Encodings.UTF_8;
+        String path = language.getSourcePath(source);
+        var tstring = TruffleString.fromJavaStringUncached(path, encoding.tencoding);
+        var rubyNode = new StringLiteralNode(tstring, encoding);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
     public RubyNode visitSourceLineNode(Nodes.SourceLineNode node) {
-        return defaultVisit(node);
+        // Note: we use the YARP source here, notably to account for the lineOffset.
+        // Instead of getSourceSection(node).getStartLine() which would also create the TextMap early.
+        int line = environment.getParseEnvironment().yarpSource.line(node.startOffset);
+        var rubyNode = new IntegerFixnumLiteralNode(line);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
