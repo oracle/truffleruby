@@ -39,6 +39,7 @@ import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
@@ -77,6 +78,7 @@ import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NotNodeGen;
+import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrNodeGen;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
@@ -1514,18 +1516,25 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
-        return defaultVisit(node);
+        final ToSNode[] children = translateInterpolatedParts(node.parts);
+
+        var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
+
+        var rubyNode = new InterpolatedRegexpNode(children, encodingAndOptions.options);
+        assignNodePositionInSource(node, rubyNode);
+
+        if (node.isOnce()) {
+            final RubyNode ret = new OnceNode(rubyNode);
+            assignNodePositionOnly(node, ret);
+            return ret;
+        }
+
+        return rubyNode;
     }
 
     @Override
     public RubyNode visitInterpolatedStringNode(Nodes.InterpolatedStringNode node) {
-        final ToSNode[] children = new ToSNode[node.parts.length];
-
-        for (int i = 0; i < node.parts.length; i++) {
-            var part = node.parts[i];
-
-            children[i] = ToSNodeGen.create(part.accept(this));
-        }
+        final ToSNode[] children = translateInterpolatedParts(node.parts);
 
         final RubyNode rubyNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
         assignNodePositionInSource(node, rubyNode);
@@ -1535,12 +1544,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInterpolatedSymbolNode(Nodes.InterpolatedSymbolNode node) {
-        final ToSNode[] children = new ToSNode[node.parts.length];
-
-        for (int i = 0; i < node.parts.length; i++) {
-            final RubyNode expression = node.parts[i].accept(this);
-            children[i] = ToSNodeGen.create(expression);
-        }
+        final ToSNode[] children = translateInterpolatedParts(node.parts);
 
         final RubyNode stringNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
         final RubyNode rubyNode = StringToSymbolNodeGen.create(stringNode);
@@ -1557,6 +1561,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         assignNodePositionInSource(node, rubyNode);
         return rubyNode;
+    }
+
+    private ToSNode[] translateInterpolatedParts(Nodes.Node[] parts) {
+        final ToSNode[] children = new ToSNode[parts.length];
+
+        for (int i = 0; i < parts.length; i++) {
+            RubyNode expression = parts[i].accept(this);
+            children[i] = ToSNodeGen.create(expression);
+        }
+        return children;
     }
 
     @Override
@@ -1832,24 +1846,39 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitRegularExpressionNode(Nodes.RegularExpressionNode node) {
         var source = toTString(node.unescaped);
+        var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
+        try {
+            final RubyRegexp regexp = RubyRegexp.create(language, source, encodingAndOptions.encoding,
+                    encodingAndOptions.options, currentNode);
+            final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
+            assignNodePositionInSource(node, literalNode);
+            return literalNode;
+        } catch (DeferredRaiseException dre) {
+            throw dre.getException(RubyLanguage.getCurrentContext());
+        }
+    }
 
+    private record RegexpEncodingAndOptions(RubyEncoding encoding, RegexpOptions options) {
+    }
+
+    private RegexpEncodingAndOptions getRegexpEncodingAndOptions(Nodes.RegularExpressionFlags flags) {
         final KCode kcode;
         final RubyEncoding regexpEncoding;
         final boolean fixed;
         boolean explicitEncoding = true;
-        if (node.isAscii8bit()) {
+        if (flags.isAscii8bit()) {
             fixed = false;
             kcode = KCode.NONE;
             regexpEncoding = Encodings.BINARY;
-        } else if (node.isUtf8()) {
+        } else if (flags.isUtf8()) {
             fixed = true;
             kcode = KCode.UTF8;
             regexpEncoding = Encodings.UTF_8;
-        } else if (node.isEucJp()) {
+        } else if (flags.isEucJp()) {
             fixed = true;
             kcode = KCode.EUC;
             regexpEncoding = Encodings.getBuiltInEncoding(EUCJPEncoding.INSTANCE);
-        } else if (node.isWindows31j()) {
+        } else if (flags.isWindows31j()) {
             fixed = true;
             kcode = KCode.SJIS;
             regexpEncoding = Encodings.getBuiltInEncoding(Windows_31JEncoding.INSTANCE);
@@ -1860,16 +1889,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             explicitEncoding = false;
         }
 
-        final RegexpOptions options = new RegexpOptions(kcode, fixed, node.isOnce(), node.isExtended(),
-                node.isMultiLine(), node.isIgnoreCase(), node.isAscii8bit(), !explicitEncoding, true);
-        try {
-            final RubyRegexp regexp = RubyRegexp.create(language, source, regexpEncoding, options, currentNode);
-            final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
-            assignNodePositionInSource(node, literalNode);
-            return literalNode;
-        } catch (DeferredRaiseException dre) {
-            throw dre.getException(RubyLanguage.getCurrentContext());
-        }
+        final RegexpOptions options = new RegexpOptions(kcode, fixed, flags.isOnce(), flags.isExtended(),
+                flags.isMultiLine(), flags.isIgnoreCase(), flags.isAscii8bit(), !explicitEncoding, true);
+        return new RegexpEncodingAndOptions(regexpEncoding, options);
     }
 
     @Override
