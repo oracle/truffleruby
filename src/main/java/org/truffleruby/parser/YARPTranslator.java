@@ -15,6 +15,8 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.jcodings.specific.EUCJPEncoding;
+import org.jcodings.specific.Windows_31JEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
@@ -37,11 +39,14 @@ import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
 import org.truffleruby.core.string.ConvertBytes;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.ChaosNode;
@@ -62,6 +67,7 @@ import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
 import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNodeGen;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
@@ -1821,7 +1827,45 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitRegularExpressionNode(Nodes.RegularExpressionNode node) {
-        return defaultVisit(node);
+        var source = toTString(node.unescaped);
+
+        final KCode kcode;
+        final RubyEncoding regexpEncoding;
+        final boolean fixed;
+        boolean explicitEncoding = true;
+        if (node.isAscii8bit()) {
+            fixed = false;
+            kcode = KCode.NONE;
+            regexpEncoding = Encodings.BINARY;
+        } else if (node.isUtf8()) {
+            fixed = true;
+            kcode = KCode.UTF8;
+            regexpEncoding = Encodings.UTF_8;
+        } else if (node.isEucJp()) {
+            fixed = true;
+            kcode = KCode.EUC;
+            regexpEncoding = Encodings.getBuiltInEncoding(EUCJPEncoding.INSTANCE);
+        } else if (node.isWindows31j()) {
+            fixed = true;
+            kcode = KCode.SJIS;
+            regexpEncoding = Encodings.getBuiltInEncoding(Windows_31JEncoding.INSTANCE);
+        } else {
+            fixed = false;
+            kcode = KCode.NONE;
+            regexpEncoding = sourceEncoding;
+            explicitEncoding = false;
+        }
+
+        final RegexpOptions options = new RegexpOptions(kcode, fixed, node.isOnce(), node.isExtended(),
+                node.isMultiLine(), node.isIgnoreCase(), node.isAscii8bit(), !explicitEncoding, true);
+        try {
+            final RubyRegexp regexp = RubyRegexp.create(language, source, regexpEncoding, options, currentNode);
+            final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
+            assignNodePositionInSource(node, literalNode);
+            return literalNode;
+        } catch (DeferredRaiseException dre) {
+            throw dre.getException(RubyLanguage.getCurrentContext());
+        }
     }
 
     @Override
@@ -2536,7 +2580,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.NilNode;
     }
 
-    private TruffleString toTString(Nodes.Node node) {
+    protected TruffleString toTString(Nodes.Node node) {
         return TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding,
                 false);
     }
@@ -2545,9 +2589,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return TStringUtils.toJavaStringOrThrow(toTString(node), sourceEncoding);
     }
 
+    protected TruffleString toTString(byte[] bytes) {
+        return TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false);
+    }
+
     protected String toString(byte[] bytes) {
         return TStringUtils.toJavaStringOrThrow(
-                TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false), sourceEncoding);
+                toTString(bytes), sourceEncoding);
     }
 
     protected SourceSection getSourceSection(Nodes.Node yarpNode) {

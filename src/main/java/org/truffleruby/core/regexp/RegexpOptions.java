@@ -43,6 +43,47 @@ public final class RegexpOptions implements Cloneable, Comparable<RegexpOptions>
         assert kcode != null : "kcode must always be set to something";
     }
 
+    public RegexpOptions(
+            KCode kcode,
+            boolean fixed,
+            boolean once,
+            boolean extended,
+            boolean multiLine,
+            boolean ignoreCase,
+            boolean encodingNone,
+            boolean kCodeDefault,
+            boolean literal) {
+        this.kcode = kcode;
+        int options = 0;
+        if (fixed) {
+            options |= FIXED;
+        }
+        if (once) {
+            options |= ONCE;
+        }
+        if (extended) {
+            options |= EXTENDED;
+        }
+        if (multiLine) {
+            options |= MULTILINE;
+        }
+        if (ignoreCase) {
+            options |= IGNORECASE;
+        }
+        if (encodingNone) {
+            options |= ENCODINGNONE;
+        }
+        if (kCodeDefault) {
+            options |= KCODEDEFAULT;
+        }
+        if (literal) {
+            options |= LITERAL;
+        }
+        this.options = options;
+
+        assert kcode != null : "kcode must always be set to something";
+    }
+
     public boolean isExtended() {
         return (options & EXTENDED) != 0;
     }
@@ -115,14 +156,6 @@ public final class RegexpOptions implements Cloneable, Comparable<RegexpOptions>
 
     public RegexpOptions setOnce(boolean once) {
         return newWithFlag(ONCE, once);
-    }
-
-    public boolean isJava() {
-        return (options & JAVA) != 0;
-    }
-
-    public RegexpOptions setJava(boolean java) {
-        return newWithFlag(JAVA, java);
     }
 
     public boolean isEncodingNone() {
@@ -251,7 +284,6 @@ public final class RegexpOptions implements Cloneable, Comparable<RegexpOptions>
         hash = 11 * hash + (isExtended() ? 1 : 0);
         hash = 11 * hash + (isMultiline() ? 1 : 0);
         hash = 11 * hash + (isIgnorecase() ? 1 : 0);
-        hash = 11 * hash + (isJava() ? 1 : 0);
         hash = 11 * hash + (isEncodingNone() ? 1 : 0);
         hash = 11 * hash + (isKcodeDefault() ? 1 : 0);
         hash = 11 * hash + (isLiteral() ? 1 : 0);
@@ -284,7 +316,6 @@ public final class RegexpOptions implements Cloneable, Comparable<RegexpOptions>
                 (isExtended() ? ", extended" : "") +
                 (isFixed() ? ", fixed" : "") +
                 (isIgnorecase() ? ", ignorecase" : "") +
-                (isJava() ? ", java" : "") +
                 (isKcodeDefault() ? ", kcodeDefault" : "") +
                 (isLiteral() ? ", literal" : "") +
                 (isMultiline() ? ", multiline" : "") +
@@ -309,8 +340,7 @@ public final class RegexpOptions implements Cloneable, Comparable<RegexpOptions>
     private static final int EXTENDED = 1 << 2;
     private static final int MULTILINE = 1 << 3;
     private static final int IGNORECASE = 1 << 4;
-    private static final int JAVA = 1 << 5;
-    private static final int ENCODINGNONE = 1 << 6;
-    private static final int KCODEDEFAULT = 1 << 7;
-    private static final int LITERAL = 1 << 8;
+    private static final int ENCODINGNONE = 1 << 5;
+    private static final int KCODEDEFAULT = 1 << 6;
+    private static final int LITERAL = 1 << 7;
 }

@@ -217,9 +217,6 @@ public final class StringTerm extends StrTerm {
                 case 'u':
                     options = options.setExplicitKCode(KCode.UTF8);
                     break;
-                case 'j':
-                    options = options.setJava(true);
-                    break;
                 default:
                     unknownFlags.append((char) c);
                     break;
