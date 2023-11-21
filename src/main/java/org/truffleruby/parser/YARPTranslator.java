@@ -133,6 +133,7 @@ import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
+import org.truffleruby.parser.Translator.ArgumentsAndBlockTranslation;
 import org.truffleruby.parser.parser.ParserSupport;
 
 import java.util.ArrayDeque;
@@ -549,16 +550,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitCallNode(Nodes.CallNode node) {
         var methodName = node.name;
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
-        final Nodes.Node[] arguments;
 
-        if (node.arguments == null) {
-            arguments = Nodes.Node.EMPTY_ARRAY;
-        } else {
-            arguments = node.arguments.arguments;
-        }
-
-        var translatedArguments = translate(arguments);
-        var argumentsDescriptor = getKeywordArgumentsDescriptor(arguments);
+        var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, node.block, methodName);
+        var translatedArguments = argumentsAndBlock.arguments();
 
         // If the receiver is explicit or implicit 'self' then we can call private methods
         final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
@@ -568,21 +562,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final boolean isAttrAssign = methodName.endsWith("=");
         final boolean isSafeNavigation = node.isSafeNavigation();
 
-        boolean isSplatted = false;
-        for (var n : arguments) { // check if there is splat operator in the arguments list
-            if (n instanceof Nodes.SplatNode) {
-                isSplatted = true;
-                break;
-            }
-        }
-
         // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
-        if (isSplatted && translatedArguments.length == 1 &&
+        if (argumentsAndBlock.isSplatted() && translatedArguments.length == 1 &&
                 translatedArguments[0] instanceof SplatCastNode splatNode) {
             splatNode.doNotCopy();
         }
 
-        // TODO (pitr-ch 02-Dec-2019): replace with a primitive
         if (environment.getParseEnvironment().inCore() && isVariableCall && methodName.equals("undefined")) {
             // translate undefined
             final RubyNode rubyNode = new ObjectLiteralNode(NotProvided.INSTANCE);
@@ -603,38 +588,83 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // Translates something that looks like
         //   Primitive.foo arg1, arg2, argN
         // into
-        //   InvokePrimitiveNode(FooNode(arg1, arg2, ..., argN))
+        //   FooPrimitiveNode(arg1, arg2, ..., argN)
         if (environment.getParseEnvironment().canUsePrimitives() &&
                 node.receiver instanceof Nodes.ConstantReadNode constantReadNode &&
-                toString(constantReadNode).equals("Primitive")) {
+                constantReadNode.name.equals("Primitive")) {
 
             final PrimitiveNodeConstructor constructor = language.primitiveManager.getPrimitive(methodName);
             // TODO: avoid SourceIndexLength
             final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
-            final RubyNode rubyNode = constructor.createInvokePrimitiveNode(source, sourceSection, translatedArguments);
+            return constructor.createInvokePrimitiveNode(source, sourceSection, translatedArguments);
+        }
 
-            return rubyNode;
+        final var callNodeParameters = new RubyCallNodeParameters(
+                receiver,
+                methodName,
+                argumentsAndBlock.block(),
+                argumentsAndBlock.argumentsDescriptor(),
+                translatedArguments,
+                argumentsAndBlock.isSplatted(),
+                ignoreVisibility,
+                isVariableCall,
+                isSafeNavigation,
+                isAttrAssign);
+        final RubyNode callNode = language.coreMethodAssumptions.createCallNode(callNodeParameters);
+
+        final var rubyNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
+    }
+
+    private static RubyNode wrapCallWithLiteralBlock(ArgumentsAndBlockTranslation argumentsAndBlock,
+            RubyNode callNode) {
+        // wrap call node with literal block
+        if (argumentsAndBlock.block() instanceof BlockDefinitionNode blockDef) {
+            // if we have a literal block, `break` breaks out of this call site
+            final var frameOnStackNode = new FrameOnStackNode(callNode, argumentsAndBlock.frameOnStackMarkerSlot());
+            return new CatchBreakNode(blockDef.getBreakID(), frameOnStackNode, false);
+        } else {
+            return callNode;
+        }
+    }
+
+    private ArgumentsAndBlockTranslation translateArgumentsAndBlock(Nodes.ArgumentsNode argumentsNode, Nodes.Node block,
+            String methodName) {
+        final Nodes.Node[] arguments;
+        if (argumentsNode == null) {
+            arguments = Nodes.Node.EMPTY_ARRAY;
+        } else {
+            arguments = argumentsNode.arguments;
+        }
+
+        var translatedArguments = translate(arguments);
+        var argumentsDescriptor = getKeywordArgumentsDescriptor(arguments);
+
+        boolean isSplatted = false;
+        for (var n : arguments) { // check if there is splat operator in the arguments list
+            if (n instanceof Nodes.SplatNode) {
+                isSplatted = true;
+                break;
+            }
         }
 
         final RubyNode blockNode;
         final int frameOnStackMarkerSlot;
-        if (node.block != null) {
-            if (node.block instanceof Nodes.BlockNode) {
+        if (block != null) {
+            if (block instanceof Nodes.BlockNode) {
                 // a() {}
                 final String oldCurrentCallMethodName = currentCallMethodName;
                 currentCallMethodName = methodName;
-
                 frameOnStackMarkerSlot = environment.declareLocalTemp("frame_on_stack_marker");
                 frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
-
                 try {
-                    blockNode = node.block.accept(this);
+                    blockNode = block.accept(this);
                 } finally {
                     frameOnStackMarkerSlotStack.pop();
+                    currentCallMethodName = oldCurrentCallMethodName;
                 }
-
-                currentCallMethodName = oldCurrentCallMethodName;
-            } else if (node.block instanceof Nodes.BlockArgumentNode blockArgument) {
+            } else if (block instanceof Nodes.BlockArgumentNode blockArgument) {
                 // def a(&) b(&) end
                 assert blockArgument.expression != null; // Ruby 3.1's anonymous block parameter, that we don't support yet
 
@@ -649,32 +679,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
         }
 
-        final var callNodeParameters = new RubyCallNodeParameters(
-                receiver,
-                methodName,
-                blockNode,
-                argumentsDescriptor,
-                translatedArguments,
-                isSplatted,
-                ignoreVisibility,
-                isVariableCall,
-                isSafeNavigation,
-                isAttrAssign);
-        final RubyNode callNode = language.coreMethodAssumptions.createCallNode(callNodeParameters);
-        final RubyNode rubyNode;
-
-        // wrap call node with literal block
-        if (blockNode instanceof BlockDefinitionNode) {
-            // if we have a literal block, `break` breaks out of this call site
-            final var frameOnStackNode = new FrameOnStackNode(callNode, frameOnStackMarkerSlot);
-            final var blockDef = (BlockDefinitionNode) blockNode;
-            rubyNode = new CatchBreakNode(blockDef.getBreakID(), frameOnStackNode, false);
-        } else {
-            rubyNode = callNode;
-        }
-
-        assignNodePositionInSource(node, rubyNode);
-        return rubyNode;
+        return new ArgumentsAndBlockTranslation(blockNode, translatedArguments, isSplatted, argumentsDescriptor,
+                frameOnStackMarkerSlot);
     }
 
     private ArgumentsDescriptor getKeywordArgumentsDescriptor(Nodes.Node[] arguments) {
