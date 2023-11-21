@@ -165,7 +165,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
 
-    public static final int NO_FRAME_ON_STACK_MARKER = -1;
+    public static final int NO_FRAME_ON_STACK_MARKER = Translator.NO_FRAME_ON_STACK_MARKER;
 
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
