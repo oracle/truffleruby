@@ -166,9 +166,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     protected final RubyLanguage language;
     protected final TranslatorEnvironment environment;
+    // TODO: Since these fields don't seem to change per translator instance we could/should store them in ParseEnvironment
+    private final ParserContext parserContext;
     private final byte[] sourceBytes;
     private final Source source;
-    private final ParserContext parserContext;
     private final Node currentNode;
     private final RubyDeferredWarnings rubyWarnings;
     private final RubyEncoding sourceEncoding;
@@ -512,6 +513,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 newEnvironment,
                 sourceBytes,
                 source,
+                parserContext,
+                currentNode,
+                rubyWarnings,
                 parameters,
                 arity,
                 currentCallMethodName);

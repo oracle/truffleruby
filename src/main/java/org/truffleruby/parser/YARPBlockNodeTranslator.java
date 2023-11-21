@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -52,10 +53,13 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
+            ParserContext parserContext,
+            Node currentNode,
+            RubyDeferredWarnings rubyWarnings,
             Nodes.ParametersNode parameters,
             Arity arity,
             String currentCallMethodName) {
-        super(language, environment, sourceBytes, source, null, null, null);
+        super(language, environment, sourceBytes, source, parserContext, currentNode, rubyWarnings);
         this.parameters = parameters;
         this.arity = arity;
         this.currentCallMethodName = currentCallMethodName;
