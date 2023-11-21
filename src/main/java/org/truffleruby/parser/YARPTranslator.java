@@ -62,6 +62,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -146,7 +147,9 @@ import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
+import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
+import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.Translator.ArgumentsAndBlockTranslation;
 import org.truffleruby.parser.parser.ParserSupport;
@@ -156,6 +159,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 
 import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
@@ -193,8 +197,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private boolean translatingNextExpression = false;
     private boolean translatingForStatement = false;
 
-    private String currentCallMethodName = null;
-
     public YARPTranslator(
             RubyLanguage language,
             TranslatorEnvironment environment,
@@ -211,6 +213,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         this.currentNode = currentNode;
         this.rubyWarnings = rubyWarnings;
         this.sourceEncoding = Encodings.UTF_8; // TODO
+    }
+
+    public TranslatorEnvironment getEnvironment() {
+        return environment;
     }
 
     public RubyRootNode translate(Nodes.Node node) {
@@ -432,11 +438,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitBlockNode(Nodes.BlockNode node) {
-        return translateBlockAndLambda(node, node.parameters, node.body, node.locals);
+        throw CompilerDirectives.shouldNotReachHere(
+                "BlockNode should be translated specially by its parent node to pass the method name to which the block is passed");
+    }
+
+    private RubyNode visitBlockNode(Nodes.BlockNode node, String literalBlockPassedToMethod) {
+        return translateBlockAndLambda(node, node.parameters, node.body, node.locals, literalBlockPassedToMethod);
     }
 
     private RubyNode translateBlockAndLambda(Nodes.Node node, Nodes.BlockParametersNode blockParameters,
-            Nodes.Node body, String[] locals) {
+            Nodes.Node body, String[] locals, String literalBlockPassedToMethod) {
         final boolean isStabbyLambda = node instanceof Nodes.LambdaNode;
         final boolean hasOwnScope = true;
 
@@ -508,6 +519,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 parseEnvironment.allocateBreakID(),
                 null,
                 environment.modulePath);
+        newEnvironment.literalBlockPassedToMethod = literalBlockPassedToMethod;
+
         final YARPBlockNodeTranslator methodCompiler = new YARPBlockNodeTranslator(
                 language,
                 newEnvironment,
@@ -517,8 +530,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 currentNode,
                 rubyWarnings,
                 parameters,
-                arity,
-                currentCallMethodName);
+                arity);
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
 
@@ -659,17 +671,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode blockNode;
         final int frameOnStackMarkerSlot;
         if (block != null) {
-            if (block instanceof Nodes.BlockNode) {
+            if (block instanceof Nodes.BlockNode b) {
                 // a() {}
-                final String oldCurrentCallMethodName = currentCallMethodName;
-                currentCallMethodName = methodName;
                 frameOnStackMarkerSlot = environment.declareLocalTemp("frame_on_stack_marker");
                 frameOnStackMarkerSlotStack.push(frameOnStackMarkerSlot);
                 try {
-                    blockNode = block.accept(this);
+                    blockNode = visitBlockNode(b, methodName);
                 } finally {
                     frameOnStackMarkerSlotStack.pop();
-                    currentCallMethodName = oldCurrentCallMethodName;
                 }
             } else if (block instanceof Nodes.BlockArgumentNode blockArgument) {
                 // def a(&) b(&) end
@@ -1122,6 +1131,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 null,
                 null,
                 environment.modulePath);
+        newEnvironment.parametersNode = node.parameters;
 
         final var defNodeTranslator = new YARPDefNodeTranslator(
                 language,
@@ -1246,7 +1256,37 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitForwardingSuperNode(Nodes.ForwardingSuperNode node) {
-        return defaultVisit(node);
+        var argumentsAndBlock = translateArgumentsAndBlock(null, node.block, environment.getMethodName());
+
+        boolean insideDefineMethod = false;
+        var environment = this.environment;
+        while (environment.isBlock()) {
+            if (environment.isModuleBody()) {
+                return assignPositionAndFlags(node, new ZSuperOutsideMethodNode(insideDefineMethod));
+            } else if (Objects.equals(environment.literalBlockPassedToMethod, "define_method")) {
+                insideDefineMethod = true;
+            }
+            environment = environment.getParent();
+        }
+
+        // TODO: could we use the ArgumentDescriptor[] stored in the SharedMethodInfo instead?
+        var parametersNode = environment.parametersNode;
+        var reloadTranslator = new YARPReloadArgumentsTranslator(language, this, parametersNode);
+
+        final RubyNode[] reloadSequence = reloadTranslator.reload(parametersNode);
+
+        var descriptor = (parametersNode.keywords.length > 0 || parametersNode.keyword_rest != null)
+                ? KeywordArgumentsDescriptorManager.EMPTY
+                : NoKeywordArgumentsDescriptor.INSTANCE;
+        final int restParamIndex = reloadTranslator.getRestParameterIndex();
+        final RubyNode arguments = new ReadZSuperArgumentsNode(restParamIndex, reloadSequence);
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.block());
+        final boolean isSplatted = reloadTranslator.getRestParameterIndex() != -1;
+
+        RubyNode callNode = new SuperCallNode(isSplatted, arguments, block, descriptor);
+        callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
+
+        return assignPositionAndFlags(node, callNode);
     }
 
     @Override
@@ -1548,7 +1588,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitLambdaNode(Nodes.LambdaNode node) {
-        return translateBlockAndLambda(node, node.parameters, node.body, node.locals);
+        return translateBlockAndLambda(node, node.parameters, node.body, node.locals, null);
     }
 
     @Override
@@ -2582,7 +2622,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return source.createSection(yarpNode.startOffset, yarpNode.length);
     }
 
-    private static RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
+    public static RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
         assignPositionOnly(yarpNode, rubyNode);
         copyNewlineFlag(yarpNode, rubyNode);
         return rubyNode;

@@ -32,7 +32,7 @@ public final class ZSuperOutsideMethodNode extends RubyContextSourceNode {
     }
 
     @Override
-    public final Object execute(VirtualFrame frame) {
+    public Object execute(VirtualFrame frame) {
         // This is MRI behavior
         if (insideDefineMethod) { // TODO (eregon, 22 July 2015): This check should be more dynamic.
             throw new RaiseException(getContext(), coreExceptions().runtimeError(

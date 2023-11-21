@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.oracle.truffle.api.Assumption;
+import org.prism.Nodes;
 import org.truffleruby.Layouts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -85,6 +86,10 @@ public final class TranslatorEnvironment {
 
     public final String modulePath;
     public final String methodName;
+    /** Only set for literal blocks passed to a method, e.g. "foo" for `foo { ... }` */
+    public String literalBlockPassedToMethod = null;
+    /** Only set for def methods */
+    public Nodes.ParametersNode parametersNode = null;
 
     // TODO(CS): overflow? and it should be per-context, or even more local
     private static final AtomicInteger tempIndex = new AtomicInteger();
@@ -241,10 +246,12 @@ public final class TranslatorEnvironment {
     }
 
     public Integer findFrameSlotOrNull(Object name) {
+        assert name != null;
         return nameToIndex.get(name);
     }
 
     public int findFrameSlot(Object name) {
+        assert name != null;
         Integer index = nameToIndex.get(name);
         if (index == null) {
             throw CompilerDirectives.shouldNotReachHere("Could not find slot " + name);
@@ -279,6 +286,7 @@ public final class TranslatorEnvironment {
     }
 
     public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {
+        assert name != null;
         TranslatorEnvironment current = this;
         int level = 0;
 
