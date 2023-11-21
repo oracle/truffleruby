@@ -579,9 +579,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // If the receiver is explicit or implicit 'self' then we can call private methods
         final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
         final boolean isVariableCall = node.isVariableCall();
-        // this check isn't accurate and doesn't handle cases like #===, #!=, a.foo=(42)
+        // This isn't fully accurate and doesn't handle cases like #===, #!=, a.foo=(42)
         // the issue is tracked in https://github.com/ruby/prism/issues/1715
-        final boolean isAttrAssign = methodName.endsWith("=");
+        final boolean isAttrAssign = isAttrAssign(node.name);
         final boolean isSafeNavigation = node.isSafeNavigation();
 
         // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
@@ -731,6 +731,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             return NoKeywordArgumentsDescriptor.INSTANCE;
         }
+    }
+
+    private boolean isAttrAssign(String methodName) {
+        if (!methodName.endsWith("=") || methodName.length() < 2) {
+            return false;
+        }
+        char before = methodName.charAt(methodName.length() - 2);
+        return before != '=' && before != '!' && before != '<' && before != '>';
     }
 
     @Override
