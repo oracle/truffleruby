@@ -35,6 +35,7 @@ public final class RubySource {
     private final String sourcePath;
     private final TruffleString code;
     private byte[] bytes;
+    // FIXME: not always the source encoding, e.g. when loading from a file or eval, need to check the magic encoding comment
     private final RubyEncoding encoding;
     private final boolean isEval;
     private final int lineOffset;
@@ -81,22 +82,15 @@ public final class RubySource {
         return sourcePath;
     }
 
-    public boolean hasTruffleString() {
-        return code != null;
-    }
-
     public TruffleString getTruffleString() {
-        assert hasTruffleString();
         return code;
     }
 
     public TStringWithEncoding getTStringWithEncoding() {
-        assert hasTruffleString();
         return new TStringWithEncoding(code, encoding);
     }
 
     public byte[] getBytes() {
-        assert hasTruffleString();
         if (bytes != null) {
             return bytes;
         } else {
@@ -105,7 +99,6 @@ public final class RubySource {
     }
 
     public RubyEncoding getEncoding() {
-        assert hasTruffleString();
         return encoding;
     }
 

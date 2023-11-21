@@ -132,7 +132,7 @@ public abstract class TruffleBootNodes {
                 if (getContext().getOptions().SYNTAX_CHECK) {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
                 } else {
-                    var tstringWithEncoding = source.hasTruffleString() ? source.getTStringWithEncoding() : null;
+                    var tstringWithEncoding = source.getTStringWithEncoding();
                     var sourceTStringPair = Pair.create(source.getSource(), tstringWithEncoding);
                     final RootCallTarget callTarget = getContext()
                             .getCodeLoader()
