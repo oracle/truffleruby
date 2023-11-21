@@ -414,16 +414,20 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private RescueNode translateExceptionNodes(ArrayList<Nodes.Node> exceptionNodes, Nodes.RescueNode rescueClause) {
-        RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
 
         final Nodes.Node[] exceptionNodesArray = exceptionNodes.toArray(Nodes.Node.EMPTY_ARRAY);
         final RubyNode[] handlingClasses = translate(exceptionNodesArray);
 
+        RubyNode translatedBody;
         if (rescueClause.reference != null) {
-            final RubyNode exceptionWriteNode = translateRescueException(
-                    rescueClause.reference);
+            // We need to translate the reference before the statements,
+            // because the statements can use the variable defined by the reference.
+            final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
+            var translatedStatements = translateNodeOrNil(rescueClause.statements);
             translatedBody = sequence(rescueClause,
-                    Arrays.asList(exceptionWriteNode, translatedBody));
+                    Arrays.asList(exceptionWriteNode, translatedStatements));
+        } else {
+            translatedBody = translateNodeOrNil(rescueClause.statements);
         }
 
         final RescueNode rescueNode = new RescueClassesNode(handlingClasses, translatedBody);
