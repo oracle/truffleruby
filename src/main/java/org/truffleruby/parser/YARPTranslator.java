@@ -135,6 +135,7 @@ import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
+import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.Translator.ArgumentsAndBlockTranslation;
 import org.truffleruby.parser.parser.ParserSupport;
 
@@ -2086,7 +2087,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitYieldNode(Nodes.YieldNode node) {
-        return defaultVisit(node);
+        var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, null, "<yield>");
+
+        RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
+
+        var rubyNode = new YieldExpressionNode(
+                argumentsAndBlock.isSplatted(),
+                argumentsAndBlock.argumentsDescriptor(),
+                argumentsAndBlock.arguments(),
+                readBlock);
+
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     @Override
