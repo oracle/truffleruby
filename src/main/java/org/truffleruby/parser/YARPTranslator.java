@@ -133,6 +133,8 @@ import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
+import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
+import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.parser.Translator.ArgumentsAndBlockTranslation;
 import org.truffleruby.parser.parser.ParserSupport;
 
@@ -1981,7 +1983,27 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSuperNode(Nodes.SuperNode node) {
-        return defaultVisit(node);
+        var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, node.block, environment.getMethodName());
+
+        final RubyNode arguments = new ReadSuperArgumentsNode(
+                argumentsAndBlock.arguments(),
+                argumentsAndBlock.isSplatted());
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.block());
+
+        RubyNode callNode = new SuperCallNode(argumentsAndBlock.isSplatted(), arguments, block,
+                argumentsAndBlock.argumentsDescriptor());
+        callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
+
+        assignNodePositionInSource(node, callNode);
+        return callNode;
+    }
+
+    private RubyNode executeOrInheritBlock(RubyNode blockNode) {
+        if (blockNode != null) {
+            return blockNode;
+        } else {
+            return environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
+        }
     }
 
     @Override
