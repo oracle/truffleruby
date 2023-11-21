@@ -657,15 +657,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             arguments = argumentsNode.arguments;
         }
 
-        var translatedArguments = translate(arguments);
+        boolean isSplatted = containYARPSplatNode(arguments);
         var argumentsDescriptor = getKeywordArgumentsDescriptor(arguments);
 
-        boolean isSplatted = false;
-        for (var n : arguments) { // check if there is splat operator in the arguments list
-            if (n instanceof Nodes.SplatNode) {
-                isSplatted = true;
-                break;
-            }
+        final RubyNode[] translatedArguments;
+        if (isSplatted) {
+            translatedArguments = new RubyNode[]{ translateExpressionsList(arguments) };
+        } else {
+            translatedArguments = translate(arguments);
         }
 
         final RubyNode blockNode;
