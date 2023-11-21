@@ -39,6 +39,9 @@ import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.range.RangeNodesFactory;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -1802,7 +1805,21 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitRangeNode(Nodes.RangeNode node) {
-        return defaultVisit(node);
+        var left = translateNodeOrNil(node.left);
+        var right = translateNodeOrNil(node.right);
+
+        final RubyNode rubyNode;
+        if (left instanceof IntegerFixnumLiteralNode l && right instanceof IntegerFixnumLiteralNode r) {
+            final Object range = new RubyIntRange(node.isExcludeEnd(), l.getValue(), r.getValue());
+            rubyNode = new ObjectLiteralNode(range);
+        } else if (left instanceof LongFixnumLiteralNode l && right instanceof LongFixnumLiteralNode r) {
+            final Object range = new RubyLongRange(node.isExcludeEnd(), l.getValue(), r.getValue());
+            rubyNode = new ObjectLiteralNode(range);
+        } else {
+            rubyNode = RangeNodesFactory.RangeLiteralNodeGen.create(left, right, node.isExcludeEnd());
+        }
+        assignNodePositionInSource(node, rubyNode);
+        return rubyNode;
     }
 
     @Override

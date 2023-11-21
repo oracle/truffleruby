@@ -25,6 +25,10 @@ public final class LongFixnumLiteralNode extends RubyContextSourceNode {
         this.value = value;
     }
 
+    public long getValue() {
+        return value;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         return value;
