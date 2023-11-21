@@ -65,34 +65,48 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
     }
 
     @Override
-    public Charset findEncoding(TruffleFile file) throws IOException {
+    public Charset findEncoding(TruffleFile file) {
         try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
-            final String firstLine = fileContent.readLine();
+            return findEncoding(fileContent).getCharset();
+        } catch (IOException | SecurityException e) {
+            // Reading random files as UTF-8 could cause all sorts of errors
+            return Encodings.UTF_8.jcoding.getCharset();
+        }
+    }
+
+    public static Encoding findEncoding(BufferedReader reader) {
+        try {
+            final String firstLine = reader.readLine();
             if (firstLine != null) {
-                String encodingCommentLine;
+                final String encodingCommentLine;
                 if (SHEBANG_REGEXP.matcher(firstLine).matches()) {
-                    encodingCommentLine = fileContent.readLine();
+                    encodingCommentLine = reader.readLine();
                 } else {
                     encodingCommentLine = firstLine;
                 }
+
                 if (encodingCommentLine != null) {
                     var encodingComment = new TStringWithEncoding(TStringUtils.utf8TString(encodingCommentLine),
                             Encodings.UTF_8);
-                    Charset[] encodingHolder = new Charset[1];
+                    Encoding[] encodingHolder = new Encoding[1];
                     RubyLexer.parseMagicComment(encodingComment, (name, value) -> {
                         if (RubyLexer.isMagicEncodingComment(name)) {
                             Encoding encoding = EncodingManager.getEncoding(value);
                             if (encoding != null) {
-                                encodingHolder[0] = encoding.getCharset();
+                                encodingHolder[0] = encoding;
                             }
                         }
                     });
-                    return encodingHolder[0];
+                    if (encodingHolder[0] != null) {
+                        return encodingHolder[0];
+                    }
                 }
             }
-        } catch (IOException | SecurityException e) {
-            // Reading random files as UTF-8 could cause all sorts of errors
+        } catch (IOException e) {
+            // Use the default encoding if reading failed somehow
         }
-        return null;
+
+        // The default encoding
+        return Encodings.UTF_8.jcoding;
     }
 }
