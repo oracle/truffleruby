@@ -10,36 +10,16 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.TStringWithEncoding;
 
 public final class ParsingParameters {
 
     /** For exceptions during parsing */
-    private final Node currentNode;
-    private final TStringWithEncoding tstringWithEnc;
-    private final Source source;
+    public final Node currentNode;
+    public final RubySource rubySource;
 
-    public ParsingParameters(Node currentNode, TStringWithEncoding tstringWithEnc, Source source) {
+    public ParsingParameters(Node currentNode, RubySource rubySource) {
         this.currentNode = currentNode;
-        this.tstringWithEnc = tstringWithEnc;
-        this.source = source;
+        this.rubySource = rubySource;
     }
 
-    public Node getCurrentNode() {
-        return currentNode;
-    }
-
-    public String getPath() {
-        return RubyLanguage.getPath(source);
-    }
-
-    public TStringWithEncoding getTStringWithEnc() {
-        return tstringWithEnc;
-    }
-
-    public Source getSource() {
-        return source;
-    }
 }

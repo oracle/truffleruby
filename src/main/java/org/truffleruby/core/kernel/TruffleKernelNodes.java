@@ -18,9 +18,7 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.graalvm.collections.Pair;
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -32,7 +30,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -89,13 +86,12 @@ public abstract class TruffleKernelNodes {
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
-            final Pair<Source, TStringWithEncoding> sourceTStringPair = getSourceTStringPair(feature);
+            final RubySource rubySource = getRubySource(feature);
 
             final DeclarationContext declarationContext = DeclarationContext.topLevel(getContext());
             final LexicalScope lexicalScope = getContext().getRootLexicalScope();
             final Object self = getContext().getCoreLibrary().mainObject;
-            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceTStringPair,
-                    this);
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(rubySource, this);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                     callTarget,
@@ -116,7 +112,7 @@ public abstract class TruffleKernelNodes {
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
             final String feature = RubyGuards.getJavaString(file);
-            final Pair<Source, TStringWithEncoding> sourceTStringPair = getSourceTStringPair(feature);
+            final RubySource rubySource = getRubySource(feature);
 
             final DeclarationContext declarationContext = DeclarationContext.topLevel(wrapModule);
             final LexicalScope lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), wrapModule);
@@ -127,10 +123,6 @@ public abstract class TruffleKernelNodes {
             DispatchNode.getUncached().call(self, "extend", wrapModule);
 
             // callTarget
-            final RubySource rubySource = new RubySource(
-                    sourceTStringPair.getLeft(),
-                    feature,
-                    sourceTStringPair.getRight());
             final RootCallTarget callTarget = getContext()
                     .getCodeLoader()
                     .parse(rubySource, ParserContext.TOP_LEVEL, null, lexicalScope, this);
@@ -148,7 +140,7 @@ public abstract class TruffleKernelNodes {
             return true;
         }
 
-        private Pair<Source, TStringWithEncoding> getSourceTStringPair(String feature) {
+        private RubySource getRubySource(String feature) {
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
                 return fileLoader.loadFile(feature);

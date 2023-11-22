@@ -13,12 +13,12 @@ import java.io.File;
 import java.io.IOException;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -56,7 +56,7 @@ public final class FileLoader {
         }
     }
 
-    public Pair<Source, TStringWithEncoding> loadFile(String path) throws IOException {
+    public RubySource loadFile(String path) throws IOException {
         if (context.getOptions().LOG_LOAD) {
             RubyLanguage.LOGGER.info("loading " + path);
         }
@@ -73,7 +73,7 @@ public final class FileLoader {
         var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(sourceBytes, Encodings.UTF_8);
 
         final Source source = buildSource(file, path, sourceTString, isInternal(path), false);
-        return Pair.create(source, sourceTString);
+        return new RubySource(source, path, sourceTString);
     }
 
     public static TruffleFile getSafeTruffleFile(RubyLanguage language, RubyContext context, String path) {

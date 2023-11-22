@@ -18,7 +18,6 @@ import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -122,7 +121,7 @@ public abstract class TruffleBootNodes {
 
                 // Need to set $0 before loading required libraries
                 // Also, a non-existing main script file errors out before loading required libraries
-                final RubySource source = loadMainSourceSettingDollarZero(kind, toExecute.intern()); //intern() to improve footprint
+                final RubySource rubySource = loadMainSourceSettingDollarZero(kind, toExecute.intern()); //intern() to improve footprint
 
                 // Load libraries required from the command line (-r LIBRARY)
                 for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
@@ -130,13 +129,9 @@ public abstract class TruffleBootNodes {
                 }
 
                 if (getContext().getOptions().SYNTAX_CHECK) {
-                    checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
+                    checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", rubySource);
                 } else {
-                    var tstringWithEncoding = source.getTStringWithEncoding();
-                    var sourceTStringPair = Pair.create(source.getSource(), tstringWithEncoding);
-                    final RootCallTarget callTarget = getContext()
-                            .getCodeLoader()
-                            .parseTopLevelWithCache(sourceTStringPair, null);
+                    var callTarget = getContext().getCodeLoader().parseTopLevelWithCache(rubySource, null);
 
                     final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
                             callTarget,
