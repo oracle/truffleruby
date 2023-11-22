@@ -53,23 +53,25 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
             }
         }
 
-        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
+        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
             final String firstLine = fileContent.readLine();
             if (firstLine != null && SHEBANG_REGEXP.matcher(firstLine).matches()) {
                 return RubyLanguage.getMimeType(false);
             }
         } catch (IOException | SecurityException e) {
-            // Reading random files as UTF-8 could cause all sorts of errors
+            // Reading random files could cause all sorts of errors
         }
         return null;
     }
 
     @Override
     public Charset findEncoding(TruffleFile file) {
-        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
+        // We use ISO-8859-1 because every byte is valid in that encoding and
+        // we only care about US-ASCII characters for magic encoding comments.
+        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
             return findEncoding(fileContent).getCharset();
         } catch (IOException | SecurityException e) {
-            // Reading random files as UTF-8 could cause all sorts of errors
+            // Reading random files could cause all sorts of errors
             return Encodings.UTF_8.jcoding.getCharset();
         }
     }
@@ -86,8 +88,8 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
                 }
 
                 if (encodingCommentLine != null) {
-                    var encodingComment = new TStringWithEncoding(TStringUtils.utf8TString(encodingCommentLine),
-                            Encodings.UTF_8);
+                    var encodingComment = new TStringWithEncoding(
+                            TStringUtils.fromJavaString(encodingCommentLine, Encodings.BINARY), Encodings.BINARY);
                     Encoding[] encodingHolder = new Encoding[1];
                     RubyLexer.parseMagicComment(encodingComment, (name, value) -> {
                         if (RubyLexer.isMagicEncodingComment(name)) {
