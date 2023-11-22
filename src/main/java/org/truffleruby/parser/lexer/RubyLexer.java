@@ -53,7 +53,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -451,7 +450,7 @@ public final class RubyLexer implements MagicCommentHandler {
 
     protected void setEncoding(TruffleString name) {
         final RubyContext context = parserSupport.getConfiguration().getContext();
-        var nameString = name.toJavaStringUncached();
+        String nameString = name.toJavaStringUncached();
         final Encoding newEncoding = EncodingManager.getEncoding(nameString);
 
         if (newEncoding == null) {
@@ -1139,24 +1138,11 @@ public final class RubyLexer implements MagicCommentHandler {
         return source;
     }
 
+    /** Peak in source to see if there is a magic encoding comment. This is used by eval() & friends to know the actual
+     * encoding of the source code, and be able to convert to a Java String faithfully. */
     public static RubyEncoding parseMagicEncodingComment(TStringWithEncoding source) {
         var encoding = new Memo<RubyEncoding>(null);
 
-        parseMagicComment(source, (name, value) -> {
-            if (RubyLexer.isMagicEncodingComment(name)) {
-                Encoding jcoding = EncodingManager.getEncoding(value);
-                if (jcoding != null) {
-                    encoding.set(Encodings.getBuiltInEncoding(jcoding));
-                }
-            }
-        });
-
-        return encoding.get();
-    }
-
-    /** Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
-     * of the source code, and be able to convert to a Java String faithfully. */
-    public static void parseMagicComment(TStringWithEncoding source, BiConsumer<String, String> magicCommentHandler) {
         var bytes = source.getInternalByteArray();
         final int length = bytes.getLength();
         int start = 0;
@@ -1180,12 +1166,32 @@ public final class RubyLexer implements MagicCommentHandler {
             }
             int magicLineLength = endOfMagicLine - magicLineStart;
 
-            parser_magic_comment(source, magicLineStart, magicLineLength,
+            TStringWithEncoding magicLine = source.substring(magicLineStart, magicLineLength);
+
+            parser_magic_comment(magicLine, 0, magicLineLength,
                     (name, value) -> {
-                        magicCommentHandler.accept(name, value.toJavaStringUncached());
-                        return isKnownMagicComment(name);
+                        if (RubyLexer.isMagicEncodingComment(name)) {
+                            Encoding jcoding = EncodingManager.getEncoding(value.toJavaStringUncached());
+                            if (jcoding != null) {
+                                encoding.set(Encodings.getBuiltInEncoding(jcoding));
+                                return true;
+                            }
+                        }
+                        return false;
                     });
+
+            if (encoding.get() == null) {
+                TruffleString encodingName = get_file_encoding(magicLine);
+                if (encodingName != null) {
+                    Encoding jcoding = EncodingManager.getEncoding(encodingName.toJavaStringUncached());
+                    if (jcoding != null) {
+                        encoding.set(Encodings.getBuiltInEncoding(jcoding));
+                    }
+                }
+            }
         }
+
+        return encoding.get();
     }
 
     // MRI: parser_magic_comment
@@ -3339,18 +3345,21 @@ public final class RubyLexer implements MagicCommentHandler {
 
     public void setEncoding(Encoding jcoding) {
         if (jcoding != encoding.jcoding) {
-            throw CompilerDirectives.shouldNotReachHere("the encoding must already be set correctly in RubySource");
+            throw CompilerDirectives
+                    .shouldNotReachHere("the encoding must already be set correctly in RubySource for " + getFile());
         }
     }
 
-    protected void set_file_encoding(int str, int send) {
+    private static TruffleString get_file_encoding(TStringWithEncoding magicLine) {
+        int str = 0;
+        int send = magicLine.byteLength();
         boolean sep = false;
         for (;;) {
             if (send - str <= 6) {
-                return;
+                return null;
             }
 
-            switch (p(str + 6)) {
+            switch (magicLine.get(str + 6)) {
                 case 'C':
                 case 'c':
                     str += 6;
@@ -3382,13 +3391,12 @@ public final class RubyLexer implements MagicCommentHandler {
                     break;
                 default:
                     str += 6;
-                    if (Character.isSpaceChar(p(str))) {
+                    if (Character.isSpaceChar(magicLine.get(str))) {
                         break;
                     }
                     continue;
             }
-            if (src.parserRopeOperations.makeShared(lexb, str - 6, 6).toJavaStringUncached()
-                    .equalsIgnoreCase("coding")) {
+            if (magicLine.substring(str - 6, 6).toJavaString().equalsIgnoreCase("coding")) {
                 break;
             }
         }
@@ -3397,24 +3405,33 @@ public final class RubyLexer implements MagicCommentHandler {
             do {
                 str++;
                 if (str >= send) {
-                    return;
+                    return null;
                 }
-            } while (Character.isSpaceChar(p(str)));
+            } while (Character.isSpaceChar(magicLine.get(str)));
             if (sep) {
                 break;
             }
 
-            if (p(str) != '=' && p(str) != ':') {
-                return;
+            if (magicLine.get(str) != '=' && magicLine.get(str) != ':') {
+                return null;
             }
             sep = true;
             str++;
         }
 
         int beg = str;
-        while ((p(str) == '-' || p(str) == '_' || Character.isLetterOrDigit(p(str))) && ++str < send) {
+        while ((magicLine.get(str) == '-' || magicLine.get(str) == '_' ||
+                Character.isLetterOrDigit(magicLine.get(str))) && ++str < send) {
         }
-        setEncoding(src.parserRopeOperations.makeShared(lexb, beg, str - beg));
+        return magicLine.substring(beg, str - beg).tstring;
+    }
+
+    protected void set_file_encoding(int str, int send) {
+        TStringWithEncoding magicLine = new TStringWithEncoding(lexb, encoding).substring(str, send - str);
+        TruffleString encoding = get_file_encoding(magicLine);
+        if (encoding != null) {
+            setEncoding(encoding);
+        }
     }
 
     public void setHeredocLineIndent(int heredoc_line_indent) {
