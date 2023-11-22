@@ -17,7 +17,6 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.jcodings.Encoding;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -72,7 +71,7 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
             return findEncoding(fileContent).getCharset();
         } catch (IOException | SecurityException e) {
             // Reading random files could cause all sorts of errors
-            return Encodings.UTF_8.jcoding.getCharset();
+            return StandardCharsets.UTF_8;
         }
     }
 
@@ -90,17 +89,9 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
                 if (encodingCommentLine != null) {
                     var encodingComment = new TStringWithEncoding(
                             TStringUtils.fromJavaString(encodingCommentLine, Encodings.BINARY), Encodings.BINARY);
-                    Encoding[] encodingHolder = new Encoding[1];
-                    RubyLexer.parseMagicComment(encodingComment, (name, value) -> {
-                        if (RubyLexer.isMagicEncodingComment(name)) {
-                            Encoding encoding = EncodingManager.getEncoding(value);
-                            if (encoding != null) {
-                                encodingHolder[0] = encoding;
-                            }
-                        }
-                    });
-                    if (encodingHolder[0] != null) {
-                        return encodingHolder[0];
+                    var encoding = RubyLexer.parseMagicEncodingComment(encodingComment);
+                    if (encoding != null) {
+                        return encoding.jcoding;
                     }
                 }
             }

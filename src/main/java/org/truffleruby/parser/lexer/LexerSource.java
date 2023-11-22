@@ -38,9 +38,7 @@ package org.truffleruby.parser.lexer;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
@@ -49,13 +47,13 @@ import com.oracle.truffle.api.source.Source;
 
 public final class LexerSource {
 
-    public ParserRopeOperations parserRopeOperations;
+    public final ParserRopeOperations parserRopeOperations;
     private final Source source;
     private final String sourcePath;
 
-    private TruffleString sourceBytes;
+    private final TruffleString sourceBytes;
     private final int sourceByteLength;
-    private RubyEncoding encoding;
+    private final RubyEncoding encoding;
     private int byteOffset;
     private final int lineOffset;
 
@@ -85,13 +83,6 @@ public final class LexerSource {
 
     public RubyEncoding getRubyEncoding() {
         return encoding;
-    }
-
-    public void setEncoding(Encoding jcoding) {
-        var rubyEncoding = Encodings.getBuiltInEncoding(jcoding);
-        this.sourceBytes = sourceBytes.forceEncodingUncached(this.encoding.tencoding, rubyEncoding.tencoding);
-        this.encoding = rubyEncoding;
-        this.parserRopeOperations = new ParserRopeOperations(this.encoding);
     }
 
     public int getOffset() {

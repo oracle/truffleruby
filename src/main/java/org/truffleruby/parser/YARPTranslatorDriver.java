@@ -503,9 +503,11 @@ public final class YARPTranslatorDriver {
     public static RubySource createRubySource(Object code) {
         var tstringWithEnc = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
                 RubyStringLibrary.getUncached().getEncoding(code));
-        var charSequence = new ByteBasedCharSequence(tstringWithEnc);
+        var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(tstringWithEnc,
+                tstringWithEnc.encoding);
+        var charSequence = new ByteBasedCharSequence(sourceTString);
         Source source = Source.newBuilder("ruby", charSequence, "<parse_ast>").build();
-        return new RubySource(source, source.getName(), tstringWithEnc);
+        return new RubySource(source, source.getName(), sourceTString);
     }
 
     public static Nodes.Source createYARPSource(byte[] sourceBytes, RubySource rubySource) {

@@ -25,6 +25,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
+import org.truffleruby.parser.lexer.RubyLexer;
 
 public final class RubySource {
 
@@ -35,7 +36,6 @@ public final class RubySource {
     private final String sourcePath;
     private final TruffleString code;
     private byte[] bytes;
-    // FIXME: not always the source encoding, e.g. when loading from a file or eval, need to check the magic encoding comment
     private final RubyEncoding encoding;
     private final boolean isEval;
     private final int lineOffset;
@@ -67,11 +67,18 @@ public final class RubySource {
             var encoding = Encodings.getBuiltInEncoding(jcoding);
             code = new TStringWithEncoding(TStringUtils.fromJavaString(sourceString, encoding), encoding);
         }
+        assert checkMagicEncoding(code);
 
         this.code = code.tstring;
         this.encoding = code.encoding;
         this.isEval = isEval;
         this.lineOffset = lineOffset;
+    }
+
+    private static boolean checkMagicEncoding(TStringWithEncoding code) {
+        var magicEncoding = RubyLexer.parseMagicEncodingComment(code);
+        assert magicEncoding == null || magicEncoding == code.encoding;
+        return true;
     }
 
     public Source getSource() {

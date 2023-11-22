@@ -52,8 +52,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -64,6 +66,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.collections.Memo;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -91,7 +94,6 @@ import org.truffleruby.parser.ast.NumericParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.RationalParseNode;
 import org.truffleruby.parser.ast.StrParseNode;
-import org.truffleruby.parser.parser.ParserRopeOperations;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.parser.RubyParser;
 
@@ -823,7 +825,7 @@ public final class RubyLexer implements MagicCommentHandler {
                     // affect lexer performance.
                     if (!tokenSeen) {
                         if (!parser_magic_comment(new TStringWithEncoding(lexb, encoding), lex_p, lex_pend - lex_p,
-                                src.parserRopeOperations, this)) {
+                                this)) {
                             if (comment_at_top()) {
                                 set_file_encoding(lex_p, lex_pend);
                             }
@@ -1115,6 +1117,43 @@ public final class RubyLexer implements MagicCommentHandler {
         }
     }
 
+    public static TStringWithEncoding createSourceTStringBasedOnMagicEncodingComment(byte[] bytes,
+            RubyEncoding defaultEncoding) {
+        // We need a TStringWithEncoding, it could be in any encoding, it's just bytes at this stage.
+        // We use the defaultEncoding so then we do not need to scan bytes for CodeRange a second time
+        // if there is no magic encoding or if it's the same as defaultEncoding.
+        var tstring = new TStringWithEncoding(TStringUtils.fromByteArray(bytes, defaultEncoding), defaultEncoding);
+        return createSourceTStringBasedOnMagicEncodingComment(tstring, defaultEncoding);
+    }
+
+    public static TStringWithEncoding createSourceTStringBasedOnMagicEncodingComment(TStringWithEncoding source,
+            RubyEncoding defaultEncoding) {
+        Objects.requireNonNull(defaultEncoding);
+        var encoding = RubyLexer.parseMagicEncodingComment(source);
+        if (encoding == null) {
+            encoding = defaultEncoding;
+        }
+        if (source.getEncoding() != encoding) {
+            source = source.forceEncoding(encoding);
+        }
+        return source;
+    }
+
+    public static RubyEncoding parseMagicEncodingComment(TStringWithEncoding source) {
+        var encoding = new Memo<RubyEncoding>(null);
+
+        parseMagicComment(source, (name, value) -> {
+            if (RubyLexer.isMagicEncodingComment(name)) {
+                Encoding jcoding = EncodingManager.getEncoding(value);
+                if (jcoding != null) {
+                    encoding.set(Encodings.getBuiltInEncoding(jcoding));
+                }
+            }
+        });
+
+        return encoding.get();
+    }
+
     /** Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
      * of the source code, and be able to convert to a Java String faithfully. */
     public static void parseMagicComment(TStringWithEncoding source, BiConsumer<String, String> magicCommentHandler) {
@@ -1141,9 +1180,7 @@ public final class RubyLexer implements MagicCommentHandler {
             }
             int magicLineLength = endOfMagicLine - magicLineStart;
 
-            RubyEncoding rubyEncoding = source.getEncoding();
             parser_magic_comment(source, magicLineStart, magicLineLength,
-                    new ParserRopeOperations(rubyEncoding),
                     (name, value) -> {
                         magicCommentHandler.accept(name, value.toJavaStringUncached());
                         return isKnownMagicComment(name);
@@ -1153,7 +1190,7 @@ public final class RubyLexer implements MagicCommentHandler {
 
     // MRI: parser_magic_comment
     private static boolean parser_magic_comment(TStringWithEncoding magicLine, int magicLineOffset, int magicLineLength,
-            ParserRopeOperations parserRopeOperations, MagicCommentHandler magicCommentHandler) {
+            MagicCommentHandler magicCommentHandler) {
         boolean emacsStyle = false;
         int i = magicLineOffset;
         int end = magicLineOffset + magicLineLength;
@@ -3301,11 +3338,9 @@ public final class RubyLexer implements MagicCommentHandler {
     }
 
     public void setEncoding(Encoding jcoding) {
-        src.setEncoding(jcoding);
-        var prevEncoding = this.encoding;
-        this.encoding = Encodings.getBuiltInEncoding(jcoding);
-        this.tencoding = this.encoding.tencoding;
-        lexb = lexb.forceEncodingUncached(prevEncoding.tencoding, tencoding);
+        if (jcoding != encoding.jcoding) {
+            throw CompilerDirectives.shouldNotReachHere("the encoding must already be set correctly in RubySource");
+        }
     }
 
     protected void set_file_encoding(int str, int send) {
