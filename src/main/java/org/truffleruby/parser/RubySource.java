@@ -63,8 +63,10 @@ public final class RubySource {
             // The sourcePath might not exist, so we cannot reread from the filesystem.
             // So we look for the magic encoding comment and if not found use UTF-8.
             var sourceString = source.getCharacters().toString();
-            var jcoding = RubyFileTypeDetector.findEncoding(new BufferedReader(new StringReader(sourceString)));
-            var encoding = Encodings.getBuiltInEncoding(jcoding);
+            var encoding = RubyFileTypeDetector.findEncoding(new BufferedReader(new StringReader(sourceString)));
+            if (encoding == null) {
+                encoding = Encodings.UTF_8;
+            }
             code = new TStringWithEncoding(TStringUtils.fromJavaString(sourceString, encoding), encoding);
         }
         assert checkMagicEncoding(code);

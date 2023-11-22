@@ -16,8 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import org.jcodings.Encoding;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.parser.lexer.RubyLexer;
@@ -68,14 +68,17 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
         // We use ISO-8859-1 because every byte is valid in that encoding and
         // we only care about US-ASCII characters for magic encoding comments.
         try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
-            return findEncoding(fileContent).getCharset();
+            var encoding = findEncoding(fileContent);
+            if (encoding != null) {
+                return encoding.jcoding.getCharset();
+            }
         } catch (IOException | SecurityException e) {
             // Reading random files could cause all sorts of errors
-            return StandardCharsets.UTF_8;
         }
+        return null; // no magic encoding comment
     }
 
-    public static Encoding findEncoding(BufferedReader reader) {
+    public static RubyEncoding findEncoding(BufferedReader reader) {
         try {
             final String firstLine = reader.readLine();
             if (firstLine != null) {
@@ -91,7 +94,7 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
                             TStringUtils.fromJavaString(encodingCommentLine, Encodings.BINARY), Encodings.BINARY);
                     var encoding = RubyLexer.parseMagicEncodingComment(encodingComment);
                     if (encoding != null) {
-                        return encoding.jcoding;
+                        return encoding;
                     }
                 }
             }
@@ -99,7 +102,6 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
             // Use the default encoding if reading failed somehow
         }
 
-        // The default encoding
-        return Encodings.UTF_8.jcoding;
+        return null;
     }
 }
