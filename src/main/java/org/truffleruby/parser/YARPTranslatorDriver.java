@@ -166,12 +166,6 @@ public final class YARPTranslatorDriver {
             parserConfiguration.setFrozenStringLiteral(true);
         }
 
-        RubyLexer.parseMagicComment(rubySource.getTStringWithEncoding(), (name, value) -> {
-            if (RubyLexer.isMagicTruffleRubyPrimitivesComment(name)) {
-                parserConfiguration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
-            }
-        });
-
         // Parse to the YARP AST
 
         final org.prism.Nodes.Node node;
@@ -453,6 +447,17 @@ public final class YARPTranslatorDriver {
                                 rubySource.getSource().createSection(lineNumber)));
             } else {
                 throw new UnsupportedOperationException(message);
+            }
+        }
+
+        for (var magicComment : parseResult.magicComments) {
+            String name = rubySource.getTStringWithEncoding()
+                    .substring(magicComment.keyLocation.startOffset, magicComment.keyLocation.length).toJavaString();
+            String value = rubySource.getTStringWithEncoding()
+                    .substring(magicComment.valueLocation.startOffset, magicComment.valueLocation.length)
+                    .toJavaString();
+            if (RubyLexer.isMagicTruffleRubyPrimitivesComment(name)) {
+                configuration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
             }
         }
 
