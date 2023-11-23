@@ -55,22 +55,27 @@ class Regexp
     Truffle::Type.try_convert obj, Regexp, :to_regexp
   end
 
-  def self.convert(pattern)
-    return pattern if Primitive.is_a?(pattern, Regexp)
-    if Primitive.is_a?(pattern, Array)
-      union(*pattern)
-    else
-      Regexp.quote(pattern.to_s)
-    end
-  end
+  def self.negotiate_union_encoding(*patterns)
+    compatible_enc = nil
 
-  def self.compatible?(*patterns)
-    encodings = patterns.map { |r| convert(r).encoding }
-    last_enc = encodings.pop
-    encodings.each do |encoding|
-      raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Primitive.encoding_compatible?(last_enc, encoding)
-      last_enc = encoding
+    patterns.each do |pattern|
+      converted = Primitive.is_a?(pattern, Regexp) ? pattern : Regexp.quote(pattern)
+
+      enc = converted.encoding
+
+      if Primitive.nil?(compatible_enc)
+        compatible_enc = enc
+      else
+        if test = Primitive.encoding_compatible?(enc, compatible_enc)
+          compatible_enc = test
+        else
+          raise ArgumentError, "incompatible encodings: #{compatible_enc} and #{enc}"
+        end
+
+      end
     end
+
+    compatible_enc
   end
 
   def self.last_match(index = nil)
@@ -96,37 +101,35 @@ class Regexp
   def self.union(*patterns)
     case patterns.size
     when 0
-      return %r/(?!)/
+      %r/(?!)/
     when 1
       pattern = patterns.first
       case pattern
       when Array
-        return union(*pattern)
+        union(*pattern)
       else
         converted = Truffle::Type.rb_check_convert_type(pattern, Regexp, :to_regexp)
         if Primitive.nil? converted
-          return Regexp.new(Regexp.quote(pattern))
+          Regexp.new(Regexp.quote(pattern))
         else
-          return converted
+          converted
         end
       end
     else
-      compatible?(*patterns)
-      enc = convert(patterns.first).encoding
-    end
-
-    sep = '|'.encode(enc)
-    str = ''.encode(enc)
-
-    patterns = patterns.map do |pat|
-      if Primitive.is_a?(pat, Regexp)
-        pat
-      else
-        StringValue(pat)
+      patterns = patterns.map do |pat|
+        if Primitive.is_a?(pat, Regexp)
+          pat
+        else
+          StringValue(pat)
+        end
       end
-    end
 
-    Truffle::RegexpOperations.union(str, sep, *patterns)
+      enc = negotiate_union_encoding(*patterns)
+      sep = '|'.encode(enc)
+      str = ''.encode(enc)
+
+      Truffle::RegexpOperations.union(str, sep, *patterns)
+    end
   end
   Truffle::Graal.always_split(method(:union))
 

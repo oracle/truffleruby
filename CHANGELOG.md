@@ -1,3 +1,11 @@
+# 23.1.2
+
+Bug fixes:
+
+* Fix `rb_enc_left_char_head()` so it is not always `ArgumentError` (#3267, @eregon).
+* Fix `IO.copy_stream` with a `Tempfile` destination (#3280, @eregon).
+* Fix `Regexp.union` negotiating the wrong result encoding (#3287, @nirvdrum, @simonlevasseur).
+
 # 23.1.0
 
 New features:

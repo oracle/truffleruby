@@ -226,7 +226,10 @@ int rb_enc_get_index(VALUE obj) {
 }
 
 char* rb_enc_left_char_head(const char *start, const char *p, const char *end, rb_encoding *enc) {
-  int length = start - end;
+  if (p <= start || p >= end) {
+    return p;
+  }
+  int length = end - start;
   int position = polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_enc_left_char_head",
       rb_tr_unwrap(rb_enc_from_encoding(enc)),
       rb_tr_unwrap(rb_str_new(start, length)),
