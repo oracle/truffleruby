@@ -944,9 +944,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitClassVariableOrWriteNode(Nodes.ClassVariableOrWriteNode node) {
         int startOffset = node.startOffset;
         int length = node.length;
+        var writeNode = new Nodes.ClassVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length).accept(this);
         var definedCheck = AndNodeGen.create(new DefinedNode(readNode), readNode);
-        var writeNode = new Nodes.ClassVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(definedCheck, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1327,9 +1327,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitGlobalVariableOrWriteNode(Nodes.GlobalVariableOrWriteNode node) {
         int startOffset = node.startOffset;
         int length = node.length;
+        var writeNode = new Nodes.GlobalVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         var readNode = new Nodes.GlobalVariableReadNode(node.name, startOffset, length).accept(this);
         var definedCheck = AndNodeGen.create(new DefinedNode(readNode), readNode);
-        var writeNode = new Nodes.GlobalVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(definedCheck, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1494,8 +1494,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // No need to check `defined?(@ivar)` before reading, as `@ivar` even if not set returns nil and does not have side effects
         int startOffset = node.startOffset;
         int length = node.length;
-        var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length).accept(this);
         var writeNode = new Nodes.InstanceVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
+        var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length).accept(this);
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1640,9 +1640,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // No need to check `defined?(var)` before reading, as `var` even if not set returns nil and does not have side effects
         int startOffset = node.startOffset;
         int length = node.length;
-        var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length).accept(this);
         var writeNode = new Nodes.LocalVariableWriteNode(node.name, node.depth, node.value, startOffset, length)
                 .accept(this);
+        var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length).accept(this);
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
