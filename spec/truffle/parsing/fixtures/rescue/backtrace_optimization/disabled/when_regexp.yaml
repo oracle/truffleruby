@@ -26,12 +26,12 @@ ast: |
                       rescueBody =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   object = RubyRegexp(source = bar, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

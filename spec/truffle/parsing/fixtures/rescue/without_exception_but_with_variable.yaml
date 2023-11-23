@@ -30,7 +30,7 @@ ast: |
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
+                                              frameSlot = 2 # error
                                           children:
                                               valueNode =
                                                   ReadGlobalVariableNodeGen
@@ -45,7 +45,7 @@ ast: |
                                                                       name = "$!"
                                       IntegerFixnumLiteralNode
                                           attributes:
-                                              flags = 0
+                                              flags = 1
                                               value = 42
                                   ]
           ]
@@ -53,5 +53,5 @@ ast: |
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

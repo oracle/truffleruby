@@ -21,7 +21,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 0
+                      frameSlot = 0 # (self)
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
@@ -35,7 +35,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3
+                      frameSlot = 3 # %value_1
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
@@ -45,7 +45,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2
+                      frameSlot = 2 # %opelementassign_0
                   children:
                       valueNode =
                           RubyCallNode
@@ -82,13 +82,13 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
+                                              frameSlot = 2 # %opelementassign_0
                                               type = FRAME_LOCAL
                                   rightNode_ =
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 3
+                                              frameSlot = 3 # %value_1
                                               type = FRAME_LOCAL
                       right =
                           InlinedIndexSetNodeGen
@@ -101,7 +101,7 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 3
+                                              frameSlot = 3 # %value_1
                                               type = FRAME_LOCAL
                                   operand2Node_ =
                                       IntegerFixnumLiteralNode
@@ -112,6 +112,6 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
+                                              frameSlot = 2 # %opelementassign_0
                                               type = FRAME_LOCAL
           ]

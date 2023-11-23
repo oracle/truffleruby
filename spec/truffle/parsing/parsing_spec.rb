@@ -40,6 +40,7 @@ require_relative '../../ruby/spec_helper'
 #
 # To regenerate fixture YAML files with actual AST run the following command:
 #
+#   OVERWRITE_PARSING_RESULTS=true TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR=true jt -q mspec spec/truffle/parsing/parsing_spec.rb
 #   OVERWRITE_PARSING_RESULTS=true jt -q test spec/truffle/parsing/parsing_spec.rb
 #
 # An approach with YAML.dump has some downsides:
