@@ -60,7 +60,6 @@ import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.jcodings.Encoding;
-import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -462,10 +461,6 @@ public final class RubyLexer implements MagicCommentHandler {
         }
 
         setEncoding(newEncoding);
-    }
-
-    private boolean isUTF8Subset(Encoding encoding) {
-        return encoding == UTF8Encoding.INSTANCE || encoding == USASCIIEncoding.INSTANCE;
     }
 
     private RuntimeException argumentError(RubyContext context, String message) {
@@ -1398,20 +1393,6 @@ public final class RubyLexer implements MagicCommentHandler {
             return true;
         }
         return false;
-    }
-
-    private static boolean isKnownMagicComment(String name) {
-        if (isMagicEncodingComment(name)) {
-            return true;
-        } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
-            return true;
-        } else if ("warn_indent".equalsIgnoreCase(name)) {
-            return true;
-        } else if ("truffleruby_primitives".equalsIgnoreCase(name)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     public static boolean isMagicEncodingComment(String name) {

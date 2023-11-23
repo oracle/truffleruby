@@ -53,9 +53,8 @@ public final class CodeLoader {
     @TruffleBoundary
     public RootCallTarget parseTopLevelWithCache(RubySource rubySource, Node currentNode) {
         final Source source = rubySource.getSource();
-        var tstringWithEncoding = rubySource.getTStringWithEncoding();
-
         final String path = RubyLanguage.getPath(source);
+
         if (language.singleContext && !alreadyLoadedInContext.add(language.getPathRelativeToHome(path))) {
             /* Duplicate load of the same file in the same context, we cannot use the cache because it would re-assign
              * the live modules of static LexicalScopes and we cannot/do not want to invalidate static LexicalScopes, so
