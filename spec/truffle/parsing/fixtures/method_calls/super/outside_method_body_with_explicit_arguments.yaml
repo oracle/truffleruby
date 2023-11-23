@@ -47,7 +47,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -62,7 +62,7 @@ ast: |
                                       attributes:
                                           descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
                                           emptyKeywordsProfile = false
-                                          flags = 0
+                                          flags = 1
                                           isSplatted = false
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false

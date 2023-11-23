@@ -102,7 +102,7 @@ describe "Parsing" do
           end
 
           unless actual_ast == expected_ast
-            $stderr.puts "\nYARP AST:", Truffle::Debug.yarp_parse(source_code)
+            $stderr.puts "\n#{filename}\nYARP AST:", Truffle::Debug.yarp_parse(source_code)
           end
           actual_ast.should == expected_ast
         end

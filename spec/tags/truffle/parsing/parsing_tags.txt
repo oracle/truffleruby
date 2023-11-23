@@ -19,14 +19,6 @@ fails:Parsing a defined? (with yield in a method body (defined? yield)) case is 
 fails:Parsing a Ensure keyword (ensure in a method) case is parsed correctly
 fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
 fails:Parsing a Integer (when doesn't fit into Java Long (>= 64 bits)) case is parsed correctly
-fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
 fails:Parsing a &&= (Assign an attribute local variable (a.b &&= c)) case is parsed correctly
 fails:Parsing a &&= (Assign an referenced element (a[b] &&= c)) case is parsed correctly
 fails:Parsing a &&= (Assign an element referenced with multiple indexes (a[b, c, d] &&= e)) case is parsed correctly
@@ -98,3 +90,4 @@ fails:Parsing a Yield (yield operator with splat operator with a single followin
 fails:Parsing a Yield (yield operator with splat operator with a single preceding and following positional argument (yield a, *b, c)) case is parsed correctly
 fails:Parsing a Yield (yield operator with splat operator with a single preceding positional argument (yield a, *b)) case is parsed correctly
 fails:Parsing a Yield (yield operator without arguments) case is parsed correctly
+fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
