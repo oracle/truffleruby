@@ -10,11 +10,9 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.source.Source;
-import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.RubyModule;
-import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -53,22 +51,19 @@ public final class CodeLoader {
     }
 
     @TruffleBoundary
-    public RootCallTarget parseTopLevelWithCache(Pair<Source, TStringWithEncoding> sourceTStringPair,
-            Node currentNode) {
-        final Source source = sourceTStringPair.getLeft();
-        final TStringWithEncoding tstringWithEncoding = sourceTStringPair.getRight();
-
+    public RootCallTarget parseTopLevelWithCache(RubySource rubySource, Node currentNode) {
+        final Source source = rubySource.getSource();
         final String path = RubyLanguage.getPath(source);
+
         if (language.singleContext && !alreadyLoadedInContext.add(language.getPathRelativeToHome(path))) {
             /* Duplicate load of the same file in the same context, we cannot use the cache because it would re-assign
              * the live modules of static LexicalScopes and we cannot/do not want to invalidate static LexicalScopes, so
              * there the static lexical scope and its module are constants and need no checks in single context (e.g.,
              * in LookupConstantWithLexicalScopeNode). */
-            final RubySource rubySource = new RubySource(source, path, tstringWithEncoding);
             return parse(rubySource, ParserContext.TOP_LEVEL, null, context.getRootLexicalScope(), currentNode);
         }
 
-        language.parsingRequestParams.set(new ParsingParameters(currentNode, tstringWithEncoding, source));
+        language.parsingRequestParams.set(new ParsingParameters(currentNode, rubySource));
         try {
             return (RootCallTarget) context.getEnv().parseInternal(source);
         } finally {

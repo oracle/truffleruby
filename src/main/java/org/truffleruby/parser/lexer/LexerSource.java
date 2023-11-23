@@ -38,9 +38,7 @@ package org.truffleruby.parser.lexer;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.parser.ParserRopeOperations;
@@ -49,14 +47,13 @@ import com.oracle.truffle.api.source.Source;
 
 public final class LexerSource {
 
-    public ParserRopeOperations parserRopeOperations;
+    public final ParserRopeOperations parserRopeOperations;
     private final Source source;
     private final String sourcePath;
-    private final boolean fromTruffleString;
 
-    private TruffleString sourceBytes;
+    private final TruffleString sourceBytes;
     private final int sourceByteLength;
-    private RubyEncoding encoding;
+    private final RubyEncoding encoding;
     private int byteOffset;
     private final int lineOffset;
 
@@ -64,18 +61,8 @@ public final class LexerSource {
         this.source = rubySource.getSource();
         this.sourcePath = rubySource.getSourcePath();
 
-        fromTruffleString = rubySource.hasTruffleString();
-
-        final RubyEncoding rubyEncoding;
-        if (fromTruffleString) {
-            rubyEncoding = rubySource.getEncoding();
-            this.sourceBytes = rubySource.getTruffleString();
-        } else {
-            rubyEncoding = Encodings.UTF_8;
-            // TODO CS 5-Sep-17 can we get the bytes directly rather than using getCharacters -> toString -> getBytes?
-            var sourceString = source.getCharacters().toString();
-            this.sourceBytes = TStringUtils.utf8TString(sourceString);
-        }
+        final RubyEncoding rubyEncoding = rubySource.getEncoding();
+        this.sourceBytes = rubySource.getTruffleString();
         this.sourceByteLength = sourceBytes.byteLength(rubyEncoding.tencoding);
         this.encoding = rubyEncoding;
         parserRopeOperations = new ParserRopeOperations(this.encoding);
@@ -96,13 +83,6 @@ public final class LexerSource {
 
     public RubyEncoding getRubyEncoding() {
         return encoding;
-    }
-
-    public void setEncoding(Encoding jcoding) {
-        var rubyEncoding = Encodings.getBuiltInEncoding(jcoding);
-        this.sourceBytes = sourceBytes.forceEncodingUncached(this.encoding.tencoding, rubyEncoding.tencoding);
-        this.encoding = rubyEncoding;
-        this.parserRopeOperations = new ParserRopeOperations(this.encoding);
     }
 
     public int getOffset() {
@@ -136,10 +116,6 @@ public final class LexerSource {
         } else {
             return index;
         }
-    }
-
-    public boolean isFromTruffleString() {
-        return fromTruffleString;
     }
 
     public int getLineOffset() {

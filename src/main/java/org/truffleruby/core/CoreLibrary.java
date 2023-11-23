@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
-import org.graalvm.collections.Pair;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -45,7 +44,6 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.debug.BindingLocalVariablesObject;
 import org.truffleruby.debug.GlobalVariablesObject;
 import org.truffleruby.debug.TopScopeObject;
@@ -64,6 +62,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ForeignClassNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
@@ -761,10 +760,9 @@ public final class CoreLibrary {
                     state = State.LOADED;
                 }
 
-                var sourceTStringPair = loadCoreFileSource(language.coreLoadPath + file);
-                final Source source = sourceTStringPair.getLeft();
-                final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(sourceTStringPair,
-                        node);
+                var rubySource = loadCoreFileSource(language.coreLoadPath + file);
+                final Source source = rubySource.getSource();
+                final RootCallTarget callTarget = context.getCodeLoader().parseTopLevelWithCache(rubySource, node);
 
                 final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                         callTarget,
@@ -787,13 +785,13 @@ public final class CoreLibrary {
         }
     }
 
-    public Pair<Source, TStringWithEncoding> loadCoreFileSource(String path) throws IOException {
+    public RubySource loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
                 final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
-                return Pair.create(rootParseNode.getSource(), null);
+                return new RubySource(rootParseNode.getSource(), path);
             } else {
-                return Pair.create(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), null);
+                return new RubySource(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), path);
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);

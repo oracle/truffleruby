@@ -42,10 +42,8 @@ describe "Polyglot" do
       Polyglot.eval("ruby", "# encoding: us-ascii\n__ENCODING__.name").should == "US-ASCII"
     end
 
-    it "will not allow code in Ruby to have a magic comment to change the encoding to something not a subset of UTF-8" do
-      -> {
-        Polyglot.eval("ruby", "# encoding: big5\n__ENCODING__.name")
-      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
+    it "will allow code in Ruby to have a magic comment to change the encoding to something not a subset of UTF-8" do
+      Polyglot.eval("ruby", "# encoding: big5\n__ENCODING__.name").should == "Big5"
     end
   end
 
@@ -87,10 +85,8 @@ describe "Polyglot" do
       Polyglot.eval_file("ruby", fixture(__FILE__, "usascii_magic.rb")).should == "US-ASCII"
     end
 
-    it "will not allow code in Ruby to have a magic comment to change the encoding" do
-      -> {
-        Polyglot.eval_file("ruby", fixture(__FILE__, "big5_magic.rb"))
-      }.should raise_error(ArgumentError, /big5 cannot be used as an encoding for a Polyglot API Source/)
+    it "will allow code in Ruby to have a magic comment to change the encoding" do
+      Polyglot.eval_file("ruby", fixture(__FILE__, "big5_magic.rb")).should == "Big5"
     end
   end
 

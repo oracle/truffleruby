@@ -16,9 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import org.jcodings.Encoding;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.parser.lexer.RubyLexer;
@@ -53,46 +52,56 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
             }
         }
 
-        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
+        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
             final String firstLine = fileContent.readLine();
             if (firstLine != null && SHEBANG_REGEXP.matcher(firstLine).matches()) {
                 return RubyLanguage.getMimeType(false);
             }
         } catch (IOException | SecurityException e) {
-            // Reading random files as UTF-8 could cause all sorts of errors
+            // Reading random files could cause all sorts of errors
         }
         return null;
     }
 
     @Override
-    public Charset findEncoding(TruffleFile file) throws IOException {
-        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.UTF_8)) {
-            final String firstLine = fileContent.readLine();
+    public Charset findEncoding(TruffleFile file) {
+        // We use ISO-8859-1 because every byte is valid in that encoding and
+        // we only care about US-ASCII characters for magic encoding comments.
+        try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
+            var encoding = findEncoding(fileContent);
+            if (encoding != null) {
+                return encoding.jcoding.getCharset();
+            }
+        } catch (IOException | SecurityException e) {
+            // Reading random files could cause all sorts of errors
+        }
+        return null; // no magic encoding comment
+    }
+
+    public static RubyEncoding findEncoding(BufferedReader reader) {
+        try {
+            final String firstLine = reader.readLine();
             if (firstLine != null) {
-                String encodingCommentLine;
+                final String encodingCommentLine;
                 if (SHEBANG_REGEXP.matcher(firstLine).matches()) {
-                    encodingCommentLine = fileContent.readLine();
+                    encodingCommentLine = reader.readLine();
                 } else {
                     encodingCommentLine = firstLine;
                 }
+
                 if (encodingCommentLine != null) {
-                    var encodingComment = new TStringWithEncoding(TStringUtils.utf8TString(encodingCommentLine),
-                            Encodings.UTF_8);
-                    Charset[] encodingHolder = new Charset[1];
-                    RubyLexer.parseMagicComment(encodingComment, (name, value) -> {
-                        if (RubyLexer.isMagicEncodingComment(name)) {
-                            Encoding encoding = EncodingManager.getEncoding(value);
-                            if (encoding != null) {
-                                encodingHolder[0] = encoding.getCharset();
-                            }
-                        }
-                    });
-                    return encodingHolder[0];
+                    var encodingComment = new TStringWithEncoding(
+                            TStringUtils.fromJavaString(encodingCommentLine, Encodings.BINARY), Encodings.BINARY);
+                    var encoding = RubyLexer.parseMagicEncodingComment(encodingComment);
+                    if (encoding != null) {
+                        return encoding;
+                    }
                 }
             }
-        } catch (IOException | SecurityException e) {
-            // Reading random files as UTF-8 could cause all sorts of errors
+        } catch (IOException e) {
+            // Use the default encoding if reading failed somehow
         }
+
         return null;
     }
 }

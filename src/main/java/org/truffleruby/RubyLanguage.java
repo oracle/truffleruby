@@ -577,21 +577,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         final ParsingParameters parsingParameters = parsingRequestParams.get();
         if (parsingParameters != null) { // from #require or core library
-            assert parsingParameters.getSource().equals(source);
-            final RubySource rubySource = new RubySource(
-                    source,
-                    parsingParameters.getPath(),
-                    parsingParameters.getTStringWithEnc());
+            assert parsingParameters.rubySource.getSource().equals(source);
             final ParserContext parserContext = MIME_TYPE_MAIN_SCRIPT.equals(source.getMimeType())
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;
             final LexicalScope lexicalScope = contextIfSingleContext.map(RubyContext::getRootLexicalScope).orElse(null);
             return getCurrentContext().getCodeLoader().parse(
-                    rubySource,
+                    parsingParameters.rubySource,
                     parserContext,
                     null,
                     lexicalScope,
-                    parsingParameters.getCurrentNode());
+                    parsingParameters.currentNode);
         }
 
         RootNode root;

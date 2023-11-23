@@ -84,20 +84,17 @@ public class RubyFileTypeDetectorTest extends RubyTest {
     @Test
     public void testEncoding() {
         final RubyFileTypeDetector fileTypeDetector = new RubyFileTypeDetector();
-        testWithAST("", new Consumer<RubyRootNode>() {
-            @Override
-            public void accept(RubyRootNode rootNode) {
-                TruffleLanguage.Env env = RubyLanguage.getCurrentContext().getEnv();
-                try {
-                    for (TestCase testCase : getTestCases()) {
-                        if (testCase.hasRubyMimeType) {
-                            TruffleFile file = env.getPublicTruffleFile(testCase.path.toString());
-                            assertEquals(testCase.encoding, fileTypeDetector.findEncoding(file));
-                        }
+        testWithAST("", rootNode -> {
+            TruffleLanguage.Env env = RubyLanguage.getCurrentContext().getEnv();
+            try {
+                for (TestCase testCase : getTestCases()) {
+                    if (testCase.hasRubyMimeType) {
+                        TruffleFile file = env.getPublicTruffleFile(testCase.path.toString());
+                        assertEquals(testCase.encoding, fileTypeDetector.findEncoding(file));
                     }
-                } catch (IOException ioe) {
-                    throw new RuntimeException(ioe);
                 }
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
             }
         });
     }

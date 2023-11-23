@@ -9,18 +9,23 @@
  */
 package org.truffleruby.parser;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyFileTypeDetector;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
+import org.truffleruby.parser.lexer.RubyLexer;
 
 public final class RubySource {
 
@@ -43,7 +48,7 @@ public final class RubySource {
         this(source, sourcePath, code, false);
     }
 
-    public RubySource(Source source, String sourcePath, TStringWithEncoding code, boolean isEval) {
+    private RubySource(Source source, String sourcePath, TStringWithEncoding code, boolean isEval) {
         this(source, sourcePath, code, isEval, 0);
     }
 
@@ -52,10 +57,30 @@ public final class RubySource {
         this.source = Objects.requireNonNull(source);
         //intern() to improve footprint
         this.sourcePath = Objects.requireNonNull(sourcePath).intern();
-        this.code = code != null ? code.tstring : null;
-        this.encoding = code != null ? code.encoding : null;
+
+        if (code == null) {
+            // We only have the Source, which only contains a java.lang.String.
+            // The sourcePath might not exist, so we cannot reread from the filesystem.
+            // So we look for the magic encoding comment and if not found use UTF-8.
+            var sourceString = source.getCharacters().toString();
+            var encoding = RubyFileTypeDetector.findEncoding(new BufferedReader(new StringReader(sourceString)));
+            if (encoding == null) {
+                encoding = Encodings.UTF_8;
+            }
+            code = new TStringWithEncoding(TStringUtils.fromJavaString(sourceString, encoding), encoding);
+        }
+        assert checkMagicEncoding(code);
+
+        this.code = code.tstring;
+        this.encoding = code.encoding;
         this.isEval = isEval;
         this.lineOffset = lineOffset;
+    }
+
+    private static boolean checkMagicEncoding(TStringWithEncoding code) {
+        var magicEncoding = RubyLexer.parseMagicEncodingComment(code);
+        assert magicEncoding == null || magicEncoding == code.encoding;
+        return true;
     }
 
     public Source getSource() {
@@ -66,22 +91,15 @@ public final class RubySource {
         return sourcePath;
     }
 
-    public boolean hasTruffleString() {
-        return code != null;
-    }
-
     public TruffleString getTruffleString() {
-        assert hasTruffleString();
         return code;
     }
 
     public TStringWithEncoding getTStringWithEncoding() {
-        assert hasTruffleString();
         return new TStringWithEncoding(code, encoding);
     }
 
     public byte[] getBytes() {
-        assert hasTruffleString();
         if (bytes != null) {
             return bytes;
         } else {
@@ -90,7 +108,6 @@ public final class RubySource {
     }
 
     public RubyEncoding getEncoding() {
-        assert hasTruffleString();
         return encoding;
     }
 

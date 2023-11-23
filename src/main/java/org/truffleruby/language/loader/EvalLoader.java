@@ -12,8 +12,6 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -32,7 +30,7 @@ public abstract class EvalLoader {
             RubyEncoding encoding, String method, String file, int line, Node currentNode) {
         var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
 
-        var sourceTString = createEvalTString(code);
+        var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(code, code.encoding);
         var sourceEncoding = sourceTString.encoding;
 
         if (!sourceEncoding.isAsciiCompatible) {
@@ -63,22 +61,6 @@ public abstract class EvalLoader {
 
         context.getSourceLineOffsets().put(source, line - 1);
         return rubySource;
-    }
-
-    private static TStringWithEncoding createEvalTString(TStringWithEncoding source) {
-        final RubyEncoding[] encoding = { source.getEncoding() };
-
-        RubyLexer.parseMagicComment(source, (name, value) -> {
-            if (RubyLexer.isMagicEncodingComment(name)) {
-                encoding[0] = Encodings.getBuiltInEncoding(EncodingManager.getEncoding(value));
-            }
-        });
-
-        if (source.getEncoding() != encoding[0]) {
-            source = source.forceEncoding(encoding[0]);
-        }
-
-        return source;
     }
 
 }

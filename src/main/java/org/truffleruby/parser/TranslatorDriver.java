@@ -114,6 +114,11 @@ public final class TranslatorDriver {
                     "A frame should be given iff the context is not toplevel: " + parserContext + " " + parentFrame);
         }
 
+        if (!rubySource.getEncoding().isAsciiCompatible) {
+            throw new RaiseException(context, context.getCoreExceptions()
+                    .argumentError(rubySource.getEncoding() + " is not ASCII compatible", currentNode));
+        }
+
         final Source source = rubySource.getSource();
 
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);

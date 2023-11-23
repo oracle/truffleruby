@@ -19,14 +19,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.source.Source;
-import org.graalvm.collections.Pair;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -38,6 +35,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -216,15 +214,15 @@ public abstract class RequireNode extends RubyBaseNode {
             requireCExtension(feature, expandedPath, this);
         } else {
             // All other files are assumed to be Ruby, the file type detection is not enough
-            final Pair<Source, TStringWithEncoding> sourceTStringPair;
+            final RubySource rubySource;
             try {
                 final FileLoader fileLoader = new FileLoader(getContext(), getLanguage());
-                sourceTStringPair = fileLoader.loadFile(expandedPath);
+                rubySource = fileLoader.loadFile(expandedPath);
             } catch (IOException e) {
                 return false;
             }
 
-            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(sourceTStringPair,
+            final RootCallTarget callTarget = getContext().getCodeLoader().parseTopLevelWithCache(rubySource,
                     this);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
