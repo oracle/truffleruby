@@ -188,6 +188,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public static final int NO_FRAME_ON_STACK_MARKER = Translator.NO_FRAME_ON_STACK_MARKER;
 
+    public static final Nodes.Node[] EMPTY_NODE_ARRAY = Nodes.Node.EMPTY_ARRAY;
+    public static final Nodes.ParametersNode ZERO_PARAMETERS_NODE = new Nodes.ParametersNode(EMPTY_NODE_ARRAY,
+            EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY, EMPTY_NODE_ARRAY, null, null, 0, 0);
+
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
     protected static final short NO_FLAGS = 0;
@@ -415,7 +419,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private RescueNode translateExceptionNodes(ArrayList<Nodes.Node> exceptionNodes, Nodes.RescueNode rescueClause) {
 
-        final Nodes.Node[] exceptionNodesArray = exceptionNodes.toArray(Nodes.Node.EMPTY_ARRAY);
+        final Nodes.Node[] exceptionNodesArray = exceptionNodes.toArray(EMPTY_NODE_ARRAY);
         final RubyNode[] handlingClasses = translate(exceptionNodesArray);
 
         RubyNode translatedBody;
@@ -482,8 +486,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 for (int i = 1; i <= max; i++) {
                     requireds[i - 1] = new Nodes.RequiredParameterNode("_" + i, 0, 0);
                 }
-                parameters = new Nodes.ParametersNode(requireds, Nodes.Node.EMPTY_ARRAY, null, Nodes.Node.EMPTY_ARRAY,
-                        Nodes.Node.EMPTY_ARRAY, null, null, 0, 0);
+                parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
+                        EMPTY_NODE_ARRAY, null, null, 0, 0);
             } else {
                 // no numbered parameters
                 parameters = null;
@@ -656,7 +660,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             String methodName) {
         final Nodes.Node[] arguments;
         if (argumentsNode == null) {
-            arguments = Nodes.Node.EMPTY_ARRAY;
+            arguments = EMPTY_NODE_ARRAY;
         } else {
             arguments = argumentsNode.arguments;
         }
@@ -1282,6 +1286,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // TODO: could we use the ArgumentDescriptor[] stored in the SharedMethodInfo instead?
         var parametersNode = environment.parametersNode;
+        if (parametersNode == null) {
+            // parametersNode == null for a method means zero parameters: https://github.com/ruby/prism/issues/1915
+            parametersNode = ZERO_PARAMETERS_NODE;
+        }
         var reloadTranslator = new YARPReloadArgumentsTranslator(language, this, parametersNode);
 
         final RubyNode[] reloadSequence = reloadTranslator.reload(parametersNode);
