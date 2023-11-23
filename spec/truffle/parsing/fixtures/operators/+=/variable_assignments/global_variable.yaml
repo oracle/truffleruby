@@ -1,0 +1,41 @@
+subject: "+="
+description: "Variable assignment/global variable ($a += b)"
+notes: >
+  `$a += b` is translated into `$a = $a + b`
+focused_on_node: "org.truffleruby.language.globals.WriteGlobalVariableNodeGen"
+ruby: |
+  $foo += 42
+ast: |
+  WriteGlobalVariableNodeGen
+      attributes:
+          flags = 0
+          name = "$foo"
+      children:
+          lookupGlobalVariableStorageNode =
+              LookupGlobalVariableStorageNodeGen
+                  attributes:
+                      index = -1
+                      name = "$foo"
+          valueNode_ =
+              InlinedAddNodeGen
+                  attributes:
+                      assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                      flags = 0
+                      parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                  children:
+                      leftNode_ =
+                          ReadGlobalVariableNodeGen
+                              attributes:
+                                  flags = 0
+                                  name = "$foo"
+                              children:
+                                  lookupGlobalVariableStorageNode =
+                                      LookupGlobalVariableStorageNodeGen
+                                          attributes:
+                                              index = -1
+                                              name = "$foo"
+                      rightNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

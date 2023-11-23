@@ -1,0 +1,40 @@
+subject: "+="
+description: "Variable assignment/instance variable (@a += b)"
+notes: >
+  `@a += b` is translated into `@a = @a + b`
+focused_on_node: "org.truffleruby.language.objects.WriteInstanceVariableNodeGen"
+ruby: |
+  @foo += 42
+ast: |
+  WriteInstanceVariableNodeGen
+      attributes:
+          flags = 0
+          frozenProfile = false
+          name = "@foo"
+      children:
+          readSelfSlotNode =
+              ReadFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 0 # (self)
+          rhs =
+              InlinedAddNodeGen
+                  attributes:
+                      assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                      flags = 0
+                      parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                  children:
+                      leftNode_ =
+                          ReadInstanceVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@foo"
+                              children:
+                                  readSelfSlotNode =
+                                      ReadFrameSlotNodeGen
+                                          attributes:
+                                              frameSlot = 0 # (self)
+                      rightNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

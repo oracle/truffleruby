@@ -56,8 +56,8 @@ original_parser = ENV['TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR'] == 'true'
 describe "Parsing" do
   require 'yaml'
 
-  filenames = Dir.glob("#{__dir__}/fixtures/**/*.yaml")
-  # filenames = ["#{__dir__}/fixtures/if/with_empty_then_branch.yaml"] # to run a single one
+  filenames = Dir["#{__dir__}/fixtures/**/*.yaml"]
+  # filenames = Dir["#{__dir__}/fixtures/operators/+=/**/*.yaml"] # to run a subset
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
