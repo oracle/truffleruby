@@ -77,6 +77,7 @@ import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.InternalRootNode;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -1468,7 +1469,16 @@ public abstract class TruffleDebugNodes {
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
-            RubyRootNode rootNode = parse(code);
+            RubyRootNode rootNode;
+            try {
+                rootNode = parse(code);
+            } catch (Error e) {
+                if (e.getMessage().contains("does not know how to translate")) {
+                    throw new RaiseException(getContext(), coreExceptions().runtimeError(e.getMessage(), this));
+                } else {
+                    throw e;
+                }
+            }
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
