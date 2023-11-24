@@ -2552,7 +2552,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 argumentsNode = new Nodes.ArgumentsNode(arguments, node.arguments.flags, node.arguments.startOffset,
                         node.arguments.length);
             }
-            node = new Nodes.CallNode(node.receiver, argumentsNode, node.block, node.flags, node.name, node.startOffset,
+            node = new Nodes.CallNode(node.receiver, node.name, argumentsNode, node.block, node.flags, node.startOffset,
                     node.length);
         }
 
@@ -2700,9 +2700,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     protected static Nodes.CallNode callNode(Nodes.Node location, Nodes.Node receiver, String methodName,
             Nodes.Node... arguments) {
-        return new Nodes.CallNode(receiver,
+        return new Nodes.CallNode(receiver, methodName,
                 new Nodes.ArgumentsNode(arguments, NO_FLAGS, location.startOffset, location.length), null, NO_FLAGS,
-                methodName, location.startOffset, location.length);
+                location.startOffset, location.length);
     }
 
     private boolean containYARPSplatNode(Nodes.Node[] nodes) {
