@@ -52,12 +52,13 @@ require_relative '../../ruby/spec_helper'
 
 overwrite = ENV['OVERWRITE_PARSING_RESULTS'] == 'true'
 original_parser = ENV['TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR'] == 'true'
+fixtures_glob = ENV['TRUFFLE_PARSING_GLOB']
 
 describe "Parsing" do
   require 'yaml'
 
   filenames = Dir["#{__dir__}/fixtures/**/*.yaml"]
-  # filenames = Dir["#{__dir__}/fixtures/operators/+=/**/*.yaml"] # to run a subset
+  filenames = Dir[fixtures_glob] if fixtures_glob
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)

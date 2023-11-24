@@ -31,9 +31,6 @@ fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is pars
 fails:Parsing a Rational number (with Float value) case is parsed correctly
 fails:Parsing a Regexp (Regexp literal in boolean context (e.g. condition in if, while, etc)) case is parsed correctly
 fails:Parsing a Regexp (Regexp literal in boolean context with interpolation (e.g. condition in if, while, etc)) case is parsed correctly
-fails:Parsing a Regexp (a literal with interpolation (with #{...})) case is parsed correctly
-fails:Parsing a Regexp (a literal with interpolation but without expression (#{})) case is parsed correctly
-fails:Parsing a Regexp (a literal with options (e.g. i, x, m, o)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
