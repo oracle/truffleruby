@@ -1,0 +1,11 @@
+subject: "String"
+description: "2 string literals concatenated at parse/translation time"
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  "foo" "bar"
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = UTF-8
+          flags = 0
+          tstring = foobar

@@ -1564,6 +1564,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInterpolatedStringNode(Nodes.InterpolatedStringNode node) {
+        if (allPartsAreStringNodes(node)) {
+            return visitStringNode(concatStringNodes(node));
+        }
+
         final ToSNode[] children = translateInterpolatedParts(node.parts);
 
         final RubyNode rubyNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
@@ -1586,6 +1590,38 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
 
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    private static boolean allPartsAreStringNodes(Nodes.InterpolatedStringNode node) {
+        for (var part : node.parts) {
+            if (!(part instanceof Nodes.StringNode)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static Nodes.StringNode concatStringNodes(Nodes.InterpolatedStringNode node) {
+        Nodes.Node[] parts = node.parts;
+        assert parts.length > 0;
+
+        int totalSize = 0;
+        for (var part : parts) {
+            totalSize += ((Nodes.StringNode) part).unescaped.length;
+        }
+
+        byte[] concatenated = new byte[totalSize];
+        int i = 0;
+        for (var part : parts) {
+            byte[] bytes = ((Nodes.StringNode) part).unescaped;
+            System.arraycopy(bytes, 0, concatenated, i, bytes.length);
+            i += bytes.length;
+        }
+
+        int start = parts[0].startOffset;
+        var last = parts[parts.length - 1];
+        int length = last.endOffset() - start;
+        return new Nodes.StringNode(NO_FLAGS, concatenated, start, length);
     }
 
     private ToSNode[] translateInterpolatedParts(Nodes.Node[] parts) {
@@ -2661,7 +2697,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final Nodes.Node first = nodes[0];
         final Nodes.Node last = nodes[nodes.length - 1];
 
-        final int length = last.startOffset - first.startOffset + last.length;
+        final int length = last.endOffset() - first.startOffset;
         rubyNode.unsafeSetSourceSection(first.startOffset, length);
     }
 
