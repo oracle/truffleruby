@@ -2067,11 +2067,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     @Override
-    public RubyNode visitStringConcatNode(Nodes.StringConcatNode node) {
-        return defaultVisit(node);
-    }
-
-    @Override
     public RubyNode visitStringNode(Nodes.StringNode node) {
         final RubyNode rubyNode;
         final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
