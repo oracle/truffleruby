@@ -68,7 +68,7 @@ ast: |
                                           child =
                                               YieldExpressionNode
                                                   attributes:
-                                                      descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                      descriptor = NoKeywordArgumentsDescriptor
                                                       emptyKeywordsProfile = false
                                                       flags = 0
                                                       isSplatted = false

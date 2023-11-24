@@ -82,7 +82,7 @@ ast: |
                                                                           attributes:
                                                                               assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                                               flags = 0
-                                                                              parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                                                              parameters = RubyCallNodeParameters{methodName='lambda', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
                                                                           children:
                                                                               block_ =
                                                                                   BlockDefinitionNodeGen

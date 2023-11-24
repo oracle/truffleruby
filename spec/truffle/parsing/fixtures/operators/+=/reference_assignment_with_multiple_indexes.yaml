@@ -72,7 +72,7 @@ ast: |
                       valueNode =
                           RubyCallNode
                               attributes:
-                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                  descriptor = NoKeywordArgumentsDescriptor
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
                                   flags = 0
@@ -91,7 +91,7 @@ ast: |
                                               flags = 0
               RubyCallNode
                   attributes:
-                      descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                      descriptor = NoKeywordArgumentsDescriptor
                       dispatchConfig = PROTECTED
                       emptyKeywordsProfile = false
                       flags = 0
@@ -124,12 +124,12 @@ ast: |
                               attributes:
                                   assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
                                   flags = 1
-                                  parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                  parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
                               children:
                                   leftNode_ =
                                       RubyCallNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                              descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
                                               flags = 0

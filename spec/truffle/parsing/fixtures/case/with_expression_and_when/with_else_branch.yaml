@@ -65,7 +65,7 @@ ast: |
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                   flags = 0
                                   integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
-                                  parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                  parameters = RubyCallNodeParameters{methodName='===', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
                               children:
                                   leftNode_ =
                                       IntegerFixnumLiteralNode
@@ -89,7 +89,7 @@ ast: |
                                               assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                               flags = 0
                                               integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
-                                              parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                              parameters = RubyCallNodeParameters{methodName='===', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
                                           children:
                                               leftNode_ =
                                                   IntegerFixnumLiteralNode

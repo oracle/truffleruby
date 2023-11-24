@@ -10,7 +10,7 @@ ast: |
           flags = 1
           floatEqualAssumption = Assumption(valid, name=inlined Float#==)
           integerEqualAssumption = Assumption(valid, name=inlined Integer#==)
-          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+          parameters = RubyCallNodeParameters{methodName='==', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
       children:
           leftNode_ =
               IntegerFixnumLiteralNode

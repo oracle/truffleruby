@@ -17,4 +17,8 @@ public final class NoKeywordArgumentsDescriptor extends ArgumentsDescriptor {
     private NoKeywordArgumentsDescriptor() {
     }
 
+    @Override
+    public String toString() {
+        return "NoKeywordArgumentsDescriptor";
+    }
 }

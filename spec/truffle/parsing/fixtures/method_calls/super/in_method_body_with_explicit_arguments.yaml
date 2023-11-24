@@ -60,7 +60,7 @@ ast: |
                                           slot = 2
                                   SuperCallNode
                                       attributes:
-                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                          descriptor = NoKeywordArgumentsDescriptor
                                           emptyKeywordsProfile = false
                                           flags = 1
                                           isSplatted = false

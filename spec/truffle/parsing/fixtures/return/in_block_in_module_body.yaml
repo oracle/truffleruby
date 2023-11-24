@@ -80,7 +80,7 @@ ast: |
                                                                   child =
                                                                       RubyCallNode
                                                                           attributes:
-                                                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                              descriptor = NoKeywordArgumentsDescriptor
                                                                               dispatchConfig = PROTECTED
                                                                               emptyKeywordsProfile = false
                                                                               flags = 0

@@ -85,7 +85,7 @@ ast: |
                                           slot = 2
                                   YieldExpressionNode
                                       attributes:
-                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                          descriptor = NoKeywordArgumentsDescriptor
                                           emptyKeywordsProfile = false
                                           flags = 1
                                           isSplatted = true
@@ -107,7 +107,7 @@ ast: |
                                                                   values = [
                                                                       RubyCallNode
                                                                           attributes:
-                                                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                              descriptor = NoKeywordArgumentsDescriptor
                                                                               dispatchConfig = PRIVATE
                                                                               emptyKeywordsProfile = false
                                                                               flags = 0
@@ -126,7 +126,7 @@ ast: |
                                                                                           flags = 0
                                                                       RubyCallNode
                                                                           attributes:
-                                                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                              descriptor = NoKeywordArgumentsDescriptor
                                                                               dispatchConfig = PRIVATE
                                                                               emptyKeywordsProfile = false
                                                                               flags = 0
@@ -154,7 +154,7 @@ ast: |
                                                                   childNode_ =
                                                                       RubyCallNode
                                                                           attributes:
-                                                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                              descriptor = NoKeywordArgumentsDescriptor
                                                                               dispatchConfig = PRIVATE
                                                                               emptyKeywordsProfile = false
                                                                               flags = 0
@@ -187,7 +187,7 @@ ast: |
                                                                               values = [
                                                                                   RubyCallNode
                                                                                       attributes:
-                                                                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                                          descriptor = NoKeywordArgumentsDescriptor
                                                                                           dispatchConfig = PRIVATE
                                                                                           emptyKeywordsProfile = false
                                                                                           flags = 0
@@ -206,7 +206,7 @@ ast: |
                                                                                                       flags = 0
                                                                                   RubyCallNode
                                                                                       attributes:
-                                                                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                                          descriptor = NoKeywordArgumentsDescriptor
                                                                                           dispatchConfig = PRIVATE
                                                                                           emptyKeywordsProfile = false
                                                                                           flags = 0
