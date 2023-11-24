@@ -148,10 +148,10 @@ public abstract class Nodes {
     public static final class ArgumentsNodeFlags implements Comparable<ArgumentsNodeFlags> {
 
         // if arguments contain keyword splat
-        public static final short KEYWORD_SPLAT = 1 << 0;
+        public static final short CONTAINS_KEYWORD_SPLAT = 1 << 0;
 
-        public static boolean isKeywordSplat(short flags) {
-            return (flags & KEYWORD_SPLAT) != 0;
+        public static boolean isContainsKeywordSplat(short flags) {
+            return (flags & CONTAINS_KEYWORD_SPLAT) != 0;
         }
 
         private final short flags;
@@ -179,8 +179,51 @@ public abstract class Nodes {
             return flags - other.flags;
         }
 
-        public boolean isKeywordSplat() {
-            return (flags & KEYWORD_SPLAT) != 0;
+        public boolean isContainsKeywordSplat() {
+            return (flags & CONTAINS_KEYWORD_SPLAT) != 0;
+        }
+
+    }
+
+    /**
+     * Flags for array nodes.
+     */
+    public static final class ArrayNodeFlags implements Comparable<ArrayNodeFlags> {
+
+        // if array contains splat nodes
+        public static final short CONTAINS_SPLAT = 1 << 0;
+
+        public static boolean isContainsSplat(short flags) {
+            return (flags & CONTAINS_SPLAT) != 0;
+        }
+
+        private final short flags;
+
+        public ArrayNodeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ArrayNodeFlags)) {
+                return false;
+            }
+
+            return flags == ((ArrayNodeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(ArrayNodeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isContainsSplat() {
+            return (flags & CONTAINS_SPLAT) != 0;
         }
 
     }
@@ -772,8 +815,8 @@ public abstract class Nodes {
             this.flags = flags;
         }
         
-        public boolean isKeywordSplat() {
-            return ArgumentsNodeFlags.isKeywordSplat(this.flags);
+        public boolean isContainsKeywordSplat() {
+            return ArgumentsNodeFlags.isContainsKeywordSplat(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -823,12 +866,18 @@ public abstract class Nodes {
      */
     public static final class ArrayNode extends Node {
         public final Node[] elements;
+        public final short flags;
 
-        public ArrayNode(Node[] elements, int startOffset, int length) {
+        public ArrayNode(Node[] elements, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.elements = elements;
+            this.flags = flags;
         }
-                
+        
+        public boolean isContainsSplat() {
+            return ArrayNodeFlags.isContainsSplat(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             for (Nodes.Node child : this.elements) {
                 child.accept(visitor);
@@ -859,6 +908,10 @@ public abstract class Nodes {
             for (Node child : this.elements) {
                 builder.append(nextNextIndent).append(child.toString(nextNextIndent));
             }
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             return builder.toString();
         }
     }
@@ -1578,20 +1631,20 @@ public abstract class Nodes {
     public static final class CallNode extends Node {
         /** optional (can be null) */
         public final Node receiver;
+        public final String name;
         /** optional (can be null) */
         public final ArgumentsNode arguments;
         /** optional (can be null) */
         public final Node block;
         public final short flags;
-        public final String name;
 
-        public CallNode(Node receiver, ArgumentsNode arguments, Node block, short flags, String name, int startOffset, int length) {
+        public CallNode(Node receiver, String name, ArgumentsNode arguments, Node block, short flags, int startOffset, int length) {
             super(startOffset, length);
             this.receiver = receiver;
+            this.name = name;
             this.arguments = arguments;
             this.block = block;
             this.flags = flags;
-            this.name = name;
         }
         
         public boolean isSafeNavigation() {
@@ -1635,6 +1688,10 @@ public abstract class Nodes {
             builder.append("receiver: ");
             builder.append(this.receiver == null ? "null\n" : this.receiver.toString(nextIndent));
             builder.append(nextIndent);
+            builder.append("name: ");
+            builder.append('"').append(this.name).append('"');
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("arguments: ");
             builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
             builder.append(nextIndent);
@@ -1643,10 +1700,6 @@ public abstract class Nodes {
             builder.append(nextIndent);
             builder.append("flags: ");
             builder.append(this.flags);
-            builder.append('\n');
-            builder.append(nextIndent);
-            builder.append("name: ");
-            builder.append('"').append(this.name).append('"');
             builder.append('\n');
             return builder.toString();
         }
@@ -1856,6 +1909,78 @@ public abstract class Nodes {
             builder.append(nextIndent);
             builder.append("target: ");
             builder.append(this.target.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    /**
+     * Represents the use of a case statement for pattern matching.
+     *
+     *     case true
+     *     in false
+     *     end
+     *     ^^^^^^^^^
+     */
+    public static final class CaseMatchNode extends Node {
+        /** optional (can be null) */
+        public final Node predicate;
+        public final Node[] conditions;
+        /** optional (can be null) */
+        public final ElseNode consequent;
+
+        public CaseMatchNode(Node predicate, Node[] conditions, ElseNode consequent, int startOffset, int length) {
+            super(startOffset, length);
+            this.predicate = predicate;
+            this.conditions = conditions;
+            this.consequent = consequent;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            if (this.predicate != null) {
+                this.predicate.accept(visitor);
+            }
+            for (Nodes.Node child : this.conditions) {
+                child.accept(visitor);
+            }
+            if (this.consequent != null) {
+                this.consequent.accept(visitor);
+            }
+        }
+
+        public Node[] childNodes() {
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.add(this.predicate);
+            childNodes.addAll(Arrays.asList(this.conditions));
+            childNodes.add(this.consequent);
+            return childNodes.toArray(EMPTY_ARRAY);
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitCaseMatchNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("predicate: ");
+            builder.append(this.predicate == null ? "null\n" : this.predicate.toString(nextIndent));
+            builder.append(nextIndent);
+            builder.append("conditions: ");
+            builder.append('\n');
+            for (Node child : this.conditions) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
+            }
+            builder.append(nextIndent);
+            builder.append("consequent: ");
+            builder.append(this.consequent == null ? "null\n" : this.consequent.toString(nextIndent));
             return builder.toString();
         }
     }
@@ -5799,20 +5924,26 @@ public abstract class Nodes {
      */
     public static final class MatchWriteNode extends Node {
         public final CallNode call;
-        public final String[] locals;
+        public final Node[] targets;
 
-        public MatchWriteNode(CallNode call, String[] locals, int startOffset, int length) {
+        public MatchWriteNode(CallNode call, Node[] targets, int startOffset, int length) {
             super(startOffset, length);
             this.call = call;
-            this.locals = locals;
+            this.targets = targets;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.call.accept(visitor);
+            for (Nodes.Node child : this.targets) {
+                child.accept(visitor);
+            }
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.call };
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.add(this.call);
+            childNodes.addAll(Arrays.asList(this.targets));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -5833,10 +5964,10 @@ public abstract class Nodes {
             builder.append("call: ");
             builder.append(this.call.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("locals: ");
+            builder.append("targets: ");
             builder.append('\n');
-            for (String constant : this.locals) {
-                builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
+            for (Node child : this.targets) {
+                builder.append(nextNextIndent).append(child.toString(nextNextIndent));
             }
             return builder.toString();
         }
@@ -7664,54 +7795,6 @@ public abstract class Nodes {
             for (Node child : this.body) {
                 builder.append(nextNextIndent).append(child.toString(nextNextIndent));
             }
-            return builder.toString();
-        }
-    }
-
-    /**
-     * Represents the use of compile-time string concatenation.
-     *
-     *     "foo" "bar"
-     *     ^^^^^^^^^^^
-     */
-    public static final class StringConcatNode extends Node {
-        public final Node left;
-        public final Node right;
-
-        public StringConcatNode(Node left, Node right, int startOffset, int length) {
-            super(startOffset, length);
-            this.left = left;
-            this.right = right;
-        }
-                
-        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.left.accept(visitor);
-            this.right.accept(visitor);
-        }
-
-        public Node[] childNodes() {
-            return new Node[] { this.left, this.right };
-        }
-
-        public <T> T accept(AbstractNodeVisitor<T> visitor) {
-            return visitor.visitStringConcatNode(this);
-        }
-
-        @Override
-        protected String toString(String indent) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(this.getClass().getSimpleName());
-            if (hasNewLineFlag()) {
-                builder.append("[Li]");
-            }
-            builder.append('\n');
-            String nextIndent = indent + "  ";
-            builder.append(nextIndent);
-            builder.append("left: ");
-            builder.append(this.left.toString(nextIndent));
-            builder.append(nextIndent);
-            builder.append("right: ");
-            builder.append(this.right.toString(nextIndent));
             return builder.toString();
         }
     }

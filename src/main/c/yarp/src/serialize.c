@@ -102,6 +102,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             for (uint32_t index = 0; index < elements_size; index++) {
                 pm_serialize_node(parser, (pm_node_t *) ((pm_array_node_t *)node)->elements.nodes[index], buffer);
             }
+            pm_buffer_append_varint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             break;
         }
         case PM_ARRAY_PATTERN_NODE: {
@@ -244,6 +245,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             } else {
                 pm_serialize_node(parser, (pm_node_t *)((pm_call_node_t *)node)->receiver, buffer);
             }
+            pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_call_node_t *)node)->name));
             if (((pm_call_node_t *)node)->arguments == NULL) {
                 pm_buffer_append_byte(buffer, 0);
             } else {
@@ -255,7 +257,6 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
                 pm_serialize_node(parser, (pm_node_t *)((pm_call_node_t *)node)->block, buffer);
             }
             pm_buffer_append_varint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
-            pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_call_node_t *)node)->name));
             break;
         }
         case PM_CALL_OPERATOR_WRITE_NODE: {
@@ -286,6 +287,24 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_CAPTURE_PATTERN_NODE: {
             pm_serialize_node(parser, (pm_node_t *)((pm_capture_pattern_node_t *)node)->value, buffer);
             pm_serialize_node(parser, (pm_node_t *)((pm_capture_pattern_node_t *)node)->target, buffer);
+            break;
+        }
+        case PM_CASE_MATCH_NODE: {
+            if (((pm_case_match_node_t *)node)->predicate == NULL) {
+                pm_buffer_append_byte(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_case_match_node_t *)node)->predicate, buffer);
+            }
+            uint32_t conditions_size = pm_sizet_to_u32(((pm_case_match_node_t *)node)->conditions.size);
+            pm_buffer_append_varint(buffer, conditions_size);
+            for (uint32_t index = 0; index < conditions_size; index++) {
+                pm_serialize_node(parser, (pm_node_t *) ((pm_case_match_node_t *)node)->conditions.nodes[index], buffer);
+            }
+            if (((pm_case_match_node_t *)node)->consequent == NULL) {
+                pm_buffer_append_byte(buffer, 0);
+            } else {
+                pm_serialize_node(parser, (pm_node_t *)((pm_case_match_node_t *)node)->consequent, buffer);
+            }
             break;
         }
         case PM_CASE_NODE: {
@@ -849,10 +868,10 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         }
         case PM_MATCH_WRITE_NODE: {
             pm_serialize_node(parser, (pm_node_t *)((pm_match_write_node_t *)node)->call, buffer);
-            uint32_t locals_size = pm_sizet_to_u32(((pm_match_write_node_t *)node)->locals.size);
-            pm_buffer_append_varint(buffer, locals_size);
-            for (uint32_t index = 0; index < locals_size; index++) {
-                pm_buffer_append_varint(buffer, pm_sizet_to_u32(((pm_match_write_node_t *)node)->locals.ids[index]));
+            uint32_t targets_size = pm_sizet_to_u32(((pm_match_write_node_t *)node)->targets.size);
+            pm_buffer_append_varint(buffer, targets_size);
+            for (uint32_t index = 0; index < targets_size; index++) {
+                pm_serialize_node(parser, (pm_node_t *) ((pm_match_write_node_t *)node)->targets.nodes[index], buffer);
             }
             break;
         }
@@ -1141,11 +1160,6 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             for (uint32_t index = 0; index < body_size; index++) {
                 pm_serialize_node(parser, (pm_node_t *) ((pm_statements_node_t *)node)->body.nodes[index], buffer);
             }
-            break;
-        }
-        case PM_STRING_CONCAT_NODE: {
-            pm_serialize_node(parser, (pm_node_t *)((pm_string_concat_node_t *)node)->left, buffer);
-            pm_serialize_node(parser, (pm_node_t *)((pm_string_concat_node_t *)node)->right, buffer);
             break;
         }
         case PM_STRING_NODE: {
