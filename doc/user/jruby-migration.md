@@ -383,6 +383,27 @@ In both JRuby and TruffleRuby you call Java methods as you would a Ruby method.
 JRuby will rewrite method names such as `my_method` to the Java convention of `myMethod`, and convert `getFoo` to `foo`, and `setFoo` to `foo=`.
 TruffleRuby does not perform these conversions.
 
+### Calling Overloaded Method
+
+When multiple overloads are possible, it needs to be selected explicitly.
+For instance `java.util.concurrent.ExecutorService` has both `submit(Runnable)` and `submit(Callable<T> task)`.
+Calling submit without specifying which one shows the possible overloads:
+```
+$ ruby -e 'Java.type("java.util.concurrent.Executors").newFixedThreadPool(1).submit {}'
+-e:1:in `main': Multiple applicable overloads found for method name submit (candidates: [
+  Method[public java.util.concurrent.Future java.util.concurrent.AbstractExecutorService.submit(java.util.concurrent.Callable)],
+  Method[public java.util.concurrent.Future java.util.concurrent.AbstractExecutorService.submit(java.lang.Runnable)]],
+  arguments: [RubyProc@4893b344 (RubyProc)]) (TypeError)
+```
+
+You can select a specific overload using:
+```ruby
+executor = Java.type("java.util.concurrent.Executors").newFixedThreadPool(1)
+executor['submit(java.lang.Runnable)'].call(-> { 1 })
+# or
+executor.send("submit(java.lang.Runnable)") { 1 }
+```
+
 ### Referring to Constants
 
 In JRuby, Java constants are modelled as Ruby constants, `MyClass::FOO`.
