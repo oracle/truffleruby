@@ -33,6 +33,18 @@ TruffleRuby defines these constants for identification:
 
 In the C API, the preprocessor macro `TRUFFLERUBY` is defined, which can be checked with `#ifdef TRUFFLERUBY`.
 
+## Ruby 3.x Features
+
+Most features of Ruby 3.2 and earlier are supported in TruffleRuby.
+However some features are not yet implemented.
+See the following issues for details:
+
+* [Ruby 3.2 features](https://github.com/oracle/truffleruby/issues/3039)
+* [Ruby 3.1 features](https://github.com/oracle/truffleruby/issues/2733)
+* [Ruby 3.0 features](https://github.com/oracle/truffleruby/issues/2453)
+* [Pattern Matching](https://github.com/oracle/truffleruby/issues/3332)
+* [Endless methods](https://github.com/oracle/truffleruby/issues/3038)
+
 ## Features Entirely Missing
 
 ### Continuations and `callcc`
