@@ -151,8 +151,7 @@ It is easier to use Java interoperability in JVM mode (`--jvm`). Java interopera
 See [here](https://github.com/oracle/graal/blob/master/docs/reference-manual/embedding/embed-languages.md#build-native-images-from-polyglot-applications) for more details.
 
 `Java.type('name')` returns a Java type, given a name such as `java.lang.Integer` or `int[]`.
-With the type object, `.new` will create an instance, `.foo` will call the static method `foo`, `[:FOO]` will read the static field
-`FOO`, and so on.
+With the type object, `.new` will create an instance, `.foo` will call the static method `foo`, `.FOO` or `[:FOO]` will read the static field `FOO`, and so on.
 To access methods of the `java.lang.Class` instance, use `[:class]`, such as `MyClass[:class].getName`.
 You can also go from the `java.lang.Class` instance to the Java type by using `[:static]`.
 

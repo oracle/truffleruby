@@ -327,13 +327,14 @@ require 'java'
 # With the 'require' above, you now can refer to things that are part of the
 # standard Java platform via their full paths.
 frame = javax.swing.JFrame.new("Window") # Creating a Java JFrame
-label = javax.swing.JLabel.new("Hello")
+label = javax.swing.JLabel.new("Hello World")
 
 # You can transparently call Java methods on Java objects, just as if they were defined in Ruby.
 frame.add(label)  # Invoking the Java method 'add'.
-frame.setDefaultCloseOperation(javax.swing.JFrame::EXIT_ON_CLOSE)
+frame.setDefaultCloseOperation(javax.swing.WindowConstants::EXIT_ON_CLOSE)
 frame.pack
 frame.setVisible(true)
+sleep
 ```
 
 In TruffleRuby we would write that this way instead:
@@ -341,14 +342,16 @@ In TruffleRuby we would write that this way instead:
 ```ruby
 Java.import 'javax.swing.JFrame'
 Java.import 'javax.swing.JLabel'
+Java.import 'javax.swing.WindowConstants'
 
 frame = JFrame.new("Window")
-label = JLabel.new("Hello")
+label = JLabel.new("Hello World")
 
 frame.add(label)
-frame.setDefaultCloseOperation(JFrame[:EXIT_ON_CLOSE])
+frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
 frame.pack
 frame.setVisible(true)
+sleep
 ```
 
 Instead of using Ruby metaprogramming to simulate a Java package name, we explicitly import classes.
@@ -383,8 +386,7 @@ TruffleRuby does not perform these conversions.
 ### Referring to Constants
 
 In JRuby, Java constants are modelled as Ruby constants, `MyClass::FOO`.
-In TruffleRuby you use the read notation to read them as a property,
-`MyClass[:FOO]`.
+In TruffleRuby you use the read notation to read them as a property, `MyClass.FOO` or `MyClass[:FOO]`.
 
 ### Using Classes from JAR files
 
