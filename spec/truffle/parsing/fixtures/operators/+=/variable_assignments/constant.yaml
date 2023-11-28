@@ -1,0 +1,44 @@
+subject: "+="
+description: "Variable assignment/constant (A += b)"
+notes: >
+  `A += b` is translated into `A = A + b`
+focused_on_node: "org.truffleruby.language.constants.WriteConstantNode"
+ruby: |
+  FOO += 42
+ast: |
+  WriteConstantNode
+      attributes:
+          flags = 1
+          name = "FOO"
+      children:
+          moduleNode =
+              LexicalScopeNode
+                  attributes:
+                      flags = 0
+                      lexicalScope =  :: Object
+          valueNode =
+              InlinedAddNodeGen
+                  attributes:
+                      assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                      flags = 0
+                      parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                  children:
+                      leftNode_ =
+                          ReadConstantWithLexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+                                  name = "FOO"
+                              children:
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+                      rightNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42

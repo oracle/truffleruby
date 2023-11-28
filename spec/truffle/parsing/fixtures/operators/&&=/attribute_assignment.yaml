@@ -25,12 +25,12 @@ ast: |
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
-                                  frameSlot = 2
+                                  frameSlot = 2 # %value_0
                               children:
                                   valueNode =
                                       RubyCallNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                              descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PRIVATE
                                               emptyKeywordsProfile = false
                                               flags = 0
@@ -54,7 +54,7 @@ ast: |
                                   left =
                                       RubyCallNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                              descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
                                               flags = 0
@@ -71,12 +71,12 @@ ast: |
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 2
+                                                          frameSlot = 2 # %value_0
                                                           type = FRAME_LOCAL
                                   right =
                                       RubyCallNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                              descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
                                               flags = 0
@@ -99,6 +99,6 @@ ast: |
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 2
+                                                          frameSlot = 2 # %value_0
                                                           type = FRAME_LOCAL
                       ]

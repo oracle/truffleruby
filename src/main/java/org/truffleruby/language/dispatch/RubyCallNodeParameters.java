@@ -58,6 +58,19 @@ public final class RubyCallNodeParameters {
         this.isAttrAssign = isAttrAssign;
     }
 
+    @Override
+    public String toString() {
+        return "RubyCallNodeParameters{" +
+                "methodName='" + methodName + "'" +
+                ", descriptor=" + descriptor +
+                ", isSplatted=" + isSplatted +
+                ", ignoreVisibility=" + ignoreVisibility +
+                ", isVCall=" + isVCall +
+                ", isSafeNavigation=" + isSafeNavigation +
+                ", isAttrAssign=" + isAttrAssign +
+                '}';
+    }
+
     public RubyCallNodeParameters withReceiverAndArguments(RubyNode receiver, RubyNode[] arguments, RubyNode block) {
         return new RubyCallNodeParameters(
                 receiver,

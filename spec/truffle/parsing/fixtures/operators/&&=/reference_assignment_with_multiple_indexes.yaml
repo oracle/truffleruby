@@ -23,7 +23,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 0
+                      frameSlot = 0 # (self)
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
@@ -37,7 +37,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3
+                      frameSlot = 3 # %value_1
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
@@ -47,7 +47,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 4
+                      frameSlot = 4 # %value_2
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
@@ -57,7 +57,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 5
+                      frameSlot = 5 # %value_3
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
@@ -67,12 +67,12 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2
+                      frameSlot = 2 # %opelementassign_0
                   children:
                       valueNode =
                           RubyCallNode
                               attributes:
-                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                  descriptor = NoKeywordArgumentsDescriptor
                                   dispatchConfig = PRIVATE
                                   emptyKeywordsProfile = false
                                   flags = 0
@@ -96,7 +96,7 @@ ast: |
                       left =
                           RubyCallNode
                               attributes:
-                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                  descriptor = NoKeywordArgumentsDescriptor
                                   dispatchConfig = PROTECTED
                                   emptyKeywordsProfile = false
                                   flags = 0
@@ -113,29 +113,29 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 3
+                                              frameSlot = 3 # %value_1
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 4
+                                              frameSlot = 4 # %value_2
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 5
+                                              frameSlot = 5 # %value_3
                                               type = FRAME_LOCAL
                                   ]
                                   receiver =
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
+                                              frameSlot = 2 # %opelementassign_0
                                               type = FRAME_LOCAL
                       right =
                           RubyCallNode
                               attributes:
-                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                  descriptor = NoKeywordArgumentsDescriptor
                                   dispatchConfig = PROTECTED
                                   emptyKeywordsProfile = false
                                   flags = 0
@@ -152,17 +152,17 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 3
+                                              frameSlot = 3 # %value_1
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 4
+                                              frameSlot = 4 # %value_2
                                               type = FRAME_LOCAL
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 5
+                                              frameSlot = 5 # %value_3
                                               type = FRAME_LOCAL
                                       IntegerFixnumLiteralNode
                                           attributes:
@@ -173,6 +173,6 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2
+                                              frameSlot = 2 # %opelementassign_0
                                               type = FRAME_LOCAL
           ]

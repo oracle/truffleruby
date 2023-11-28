@@ -25,6 +25,10 @@ public final class IntegerFixnumLiteralNode extends RubyContextSourceNode {
         this.value = value;
     }
 
+    public int getValue() {
+        return value;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         return value;

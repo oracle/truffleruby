@@ -40,7 +40,11 @@ require_relative '../../ruby/spec_helper'
 #
 # To regenerate fixture YAML files with actual AST run the following command:
 #
-#   OVERWRITE_PARSING_RESULTS=true jt -q test spec/truffle/parsing/parsing_spec.rb
+#   OVERWRITE_PARSING_RESULTS=true TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR=true jt -q mspec spec/truffle/parsing/parsing_spec.rb && OVERWRITE_PARSING_RESULTS=true jt -q test spec/truffle/parsing/parsing_spec.rb
+#
+# To ensure that fixtures are valid and are passing both on the old and new translator, use:
+#
+#   TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR=true jt -q mspec spec/truffle/parsing/parsing_spec.rb && jt -q test spec/truffle/parsing/parsing_spec.rb
 #
 # An approach with YAML.dump has some downsides:
 # - it adds a line `---` at a file beginning
@@ -51,12 +55,13 @@ require_relative '../../ruby/spec_helper'
 
 overwrite = ENV['OVERWRITE_PARSING_RESULTS'] == 'true'
 original_parser = ENV['TRUFFLE_PARSING_USE_ORIGINAL_TRANSLATOR'] == 'true'
+fixtures_glob = ENV['TRUFFLE_PARSING_GLOB']
 
 describe "Parsing" do
   require 'yaml'
 
-  filenames = Dir.glob("#{__dir__}/fixtures/**/*.yaml")
-  # filenames = ["#{__dir__}/fixtures/if/with_empty_then_branch.yaml"] # to run a single one
+  filenames = Dir["#{__dir__}/fixtures/**/*.yaml"]
+  filenames = Dir[fixtures_glob] if fixtures_glob
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
@@ -102,7 +107,7 @@ describe "Parsing" do
           end
 
           unless actual_ast == expected_ast
-            $stderr.puts "\nYARP AST:", Truffle::Debug.yarp_parse(source_code)
+            $stderr.puts "\n#{filename}\nYARP AST:", Truffle::Debug.yarp_parse(source_code)
           end
           actual_ast.should == expected_ast
         end

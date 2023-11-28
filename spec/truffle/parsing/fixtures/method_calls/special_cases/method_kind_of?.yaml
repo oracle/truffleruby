@@ -8,7 +8,7 @@ ast: |
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
           flags = 1
-          parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+          parameters = RubyCallNodeParameters{methodName='kind_of?', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
       children:
           leftNode_ =
               IntegerFixnumLiteralNode

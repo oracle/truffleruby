@@ -47,7 +47,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -61,7 +61,7 @@ ast: |
                                   TryNodeGen
                                       attributes:
                                           canOmitBacktrace = true
-                                          flags = 1
+                                          flags = 0
                                       children:
                                           rescueParts = [
                                               RescueStandardErrorNode
@@ -71,7 +71,7 @@ ast: |
                                                       rescueBody =
                                                           ReadDeclarationVariableNode
                                                               attributes:
-                                                                  flags = 0
+                                                                  flags = 1
                                                                   frameDepth = 1
                                                                   frameSlot = 2
                                                                   type = FRAME_LOCAL
@@ -80,6 +80,6 @@ ast: |
                                               StringLiteralNode
                                                   attributes:
                                                       encoding = UTF-8
-                                                      flags = 0
+                                                      flags = 1
                                                       tstring = foo
                               ]

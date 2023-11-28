@@ -165,6 +165,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> RUN_TWICE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(RUN_TWICE_KEY.getDefaultValue());
     public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PRISM_KEY = new OptionKey<>(false);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
             .newBuilder(LOAD_PATHS_KEY, "ruby.load-paths")
@@ -1326,6 +1327,14 @@ public final class OptionsCatalog {
             .usageSyntax("")
             .build();
 
+    public static final OptionDescriptor PRISM = OptionDescriptor
+            .newBuilder(PRISM_KEY, "ruby.prism")
+            .help("Use Prism as the parser for Ruby code")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
     public static OptionDescriptor fromName(String name) {
         switch (name) {
             case "ruby.load-paths":
@@ -1618,6 +1627,8 @@ public final class OptionsCatalog {
                 return EXPERIMENTAL_ENGINE_CACHING;
             case "ruby.compare-regex-engines":
                 return COMPARE_REGEX_ENGINES;
+            case "ruby.prism":
+                return PRISM;
             default:
                 return null;
         }
@@ -1770,6 +1781,7 @@ public final class OptionsCatalog {
             RUN_TWICE,
             EXPERIMENTAL_ENGINE_CACHING,
             COMPARE_REGEX_ENGINES,
+            PRISM,
         };
     }
 }

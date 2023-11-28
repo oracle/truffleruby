@@ -1,0 +1,22 @@
+subject: "+="
+description: "Variable assignment/local variable (a += b)"
+notes: >
+  `a += b` is translated into `a = a + b`
+focused_on_node: "org.truffleruby.language.locals.WriteLocalVariableNode"
+ruby: |
+  foo += 42
+ast: |
+  WriteLocalVariableNode
+      attributes:
+          flags = 0
+          frameSlot = 0 # (self)
+      children:
+          valueNode =
+              ProfileArgumentNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      childNode_ =
+                          ReadSelfNode
+                              attributes:
+                                  flags = 0

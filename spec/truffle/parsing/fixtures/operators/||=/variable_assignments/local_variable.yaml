@@ -15,13 +15,13 @@ ast: |
               ReadLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2
+                      frameSlot = 2 # foo
                       type = FRAME_LOCAL
           right =
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2
+                      frameSlot = 2 # foo
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode

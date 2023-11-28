@@ -35,14 +35,17 @@ notes: >
         1))                         # frameSlot
 
     (NilLiteralNode)
+
+  Note that both i and any local variable in the `for`'s body are declared in the outer scope.
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   for i in [42, 100500]
+    inner = 1
   end
 ast: |
   RubyCallNode
       attributes:
-          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+          descriptor = NoKeywordArgumentsDescriptor
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
           flags = 0
@@ -88,7 +91,7 @@ ast: |
                                               WriteLocalVariableNode
                                                   attributes:
                                                       flags = 0
-                                                      frameSlot = 0
+                                                      frameSlot = 0 # (self)
                                                   children:
                                                       valueNode =
                                                           ProfileArgumentNodeGen
@@ -102,7 +105,7 @@ ast: |
                                               WriteLocalVariableNode
                                                   attributes:
                                                       flags = 0
-                                                      frameSlot = 1
+                                                      frameSlot = 1 # %for_0
                                                   children:
                                                       valueNode =
                                                           ProfileArgumentNodeGen
@@ -126,11 +129,19 @@ ast: |
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 1
+                                                                  frameSlot = 1 # %for_0
                                                                   type = FRAME_LOCAL
-                                              NilLiteralNode
+                                              WriteDeclarationVariableNode
                                                   attributes:
-                                                      flags = 0
+                                                      flags = 1
+                                                      frameDepth = 1
+                                                      frameSlot = 5
+                                                  children:
+                                                      valueNode =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 1
                                           ]
           receiver =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

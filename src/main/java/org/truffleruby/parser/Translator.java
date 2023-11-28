@@ -19,6 +19,7 @@ import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -38,6 +39,8 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
+
+    public static final int NO_FRAME_ON_STACK_MARKER = -1;
 
     protected final Source source;
     protected final ParserContext parserContext;
@@ -190,4 +193,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         return language.coreMethodAssumptions.createCallNode(parameters);
     }
 
+    public record ArgumentsAndBlockTranslation(RubyNode block, RubyNode[] arguments, boolean isSplatted,
+            ArgumentsDescriptor argumentsDescriptor, int frameOnStackMarkerSlot) {
+    }
 }

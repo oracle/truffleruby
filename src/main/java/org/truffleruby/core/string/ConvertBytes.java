@@ -29,8 +29,7 @@ import com.oracle.truffle.api.nodes.Node;
 
 public final class ConvertBytes {
     private final RubyContext context;
-    private final Node caller;
-    private final FixnumOrBignumNode fixnumOrBignumNode;
+    private final Node currentNode;
     private final AbstractTruffleString tstring;
     private int p;
     private int end;
@@ -40,8 +39,7 @@ public final class ConvertBytes {
 
     public ConvertBytes(
             RubyContext context,
-            Node caller,
-            FixnumOrBignumNode fixnumOrBignumNode,
+            Node currentNode,
             AbstractTruffleString tstring,
             RubyEncoding encoding,
             int base,
@@ -51,8 +49,7 @@ public final class ConvertBytes {
         var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
 
         this.context = context;
-        this.caller = caller;
-        this.fixnumOrBignumNode = fixnumOrBignumNode;
+        this.currentNode = currentNode;
         this.tstring = tstring;
         this.p = byteArray.getOffset();
         this.data = byteArray.getArray();
@@ -70,9 +67,9 @@ public final class ConvertBytes {
     }
 
     /** rb_cstr_to_inum */
-    public static Object bytesToInum(RubyContext context, Node caller, FixnumOrBignumNode fixnumOrBignumNode,
+    public static Object bytesToInum(RubyContext context, Node currentNode,
             AbstractTruffleString tstring, RubyEncoding encoding, int base, boolean badcheck) {
-        return new ConvertBytes(context, caller, fixnumOrBignumNode, tstring, encoding, base, badcheck).bytesToInum();
+        return new ConvertBytes(context, currentNode, tstring, encoding, base, badcheck).bytesToInum();
     }
 
     /** conv_digit */
@@ -197,7 +194,7 @@ public final class ConvertBytes {
                 if (base < 2 || 36 < base) {
                     throw new RaiseException(
                             context,
-                            context.getCoreExceptions().argumentErrorInvalidRadix(base, caller));
+                            context.getCoreExceptions().argumentErrorInvalidRadix(base, currentNode));
                 }
                 if (base <= 32) {
                     len = 5;
@@ -465,7 +462,7 @@ public final class ConvertBytes {
             }
         }
 
-        return fixnumOrBignumNode.execute(caller, z);
+        return FixnumOrBignumNode.executeUncached(z);
     }
 
     private BigInteger stringToBig(String str) {
@@ -532,10 +529,9 @@ public final class ConvertBytes {
 
     /** rb_invalid_str */
     private void invalidString() {
-        throw new RaiseException(
-                context,
-                context.getCoreExceptions().argumentErrorInvalidStringToInteger(tstring.toJavaStringUncached(),
-                        caller));
+        var string = tstring.toJavaStringUncached();
+        throw new RaiseException(context,
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(string, currentNode));
     }
 
     public static final byte[] intToBinaryBytes(int i) {

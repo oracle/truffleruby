@@ -101,7 +101,7 @@ public final class ReloadArgumentsTranslator extends Translator {
 
         RubyNode kwArgsNode = null;
 
-        if (node.hasKwargs()) {
+        if (node.getKeywordCount() > 0) {
             final int keywordIndex = node.getKeywordsIndex();
             final int keywordCount = node.getKeywordCount();
             RubyNode[] keyValues = new RubyNode[keywordCount * 2];

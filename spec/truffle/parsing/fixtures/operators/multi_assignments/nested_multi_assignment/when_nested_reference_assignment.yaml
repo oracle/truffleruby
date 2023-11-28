@@ -20,7 +20,7 @@ ast: |
                               attributes:
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                   flags = 0
-                                  parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                  parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
                               children:
                                   operand1Node_ =
                                       ObjectLiteralNode
@@ -36,12 +36,12 @@ ast: |
                                           attributes:
                                               assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                               flags = 0
-                                              parameters = org.truffleruby.language.dispatch.RubyCallNodeParameters@...
+                                              parameters = RubyCallNodeParameters{methodName='[]', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
                                           children:
                                               leftNode_ =
                                                   RubyCallNode
                                                       attributes:
-                                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                          descriptor = NoKeywordArgumentsDescriptor
                                                           dispatchConfig = PRIVATE
                                                           emptyKeywordsProfile = false
                                                           flags = 0

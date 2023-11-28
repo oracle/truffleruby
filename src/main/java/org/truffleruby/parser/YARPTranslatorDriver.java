@@ -190,7 +190,8 @@ public final class YARPTranslatorDriver {
         node = context.getMetricsProfiler().callWithMetrics(
                 "parsing",
                 source.getName(),
-                () -> parseToYARPAST(context, language, rubySource, staticScope, parserConfiguration, rubyWarnings));
+                () -> parseToYARPAST(context, language, rubySource, staticScope, parserConfiguration, rubyWarnings,
+                        parseEnvironment));
         printParseTranslateExecuteMetric("after-parsing", context, source);
         //        }
 
@@ -394,7 +395,8 @@ public final class YARPTranslatorDriver {
     }
 
     public static org.prism.Nodes.Node parseToYARPAST(RubyContext context, RubyLanguage language, RubySource rubySource,
-            StaticScope blockScope, ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings) {
+            StaticScope blockScope, ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings,
+            ParseEnvironment parseEnvironment) {
         //        LexerSource lexerSource = new LexerSource(rubySource);
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
@@ -411,6 +413,7 @@ public final class YARPTranslatorDriver {
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
 
         var yarpSource = createYARPSource(sourceBytes, rubySource);
+        parseEnvironment.yarpSource = yarpSource;
         var parseResult = Loader.load(serializedBytes, yarpSource);
 
         final String filename = rubySource.getSourcePath();

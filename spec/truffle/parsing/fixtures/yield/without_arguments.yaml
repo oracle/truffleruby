@@ -44,7 +44,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -61,7 +61,7 @@ ast: |
                                           slot = 2
                                   YieldExpressionNode
                                       attributes:
-                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                          descriptor = NoKeywordArgumentsDescriptor
                                           emptyKeywordsProfile = false
                                           flags = 1
                                           isSplatted = false
@@ -73,6 +73,6 @@ ast: |
                                               ReadLocalVariableNode
                                                   attributes:
                                                       flags = 0
-                                                      frameSlot = 2
+                                                      frameSlot = 2 # %method_block_arg
                                                       type = FRAME_LOCAL
                               ]

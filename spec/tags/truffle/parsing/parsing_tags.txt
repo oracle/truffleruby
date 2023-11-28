@@ -2,31 +2,13 @@ fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
 fails:Parsing a END block (END { ... }) case is parsed correctly
 fails:Parsing a Encoding keyword (__ENCODING__ keyword) case is parsed correctly
 fails:Parsing a begin ... end block (with multiple expressions inside a block) case is parsed correctly
-
 # issue with implicit rest parameters is tracked here:
 # - https://bugs.ruby-lang.org/issues/19971
 # - https://github.com/ruby/prism/issues/1722
 fails:Parsing a Block (Argument descriptors / with implicit rest parameter (|a,|)) case is parsed correctly
 fails:Parsing a Block (Arity / with implicit rest parameter (|a,|)) case is parsed correctly
-
-fails:Parsing a class << (reopen an object singleton class) case is parsed correctly
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Float is represented as `Complext.convert(0, Rational.convert(b*100, 100))` where 100 is some power of 10 to convert b to Integer) case is parsed correctly
-fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Integer is represented as `Complext.convert(0, Rational.convert(b, 1))`) case is parsed correctly
-fails:Parsing a Complex number (Complex literal in format of a + bi is represented as `a + Complex.convert(0, b)`) case is parsed correctly
-fails:Parsing a Def (Name / Non singleton / in an anonymous module) case is parsed correctly
-fails:Parsing a Def (Name / Singleton / in an anonymous module) case is parsed correctly
-fails:Parsing a defined? (with yield in a method body (defined? yield)) case is parsed correctly
-fails:Parsing a Ensure keyword (ensure in a method) case is parsed correctly
 fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
-fails:Parsing a Integer (when doesn't fit into Java Long (>= 64 bits)) case is parsed correctly
-fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / in a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / in a method body without explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body with explicit arguments) case is parsed correctly
-fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
 fails:Parsing a &&= (Assign an attribute local variable (a.b &&= c)) case is parsed correctly
 fails:Parsing a &&= (Assign an referenced element (a[b] &&= c)) case is parsed correctly
 fails:Parsing a &&= (Assign an element referenced with multiple indexes (a[b, c, d] &&= e)) case is parsed correctly
@@ -36,9 +18,6 @@ fails:Parsing a &&= (Variable assignment/fully qualified constant (::A &&= b)) c
 fails:Parsing a &&= (Variable assignment/global variable ($a &&= b)) case is parsed correctly
 fails:Parsing a &&= (Variable assignment/instance variable (@a &&= b)) case is parsed correctly
 fails:Parsing a &&= (Variable assignment/local variable (a &&= b)) case is parsed correctly
-fails:Parsing a Match (=~ operator) case is parsed correctly
-fails:Parsing a Match (=~ operator/with Regexp literal as a RHS) case is parsed correctly
-fails:Parsing a Match (=~ operator/with Regexp literal as a LHS (without named capture groups)) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a LHS without interpolation and with named capture groups) case is parsed correctly
 fails:Parsing a Parentheses operator (empty) case is parsed correctly
 fails:Parsing a Parentheses operator (with multiple expressions, e.g. (1; 2; 3)) case is parsed correctly
@@ -46,34 +25,15 @@ fails:Parsing a Parentheses operator (with single expression) case is parsed cor
 fails:Parsing a ||= (Assign an attribute of a local variable (a.b ||= c)) case is parsed correctly
 fails:Parsing a ||= (Assign an referenced element (a[b] ||= c)) case is parsed correctly
 fails:Parsing a ||= (Assign an element referenced with multiple indexes (a[b, c, d] ||= e)) case is parsed correctly
-fails:Parsing a ||= (Variable assignment/class variable (@@a ||= b)) case is parsed correctly
 fails:Parsing a ||= (Variable assignment/constant (A ||= b)) case is parsed correctly
 fails:Parsing a ||= (Variable assignment/fully qualified constant (::A ||= b)) case is parsed correctly
-fails:Parsing a ||= (Variable assignment/global variable ($a ||= b)) case is parsed correctly
-fails:Parsing a ||= (Variable assignment/instance variable (@a ||= b)) case is parsed correctly
-fails:Parsing a ||= (Variable assignment/local variable (a ||= b)) case is parsed correctly
-fails:Parsing a Range (Beginningless Range literal ..b) case is parsed correctly
-fails:Parsing a Range (Endless Range literal a..) case is parsed correctly
-fails:Parsing a Range (Range literal a...b (with excluded end)) case is parsed correctly
-fails:Parsing a Range (Range literal a..b (with included end)) case is parsed correctly
-fails:Parsing a Range (When Range boundaries are Integer values) case is parsed correctly
-fails:Parsing a Range (When Range boundaries are big Integer values (that don't fit into Java int, so > 2**32)) case is parsed correctly
 fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is parsed correctly
 fails:Parsing a Rational number (with Float value) case is parsed correctly
-fails:Parsing a Rational number (with Integer value) case is parsed correctly
-fails:Parsing a Rational number (with negative value) case is parsed correctly
 fails:Parsing a Regexp (Regexp literal in boolean context (e.g. condition in if, while, etc)) case is parsed correctly
 fails:Parsing a Regexp (Regexp literal in boolean context with interpolation (e.g. condition in if, while, etc)) case is parsed correctly
-fails:Parsing a Regexp (a literal) case is parsed correctly
-fails:Parsing a Regexp (a literal with interpolation (with #{...})) case is parsed correctly
-fails:Parsing a Regexp (a literal with interpolation but without expression (#{})) case is parsed correctly
-fails:Parsing a Regexp (a literal with options (e.g. i, x, m, o)) case is parsed correctly
-fails:Parsing a Regexp (with named captured group (/(?<a>b)/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
-fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is local variable defined in outer scope (... rescue a)) case is parsed correctly
-fails:Parsing a Rescue keyword (rescue in a method) case is parsed correctly
 fails:Parsing a Rescue keyword (modifier / backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)) case is parsed correctly
 fails:Parsing a Rescue keyword (modifier / backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)) case is parsed correctly
 fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
@@ -87,14 +47,14 @@ fails:Parsing a String (Literal with interpolation when expressions are Strings)
 fails:Parsing a Symbol (Literal with interpolation when expressions are % String literals) case is parsed correctly
 fails:Parsing a Symbol (Literal with interpolation when expressions are Strings) case is parsed correctly
 fails:Parsing a Undef (with multiple Symbols) case is parsed correctly
-fails:Parsing a Yield (yield operator with arguments) case is parsed correctly
-fails:Parsing a Yield (yield operator with keyword arguments) case is parsed correctly
-fails:Parsing a Yield (yield operator with double splat operator (yield **a)) case is parsed correctly
 fails:Parsing a Yield (yield operator with splat operator (yield *a)) case is parsed correctly
 fails:Parsing a Yield (yield operator with splat operator with multiple following positional arguments (yield *a, b, c)) case is parsed correctly
 fails:Parsing a Yield (yield operator with splat operator with multiple preceding and following positional arguments (yield a, *b, c)) case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator with multiple preceding positional arguments (yield a, b, *c)) case is parsed correctly
 fails:Parsing a Yield (yield operator with splat operator with a single following positional argument (yield *a, b)) case is parsed correctly
 fails:Parsing a Yield (yield operator with splat operator with a single preceding and following positional argument (yield a, *b, c)) case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator with a single preceding positional argument (yield a, *b)) case is parsed correctly
-fails:Parsing a Yield (yield operator without arguments) case is parsed correctly
+fails:Parsing a Method call (super / outside a method body without explicit arguments) case is parsed correctly
+fails:Parsing a += (Assign an attribute local variable (a.b += c)) case is parsed correctly
+fails:Parsing a += (Assign an referenced element (a[b] += c)) case is parsed correctly
+fails:Parsing a += (Assign an element referenced with multiple indexes (a[b, c, d] += e)) case is parsed correctly
+fails:Parsing a += (Variable assignment/constant (A += b)) case is parsed correctly
+fails:Parsing a += (Variable assignment/fully qualified constant (::A += b)) case is parsed correctly

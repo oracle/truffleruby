@@ -57,7 +57,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 0
+                                          frameSlot = 0 # (self)
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
@@ -74,7 +74,7 @@ ast: |
                                           slot = 2
                                   YieldExpressionNode
                                       attributes:
-                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                          descriptor = NoKeywordArgumentsDescriptor
                                           emptyKeywordsProfile = false
                                           flags = 1
                                           isSplatted = true
@@ -103,7 +103,7 @@ ast: |
                                                                               childNode_ =
                                                                                   RubyCallNode
                                                                                       attributes:
-                                                                                          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                                          descriptor = NoKeywordArgumentsDescriptor
                                                                                           dispatchConfig = PRIVATE
                                                                                           emptyKeywordsProfile = false
                                                                                           flags = 0
@@ -123,7 +123,7 @@ ast: |
                                                       valueNode_ =
                                                           RubyCallNode
                                                               attributes:
-                                                                  descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                                                  descriptor = NoKeywordArgumentsDescriptor
                                                                   dispatchConfig = PRIVATE
                                                                   emptyKeywordsProfile = false
                                                                   flags = 0
@@ -145,6 +145,6 @@ ast: |
                                               ReadLocalVariableNode
                                                   attributes:
                                                       flags = 0
-                                                      frameSlot = 2
+                                                      frameSlot = 2 # %method_block_arg
                                                       type = FRAME_LOCAL
                               ]

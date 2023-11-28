@@ -1,8 +1,8 @@
 subject: "Regexp"
-description: "a literal with options (e.g. i, x, m, o)"
+description: "a literal with options (e.g. i, x, m)"
 focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
 ruby: |
-  /abc/ixmo
+  /abc/ixm
 ast: |
   ObjectLiteralNode
       attributes:

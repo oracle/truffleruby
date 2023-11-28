@@ -26,12 +26,12 @@ ast: |
                       rescueBody =
                           ObjectLiteralNode
                               attributes:
-                                  flags = 0
+                                  flags = 1
                                   object = org.truffleruby.core.range.RubyIntRange@...(begin = 0, end = 42, excludedEnd = false)
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
                       tstring = foo

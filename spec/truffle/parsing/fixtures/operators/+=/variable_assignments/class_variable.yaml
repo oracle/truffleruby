@@ -1,0 +1,49 @@
+subject: "+="
+description: "Variable assignment/class variable (@@a += b)"
+notes: >
+  `@@a += b` is translated into `@@a = @@a + b`
+focused_on_node: "org.truffleruby.language.objects.classvariables.WriteClassVariableNode"
+ruby: |
+  @@foo += 42
+ast: |
+  WriteClassVariableNode
+      attributes:
+          flags = 0
+          name = "@@foo"
+      children:
+          lexicalScopeNode =
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object =  :: Object
+          resolveTargetModuleNode =
+              ResolveTargetModuleForClassVariablesNodeGen
+          rhs =
+              InlinedAddNodeGen
+                  attributes:
+                      assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                      flags = 0
+                      parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                  children:
+                      leftNode_ =
+                          ReadClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@foo"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  lookupClassVariableNode =
+                                      LookupClassVariableNodeGen
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+                      rightNode_ =
+                          IntegerFixnumLiteralNode
+                              attributes:
+                                  flags = 0
+                                  value = 42
+          setClassVariableNode =
+              SetClassVariableNodeGen

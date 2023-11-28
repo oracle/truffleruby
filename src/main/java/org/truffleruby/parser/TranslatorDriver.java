@@ -105,6 +105,11 @@ public final class TranslatorDriver {
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
+        if (language.options.PRISM) {
+            return new YARPTranslatorDriver(context, rubySource).parse(rubySource, parserContext, argumentNames,
+                    parentFrame, staticLexicalScope, currentNode);
+        }
+
         if (rubySource.getSource() != parseEnvironment.source) {
             throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
         }

@@ -1,0 +1,49 @@
+subject: "+="
+description: "Variable assignment/fully qualified constant (::A += b)"
+notes: >
+  `::A += b` is translated into `::A = ::A + b`
+focused_on_node: "org.truffleruby.language.constants.WriteConstantNode"
+ruby: |
+  ::FOO += 42
+ast: |
+  WriteConstantNode
+      attributes:
+          flags = 1
+          name = "FOO"
+      children:
+          moduleNode =
+              ObjectClassLiteralNode
+                  attributes:
+                      flags = 0
+          valueNode =
+              InlinedAddNodeGen
+                  attributes:
+                      assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                      flags = 0
+                      parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                  children:
+                      leftNode_ =
+                          ReadConstantNode
+                              attributes:
+                                  flags = 0
+                                  name = "FOO"
+                              children:
+                                  moduleNode =
+                                      ObjectClassLiteralNode
+                                          attributes:
+                                              flags = 0
+                      rightNode_ =
+                          WriteConstantNode
+                              attributes:
+                                  flags = 0
+                                  name = "FOO"
+                              children:
+                                  moduleNode =
+                                      ObjectClassLiteralNode
+                                          attributes:
+                                              flags = 0
+                                  valueNode =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42

@@ -567,11 +567,11 @@ public class BodyTranslator extends BaseTranslator {
 
         final List<RubyNode> children = new ArrayList<>();
 
-        if (argumentsAndBlock.getBlock() != null) {
-            children.add(argumentsAndBlock.getBlock());
+        if (argumentsAndBlock.block() != null) {
+            children.add(argumentsAndBlock.block());
         }
 
-        children.addAll(Arrays.asList(argumentsAndBlock.getArguments()));
+        children.addAll(Arrays.asList(argumentsAndBlock.arguments()));
 
         final SourceIndexLength enclosingSourceSection = enclosing(
                 sourceSection,
@@ -580,9 +580,9 @@ public class BodyTranslator extends BaseTranslator {
         RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
                 receiver,
                 methodName,
-                argumentsAndBlock.getBlock(),
-                argumentsAndBlock.getArgumentsDescriptor(),
-                argumentsAndBlock.getArguments(),
+                argumentsAndBlock.block(),
+                argumentsAndBlock.argumentsDescriptor(),
+                argumentsAndBlock.arguments(),
                 argumentsAndBlock.isSplatted(),
                 ignoreVisibility,
                 isVCall,
@@ -598,59 +598,15 @@ public class BodyTranslator extends BaseTranslator {
     }
 
     protected RubyNode wrapCallWithLiteralBlock(ArgumentsAndBlockTranslation argumentsAndBlock, RubyNode callNode) {
-        if (argumentsAndBlock.getBlock() instanceof BlockDefinitionNode) { // if we have a literal block, break breaks out of this call site
-            callNode = new FrameOnStackNode(callNode, argumentsAndBlock.getFrameOnStackMarkerSlot());
-            final BlockDefinitionNode blockDef = (BlockDefinitionNode) argumentsAndBlock.getBlock();
+        if (argumentsAndBlock.block() instanceof BlockDefinitionNode) { // if we have a literal block, break breaks out of this call site
+            callNode = new FrameOnStackNode(callNode, argumentsAndBlock.frameOnStackMarkerSlot());
+            final BlockDefinitionNode blockDef = (BlockDefinitionNode) argumentsAndBlock.block();
             return new CatchBreakNode(blockDef.getBreakID(), callNode, false);
         } else {
             return callNode;
         }
     }
 
-    protected static final class ArgumentsAndBlockTranslation {
-
-        private final RubyNode block;
-        private final RubyNode[] arguments;
-        private final ArgumentsDescriptor argumentsDescriptor;
-        private final boolean isSplatted;
-        private final int frameOnStackMarkerSlot;
-
-        public ArgumentsAndBlockTranslation(
-                RubyNode block,
-                RubyNode[] arguments,
-                boolean isSplatted,
-                ArgumentsDescriptor argumentsDescriptor,
-                int frameOnStackMarkerSlot) {
-            super();
-            this.block = block;
-            this.arguments = arguments;
-            this.argumentsDescriptor = argumentsDescriptor;
-            this.isSplatted = isSplatted;
-            this.frameOnStackMarkerSlot = frameOnStackMarkerSlot;
-        }
-
-        public RubyNode getBlock() {
-            return block;
-        }
-
-        public RubyNode[] getArguments() {
-            return arguments;
-        }
-
-        public boolean isSplatted() {
-            return isSplatted;
-        }
-
-        public int getFrameOnStackMarkerSlot() {
-            return frameOnStackMarkerSlot;
-        }
-
-        public ArgumentsDescriptor getArgumentsDescriptor() {
-            return argumentsDescriptor;
-        }
-    }
-
-    public static final int NO_FRAME_ON_STACK_MARKER = -1;
     private static final ParseNode[] EMPTY_ARGUMENTS = ParseNode.EMPTY_ARRAY;
 
     public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
@@ -2951,14 +2907,14 @@ public class BodyTranslator extends BaseTranslator {
         final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(
                 node.getPosition(), null, argsNode, "<yield>");
 
-        final RubyNode[] argumentsTranslated = argumentsAndBlock.getArguments();
+        final RubyNode[] argumentsTranslated = argumentsAndBlock.arguments();
 
         RubyNode readBlock = environment
                 .findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, node.getPosition());
 
         final RubyNode ret = new YieldExpressionNode(
                 argumentsAndBlock.isSplatted(),
-                argumentsAndBlock.getArgumentsDescriptor(),
+                argumentsAndBlock.argumentsDescriptor(),
                 argumentsTranslated,
                 readBlock);
 

@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -45,20 +46,20 @@ import java.util.function.Supplier;
 public final class YARPBlockNodeTranslator extends YARPTranslator {
     private final Nodes.ParametersNode parameters;
     private final Arity arity;
-    private final String currentCallMethodName;
 
     public YARPBlockNodeTranslator(
             RubyLanguage language,
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
+            ParserContext parserContext,
+            Node currentNode,
+            RubyDeferredWarnings rubyWarnings,
             Nodes.ParametersNode parameters,
-            Arity arity,
-            String currentCallMethodName) {
-        super(language, environment, sourceBytes, source, null, null, null);
+            Arity arity) {
+        super(language, environment, sourceBytes, source, parserContext, currentNode, rubyWarnings);
         this.parameters = parameters;
         this.arity = arity;
-        this.currentCallMethodName = currentCallMethodName;
     }
 
     public RubyNode compileBlockNode(Nodes.Node body, String[] locals, boolean isStabbyLambda,
@@ -86,7 +87,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
 
         final RubyNode bodyNode = translateNodeOrNil(body).simplifyAsTailExpression();
 
-        final boolean isLambdaMethodCall = !isStabbyLambda && currentCallMethodName.equals("lambda");
+        final boolean isLambdaMethodCall = !isStabbyLambda && environment.literalBlockPassedToMethod.equals("lambda");
         final boolean emitLambda = isStabbyLambda || isLambdaMethodCall;
 
         final Supplier<RootCallTarget> procCompiler = procCompiler(

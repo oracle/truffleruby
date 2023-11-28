@@ -12,7 +12,7 @@ ruby: |
 ast: |
   RubyCallNode
       attributes:
-          descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+          descriptor = NoKeywordArgumentsDescriptor
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
           flags = 1
@@ -74,7 +74,7 @@ ast: |
                                   valueNode_ =
                                       RubyCallNode
                                           attributes:
-                                              descriptor = org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor@...
+                                              descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PRIVATE
                                               emptyKeywordsProfile = false
                                               flags = 1
