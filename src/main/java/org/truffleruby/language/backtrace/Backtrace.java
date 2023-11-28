@@ -214,10 +214,11 @@ public final class Backtrace {
         int retainedCount = 0;
         for (TruffleStackTraceElement stackTraceElement : fullStackTrace) {
             assert processedCount != 0 || stackTraceElement.getLocation() == location;
-            final Node callNode = stackTraceElement.getLocation();
             ++processedCount;
 
-            if (callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
+            Node callNode = stackTraceElement.getLocation();
+            var callTarget = stackTraceElement.getTarget();
+            if (callStackManager.ignoreFrame(callNode, callTarget)) {
                 continue;
             }
 
@@ -228,7 +229,7 @@ public final class Backtrace {
 
             // TODO (eregon, 4 Feb 2019): we should not ignore foreign frames without a
             //  call node, but print info based on the methodName and CallTarget.
-            final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
+            final RootNode rootNode = callTarget.getRootNode();
             if (rootNode instanceof RubyRootNode || callNode != null) {
                 stackTraceList.add(stackTraceElement);
             }

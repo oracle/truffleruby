@@ -23,11 +23,10 @@ VALUE rb_debug_inspector_backtrace_locations(const rb_debug_inspector_t *dc) {
 
 VALUE rb_debug_inspector_open(rb_debug_inspector_func_t func, void *data) {
   rb_debug_inspector_t dbg_context;
-  VALUE backtrace = RUBY_CEXT_INVOKE("rb_thread_current_backtrace_locations");
-  dbg_context.contexts = RUBY_CEXT_INVOKE("rb_debug_inspector_open_contexts");
-  if (RARRAY_LENINT(backtrace) != RARRAY_LENINT(dbg_context.contexts)) {
-    rb_raise(rb_eRuntimeError, "debug_inspector contexts and backtrace lengths are not equal");
-  }
+  VALUE contexts_and_backtrace = RUBY_CEXT_INVOKE("rb_debug_inspector_open_contexts_and_backtrace");
+  VALUE contexts = RARRAY_AREF(contexts_and_backtrace, 0);
+  VALUE backtrace = RARRAY_AREF(contexts_and_backtrace, 1);
+  dbg_context.contexts = contexts;
   dbg_context.backtrace = backtrace;
   dbg_context.backtrace_size = RARRAY_LEN(backtrace);
   return (*func)(&dbg_context, data);
