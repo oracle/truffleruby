@@ -245,6 +245,18 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
             break;
         }
 #line 58 "node.c.erb"
+        case PM_CASE_MATCH_NODE: {
+            pm_case_match_node_t *cast = (pm_case_match_node_t *) node;
+            if (cast->predicate != NULL) {
+                pm_node_destroy(parser, (pm_node_t *)cast->predicate);
+            }
+            pm_node_list_free(parser, &cast->conditions);
+            if (cast->consequent != NULL) {
+                pm_node_destroy(parser, (pm_node_t *)cast->consequent);
+            }
+            break;
+        }
+#line 58 "node.c.erb"
         case PM_CASE_NODE: {
             pm_case_node_t *cast = (pm_case_node_t *) node;
             if (cast->predicate != NULL) {
@@ -758,7 +770,7 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
         case PM_MATCH_WRITE_NODE: {
             pm_match_write_node_t *cast = (pm_match_write_node_t *) node;
             pm_node_destroy(parser, (pm_node_t *)cast->call);
-            pm_constant_id_list_free(&cast->locals);
+            pm_node_list_free(parser, &cast->targets);
             break;
         }
 #line 58 "node.c.erb"
@@ -1009,13 +1021,6 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
         case PM_STATEMENTS_NODE: {
             pm_statements_node_t *cast = (pm_statements_node_t *) node;
             pm_node_list_free(parser, &cast->body);
-            break;
-        }
-#line 58 "node.c.erb"
-        case PM_STRING_CONCAT_NODE: {
-            pm_string_concat_node_t *cast = (pm_string_concat_node_t *) node;
-            pm_node_destroy(parser, (pm_node_t *)cast->left);
-            pm_node_destroy(parser, (pm_node_t *)cast->right);
             break;
         }
 #line 58 "node.c.erb"
@@ -1338,6 +1343,21 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
             memsize->memsize += sizeof(*cast);
             pm_node_memsize_node((pm_node_t *)cast->value, memsize);
             pm_node_memsize_node((pm_node_t *)cast->target, memsize);
+            break;
+        }
+#line 103 "node.c.erb"
+        case PM_CASE_MATCH_NODE: {
+            pm_case_match_node_t *cast = (pm_case_match_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(pm_node_list_t) * 1;
+            if (cast->predicate != NULL) {
+                pm_node_memsize_node((pm_node_t *)cast->predicate, memsize);
+            }
+            memsize->memsize += pm_node_list_memsize(&cast->conditions, memsize);
+            if (cast->consequent != NULL) {
+                pm_node_memsize_node((pm_node_t *)cast->consequent, memsize);
+            }
             break;
         }
 #line 103 "node.c.erb"
@@ -1969,10 +1989,10 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
         case PM_MATCH_WRITE_NODE: {
             pm_match_write_node_t *cast = (pm_match_write_node_t *) node;
             memsize->memsize += sizeof(*cast);
-            // Constant id lists will add in their own sizes below.
-            memsize->memsize -= sizeof(pm_constant_id_list_t) * 1;
+            // Node lists will add in their own sizes below.
+            memsize->memsize -= sizeof(pm_node_list_t) * 1;
             pm_node_memsize_node((pm_node_t *)cast->call, memsize);
-            memsize->memsize += pm_constant_id_list_memsize(&cast->locals);
+            memsize->memsize += pm_node_list_memsize(&cast->targets, memsize);
             break;
         }
 #line 103 "node.c.erb"
@@ -2290,14 +2310,6 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
             break;
         }
 #line 103 "node.c.erb"
-        case PM_STRING_CONCAT_NODE: {
-            pm_string_concat_node_t *cast = (pm_string_concat_node_t *) node;
-            memsize->memsize += sizeof(*cast);
-            pm_node_memsize_node((pm_node_t *)cast->left, memsize);
-            pm_node_memsize_node((pm_node_t *)cast->right, memsize);
-            break;
-        }
-#line 103 "node.c.erb"
         case PM_STRING_NODE: {
             pm_string_node_t *cast = (pm_string_node_t *) node;
             memsize->memsize += sizeof(*cast);
@@ -2463,6 +2475,8 @@ pm_node_type_to_str(pm_node_type_t node_type)
             return "PM_CALL_OR_WRITE_NODE";
         case PM_CAPTURE_PATTERN_NODE:
             return "PM_CAPTURE_PATTERN_NODE";
+        case PM_CASE_MATCH_NODE:
+            return "PM_CASE_MATCH_NODE";
         case PM_CASE_NODE:
             return "PM_CASE_NODE";
         case PM_CLASS_NODE:
@@ -2683,8 +2697,6 @@ pm_node_type_to_str(pm_node_type_t node_type)
             return "PM_SPLAT_NODE";
         case PM_STATEMENTS_NODE:
             return "PM_STATEMENTS_NODE";
-        case PM_STRING_CONCAT_NODE:
-            return "PM_STRING_CONCAT_NODE";
         case PM_STRING_NODE:
             return "PM_STRING_NODE";
         case PM_SUPER_NODE:
