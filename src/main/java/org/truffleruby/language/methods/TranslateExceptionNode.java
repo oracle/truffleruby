@@ -114,12 +114,12 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     private static RaiseException doTranslateSpecial(Node node, Throwable e) {
         if (e instanceof TruffleString.IllegalByteArrayLengthException) {
             return new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
-        } else if (e instanceof UnsupportedSpecializationException) {
+        } else if (e instanceof UnsupportedSpecializationException unsupported) {
             return new RaiseException(getContext(node),
-                    translateUnsupportedSpecialization(node, getContext(node), (UnsupportedSpecializationException) e));
-        } else if (e instanceof StackOverflowError) {
+                    translateUnsupportedSpecialization(unsupported.getNode(), getContext(node), unsupported));
+        } else if (e instanceof StackOverflowError stackOverflowError) {
             return new RaiseException(getContext(node),
-                    translateStackOverflow(node, getContext(node), (StackOverflowError) e));
+                    translateStackOverflow(node, getContext(node), stackOverflowError));
         } else {
             return new RaiseException(getContext(node),
                     translateOutOfMemory(node, getContext(node), (OutOfMemoryError) e));
@@ -175,16 +175,14 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
             if (value == null) {
                 builder.append("null");
-            } else if (value instanceof RubyDynamicObject) {
-                final RubyDynamicObject dynamicObject = (RubyDynamicObject) value;
+            } else if (value instanceof RubyDynamicObject dynamicObject) {
 
                 builder.append(dynamicObject.getLogicalClass().fields.getName());
                 builder.append("(");
                 builder.append(value.getClass().getName());
                 builder.append(")");
 
-                if (value instanceof RubyArray) {
-                    final RubyArray array = (RubyArray) value;
+                if (value instanceof RubyArray array) {
                     builder.append("[");
 
                     if (array.getStore() == null) {
