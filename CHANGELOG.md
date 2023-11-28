@@ -2,7 +2,7 @@
 
 New features:
 
-* C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility and faster installation for C/C++ extensions (#3118, @eregon).
+* C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility, smaller distribution and faster installation for C/C++ extensions (#3118, @eregon).
 
 Bug fixes:
 
