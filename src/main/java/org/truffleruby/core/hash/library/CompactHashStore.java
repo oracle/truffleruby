@@ -332,7 +332,7 @@ public final class CompactHashStore {
     @ExportMessage
     boolean verify(RubyHash hash) {
         assert hash.store == this;
-        assert kvStoreInsertionPos > 0;
+        assert kvStoreInsertionPos >= 0;
         assert kvStoreInsertionPos <= kvStore.length;
         assert kvStoreInsertionPos % 2 == 0;
         assert kvStoreInsertionPos >= hash.size; // because deletes only decrease hash.size
@@ -411,10 +411,14 @@ public final class CompactHashStore {
 
         Object deletedValue = kvStore[keyPos + 1];
 
-        // TODO: Instead of naively nulling out the key-value, which can produce long gaps of nulls in the kvStore,
+        // TODO: Instead of naively nulling out the key-value, which can produce long gaps of tombstones in the kvStore,
         //       See if we can annotate each gap with its length so that iteration code can "jump" over it
         kvStore[keyPos] = null;
         kvStore[keyPos + 1] = null;
+        // If removing the last kvStore entry, reset kvStoreInsertionPos before it to avoid extra tombstones
+        if (keyPos + 2 == kvStoreInsertionPos) {
+            kvStoreInsertionPos = keyPos;
+        }
 
         hash.size--;
 
