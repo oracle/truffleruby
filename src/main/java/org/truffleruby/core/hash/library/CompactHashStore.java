@@ -16,6 +16,7 @@ import static org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallba
 
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -173,7 +174,7 @@ public final class CompactHashStore {
             @Bind("$node") Node node) {
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
 
-        int indexPos = getIndexPosForKeyNode.execute(key, keyHash, hash.compareByIdentity, index, kvStore);
+        int indexPos = getIndexPosForKeyNode.execute(key, keyHash, hash.compareByIdentity, index, kvStore, false);
         if (keyNotFound.profile(node, indexPos == KEY_NOT_FOUND)) {
             return defaultNode.accept(frame, hash, key);
         }
@@ -185,7 +186,7 @@ public final class CompactHashStore {
     @ExportMessage
     boolean set(RubyHash hash, Object key, Object value, boolean byIdentity,
             @Cached @Shared HashingNodes.ToHash hashFunction,
-            @Cached GetInsertionIndexPosForKeyNode getInsertionIndexPosForKeyNode,
+            @Cached @Shared GetIndexPosForKeyNode getIndexPosForKeyNode,
             @Cached FreezeHashKeyIfNeededNode freezeKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingForKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingForVal,
@@ -193,7 +194,7 @@ public final class CompactHashStore {
             @Bind("$node") Node node) {
         var frozenKey = freezeKey.executeFreezeIfNeeded(node, key, byIdentity);
         int keyHash = hashFunction.execute(frozenKey, byIdentity);
-        int indexPos = getInsertionIndexPosForKeyNode.execute(frozenKey, keyHash, byIdentity, index, kvStore);
+        int indexPos = getIndexPosForKeyNode.execute(frozenKey, keyHash, byIdentity, index, kvStore, true);
         int keyPos = indexPosToKeyPos(index, indexPos); // can be < 0 if inserting new key
 
         propagateSharingForKey.execute(node, hash, frozenKey);
@@ -209,7 +210,7 @@ public final class CompactHashStore {
             @Cached @Exclusive InlinedConditionProfile keyNotFound,
             @Bind("$node") Node node) {
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getIndexPosForKeyNode.execute(key, keyHash, hash.compareByIdentity, index, kvStore);
+        int indexPos = getIndexPosForKeyNode.execute(key, keyHash, hash.compareByIdentity, index, kvStore, false);
         if (keyNotFound.profile(node, indexPos == KEY_NOT_FOUND)) {
             return null;
         }
@@ -470,59 +471,30 @@ public final class CompactHashStore {
         }
     }
 
-    /** Given a key and its hash, returns the index pos for this key's hashCode, or KEY_NOT_FOUND if not found. */
+    /** Given a key and its hash, returns the index pos where this key's hashCode is found. If not found, returns where
+     * it could be inserted if insert is true and KEY_NOT_FOUND otherwise. */
     @GenerateUncached
     abstract static class GetIndexPosForKeyNode extends RubyBaseNode {
 
-        public abstract int execute(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore);
+        public abstract int execute(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore,
+                boolean insert);
 
         @Specialization
-        int findIndexPos(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore,
+        int findIndexPos(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore, boolean insert,
                 @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
                 @Cached @Exclusive InlinedConditionProfile unused,
                 @Cached @Exclusive InlinedConditionProfile sameHash,
                 @Bind("$node") Node node) {
+            CompilerAsserts.partialEvaluationConstant(insert);
             int startPos = indexPosFromHashCode(hash, index.length);
             int indexPos = startPos;
             while (true) {
                 int valuePos = indexPosToValuePos(index, indexPos);
                 if (unused.profile(node, valuePos == INDEX_SLOT_UNUSED)) {
-                    return KEY_NOT_FOUND;
+                    return insert ? indexPos : KEY_NOT_FOUND;
                 } else if (sameHash.profile(node, index[indexPos] == hash) &&
                         compareHashKeysNode.execute(compareByIdentity, key, kvStore[valuePos - 1])) { // keyPos == valuePos - 1
                     return indexPos;
-                }
-                indexPos = incrementIndexPos(indexPos, index.length);
-                assert indexPos != startPos;
-            }
-        }
-    }
-
-    /** Given a key and its hash, returns the index pos where this key's hashCode is found or where it could be
-     * inserted. */
-    @GenerateUncached
-    abstract static class GetInsertionIndexPosForKeyNode extends RubyBaseNode {
-
-        public abstract int execute(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore);
-
-        @Specialization
-        int findIndexPos(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore,
-                @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
-                @Cached @Exclusive InlinedConditionProfile unused,
-                @Cached @Exclusive InlinedConditionProfile sameHash,
-                @Bind("$node") Node node) {
-            int startPos = indexPosFromHashCode(hash, index.length);
-            int indexPos = startPos;
-            while (true) {
-                int valuePos = indexPosToValuePos(index, indexPos);
-                if (unused.profile(node, valuePos == INDEX_SLOT_UNUSED)) {
-                    return indexPos;
-                } else {
-                    int keyPos = valuePos - 1;
-                    if (sameHash.profile(node, index[indexPos] == hash) &&
-                            compareHashKeysNode.execute(compareByIdentity, key, kvStore[keyPos])) {
-                        return indexPos;
-                    }
                 }
                 indexPos = incrementIndexPos(indexPos, index.length);
                 assert indexPos != startPos;
