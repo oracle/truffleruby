@@ -219,7 +219,7 @@ public final class PackedHashStoreLibrary {
                 if (n < size) {
                     final int otherHashed = getHashed(store, n);
                     final Object otherKey = getKey(store, n);
-                    if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
+                    if (compareHashKeys.execute(node, byIdentity, key2, hashed, otherKey, otherHashed)) {
                         setValue(store, n, value);
                         return false;
                     }
@@ -248,7 +248,8 @@ public final class PackedHashStoreLibrary {
     @ExportMessage
     static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashNode,
-            @Cached @Shared CompareHashKeysNode compareHashKeys) {
+            @Cached @Shared CompareHashKeysNode compareHashKeys,
+            @Bind("$node") Node node) {
 
         assert verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
@@ -259,7 +260,7 @@ public final class PackedHashStoreLibrary {
                 final int otherHashed = getHashed(store, n);
                 final Object otherKey = getKey(store, n);
 
-                if (compareHashKeys.execute(hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (compareHashKeys.execute(node, hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     final Object value = getValue(store, n);
                     removeEntry(store, n);
                     hash.size -= 1;
@@ -360,7 +361,8 @@ public final class PackedHashStoreLibrary {
     @ExportMessage
     static void rehash(Object[] store, RubyHash hash,
             @Cached @Shared CompareHashKeysNode compareHashKeys,
-            @Cached @Shared HashingNodes.ToHash hashNode) {
+            @Cached @Shared HashingNodes.ToHash hashNode,
+            @Bind("$node") Node node) {
 
         assert verify(store, hash);
         int size = hash.size;
@@ -371,6 +373,7 @@ public final class PackedHashStoreLibrary {
 
             for (int m = n - 1; m >= 0; m--) {
                 if (getHashed(store, m) == newHash && compareHashKeys.execute(
+                        node,
                         hash.compareByIdentity,
                         key,
                         newHash,
@@ -480,7 +483,7 @@ public final class PackedHashStoreLibrary {
                 if (n < size) {
                     final int otherHashed = getHashed(store, n);
                     final Object otherKey = getKey(store, n);
-                    if (equalKeys(compareHashKeys, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                    if (compareHashKeys.execute(node, compareByIdentity, key, hashed, otherKey, otherHashed)) {
                         return getValue(store, n);
                     }
                 }
@@ -488,11 +491,6 @@ public final class PackedHashStoreLibrary {
 
             notInHashProfile.enter(node);
             return defaultValueNode.accept(frame, hash, key);
-        }
-
-        protected boolean equalKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key,
-                int hashed, Object otherKey, int otherHashed) {
-            return compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
         }
     }
 

@@ -558,7 +558,8 @@ public final class BucketsHashStore {
             Entry previousEntry = null;
 
             while (entry != null) {
-                if (compareHashKeysNode.execute(compareByIdentity, key, hashed, entry.getKey(), entry.getHashed())) {
+                if (compareHashKeysNode.execute(this, compareByIdentity, key, hashed, entry.getKey(),
+                        entry.getHashed())) {
                     return new HashLookupResult(hashed, index, previousEntry, entry);
                 }
 

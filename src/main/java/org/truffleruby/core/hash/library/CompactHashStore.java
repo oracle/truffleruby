@@ -18,6 +18,8 @@ import java.util.Set;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.PEBiFunction;
@@ -38,7 +40,6 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -174,7 +175,7 @@ public final class CompactHashStore {
             @Bind("$node") Node node) {
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
 
-        int indexPos = getIndexPosForKeyNode.execute(key, keyHash, hash.compareByIdentity, index, kvStore, false);
+        int indexPos = getIndexPosForKeyNode.execute(node, key, keyHash, hash.compareByIdentity, index, kvStore, false);
         if (keyNotFound.profile(node, indexPos == KEY_NOT_FOUND)) {
             return defaultNode.accept(frame, hash, key);
         }
@@ -194,13 +195,13 @@ public final class CompactHashStore {
             @Bind("$node") Node node) {
         var frozenKey = freezeKey.executeFreezeIfNeeded(node, key, byIdentity);
         int keyHash = hashFunction.execute(frozenKey, byIdentity);
-        int indexPos = getIndexPosForKeyNode.execute(frozenKey, keyHash, byIdentity, index, kvStore, true);
+        int indexPos = getIndexPosForKeyNode.execute(node, frozenKey, keyHash, byIdentity, index, kvStore, true);
         int keyPos = indexPosToKeyPos(index, indexPos); // can be < 0 if inserting new key
 
         propagateSharingForKey.execute(node, hash, frozenKey);
         propagateSharingForVal.execute(node, hash, value);
 
-        return setKv.execute(hash, this, indexPos, keyPos, keyHash, frozenKey, value);
+        return setKv.execute(node, hash, this, indexPos, keyPos, keyHash, frozenKey, value);
     }
 
     @ExportMessage
@@ -210,7 +211,7 @@ public final class CompactHashStore {
             @Cached @Exclusive InlinedConditionProfile keyNotFound,
             @Bind("$node") Node node) {
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getIndexPosForKeyNode.execute(key, keyHash, hash.compareByIdentity, index, kvStore, false);
+        int indexPos = getIndexPosForKeyNode.execute(node, key, keyHash, hash.compareByIdentity, index, kvStore, false);
         if (keyNotFound.profile(node, indexPos == KEY_NOT_FOUND)) {
             return null;
         }
@@ -235,7 +236,7 @@ public final class CompactHashStore {
         }
 
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getIndexPosFromKeyPosNode.execute(keyHash, keyPos, index);
+        int indexPos = getIndexPosFromKeyPosNode.execute(node, keyHash, keyPos, index);
 
         return deleteKvAndGetV(hash, indexPos, keyPos);
     }
@@ -251,7 +252,7 @@ public final class CompactHashStore {
 
         Object key = kvStore[keyPos];
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getIndexPosFromKeyPosNode.execute(keyHash, keyPos, index);
+        int indexPos = getIndexPosFromKeyPosNode.execute(node, keyHash, keyPos, index);
         Object val = deleteKvAndGetV(hash, indexPos, keyPos);
 
         return ArrayHelpers.createArray(RubyContext.get(node), RubyLanguage.get(node), new Object[]{ key, val });
@@ -477,19 +478,28 @@ public final class CompactHashStore {
 
     /** Given a key and its hash, returns the index pos where this key's hashCode is found. If not found, returns where
      * it could be inserted if insert is true and KEY_NOT_FOUND otherwise. */
+    @GenerateInline
+    @GenerateCached(false)
     @GenerateUncached
     abstract static class GetIndexPosForKeyNode extends RubyBaseNode {
 
-        public abstract int execute(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore,
-                boolean insert);
+        public abstract int execute(Node node, Object key, int hash, boolean compareByIdentity, int[] index,
+                Object[] kvStore, boolean insert);
 
         @Specialization
-        int findIndexPos(Object key, int hash, boolean compareByIdentity, int[] index, Object[] kvStore, boolean insert,
+        static int findIndexPos(
+                Node node,
+                Object key,
+                int hash,
+                boolean compareByIdentity,
+                int[] index,
+                Object[] kvStore,
+                boolean insert,
                 @Cached CompareHashKeysNode.AssumingEqualHashes compareHashKeysNode,
                 @Cached @Exclusive InlinedConditionProfile unused,
-                @Cached @Exclusive InlinedConditionProfile sameHash,
-                @Bind("$node") Node node) {
+                @Cached @Exclusive InlinedConditionProfile sameHash) {
             CompilerAsserts.partialEvaluationConstant(insert);
+
             int startPos = indexPosFromHashCode(hash, index.length);
             int indexPos = startPos;
             while (true) {
@@ -497,7 +507,7 @@ public final class CompactHashStore {
                 if (unused.profile(node, valuePos == INDEX_SLOT_UNUSED)) {
                     return insert ? indexPos : KEY_NOT_FOUND;
                 } else if (sameHash.profile(node, index[indexPos] == hash) &&
-                        compareHashKeysNode.execute(compareByIdentity, key, kvStore[valuePos - 1])) { // keyPos == valuePos - 1
+                        compareHashKeysNode.execute(node, compareByIdentity, key, kvStore[valuePos - 1])) { // keyPos == valuePos - 1
                     return indexPos;
                 }
                 indexPos = incrementIndexPos(indexPos, index.length);
@@ -506,16 +516,17 @@ public final class CompactHashStore {
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     @GenerateUncached
     abstract static class GetIndexPosFromKeyPosNode extends RubyBaseNode {
 
-        public abstract int execute(int hash, int keyPos, int[] index);
+        public abstract int execute(Node node, int hash, int keyPos, int[] index);
 
         @Specialization
-        int findIndexPos(int hash, int keyPos, int[] index,
+        static int findIndexPos(Node node, int hash, int keyPos, int[] index,
                 @Cached @Exclusive InlinedConditionProfile unused,
-                @Cached @Exclusive InlinedConditionProfile found,
-                @Bind("$node") Node node) {
+                @Cached @Exclusive InlinedConditionProfile found) {
             int valuePosToSearch = keyPos + 1;
             int startPos = indexPosFromHashCode(hash, index.length);
             int indexPos = startPos;
@@ -532,16 +543,18 @@ public final class CompactHashStore {
         }
     }
 
+    @GenerateInline
+    @GenerateCached(false)
     @GenerateUncached
-    @ImportStatic(CompactHashStore.class)
     abstract static class SetKvAtNode extends RubyBaseNode {
 
-        public abstract boolean execute(RubyHash hash, CompactHashStore store, int indexPos, int keyPos, int keyHash,
-                Object key, Object value);
+        public abstract boolean execute(Node node, RubyHash hash, CompactHashStore store, int indexPos, int keyPos,
+                int keyHash, Object key, Object value);
 
         // key already exist, very fast because there is no need to touch the index
         @Specialization(guards = "keyPos >= 0")
-        boolean keyAlreadyExistsWithDifferentValue(
+        static boolean keyAlreadyExistsWithDifferentValue(
+                Node node,
                 RubyHash hash,
                 CompactHashStore store,
                 int indexPos,
@@ -556,10 +569,16 @@ public final class CompactHashStore {
         // setting a new key is more expensive
         @Specialization(guards = "keyPos < 0")
         static boolean keyDoesntExist(
-                RubyHash hash, CompactHashStore store, int indexPos, int keyPos, int keyHash, Object key, Object value,
+                Node node,
+                RubyHash hash,
+                CompactHashStore store,
+                int indexPos,
+                int keyPos,
+                int keyHash,
+                Object key,
+                Object value,
                 @Cached @Exclusive InlinedConditionProfile kvResizingIsNeeded,
-                @Cached @Exclusive InlinedConditionProfile indexResizingIsNeeded,
-                @Bind("$node") Node node) {
+                @Cached @Exclusive InlinedConditionProfile indexResizingIsNeeded) {
             if (kvResizingIsNeeded.profile(node, store.kvStoreInsertionPos >= store.kvStore.length)) {
                 resizeKvStore(store);
             }

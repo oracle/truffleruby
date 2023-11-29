@@ -218,31 +218,22 @@ public abstract class KernelNodes {
 
     /** Check if operands are the same object or call #eql? */
     @GenerateUncached
+    @GenerateCached(false)
+    @GenerateInline
     public abstract static class SameOrEqlNode extends RubyBaseNode {
 
-        @NeverDefault
-        public static SameOrEqlNode create() {
-            return KernelNodesFactory.SameOrEqlNodeGen.create();
+        public static boolean executeUncached(Object a, Object b) {
+            return KernelNodesFactory.SameOrEqlNodeGen.getUncached().execute(null, a, b);
         }
 
-        public static SameOrEqlNode getUncached() {
-            return KernelNodesFactory.SameOrEqlNodeGen.getUncached();
-        }
+        public abstract boolean execute(Node node, Object a, Object b);
 
-        public abstract boolean execute(Object a, Object b);
-
-        @Specialization(guards = "referenceEqual.execute(this, a, b)")
-        boolean refEqual(Object a, Object b,
-                @Cached @Shared ReferenceEqualNode referenceEqual) {
-            return true;
-        }
-
-        @Specialization(replaces = "refEqual")
-        boolean refEqualOrEql(Object a, Object b,
-                @Cached @Shared ReferenceEqualNode referenceEqual,
-                @Cached DispatchNode eql,
+        @Specialization
+        static boolean refEqualOrEql(Node node, Object a, Object b,
+                @Cached ReferenceEqualNode referenceEqual,
+                @Cached(inline = false) DispatchNode eql,
                 @Cached BooleanCastNode booleanCast) {
-            return referenceEqual.execute(this, a, b) || booleanCast.execute(this, eql.call(a, "eql?", b));
+            return referenceEqual.execute(node, a, b) || booleanCast.execute(node, eql.call(a, "eql?", b));
         }
     }
 

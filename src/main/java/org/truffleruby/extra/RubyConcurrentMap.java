@@ -52,7 +52,7 @@ public final class RubyConcurrentMap extends RubyDynamicObject {
                 return false;
             } else {
                 // Last resort - we have to actually call eql?
-                return SameOrEqlNode.getUncached().execute(key, otherKey.key);
+                return SameOrEqlNode.executeUncached(key, otherKey.key);
             }
         }
     }

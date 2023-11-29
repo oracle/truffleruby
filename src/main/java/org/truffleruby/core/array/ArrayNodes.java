@@ -909,46 +909,46 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqlNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private SameOrEqlNode eqlNode = SameOrEqlNode.create();
-
         @Specialization(
                 guards = { "stores.accepts(bStore)", "stores.isPrimitive(aStore)" },
                 limit = "storageStrategyLimit()")
-        boolean eqlSamePrimitiveType(RubyArray a, RubyArray b,
+        static boolean eqlSamePrimitiveType(RubyArray a, RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
                 @CachedLibrary("aStore") ArrayStoreLibrary stores,
-                @Cached ConditionProfile sameProfile,
-                @Cached IntValueProfile arraySizeProfile,
-                @Cached ConditionProfile sameSizeProfile,
-                @Cached BranchProfile trueProfile,
-                @Cached BranchProfile falseProfile,
-                @Cached LoopConditionProfile loopProfile) {
+                @Cached SameOrEqlNode eqlNode,
+                @Cached InlinedConditionProfile sameProfile,
+                @Cached InlinedIntValueProfile arraySizeProfile,
+                @Cached InlinedConditionProfile sameSizeProfile,
+                @Cached InlinedBranchProfile trueProfile,
+                @Cached InlinedBranchProfile falseProfile,
+                @Cached InlinedLoopConditionProfile loopProfile,
+                @Bind("$node") Node node) {
 
-            if (sameProfile.profile(a == b)) {
+            if (sameProfile.profile(node, a == b)) {
                 return true;
             }
 
-            final int size = arraySizeProfile.profile(a.size);
+            final int size = arraySizeProfile.profile(node, a.size);
 
-            if (!sameSizeProfile.profile(size == b.size)) {
+            if (!sameSizeProfile.profile(node, size == b.size)) {
                 return false;
             }
 
             int i = 0;
             try {
-                for (; loopProfile.inject(i < size); i++) {
-                    if (!eqlNode.execute(stores.read(aStore, i), stores.read(bStore, i))) {
-                        falseProfile.enter();
+                for (; loopProfile.inject(node, i < size); i++) {
+                    if (!eqlNode.execute(node, stores.read(aStore, i), stores.read(bStore, i))) {
+                        falseProfile.enter(node);
                         return false;
                     }
-                    TruffleSafepoint.poll(this);
+                    TruffleSafepoint.poll(node);
                 }
             } finally {
-                profileAndReportLoopCount(loopProfile, i);
+                profileAndReportLoopCount(node, loopProfile, i);
             }
 
-            trueProfile.enter();
+            trueProfile.enter(node);
             return true;
         }
 
