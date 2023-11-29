@@ -241,6 +241,23 @@ public final class CompactHashStore {
     }
 
     @ExportMessage
+    RubyArray shift(RubyHash hash,
+            @Cached @Shared HashingNodes.ToHash hashFunction,
+            @Cached @Shared GetHashPosForKeyAtKvPosNode getHashPos,
+            @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
+            @Bind("$node") Node node) {
+        assert hash.size > 0;
+        int firstKeyPos = firstNonNullKeyPosFromBeginning(nonNullKeyNotYetFound, node);
+
+        Object key = kvStore[firstKeyPos];
+        int keyHash = hashFunction.execute(key, hash.compareByIdentity);
+        int indexPos = getHashPos.execute(keyHash, firstKeyPos, index);
+        Object val = deleteKvAndGetV(hash, indexPos, firstKeyPos);
+
+        return ArrayHelpers.createArray(RubyContext.get(node), RubyLanguage.get(node), new Object[]{ key, val });
+    }
+
+    @ExportMessage
     Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             @Cached @Exclusive InlinedConditionProfile keyNotNull,
             @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
@@ -283,23 +300,6 @@ public final class CompactHashStore {
         dest.compareByIdentity = hash.compareByIdentity;
         dest.defaultBlock = hash.defaultBlock;
         dest.defaultValue = hash.defaultValue;
-    }
-
-    @ExportMessage
-    RubyArray shift(RubyHash hash,
-            @Cached @Shared HashingNodes.ToHash hashFunction,
-            @Cached @Shared GetHashPosForKeyAtKvPosNode getHashPos,
-            @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
-            @Bind("$node") Node node) {
-        assert hash.size > 0;
-        int firstKeyPos = firstNonNullKeyPosFromBeginning(nonNullKeyNotYetFound, node);
-
-        Object key = kvStore[firstKeyPos];
-        int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getHashPos.execute(keyHash, firstKeyPos, index);
-        Object val = deleteKvAndGetV(hash, indexPos, firstKeyPos);
-
-        return ArrayHelpers.createArray(RubyContext.get(node), RubyLanguage.get(node), new Object[]{ key, val });
     }
 
     @TruffleBoundary
