@@ -19,7 +19,6 @@ File.open("#{RUBY_ENGINE}.txt", "w") do |f|
   f.puts RUBY_VERSION
 
   prefix = RbConfig::CONFIG['prefix']
-  toolchain_path = RbConfig::CONFIG['toolchain_path']
 
   {
     # 'RbConfig::CONFIG' => RbConfig::CONFIG,
@@ -31,7 +30,6 @@ File.open("#{RUBY_ENGINE}.txt", "w") do |f|
       value = h[k]
 
       value = value.gsub(prefix, '$(prefix)')
-      value = value.gsub(toolchain_path, '$(toolchain_path)') if toolchain_path
 
       f.puts "#{k} = #{value}"
     }

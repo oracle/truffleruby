@@ -127,20 +127,6 @@ This warning is important.
 - If you want to set the `suite.py` import to that checked out in `graal` (unlikely), you should run 
   jt mx scheckimports` beforehand.
 
-### Building C Extensions more quickly
-
-Speeding up compilation of C extensions can be achieved by using *native* toolchain launchers,
-instead of the Bash toolchain launchers used with the `jvm*` build configurations.
-
-For bundled C extensions (that is, extensions under `src/main/c`),
-you can `export JT_CACHE_TOOLCHAIN=true` and that will then use native toolchain launchers for the
-[bootstrap toolchain](https://github.com/oracle/graal/blob/master/sulong/docs/contributor/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain).
-This has no effect after `jt build`.
-
-For C extensions installed after `jt build` by e.g. `gem install` or `bundle install`,
-one can use the `jvm-ce-ntl` build configuration which includes *native* toolchain launchers,
-or use one of the `native*` build configuration (which also builds a native truffleruby launcher).
-
 ## Editors and IDEs
 
 * [Using the IntelliJ IDE for Development](using-intellij.md) (recommended)

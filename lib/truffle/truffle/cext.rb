@@ -2112,18 +2112,26 @@ module Truffle::CExt
     obj.pointer = ptr
   end
 
-  def rb_debug_inspector_open_contexts
-    Truffle::Debug.get_frame_bindings.map do |binding|
+  RB_THREAD_CURRENT_BACKTRACE_LOCATIONS_OMIT = NFI ? 4 : 5
+
+  def rb_debug_inspector_open_contexts_and_backtrace
+    contexts = Truffle::Debug.get_frame_bindings.map do |binding|
       if binding
         [binding.receiver, Primitive.class(binding.receiver), binding]
       else
         [nil, nil, nil]
       end
     end.freeze
-  end
 
-  def rb_thread_current_backtrace_locations
-    Thread.current.backtrace_locations(4)
+    backtrace = Thread.current.backtrace_locations(RB_THREAD_CURRENT_BACKTRACE_LOCATIONS_OMIT)
+
+    if contexts.size != backtrace.size
+      STDERR.puts '', 'contexts:', contexts.map { |_,_,binding| binding.source_location.join(':') }
+      STDERR.puts '', 'backtrace:', backtrace, ''
+      raise 'debug_inspector contexts and backtrace lengths are not equal'
+    end
+
+    [contexts, backtrace]
   end
 
   def rb_syserr_new(errno, mesg)

@@ -13,7 +13,6 @@ import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import java.util.Map;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.ArityException;
@@ -67,6 +65,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.Nil;
@@ -76,7 +75,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -1315,23 +1313,19 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         RubyArray getFrameBindings() {
-            Deque<Pair<MaterializedFrame, SourceSection>> stack = new ArrayDeque<>();
+            var stack = new ArrayDeque<Pair<MaterializedFrame, SourceSection>>();
+
             getContext().getCallStack().iterateFrameBindings(5, frameInstance -> {
                 final RootNode rootNode = ((RootCallTarget) frameInstance.getCallTarget()).getRootNode();
-                if (rootNode instanceof RubyRootNode) {
-                    final Frame frame = frameInstance.getFrame(FrameAccess.MATERIALIZE);
-                    final SourceSection sourceSection;
-                    if (frameInstance.getCallNode() != null &&
-                            BacktraceFormatter
-                                    .isAvailable(frameInstance.getCallNode().getEncapsulatingSourceSection())) {
-                        sourceSection = frameInstance.getCallNode().getEncapsulatingSourceSection();
-                    } else {
-                        sourceSection = null;
-                    }
-                    stack.push(Pair.create(frame.materialize(), sourceSection));
-                } else if (!(rootNode instanceof InternalRootNode) &&
-                        frameInstance.getCallNode().getEncapsulatingSourceSection() != null) {
-                    stack.push(Pair.create(null, null));
+                var callNode = frameInstance.getCallNode();
+                var encapsulatingSourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
+                if (rootNode instanceof RubyRootNode && BacktraceFormatter.isAvailable(encapsulatingSourceSection)) {
+                    final MaterializedFrame frame = frameInstance.getFrame(FrameAccess.MATERIALIZE).materialize();
+                    assert frame.getFrameDescriptor().getDefaultValue() == nil;
+                    assert CallStackManager.isRubyFrame(frame);
+                    stack.push(Pair.create(frame, encapsulatingSourceSection));
+                } else {
+                    stack.push(Pair.empty());
                 }
                 return null;
             });
@@ -1354,8 +1348,7 @@ public abstract class TruffleDebugNodes {
                     } else {
                         sourceSection = lastAvailableSourceSection;
                     }
-                    final RubyBinding binding = BindingNodes
-                            .createBinding(getContext(), getLanguage(), frame, sourceSection);
+                    RubyBinding binding = BindingNodes.createBinding(getContext(), getLanguage(), frame, sourceSection);
                     frameBindings.add(binding);
                 } else {
                     frameBindings.add(nil);

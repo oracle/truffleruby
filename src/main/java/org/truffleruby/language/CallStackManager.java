@@ -149,17 +149,17 @@ public final class CallStackManager {
         return iterateFrames(1, filter, f -> f.getFrame(frameAccess));
     }
 
+    /** Does the same filtering as {@link Backtrace#getStackTrace(Throwable)} */
     @TruffleBoundary
     public void iterateFrameBindings(int skip, Function<FrameInstance, Object> action) {
         iterateFrames(skip, frameInstance -> {
-            if (ignoreFrame(frameInstance.getCallNode(), (RootCallTarget) frameInstance.getCallTarget())) {
+            Node callNode = frameInstance.getCallNode();
+            var callTarget = (RootCallTarget) frameInstance.getCallTarget();
+            if (ignoreFrame(callNode, callTarget)) {
                 return false;
             }
-            final RootNode rootNode = ((RootCallTarget) frameInstance.getCallTarget()).getRootNode();
-            if (rootNode instanceof RubyRootNode || frameInstance.getCallNode() != null) {
-                return true;
-            }
-            return false;
+            final RootNode rootNode = callTarget.getRootNode();
+            return rootNode instanceof RubyRootNode || callNode != null;
         }, action);
     }
 

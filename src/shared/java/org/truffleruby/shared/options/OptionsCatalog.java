@@ -72,7 +72,6 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_NEW_FIBER_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> OPTIONS_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);
@@ -578,14 +577,6 @@ public final class OptionsCatalog {
     public static final OptionDescriptor CEXT_LOCK = OptionDescriptor
             .newBuilder(CEXT_LOCK_KEY, "ruby.cexts-lock")
             .help("Use a Global Lock when running C extensions")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("")
-            .build();
-
-    public static final OptionDescriptor CEXTS_PREPEND_TOOLCHAIN_TO_PATH = OptionDescriptor
-            .newBuilder(CEXTS_PREPEND_TOOLCHAIN_TO_PATH_KEY, "ruby.cexts-prepend-toolchain-to-path")
-            .help("Prepend the GraalVM LLVM Toolchain to PATH when installing gems")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1441,8 +1432,6 @@ public final class OptionsCatalog {
                 return CEXTS;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
-            case "ruby.cexts-prepend-toolchain-to-path":
-                return CEXTS_PREPEND_TOOLCHAIN_TO_PATH;
             case "ruby.options-log":
                 return OPTIONS_LOG;
             case "ruby.log-load":
@@ -1688,7 +1677,6 @@ public final class OptionsCatalog {
             BACKTRACE_ON_NEW_FIBER,
             CEXTS,
             CEXT_LOCK,
-            CEXTS_PREPEND_TOOLCHAIN_TO_PATH,
             OPTIONS_LOG,
             LOG_LOAD,
             LOG_AUTOLOAD,

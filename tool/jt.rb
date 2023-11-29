@@ -952,7 +952,6 @@ module Commands
       sh 'rm', '-rf', 'spec/ruby/ext'
       Dir.glob("#{TRUFFLERUBY_DIR}/mxbuild/{*,.*}") do |path|
         next if File.basename(path).start_with?('truffleruby-')
-        next if File.basename(path).start_with?('toolchain')
         next if %w(. ..).include? File.basename(path)
         sh 'rm', '-rf', path
       end
@@ -2447,35 +2446,6 @@ module Commands
     mx('--env', env, 'checkout-downstream', 'compiler', 'graal-enterprise', primary_suite: TRUFFLERUBY_DIR)
   end
 
-  def bootstrap_toolchain
-    sulong_home = File.join(GRAAL_DIR, 'sulong')
-    # clone the graal repository if it is missing
-    mx 'sversions' unless File.directory? sulong_home
-    graal_version = get_truffle_version from: :repository
-    toolchain_dir = File.join(TRUFFLERUBY_DIR, 'mxbuild', 'toolchain')
-    destination = File.join(toolchain_dir, graal_version)
-    unless File.exist? destination
-      puts "Building toolchain for: #{graal_version}"
-      mx '--env', 'toolchain-only', 'build', primary_suite: sulong_home
-      toolchain_graalvm = mx('--env', 'toolchain-only', 'graalvm-home', primary_suite: sulong_home, capture: :out).lines.last.chomp
-      FileUtils.mkdir_p destination
-      FileUtils.cp_r toolchain_graalvm + '/.', destination
-    end
-
-    # mark as used
-    FileUtils.touch destination
-    # leave only 4 built toolchains which were used last
-    caches = Dir.
-        glob(File.join(toolchain_dir, '*')).
-        sort_by { |cached_toolchain_path| File.mtime cached_toolchain_path }
-    unless (oldest = caches[0...-4]).empty?
-      puts "Removing old cached toolchains: #{oldest.join ' '}"
-      FileUtils.rm_rf oldest
-    end
-
-    destination
-  end
-
   private def sforceimports?(mx_base_args)
     return true unless File.directory?(GRAAL_DIR)
 
@@ -2566,9 +2536,7 @@ module Commands
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options
 
-    process_env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
-
-    mx(process_env, *mx_args, 'build', *mx_build_options, primary_suite: TRUFFLERUBY_DIR)
+    mx(*mx_args, 'build', *mx_build_options, primary_suite: TRUFFLERUBY_DIR)
     build_dir = mx(*mx_args, 'graalvm-home', primary_suite: TRUFFLERUBY_DIR, capture: :out).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"

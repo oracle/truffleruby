@@ -10,12 +10,19 @@
 require_relative '../ruby/spec_helper'
 
 describe "The standalone" do
-  llvm_toolchain = "#{Truffle::Boot.ruby_home}/lib/llvm-toolchain"
-  guard -> { Dir.exist? llvm_toolchain } do
-    it "should not include Fortran-related files in the toolchain" do
-      Dir.glob("#{llvm_toolchain}/bin/flang*").should.empty?
-      Dir.glob("#{llvm_toolchain}/lib/libFortran*").should.empty?
-      Dir.glob("#{llvm_toolchain}/include/flang/*").should.empty?
+  sulong = "#{Truffle::Boot.ruby_home}/lib/sulong"
+
+  guard -> { Dir.exist? sulong } do # check if standalone, see standalone_dependencies
+    it "only includes the necessary Sulong libs" do
+      Dir.glob("#{sulong}/*").filter_map { File.basename(_1) if Dir.exist?(_1) }.should == %w[include native]
+      Dir.glob("#{sulong}/native/*").map { File.basename(_1) }.should == %w[lib]
+      Dir.glob("#{sulong}/native/lib/*") do
+        File.basename(_1).should_not.include?('++')
+      end
+    end
+
+    it "does not include the llvm toolchain" do
+      Dir.should_not.exist? "#{Truffle::Boot.ruby_home}/lib/llvm-toolchain"
     end
   end
 end

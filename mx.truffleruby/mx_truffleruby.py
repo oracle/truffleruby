@@ -247,10 +247,15 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     stability="experimental",
 ))
 
+# Only keep what we need from the Sulong home.
+# Exclude the toolchain launchers, we don't need them, and they would not work in the native standalone.
+# Excluding "native/bin" or "native/bin/*" does not work so we have to list them.
+toolchain_launchers = ['binutil', 'clang', 'clang++', 'clang-cl', 'flang', 'ld']
+sulong_home_excludes = [f"native/bin/graalvm-native-{launcher}" for launcher in toolchain_launchers] + \
+    ['native/cmake', 'native/include', 'native/lib/*++*']
 standalone_dependencies_common = {
     'LLVM Runtime Core': ('lib/sulong', []),
-    'LLVM Runtime Native': ('lib/sulong', []),
-    'LLVM.org toolchain': ('lib/llvm-toolchain', ['bin/flang-*', 'bin/f18*', 'lib/libFortran*', 'include/flang']),
+    'LLVM Runtime Native': ('lib/sulong', sulong_home_excludes),
 }
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
@@ -262,7 +267,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     standalone_dir_name_enterprise='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
-    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'LLVM.org toolchain', 'TRegex'],  # Use short name for license to select by priority
+    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'TRegex'],  # Use short name for license to select by priority
     standalone_dependencies={**standalone_dependencies_common, **{
         'TruffleRuby license files': ('', []),
     }},

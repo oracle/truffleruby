@@ -48,10 +48,6 @@ if defined?(::TruffleRuby)
   end
 end
 
-if defined?(::TruffleRuby) and Truffle::Boot.get_option('cexts-prepend-toolchain-to-path') and Truffle::Boot.get_option('cexts-sulong')
-  ENV['PATH'] = "#{RbConfig::CONFIG['toolchain_path']}:#{ENV['PATH']}"
-end
-
 class String # :nodoc:
   # Wraps a string in escaped quotes if it contains whitespace.
   def quote
@@ -2891,19 +2887,11 @@ MESSAGE
     "$(CFLAGS) $(src) $(LIBPATH) $(LDFLAGS) $(ARCH_FLAG) $(LOCAL_LIBS) $(LIBS)"
 
   if defined?(::TruffleRuby)
-    # We need to link to libtruffleruby for MakeMakefile#try_link to succeed.
-    # The created executable will link against both libgraalvm-llvm.so and libtruffleruby and
-    # might be executed for #try_constant and #try_run so we also need -rpath for both.
-    # TODO: could likely always use the second branch here
-    if Truffle::Boot.get_option('cexts-sulong')
-      libtruffleruby_dir = File.dirname(RbConfig::CONFIG['libtruffleruby'])
-      TRY_LINK << " -L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby"
-      libgraalvm_llvm_dir = ::Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
-      TRY_LINK << " -rpath #{libgraalvm_llvm_dir}"
-    else
-      libtrufflerubytrampoline_dir = File.dirname(RbConfig::CONFIG['libtrufflerubytrampoline'])
-      TRY_LINK << " -L#{libtrufflerubytrampoline_dir} -Wl,-rpath,#{libtrufflerubytrampoline_dir} -ltrufflerubytrampoline"
-    end
+    # We need to link to libtrufflerubytrampoline for MakeMakefile#try_link to succeed.
+    # The created executable will link against libtrufflerubytrampoline and
+    # might be executed for #try_constant and #try_run so we also need -rpath.
+    libtrufflerubytrampoline_dir = File.dirname(RbConfig::CONFIG['libtrufflerubytrampoline'])
+    TRY_LINK << " -L#{libtrufflerubytrampoline_dir} -Wl,-rpath,#{libtrufflerubytrampoline_dir} -ltrufflerubytrampoline"
   end
 
   ##

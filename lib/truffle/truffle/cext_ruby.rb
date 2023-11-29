@@ -20,49 +20,26 @@ module Truffle::CExt
       raise ArgumentError, "arity out of range: #{argc} for -2..15"
     end
 
-    if NFI
-      wrapper = RB_DEFINE_METHOD_WRAPPERS[argc]
-      method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
-        if argc == -1 # (int argc, VALUE *argv, VALUE obj)
-          args = [function, args.size, Truffle::CExt.RARRAY_PTR(args), Primitive.cext_wrap(self)]
-        elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
-          args = [function, Primitive.cext_wrap(self), Primitive.cext_wrap(args)]
-        elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
-          if args.size != argc
-            raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
-          end
-          args = [function, Primitive.cext_wrap(self), *args.map! { |arg| Primitive.cext_wrap(arg) }]
+    wrapper = RB_DEFINE_METHOD_WRAPPERS[argc]
+    method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
+      if argc == -1 # (int argc, VALUE *argv, VALUE obj)
+        args = [function, args.size, Truffle::CExt.RARRAY_PTR(args), Primitive.cext_wrap(self)]
+      elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
+        args = [function, Primitive.cext_wrap(self), Primitive.cext_wrap(args)]
+      elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
+        if args.size != argc
+          raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
         end
-
-        exc = $!
-        Primitive.thread_set_exception(nil)
-        # We must set block argument if given here so that the
-        # `rb_block_*` functions will be able to find it by walking the stack.
-        res = Primitive.call_with_c_mutex_and_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block)
-        Primitive.thread_set_exception(exc)
-        res
+        args = [function, Primitive.cext_wrap(self), *args.map! { |arg| Primitive.cext_wrap(arg) }]
       end
-    else
-      method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
-        if argc == -1 # (int argc, VALUE *argv, VALUE obj)
-          args = [args.size, Truffle::CExt.RARRAY_PTR(args), Primitive.cext_wrap(self)]
-        elsif argc == -2 # (VALUE obj, VALUE rubyArrayArgs)
-          args = [Primitive.cext_wrap(self), Primitive.cext_wrap(args)]
-        elsif argc >= 0 # (VALUE obj); (VALUE obj, VALUE arg1); (VALUE obj, VALUE arg1, VALUE arg2); ...
-          if args.size != argc
-            raise ArgumentError, "wrong number of arguments (given #{args.size}, expected #{argc})"
-          end
-          args = [Primitive.cext_wrap(self), *args.map! { |arg| Primitive.cext_wrap(arg) }]
-        end
 
-        exc = $!
-        Primitive.thread_set_exception(nil)
-        # We must set block argument if given here so that the
-        # `rb_block_*` functions will be able to find it by walking the stack.
-        res = Primitive.call_with_c_mutex_and_frame_and_unwrap(function, args, Primitive.caller_special_variables_if_available, block)
-        Primitive.thread_set_exception(exc)
-        res
-      end
+      exc = $!
+      Primitive.thread_set_exception(nil)
+      # We must set block argument if given here so that the
+      # `rb_block_*` functions will be able to find it by walking the stack.
+      res = Primitive.call_with_c_mutex_and_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block)
+      Primitive.thread_set_exception(exc)
+      res
     end
 
     # Even if the argc is -2, the arity number

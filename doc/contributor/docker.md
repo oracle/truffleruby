@@ -50,8 +50,6 @@ jt docker test --filter debian --standalone $PATH_TO_STANDALONE_TAR_GZ --test re
 For example, to run a full set of tests on a set of new release candidate tarballs:
 
 ```bash
-jt docker test --graalvm graalvm-ce.tar.gz llvm-toolchain-installable.jar:ruby-installable-ce.jar --test release_branch
-jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --test release_branch
 jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
@@ -66,10 +64,7 @@ Pick one of the distributions in [docker-configs.yaml](../../tool/docker-configs
 
 ## Methods of installing
 
-Pick one of:
-
-* From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz llvm-toolchain-installable.jar:ruby-installable.jar`
-* From a TruffleRuby standalone distribution you have locally, `--standalone truffleruby-1.0.0-linux-amd64.tar.gz`
+From a TruffleRuby standalone distribution you have locally, `--standalone truffleruby-1.0.0-linux-amd64.tar.gz`
 
 ## What to do
 

@@ -16,7 +16,7 @@ describe "Internal errors reaching the top level" do
     out.should == <<-EOS
 
 truffleruby: an internal exception escaped out of the interpreter,
-please report it to https://github.com/oracle/truffleruby/issues.
+please report it to https://github.com/oracle/truffleruby/issues
 
 ```
 custom message (java.lang.RuntimeException)
@@ -40,7 +40,7 @@ custom message (java.lang.RuntimeException)
     out.should == <<-EOS
 
 truffleruby: unexpected internal exception in at_exit,
-please report it to https://github.com/oracle/truffleruby/issues.
+please report it to https://github.com/oracle/truffleruby/issues
 
 ```
 custom message (java.lang.RuntimeException)
@@ -64,7 +64,7 @@ custom message (java.lang.RuntimeException)
     out.should == <<-EOS
 
 truffleruby: an internal exception escaped out of the interpreter,
-please report it to https://github.com/oracle/truffleruby/issues.
+please report it to https://github.com/oracle/truffleruby/issues
 
 ```
 message (java.lang.RuntimeException)

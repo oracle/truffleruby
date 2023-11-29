@@ -28,7 +28,7 @@ The JVM configuration automatically has access to other languages.
 To use other GraalVM languages, you need the [JVM Standalone](../../README.md#getting-started).
 The Native Standalone does not support installing extra languages.
 
-Note that `ruby`, `llvm`, the LLVM toolchain and host Java interop are available without installing anything extra.
+Note that `ruby`, `llvm` and host Java interop are available without installing anything extra.
 
 Then you can install other languages with `truffleruby-polyglot-get $LANGUAGE`, for instance:
 ```bash

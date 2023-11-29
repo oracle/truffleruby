@@ -232,16 +232,7 @@ local part_definitions = {
   },
 
   platform: {
-    local devtoolset = { # Until there is a proper object in common.jsonnet for it
-      packages+: if self.os == "linux" then
-        (if self.arch == "aarch64" then {
-          "00:devtoolset": "==10",
-        } else {
-          "00:devtoolset": "==11",
-        })
-      else {},
-    },
-    local common_deps = common.deps.truffleruby + common.deps.sulong + devtoolset,
+    local common_deps = common.deps.truffleruby + common.deps.sulong,
 
     linux: common.linux_amd64 + common_deps + {
       platform_name:: "LinuxAMD64",
@@ -377,6 +368,7 @@ local part_definitions = {
     },
 
     test_cexts_sulong: {
+      mx_env:: "toolchain",
       environment+: {
         TRUFFLERUBYOPT: "--experimental-options --cexts-sulong",
       },
