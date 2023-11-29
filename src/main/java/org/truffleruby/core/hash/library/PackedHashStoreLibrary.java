@@ -158,7 +158,7 @@ public final class PackedHashStoreLibrary {
     private static void promoteToCompact(RubyHash hash, Object[] store) {
         CompactHashStore newStore = new CompactHashStore(MAX_ENTRIES);
         for (int n = 0; n < MAX_ENTRIES; n++) {
-            newStore.putHashKeyValue(getHashed(store, n), getKey(store, n), getValue(store, n));
+            newStore.insertHashKeyValue(getHashed(store, n), getKey(store, n), getValue(store, n));
         }
         hash.store = newStore;
         hash.size = MAX_ENTRIES;

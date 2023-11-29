@@ -160,14 +160,6 @@ public final class CompactHashStore {
         return index[indexPos + 1];
     }
 
-    // For promoting from packed to compact
-    public void putHashKeyValue(int hashcode, Object key, Object value) {
-        int pos = kvStoreInsertionPos;
-        SetKvAtNode.insertIntoKv(this, key, value);
-        SetKvAtNode.insertIntoIndex(hashcode, pos + 1, index,
-                InlinedLoopConditionProfile.getUncached(), null);
-    }
-
     @ExportMessage
     Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached @Shared GetIndexPosForKeyNode getIndexPosForKeyNode,
@@ -586,7 +578,7 @@ public final class CompactHashStore {
             }
 
             keyPos = store.kvStoreInsertionPos;
-            insertIntoKv(store, key, value);
+            insertIntoKv(store, keyPos, key, value);
 
             assert store.index[indexPos + 1] <= 0;
             store.index[indexPos] = keyHash;
@@ -596,32 +588,31 @@ public final class CompactHashStore {
 
             if (indexResizingIsNeeded.profile(node, hash.size >= store.indexGrowthThreshold)) {
                 // Resize the index array after insertion, as it invalidates indexPos
-                resizeIndex(store, node);
+                resizeIndex(store);
             }
 
             return true;
         }
 
-        private static void insertIntoIndex(int keyHash, int kvPos, int[] index,
-                InlinedLoopConditionProfile unavailableSlot, Node node) {
-            int pos = indexPosFromHashCode(keyHash, index.length);
+        private static void insertIntoIndex(int hashCode, int valuePos, int[] index) {
+            int pos = indexPosFromHashCode(hashCode, index.length);
 
-            while (unavailableSlot.profile(node, index[pos + 1] > INDEX_SLOT_UNUSED)) {
+            while (index[pos + 1] > INDEX_SLOT_UNUSED) {
                 pos = incrementIndexPos(pos, index.length);
             }
 
-            index[pos] = keyHash;
-            index[pos + 1] = kvPos;
+            index[pos] = hashCode;
+            index[pos + 1] = valuePos;
         }
 
-        private static void insertIntoKv(CompactHashStore store, Object key, Object value) {
-            store.kvStore[store.kvStoreInsertionPos] = key;
-            store.kvStore[store.kvStoreInsertionPos + 1] = value;
-            store.kvStoreInsertionPos += 2;
+        private static void insertIntoKv(CompactHashStore store, int keyPos, Object key, Object value) {
+            store.kvStore[keyPos] = key;
+            store.kvStore[keyPos + 1] = value;
+            store.kvStoreInsertionPos = keyPos + 2;
         }
 
         @TruffleBoundary
-        private static void resizeIndex(CompactHashStore store, Node node) {
+        private static void resizeIndex(CompactHashStore store) {
             int[] oldIndex = store.index;
             int[] newIndex = new int[2 * oldIndex.length];
             int newIndexCapacity = newIndex.length >> 1;
@@ -629,10 +620,10 @@ public final class CompactHashStore {
             int i = 0;
             for (; i < oldIndex.length; i += 2) {
                 int hash = oldIndex[i];
-                int kvPos = oldIndex[i + 1];
+                int valuePos = oldIndex[i + 1];
 
-                if (kvPos > INDEX_SLOT_UNUSED) {
-                    insertIntoIndex(hash, kvPos, newIndex, InlinedLoopConditionProfile.getUncached(), node);
+                if (valuePos > INDEX_SLOT_UNUSED) {
+                    insertIntoIndex(hash, valuePos, newIndex);
                 }
             }
 
@@ -643,6 +634,14 @@ public final class CompactHashStore {
         private static void resizeKvStore(CompactHashStore store) {
             store.kvStore = ArrayUtils.grow(store.kvStore, 2 * store.kvStore.length);
         }
+    }
+
+    /** For promoting from packed to compact */
+    void insertHashKeyValue(int hashCode, Object key, Object value) {
+        int keyPos = kvStoreInsertionPos;
+        int valuePos = keyPos + 1;
+        SetKvAtNode.insertIntoKv(this, keyPos, key, value);
+        SetKvAtNode.insertIntoIndex(hashCode, valuePos, index);
     }
 
     public static final class CompactHashLiteralNode extends HashLiteralNode {
