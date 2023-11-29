@@ -22,6 +22,7 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.PEBiFunction;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayUtils;
@@ -567,6 +568,7 @@ public final class CompactHashStore {
         }
 
         // setting a new key is more expensive
+        @SuppressFBWarnings("IP_PARAMETER_IS_DEAD_BUT_OVERWRITTEN")
         @Specialization(guards = "keyPos < 0")
         static boolean keyDoesntExist(
                 Node node,
