@@ -222,12 +222,12 @@ public final class CompactHashStore {
     @ExportMessage
     Object deleteLast(RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashFunction,
-            @Cached @Shared GetHashPosForKeyAtKvPosNode getHashPos,
+            @Cached @Shared GetIndexPosFromKeyPosNode getIndexPosFromKeyPosNode,
             @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
             @Bind("$node") Node node) {
         assert hash.size > 0;
-        int lastKeyPos = firstNonNullKeyPosFromEnd(nonNullKeyNotYetFound, node);
-        Object lastKey = kvStore[lastKeyPos];
+        int keyPos = firstNonNullKeyPosFromEnd(nonNullKeyNotYetFound, node);
+        Object lastKey = kvStore[keyPos];
         if (key != lastKey) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw CompilerDirectives
@@ -235,24 +235,24 @@ public final class CompactHashStore {
         }
 
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getHashPos.execute(keyHash, lastKeyPos, index);
+        int indexPos = getIndexPosFromKeyPosNode.execute(keyHash, keyPos, index);
 
-        return deleteKvAndGetV(hash, indexPos, lastKeyPos);
+        return deleteKvAndGetV(hash, indexPos, keyPos);
     }
 
     @ExportMessage
     RubyArray shift(RubyHash hash,
             @Cached @Shared HashingNodes.ToHash hashFunction,
-            @Cached @Shared GetHashPosForKeyAtKvPosNode getHashPos,
+            @Cached @Shared GetIndexPosFromKeyPosNode getIndexPosFromKeyPosNode,
             @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
             @Bind("$node") Node node) {
         assert hash.size > 0;
-        int firstKeyPos = firstNonNullKeyPosFromBeginning(nonNullKeyNotYetFound, node);
+        int keyPos = firstNonNullKeyPosFromBeginning(nonNullKeyNotYetFound, node);
 
-        Object key = kvStore[firstKeyPos];
+        Object key = kvStore[keyPos];
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
-        int indexPos = getHashPos.execute(keyHash, firstKeyPos, index);
-        Object val = deleteKvAndGetV(hash, indexPos, firstKeyPos);
+        int indexPos = getIndexPosFromKeyPosNode.execute(keyHash, keyPos, index);
+        Object val = deleteKvAndGetV(hash, indexPos, keyPos);
 
         return ArrayHelpers.createArray(RubyContext.get(node), RubyLanguage.get(node), new Object[]{ key, val });
     }
@@ -503,59 +503,28 @@ public final class CompactHashStore {
     }
 
     @GenerateUncached
-    abstract static class GetHashNextPosInIndexNode extends RubyBaseNode {
+    abstract static class GetIndexPosFromKeyPosNode extends RubyBaseNode {
 
-        public abstract int execute(int startingFromPos, int hash, int[] index, int stop);
-
-        @Specialization
-        int getHashNextPos(int startingFromPos, int hash, int[] index, int stop,
-                @Cached @Exclusive InlinedConditionProfile slotIsUnused,
-                @Cached @Exclusive InlinedConditionProfile hashFound,
-                @Cached @Exclusive InlinedLoopConditionProfile stopNotYetReached,
-                @Bind("$node") Node node) {
-            int nextHashPos = startingFromPos;
-
-            do {
-                if (slotIsUnused.profile(node, index[nextHashPos + 1] == INDEX_SLOT_UNUSED)) {
-                    return HASH_NOT_FOUND;
-                }
-
-                if (hashFound.profile(node, index[nextHashPos] == hash)) {
-                    return nextHashPos;
-                }
-
-                nextHashPos = incrementIndexPos(nextHashPos, index.length);
-            } while (stopNotYetReached.profile(node, nextHashPos != stop));
-
-            return HASH_NOT_FOUND;
-        }
-    }
-
-    @GenerateUncached
-    abstract static class GetHashPosForKeyAtKvPosNode extends RubyBaseNode {
-
-        public abstract int execute(int hash, int kvPos, int[] index);
+        public abstract int execute(int hash, int keyPos, int[] index);
 
         @Specialization
-        int getHashPos(int hash, int kvPos, int[] index,
-                @Cached @Exclusive InlinedConditionProfile keyFound,
-                @Cached @Exclusive InlinedLoopConditionProfile keyHashFound,
-                @Cached GetHashNextPosInIndexNode getNextHashPos,
+        int findIndexPos(int hash, int keyPos, int[] index,
+                @Cached @Exclusive InlinedConditionProfile unused,
+                @Cached @Exclusive InlinedConditionProfile found,
                 @Bind("$node") Node node) {
+            int valuePosToSearch = keyPos + 1;
             int startPos = indexPosFromHashCode(hash, index.length);
-            int nextPos = getNextHashPos.execute(startPos, hash, index, startPos);
-
-            while (keyHashFound.profile(node, nextPos != HASH_NOT_FOUND)) {
-                int kvPosition = indexPosToKeyPos(index, nextPos);
-
-                if (keyFound.profile(node, kvPos == kvPosition)) {
-                    return nextPos;
+            int indexPos = startPos;
+            while (true) {
+                int valuePos = indexPosToValuePos(index, indexPos);
+                if (unused.profile(node, valuePos == INDEX_SLOT_UNUSED)) {
+                    // Keep going, this means the hash of the key changed
+                } else if (found.profile(node, valuePos == valuePosToSearch)) {
+                    return indexPos;
                 }
-
-                int next = incrementIndexPos(nextPos, index.length);
-                nextPos = getNextHashPos.execute(next, hash, index, startPos);
+                indexPos = incrementIndexPos(indexPos, index.length);
+                assert indexPos != startPos;
             }
-            return HASH_NOT_FOUND;
         }
     }
 
