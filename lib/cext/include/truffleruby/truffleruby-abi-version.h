@@ -10,6 +10,6 @@
 // $RUBY_VERSION must be the same as TruffleRuby.LANGUAGE_VERSION.
 // $ABI_NUMBER starts at 1 and is incremented for every ABI-incompatible change.
 
-#define TRUFFLERUBY_ABI_VERSION "3.2.2.6"
+#define TRUFFLERUBY_ABI_VERSION "3.2.2.7"
 
 #endif
