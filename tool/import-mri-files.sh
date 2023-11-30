@@ -29,6 +29,8 @@ fi
 # lib/
 rm -r lib/mri
 cp -R ../ruby/lib lib/mri
+# CRuby-specific
+rm -r lib/mri/ruby_vm
 # We have our own version under lib/truffle
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
