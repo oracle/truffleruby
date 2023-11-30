@@ -83,7 +83,10 @@ class Data
     # to redefine #initialize in the returned Data subclass and use super() to use the #initialize just below.
     # CRuby defines these directly on Data, but that is suboptimal for performance.
     # We want to have a specialized copy of these methods for each Data subclass.
-    instance_methods_module = Module.new do
+    instance_methods_module = Module.new
+    instance_methods_module.module_eval "#{<<~'RUBY'}"
+      # truffleruby_primitives: true
+
       def initialize(**kwargs)
         members_hash = Primitive.class(self)::CLASS_MEMBERS_HASH
         kwargs.each do |member, value|
@@ -219,7 +222,7 @@ class Data
 
         Primitive.vm_hash_end(val)
       end
-    end
+    RUBY
 
     klass.include instance_methods_module
 
