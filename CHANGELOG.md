@@ -18,6 +18,7 @@ Compatibility:
 * Add `rb_gc_mark_movable` function (@andrykonchin).
 * Promote `File#path` and `File#to_path` to `IO#path` and `IO#to_path` and make IO#new accept an optional `path:` keyword argument (#3039, @moste00)
 * Display "unhandled exception" as the message for `RuntimeError` instances with an empty message (#3255, @nirvdrum).
+* Set `RbConfig::CONFIG['configure_args']` for openssl and libyaml (#3170, #3303, @eregon).
 
 Performance:
 

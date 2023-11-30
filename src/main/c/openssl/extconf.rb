@@ -14,13 +14,11 @@
 require "mkmf"
 
 if defined?(::TruffleRuby)
-  require 'truffle/openssl-prefix'
-  dir_config_given = dir_config("openssl", ENV["OPENSSL_PREFIX"]).any?
   # Needed with libssl 3.0.0 and -Werror from building core C extensions
   $warnflags += ' -Wno-deprecated-declarations'
-else
-  dir_config_given = dir_config("openssl").any?
 end
+
+dir_config_given = dir_config("openssl").any?
 
 dir_config("kerberos")
 
