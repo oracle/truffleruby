@@ -389,7 +389,6 @@ public final class CoreLibrary {
         arrayClass = defineClass("Array");
         bindingClass = defineClass("Binding");
         defineClass("ConditionVariable");
-        defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
         enumeratorClass = defineClass("Enumerator");
