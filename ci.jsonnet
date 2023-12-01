@@ -313,6 +313,7 @@ local part_definitions = {
         "RUBY_SPEC_TEST_ZLIB_CRC_TABLE": "false", # CRuby was built on OL6 and is used on OL7
       },
       run+: jt(["-u", "ruby", "mspec", "spec/ruby"]) +
+            jt(["-u", "/cm/shared/apps-ol7/ruby/3.1.2/bin/ruby", "mspec", "spec/ruby"]) +
             jt(["-u", "/cm/shared/apps/ruby/3.0.2/bin/ruby", "mspec", "spec/ruby"]),
     },
 
