@@ -152,7 +152,6 @@ import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.Translator.ArgumentsAndBlockTranslation;
-import org.truffleruby.parser.parser.ParserSupport;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -454,7 +453,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return translateBlockAndLambda(node, node.parameters, node.body, node.locals, literalBlockPassedToMethod);
     }
 
-    private RubyNode translateBlockAndLambda(Nodes.Node node, Nodes.BlockParametersNode blockParameters,
+    private RubyNode translateBlockAndLambda(Nodes.Node node, Nodes.Node parametersNode,
             Nodes.Node body, String[] locals, String literalBlockPassedToMethod) {
         final boolean isStabbyLambda = node instanceof Nodes.LambdaNode;
         final boolean hasOwnScope = true;
@@ -465,33 +464,23 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final int blockDepth = environment.getBlockDepth() + 1;
 
         final Nodes.ParametersNode parameters;
-        if (blockParameters != null) {
+        if (parametersNode instanceof Nodes.BlockParametersNode blockParameters) {
             parameters = blockParameters.parameters;
+        } else if (parametersNode instanceof Nodes.NumberedParametersNode numberedParameters) {
+            // build Nodes.BlockParametersNode with required parameters _1, _2, etc
+            final int maximum = numberedParameters.maximum;
+            final var requireds = new Nodes.RequiredParameterNode[maximum];
+
+            for (int i = 1; i <= maximum; i++) {
+                requireds[i - 1] = new Nodes.RequiredParameterNode("_" + i, 0, 0);
+            }
+
+            parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
+                    EMPTY_NODE_ARRAY, null, null, 0, 0);
+        } else if (parametersNode == null) {
+            parameters = null;
         } else {
-            // handle numbered parameters
-            int max = 0;
-
-            // don't rely on locals order and find the largest index
-            for (var name : locals) {
-                if (ParserSupport.isNumberedParameter(name)) {
-                    int n = name.charAt(1) - '0';
-                    if (n > max) {
-                        max = n;
-                    }
-                }
-            }
-
-            if (max > 0) {
-                final var requireds = new Nodes.RequiredParameterNode[max];
-                for (int i = 1; i <= max; i++) {
-                    requireds[i - 1] = new Nodes.RequiredParameterNode("_" + i, 0, 0);
-                }
-                parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
-                        EMPTY_NODE_ARRAY, null, null, 0, 0);
-            } else {
-                // no numbered parameters
-                parameters = null;
-            }
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final Arity arity = createArity(parameters);
