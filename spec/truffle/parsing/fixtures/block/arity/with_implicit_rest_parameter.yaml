@@ -1,7 +1,8 @@
 subject: "Block"
 description: "Arity / with implicit rest parameter (|a,|)"
 notes: >
-  Implicit rest parameter should be ignored with `hasRest=false`.
+  Implicit rest parameter should be ignored (see `hasRest=false`).
+yarp_specific: true # there is no declaration of '*` local variable
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a,|
@@ -19,7 +20,7 @@ ast: |
           RubyProcRootNode
               attributes:
                   callTarget = block in <top (required)>
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:%anonymous_rest, #3:%destructure_1, #4:*}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:%anonymous_rest, #3:%destructure_1}
                   instrumentationBits = 0
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   nextProfile = false

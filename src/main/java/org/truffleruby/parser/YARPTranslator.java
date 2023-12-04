@@ -533,6 +533,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final RubyNode rubyNode = methodCompiler.compileBlockNode(
                 body,
+                parameters,
                 locals,
                 isStabbyLambda,
                 getSourceSection(node));
@@ -2777,11 +2778,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             descriptors.add(descriptor);
         }
 
-        if (parametersNode.rest != null) {
-            if (parametersNode.rest.name == null) {
+        // ignore Nodes.ImplicitRestNode in blocks
+        if (parametersNode.rest instanceof Nodes.RestParameterNode restParameterNode) {
+            if (restParameterNode.name == null) {
                 descriptors.add(new ArgumentDescriptor(ArgumentType.anonrest));
             } else {
-                var descriptor = new ArgumentDescriptor(ArgumentType.rest, parametersNode.rest.name);
+                var descriptor = new ArgumentDescriptor(ArgumentType.rest, restParameterNode.name);
                 descriptors.add(descriptor);
             }
         }

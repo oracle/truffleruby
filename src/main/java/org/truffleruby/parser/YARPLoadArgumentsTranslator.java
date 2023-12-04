@@ -250,6 +250,25 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     }
 
     @Override
+    public RubyNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        final RubyNode readNode;
+
+        int from = parametersNode.requireds.length + parametersNode.optionals.length;
+        int to = -parametersNode.posts.length;
+        readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments());
+
+        final String name = TranslatorEnvironment.IMPLICIT_REST_NAME;
+
+        // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
+        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
+        // declare this hidden variable beforehand. So declare it here right before usage.
+        final int slot = environment.declareVar(name);
+
+        return new WriteLocalVariableNode(slot, readNode);
+    }
+
+
+    @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
         final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
@@ -278,6 +297,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     @Override
     public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
+        // is allowed in method parameters only
         ArrayList<RubyNode> sequence = new ArrayList<>();
 
         // desugar ... to *, **, and & parameters

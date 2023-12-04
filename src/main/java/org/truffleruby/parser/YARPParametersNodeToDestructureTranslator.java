@@ -186,6 +186,20 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
     }
 
     @Override
+    public RubyNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        // NOTE: we actually could do nothing if parameter is anonymous
+        final RubyNode readNode;
+
+        int from = parameters.requireds.length + parameters.optionals.length;
+        int to = -parameters.posts.length;
+        readNode = ArraySliceNodeGen.create(from, to, readArrayNode);
+
+        final String name = TranslatorEnvironment.IMPLICIT_REST_NAME;
+        final int slot = environment.findFrameSlot(name);
+        return new WriteLocalVariableNode(slot, readNode);
+    }
+
+    @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         // NOTE: we actually could do nothing if parameter is anonymous
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);

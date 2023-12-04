@@ -62,15 +62,22 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         this.arity = arity;
     }
 
-    public RubyNode compileBlockNode(Nodes.Node body, String[] locals, boolean isStabbyLambda,
+    public RubyNode compileBlockNode(Nodes.Node body, Nodes.ParametersNode parameters, String[] locals,
+            boolean isStabbyLambda,
             SourceSection sourceSection) {
         declareLocalVariables(locals);
 
-        // TODO: handle a case with |a,|
-        // see org.truffleruby.parser.MethodTranslator.compileBlockNode
-        // https://github.com/ruby/prism/issues/1722
-        // https://bugs.ruby-lang.org/issues/19971
-        final Arity arityForCheck = arity;
+        final Arity arityForCheck; // to check Proc's arguments
+
+        /* Block with parameters |a,| has implicit rest argument, but it's ignored for `lambda {}`. `Proc#arity` ignores
+         * it as well even for blocks (see https://bugs.ruby-lang.org/issues/19971). Positional parameters are checked
+         * only for lambda and not checked for blocks, so it's safe to use this modified arity in RubyProcRootNode
+         * too. */
+        if (parameters != null && parameters.rest instanceof Nodes.ImplicitRestNode) {
+            arityForCheck = arity.withRest(false);
+        } else {
+            arityForCheck = arity;
+        }
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
                 parameters,
