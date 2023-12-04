@@ -128,6 +128,10 @@ public abstract class Nodes {
             }
         }
 
+        public void setNewLineFlag(boolean newLineFlag) {
+            this.newLineFlag = newLineFlag;
+        }
+
         public abstract <T> T accept(AbstractNodeVisitor<T> visitor);
 
         public abstract <T> void visitChildNodes(AbstractNodeVisitor<T> visitor);
@@ -1323,11 +1327,11 @@ public abstract class Nodes {
     public static final class BlockNode extends Node {
         public final String[] locals;
         /** optional (can be null) */
-        public final BlockParametersNode parameters;
+        public final Node parameters;
         /** optional (can be null) */
         public final Node body;
 
-        public BlockNode(String[] locals, BlockParametersNode parameters, Node body, int startOffset, int length) {
+        public BlockNode(String[] locals, Node parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.parameters = parameters;
@@ -4259,6 +4263,51 @@ public abstract class Nodes {
     }
 
     /**
+     * Represents using a trailing comma to indicate an implicit rest parameter.
+     *
+     *     foo { |bar,| }
+     *               ^
+     *
+     *     foo in [bar,]
+     *                ^
+     *
+     *     for foo, in bar do end
+     *            ^
+     *
+     *     foo, = bar
+     *        ^
+     */
+    public static final class ImplicitRestNode extends Node {
+
+        public ImplicitRestNode(int startOffset, int length) {
+            super(startOffset, length);
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
+        public Node[] childNodes() {
+            return EMPTY_ARRAY;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitImplicitRestNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
+    }
+
+    /**
      * Represents the use of the `in` keyword in a case statement.
      *
      *     case a; in b then c end
@@ -5363,11 +5412,11 @@ public abstract class Nodes {
     public static final class LambdaNode extends Node {
         public final String[] locals;
         /** optional (can be null) */
-        public final BlockParametersNode parameters;
+        public final Node parameters;
         /** optional (can be null) */
         public final Node body;
 
-        public LambdaNode(String[] locals, BlockParametersNode parameters, Node body, int startOffset, int length) {
+        public LambdaNode(String[] locals, Node parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
             this.parameters = parameters;
@@ -6343,6 +6392,49 @@ public abstract class Nodes {
     }
 
     /**
+     * Represents an implicit set of parameters through the use of numbered
+     * parameters within a block or lambda.
+     *
+     *     -> { _1 + _2 }
+     *     ^^^^^^^^^^^^^^
+     */
+    public static final class NumberedParametersNode extends Node {
+        public final int maximum;
+
+        public NumberedParametersNode(int maximum, int startOffset, int length) {
+            super(startOffset, length);
+            this.maximum = maximum;
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
+        public Node[] childNodes() {
+            return EMPTY_ARRAY;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitNumberedParametersNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("maximum: ");
+            builder.append(this.maximum);
+            builder.append('\n');
+            return builder.toString();
+        }
+    }
+
+    /**
      * Represents reading a numbered reference to a capture in the previous match.
      *
      *     $1
@@ -6541,7 +6633,7 @@ public abstract class Nodes {
         public final Node[] requireds;
         public final Node[] optionals;
         /** optional (can be null) */
-        public final RestParameterNode rest;
+        public final Node rest;
         public final Node[] posts;
         public final Node[] keywords;
         /** optional (can be null) */
@@ -6549,7 +6641,7 @@ public abstract class Nodes {
         /** optional (can be null) */
         public final BlockParameterNode block;
 
-        public ParametersNode(Node[] requireds, Node[] optionals, RestParameterNode rest, Node[] posts, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
+        public ParametersNode(Node[] requireds, Node[] optionals, Node rest, Node[] posts, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
             super(startOffset, length);
             this.requireds = requireds;
             this.optionals = optionals;

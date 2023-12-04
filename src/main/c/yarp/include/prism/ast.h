@@ -772,233 +772,239 @@ enum pm_node_type {
     /** ImplicitNode */
     PM_IMPLICIT_NODE = 68,
 
+    /** ImplicitRestNode */
+    PM_IMPLICIT_REST_NODE = 69,
+
     /** InNode */
-    PM_IN_NODE = 69,
+    PM_IN_NODE = 70,
 
     /** IndexAndWriteNode */
-    PM_INDEX_AND_WRITE_NODE = 70,
+    PM_INDEX_AND_WRITE_NODE = 71,
 
     /** IndexOperatorWriteNode */
-    PM_INDEX_OPERATOR_WRITE_NODE = 71,
+    PM_INDEX_OPERATOR_WRITE_NODE = 72,
 
     /** IndexOrWriteNode */
-    PM_INDEX_OR_WRITE_NODE = 72,
+    PM_INDEX_OR_WRITE_NODE = 73,
 
     /** InstanceVariableAndWriteNode */
-    PM_INSTANCE_VARIABLE_AND_WRITE_NODE = 73,
+    PM_INSTANCE_VARIABLE_AND_WRITE_NODE = 74,
 
     /** InstanceVariableOperatorWriteNode */
-    PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE = 74,
+    PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE = 75,
 
     /** InstanceVariableOrWriteNode */
-    PM_INSTANCE_VARIABLE_OR_WRITE_NODE = 75,
+    PM_INSTANCE_VARIABLE_OR_WRITE_NODE = 76,
 
     /** InstanceVariableReadNode */
-    PM_INSTANCE_VARIABLE_READ_NODE = 76,
+    PM_INSTANCE_VARIABLE_READ_NODE = 77,
 
     /** InstanceVariableTargetNode */
-    PM_INSTANCE_VARIABLE_TARGET_NODE = 77,
+    PM_INSTANCE_VARIABLE_TARGET_NODE = 78,
 
     /** InstanceVariableWriteNode */
-    PM_INSTANCE_VARIABLE_WRITE_NODE = 78,
+    PM_INSTANCE_VARIABLE_WRITE_NODE = 79,
 
     /** IntegerNode */
-    PM_INTEGER_NODE = 79,
+    PM_INTEGER_NODE = 80,
 
     /** InterpolatedMatchLastLineNode */
-    PM_INTERPOLATED_MATCH_LAST_LINE_NODE = 80,
+    PM_INTERPOLATED_MATCH_LAST_LINE_NODE = 81,
 
     /** InterpolatedRegularExpressionNode */
-    PM_INTERPOLATED_REGULAR_EXPRESSION_NODE = 81,
+    PM_INTERPOLATED_REGULAR_EXPRESSION_NODE = 82,
 
     /** InterpolatedStringNode */
-    PM_INTERPOLATED_STRING_NODE = 82,
+    PM_INTERPOLATED_STRING_NODE = 83,
 
     /** InterpolatedSymbolNode */
-    PM_INTERPOLATED_SYMBOL_NODE = 83,
+    PM_INTERPOLATED_SYMBOL_NODE = 84,
 
     /** InterpolatedXStringNode */
-    PM_INTERPOLATED_X_STRING_NODE = 84,
+    PM_INTERPOLATED_X_STRING_NODE = 85,
 
     /** KeywordHashNode */
-    PM_KEYWORD_HASH_NODE = 85,
+    PM_KEYWORD_HASH_NODE = 86,
 
     /** KeywordRestParameterNode */
-    PM_KEYWORD_REST_PARAMETER_NODE = 86,
+    PM_KEYWORD_REST_PARAMETER_NODE = 87,
 
     /** LambdaNode */
-    PM_LAMBDA_NODE = 87,
+    PM_LAMBDA_NODE = 88,
 
     /** LocalVariableAndWriteNode */
-    PM_LOCAL_VARIABLE_AND_WRITE_NODE = 88,
+    PM_LOCAL_VARIABLE_AND_WRITE_NODE = 89,
 
     /** LocalVariableOperatorWriteNode */
-    PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE = 89,
+    PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE = 90,
 
     /** LocalVariableOrWriteNode */
-    PM_LOCAL_VARIABLE_OR_WRITE_NODE = 90,
+    PM_LOCAL_VARIABLE_OR_WRITE_NODE = 91,
 
     /** LocalVariableReadNode */
-    PM_LOCAL_VARIABLE_READ_NODE = 91,
+    PM_LOCAL_VARIABLE_READ_NODE = 92,
 
     /** LocalVariableTargetNode */
-    PM_LOCAL_VARIABLE_TARGET_NODE = 92,
+    PM_LOCAL_VARIABLE_TARGET_NODE = 93,
 
     /** LocalVariableWriteNode */
-    PM_LOCAL_VARIABLE_WRITE_NODE = 93,
+    PM_LOCAL_VARIABLE_WRITE_NODE = 94,
 
     /** MatchLastLineNode */
-    PM_MATCH_LAST_LINE_NODE = 94,
+    PM_MATCH_LAST_LINE_NODE = 95,
 
     /** MatchPredicateNode */
-    PM_MATCH_PREDICATE_NODE = 95,
+    PM_MATCH_PREDICATE_NODE = 96,
 
     /** MatchRequiredNode */
-    PM_MATCH_REQUIRED_NODE = 96,
+    PM_MATCH_REQUIRED_NODE = 97,
 
     /** MatchWriteNode */
-    PM_MATCH_WRITE_NODE = 97,
+    PM_MATCH_WRITE_NODE = 98,
 
     /** MissingNode */
-    PM_MISSING_NODE = 98,
+    PM_MISSING_NODE = 99,
 
     /** ModuleNode */
-    PM_MODULE_NODE = 99,
+    PM_MODULE_NODE = 100,
 
     /** MultiTargetNode */
-    PM_MULTI_TARGET_NODE = 100,
+    PM_MULTI_TARGET_NODE = 101,
 
     /** MultiWriteNode */
-    PM_MULTI_WRITE_NODE = 101,
+    PM_MULTI_WRITE_NODE = 102,
 
     /** NextNode */
-    PM_NEXT_NODE = 102,
+    PM_NEXT_NODE = 103,
 
     /** NilNode */
-    PM_NIL_NODE = 103,
+    PM_NIL_NODE = 104,
 
     /** NoKeywordsParameterNode */
-    PM_NO_KEYWORDS_PARAMETER_NODE = 104,
+    PM_NO_KEYWORDS_PARAMETER_NODE = 105,
+
+    /** NumberedParametersNode */
+    PM_NUMBERED_PARAMETERS_NODE = 106,
 
     /** NumberedReferenceReadNode */
-    PM_NUMBERED_REFERENCE_READ_NODE = 105,
+    PM_NUMBERED_REFERENCE_READ_NODE = 107,
 
     /** OptionalKeywordParameterNode */
-    PM_OPTIONAL_KEYWORD_PARAMETER_NODE = 106,
+    PM_OPTIONAL_KEYWORD_PARAMETER_NODE = 108,
 
     /** OptionalParameterNode */
-    PM_OPTIONAL_PARAMETER_NODE = 107,
+    PM_OPTIONAL_PARAMETER_NODE = 109,
 
     /** OrNode */
-    PM_OR_NODE = 108,
+    PM_OR_NODE = 110,
 
     /** ParametersNode */
-    PM_PARAMETERS_NODE = 109,
+    PM_PARAMETERS_NODE = 111,
 
     /** ParenthesesNode */
-    PM_PARENTHESES_NODE = 110,
+    PM_PARENTHESES_NODE = 112,
 
     /** PinnedExpressionNode */
-    PM_PINNED_EXPRESSION_NODE = 111,
+    PM_PINNED_EXPRESSION_NODE = 113,
 
     /** PinnedVariableNode */
-    PM_PINNED_VARIABLE_NODE = 112,
+    PM_PINNED_VARIABLE_NODE = 114,
 
     /** PostExecutionNode */
-    PM_POST_EXECUTION_NODE = 113,
+    PM_POST_EXECUTION_NODE = 115,
 
     /** PreExecutionNode */
-    PM_PRE_EXECUTION_NODE = 114,
+    PM_PRE_EXECUTION_NODE = 116,
 
     /** ProgramNode */
-    PM_PROGRAM_NODE = 115,
+    PM_PROGRAM_NODE = 117,
 
     /** RangeNode */
-    PM_RANGE_NODE = 116,
+    PM_RANGE_NODE = 118,
 
     /** RationalNode */
-    PM_RATIONAL_NODE = 117,
+    PM_RATIONAL_NODE = 119,
 
     /** RedoNode */
-    PM_REDO_NODE = 118,
+    PM_REDO_NODE = 120,
 
     /** RegularExpressionNode */
-    PM_REGULAR_EXPRESSION_NODE = 119,
+    PM_REGULAR_EXPRESSION_NODE = 121,
 
     /** RequiredKeywordParameterNode */
-    PM_REQUIRED_KEYWORD_PARAMETER_NODE = 120,
+    PM_REQUIRED_KEYWORD_PARAMETER_NODE = 122,
 
     /** RequiredParameterNode */
-    PM_REQUIRED_PARAMETER_NODE = 121,
+    PM_REQUIRED_PARAMETER_NODE = 123,
 
     /** RescueModifierNode */
-    PM_RESCUE_MODIFIER_NODE = 122,
+    PM_RESCUE_MODIFIER_NODE = 124,
 
     /** RescueNode */
-    PM_RESCUE_NODE = 123,
+    PM_RESCUE_NODE = 125,
 
     /** RestParameterNode */
-    PM_REST_PARAMETER_NODE = 124,
+    PM_REST_PARAMETER_NODE = 126,
 
     /** RetryNode */
-    PM_RETRY_NODE = 125,
+    PM_RETRY_NODE = 127,
 
     /** ReturnNode */
-    PM_RETURN_NODE = 126,
+    PM_RETURN_NODE = 128,
 
     /** SelfNode */
-    PM_SELF_NODE = 127,
+    PM_SELF_NODE = 129,
 
     /** SingletonClassNode */
-    PM_SINGLETON_CLASS_NODE = 128,
+    PM_SINGLETON_CLASS_NODE = 130,
 
     /** SourceEncodingNode */
-    PM_SOURCE_ENCODING_NODE = 129,
+    PM_SOURCE_ENCODING_NODE = 131,
 
     /** SourceFileNode */
-    PM_SOURCE_FILE_NODE = 130,
+    PM_SOURCE_FILE_NODE = 132,
 
     /** SourceLineNode */
-    PM_SOURCE_LINE_NODE = 131,
+    PM_SOURCE_LINE_NODE = 133,
 
     /** SplatNode */
-    PM_SPLAT_NODE = 132,
+    PM_SPLAT_NODE = 134,
 
     /** StatementsNode */
-    PM_STATEMENTS_NODE = 133,
+    PM_STATEMENTS_NODE = 135,
 
     /** StringNode */
-    PM_STRING_NODE = 134,
+    PM_STRING_NODE = 136,
 
     /** SuperNode */
-    PM_SUPER_NODE = 135,
+    PM_SUPER_NODE = 137,
 
     /** SymbolNode */
-    PM_SYMBOL_NODE = 136,
+    PM_SYMBOL_NODE = 138,
 
     /** TrueNode */
-    PM_TRUE_NODE = 137,
+    PM_TRUE_NODE = 139,
 
     /** UndefNode */
-    PM_UNDEF_NODE = 138,
+    PM_UNDEF_NODE = 140,
 
     /** UnlessNode */
-    PM_UNLESS_NODE = 139,
+    PM_UNLESS_NODE = 141,
 
     /** UntilNode */
-    PM_UNTIL_NODE = 140,
+    PM_UNTIL_NODE = 142,
 
     /** WhenNode */
-    PM_WHEN_NODE = 141,
+    PM_WHEN_NODE = 143,
 
     /** WhileNode */
-    PM_WHILE_NODE = 142,
+    PM_WHILE_NODE = 144,
 
     /** XStringNode */
-    PM_X_STRING_NODE = 143,
+    PM_X_STRING_NODE = 145,
 
     /** YieldNode */
-    PM_YIELD_NODE = 144,
+    PM_YIELD_NODE = 146,
 
     /** A special kind of node used for compilation. */
     PM_SCOPE_NODE
@@ -1347,7 +1353,7 @@ typedef struct pm_block_node {
     pm_constant_id_list_t locals;
 
     /** BlockNode#parameters */
-    struct pm_block_parameters_node *parameters;
+    struct pm_node *parameters;
 
     /** BlockNode#body */
     struct pm_node *body;
@@ -2610,6 +2616,18 @@ typedef struct pm_implicit_node {
 } pm_implicit_node_t;
 
 /**
+ * ImplicitRestNode
+ *
+ * Type: PM_IMPLICIT_REST_NODE
+ *
+ * @extends pm_node_t
+ */
+typedef struct pm_implicit_rest_node {
+    /** The embedded base node. */
+    pm_node_t base;
+} pm_implicit_rest_node_t;
+
+/**
  * InNode
  *
  * Type: PM_IN_NODE
@@ -3082,7 +3100,7 @@ typedef struct pm_lambda_node {
     pm_location_t closing_loc;
 
     /** LambdaNode#parameters */
-    struct pm_block_parameters_node *parameters;
+    struct pm_node *parameters;
 
     /** LambdaNode#body */
     struct pm_node *body;
@@ -3479,6 +3497,21 @@ typedef struct pm_no_keywords_parameter_node {
 } pm_no_keywords_parameter_node_t;
 
 /**
+ * NumberedParametersNode
+ *
+ * Type: PM_NUMBERED_PARAMETERS_NODE
+ *
+ * @extends pm_node_t
+ */
+typedef struct pm_numbered_parameters_node {
+    /** The embedded base node. */
+    pm_node_t base;
+
+    /** NumberedParametersNode#maximum */
+    uint8_t maximum;
+} pm_numbered_parameters_node_t;
+
+/**
  * NumberedReferenceReadNode
  *
  * Type: PM_NUMBERED_REFERENCE_READ_NODE
@@ -3577,7 +3610,7 @@ typedef struct pm_parameters_node {
     struct pm_node_list optionals;
 
     /** ParametersNode#rest */
-    struct pm_rest_parameter_node *rest;
+    struct pm_node *rest;
 
     /** ParametersNode#posts */
     struct pm_node_list posts;
