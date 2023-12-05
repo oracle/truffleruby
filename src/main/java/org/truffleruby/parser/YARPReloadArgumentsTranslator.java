@@ -12,6 +12,7 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -19,7 +20,6 @@ import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
@@ -80,19 +80,29 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
         RubyNode kwArgsNode = null;
 
         if (parametersNode.keywords.length > 0) {
-            final int keywordCount = parametersNode.keywords.length;
-            RubyNode[] keyValues = new RubyNode[keywordCount * 2];
+            final int keywordsCount = parametersNode.keywords.length;
+            RubyNode[] keysAndValues = new RubyNode[keywordsCount * 2];
 
-            for (int i = 0; i < keywordCount; i++) {
+            for (int i = 0; i < keywordsCount; i++) {
                 // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
-                final Nodes.Node kwArg = parametersNode.keywords[i];
-                final RubyNode value = kwArg.accept(this);
-                var name = ((ReadKeywordArgumentNode) value).getName();
-                RubyNode key = new ObjectLiteralNode(name);
-                keyValues[2 * i] = key;
-                keyValues[2 * i + 1] = value;
+                final Nodes.Node keyword = parametersNode.keywords[i];
+
+                final String name;
+                if (keyword instanceof Nodes.OptionalKeywordParameterNode optional) {
+                    name = optional.name;
+                } else if (keyword instanceof Nodes.RequiredKeywordParameterNode required) {
+                    name = required.name;
+                } else {
+                    throw CompilerDirectives.shouldNotReachHere();
+                }
+
+                final RubyNode nameNode = new ObjectLiteralNode(language.getSymbol(name));
+                final RubyNode readValueNode = keyword.accept(this);
+
+                keysAndValues[2 * i] = nameNode;
+                keysAndValues[2 * i + 1] = readValueNode;
             }
-            kwArgsNode = HashLiteralNode.create(keyValues, language);
+            kwArgsNode = HashLiteralNode.create(keysAndValues, language);
         }
 
         if (parametersNode.keyword_rest != null) {
