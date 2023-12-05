@@ -3,6 +3,7 @@ description: "without exception but with a variable"
 notes: >
   The rescue branch is represented as a RescueStandardErrorNode node
   and assigning a local variable with `$!` global variable.
+yarp_specific: true # an AssignRescueVariableNode node is introduced
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin
@@ -14,7 +15,7 @@ ast: |
   TryNodeGen
       attributes:
           canOmitBacktrace = false
-          flags = 1
+          flags = 0
       children:
           rescueParts = [
               RescueStandardErrorNode
@@ -27,22 +28,21 @@ ast: |
                                   flags = 0
                               children:
                                   body = [
-                                      WriteLocalVariableNode
+                                      AssignRescueVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2 # error
                                           children:
-                                              valueNode =
-                                                  ReadGlobalVariableNodeGen
+                                              rescueVariableNode =
+                                                  WriteLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          name = "$!"
+                                                          frameSlot = 2 # error
                                                       children:
-                                                          lookupGlobalVariableStorageNode =
-                                                              LookupGlobalVariableStorageNodeGen
+                                                          valueNode =
+                                                              DeadNode
                                                                   attributes:
-                                                                      index = -1
-                                                                      name = "$!"
+                                                                      flags = 0
+                                                                      reason = "YARPTranslator#visitLocalVariableWriteNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1

@@ -31,10 +31,6 @@ fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is pars
 fails:Parsing a Rational number (with Float value) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
 fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
-fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / when rescue section is local variable defined in outer scope (... rescue a)) case is parsed correctly
-fails:Parsing a Rescue keyword (with exception and variable) case is parsed correctly
-fails:Parsing a Rescue keyword (with multiple rescue branches) case is parsed correctly
-fails:Parsing a Rescue keyword (without exception but with a variable) case is parsed correctly
 fails:Parsing a Sequence of expressions () case is parsed correctly
 fails:Parsing a String (Literal with interpolation when when expressions are % String literals) case is parsed correctly
 fails:Parsing a String (Literal with interpolation when expressions are Strings) case is parsed correctly

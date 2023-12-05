@@ -59,7 +59,7 @@ ast: |
                                   TryNodeGen
                                       attributes:
                                           canOmitBacktrace = true
-                                          flags = 1
+                                          flags = 0
                                       children:
                                           rescueParts = [
                                               RescueStandardErrorNode
@@ -78,6 +78,6 @@ ast: |
                                               StringLiteralNode
                                                   attributes:
                                                       encoding = UTF-8
-                                                      flags = 0
+                                                      flags = 1
                                                       tstring = foo
                               ]
