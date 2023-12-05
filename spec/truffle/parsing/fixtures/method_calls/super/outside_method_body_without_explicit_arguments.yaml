@@ -60,7 +60,7 @@ ast: |
                                                                   flags = 0
                                   ZSuperOutsideMethodNode
                                       attributes:
-                                          flags = 0
+                                          flags = 1
                                           insideDefineMethod = false
                                       children:
                                           lookupSuperMethodNode =
