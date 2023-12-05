@@ -43,6 +43,7 @@ import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
+import org.truffleruby.core.regexp.MatchDataNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
@@ -1756,9 +1757,67 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return defaultVisit(node);
     }
 
+    // See BodyTranslator#visitMatch2Node
     @Override
     public RubyNode visitMatchWriteNode(Nodes.MatchWriteNode node) {
-        return defaultVisit(node);
+        // node.call already contains an AST for the =~ method call - /.../.=~(s)
+        assert node.call.receiver instanceof Nodes.RegularExpressionNode;
+        assert node.call.name.equals("=~");
+        assert node.call.arguments != null;
+        assert node.call.arguments.arguments.length == 1;
+
+        assert node.targets.length > 0;
+        for (var t : node.targets) {
+            assert t instanceof Nodes.LocalVariableTargetNode;
+        }
+
+        RubyNode matchNode = node.call.accept(this);
+
+        final int numberOfNames = node.targets.length;
+        String[] names = new String[numberOfNames];
+
+        for (int i = 0; i < numberOfNames; i++) {
+            names[i] = ((Nodes.LocalVariableTargetNode) node.targets[i]).name;
+        }
+
+        final RubyNode[] setters = new RubyNode[numberOfNames];
+        final RubyNode[] nilSetters = new RubyNode[numberOfNames];
+        final int tempSlot = environment.declareLocalTemp("match_data");
+        final var sourceSection = new SourceIndexLength(node.startOffset, node.length);
+
+        for (int i = 0; i < numberOfNames; i++) {
+            final String name = names[i];
+
+            TranslatorEnvironment environmentToDeclareIn = environment;
+
+            // TODO: use Nodes.LocalVariableTargetNode#depth field
+            while (!environmentToDeclareIn.hasOwnScopeForAssignments()) {
+                environmentToDeclareIn = environmentToDeclareIn.getParent();
+            }
+            environmentToDeclareIn.declareVar(name);
+            nilSetters[i] = match2NilSetter(name, sourceSection);
+            setters[i] = match2NonNilSetter(name, tempSlot, sourceSection);
+        }
+
+        final RubyNode readNode = ReadGlobalVariableNodeGen.create("$~");
+        final ReadLocalNode tempVarReadNode = environment.readNode(tempSlot, sourceSection);
+        final RubyNode readMatchDataNode = tempVarReadNode.makeWriteNode(readNode);
+        final RubyNode rubyNode = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(matchNode, readMatchDataNode,
+                setters, nilSetters);
+
+        return assignPositionAndFlags(node, rubyNode);
+    }
+
+    private RubyNode match2NilSetter(String name, SourceIndexLength position) {
+        return environment.findLocalVarNode(name, position).makeWriteNode(new NilLiteralNode());
+    }
+
+    private RubyNode match2NonNilSetter(String name, int tempSlot, SourceIndexLength position) {
+        ReadLocalNode varNode = environment.findLocalVarNode(name, position);
+        ReadLocalNode tempVarNode = environment.readNode(tempSlot, position);
+        MatchDataNodes.GetFixedNameMatchNode getIndexNode = new MatchDataNodes.GetFixedNameMatchNode(tempVarNode,
+                language.getSymbol(name));
+        return varNode.makeWriteNode(getIndexNode);
     }
 
     @Override

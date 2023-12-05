@@ -9,7 +9,7 @@ ruby: |
 ast: |
   ReadMatchReferenceNodes$SetNamedVariablesMatchNode
       attributes:
-          flags = 0
+          flags = 1
       children:
           matchDataNode =
               RubyCallNode
@@ -17,7 +17,7 @@ ast: |
                       descriptor = NoKeywordArgumentsDescriptor
                       dispatchConfig = PROTECTED
                       emptyKeywordsProfile = false
-                      flags = 1
+                      flags = 0
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
