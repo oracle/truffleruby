@@ -109,12 +109,12 @@ static inline bool rb_tr_exception_from_java(void) {
 }
 
 RBIMPL_ATTR_NORETURN()
-static inline void rb_tr_exception_from_java_jump(void) {
+static inline void rb_tr_exception_from_java_jump(const char *function) {
   if (LIKELY(rb_tr_jmp_buf != NULL)) {
     // fprintf(stderr, "There was an exception, longjmp()'ing");
     RUBY_LONGJMP(*rb_tr_jmp_buf, 1);
   } else {
-    fprintf(stderr, "ERROR: There was an exception in Java but rb_tr_jmp_buf is NULL.");
+    fprintf(stderr, "ERROR: There was a Java exception when returning from %s() but rb_tr_jmp_buf is NULL.", function);
     abort();
   }
 }
@@ -217,7 +217,7 @@ C
       else
         f.puts "  if (UNLIKELY(rb_tr_exception_from_java())) {"
       end
-      f.puts "    rb_tr_exception_from_java_jump();"
+      f.puts "    rb_tr_exception_from_java_jump(#{function_name.dump});"
       f.puts "  }"
       f.puts "  UNREACHABLE;" if no_return
     else
@@ -229,7 +229,7 @@ C
       end
       f.puts "  #{return_type} _result = impl_#{function_name}(#{argument_names});"
       f.puts "  if (UNLIKELY(rb_tr_exception_from_java())) {"
-      f.puts "    rb_tr_exception_from_java_jump();"
+      f.puts "    rb_tr_exception_from_java_jump(#{function_name.dump});"
       f.puts "  }"
       f.puts "  return _result;"
     end
