@@ -1,7 +1,10 @@
 fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
 fails:Parsing a END block (END { ... }) case is parsed correctly
 fails:Parsing a Encoding keyword (__ENCODING__ keyword) case is parsed correctly
+
+# no EmitWarningsNode node in the begin block
 fails:Parsing a begin ... end block (with multiple expressions inside a block) case is parsed correctly
+
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Float is represented as `Complext.convert(0, Rational.convert(b*100, 100))` where 100 is some power of 10 to convert b to Integer) case is parsed correctly
 fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
 fails:Parsing a &&= (Assign an attribute local variable (a.b &&= c)) case is parsed correctly
@@ -14,9 +17,12 @@ fails:Parsing a &&= (Variable assignment/global variable ($a &&= b)) case is par
 fails:Parsing a &&= (Variable assignment/instance variable (@a &&= b)) case is parsed correctly
 fails:Parsing a &&= (Variable assignment/local variable (a &&= b)) case is parsed correctly
 fails:Parsing a Match (=~ operator/with Regexp literal as a LHS without interpolation and with named capture groups) case is parsed correctly
+
+# no EmitWarningsNode node for parentheses operator
 fails:Parsing a Parentheses operator (empty) case is parsed correctly
 fails:Parsing a Parentheses operator (with multiple expressions, e.g. (1; 2; 3)) case is parsed correctly
 fails:Parsing a Parentheses operator (with single expression) case is parsed correctly
+
 fails:Parsing a ||= (Assign an attribute of a local variable (a.b ||= c)) case is parsed correctly
 fails:Parsing a ||= (Assign an referenced element (a[b] ||= c)) case is parsed correctly
 fails:Parsing a ||= (Assign an element referenced with multiple indexes (a[b, c, d] ||= e)) case is parsed correctly
@@ -24,8 +30,6 @@ fails:Parsing a ||= (Variable assignment/constant (A ||= b)) case is parsed corr
 fails:Parsing a ||= (Variable assignment/fully qualified constant (::A ||= b)) case is parsed correctly
 fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is parsed correctly
 fails:Parsing a Rational number (with Float value) case is parsed correctly
-fails:Parsing a Regexp (Regexp literal in boolean context (e.g. condition in if, while, etc)) case is parsed correctly
-fails:Parsing a Regexp (Regexp literal in boolean context with interpolation (e.g. condition in if, while, etc)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Range (... rescue 1..3)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / disabled / when rescue section is Regexp (... rescue /a/)) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly

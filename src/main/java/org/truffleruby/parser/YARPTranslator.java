@@ -1544,7 +1544,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInterpolatedMatchLastLineNode(Nodes.InterpolatedMatchLastLineNode node) {
-        return defaultVisit(node);
+        // replace regexp with /.../ =~ $_
+
+        final var regexp = new Nodes.InterpolatedRegularExpressionNode(node.parts, node.flags, node.startOffset,
+                node.length);
+        final var regexpNode = regexp.accept(this);
+
+        final var lastLineNode = ReadGlobalVariableNodeGen.create("$_");
+        final RubyNode[] arguments = new RubyNode[]{ lastLineNode };
+
+        final RubyNode rubyNode = createCallNode(false, regexpNode, "=~", arguments);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
@@ -1724,7 +1734,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitMatchLastLineNode(Nodes.MatchLastLineNode node) {
-        return defaultVisit(node);
+        // replace regexp with /.../ =~ $_
+
+        final var regexp = new Nodes.RegularExpressionNode(node.unescaped, node.flags, node.startOffset, node.length);
+        final var regexpNode = regexp.accept(this);
+
+        final var lastLineNode = ReadGlobalVariableNodeGen.create("$_");
+        final RubyNode[] arguments = new RubyNode[]{ lastLineNode };
+
+        final RubyNode rubyNode = createCallNode(false, regexpNode, "=~", arguments);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
@@ -2634,13 +2653,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected RubyContextSourceNode createCallNode(RubyNode receiver, String method, RubyNode... arguments) {
+        return createCallNode(true, receiver, method, arguments);
+    }
+
+    protected RubyContextSourceNode createCallNode(boolean ignoreVisibility, RubyNode receiver, String method,
+            RubyNode... arguments) {
         var parameters = new RubyCallNodeParameters(
                 receiver,
                 method,
                 null,
                 NoKeywordArgumentsDescriptor.INSTANCE,
                 arguments,
-                true);
+                ignoreVisibility);
         return language.coreMethodAssumptions.createCallNode(parameters);
     }
 
