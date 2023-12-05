@@ -439,8 +439,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     @Override
-    public RubyNode visitBlockArgumentNode(Nodes.BlockArgumentNode node) {
-        return defaultVisit(node);
+    public RubyNode visitBlockLocalVariableNode(Nodes.BlockLocalVariableNode node) {
+        return super.visitBlockLocalVariableNode(node);
     }
 
     @Override
@@ -752,6 +752,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitCapturePatternNode(Nodes.CapturePatternNode node) {
         return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitCaseMatchNode(Nodes.CaseMatchNode node) {
+        return super.visitCaseMatchNode(node);
     }
 
     @Override
@@ -1442,6 +1447,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitImplicitNode(Nodes.ImplicitNode node) {
         return defaultVisit(node);
+    }
+
+    @Override
+    public RubyNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        return super.visitImplicitRestNode(node);
     }
 
     @Override
