@@ -29,8 +29,6 @@ fails:Parsing a ||= (Variable assignment/constant (A ||= b)) case is parsed corr
 fails:Parsing a ||= (Variable assignment/fully qualified constant (::A ||= b)) case is parsed correctly
 fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is parsed correctly
 fails:Parsing a Rational number (with Float value) case is parsed correctly
-fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
-fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
 fails:Parsing a Sequence of expressions () case is parsed correctly
 fails:Parsing a += (Assign an attribute local variable (a.b += c)) case is parsed correctly
 fails:Parsing a += (Assign an referenced element (a[b] += c)) case is parsed correctly

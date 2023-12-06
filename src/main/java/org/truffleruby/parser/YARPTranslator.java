@@ -2735,6 +2735,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return node instanceof Nodes.InstanceVariableReadNode ||
                 node instanceof Nodes.LocalVariableReadNode ||
                 node instanceof Nodes.ClassVariableReadNode ||
+                node instanceof Nodes.SourceFileNode ||
                 node instanceof Nodes.StringNode ||
                 node instanceof Nodes.SymbolNode ||
                 node instanceof Nodes.IntegerNode ||
