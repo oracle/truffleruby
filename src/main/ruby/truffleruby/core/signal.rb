@@ -84,9 +84,8 @@ module Signal
 
     signame = self.signame(number)
 
-    if signame == 'VTALRM'
-      # Used internally to unblock native calls, like MRI
-      raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
+    if %w[SEGV BUS ILL FPE VTALRM].include?(signame)
+      raise ArgumentError, "can't trap reserved signal: SIG#{signame}"
     end
 
     handler ||= block
