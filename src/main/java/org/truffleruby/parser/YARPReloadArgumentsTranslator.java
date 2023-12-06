@@ -21,7 +21,6 @@ import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
-import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 
 
@@ -106,21 +105,32 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
         }
 
         if (parametersNode.keyword_rest != null) {
-            // Nodes.KeywordRestParameterNode/Nodes.NoKeywordsParameterNode are expected here
-            final RubyNode keyRest = parametersNode.keyword_rest.accept(this);
-            if (kwArgsNode == null) {
-                kwArgsNode = keyRest;
-            } else {
-                kwArgsNode = new ConcatHashLiteralNode(new RubyNode[]{ kwArgsNode, keyRest });
-            }
+            if (parametersNode.keyword_rest instanceof Nodes.KeywordRestParameterNode) {
+                final RubyNode keyRest = parametersNode.keyword_rest.accept(this);
 
+                if (kwArgsNode == null) {
+                    kwArgsNode = keyRest;
+                } else {
+                    kwArgsNode = new ConcatHashLiteralNode(new RubyNode[]{ kwArgsNode, keyRest });
+                }
+            } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
+                // do nothing
+            } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+                // presence of ... means there are no explicit keyword arguments
+                sequence.add(parametersNode.keyword_rest.accept(this));
+
+                // but there will be desugared rest parameter
+                restParameterIndex = parametersNode.requireds.length + parametersNode.optionals.length;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
         }
 
         if (kwArgsNode != null) {
             sequence.add(kwArgsNode);
         }
 
-        return sequence.toArray(RubyNode.EMPTY_ARRAY);
+        return Translator.flatten(sequence, true).toArray(RubyNode.EMPTY_ARRAY);
     }
 
     @Override
@@ -141,7 +151,8 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
 
     @Override
     public RubyNode visitRestParameterNode(Nodes.RestParameterNode node) {
-        return yarpTranslator.getEnvironment().findLocalVarNode(node.name, null);
+        final String name = node.name != null ? node.name : TranslatorEnvironment.DEFAULT_REST_NAME;
+        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
     }
 
     @Override
@@ -156,7 +167,8 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
 
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
-        return yarpTranslator.getEnvironment().findLocalVarNode(node.name, null);
+        final String name = node.name != null ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
     }
 
     @Override
@@ -165,9 +177,25 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
     }
 
     @Override
+    public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
+        ArrayList<RubyNode> sequence = new ArrayList<>();
+
+        // ... was desugared to *, ** and & parameters
+        // NOTE: don't handle '&' for now as far as anonymous & isn't supported yet
+        final var readRest = yarpTranslator.getEnvironment().findLocalVarNode(TranslatorEnvironment.FORWARDED_REST_NAME,
+                null);
+        final var readKeyRest = yarpTranslator.getEnvironment()
+                .findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
+
+        sequence.add(readRest);
+        sequence.add(readKeyRest);
+
+        return YARPTranslator.sequence(sequence);
+    }
+
+    @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
-        var nilNode = new NilLiteralNode();
-        return YARPTranslator.assignPositionAndFlags(node, nilNode);
+        return yarpTranslator.defaultVisit(node);
     }
 
 }

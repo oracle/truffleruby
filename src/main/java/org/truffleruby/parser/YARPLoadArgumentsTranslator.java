@@ -124,7 +124,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         }
 
         if (parametersNode.keyword_rest != null) {
-            // Nodes.KeywordRestParameterNode/Nodes.NoKeywordsParameterNode are expected here
+            // Nodes.KeywordRestParameterNode/Nodes.NoKeywordsParameterNode/Nodes.ForwardingParameterNode are expected here
             sequence.add(parametersNode.keyword_rest.accept(this));
         }
 
