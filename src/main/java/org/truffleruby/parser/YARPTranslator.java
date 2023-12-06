@@ -2148,7 +2148,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSourceEncodingNode(Nodes.SourceEncodingNode node) {
-        return defaultVisit(node);
+        final RubyNode rubyNode = new ObjectLiteralNode(sourceEncoding);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override

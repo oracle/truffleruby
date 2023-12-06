@@ -1,6 +1,5 @@
 fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
 fails:Parsing a END block (END { ... }) case is parsed correctly
-fails:Parsing a Encoding keyword (__ENCODING__ keyword) case is parsed correctly
 
 # no EmitWarningsNode node in the begin block
 fails:Parsing a begin ... end block (with multiple expressions inside a block) case is parsed correctly
