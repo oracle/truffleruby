@@ -583,12 +583,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final boolean isAttrAssign = isAttrAssign(node.name);
         final boolean isSafeNavigation = node.isSafeNavigation();
 
-        // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
-        if (argumentsAndBlock.isSplatted() && translatedArguments.length == 1 &&
-                translatedArguments[0] instanceof SplatCastNode splatNode) {
-            splatNode.doNotCopy();
-        }
-
         if (environment.getParseEnvironment().inCore() && isVariableCall && methodName.equals("undefined")) {
             // translate undefined
             final RubyNode rubyNode = new ObjectLiteralNode(NotProvided.INSTANCE);
@@ -664,6 +658,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             translatedArguments = new RubyNode[]{ translateExpressionsList(arguments) };
         } else {
             translatedArguments = translate(arguments);
+        }
+
+        // No need to copy the array for call(*splat), the elements will be copied to the frame arguments
+        if (isSplatted && translatedArguments.length == 1 &&
+                translatedArguments[0] instanceof SplatCastNode splatNode) {
+            splatNode.doNotCopy();
         }
 
         final RubyNode blockNode;

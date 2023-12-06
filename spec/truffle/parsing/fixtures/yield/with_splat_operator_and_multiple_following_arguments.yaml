@@ -4,7 +4,7 @@ notes: >
   It's represented with YieldExpressionNode.
   
   Mixing of a splat operator and positional arguments is represented with
-  ArrayAppendOneNodeGen.
+  ArrayConcatNode.
   
   In a simplified form arguments AST looks like the following:
   
@@ -12,15 +12,15 @@ notes: >
           SplatCastNodeGen
               RubyCallNode(methodName = foo)
   
-          SplatCastNodeGen
-              ArrayLiteralNode$UninitialisedArrayLiteralNode
-                  [
-                      RubyCallNode(methodName = bar)
-                      RubyCallNode(methodName = baz)
-                  ]
+          ArrayLiteralNode$UninitialisedArrayLiteralNode
+              [
+                  RubyCallNode(methodName = bar)
+                  RubyCallNode(methodName = baz)
+              ]
 
   That is equivalent to a Ruby expression:
       *foo + [bar, baz]
+yarp_specific: true # removed excessive SplatCastNodeGen to convert to array ArrayLiteralNode$UninitialisedArrayLiteralNode
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def a
@@ -120,59 +120,51 @@ ast: |
                                                                                   SelfNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                          SplatCastNodeGen
+                                                          ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                               attributes:
-                                                                  conversionMethod = :to_a
-                                                                  copy = true
                                                                   flags = 0
-                                                                  nilBehavior = CONVERT
+                                                                  language = org.truffleruby.RubyLanguage@...
                                                               children:
-                                                                  childNode_ =
-                                                                      ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                                                  values = [
+                                                                      RubyCallNode
                                                                           attributes:
+                                                                              descriptor = NoKeywordArgumentsDescriptor
+                                                                              dispatchConfig = PRIVATE
+                                                                              emptyKeywordsProfile = false
                                                                               flags = 0
-                                                                              language = org.truffleruby.RubyLanguage@...
+                                                                              isAttrAssign = false
+                                                                              isSafeNavigation = false
+                                                                              isSplatted = false
+                                                                              isVCall = true
+                                                                              lastArgIsNotHashProfile = false
+                                                                              methodName = "bar"
+                                                                              notEmptyKeywordsProfile = false
+                                                                              notRuby2KeywordsHashProfile = false
                                                                           children:
-                                                                              values = [
-                                                                                  RubyCallNode
+                                                                              receiver =
+                                                                                  SelfNode
                                                                                       attributes:
-                                                                                          descriptor = NoKeywordArgumentsDescriptor
-                                                                                          dispatchConfig = PRIVATE
-                                                                                          emptyKeywordsProfile = false
                                                                                           flags = 0
-                                                                                          isAttrAssign = false
-                                                                                          isSafeNavigation = false
-                                                                                          isSplatted = false
-                                                                                          isVCall = true
-                                                                                          lastArgIsNotHashProfile = false
-                                                                                          methodName = "bar"
-                                                                                          notEmptyKeywordsProfile = false
-                                                                                          notRuby2KeywordsHashProfile = false
-                                                                                      children:
-                                                                                          receiver =
-                                                                                              SelfNode
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                  RubyCallNode
+                                                                      RubyCallNode
+                                                                          attributes:
+                                                                              descriptor = NoKeywordArgumentsDescriptor
+                                                                              dispatchConfig = PRIVATE
+                                                                              emptyKeywordsProfile = false
+                                                                              flags = 0
+                                                                              isAttrAssign = false
+                                                                              isSafeNavigation = false
+                                                                              isSplatted = false
+                                                                              isVCall = true
+                                                                              lastArgIsNotHashProfile = false
+                                                                              methodName = "baz"
+                                                                              notEmptyKeywordsProfile = false
+                                                                              notRuby2KeywordsHashProfile = false
+                                                                          children:
+                                                                              receiver =
+                                                                                  SelfNode
                                                                                       attributes:
-                                                                                          descriptor = NoKeywordArgumentsDescriptor
-                                                                                          dispatchConfig = PRIVATE
-                                                                                          emptyKeywordsProfile = false
                                                                                           flags = 0
-                                                                                          isAttrAssign = false
-                                                                                          isSafeNavigation = false
-                                                                                          isSplatted = false
-                                                                                          isVCall = true
-                                                                                          lastArgIsNotHashProfile = false
-                                                                                          methodName = "baz"
-                                                                                          notEmptyKeywordsProfile = false
-                                                                                          notRuby2KeywordsHashProfile = false
-                                                                                      children:
-                                                                                          receiver =
-                                                                                              SelfNode
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                              ]
+                                                                  ]
                                                       ]
                                           ]
                                           readBlockNode =

@@ -32,11 +32,6 @@ fails:Parsing a Rational number (with Float value) case is parsed correctly
 fails:Parsing a Rescue keyword (backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
 fails:Parsing a Rescue keyword (modifier / backtrace optimization / enabled / when rescue section is __FILE__ constant (... rescue __FILE__)) case is parsed correctly
 fails:Parsing a Sequence of expressions () case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator (yield *a)) case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator with multiple following positional arguments (yield *a, b, c)) case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator with multiple preceding and following positional arguments (yield a, *b, c)) case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator with a single following positional argument (yield *a, b)) case is parsed correctly
-fails:Parsing a Yield (yield operator with splat operator with a single preceding and following positional argument (yield a, *b, c)) case is parsed correctly
 fails:Parsing a += (Assign an attribute local variable (a.b += c)) case is parsed correctly
 fails:Parsing a += (Assign an referenced element (a[b] += c)) case is parsed correctly
 fails:Parsing a += (Assign an element referenced with multiple indexes (a[b, c, d] += e)) case is parsed correctly

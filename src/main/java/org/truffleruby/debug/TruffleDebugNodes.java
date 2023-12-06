@@ -1466,7 +1466,7 @@ public abstract class TruffleDebugNodes {
             try {
                 rootNode = parse(code);
             } catch (Error e) {
-                if (e.getMessage().contains("does not know how to translate")) {
+                if (e.getMessage() != null && e.getMessage().contains("does not know how to translate")) {
                     throw new RaiseException(getContext(), coreExceptions().runtimeError(e.getMessage(), this));
                 } else {
                     throw e;
