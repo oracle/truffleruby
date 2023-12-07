@@ -8,7 +8,7 @@ ruby: |
 ast: |
   WriteConstantNode
       attributes:
-          flags = 1
+          flags = 0
           name = "FOO"
       children:
           moduleNode =

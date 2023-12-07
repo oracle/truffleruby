@@ -8,7 +8,7 @@ ruby: |
 ast: |
   OrAssignConstantNodeGen
       attributes:
-          flags = 0
+          flags = 1
           writeTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
       children:
           readConstant =

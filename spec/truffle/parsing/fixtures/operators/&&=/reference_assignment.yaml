@@ -69,7 +69,7 @@ ast: |
                                               flags = 0
               AndNodeGen
                   attributes:
-                      flags = 1
+                      flags = 0
                   children:
                       left =
                           InlinedIndexGetNodeGen
