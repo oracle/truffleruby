@@ -724,6 +724,12 @@ void rb_io_set_nonblock(rb_io_t *fptr);
  */
 int rb_io_descriptor(VALUE io);
 
+#ifdef TRUFFLERUBY
+// These functions come from 3.3 but truffleruby already implements them
+VALUE rb_io_path(VALUE io);
+int rb_io_mode(VALUE io);
+#endif
+
 /**
  * This function  breaks down the  option hash that `IO#initialize`  takes into
  * components.   This is  an implementation  detail of  rb_io_extract_modeenc()
