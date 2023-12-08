@@ -11,3 +11,5 @@ spec/ruby/core/nil/nil_spec.rb
 
 spec/ruby/core/warning/element_reference_spec.rb
 spec/ruby/core/warning/element_set_spec.rb
+
+spec/ruby/optional/capi/io_spec.rb
