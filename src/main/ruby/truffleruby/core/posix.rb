@@ -215,7 +215,7 @@ module Truffle::POSIX
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
   # blocking=false for both poll because the timeout needs to be decreased on EINTR
-  attach_function :truffleposix_poll_single_fd, [:pointer, :long, :int], :int, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_poll_single_fd, [:int, :int, :int], :int, LIBTRUFFLEPOSIX
   attach_function :poll, [:pointer, :long, :int], :int
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
