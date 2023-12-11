@@ -34,7 +34,7 @@ public class CoreModuleChecks {
         this.processor = processor;
     }
 
-    void checks(int[] lowerFixnum, CoreMethod coreMethod, TypeElement klass, boolean hasZeroArgument) {
+    void checks(int[] lowerFixnum, CoreMethod coreMethod, TypeElement klass, boolean hasSelfArgument) {
         byte[] lowerArgs = null;
         List<ExecutableElement> specializationMethods = new ArrayList<>();
 
@@ -54,13 +54,11 @@ public class CoreModuleChecks {
                 specializationMethods.add(specializationMethod);
 
                 lowerArgs = checkLowerFixnumArguments(specializationMethod, lowerArgs);
-                if (coreMethod != null) {
-                    checkAmbiguousOptionalArguments(
-                            coreMethod,
-                            specializationMethod,
-                            specializationAnnotation);
-                }
 
+                if (coreMethod != null) {
+                    checkCoreMethodArguments(coreMethod, specializationMethod, specializationAnnotation,
+                            hasSelfArgument);
+                }
             }
 
             klassIt = processor
@@ -81,8 +79,8 @@ public class CoreModuleChecks {
         // Verify against the lowerFixnum annotation
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long
-            if (shouldLower && !contains(lowerFixnum, hasZeroArgument ? i : i + 1)) {
-                processor.error("should use lowerFixnum for argument " + (hasZeroArgument ? i : i + 1), klass);
+            if (shouldLower && !contains(lowerFixnum, hasSelfArgument ? i : i + 1)) {
+                processor.error("should use lowerFixnum for argument " + (hasSelfArgument ? i : i + 1), klass);
             }
         }
     }
@@ -133,10 +131,11 @@ public class CoreModuleChecks {
         return false;
     }
 
-    private void checkAmbiguousOptionalArguments(
+    private void checkCoreMethodArguments(
             CoreMethod coreMethod,
             ExecutableElement specializationMethod,
-            Specialization specializationAnnotation) {
+            Specialization specializationAnnotation,
+            boolean hasSelfArgument) {
         List<? extends VariableElement> parameters = specializationMethod.getParameters();
         int n = getLastParameterIndex(parameters);
 
@@ -145,21 +144,24 @@ public class CoreModuleChecks {
                 processor.error("last argument must be a RootCallTarget for alwaysInlined ", specializationMethod);
                 return;
             }
-            n--;
+            // All other arguments are packed as Object[]
+            return;
         }
 
-        if (coreMethod.needsBlock() && !coreMethod.alwaysInlined()) {
+        final int parametersCount = getParametersCount(parameters);
+        int expectedParametersCount = coreMethod.required() + coreMethod.optional();
+        if (hasSelfArgument) {
+            expectedParametersCount++;
+        }
+
+        if (coreMethod.needsBlock()) {
             if (n < 0) {
                 processor.error("invalid block method parameter position for", specializationMethod);
                 return;
             }
             checkParameterBlock(parameters.get(n));
             n--; // Ignore block argument.
-        }
-
-        if (coreMethod.alwaysInlined()) {
-            // All other arguments are packed as Object[]
-            return;
+            expectedParametersCount++;
         }
 
         if (coreMethod.rest()) {
@@ -173,6 +175,13 @@ public class CoreModuleChecks {
                 return;
             }
             n--; // ignore final Object[] argument
+            expectedParametersCount++;
+        }
+
+        if (parametersCount != expectedParametersCount) {
+            processor.error("expected " + expectedParametersCount + " parameters for this @CoreMethod but there are " +
+                    parametersCount, specializationMethod);
+            return;
         }
 
         for (int i = 0; i < coreMethod.optional(); i++, n--) {
@@ -219,6 +228,25 @@ public class CoreModuleChecks {
             n--;
         }
         return n;
+    }
+
+    private int getParametersCount(List<? extends VariableElement> parameters) {
+        int last = getLastParameterIndex(parameters);
+        int count = last + 1;
+
+        if (count > 0) {
+            var type = parameters.get(0).asType();
+            if (processor.isSameType(type, processor.nodeType)) {
+                if (processor.isSameType(type, processor.virtualFrameType)) {
+                    return count - 2;
+                } else {
+                    return count - 1;
+                }
+            } else if (processor.isSameType(type, processor.virtualFrameType)) {
+                return count - 1;
+            }
+        }
+        return count;
     }
 
     private void checkParameterUnguarded(Specialization specializationAnnotation, VariableElement parameter) {

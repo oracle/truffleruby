@@ -93,6 +93,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
     TypeMirror rubyProcType;
     TypeMirror rootCallTargetType;
     // node types
+    TypeMirror nodeType;
     TypeMirror rubyNodeType;
     TypeMirror rubyBaseNodeType;
     TypeMirror primitiveNodeType;
@@ -108,6 +109,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
         notProvidedType = elementUtils.getTypeElement("org.truffleruby.language.NotProvided").asType();
         rubyProcType = elementUtils.getTypeElement("org.truffleruby.core.proc.RubyProc").asType();
         rootCallTargetType = elementUtils.getTypeElement("com.oracle.truffle.api.RootCallTarget").asType();
+        nodeType = elementUtils.getTypeElement("com.oracle.truffle.api.nodes.Node").asType();
         rubyNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyNode").asType();
         rubyBaseNodeType = elementUtils.getTypeElement("org.truffleruby.language.RubyBaseNode").asType();
         primitiveNodeType = elementUtils.getTypeElement("org.truffleruby.builtins.PrimitiveNode").asType();
@@ -188,15 +190,11 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                         if (coreMethod != null) {
                             // Do not use needsSelf=true in module functions, it is either the module/class or the instance.
                             // Usage of needsSelf is quite rare for singleton methods (except constructors).
-                            boolean needsSelf = coreMethod.constructor() ||
+                            boolean hasSelfArgument = coreMethod.constructor() ||
                                     (!coreMethod.isModuleFunction() && !coreMethod.onSingleton() &&
                                             coreMethod.needsSelf());
 
-                            CoreMethod checkAmbiguous = !coreMethod.alwaysInlined() &&
-                                    (coreMethod.optional() > 0 || coreMethod.needsBlock())
-                                            ? coreMethod
-                                            : null;
-                            coreModuleChecks.checks(coreMethod.lowerFixnum(), checkAmbiguous, klass, needsSelf);
+                            coreModuleChecks.checks(coreMethod.lowerFixnum(), coreMethod, klass, hasSelfArgument);
                             if (!inherits(e.asType(), coreMethodNodeType) &&
                                     !inherits(e.asType(), alwaysInlinedMethodNodeType)) {
                                 error(e +
@@ -204,7 +202,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
                                         e);
                             }
                             processCoreMethod(stream, rubyStream, coreModuleElement, coreModule, klass, coreMethod,
-                                    needsSelf);
+                                    hasSelfArgument);
                         }
                     }
                 }
@@ -287,7 +285,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
             CoreModule coreModule,
             TypeElement klass,
             CoreMethod coreMethod,
-            boolean needsSelf) {
+            boolean hasSelfArgument) {
         final StringJoiner names = new StringJoiner(", ");
         for (String name : coreMethod.names()) {
             names.add(quote(name));
@@ -312,7 +310,7 @@ public class CoreModuleProcessor extends TruffleRubyProcessor {
 
         int numberOfArguments = getNumberOfArguments(coreMethod);
         String[] argumentNamesFromAnnotation = coreMethod.argumentNames();
-        final List<String> argumentNames = getArgumentNames(klass, argumentNamesFromAnnotation, needsSelf,
+        final List<String> argumentNames = getArgumentNames(klass, argumentNamesFromAnnotation, hasSelfArgument,
                 coreMethod.alwaysInlined(),
                 numberOfArguments);
 
