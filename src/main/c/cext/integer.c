@@ -101,7 +101,7 @@ int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, 
     long l = NUM2LONG(value);
     sign = (l > 0) - (l < 0);
   } else {
-    sign = polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(value), "<=>", 0));
+    sign = polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_int_cmp", value, INT2FIX(0)));
   }
   int bytes_needed = size / 8 + (size % 8 == 0 ? 0 : 1);
   int words_needed = bytes_needed / wordsize + (bytes_needed % wordsize == 0 ? 0 : 1);

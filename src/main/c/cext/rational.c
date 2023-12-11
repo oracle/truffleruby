@@ -33,9 +33,9 @@ VALUE rb_rational_den(VALUE rat) {
 }
 
 VALUE rb_flt_rationalize_with_prec(VALUE value, VALUE precision) {
-  return RUBY_INVOKE(value, "rationalize", precision);
+  return RUBY_CEXT_INVOKE("rb_flt_rationalize_with_prec", value, precision);
 }
 
 VALUE rb_flt_rationalize(VALUE value) {
-    return RUBY_INVOKE(value, "rationalize");
+    return RUBY_CEXT_INVOKE("rb_flt_rationalize", value);
 }

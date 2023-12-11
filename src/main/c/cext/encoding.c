@@ -219,7 +219,7 @@ int rb_enc_to_index(rb_encoding *enc) {
 }
 
 VALUE rb_obj_encoding(VALUE obj) {
-  return RUBY_INVOKE(obj, "encoding");
+  return RUBY_CEXT_INVOKE("rb_obj_encoding", obj);
 }
 
 int rb_to_encoding_index(VALUE enc) {

@@ -48,7 +48,7 @@ VALUE rb_class_of(VALUE object) {
 }
 
 VALUE rb_singleton_class(VALUE object) {
-  return RUBY_INVOKE(object, "singleton_class");
+  return RUBY_CEXT_INVOKE("rb_singleton_class", object);
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {

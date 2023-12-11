@@ -424,14 +424,42 @@ module Truffle::CExt
     end
   end
 
+  def rb_obj_clone(object)
+    object.clone
+  end
+
+  def rb_obj_dup(object)
+    object.dup
+  end
+
+  def rb_obj_encoding(object)
+    object.encoding
+  end
+
   FREEZE_METHOD = Kernel.instance_method :freeze
 
   def rb_obj_freeze(obj)
     FREEZE_METHOD.bind(obj).call
   end
 
+  def rb_obj_frozen_p(object)
+    object.frozen?
+  end
+
+  def rb_obj_id(object)
+    object.object_id
+  end
+
   def rb_float_new(value)
     value.to_f
+  end
+
+  def rb_flt_rationalize(value)
+    value.rationalize
+  end
+
+  def rb_flt_rationalize_with_prec(value, prec)
+    value.rationalize(prec)
   end
 
   def rb_absint_singlebit_p(val)
@@ -554,6 +582,10 @@ module Truffle::CExt
 
   def rb_class_of(object)
     Primitive.metaclass(object)
+  end
+
+  def rb_singleton_class(object)
+    object.singleton_class
   end
 
   def rb_class_real(ruby_class)
@@ -842,6 +874,10 @@ module Truffle::CExt
 
   def rb_intern(str)
     Primitive.string_to_symbol(str, true)
+  end
+
+  def rb_int_cmp(a, b)
+    a <=> b
   end
 
   def rb_int_positive_pow(a, b)
@@ -1377,6 +1413,10 @@ module Truffle::CExt
 
   def rb_equal(a, b)
     Primitive.same_or_equal?(a, b)
+  end
+
+  def rb_tr_obj_equal(a, b)
+    Primitive.equal?(a, b)
   end
 
   def rb_obj_call_init(obj, args, block)
