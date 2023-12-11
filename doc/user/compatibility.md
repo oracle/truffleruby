@@ -141,15 +141,15 @@ Error message strings will sometimes differ from MRI, as these are not generally
 
 ### Signals
 
-The set of signals that TruffleRuby can handle is different from MRI.
-When using the native configuration, TruffleRuby allows trapping all the same signals that MRI does, as well as a few that MRI does not.
-The only signals that can't be trapped are `KILL`, `STOP`, and `VTALRM`.
+First, `KILL` and `STOP` can never be trapped, per POSIX (`man 2 signal`).
+Some signals are reserved on CRuby, and they are also reserved on TruffleRuby, because trapping those would cause all sorts of problems: `SEGV`, `BUS`, `ILL`, `FPE` and `VTALRM`.
+
+When using the native configuration, TruffleRuby allows trapping all the same signals that MRI does.
 Consequently, any signal handling code that runs on MRI can run on TruffleRuby without modification in the native configuration.
 
-However, when run on the JVM, TruffleRuby is unable to trap `USR1` or `QUIT`, as these signals are reserved by the JVM.
-In such a case `trap(:USR1) {}` will raise an `ArgumentError`.
-Any code that relies on being able to trap those signals will need to fall back to another available signal.
-Additionally, `FPE`, `ILL`, `KILL`, `SEGV`, `STOP`, and `VTALRM` cannot be trapped, but these signals are also unavailable on MRI.
+However, when run on the JVM, TruffleRuby is unable to trap `QUIT`, as this signal is reserved by the JVM.
+In such a case `trap(:QUIT) {}` will raise an `ArgumentError`.
+Any code that relies on being able to trap this signal will need to fall back to another available signal.
 
 When TruffleRuby is run as part of a polyglot application, any signals that are handled by another language become unavailable for TruffleRuby to trap.
 
