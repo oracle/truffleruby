@@ -10,6 +10,7 @@ Bug fixes:
 * Fix `IO.copy_stream` with a `Tempfile` destination (#3280, @eregon).
 * Fix `Regexp.union` negotiating the wrong result encoding (#3287, @nirvdrum, @simonlevasseur).
 * Fix `Proc#parameters` and return all the numbered parameters lower than the used explicitly ones (@andrykonchin).
+* Fix some C API functions which were failing when called with Ruby values represented as Java primitives (#3352, @eregon).
 
 Compatibility:
 
