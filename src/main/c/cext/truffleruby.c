@@ -31,7 +31,7 @@ VALUE rb_java_to_string(VALUE obj) {
 
 // BasicObject#equal?
 int rb_tr_obj_equal(VALUE first, VALUE second) {
-  return RTEST(RUBY_INVOKE(first, "equal?", second));
+  return RTEST(RUBY_CEXT_INVOKE("rb_tr_obj_equal", first, second));
 }
 
 void rb_tr_warn_va_list(const char *fmt, va_list args) {

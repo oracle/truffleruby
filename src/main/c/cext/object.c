@@ -115,15 +115,15 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
 }
 
 VALUE rb_obj_clone(VALUE obj) {
-  return RUBY_INVOKE(obj, "clone");
+  return RUBY_CEXT_INVOKE("rb_obj_clone", obj);
 }
 
 VALUE rb_obj_dup(VALUE object) {
-  return RUBY_INVOKE(object, "dup");
+  return RUBY_CEXT_INVOKE("rb_obj_dup", object);
 }
 
 VALUE rb_obj_id(VALUE object) {
-  return RUBY_INVOKE(object, "object_id");
+  return RUBY_CEXT_INVOKE("rb_obj_id", object);
 }
 
 // The semantics of SameOrEqualNode: a.equal?(b) || a == b
@@ -138,7 +138,7 @@ void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
 // frozen status
 
 VALUE rb_obj_frozen_p(VALUE object) {
-  return RUBY_INVOKE(object, "frozen?");
+  return RUBY_CEXT_INVOKE("rb_obj_frozen_p", object);
 }
 
 VALUE rb_obj_freeze(VALUE object) {

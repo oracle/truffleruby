@@ -74,7 +74,7 @@ void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int
 
 #undef rb_define_singleton_method
 void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc) {
-  rb_define_method(RUBY_INVOKE(object, "singleton_class"), name, function, argc);
+  rb_define_method(rb_singleton_class(object), name, function, argc);
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
