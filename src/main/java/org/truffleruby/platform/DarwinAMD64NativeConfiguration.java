@@ -749,6 +749,7 @@ public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfigura
         configuration.config("platform.typedef.sae_connid_t", string(context, "uint"));
         configuration.config("platform.typedef.rlim_t", string(context, "ulong_long"));
         configuration.config("platform.typedef.rusage_info_t", string(context, "pointer"));
+        configuration.config("platform.typedef.nfds_t", string(context, "uint"));
         configuration.config("platform.typedef.pthread_t", string(context, "pointer"));
     }
 

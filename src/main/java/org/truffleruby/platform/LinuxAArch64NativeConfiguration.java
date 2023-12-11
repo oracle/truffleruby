@@ -863,6 +863,7 @@ public final class LinuxAArch64NativeConfiguration extends DefaultNativeConfigur
         configuration.config("platform.typedef.sa_family_t", string(context, "ushort"));
         configuration.config("platform.typedef.rlim_t", string(context, "ulong"));
         configuration.config("platform.typedef.rlim64_t", string(context, "ulong"));
+        configuration.config("platform.typedef.nfds_t", string(context, "ulong"));
     }
 
 }

@@ -358,11 +358,14 @@ class TypesGenerator < Generator
   end
 
   def source(io)
-    io.puts '#include <stdint.h>'
-    io.puts '#include <stddef.h>'
-    io.puts '#include <sys/types.h>'
-    io.puts '#include <sys/socket.h>'
-    io.puts '#include <sys/resource.h>'
+    io.puts <<~C
+    #include <stdint.h>
+    #include <stddef.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <sys/resource.h>
+    #include <poll.h>
+    C
   end
 
   def compile_command(source, target)
