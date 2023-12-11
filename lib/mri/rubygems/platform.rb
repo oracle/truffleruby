@@ -36,8 +36,6 @@ class Gem::Platform
     match_gem?(spec.platform, spec.name)
   end
 
-  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sorbet-static]
-
   def self.match_gem?(platform, gem_name)
     raise unless String === gem_name
     if REUSE_AS_BINARY_ON_TRUFFLERUBY.include?(gem_name)

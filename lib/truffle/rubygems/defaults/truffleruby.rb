@@ -24,8 +24,11 @@ module Gem
 
   def self.platform_defaults
     # disable documentation by default as it takes a significant amount of time for installing gems and is rarely used
-    {
-        'gem' => '--no-document'
-    }
+    { 'gem' => '--no-document' }
   end
+end
+
+class Gem::Platform
+  # The list of gems we want to install precompiled (using the local platform) on TruffleRuby
+  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sorbet-static]
 end
