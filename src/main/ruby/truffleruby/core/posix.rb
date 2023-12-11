@@ -199,7 +199,7 @@ module Truffle::POSIX
   attach_function :fsync, [:int], :int
   attach_function :ftruncate, [:int, :off_t], :int
   attach_function :getcwd, [:pointer, :size_t], :string
-  attach_function :ioctl, [:int, :ulong, :long], :int
+  attach_function :ioctl, [:int, :ulong, varargs(:pointer)], :int
   attach_function :isatty, [:int], :int
   attach_function :lchmod, [:string, :mode_t], :int
   attach_function :lchown, [:string, :uid_t, :gid_t], :int
@@ -216,7 +216,7 @@ module Truffle::POSIX
   attach_function :pipe, [:pointer], :int
   # blocking=false for both poll because the timeout needs to be decreased on EINTR
   attach_function :truffleposix_poll_single_fd, [:int, :int, :int], :int, LIBTRUFFLEPOSIX
-  attach_function :poll, [:pointer, :long, :int], :int
+  attach_function :poll, [:pointer, :nfds_t, :int], :int
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer
@@ -240,7 +240,7 @@ module Truffle::POSIX
   Truffle::Boot.delay do
     if NATIVE
       # We should capture the non-lazy method
-      attach_function_eagerly :poll, [:pointer, :long, :int], :int, LIBC, false, :poll, self
+      attach_function_eagerly :poll, [:pointer, :nfds_t, :int], :int, LIBC, false, :poll, self
       POLL = method(:poll)
     end
   end
