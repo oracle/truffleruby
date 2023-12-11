@@ -767,6 +767,21 @@ class IO
         raise IOError, 'closed stream' if io.closed?
         io
       end
+
+      if Truffle::Platform.darwin? and !errorables.empty?
+        if errorables.all? { |obj| readables.include?(obj) or writables.include?(obj) }
+          # On macOS, if all errorables are in readables or writables, we make errorables empty,
+          # because if non-empty they cause a bug with macOS poll(2), detailed in
+          # https://github.com/oracle/truffleruby/issues/3346#issuecomment-1847323741
+          # Errors are still reported, POLLIN_SET and POLLOUT_SET both include POLLERR.
+          # POLLPRI is only for TCP OOB data (rare, not portable, poll(2) hangs on macOS with TCP OOB, another macOS bug),
+          # and other "high priority data" which seems to not exist or unused since there is no way to read that data.
+          errorables = []
+          errorable_ios = []
+        else
+          raise IOError, 'IO.select call on macOS with error IOs not in read IOs or write IOs, this is not supported due to poll(2) bugs on macOS'
+        end
+      end
     else
       errorables = []
       errorable_ios = []
