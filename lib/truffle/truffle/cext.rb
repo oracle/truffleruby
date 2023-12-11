@@ -844,6 +844,10 @@ module Truffle::CExt
     Primitive.string_to_symbol(str, true)
   end
 
+  def rb_int_cmp(a, b)
+    a <=> b
+  end
+
   def rb_int_positive_pow(a, b)
     a ** b
   end
