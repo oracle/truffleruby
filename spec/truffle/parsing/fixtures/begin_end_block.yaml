@@ -2,6 +2,7 @@ subject: "begin ... end block"
 description: "with multiple expressions inside a block"
 notes: >
   Is represented as a SequenceNode node.
+yarp_specific: yes # No EmitWarningsNode node as far as YARP still doesn't return warnings
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   begin
@@ -14,10 +15,6 @@ ast: |
           flags = 12
       children:
           body = [
-              EmitWarningsNode
-                  attributes:
-                      flags = 0
-                      warnings = RubyDeferredWarnings(WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 2))
               WriteLocalVariableNode
                   attributes:
                       flags = 0

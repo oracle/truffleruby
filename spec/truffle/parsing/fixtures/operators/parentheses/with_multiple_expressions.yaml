@@ -2,6 +2,7 @@ subject: "Parentheses operator"
 description: "with multiple expressions, e.g. (1; 2; 3)"
 notes: >
   is represented as a sequence of nodes
+yarp_specific: yes # No EmitWarningsNode node as far as YARP still doesn't return warnings
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   (42; 100500)
@@ -11,10 +12,6 @@ ast: |
           flags = 12
       children:
           body = [
-              EmitWarningsNode
-                  attributes:
-                      flags = 0
-                      warnings = RubyDeferredWarnings(WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1), WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1), WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1))
               WriteLocalVariableNode
                   attributes:
                       flags = 0
@@ -35,6 +32,6 @@ ast: |
                       value = 42
               IntegerFixnumLiteralNode
                   attributes:
-                      flags = 1
+                      flags = 0
                       value = 100500
           ]

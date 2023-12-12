@@ -1,17 +1,6 @@
 fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
 fails:Parsing a END block (END { ... }) case is parsed correctly
-
-# no EmitWarningsNode node in the begin block
-fails:Parsing a begin ... end block (with multiple expressions inside a block) case is parsed correctly
-
 fails:Parsing a Complex number (Complex literal `bri` (without real part) where b is Float is represented as `Complext.convert(0, Rational.convert(b*100, 100))` where 100 is some power of 10 to convert b to Integer) case is parsed correctly
 fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
-
-# no EmitWarningsNode node for parentheses operator
-fails:Parsing a Parentheses operator (empty) case is parsed correctly
-fails:Parsing a Parentheses operator (with multiple expressions, e.g. (1; 2; 3)) case is parsed correctly
-fails:Parsing a Parentheses operator (with single expression) case is parsed correctly
-
 fails:Parsing a Rational number (with big Integer value (>= 2^64).) case is parsed correctly
 fails:Parsing a Rational number (with Float value) case is parsed correctly
-fails:Parsing a Sequence of expressions () case is parsed correctly

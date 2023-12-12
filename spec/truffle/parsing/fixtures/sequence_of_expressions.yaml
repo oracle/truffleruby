@@ -1,5 +1,6 @@
 subject: "Sequence of expressions"
 description: "Multiple expressions separated with `;` or new line"
+yarp_specific: yes # No EmitWarningsNode node as far as YARP still doesn't return warnings
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   42
@@ -10,10 +11,6 @@ ast: |
           flags = 12
       children:
           body = [
-              EmitWarningsNode
-                  attributes:
-                      flags = 0
-                      warnings = RubyDeferredWarnings(WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1), WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 2))
               WriteLocalVariableNode
                   attributes:
                       flags = 0
