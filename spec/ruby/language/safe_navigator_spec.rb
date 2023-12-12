@@ -81,6 +81,42 @@ describe "Safe navigator" do
     (obj&.m += 3).should == nil
   end
 
+  it "allows ||= operator" do
+    klass = Class.new do
+      attr_accessor :m
+
+      def initialize
+        @m = true
+      end
+    end
+
+    obj = klass.new
+
+    (obj&.m &&= false).should == false
+    obj.m.should == false
+
+    obj = nil
+    (obj&.m &&= false).should == nil
+  end
+
+  it "allows &&= operator" do
+    klass = Class.new do
+      attr_accessor :m
+
+      def initialize
+        @m = true
+      end
+    end
+
+    obj = klass.new
+
+    (obj&.m &&= false).should == false
+    obj.m.should == false
+
+    obj = nil
+    (obj&.m &&= false).should == nil
+  end
+
   it "does not call the operator method lazily with an assignment operator" do
     klass = Class.new do
       attr_writer :foo

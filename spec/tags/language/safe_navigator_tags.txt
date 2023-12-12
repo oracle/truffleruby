@@ -1,0 +1,2 @@
+fails:Safe navigator allows ||= operator
+fails:Safe navigator allows &&= operator
