@@ -34,12 +34,6 @@ import org.truffleruby.language.methods.Arity;
 // Based on org.truffleruby.parser.YARPLoadArgumentsTranslator (logic when useArray() -> true)
 public final class YARPParametersNodeToDestructureTranslator extends AbstractNodeVisitor<RubyNode> {
 
-    private enum State {
-        PRE,
-        OPT,
-        POST
-    }
-
     private final Nodes.ParametersNode parameters;
     private final RubyNode readArrayNode;
     private final TranslatorEnvironment environment;
@@ -49,7 +43,6 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     private int index; // position of actual argument in a frame that is being evaluated/read
                       // to match a read node and actual argument
-    private State state; // to distinguish pre and post Nodes.RequiredParameterNode parameters
 
     public YARPParametersNodeToDestructureTranslator(
             Nodes.ParametersNode parameters,
@@ -75,7 +68,6 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         sequence.add(Translator.loadSelf(language));
 
         if (parameters.requireds.length > 0) {
-            state = State.PRE;
             index = 0;
             for (var node : parameters.requireds) {
                 sequence.add(node.accept(this)); // Nodes.RequiredParameterNode is expected here
@@ -96,7 +88,6 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         }
 
         if (parameters.posts.length > 0) {
-            state = State.POST;
             index = -1;
 
             for (int i = parameters.posts.length - 1; i >= 0; i--) {

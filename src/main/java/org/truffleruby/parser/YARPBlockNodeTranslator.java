@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public final class YARPBlockNodeTranslator extends YARPTranslator {
-    private final Nodes.ParametersNode parameters;
     private final Arity arity;
 
     public YARPBlockNodeTranslator(
@@ -54,11 +53,8 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            RubyDeferredWarnings rubyWarnings,
-            Nodes.ParametersNode parameters,
             Arity arity) {
-        super(language, environment, sourceBytes, source, parserContext, currentNode, rubyWarnings);
-        this.parameters = parameters;
+        super(language, environment, sourceBytes, source, parserContext, currentNode);
         this.arity = arity;
     }
 

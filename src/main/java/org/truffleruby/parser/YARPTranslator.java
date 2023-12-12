@@ -184,7 +184,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private final byte[] sourceBytes;
     private final Source source;
     private final Node currentNode;
-    private final RubyDeferredWarnings rubyWarnings;
     private final RubyEncoding sourceEncoding;
 
     public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
@@ -210,15 +209,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             byte[] sourceBytes,
             Source source,
             ParserContext parserContext,
-            Node currentNode,
-            RubyDeferredWarnings rubyWarnings) {
+            Node currentNode) {
         this.language = language;
         this.environment = environment;
         this.sourceBytes = sourceBytes;
         this.source = source;
         this.parserContext = parserContext;
         this.currentNode = currentNode;
-        this.rubyWarnings = rubyWarnings;
         this.sourceEncoding = Encodings.UTF_8; // TODO
     }
 
@@ -529,8 +526,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 source,
                 parserContext,
                 currentNode,
-                rubyWarnings,
-                parameters,
                 arity);
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
@@ -1305,8 +1300,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 sourceBytes,
                 source,
                 parserContext,
-                currentNode,
-                rubyWarnings);
+                currentNode);
         final CachedLazyCallTargetSupplier callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, arity);
 
         final boolean isDefSingleton = singletonClassNode != null;
@@ -2843,8 +2837,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 sourceBytes,
                 source,
                 parserContext,
-                currentNode,
-                rubyWarnings);
+                currentNode);
 
         final ModuleBodyDefinition definition = moduleTranslator.compileClassNode(moduleNode, bodyNode);
 
