@@ -12,6 +12,7 @@ Bug fixes:
 * Fix `Proc#parameters` and return all the numbered parameters lower than the used explicitly ones (@andrykonchin).
 * Fix some C API functions which were failing when called with Ruby values represented as Java primitives (#3352, @eregon).
 * Fix `IO.select([io], nil, [io])` on macOS, it was hanging due to a bug in macOS `poll(2)` (#3346, @eregon, @andrykonchin).
+* Run context cleanup such as showing the output of tools when `SignalException` and `Interrupt` escape (@eregon).
 
 Compatibility:
 

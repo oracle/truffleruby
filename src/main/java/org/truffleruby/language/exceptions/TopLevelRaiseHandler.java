@@ -26,9 +26,11 @@ import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.IsANode;
+import org.truffleruby.shared.ProcessStatus;
 
 public final class TopLevelRaiseHandler extends RubyBaseNode {
 
+    // Must use ProcessStatus.exitCode() or ProcessStatus.signal() for every return
     @TruffleBoundary
     public int execute(Runnable body) {
         int exitCode = 0;
@@ -39,7 +41,7 @@ public final class TopLevelRaiseHandler extends RubyBaseNode {
             body.run();
         } catch (ExitException e) {
             // hard #exit!, return immediately, skip at_exit hooks
-            return e.getCode();
+            return ProcessStatus.exitCode(e.getCode());
         } catch (AbstractTruffleException e) {
             // No KillException, it's a SystemExit instead for the main thread
             assert !(e instanceof KillException) : e;
@@ -58,7 +60,7 @@ public final class TopLevelRaiseHandler extends RubyBaseNode {
 
             BacktraceFormatter.printInternalError(getContext(), e,
                     "an internal exception escaped out of the interpreter");
-            return 1;
+            return ProcessStatus.exitCode(1);
         }
 
         // Execute at_exit hooks (except if hard #exit!)
@@ -77,7 +79,10 @@ public final class TopLevelRaiseHandler extends RubyBaseNode {
                     getContext().getDefaultBacktraceFormatter().printTopLevelRubyExceptionOnEnvStderr(caughtException);
                 }
 
-                handleSignalException(caughtException);
+                int signo = handleSignalException(caughtException);
+                if (signo != 0) {
+                    return ProcessStatus.signal(signo);
+                }
             }
         } catch (ExitException e) {
             // hard #exit! during at_exit: ignore the main script exception
@@ -86,10 +91,10 @@ public final class TopLevelRaiseHandler extends RubyBaseNode {
             throw e;
         } catch (RuntimeException | Error e) { // Internal error
             BacktraceFormatter.printInternalError(getContext(), e, step);
-            return 1;
+            return ProcessStatus.exitCode(1);
         }
 
-        return exitCode;
+        return ProcessStatus.exitCode(exitCode);
     }
 
     private int statusFromException(AbstractTruffleException exception) {
@@ -105,16 +110,17 @@ public final class TopLevelRaiseHandler extends RubyBaseNode {
         }
     }
 
-    /** See rb_ec_cleanup() in CRuby, which calls ruby_default_signal(), which uses raise(3). */
-    private void handleSignalException(AbstractTruffleException exception) {
+    /** See rb_ec_cleanup() in CRuby, which calls ruby_default_signal(), which uses raise(3). We need to raise(3) after
+     * Context#close for e.g. letting tools print their output, so just return the signal number here. */
+    private int handleSignalException(AbstractTruffleException exception) {
         if (exception instanceof RaiseException) {
             RubyException rubyException = ((RaiseException) exception).getException();
 
             if (IsANode.getUncached().executeIsA(rubyException, coreLibrary().signalExceptionClass)) {
-                // Calls raise(3) or no-op
-                DispatchNode.getUncached().call(rubyException, "reached_top_level");
+                return (int) DispatchNode.getUncached().call(rubyException, "signo");
             }
         }
+        return 0;
     }
 
 }

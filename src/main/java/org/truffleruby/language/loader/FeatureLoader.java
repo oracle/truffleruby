@@ -46,8 +46,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.NativeConfiguration;
-import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 

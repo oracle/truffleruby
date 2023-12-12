@@ -9,12 +9,10 @@
  */
 package org.truffleruby.signal;
 
-import org.truffleruby.platform.Platform;
-
 public abstract class LibRubySignal {
 
-    public static void loadLibrary(String rubyHome) {
-        final String path = rubyHome + "/lib/cext/librubysignal" + Platform.LIB_SUFFIX;
+    public static void loadLibrary(String rubyHome, String libSuffix) {
+        final String path = rubyHome + "/lib/cext/librubysignal" + libSuffix;
         System.load(path);
     }
 
@@ -25,5 +23,7 @@ public abstract class LibRubySignal {
     public static native int sendSIGVTALRMToThread(long thread);
 
     public static native long getNativeThreadID();
+
+    public static native void restoreSystemHandlerAndRaise(int signalNumber);
 
 }

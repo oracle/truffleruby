@@ -65,6 +65,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.signal.LibRubySignal;
 
 public final class ThreadManager {
@@ -102,7 +103,7 @@ public final class ThreadManager {
                 language.getRubyHome() != null;
         nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && useLibRubySignal;
         if (useLibRubySignal) {
-            LibRubySignal.loadLibrary(language.getRubyHome());
+            LibRubySignal.loadLibrary(language.getRubyHome(), Platform.LIB_SUFFIX);
         }
         if (nativeInterrupt) {
             LibRubySignal.setupSIGVTALRMEmptySignalHandler();

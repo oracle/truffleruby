@@ -37,11 +37,16 @@ JNIEXPORT jint JNICALL Java_org_truffleruby_signal_LibRubySignal_sendSIGVTALRMTo
 }
 
 JNIEXPORT jlong JNICALL Java_org_truffleruby_signal_LibRubySignal_getNativeThreadID(JNIEnv *env, jclass clazz) {
-  #ifdef __APPLE__
-      uint64_t native_id;
-      pthread_threadid_np(NULL, &native_id);
-  #elif defined(__linux__)
-      pid_t native_id = (pid_t) syscall(SYS_gettid);
-  #endif
-      return (jlong) native_id;
+#ifdef __APPLE__
+  uint64_t native_id;
+  pthread_threadid_np(NULL, &native_id);
+#elif defined(__linux__)
+  pid_t native_id = (pid_t) syscall(SYS_gettid);
+#endif
+  return (jlong) native_id;
+}
+
+JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_restoreSystemHandlerAndRaise(JNIEnv *env, jclass clazz, jint signo) {
+  signal(signo, SIG_DFL);
+  raise(signo);
 }
