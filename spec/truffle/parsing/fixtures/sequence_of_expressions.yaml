@@ -1,5 +1,5 @@
 subject: "Sequence of expressions"
-description: ""
+description: "Multiple expressions separated with `;` or new line"
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   42
@@ -13,7 +13,7 @@ ast: |
               EmitWarningsNode
                   attributes:
                       flags = 0
-                      warnings = org.truffleruby.parser.RubyDeferredWarnings@...
+                      warnings = RubyDeferredWarnings(WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1), WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 2))
               WriteLocalVariableNode
                   attributes:
                       flags = 0

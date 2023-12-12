@@ -14,7 +14,7 @@ ast: |
               EmitWarningsNode
                   attributes:
                       flags = 0
-                      warnings = org.truffleruby.parser.RubyDeferredWarnings@...
+                      warnings = RubyDeferredWarnings(WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1), WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1), WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1))
               WriteLocalVariableNode
                   attributes:
                       flags = 0
