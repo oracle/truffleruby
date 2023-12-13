@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.library.BucketsHashStore;
+import org.truffleruby.core.hash.library.CompactHashStore;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory;
@@ -28,13 +30,19 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         this.keyValues = keyValues;
     }
 
-    public static HashLiteralNode create(RubyNode[] keyValues) {
+    protected int getNumberOfEntries() {
+        return keyValues.length >> 1;
+    }
+
+    public static HashLiteralNode create(RubyNode[] keyValues, RubyLanguage language) {
         if (keyValues.length == 0) {
             return new EmptyHashStore.EmptyHashLiteralNode();
         } else if (keyValues.length <= PackedHashStoreLibrary.MAX_ENTRIES * 2) {
             return PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen.create(keyValues);
         } else {
-            return new BucketsHashStore.GenericHashLiteralNode(keyValues);
+            return language.options.BIG_HASH_STRATEGY_IS_BUCKETS
+                    ? new BucketsHashStore.BucketHashLiteralNode(keyValues)
+                    : new CompactHashStore.CompactHashLiteralNode(keyValues);
         }
     }
 

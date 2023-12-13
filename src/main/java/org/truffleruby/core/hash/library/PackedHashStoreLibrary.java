@@ -9,6 +9,28 @@
  */
 package org.truffleruby.core.hash.library;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.hash.CompareHashKeysNode;
+import org.truffleruby.core.hash.Entry;
+import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
+import org.truffleruby.core.hash.HashGuards;
+import org.truffleruby.core.hash.HashLiteralNode;
+import org.truffleruby.core.hash.HashingNodes;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
+import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -30,27 +52,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.basicobject.ReferenceEqualNode;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.hash.CompareHashKeysNode;
-import org.truffleruby.core.hash.Entry;
-import org.truffleruby.core.hash.FreezeHashKeyIfNeededNode;
-import org.truffleruby.core.hash.HashGuards;
-import org.truffleruby.core.hash.HashLiteralNode;
-import org.truffleruby.core.hash.HashingNodes;
-import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.objects.shared.PropagateSharingNode;
-import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory.SmallHashLiteralNodeGen;
 
 @ExportLibrary(value = HashStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
@@ -154,6 +155,15 @@ public final class PackedHashStoreLibrary {
         hash.size = size;
     }
 
+    private static void promoteToCompact(RubyHash hash, Object[] store) {
+        CompactHashStore newStore = new CompactHashStore(MAX_ENTRIES);
+        for (int n = 0; n < MAX_ENTRIES; n++) {
+            newStore.insertHashKeyValue(getHashed(store, n), getKey(store, n), getValue(store, n));
+        }
+        hash.store = newStore;
+        hash.size = MAX_ENTRIES;
+    }
+
     // endregion
     // region Messages
 
@@ -209,7 +219,7 @@ public final class PackedHashStoreLibrary {
                 if (n < size) {
                     final int otherHashed = getHashed(store, n);
                     final Object otherKey = getKey(store, n);
-                    if (compareHashKeys.execute(byIdentity, key2, hashed, otherKey, otherHashed)) {
+                    if (compareHashKeys.execute(node, byIdentity, key2, hashed, otherKey, otherHashed)) {
                         setValue(store, n, value);
                         return false;
                     }
@@ -222,7 +232,14 @@ public final class PackedHashStoreLibrary {
                 return true;
             }
 
-            promoteToBuckets(hash, store, size);
+
+            assert size == MAX_ENTRIES;
+            if (RubyLanguage.get(node).options.BIG_HASH_STRATEGY_IS_BUCKETS) {
+                promoteToBuckets(hash, store, MAX_ENTRIES);
+            } else {
+                promoteToCompact(hash, store);
+            }
+
             hashes.set(hash.store, hash, key2, value, byIdentity);
             return true;
         }
@@ -231,7 +248,8 @@ public final class PackedHashStoreLibrary {
     @ExportMessage
     static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashNode,
-            @Cached @Shared CompareHashKeysNode compareHashKeys) {
+            @Cached @Shared CompareHashKeysNode compareHashKeys,
+            @Bind("$node") Node node) {
 
         assert verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
@@ -242,7 +260,7 @@ public final class PackedHashStoreLibrary {
                 final int otherHashed = getHashed(store, n);
                 final Object otherKey = getKey(store, n);
 
-                if (compareHashKeys.execute(hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                if (compareHashKeys.execute(node, hash.compareByIdentity, key, hashed, otherKey, otherHashed)) {
                     final Object value = getValue(store, n);
                     removeEntry(store, n);
                     hash.size -= 1;
@@ -343,7 +361,8 @@ public final class PackedHashStoreLibrary {
     @ExportMessage
     static void rehash(Object[] store, RubyHash hash,
             @Cached @Shared CompareHashKeysNode compareHashKeys,
-            @Cached @Shared HashingNodes.ToHash hashNode) {
+            @Cached @Shared HashingNodes.ToHash hashNode,
+            @Bind("$node") Node node) {
 
         assert verify(store, hash);
         int size = hash.size;
@@ -354,6 +373,7 @@ public final class PackedHashStoreLibrary {
 
             for (int m = n - 1; m >= 0; m--) {
                 if (getHashed(store, m) == newHash && compareHashKeys.execute(
+                        node,
                         hash.compareByIdentity,
                         key,
                         newHash,
@@ -463,7 +483,7 @@ public final class PackedHashStoreLibrary {
                 if (n < size) {
                     final int otherHashed = getHashed(store, n);
                     final Object otherKey = getKey(store, n);
-                    if (equalKeys(compareHashKeys, compareByIdentity, key, hashed, otherKey, otherHashed)) {
+                    if (compareHashKeys.execute(node, compareByIdentity, key, hashed, otherKey, otherHashed)) {
                         return getValue(store, n);
                     }
                 }
@@ -471,11 +491,6 @@ public final class PackedHashStoreLibrary {
 
             notInHashProfile.enter(node);
             return defaultValueNode.accept(frame, hash, key);
-        }
-
-        protected boolean equalKeys(CompareHashKeysNode compareHashKeys, boolean compareByIdentity, Object key,
-                int hashed, Object otherKey, int otherHashed) {
-            return compareHashKeys.execute(compareByIdentity, key, hashed, otherKey, otherHashed);
         }
     }
 

@@ -23,6 +23,7 @@ LANGUAGE_OPTIONS:
 - PACK_UNROLL_LIMIT
 - NO_HOME_PROVIDED
 - COVERAGE_GLOBAL
+- BIG_HASH_STRATEGY_IS_BUCKETS
 # Inline cache sizes
 - DEFAULT_CACHE
 - METHOD_LOOKUP_CACHE
@@ -117,6 +118,9 @@ EXPERT:
     EXCEPTIONS_WARN_OUT_OF_MEMORY: [exceptions-warn-out-of-memory, boolean, true, Warn when an out-of-memory error is thrown]
     BACKTRACES_INTERLEAVE_JAVA: [backtraces-interleave-java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
     BACKTRACES_OMIT_UNUSED: [backtraces-omit-unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
+    
+    # Big Hash Strategy
+    BIG_HASH_STRATEGY_IS_BUCKETS: [buckets-big-hash, boolean, false, 'Whether to use chaining-style bukcets hash store for hash tables exceeding the small hash limit']
 
     # Print backtraces at key events
     BACKTRACE_ON_INTERRUPT: [backtraces-on-interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]

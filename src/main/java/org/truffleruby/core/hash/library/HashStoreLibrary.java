@@ -9,6 +9,16 @@
  */
 package org.truffleruby.core.hash.library;
 
+import org.truffleruby.collections.PEBiFunction;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.ReferenceEqualNode;
+import org.truffleruby.core.hash.HashGuards;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
+import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.yield.CallBlockNode;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateInline;
@@ -23,14 +33,6 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
-import org.truffleruby.collections.PEBiFunction;
-import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.hash.HashGuards;
-import org.truffleruby.core.hash.RubyHash;
-import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
-import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.yield.CallBlockNode;
 
 /** Library for accessing and manipulating the storage used for representing hashes. This includes reading, modifying,
  * and copy the storage. */
@@ -61,9 +63,9 @@ public abstract class HashStoreLibrary extends Library {
     public abstract Object lookupOrDefault(Object store, Frame frame, RubyHash hash, Object key,
             PEBiFunction defaultNode);
 
-    /** Associates the key with the value and returns true only if the hash changed as a result of the operation (i.e.
-     * returns false if the key was already associated with the value). {@code byIdentity} indicates whether the key
-     * should be compared using Java identity, or using {@link SameOrEqlNode} semantics. */
+    /** Associates the key with the value and returns true only if the hash didn't contain the key before the operation
+     * (i.e. returns false if and only if the key was already associated with any value). {@code byIdentity} indicates
+     * whether the key should be compared using {@link ReferenceEqualNode} or {@link SameOrEqlNode}. */
     @Abstract
     public abstract boolean set(Object store, RubyHash hash, Object key, Object value, boolean byIdentity);
 
@@ -83,13 +85,14 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract Object deleteLast(Object store, RubyHash hash, Object key);
 
-    /** Calls {@code callback} on every entry in the hash, returning the state object. */
+    /** Calls {@code callback} on every entry in the hash, returning the state object. The callback object MUST be
+     * passed sequential increasing indices starting from 0 */
     @Abstract
     public abstract Object eachEntry(Object store, RubyHash hash, EachEntryCallback callback, Object state);
 
     /** Same as {@link #eachEntry(Object, RubyHash, EachEntryCallback, Object)} but guaranteed to be safe to use if the
-     * hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed
-     * twice. */
+     * hash is modified during iteration. In particular, the guarantee is that the same entry won't be processed twice.
+     * The callback object MUST be passed sequential increasing indices starting from 0 */
     @Abstract
     public abstract Object eachEntrySafe(Object store, RubyHash hash, EachEntryCallback callback, Object state);
 
@@ -97,13 +100,13 @@ public abstract class HashStoreLibrary extends Library {
     @Abstract
     public abstract void replace(Object store, RubyHash hash, RubyHash dest);
 
-    /** Removes a key-value pair from the hash and returns it as the two-item array [key, value], or null if the hash is
-     * empty. */
+    /** Removes the first key-value pair in insertion order from the hash and returns it as the two-item array [key,
+     * value]. */
     @Abstract
     public abstract RubyArray shift(Object store, RubyHash hash);
 
     /** Re-hashes the keys in the hash (if the keys are mutable objects, then changes to these objects may change the
-     * hash. */
+     * hash.) */
     @Abstract
     public abstract void rehash(Object store, RubyHash hash);
 
@@ -116,7 +119,7 @@ public abstract class HashStoreLibrary extends Library {
         void accept(int index, Object key, Object value, Object state);
     }
 
-    /** Call the block with an key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
+    /** Call the block with a key-value entry. If the block has > 1 arity, passes the key and the value as arguments,
      * otherwise passes an array containing the key and the value as single argument. */
     @GenerateUncached
     @GenerateInline(false)
