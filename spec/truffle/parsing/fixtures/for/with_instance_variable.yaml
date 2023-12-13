@@ -1,0 +1,186 @@
+subject: "For operator"
+description: "with instance variable (for @a in [])"
+focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode" # to dump local variable declarations in outer scope
+ruby: |
+  for @a in [42, 100500]
+    b = @a
+  end
+ast: |
+  RubyTopLevelRootNode
+      attributes:
+          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+          callTarget = <top (required)>
+          checkArityProfile = false
+          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%for_0, #3:%frame_on_stack_marker_1, #4:b}
+          instrumentationBits = 0
+          keywordArguments = false
+          localReturnProfile = false
+          lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+          matchingReturnProfile = false
+          nextProfile = false
+          nonMatchingReturnProfile = false
+          polyglotRef = org.truffleruby.RubyLanguage@...
+          retryProfile = false
+          returnID = org.truffleruby.language.control.ReturnID@...
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <top (required)>, blockDepth = 0, parseName = <top (required)>, notes = null, argumentDescriptors = null)
+          split = HEURISTIC
+      children:
+          body =
+              SequenceNode
+                  attributes:
+                      flags = 12
+                  children:
+                      body = [
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 0 # (self)
+                              children:
+                                  valueNode =
+                                      ProfileArgumentNodeGen
+                                          attributes:
+                                              flags = 0
+                                          children:
+                                              childNode_ =
+                                                  ReadSelfNode
+                                                      attributes:
+                                                          flags = 0
+                          CatchBreakNode
+                              attributes:
+                                  breakID = org.truffleruby.language.control.BreakID@...
+                                  flags = 1
+                                  isWhile = false
+                              children:
+                                  body =
+                                      FrameOnStackNode
+                                          attributes:
+                                              flags = 0
+                                              frameOnStackMarkerSlot = 3
+                                          children:
+                                              child =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "each"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          block =
+                                                              BlockDefinitionNodeGen
+                                                                  attributes:
+                                                                      breakID = org.truffleruby.language.control.BreakID@...
+                                                                      callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
+                                                                      flags = 0
+                                                                      frameOnStackMarkerSlot = 3
+                                                                      sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
+                                                                      type = PROC
+                                                                  call targets:
+                                                                      RubyProcRootNode
+                                                                          attributes:
+                                                                              callTarget = block in <top (required)>
+                                                                              frameDescriptor = FrameDescriptor@...{#0:(self), #1:%for_0}
+                                                                              instrumentationBits = 0
+                                                                              lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                                                                              nextProfile = false
+                                                                              polyglotRef = org.truffleruby.RubyLanguage@...
+                                                                              redoProfile = false
+                                                                              retryProfile = false
+                                                                              returnID = org.truffleruby.language.control.ReturnID@...
+                                                                              sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
+                                                                              split = HEURISTIC
+                                                                          children:
+                                                                              body =
+                                                                                  SequenceNode
+                                                                                      attributes:
+                                                                                          flags = 12
+                                                                                      children:
+                                                                                          body = [
+                                                                                              WriteLocalVariableNode
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                      frameSlot = 0 # (self)
+                                                                                                  children:
+                                                                                                      valueNode =
+                                                                                                          ProfileArgumentNodeGen
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                                              children:
+                                                                                                                  childNode_ =
+                                                                                                                      ReadSelfNode
+                                                                                                                          attributes:
+                                                                                                                              flags = 0
+                                                                                              WriteLocalVariableNode
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                      frameSlot = 1 # %for_0
+                                                                                                  children:
+                                                                                                      valueNode =
+                                                                                                          ProfileArgumentNodeGen
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                                              children:
+                                                                                                                  childNode_ =
+                                                                                                                      ReadPreArgumentNode
+                                                                                                                          attributes:
+                                                                                                                              flags = 0
+                                                                                                                              index = 0
+                                                                                                                              keywordArguments = false
+                                                                                                                              missingArgumentBehavior = NIL
+                                                                                              WriteInstanceVariableNodeGen
+                                                                                                  attributes:
+                                                                                                      flags = 0
+                                                                                                      frozenProfile = false
+                                                                                                      name = "@a"
+                                                                                                  children:
+                                                                                                      readSelfSlotNode =
+                                                                                                          ReadFrameSlotNodeGen
+                                                                                                              attributes:
+                                                                                                                  frameSlot = 0 # (self)
+                                                                                                      rhs =
+                                                                                                          ReadLocalVariableNode
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                                                  frameSlot = 1 # %for_0
+                                                                                                                  type = FRAME_LOCAL
+                                                                                              WriteDeclarationVariableNode
+                                                                                                  attributes:
+                                                                                                      flags = 1
+                                                                                                      frameDepth = 1
+                                                                                                      frameSlot = 4
+                                                                                                  children:
+                                                                                                      valueNode =
+                                                                                                          ReadInstanceVariableNode
+                                                                                                              attributes:
+                                                                                                                  flags = 0
+                                                                                                                  name = "@a"
+                                                                                                              children:
+                                                                                                                  readSelfSlotNode =
+                                                                                                                      ReadFrameSlotNodeGen
+                                                                                                                          attributes:
+                                                                                                                              frameSlot = 0 # (self)
+                                                                                          ]
+                                                          receiver =
+                                                              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      language = org.truffleruby.RubyLanguage@...
+                                                                  children:
+                                                                      values = [
+                                                                          IntegerFixnumLiteralNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  value = 42
+                                                                          IntegerFixnumLiteralNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  value = 100500
+                                                                      ]
+                      ]
