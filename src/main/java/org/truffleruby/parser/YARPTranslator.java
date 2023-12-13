@@ -2342,8 +2342,59 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final RubyNode objectClassNode = new ObjectClassLiteralNode();
         final ReadConstantNode rationalModuleNode = new ReadConstantNode(objectClassNode, "Rational");
-        final RubyNode numeratorNode = node.numeric.accept(this);
-        final RubyNode denominatorNode = new IntegerFixnumLiteralNode(1);
+        final RubyNode numeratorNode;
+        final RubyNode denominatorNode;
+
+        // avoid Java float/double types,
+        // e.g for 3.14 numerator is 314 and denominator is 100
+        if (node.numeric instanceof Nodes.FloatNode floatNode) {
+            String string = toString(floatNode);
+            int pointIndex = string.indexOf('.');
+
+            assert pointIndex != -1; // Float literal in Ruby must contain '.'
+
+            // digits in fraction part
+            int denominatorLength = string.length() - pointIndex - 1; // TODO: find a proper name
+
+            assert denominatorLength > 0;
+
+            String stringWithoutPoint = string.replace(".", ""); // remove decimal point
+
+            var tstring = toTString(stringWithoutPoint);
+            Object integer = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring, sourceEncoding,
+                    0,
+                    true);
+
+            if (integer instanceof Integer i) {
+                numeratorNode = new IntegerFixnumLiteralNode(i);
+            } else if (integer instanceof Long l) {
+                numeratorNode = new LongFixnumLiteralNode(l);
+            } else if (integer instanceof RubyBignum bignum) {
+                numeratorNode = new ObjectLiteralNode(bignum);
+            } else {
+                throw CompilerDirectives.shouldNotReachHere(integer.getClass().getName());
+            }
+
+            String denominatorString = "1" + "0".repeat(denominatorLength);
+
+            var denominatorTstring = toTString(denominatorString);
+            Object denominatorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null,
+                    denominatorTstring, sourceEncoding, 0,
+                    true);
+
+            if (denominatorInteger instanceof Integer i) {
+                denominatorNode = new IntegerFixnumLiteralNode(i);
+            } else if (integer instanceof Long l) {
+                denominatorNode = new LongFixnumLiteralNode(l);
+            } else if (integer instanceof RubyBignum bignum) {
+                denominatorNode = new ObjectLiteralNode(bignum);
+            } else {
+                throw CompilerDirectives.shouldNotReachHere(integer.getClass().getName());
+            }
+        } else {
+            numeratorNode = node.numeric.accept(this);
+            denominatorNode = new IntegerFixnumLiteralNode(1);
+        }
 
         RubyNode[] arguments = new RubyNode[]{ numeratorNode, denominatorNode };
         RubyNode rubyNode = createCallNode(rationalModuleNode, "convert", arguments);
@@ -3126,6 +3177,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     protected TruffleString toTString(Nodes.Node node) {
         return TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding,
                 false);
+    }
+
+    protected TruffleString toTString(String string) {
+        return TStringUtils.fromJavaString(string, sourceEncoding);
     }
 
     protected String toString(Nodes.Node node) {
