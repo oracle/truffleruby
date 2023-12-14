@@ -203,6 +203,19 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private boolean translatingNextExpression = false;
     private boolean translatingForStatement = false;
 
+    private static final String[] numberedParameterNames = {
+            null,
+            "_1",
+            "_2",
+            "_3",
+            "_4",
+            "_5",
+            "_6",
+            "_7",
+            "_8",
+            "_9"
+    };
+
     public YARPTranslator(
             RubyLanguage language,
             TranslatorEnvironment environment,
@@ -473,7 +486,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             final var requireds = new Nodes.RequiredParameterNode[maximum];
 
             for (int i = 1; i <= maximum; i++) {
-                requireds[i - 1] = new Nodes.RequiredParameterNode("_" + i, 0, 0);
+                String name = numberedParameterNames[i];
+                requireds[i - 1] = new Nodes.RequiredParameterNode(name, 0, 0);
             }
 
             parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
@@ -2125,11 +2139,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assert node.call.name.equals("=~");
         assert node.call.arguments != null;
         assert node.call.arguments.arguments.length == 1;
-
         assert node.targets.length > 0;
-        for (var t : node.targets) {
-            assert t instanceof Nodes.LocalVariableTargetNode;
-        }
 
         RubyNode matchNode = node.call.accept(this);
 
@@ -2137,6 +2147,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         String[] names = new String[numberOfNames];
 
         for (int i = 0; i < numberOfNames; i++) {
+            // Nodes.LocalVariableTargetNode is the only expected node here
             names[i] = ((Nodes.LocalVariableTargetNode) node.targets[i]).name;
         }
 
