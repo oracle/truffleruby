@@ -713,20 +713,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     frameOnStackMarkerSlotStack.pop();
                 }
             } else if (block instanceof Nodes.BlockArgumentNode blockArgument) {
-                // def a(&) b(&) end
-                assert blockArgument.expression != null; // Ruby 3.1's anonymous block parameter, that we don't support yet
-
                 // a(&:b)
-                blockNode = ToProcNodeGen.create(blockArgument.expression.accept(this));
+                blockNode = blockArgument.accept(this);
                 frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
             } else {
-                // throw CompilerDirectives.shouldNotReachHere();
-
-                // If CallNode is manually created then a block argument could be anything,
-                // e.g. reading a local variable with cached block.
-                // Treat it like it is Nodes.BlockArgumentNode#expression.
-                blockNode = ToProcNodeGen.create(block.accept(this));
-                frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
+                throw CompilerDirectives.shouldNotReachHere();
             }
         } else {
             blockNode = null;
@@ -1646,15 +1637,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // block argument
         final RubyNode writeBlockNode;
-        final Nodes.Node readBlock;
+        final Nodes.BlockArgumentNode blockArgument;
 
         if (node.block != null) {
             var expression = new YARPExecutedOnceExpression("value", node.block, this);
             writeBlockNode = expression.getWriteNode();
-            readBlock = expression.getReadYARPNode();
+            Nodes.Node readBlock = expression.getReadYARPNode();
+            // imitate Nodes.CallNode structure with &block argument
+            blockArgument = new Nodes.BlockArgumentNode(readBlock, 0, 0);
         } else {
             writeBlockNode = null;
-            readBlock = null;
+            blockArgument = null;
         }
 
         final RubyNode[] writeArgumentsNodes = new RubyNode[argumentsCount];
@@ -1666,7 +1659,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final Nodes.Node read = new Nodes.CallNode(readReceiver, "[]",
-                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), readBlock, (short) 0, 0, 0);
+                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode readNode = read.accept(this);
 
         final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[argumentsCount + 1];
@@ -1676,7 +1669,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         readArgumentsAndValue[argumentsCount] = node.value;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
-                new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), readBlock, (short) 0, 0, 0);
+                new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode writeNode = write.accept(this);
         final RubyNode andNode = AndNodeGen.create(readNode, writeNode);
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
@@ -1716,15 +1709,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // block argument
         final RubyNode writeBlockNode;
-        final Nodes.Node readBlock;
+        final Nodes.BlockArgumentNode blockArgument;
 
         if (node.block != null) {
-            final var expression = new YARPExecutedOnceExpression("value", node.block, this);
+            var expression = new YARPExecutedOnceExpression("value", node.block, this);
             writeBlockNode = expression.getWriteNode();
-            readBlock = expression.getReadYARPNode();
+            Nodes.Node readBlock = expression.getReadYARPNode();
+            // imitate Nodes.CallNode structure with &block argument
+            blockArgument = new Nodes.BlockArgumentNode(readBlock, 0, 0);
         } else {
             writeBlockNode = null;
-            readBlock = null;
+            blockArgument = null;
         }
 
         final RubyNode[] writeArgumentsNodes = new RubyNode[argumentsCount];
@@ -1736,7 +1731,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final Nodes.Node read = new Nodes.CallNode(readReceiver, "[]",
-                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), readBlock, (short) 0, 0, 0);
+                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
 
         final Nodes.Node[] readArgumentsAndResult = new Nodes.Node[argumentsCount + 1];
@@ -1746,7 +1741,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         readArgumentsAndResult[argumentsCount] = executeOperator;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
-                new Nodes.ArgumentsNode(readArgumentsAndResult, (short) 0, 0, 0), readBlock, (short) 0, 0, 0);
+                new Nodes.ArgumentsNode(readArgumentsAndResult, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode writeNode = write.accept(this);
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
         final RubyNode rubyNode;
@@ -1793,19 +1788,21 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // block argument
         final RubyNode writeBlockNode;
-        final Nodes.Node readBlock;
+        final Nodes.BlockArgumentNode blockArgument;
 
         if (node.block != null) {
-            final var expression = new YARPExecutedOnceExpression("value", node.block, this);
+            var expression = new YARPExecutedOnceExpression("value", node.block, this);
             writeBlockNode = expression.getWriteNode();
-            readBlock = expression.getReadYARPNode();
+            Nodes.Node readBlock = expression.getReadYARPNode();
+            // imitate Nodes.CallNode structure with &block argument
+            blockArgument = new Nodes.BlockArgumentNode(readBlock, 0, 0);
         } else {
             writeBlockNode = null;
-            readBlock = null;
+            blockArgument = null;
         }
 
         final Nodes.Node read = new Nodes.CallNode(readReceiver, "[]",
-                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), readBlock, (short) 0, 0, 0);
+                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode readNode = read.accept(this);
 
         final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[argumentsCount + 1];
@@ -1815,7 +1812,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         readArgumentsAndValue[argumentsCount] = node.value;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
-                new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), readBlock, (short) 0, 0, 0);
+                new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode writeNode = write.accept(this);
         final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
