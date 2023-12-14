@@ -38,6 +38,7 @@ public final class AssignRescueVariableNode extends RubyContextSourceNode {
         return nil;
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = new AssignRescueVariableNode(rescueVariableNode.cloneUninitializedAssignable());
         return copy.copyFlags(this);

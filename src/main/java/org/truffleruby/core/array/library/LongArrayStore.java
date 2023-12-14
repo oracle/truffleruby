@@ -186,7 +186,7 @@ public final class LongArrayStore {
 
     @ExportMessage
     static Iterable<Object> getIterable(long[] store, int from, int length) {
-        return () -> new Iterator<Object>() {
+        return () -> new Iterator<>() {
 
             private int n = from;
 

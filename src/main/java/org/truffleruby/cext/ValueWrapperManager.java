@@ -215,12 +215,6 @@ public final class ValueWrapperManager {
 
         @SuppressWarnings("unused") private Cleanable cleanable;
 
-        private HandleBlock() {
-            base = 0;
-            cleanable = null;
-            wrappers = null;
-        }
-
         public HandleBlock(RubyContext context, RubyLanguage language, ValueWrapperManager manager) {
             HandleBlockAllocator allocator = language.handleBlockAllocator;
             long base = allocator.getFreeBlock();

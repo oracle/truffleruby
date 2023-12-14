@@ -54,6 +54,7 @@ public abstract class BlockDefinitionNode extends RubyContextSourceNode {
         return breakID;
     }
 
+    @Override
     public abstract RubyProc execute(VirtualFrame virtualFrame);
 
     @Specialization

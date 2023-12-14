@@ -98,6 +98,7 @@ public class InternalRespondToNode extends RubyBaseNode {
             super(config, null, null);
         }
 
+        @Override
         public boolean execute(Frame frame, Object receiver, String methodName) {
             return executeInternal(frame, receiver, methodName,
                     config,

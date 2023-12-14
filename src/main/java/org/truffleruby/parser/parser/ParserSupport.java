@@ -1832,7 +1832,6 @@ public final class ParserSupport {
         final ClassicRegexp pattern;
         try {
             pattern = new ClassicRegexp(
-                    configuration.getContext(),
                     regexpNode.getValue(),
                     regexpNode.getOptions());
         } catch (DeferredRaiseException dre) {
@@ -1935,7 +1934,7 @@ public final class ParserSupport {
     protected ClassicRegexp checkRegexpSyntax(TStringWithEncoding value, RegexpOptions options) {
         try {
             // This is only for syntax checking but this will as a side effect create an entry in the regexp cache.
-            return new ClassicRegexp(getConfiguration().getContext(), value, options);
+            return new ClassicRegexp(value, options);
         } catch (DeferredRaiseException dre) {
             throw compile_error(dre.getException(getConfiguration().getContext()).getMessage());
         } catch (RaiseException re) {

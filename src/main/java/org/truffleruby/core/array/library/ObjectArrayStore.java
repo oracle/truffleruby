@@ -160,7 +160,7 @@ public final class ObjectArrayStore {
 
     @ExportMessage
     static Iterable<Object> getIterable(Object[] store, int from, int length) {
-        return () -> new Iterator<Object>() {
+        return () -> new Iterator<>() {
 
             private int n = from;
 

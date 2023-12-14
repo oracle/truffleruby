@@ -32,6 +32,7 @@ public abstract class NotNode extends RubyContextSourceNode {
         return !valueAsBoolean;
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = NotNodeGen.create(child.cloneUninitialized());
         return copy.copyFlags(this);

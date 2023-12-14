@@ -81,6 +81,7 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = new ArrayConcatNode(cloneUninitialized(children));
         return copy.copyFlags(this);

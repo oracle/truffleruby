@@ -32,7 +32,7 @@ public final class ConcurrentWeakSet<E> extends ConcurrentWeakKeysMap<E, Boolean
 
     @TruffleBoundary
     public WeakSetIterator<E> iterator() {
-        return new WeakSetIterator<E>(map.keySet().iterator());
+        return new WeakSetIterator<>(map.keySet().iterator());
     }
 
     private static final class WeakSetIterator<E> implements Iterator<E> {

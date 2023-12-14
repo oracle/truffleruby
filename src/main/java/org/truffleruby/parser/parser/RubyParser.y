@@ -4,8 +4,6 @@ package org.truffleruby.parser.parser;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import java.util.Set;
-import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -117,7 +115,7 @@ import static org.truffleruby.parser.parser.ParserSupport.value_expr;
 // @formatter:off
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
-@SuppressWarnings({"unchecked", "fallthrough", "cast"})
+@SuppressWarnings({"unchecked", "fallthrough", "cast", "rawtypes"})
 public final class RubyParser {
     private final ParserSupport support;
     private final RubyLexer lexer;
@@ -2390,8 +2388,8 @@ p_primitive     : literal
                 }
                 | keyword__FILE__ {
                     // TODO: make a helper for this since it is used twice now
-                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding().jcoding;
-                    $$ = new FileParseNode(lexer.getPosition(), TruffleString.fromJavaStringUncached(lexer.getFile(), lexer.tencoding), lexer.encoding);
+                    RubyEncoding encoding = support.getConfiguration().getContext() == null ? Encodings.UTF_8 : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    $$ = new FileParseNode(lexer.tokline, TStringUtils.fromJavaString(lexer.getFile(), encoding), encoding);
                 }
                 | keyword__LINE__ {
                     $$ = new FixnumParseNode(lexer.tokline, lexer.getRubySourceLine());

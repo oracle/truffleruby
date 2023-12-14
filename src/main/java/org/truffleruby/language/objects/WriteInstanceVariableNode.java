@@ -35,6 +35,7 @@ public abstract class WriteInstanceVariableNode extends RubyContextSourceNode im
 
     @CompilationFinal private boolean frozenProfile;
 
+    @Override
     public abstract Object execute(VirtualFrame frame);
 
     public WriteInstanceVariableNode(String name, RubyNode rhs) {

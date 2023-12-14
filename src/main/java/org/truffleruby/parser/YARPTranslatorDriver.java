@@ -443,18 +443,14 @@ public final class YARPTranslatorDriver {
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
             String message = context.fileLine(section) + ": " + error.message;
 
-            if (context != null) {
-                int lineNumber = RubySource.getStartLineAdjusted(context, section);
+            int lineNumber = RubySource.getStartLineAdjusted(context, section);
 
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
-                                message,
-                                null,
-                                rubySource.getSource().createSection(lineNumber)));
-            } else {
-                throw new UnsupportedOperationException(message);
-            }
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
+                            message,
+                            null,
+                            rubySource.getSource().createSection(lineNumber)));
         }
 
         for (var magicComment : parseResult.magicComments) {

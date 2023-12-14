@@ -478,10 +478,6 @@ public final class FiberManager {
             return sendingFiber;
         }
 
-        public ArgumentsDescriptor getDescriptor() {
-            return descriptor;
-        }
-
         public Object[] getArgs() {
             return args;
         }
