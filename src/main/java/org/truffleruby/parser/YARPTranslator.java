@@ -1677,9 +1677,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode readNode = read.accept(this);
 
         final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[argumentsCount + 1];
-        for (int i = 0; i < argumentsCount; i++) {
-            readArgumentsAndValue[i] = readArguments[i];
-        }
+        System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, argumentsCount);
         readArgumentsAndValue[argumentsCount] = node.value;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
@@ -1749,9 +1747,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
 
         final Nodes.Node[] readArgumentsAndResult = new Nodes.Node[argumentsCount + 1];
-        for (int i = 0; i < argumentsCount; i++) {
-            readArgumentsAndResult[i] = readArguments[i];
-        }
+        System.arraycopy(readArguments, 0, readArgumentsAndResult, 0, argumentsCount);
         readArgumentsAndResult[argumentsCount] = executeOperator;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
@@ -1820,9 +1816,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode readNode = read.accept(this);
 
         final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[argumentsCount + 1];
-        for (int i = 0; i < argumentsCount; i++) {
-            readArgumentsAndValue[i] = readArguments[i];
-        }
+        System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, argumentsCount);
         readArgumentsAndValue[argumentsCount] = node.value;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
