@@ -7,7 +7,6 @@ notes: >
   value_0 = a # execute receiver only once
   value_0.b && value_0.b=(c)
   ```
-yarp_specific: true # there was a bug and &. didn't affect AST at all
 focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
 ruby: |
   a&.foo &&= 42

@@ -2226,7 +2226,14 @@ public class BodyTranslator extends BaseTranslator {
             RubyNode lhs = readMethod.accept(this);
             RubyNode rhs = writeMethod.accept(this);
 
-            final RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
+            RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
+
+            if (node.isLazy()) {
+                controlNode = IfNodeGen.create(
+                        NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
+                        controlNode);
+                controlNode.unsafeSetSourceSection(sourceSection);
+            }
 
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
