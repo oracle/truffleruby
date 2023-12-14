@@ -47,26 +47,21 @@ ast: |
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
-                          IfNodeGen
+                          UnlessNodeGen
                               attributes:
                                   flags = 0
                               children:
                                   condition =
-                                      NotNodeGen
+                                      IsNilNode
                                           attributes:
                                               flags = 0
                                           children:
                                               child =
-                                                  IsNilNode
+                                                  ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                      children:
-                                                          child =
-                                                              ReadLocalVariableNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      frameSlot = 2 # %value_0
-                                                                      type = FRAME_LOCAL
+                                                          frameSlot = 2 # %value_0
+                                                          type = FRAME_LOCAL
                                   thenBody =
                                       OrNodeGen
                                           attributes:

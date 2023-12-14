@@ -590,9 +590,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode sequence;
         if (node.isSafeNavigation()) {
             // return `nil` if receiver is `nil`
-            final RubyNode ifNode = IfNodeGen.create(NotNodeGen.create(new IsNilNode(receiverExpression.getReadNode())),
+            final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     andNode);
-            sequence = sequence(Arrays.asList(writeReceiveNode, ifNode));
+            sequence = sequence(Arrays.asList(writeReceiveNode, unlessNode));
         } else {
             sequence = sequence(Arrays.asList(writeReceiveNode, andNode));
         }
@@ -800,9 +800,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         if (node.isSafeNavigation()) {
             // return `nil` if receiver is `nil`
-            final RubyNode ifNode = IfNodeGen.create(NotNodeGen.create(new IsNilNode(receiverExpression.getReadNode())),
+            final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     writeNode);
-            rubyNode = sequence(Arrays.asList(writeReceiveNode, ifNode));
+            rubyNode = sequence(Arrays.asList(writeReceiveNode, unlessNode));
         } else {
             rubyNode = sequence(Arrays.asList(writeReceiveNode, writeNode));
         }
@@ -830,9 +830,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode sequence;
         if (node.isSafeNavigation()) {
             // return `nil` if receiver is `nil`
-            final RubyNode ifNode = IfNodeGen.create(NotNodeGen.create(new IsNilNode(receiverExpression.getReadNode())),
+            final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     orNode);
-            sequence = sequence(Arrays.asList(writeReceiveNode, ifNode));
+            sequence = sequence(Arrays.asList(writeReceiveNode, unlessNode));
         } else {
             sequence = sequence(Arrays.asList(writeReceiveNode, orNode));
         }

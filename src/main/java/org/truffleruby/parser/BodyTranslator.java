@@ -2229,8 +2229,8 @@ public class BodyTranslator extends BaseTranslator {
             RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
 
             if (node.isLazy()) {
-                controlNode = IfNodeGen.create(
-                        NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
+                controlNode = UnlessNodeGen.create(
+                        new IsNilNode(receiverValue.get(sourceSection).accept(this)),
                         controlNode);
                 controlNode.unsafeSetSourceSection(sourceSection);
             }
@@ -2267,8 +2267,8 @@ public class BodyTranslator extends BaseTranslator {
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            body = IfNodeGen.create(
-                    NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
+            body = UnlessNodeGen.create(
+                    new IsNilNode(receiverValue.get(sourceSection).accept(this)),
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
