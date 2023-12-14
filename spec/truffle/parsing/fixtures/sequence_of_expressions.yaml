@@ -1,10 +1,9 @@
 subject: "Sequence of expressions"
 description: "Multiple expressions separated with `;` or new line"
-yarp_specific: yes # No EmitWarningsNode node as far as YARP still doesn't return warnings
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  42
-  100500
+  foo
+  bar
 ast: |
   SequenceNode
       attributes:
@@ -25,12 +24,42 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              IntegerFixnumLiteralNode
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 42
-              IntegerFixnumLiteralNode
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "foo"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 100500
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "bar"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
           ]

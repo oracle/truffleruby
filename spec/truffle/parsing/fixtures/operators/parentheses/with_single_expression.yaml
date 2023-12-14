@@ -2,10 +2,9 @@ subject: "Parentheses operator"
 description: "with single expression"
 notes: >
   () are just ignored
-yarp_specific: yes # No EmitWarningsNode node as far as YARP still doesn't return warnings
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  (42)
+  (foo)
 ast: |
   SequenceNode
       attributes:
@@ -26,8 +25,23 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              IntegerFixnumLiteralNode
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 42
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "foo"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
           ]
