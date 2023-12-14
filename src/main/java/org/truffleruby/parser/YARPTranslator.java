@@ -1890,23 +1890,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
-        // parse Integer literal ourselves
-        // See https://github.com/ruby/yarp/issues/1098
-        var tstring = toTString(node);
-        Object integer = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring, sourceEncoding, 0,
-                true);
-
-        final RubyNode rubyNode;
-        if (integer instanceof Integer i) {
-            rubyNode = new IntegerFixnumLiteralNode(i);
-        } else if (integer instanceof Long l) {
-            rubyNode = new LongFixnumLiteralNode(l);
-        } else if (integer instanceof RubyBignum bignum) {
-            rubyNode = new ObjectLiteralNode(bignum);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere(integer.getClass().getName());
-        }
-
+        final RubyNode rubyNode = translateIntegerLiteralString(toString(node));
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2336,62 +2320,37 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitRationalNode(Nodes.RationalNode node) {
-        // Translate as Rational.convert(n, 1) ignoring visibility
-
-        // TODO(CS): use IntFixnumLiteralNode where possible
+        // Translate as Rational.convert private method call
 
         final RubyNode objectClassNode = new ObjectClassLiteralNode();
         final ReadConstantNode rationalModuleNode = new ReadConstantNode(objectClassNode, "Rational");
         final RubyNode numeratorNode;
         final RubyNode denominatorNode;
 
-        // avoid Java float/double types,
-        // e.g for 3.14 numerator is 314 and denominator is 100
+        // Handle float literals differently and avoid Java float/double types to not lose precision.
+        // So normalize numerator and denominator, e.g 3.14r literal is translated into Rational(314, 100).
+        // The other option is to represent float literal as a String and rely on parsing String literals in
+        // the Kernel#Rational() method. The only downside is worse performance as far as Kernel#Rational()
+        // is implemented in Ruby.
         if (node.numeric instanceof Nodes.FloatNode floatNode) {
-            String string = toString(floatNode);
+            // Translate as Rational.convert(numerator, denominator).
+
+            // Assume float literal is in the ddd.ddd format and
+            // scientific format (e.g. 1.23e10) is not valid in Rational literals
+            String string = toString(floatNode).replaceAll("_", ""); // remove '_' characters
             int pointIndex = string.indexOf('.');
+            assert pointIndex != -1; // float literal in Ruby must contain '.'
 
-            assert pointIndex != -1; // Float literal in Ruby must contain '.'
+            int fractionLength = string.length() - pointIndex - 1;
+            assert fractionLength > 0;
 
-            // digits in fraction part
-            int denominatorLength = string.length() - pointIndex - 1; // TODO: find a proper name
+            String numerator = string.replace(".", ""); // remove float point
+            numeratorNode = translateIntegerLiteralString(numerator);
 
-            assert denominatorLength > 0;
-
-            String stringWithoutPoint = string.replace(".", ""); // remove decimal point
-
-            var tstring = toTString(stringWithoutPoint);
-            Object integer = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring, sourceEncoding,
-                    0,
-                    true);
-
-            if (integer instanceof Integer i) {
-                numeratorNode = new IntegerFixnumLiteralNode(i);
-            } else if (integer instanceof Long l) {
-                numeratorNode = new LongFixnumLiteralNode(l);
-            } else if (integer instanceof RubyBignum bignum) {
-                numeratorNode = new ObjectLiteralNode(bignum);
-            } else {
-                throw CompilerDirectives.shouldNotReachHere(integer.getClass().getName());
-            }
-
-            String denominatorString = "1" + "0".repeat(denominatorLength);
-
-            var denominatorTstring = toTString(denominatorString);
-            Object denominatorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null,
-                    denominatorTstring, sourceEncoding, 0,
-                    true);
-
-            if (denominatorInteger instanceof Integer i) {
-                denominatorNode = new IntegerFixnumLiteralNode(i);
-            } else if (integer instanceof Long l) {
-                denominatorNode = new LongFixnumLiteralNode(l);
-            } else if (integer instanceof RubyBignum bignum) {
-                denominatorNode = new ObjectLiteralNode(bignum);
-            } else {
-                throw CompilerDirectives.shouldNotReachHere(integer.getClass().getName());
-            }
+            String denominator = "1" + "0".repeat(fractionLength);
+            denominatorNode = translateIntegerLiteralString(denominator);
         } else {
+            // Translate as Rational.convert(n, 1)
             numeratorNode = node.numeric.accept(this);
             denominatorNode = new IntegerFixnumLiteralNode(1);
         }
@@ -3420,6 +3379,30 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 keywordArguments,
                 requiredKeywordArgumentsCount,
                 parametersNode.keyword_rest != null);
+    }
+
+    // parse Integer literal ourselves
+    // See https://github.com/ruby/yarp/issues/1098
+    private RubyNode translateIntegerLiteralString(String string) {
+        final RubyNode rubyNode;
+        TruffleString tstring = toTString(string);
+
+        Object numeratorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring,
+                sourceEncoding,
+                0,
+                true);
+
+        if (numeratorInteger instanceof Integer i) {
+            rubyNode = new IntegerFixnumLiteralNode(i);
+        } else if (numeratorInteger instanceof Long l) {
+            rubyNode = new LongFixnumLiteralNode(l);
+        } else if (numeratorInteger instanceof RubyBignum bignum) {
+            rubyNode = new ObjectLiteralNode(bignum);
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(numeratorInteger.getClass().getName());
+        }
+
+        return rubyNode;
     }
 
 }
