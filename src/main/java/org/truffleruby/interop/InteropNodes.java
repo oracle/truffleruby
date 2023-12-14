@@ -2262,6 +2262,27 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "read_buffer", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
+    public abstract static class ReadBufferNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getInteropCacheLimit()")
+        static RubyString readBuffer(Object receiver, long byteOffset, int length,
+                @CachedLibrary("receiver") InteropLibrary interop,
+                @Cached TranslateInteropExceptionNode translateInteropException,
+                @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Bind("this") Node node) {
+            byte[] bytes = new byte[length];
+            try {
+                interop.readBuffer(receiver, byteOffset, bytes, 0, length);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(node, e);
+            }
+
+            return createString(node, fromByteArrayNode, bytes, Encodings.BINARY);
+        }
+
+    }
+
     @CoreMethod(names = "read_buffer_byte", onSingleton = true, required = 2)
     public abstract static class ReadBufferByteNode extends CoreMethodArrayArgumentsNode {
 
