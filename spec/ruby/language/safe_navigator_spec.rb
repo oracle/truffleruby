@@ -65,10 +65,15 @@ describe "Safe navigator" do
 
   it "allows assignment operators" do
     klass = Class.new do
-      attr_accessor :m
+      attr_reader :m
 
       def initialize
         @m = 0
+      end
+
+      def m=(v)
+        @m = v
+        42
       end
     end
 
@@ -83,20 +88,26 @@ describe "Safe navigator" do
 
   it "allows ||= operator" do
     klass = Class.new do
-      attr_accessor :m
+      attr_reader :m
 
       def initialize
-        @m = true
+        @m = false
+      end
+
+      def m=(v)
+        @m = v
+        42
       end
     end
 
     obj = klass.new
 
-    (obj&.m &&= false).should == false
-    obj.m.should == false
+    (obj&.m ||= true).should == true
+    obj.m.should == true
 
     obj = nil
-    (obj&.m &&= false).should == nil
+    (obj&.m ||= true).should == nil
+    obj.should == nil
   end
 
   it "allows &&= operator" do
@@ -115,6 +126,7 @@ describe "Safe navigator" do
 
     obj = nil
     (obj&.m &&= false).should == nil
+    obj.should == nil
   end
 
   it "does not call the operator method lazily with an assignment operator" do
