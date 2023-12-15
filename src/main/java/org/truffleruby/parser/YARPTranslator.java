@@ -586,6 +586,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitCallAndWriteNode(Nodes.CallAndWriteNode node) {
+        // `a.b &&= value` is translated into `a.b || a.b = value`
+        // receiver (a) should be executed only once that's why it's cached into a local variable
+
         assert node.receiver != null; // without receiver `a &&= b` leads to Nodes.LocalVariableAndWriteNode
 
         final var receiverExpression = new YARPExecutedOnceExpression("value", node.receiver, this);
@@ -787,6 +790,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitCallOperatorWriteNode(Nodes.CallOperatorWriteNode node) {
+        // e.g. `a.b += value` is translated into `a.b = a.b + value`,
+        // receiver (a) should be executed only once - that's why it's cached in a local variable
+
         assert node.receiver != null; // without receiver `a += b` leads to Nodes.LocalVariableOperatorWriteNode
 
         final var receiverExpression = new YARPExecutedOnceExpression("value", node.receiver, this);
@@ -817,6 +823,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitCallOrWriteNode(Nodes.CallOrWriteNode node) {
+        // `a.b ||= value` is translated into `a.b || a.b = value`
+        // receiver (a) should be executed only once that's why it's cached into a local variable
+
         assert node.receiver != null; // without receiver `a ||= b` leads to Nodes.LocalVariableOrWriteNode
 
         final var receiverExpression = new YARPExecutedOnceExpression("value", node.receiver, this);
@@ -1019,6 +1028,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitClassVariableAndWriteNode(Nodes.ClassVariableAndWriteNode node) {
+        // `@@a &&= value` is translated into @@a && @@a = value`
+        // don't check whether variable is defined so exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -1032,6 +1044,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitClassVariableOperatorWriteNode(Nodes.ClassVariableOperatorWriteNode node) {
+        // e.g. `@@a += value` is translated into @@a = @@a + value`
+        // don't check whether variable is initialized so exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length);
@@ -1042,13 +1057,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitClassVariableOrWriteNode(Nodes.ClassVariableOrWriteNode node) {
-        // `@@a ||= value` is translated into `(defined?(@@a) && @@a) || @@a = value`
+        // `@@a ||= value` is translated into (defined?(@@a) && @@a) || @@a = value`
+        // so we check whether variable is defined and no exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
+
         var writeNode = new Nodes.ClassVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length).accept(this);
-        var definedCheck = AndNodeGen.create(new DefinedNode(readNode), readNode);
-        final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(definedCheck, writeNode);
+        var andNode = AndNodeGen.create(new DefinedNode(readNode), readNode);
+
+        final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(andNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -1084,6 +1103,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitConstantAndWriteNode(Nodes.ConstantAndWriteNode node) {
+        // `A &&= value` is translated into `A && A = value`
+        // don't check whether constant is defined and so exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -1097,6 +1119,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitConstantOperatorWriteNode(Nodes.ConstantOperatorWriteNode node) {
+        // e.g. `A += value` is translated into A = A + value`
+        // don't check whether constant is initialized so warnings will be emitted otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -1112,20 +1137,24 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitConstantOrWriteNode(Nodes.ConstantOrWriteNode node) {
         // `A ||= value` is translated into `(defined?(A) && A) || A = value`
+        // so we check whether constant is defined and no exception will be raised otherwise
 
         int startOffset = node.startOffset;
         int length = node.length;
 
         var writeNode = new Nodes.ConstantWriteNode(node.name, node.value, startOffset, length).accept(this);
         var readNode = new Nodes.ConstantReadNode(node.name, startOffset, length).accept(this);
-        var definedCheck = AndNodeGen.create(new DefinedNode(readNode), readNode);
+        var andNode = AndNodeGen.create(new DefinedNode(readNode), readNode);
 
-        final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(definedCheck, writeNode);
+        final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(andNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
     public RubyNode visitConstantPathAndWriteNode(Nodes.ConstantPathAndWriteNode node) {
+        // `A::B &&= value` is translated into `A::B && A::B = value`
+        // don't check whether constant is defined and so exception will be raised otherwise
+
         var value = node.value.accept(this);
 
         var readNode = (ReadConstantNode) node.target.accept(this);
@@ -1161,6 +1190,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitConstantPathOperatorWriteNode(Nodes.ConstantPathOperatorWriteNode node) {
+        // e.g. `A::B += value` is translated into A::B = A::B + value`
+        // don't check whether constant is initialized so warnings will be emitted otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -1176,6 +1208,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitConstantPathOrWriteNode(Nodes.ConstantPathOrWriteNode node) {
+        // `A::B ||= value` is translated into `(defined?(A::B) && A::B) || A::B = value`
+        // check whether constant is defined so no exception will be raised otherwise
+
+        // The defined? check is implemented in OrAssignConstantNodeGen and isn't straightforward
+        // because of constants autoloading.
+
         var value = node.value.accept(this);
 
         var readNode = (ReadConstantNode) node.target.accept(this);
@@ -1464,6 +1502,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitGlobalVariableAndWriteNode(Nodes.GlobalVariableAndWriteNode node) {
+        // `$a &&= value` is translated into `$a && $a = value`
+        // don't check whether variable is defined so a warning will be emitted otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -1477,6 +1518,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitGlobalVariableOperatorWriteNode(Nodes.GlobalVariableOperatorWriteNode node) {
+        // e.g. `$a += value` is translated into $a = $a + value`
+        // don't check whether variable is initialized so exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
         var readNode = new Nodes.GlobalVariableReadNode(node.name, startOffset, length);
@@ -1488,11 +1532,15 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitGlobalVariableOrWriteNode(Nodes.GlobalVariableOrWriteNode node) {
         // `$a ||= value` is translated into `(defined?($a) && $a) || $a = value`
+        // check whether variable is defined so no warnings will be emitted otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
+
         var writeNode = new Nodes.GlobalVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         var readNode = new Nodes.GlobalVariableReadNode(node.name, startOffset, length).accept(this);
         var definedCheck = AndNodeGen.create(new DefinedNode(readNode), readNode);
+
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(definedCheck, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1629,11 +1677,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIndexAndWriteNode(Nodes.IndexAndWriteNode node) {
-        assert node.receiver != null;
-
         // `a[b] &&= c` is translated into `a[b] && a[b] = c`
+
         // receiver (a) and arguments (b) should be executed only once
         // that's why they are cached in local variables
+
+        assert node.receiver != null;
 
         // receiver
         final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", node.receiver, this);
@@ -1699,11 +1748,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIndexOperatorWriteNode(Nodes.IndexOperatorWriteNode node) {
-        assert node.receiver != null;
+        // e.g. `a[b] += value` is translated into `a[b] = a[b] + value`,
 
-        // `a[b] += c` is translated into `a[b] = a[b] + c`
-        // receiver (a) and arguments (b) should be executed only once
+        // receiver (a) and arguments (b) should be executed only once -
         // that's why they are cached in local variables
+
+        assert node.receiver != null;
 
         // receiver
         final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", node.receiver, this);
@@ -1768,11 +1818,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIndexOrWriteNode(Nodes.IndexOrWriteNode node) {
-        assert node.receiver != null;
-
         // `a[b] ||= c` is translated into `a[b] || a[b] = c`
+
         // receiver (a) and arguments (b) should be executed only once
         // that's why they are cached in local variables
+
+        assert node.receiver != null;
 
         // receiver
         final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", node.receiver, this);
@@ -1838,6 +1889,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInstanceVariableAndWriteNode(Nodes.InstanceVariableAndWriteNode node) {
+        // `@a &&= value` is translated into `@a && @a = value`
+        // don't check whether variable is initialized because even if an instance variable
+        // is not set then it returns nil and does not have side effects (warnings or exceptions)
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -1851,8 +1906,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInstanceVariableOperatorWriteNode(Nodes.InstanceVariableOperatorWriteNode node) {
+        // e.g. `@a += value` is translated into @a = @a + value`
+        // don't check whether variable is defined so exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
+
         var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.InstanceVariableWriteNode(node.name,
                 callNode(node, readNode, node.operator, node.value), startOffset, length);
@@ -1865,10 +1924,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // No need to check `defined?(@ivar)` before reading, as `@ivar` even if not set returns nil and does not have
         // side effects (warnings or exceptions)
+
         int startOffset = node.startOffset;
         int length = node.length;
+
         var writeNode = new Nodes.InstanceVariableWriteNode(node.name, node.value, startOffset, length).accept(this);
         var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length).accept(this);
+
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -2025,6 +2087,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitLocalVariableAndWriteNode(Nodes.LocalVariableAndWriteNode node) {
+        // `a &&= value` is translated into `a && a = value`
+        // don't check whether variable is initialized because even if a local variable
+        // is not set then it returns nil and does not have side effects (warnings or exceptions)
+
         int startOffset = node.startOffset;
         int length = node.length;
 
@@ -2039,6 +2105,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitLocalVariableOperatorWriteNode(Nodes.LocalVariableOperatorWriteNode node) {
+        // e.g. `a += value` is translated into a = a + value`
+        // don't check whether variable is initialized so exception will be raised otherwise
+
         int startOffset = node.startOffset;
         int length = node.length;
         var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length);
@@ -2055,9 +2124,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // side effects (warnings or exceptions)
         int startOffset = node.startOffset;
         int length = node.length;
+
         var writeNode = new Nodes.LocalVariableWriteNode(node.name, node.depth, node.value, startOffset, length)
                 .accept(this);
         var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length).accept(this);
+
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
