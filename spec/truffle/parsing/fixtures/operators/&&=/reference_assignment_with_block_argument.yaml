@@ -36,7 +36,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 4 # %value_2
+                      frameSlot = 3 # %value_1
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
@@ -46,7 +46,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3 # %value_1
+                      frameSlot = 4 # %value_2
                   children:
                       valueNode =
                           ToProcNodeGen
@@ -122,7 +122,7 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 4 # %value_2
+                                              frameSlot = 3 # %value_1
                                               type = FRAME_LOCAL
                                   ]
                                   block =
@@ -134,7 +134,7 @@ ast: |
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 3 # %value_1
+                                                          frameSlot = 4 # %value_2
                                                           type = FRAME_LOCAL
                                   receiver =
                                       ReadLocalVariableNode
@@ -162,7 +162,7 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 4 # %value_2
+                                              frameSlot = 3 # %value_1
                                               type = FRAME_LOCAL
                                       IntegerFixnumLiteralNode
                                           attributes:
@@ -178,7 +178,7 @@ ast: |
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 3 # %value_1
+                                                          frameSlot = 4 # %value_2
                                                           type = FRAME_LOCAL
                                   receiver =
                                       ReadLocalVariableNode

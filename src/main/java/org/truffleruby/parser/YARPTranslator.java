@@ -1677,18 +1677,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIndexAndWriteNode(Nodes.IndexAndWriteNode node) {
-        // `a[b] &&= c` is translated into `a[b] && a[b] = c`
-
-        // receiver (a) and arguments (b) should be executed only once
-        // that's why they are cached in local variables
-
-        assert node.receiver != null;
-
-        // receiver
-        final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", node.receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
-        final var readReceiver = receiverExpression.getReadYARPNode();
-
         // arguments
         final Nodes.Node[] arguments;
         if (node.arguments != null) {
@@ -1696,53 +1684,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             arguments = Nodes.Node.EMPTY_ARRAY;
         }
-        final int argumentsCount = arguments.length;
 
-        // block argument
-        final RubyNode writeBlockNode;
-        final Nodes.BlockArgumentNode blockArgument;
-
-        if (node.block != null) {
-            var expression = new YARPExecutedOnceExpression("value", node.block, this);
-            writeBlockNode = expression.getWriteNode();
-            Nodes.Node readBlock = expression.getReadYARPNode();
-            // imitate Nodes.CallNode structure with &block argument
-            blockArgument = new Nodes.BlockArgumentNode(readBlock, 0, 0);
-        } else {
-            writeBlockNode = null;
-            blockArgument = null;
-        }
-
-        final RubyNode[] writeArgumentsNodes = new RubyNode[argumentsCount];
-        final Nodes.Node[] readArguments = new Nodes.Node[argumentsCount];
-        for (int i = 0; i < argumentsCount; i++) {
-            var expression = new YARPExecutedOnceExpression("value", arguments[i], this);
-            writeArgumentsNodes[i] = expression.getWriteNode();
-            readArguments[i] = expression.getReadYARPNode();
-        }
-
-        final Nodes.Node read = new Nodes.CallNode(readReceiver, "[]",
-                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
-        final RubyNode readNode = read.accept(this);
-
-        final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[argumentsCount + 1];
-        System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, argumentsCount);
-        readArgumentsAndValue[argumentsCount] = node.value;
-
-        final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
-                new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
-        final RubyNode writeNode = write.accept(this);
-        final RubyNode andNode = AndNodeGen.create(readNode, writeNode);
-        final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
-        final RubyNode rubyNode;
-
-        if (node.block != null) {
-            // add block argument write node
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiveNode, andNode));
-        } else {
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiveNode, andNode));
-        }
-
+        final RubyNode rubyNode = translateIndexOrAndIndexAndWriteNodes(true, node.receiver, arguments, node.block,
+                node.value);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -1818,18 +1762,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitIndexOrWriteNode(Nodes.IndexOrWriteNode node) {
-        // `a[b] ||= c` is translated into `a[b] || a[b] = c`
-
-        // receiver (a) and arguments (b) should be executed only once
-        // that's why they are cached in local variables
-
-        assert node.receiver != null;
-
-        // receiver
-        final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", node.receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
-        final var readReceiver = receiverExpression.getReadYARPNode();
-
         // arguments
         final Nodes.Node[] arguments;
         if (node.arguments != null) {
@@ -1837,11 +1769,31 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             arguments = Nodes.Node.EMPTY_ARRAY;
         }
-        final int argumentsCount = arguments.length;
 
-        final RubyNode[] writeArgumentsNodes = new RubyNode[argumentsCount];
-        final Nodes.Node[] readArguments = new Nodes.Node[argumentsCount];
-        for (int i = 0; i < argumentsCount; i++) {
+        final RubyNode rubyNode = translateIndexOrAndIndexAndWriteNodes(false, node.receiver, arguments, node.block,
+                node.value);
+        return assignPositionAndFlags(node, rubyNode);
+    }
+
+    private RubyNode translateIndexOrAndIndexAndWriteNodes(boolean isAndOperator, Nodes.Node receiver,
+            Nodes.Node[] arguments, Nodes.Node block, Nodes.Node value) {
+        // Handle both &&= and ||= operators:
+        //   `a[b] ||= c` is translated into `a[b] || a[b] = c`
+        //   `a[b] &&= c` is translated into `a[b] && a[b] = c`
+
+        // receiver (a) and arguments (b) should be executed only once
+        // that's why they are cached in local variables
+
+        assert receiver != null;
+
+        // receiver
+        final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", receiver, this);
+        final var writeReceiveNode = receiverExpression.getWriteNode();
+        final var readReceiver = receiverExpression.getReadYARPNode();
+
+        final RubyNode[] writeArgumentsNodes = new RubyNode[arguments.length];
+        final Nodes.Node[] readArguments = new Nodes.Node[arguments.length];
+        for (int i = 0; i < arguments.length; i++) {
             final var expression = new YARPExecutedOnceExpression("value", arguments[i], this);
             writeArgumentsNodes[i] = expression.getWriteNode();
             readArguments[i] = expression.getReadYARPNode();
@@ -1851,8 +1803,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode writeBlockNode;
         final Nodes.BlockArgumentNode blockArgument;
 
-        if (node.block != null) {
-            var expression = new YARPExecutedOnceExpression("value", node.block, this);
+        if (block != null) {
+            var expression = new YARPExecutedOnceExpression("value", block, this);
             writeBlockNode = expression.getWriteNode();
             Nodes.Node readBlock = expression.getReadYARPNode();
             // imitate Nodes.CallNode structure with &block argument
@@ -1866,25 +1818,32 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode readNode = read.accept(this);
 
-        final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[argumentsCount + 1];
-        System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, argumentsCount);
-        readArgumentsAndValue[argumentsCount] = node.value;
+        final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[arguments.length + 1];
+        System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, arguments.length);
+        readArgumentsAndValue[arguments.length] = value;
 
         final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
                 new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
         final RubyNode writeNode = write.accept(this);
-        final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
+
+        final RubyNode operatorNode;
+        if (isAndOperator) {
+            operatorNode = AndNodeGen.create(readNode, writeNode);
+        } else {
+            operatorNode = OrNodeGen.create(readNode, writeNode);
+        }
+
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
         final RubyNode rubyNode;
 
-        if (node.block != null) {
+        if (block != null) {
             // add block argument write node
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiveNode, orNode));
+            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiveNode, operatorNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiveNode, orNode));
+            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiveNode, operatorNode));
         }
 
-        return assignPositionAndFlags(node, rubyNode);
+        return rubyNode;
     }
 
     @Override
