@@ -68,7 +68,6 @@ import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
-import org.truffleruby.language.constants.OrAssignConstantNodeGen;
 import org.truffleruby.language.constants.ReadConstantNode;
 import org.truffleruby.language.constants.ReadConstantWithDynamicScopeNode;
 import org.truffleruby.language.constants.ReadConstantWithLexicalScopeNode;
@@ -1154,14 +1153,40 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitConstantPathAndWriteNode(Nodes.ConstantPathAndWriteNode node) {
         // `A::B &&= value` is translated into `A::B && A::B = value`
         // don't check whether constant is defined and so exception will be raised otherwise
+        // A module/class (A::) should be executed only once - that's why it is cached in a local variable.
+
+        final Nodes.ConstantPathNode target; // use instead of node.target
+        final RubyNode writeParentNode;
+
+        if (node.target.parent != null) {
+            // A::B &&= 1
+            var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
+            Nodes.Node readParent = parentExpression.getReadYARPNode();
+            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+                    node.target.startOffset);
+
+            writeParentNode = parentExpression.getWriteNode();
+        } else {
+            // ::A &&= 1
+            target = node.target;
+            writeParentNode = null;
+        }
 
         var value = node.value.accept(this);
 
-        var readNode = (ReadConstantNode) node.target.accept(this);
+        var readNode = (ReadConstantNode) target.accept(this);
         var writeNode = (WriteConstantNode) readNode.makeWriteNode(value);
         final RubyNode andNode = AndNodeGen.create(readNode, writeNode);
 
-        final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, andNode);
+        final RubyNode rubyNode;
+
+        if (writeParentNode != null) {
+            RubyNode sequence = sequence(Arrays.asList(writeParentNode, andNode));
+            rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
+        } else {
+            rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, andNode);
+        }
+
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -1191,35 +1216,84 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitConstantPathOperatorWriteNode(Nodes.ConstantPathOperatorWriteNode node) {
         // e.g. `A::B += value` is translated into A::B = A::B + value`
-        // don't check whether constant is initialized so warnings will be emitted otherwise
+        // don't check whether constant is initialized so warnings will be emitted otherwise.
+        // A module/class (A::) should be executed only once - that's why it is cached in a local variable.
+
+        final Nodes.ConstantPathNode target; // use instead of node.target
+        final RubyNode writeParentNode;
+
+        if (node.target.parent != null) {
+            // A::B += 1
+            var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
+            Nodes.Node readParent = parentExpression.getReadYARPNode();
+            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+                    node.target.startOffset);
+
+            writeParentNode = parentExpression.getWriteNode();
+        } else {
+            // ::A += 1
+            target = node.target;
+            writeParentNode = null;
+        }
 
         int startOffset = node.startOffset;
         int length = node.length;
 
-        // TODO: node.target is executed twice - it's an issue if it has side effects,
-        //       e.g. `(puts 'side effect'; A)::Foo += 1`
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
-        final var operatorNode = new Nodes.CallNode(node.target, node.operator,
+        final var operatorNode = new Nodes.CallNode(target, node.operator,
                 new Nodes.ArgumentsNode(new Nodes.Node[]{ node.value }, (short) 0, 0, 0), null, (short) 0, 0, 0);
-        final var writeNode = new Nodes.ConstantPathWriteNode(node.target, operatorNode, startOffset, length);
+        final var writeNode = new Nodes.ConstantPathWriteNode(target, operatorNode, startOffset, length);
 
-        return writeNode.accept(this);
+        final RubyNode rubyNode;
+
+        if (writeParentNode != null) {
+            rubyNode = sequence(Arrays.asList(writeParentNode, writeNode.accept(this)));
+            assignPositionAndFlags(node, rubyNode);
+        } else {
+            rubyNode = writeNode.accept(this);
+        }
+
+        return rubyNode;
     }
 
     @Override
     public RubyNode visitConstantPathOrWriteNode(Nodes.ConstantPathOrWriteNode node) {
         // `A::B ||= value` is translated into `(defined?(A::B) && A::B) || A::B = value`
         // check whether constant is defined so no exception will be raised otherwise
+        // A module/class (A::) should be executed only once - that's why it is cached in a local variable.
 
-        // The defined? check is implemented in OrAssignConstantNodeGen and isn't straightforward
-        // because of constants autoloading.
+        final Nodes.ConstantPathNode target; // use instead of node.target
+        final RubyNode writeParentNode;
+
+        if (node.target.parent != null) {
+            // A::B ||= 1
+            var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
+            Nodes.Node readParent = parentExpression.getReadYARPNode();
+            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+                    node.target.startOffset);
+
+            writeParentNode = parentExpression.getWriteNode();
+        } else {
+            // ::A ||= 1
+            target = node.target;
+            writeParentNode = null;
+        }
 
         var value = node.value.accept(this);
 
-        var readNode = (ReadConstantNode) node.target.accept(this);
+        var readNode = (ReadConstantNode) target.accept(this);
         var writeNode = (WriteConstantNode) readNode.makeWriteNode(value);
+        final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
 
-        final RubyNode rubyNode = OrAssignConstantNodeGen.create(readNode, writeNode);
+        final RubyNode rubyNode;
+
+        if (writeParentNode != null) {
+            RubyNode sequence = sequence(Arrays.asList(writeParentNode, orNode));
+            rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
+        } else {
+            rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, orNode);
+        }
+
         return assignPositionAndFlags(node, rubyNode);
     }
 

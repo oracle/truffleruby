@@ -57,7 +57,7 @@ describe 'Optional variable assignments' do
       end
     end
 
-    describe 'using a accessor' do
+    describe 'using an accessor' do
       before do
         klass = Class.new { attr_accessor :b }
         @a    = klass.new
@@ -103,6 +103,16 @@ describe 'Optional variable assignments' do
         @a.b.should == 10
       end
 
+      it 'does evaluate receiver only once when assigns' do
+        ScratchPad.record []
+        @a.b = nil
+
+        (ScratchPad << :evaluated; @a).b ||= 10
+
+        ScratchPad.recorded.should == [:evaluated]
+        @a.b.should == 10
+      end
+
       it 'returns the new value if set to false' do
         def @a.b=(x)
           :v
@@ -144,7 +154,77 @@ describe 'Optional variable assignments' do
 
         klass.new.t
       end
+    end
 
+    describe 'using a #[]' do
+      before do
+        @a = {}
+        klass = Class.new do
+          def [](k)
+            @hash ||= {}
+            @hash[k]
+          end
+
+          def []=(k, v)
+            @hash ||= {}
+            @hash[k] = v
+            7
+          end
+        end
+        @b = klass.new
+      end
+
+      it 'returns the assigned value, not the result of the []= method with ||=' do
+        (@b[:k] ||= 12).should == 12
+      end
+
+      it 'correctly handles a splatted argument for the index' do
+        (@b[*[:k]] ||= 12).should == 12
+      end
+
+      it "evaluates the index precisely once" do
+        ary = [:x, :y]
+        @a[:x] = 15
+        @a[ary.pop] ||= 25
+        ary.should == [:x]
+        @a.should == { x: 15, y: 25 }
+      end
+
+      it "evaluates the index arguments in the correct order" do
+        ary = Class.new(Array) do
+          def [](x, y)
+            super(x + 3 * y)
+          end
+
+          def []=(x, y, value)
+            super(x + 3 * y, value)
+          end
+        end.new
+        ary[0, 0] = 1
+        ary[1, 0] = 1
+        ary[2, 0] = nil
+        ary[3, 0] = 1
+        ary[4, 0] = 1
+        ary[5, 0] = 1
+        ary[6, 0] = nil
+
+        foo = [0, 2]
+
+        ary[foo.pop, foo.pop] ||= 2 # expected `ary[2, 0] ||= 2`
+
+        ary[2, 0].should == 2
+        ary[6, 0].should == nil # returns the same element as `ary[0, 2]`
+      end
+
+      it 'evaluates receiver only once when assigns' do
+        ScratchPad.record []
+        @a[:k] = nil
+
+        (ScratchPad << :evaluated; @a)[:k] ||= 2
+
+        ScratchPad.recorded.should == [:evaluated]
+        @a[:k].should == 2
+      end
     end
   end
 
@@ -191,7 +271,7 @@ describe 'Optional variable assignments' do
       end
     end
 
-    describe 'using a single variable' do
+    describe 'using an accessor' do
       before do
         klass = Class.new { attr_accessor :b }
         @a    = klass.new
@@ -234,6 +314,16 @@ describe 'Optional variable assignments' do
         @a.b = 10
         @a.b &&= 20 rescue 30
 
+        @a.b.should == 20
+      end
+
+      it 'does evaluate receiver only once when assigns' do
+        ScratchPad.record []
+        @a.b = 10
+
+        (ScratchPad << :evaluated; @a).b &&= 20
+
+        ScratchPad.recorded.should == [:evaluated]
         @a.b.should == 20
       end
     end
@@ -297,17 +387,21 @@ describe 'Optional variable assignments' do
       end
 
       it 'returns the assigned value, not the result of the []= method with ||=' do
-        (@b[:k] ||= 12).should == 12
+        @b[:k] = 10
+        (@b[:k] &&= 12).should == 12
       end
 
       it 'correctly handles a splatted argument for the index' do
-        (@b[*[:k]] ||= 12).should == 12
+        @b[:k] = 10
+        (@b[*[:k]] &&= 12).should == 12
+        @b[:k].should == 12
       end
 
       it "evaluates the index precisely once" do
         ary = [:x, :y]
         @a[:x] = 15
-        @a[ary.pop] ||= 25
+        @a[:y] = 20
+        @a[ary.pop] &&= 25
         ary.should == [:x]
         @a.should == { x: 15, y: 25 }
       end
@@ -324,18 +418,28 @@ describe 'Optional variable assignments' do
         end.new
         ary[0, 0] = 1
         ary[1, 0] = 1
-        ary[2, 0] = nil
+        ary[2, 0] = 1
         ary[3, 0] = 1
         ary[4, 0] = 1
         ary[5, 0] = 1
-        ary[6, 0] = nil
+        ary[6, 0] = 1
 
         foo = [0, 2]
 
-        ary[foo.pop, foo.pop] ||= 2
+        ary[foo.pop, foo.pop] &&= 2 # expected `ary[2, 0] &&= 2`
 
         ary[2, 0].should == 2
-        ary[6, 0].should == nil
+        ary[6, 0].should == 1 # returns the same element as `ary[0, 2]`
+      end
+
+      it 'evaluates receiver only once when assigns' do
+        ScratchPad.record []
+        @a[:k] = 1
+
+        (ScratchPad << :evaluated; @a)[:k] &&= 2
+
+        ScratchPad.recorded.should == [:evaluated]
+        @a[:k].should == 2
       end
 
       it 'returns the assigned value, not the result of the []= method with +=' do
@@ -434,7 +538,7 @@ describe 'Optional constant assignment' do
       ConstantSpecs::ClassA::OR_ASSIGNED_CONSTANT2.should == :assigned
     end
 
-    it 'causes side-effects of the module part to be applied (for nil constant)' do
+    it 'causes side-effects of the module part to be applied only once (for nil constant)' do
       suppress_warning do # already initialized constant
       ConstantSpecs::ClassA::NIL_OR_ASSIGNED_CONSTANT2 = nil
       x = 0
@@ -491,6 +595,21 @@ describe 'Optional constant assignment' do
       ConstantSpecs::OpAssignFalse &&= 1
       ConstantSpecs::OpAssignFalse.should == false
       ConstantSpecs.send :remove_const, :OpAssignFalse
+    end
+
+    it 'causes side-effects of the module part to be applied only once (when assigns)' do
+      module ConstantSpecs
+        OpAssignTrue = true
+      end
+
+      suppress_warning do # already initialized constant
+        x = 0
+        (x += 1; ConstantSpecs)::OpAssignTrue &&= :assigned
+        x.should == 1
+        ConstantSpecs::OpAssignTrue.should == :assigned
+      end
+
+      ConstantSpecs.send :remove_const, :OpAssignTrue
     end
   end
 end

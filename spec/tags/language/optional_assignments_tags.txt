@@ -1,0 +1,1 @@
+fails:Optional constant assignment with &&= causes side-effects of the module part to be applied only once (when assigns)
