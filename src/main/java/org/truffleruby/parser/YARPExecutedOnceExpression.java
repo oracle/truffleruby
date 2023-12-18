@@ -14,6 +14,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
+import org.truffleruby.language.objects.SelfNode;
 
 /** Similar to ValueFromNode class but for YARP nodes */
 public final class YARPExecutedOnceExpression {
@@ -27,21 +28,40 @@ public final class YARPExecutedOnceExpression {
         this.node = node;
         this.yarpTranslator = yarpTranslator;
 
-        TranslatorEnvironment environment = yarpTranslator.getEnvironment();
-        name = environment.allocateLocalTemp(baseName);
-        slot = environment.declareVar(name);
-        valueNode = node.accept(yarpTranslator);
+        if (!(node instanceof Nodes.SelfNode)) {
+            TranslatorEnvironment environment = yarpTranslator.getEnvironment();
+            name = environment.allocateLocalTemp(baseName);
+            slot = environment.declareVar(name);
+            valueNode = node.accept(yarpTranslator);
+        } else {
+            // keep self as-is so that the check for visibility when translating the call node works
+            name = null;
+            slot = -1;
+            valueNode = null;
+        }
     }
 
     public Nodes.Node getReadYARPNode() {
-        return new Nodes.LocalVariableReadNode(name, 0, node.startOffset, node.length);
+        if (node instanceof Nodes.SelfNode) {
+            return node;
+        } else {
+            return new Nodes.LocalVariableReadNode(name, 0, node.startOffset, node.length);
+        }
     }
 
     public RubyNode getReadNode() {
-        return new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
+        if (node instanceof Nodes.SelfNode) {
+            return new SelfNode();
+        } else {
+            return new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
+        }
     }
 
     public RubyNode getWriteNode() {
-        return new WriteLocalVariableNode(slot, valueNode);
+        if (node instanceof Nodes.SelfNode) {
+            return null;
+        } else {
+            return new WriteLocalVariableNode(slot, valueNode);
+        }
     }
 }

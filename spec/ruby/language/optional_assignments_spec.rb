@@ -132,27 +132,17 @@ describe 'Optional variable assignments' do
         (@a.b ||= 20).should == 10
       end
 
-      it 'works when writer is private' do
-        klass = Class.new do
-          def t
-            self.b = false
-            (self.b ||= 10).should == 10
-            (self.b ||= 20).should == 10
-          end
-
-          def b
-            @b
-          end
-
-          def b=(x)
-            @b = x
-            :v
-          end
-
-          private :b=
+      it 'ignores method visibility when receiver is self' do
+        klass_with_private_methods = Class.new do
+          def initialize(v) @a = v end
+          def public_method(v); self.a ||= v end
+          private
+          def a; @a end
+          def a=(v) @a = v; 42 end
         end
 
-        klass.new.t
+        a = klass_with_private_methods.new(false)
+        a.public_method(10).should == 10
       end
     end
 
@@ -224,6 +214,19 @@ describe 'Optional variable assignments' do
 
         ScratchPad.recorded.should == [:evaluated]
         @a[:k].should == 2
+      end
+
+      it 'ignores method visibility when receiver is self' do
+        klass_with_private_methods = Class.new do
+          def initialize(h) @a = h end
+          def public_method(k, v); self[k] ||= v end
+          private
+          def [](k) @a[k] end
+          def []=(k, v) @a[k] = v; 42 end
+        end
+
+        a = klass_with_private_methods.new(k: false)
+        a.public_method(:k, 10).should == 10
       end
     end
   end
@@ -325,6 +328,19 @@ describe 'Optional variable assignments' do
 
         ScratchPad.recorded.should == [:evaluated]
         @a.b.should == 20
+      end
+
+      it 'ignores method visibility when receiver is self' do
+        klass_with_private_methods = Class.new do
+          def initialize(v) @a = v end
+          def public_method(v); self.a &&= v end
+          private
+          def a; @a end
+          def a=(v) @a = v; 42 end
+        end
+
+        a = klass_with_private_methods.new(true)
+        a.public_method(10).should == 10
       end
     end
 
@@ -445,6 +461,19 @@ describe 'Optional variable assignments' do
       it 'returns the assigned value, not the result of the []= method with +=' do
         @b[:k] = 17
         (@b[:k] += 12).should == 29
+      end
+
+      it 'ignores method visibility when receiver is self' do
+        klass_with_private_methods = Class.new do
+          def initialize(h) @a = h end
+          def public_method(k, v); self[k] &&= v end
+          private
+          def [](k) @a[k] end
+          def []=(k, v) @a[k] = v; 42 end
+        end
+
+        a = klass_with_private_methods.new(k: true)
+        a.public_method(:k, 10).should == 10
       end
     end
   end

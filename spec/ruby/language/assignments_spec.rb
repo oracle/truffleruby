@@ -18,6 +18,19 @@ describe 'Assignments' do
         ScratchPad.recorded.should == [:evaluated]
         @a.b.should == 3
       end
+
+      it 'ignores method visibility when receiver is self' do
+        klass_with_private_methods = Class.new do
+          def initialize(n) @a = n end
+          def public_method(n); self.a += n end
+          private
+          def a; @a end
+          def a=(n) @a = n; 42 end
+        end
+
+        a = klass_with_private_methods.new(0)
+        a.public_method(2).should == 2
+      end
     end
 
     describe 'using a #[]' do
@@ -29,6 +42,19 @@ describe 'Assignments' do
 
         ScratchPad.recorded.should == [:evaluated]
         a[:k].should == 3
+      end
+
+      it 'ignores method visibility when receiver is self' do
+        klass_with_private_methods = Class.new do
+          def initialize(h) @a = h end
+          def public_method(k, n); self[k] += n end
+          private
+          def [](k) @a[k] end
+          def []=(k, v) @a[k] = v; 42 end
+        end
+
+        a = klass_with_private_methods.new(k: 0)
+        a.public_method(:k, 2).should == 2
       end
     end
 

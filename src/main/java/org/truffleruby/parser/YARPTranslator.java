@@ -591,7 +591,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assert node.receiver != null; // without receiver `a &&= b` leads to Nodes.LocalVariableAndWriteNode
 
         final var receiverExpression = new YARPExecutedOnceExpression("value", node.receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
+        final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set
@@ -605,12 +605,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final RubyNode sequence;
         if (node.isSafeNavigation()) {
-            // return `nil` if receiver is `nil`
+            // immediately return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     andNode);
-            sequence = sequence(Arrays.asList(writeReceiveNode, unlessNode));
+            sequence = sequence(Arrays.asList(writeReceiverNode, unlessNode));
         } else {
-            sequence = sequence(Arrays.asList(writeReceiveNode, andNode));
+            sequence = sequence(Arrays.asList(writeReceiverNode, andNode));
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -795,7 +795,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assert node.receiver != null; // without receiver `a += b` leads to Nodes.LocalVariableOperatorWriteNode
 
         final var receiverExpression = new YARPExecutedOnceExpression("value", node.receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
+        final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set
@@ -809,15 +809,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode rubyNode;
 
         if (node.isSafeNavigation()) {
-            // return `nil` if receiver is `nil`
+            // immediately return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     writeNode);
-            rubyNode = sequence(Arrays.asList(writeReceiveNode, unlessNode));
+            rubyNode = sequence(Arrays.asList(writeReceiverNode, unlessNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeReceiveNode, writeNode));
+            rubyNode = sequence(Arrays.asList(writeReceiverNode, writeNode));
         }
 
-        return assignPositionAndFlags(node, rubyNode);
+        // rubyNode may be already assigned source code in case writeReceiverNode is null
+        return assignPositionAndFlagsIfMissing(node, rubyNode);
     }
 
     @Override
@@ -828,7 +829,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         assert node.receiver != null; // without receiver `a ||= b` leads to Nodes.LocalVariableOrWriteNode
 
         final var receiverExpression = new YARPExecutedOnceExpression("value", node.receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
+        final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set
@@ -845,9 +846,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             // return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     orNode);
-            sequence = sequence(Arrays.asList(writeReceiveNode, unlessNode));
+            sequence = sequence(Arrays.asList(writeReceiverNode, unlessNode));
         } else {
-            sequence = sequence(Arrays.asList(writeReceiveNode, orNode));
+            sequence = sequence(Arrays.asList(writeReceiverNode, orNode));
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -1248,7 +1249,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         if (writeParentNode != null) {
             rubyNode = sequence(Arrays.asList(writeParentNode, writeNode.accept(this)));
-            assignPositionAndFlags(node, rubyNode);
+            // rubyNode may be already assigned source code in case writeParentNode is null
+            assignPositionAndFlagsIfMissing(node, rubyNode);
         } else {
             rubyNode = writeNode.accept(this);
         }
@@ -1775,7 +1777,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // receiver
         final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", node.receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
+        final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // arguments
@@ -1826,9 +1828,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         if (node.block != null) {
             // add block argument write node
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiveNode, writeNode));
+            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, writeNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiveNode, writeNode));
+            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, writeNode));
         }
 
         return assignPositionAndFlags(node, rubyNode);
@@ -1862,7 +1864,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // receiver
         final var receiverExpression = new YARPExecutedOnceExpression("opelementassign", receiver, this);
-        final var writeReceiveNode = receiverExpression.getWriteNode();
+        final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         final RubyNode[] writeArgumentsNodes = new RubyNode[arguments.length];
@@ -1912,9 +1914,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         if (block != null) {
             // add block argument write node
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiveNode, operatorNode));
+            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, operatorNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiveNode, operatorNode));
+            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, operatorNode));
         }
 
         return rubyNode;
@@ -3266,6 +3268,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     public static RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
+        assignPositionOnly(yarpNode, rubyNode);
+        copyNewlineFlag(yarpNode, rubyNode);
+        return rubyNode;
+    }
+
+    public static RubyNode assignPositionAndFlagsIfMissing(Nodes.Node yarpNode, RubyNode rubyNode) {
+        if (rubyNode.hasSource()) {
+            return rubyNode;
+        }
+
         assignPositionOnly(yarpNode, rubyNode);
         copyNewlineFlag(yarpNode, rubyNode);
         return rubyNode;

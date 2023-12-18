@@ -1,0 +1,69 @@
+subject: "&&="
+description: "Assign attribute with explicit self receiver (self.b &&= c)"
+notes: >
+  `a.b &&= c` is translated into `a.b && a.b = c` in the following way:
+  
+  ```ruby
+  value_0 = a # execute receiver only once
+  value_0.b && value_0.b=(c)
+  ```
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  self.foo &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              AndNodeGen
+                  attributes:
+                      flags = 0
+                  children:
+                      left =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = false
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "foo"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                      right =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = true
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = false
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "foo="
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  arguments = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 42
+                                  ]
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
