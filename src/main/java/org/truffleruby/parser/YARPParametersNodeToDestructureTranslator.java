@@ -12,6 +12,7 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -84,7 +85,14 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         }
 
         if (parameters.rest != null) {
-            sequence.add(parameters.rest.accept(this)); // Nodes.RestParameterNode is expected here
+            if (parameters.rest instanceof Nodes.ImplicitRestNode) {
+                // do nothing
+
+                // The only reason to save anonymous rest parameter in a local variable is to be able to forward it.
+                // Implicit rest is allowed only in blocks but anonymous rest forwarding works only in methods/lambdas.
+            } else {
+                sequence.add(parameters.rest.accept(this)); // Nodes.RestParameterNode is expected here
+            }
         }
 
         if (parameters.posts.length > 0) {
@@ -178,21 +186,14 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     @Override
     public RubyNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
-        // NOTE: we actually could do nothing if parameter is anonymous
-        final RubyNode readNode;
-
-        int from = parameters.requireds.length + parameters.optionals.length;
-        int to = -parameters.posts.length;
-        readNode = ArraySliceNodeGen.create(from, to, readArrayNode);
-
-        final String name = TranslatorEnvironment.IMPLICIT_REST_NAME;
-        final int slot = environment.findFrameSlot(name);
-        return new WriteLocalVariableNode(slot, readNode);
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
     }
 
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         // NOTE: we actually could do nothing if parameter is anonymous
+        //      as far as this translator handles a block parameters only,
+        //      but anonymous keyword rest forwarding doesn't work in blocks
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
         final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
         final int slot = environment.declareVar(name);

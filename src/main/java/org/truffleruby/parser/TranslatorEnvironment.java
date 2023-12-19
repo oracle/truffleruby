@@ -53,8 +53,6 @@ public final class TranslatorEnvironment {
     public static final String METHOD_BLOCK_NAME = Layouts.TEMP_PREFIX + "method_block_arg";
     /** local variable name for * parameter */
     static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR;
-    /** local variable name for implicit rest parameter (e.g. |a, |) */
-    static final String IMPLICIT_REST_NAME = Layouts.TEMP_PREFIX + "anonymous_rest";
     /** local variable name for ** parameter */
     static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR;
     /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
