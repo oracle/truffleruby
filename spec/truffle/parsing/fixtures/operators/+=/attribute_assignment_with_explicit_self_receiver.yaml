@@ -1,12 +1,10 @@
 subject: "+="
 description: "Assign attribute with explicit self receiver (self.b += c)"
 notes: >
-  `a.b += c` is translated into `a.b = a.b + c` in the following way:
-
-  ```ruby
-  temp_receiver = a
-  temp_receiver.b = temp_receiver.b + c
-  ```
+  Method call when receiver is `self` means a private or protected method could be successfully called.
+  
+  In AST it's represented with RubyCallNode's field dispatchConfig.
+  `dispatchConfig = PRIVATE` means a method visibility is ignored.
 yarp_specific: true # fixed assigning method call node and set `isAttrAssign = true`
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |

@@ -1,14 +1,8 @@
 subject: "+="
 description: "Assign a referenced element with block argument (a[&b] += c)"
 notes: >
-  `a[b] += c` is translated into `a[b] = a[b] + c` in the following way:
-
-  ```ruby
-  value_1 = b
-  opelementassign_0 = a
-
-  opelementassign_0[value_1] = opelementassign_0[value_1] + c
-  ```
+  A block argument should be stored in RubyCallNode#block field and not in
+  a #arguments field with positional ones.
 yarp_specific: true # wasn't supported
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |

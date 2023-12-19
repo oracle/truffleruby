@@ -1,12 +1,10 @@
 subject: "||="
 description: "Assign attribute with explicit self receiver (self.b ||= c)"
 notes: >
-  `a.b ||= c` is translated into `a.b || a.b = c` in the following way:
+  Method call when receiver is `self` means a private or protected method could be successfully called.
   
-  ```ruby
-  value_0 = a
-  value_0.b || value_0.b=(c)
-  ```
+  In AST it's represented with RubyCallNode's field dispatchConfig.
+  `dispatchConfig = PRIVATE` means a method visibility is ignored.
 focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
 ruby: |
   self.foo ||= 42

@@ -1,14 +1,10 @@
 subject: "+="
 description: "Assign a referenced element with explicit self receiver (self[a] += b)"
 notes: >
-  `a[b] += c` is translated into `a[b] = a[b] + c` in the following way:
-
-  ```ruby
-  temp_arg1 = b
-  temp_receiver = a
-
-  temp_receiver[temp_arg1] = temp_receiver[temp_arg1] + c
-  ```
+  Method call when receiver is `self` means a private or protected method could be successfully called.
+  
+  In AST it's represented with RubyCallNode's field dispatchConfig.
+  `dispatchConfig = PRIVATE` means a method visibility is ignored.
 yarp_specific: true # don't put self into a local variable and fixed call node and set ignoreVisibility=true
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
