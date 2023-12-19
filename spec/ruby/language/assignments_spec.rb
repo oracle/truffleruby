@@ -34,6 +34,22 @@ describe 'Assignments' do
     end
 
     describe 'using a #[]' do
+      before do
+        klass = Class.new do
+          def [](k)
+            @hash ||= {}
+            @hash[k]
+          end
+
+          def []=(k, v)
+            @hash ||= {}
+            @hash[k] = v
+            7
+          end
+        end
+        @b = klass.new
+      end
+
       it 'evaluates receiver only once when assigns' do
         ScratchPad.record []
         a = {k: 1}
@@ -55,6 +71,62 @@ describe 'Assignments' do
 
         a = klass_with_private_methods.new(k: 0)
         a.public_method(:k, 2).should == 2
+      end
+
+      context 'splatted argument' do
+        it 'correctly handles it' do
+          @b[:m] = 10
+          (@b[*[:m]] += 10).should == 20
+          @b[:m].should == 20
+
+          @b[:n] = 10
+          (@b[*(1; [:n])] += 10).should == 20
+          @b[:n].should == 20
+
+          @b[:k] = 10
+          (@b[*begin 1; [:k] end] += 10).should == 20
+          @b[:k].should == 20
+        end
+
+        it 'calls #to_a only once' do
+          k = Object.new
+          def k.to_a
+            ScratchPad << :to_a
+            [:k]
+          end
+
+          ScratchPad.record []
+          @b[:k] = 10
+          (@b[*k] += 10).should == 20
+          @b[:k].should == 20
+          ScratchPad.recorded.should == [:to_a]
+        end
+
+        it 'correctly handles a nested splatted argument' do
+          @b[:k] = 10
+          (@b[*[*[:k]]] += 10).should == 20
+          @b[:k].should == 20
+        end
+
+        it 'correctly handles multiple nested splatted arguments' do
+          klass_with_multiple_parameters = Class.new do
+            def [](k1, k2, k3)
+              @hash ||= {}
+              @hash[:"#{k1}#{k2}#{k3}"]
+            end
+
+            def []=(k1, k2, k3, v)
+              @hash ||= {}
+              @hash[:"#{k1}#{k2}#{k3}"] = v
+              7
+            end
+          end
+          a = klass_with_multiple_parameters.new
+
+          a[:a, :b, :c] = 10
+          (a[*[:a], *[:b], *[:c]] += 10).should == 20
+          a[:a, :b, :c].should == 20
+        end
       end
     end
 

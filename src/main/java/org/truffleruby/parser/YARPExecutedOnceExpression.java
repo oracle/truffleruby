@@ -28,22 +28,33 @@ public final class YARPExecutedOnceExpression {
         this.node = node;
         this.yarpTranslator = yarpTranslator;
 
-        if (!(node instanceof Nodes.SelfNode)) {
+        if (node instanceof Nodes.SelfNode) {
+            // `self` could be a method call receiver.
+            // Keep `self` as-is so that the check for visibility when translating the call node works
+            name = null;
+            slot = -1;
+            valueNode = null;
+        } else if (node instanceof Nodes.SplatNode splatNode) {
+            // Method call argument could be *a. So just storing its result in a local variable
+            // and passing it later as a call argument will lose splatting. So handle it independently.
+            TranslatorEnvironment environment = yarpTranslator.getEnvironment();
+            name = environment.allocateLocalTemp(baseName);
+            slot = environment.declareVar(name);
+            valueNode = splatNode.expression.accept(yarpTranslator);
+        } else {
             TranslatorEnvironment environment = yarpTranslator.getEnvironment();
             name = environment.allocateLocalTemp(baseName);
             slot = environment.declareVar(name);
             valueNode = node.accept(yarpTranslator);
-        } else {
-            // keep self as-is so that the check for visibility when translating the call node works
-            name = null;
-            slot = -1;
-            valueNode = null;
         }
     }
 
     public Nodes.Node getReadYARPNode() {
         if (node instanceof Nodes.SelfNode) {
             return node;
+        } else if (node instanceof Nodes.SplatNode) {
+            var read = new Nodes.LocalVariableReadNode(name, 0, 0, 0);
+            return new Nodes.SplatNode(read, node.startOffset, node.length);
         } else {
             return new Nodes.LocalVariableReadNode(name, 0, node.startOffset, node.length);
         }
@@ -52,6 +63,8 @@ public final class YARPExecutedOnceExpression {
     public RubyNode getReadNode() {
         if (node instanceof Nodes.SelfNode) {
             return new SelfNode();
+        } else if (node instanceof Nodes.SplatNode) {
+            return getReadYARPNode().accept(yarpTranslator);
         } else {
             return new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
         }

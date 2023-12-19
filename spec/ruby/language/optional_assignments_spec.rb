@@ -168,10 +168,6 @@ describe 'Optional variable assignments' do
         (@b[:k] ||= 12).should == 12
       end
 
-      it 'correctly handles a splatted argument for the index' do
-        (@b[*[:k]] ||= 12).should == 12
-      end
-
       it "evaluates the index precisely once" do
         ary = [:x, :y]
         @a[:x] = 15
@@ -227,6 +223,56 @@ describe 'Optional variable assignments' do
 
         a = klass_with_private_methods.new(k: false)
         a.public_method(:k, 10).should == 10
+      end
+
+      context 'splatted argument' do
+        it 'correctly handles it' do
+          (@b[*[:m]] ||= 10).should == 10
+          @b[:m].should == 10
+
+          (@b[*(1; [:n])] ||= 10).should == 10
+          @b[:n].should == 10
+
+          (@b[*begin 1; [:k] end] ||= 10).should == 10
+          @b[:k].should == 10
+        end
+
+        it 'calls #to_a only once' do
+          k = Object.new
+          def k.to_a
+            ScratchPad << :to_a
+            [:k]
+          end
+
+          ScratchPad.record []
+          (@b[*k] ||= 20).should == 20
+          @b[:k].should == 20
+          ScratchPad.recorded.should == [:to_a]
+        end
+
+        it 'correctly handles a nested splatted argument' do
+          (@b[*[*[:k]]] ||= 20).should == 20
+          @b[:k].should == 20
+        end
+
+        it 'correctly handles multiple nested splatted arguments' do
+          klass_with_multiple_parameters = Class.new do
+            def [](k1, k2, k3)
+              @hash ||= {}
+              @hash[:"#{k1}#{k2}#{k3}"]
+            end
+
+            def []=(k1, k2, k3, v)
+              @hash ||= {}
+              @hash[:"#{k1}#{k2}#{k3}"] = v
+              7
+            end
+          end
+          a = klass_with_multiple_parameters.new
+
+          (a[*[:a], *[:b], *[:c]] ||= 20).should == 20
+          a[:a, :b, :c].should == 20
+        end
       end
     end
   end
@@ -407,12 +453,6 @@ describe 'Optional variable assignments' do
         (@b[:k] &&= 12).should == 12
       end
 
-      it 'correctly handles a splatted argument for the index' do
-        @b[:k] = 10
-        (@b[*[:k]] &&= 12).should == 12
-        @b[:k].should == 12
-      end
-
       it "evaluates the index precisely once" do
         ary = [:x, :y]
         @a[:x] = 15
@@ -474,6 +514,62 @@ describe 'Optional variable assignments' do
 
         a = klass_with_private_methods.new(k: true)
         a.public_method(:k, 10).should == 10
+      end
+
+      context 'splatted argument' do
+        it 'correctly handles it' do
+          @b[:m] = 0
+          (@b[*[:m]] &&= 10).should == 10
+          @b[:m].should == 10
+
+          @b[:n] = 0
+          (@b[*(1; [:n])] &&= 10).should == 10
+          @b[:n].should == 10
+
+          @b[:k] = 0
+          (@b[*begin 1; [:k] end] &&= 10).should == 10
+          @b[:k].should == 10
+        end
+
+        it 'calls #to_a only once' do
+          k = Object.new
+          def k.to_a
+            ScratchPad << :to_a
+            [:k]
+          end
+
+          ScratchPad.record []
+          @b[:k] = 10
+          (@b[*k] &&= 20).should == 20
+          @b[:k].should == 20
+          ScratchPad.recorded.should == [:to_a]
+        end
+
+        it 'correctly handles a nested splatted argument' do
+          @b[:k] = 10
+          (@b[*[*[:k]]] &&= 20).should == 20
+          @b[:k].should == 20
+        end
+
+        it 'correctly handles multiple nested splatted arguments' do
+          klass_with_multiple_parameters = Class.new do
+            def [](k1, k2, k3)
+              @hash ||= {}
+              @hash[:"#{k1}#{k2}#{k3}"]
+            end
+
+            def []=(k1, k2, k3, v)
+              @hash ||= {}
+              @hash[:"#{k1}#{k2}#{k3}"] = v
+              7
+            end
+          end
+          a = klass_with_multiple_parameters.new
+
+          a[:a, :b, :c] = 10
+          (a[*[:a], *[:b], *[:c]] &&= 20).should == 20
+          a[:a, :b, :c].should == 20
+        end
       end
     end
   end

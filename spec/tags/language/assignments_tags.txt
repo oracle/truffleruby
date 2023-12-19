@@ -1,3 +1,4 @@
 fails:Assignments using += using compounded constants causes side-effects of the module part to be applied only once (when assigns)
 fails:Assignments using += using an accessor ignores method visibility when receiver is self
 fails:Assignments using += using a #[] ignores method visibility when receiver is self
+fails:Assignments using += using a #[] splatted argument calls #to_a only once
