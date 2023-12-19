@@ -67,6 +67,15 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             sequence.add(parametersNode.rest.accept(this)); // Nodes.RestParameterNode is expected here
         }
 
+        // ... parameter (so-called "forward arguments") means there is implicit * parameter
+        if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+            restParameterIndex = parametersNode.requireds.length + parametersNode.optionals.length;
+            final var readRestNode = yarpTranslator.getEnvironment().findLocalVarNode(
+                    TranslatorEnvironment.FORWARDED_REST_NAME,
+                    null);
+            sequence.add(readRestNode);
+        }
+
         int postCount = parametersNode.posts.length;
         if (postCount > 0) {
             index = -postCount;
@@ -116,11 +125,8 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
                 // do nothing
             } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
-                // presence of ... means there are no explicit keyword arguments
-                sequence.add(parametersNode.keyword_rest.accept(this));
-
-                // but there will be desugared rest parameter
-                restParameterIndex = parametersNode.requireds.length + parametersNode.optionals.length;
+                // do nothing - it's already handled in the #reload method
+                // NOTE: don't handle '&' for now as far as anonymous & isn't supported yet
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
@@ -130,7 +136,14 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             sequence.add(kwArgsNode);
         }
 
-        return Translator.flatten(sequence, true).toArray(RubyNode.EMPTY_ARRAY);
+        // ... parameter (so-called "forward arguments") means there is implicit ** parameter
+        if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+            final var readKeyRestNode = yarpTranslator.getEnvironment()
+                    .findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
+            sequence.add(readKeyRestNode);
+        }
+
+        return sequence.toArray(RubyNode.EMPTY_ARRAY);
     }
 
     @Override
@@ -178,19 +191,8 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
 
     @Override
     public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
-        ArrayList<RubyNode> sequence = new ArrayList<>();
-
-        // ... was desugared to *, ** and & parameters
-        // NOTE: don't handle '&' for now as far as anonymous & isn't supported yet
-        final var readRest = yarpTranslator.getEnvironment().findLocalVarNode(TranslatorEnvironment.FORWARDED_REST_NAME,
-                null);
-        final var readKeyRest = yarpTranslator.getEnvironment()
-                .findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
-
-        sequence.add(readRest);
-        sequence.add(readKeyRest);
-
-        return YARPTranslator.sequence(sequence);
+        // it's handled in the #reload method
+        throw CompilerDirectives.shouldNotReachHere();
     }
 
     @Override
