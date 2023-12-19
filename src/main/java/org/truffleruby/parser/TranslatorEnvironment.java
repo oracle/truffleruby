@@ -349,6 +349,7 @@ public final class TranslatorEnvironment {
         return !isBlock();
     }
 
+    /** A way to check current scope is a module/class. If in a block, isModuleBody is always false. */
     public boolean isModuleBody() {
         return isModuleBody;
     }

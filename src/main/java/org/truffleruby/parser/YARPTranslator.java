@@ -1531,15 +1531,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         boolean insideDefineMethod = false;
         var environment = this.environment;
         while (environment.isBlock()) {
-            if (environment.isModuleBody()) { // TODO: when could we be in a block and in a module body at the same time?
-                return assignPositionAndFlags(node, new ZSuperOutsideMethodNode(insideDefineMethod));
-            } else if (Objects.equals(environment.literalBlockPassedToMethod, "define_method")) {
+            if (Objects.equals(environment.literalBlockPassedToMethod, "define_method")) {
                 insideDefineMethod = true;
             }
             environment = environment.getParent();
         }
 
-        if (environment.isModuleBody() || environment.isTopLevelScope()) {
+        if (environment.isModuleBody()) {
             return assignPositionAndFlags(node, new ZSuperOutsideMethodNode(insideDefineMethod));
         }
 
