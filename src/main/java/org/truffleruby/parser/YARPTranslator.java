@@ -596,11 +596,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // Use Prism nodes and rely on CallNode translation to automatically set
         // fields like dispatchConfig and attribute-assignment flag (for `a.b = c`)
-        final RubyNode readNode = new Nodes.CallNode(readReceiver, node.read_name, null, null, (short) 0, 0, 0)
-                .accept(this);
-        final RubyNode writeNode = new Nodes.CallNode(readReceiver, node.write_name,
-                new Nodes.ArgumentsNode(new Nodes.Node[]{ node.value }, (short) 0, 0, 0), null, (short) 0, 0, 0)
-                .accept(this);
+        final RubyNode readNode = callNode(node, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY).accept(this);
+        final RubyNode writeNode = callNode(node, readReceiver, node.write_name, node.value).accept(this);
         final RubyNode andNode = AndNodeGen.create(readNode, writeNode);
 
         final RubyNode sequence;
@@ -800,10 +797,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // Use Prism nodes and rely on CallNode translation to automatically set
         // fields like dispatchConfig and attribute-assignment flag (for `a.b = c`)
-        final Nodes.Node read = new Nodes.CallNode(readReceiver, node.read_name, null, null, (short) 0, 0, 0);
+        final Nodes.Node read = callNode(node, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
-        final Nodes.Node write = new Nodes.CallNode(readReceiver, node.write_name,
-                new Nodes.ArgumentsNode(new Nodes.Node[]{ executeOperator }, (short) 0, 0, 0), null, (short) 0, 0, 0);
+        final Nodes.Node write = callNode(node, readReceiver, node.write_name, executeOperator);
 
         final RubyNode writeNode = write.accept(this);
         final RubyNode rubyNode;
@@ -834,11 +830,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // Use Prism nodes and rely on CallNode translation to automatically set
         // fields like dispatchConfig and attribute-assignment flag (for `a.b = c`)
-        final RubyNode readNode = new Nodes.CallNode(readReceiver, node.read_name, null, null, (short) 0, 0, 0)
-                .accept(this);
-        final RubyNode writeNode = new Nodes.CallNode(readReceiver, node.write_name,
-                new Nodes.ArgumentsNode(new Nodes.Node[]{ node.value }, (short) 0, 0, 0), null, (short) 0, 0, 0)
-                .accept(this);
+        final RubyNode readNode = callNode(node, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY).accept(this);
+        final RubyNode writeNode = callNode(node, readReceiver, node.write_name, node.value).accept(this);
         final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
 
         final RubyNode sequence;
@@ -1127,8 +1120,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
         final var readNode = new Nodes.ConstantReadNode(node.name, startOffset, length);
-        final var operatorNode = new Nodes.CallNode(readNode, node.operator,
-                new Nodes.ArgumentsNode(new Nodes.Node[]{ node.value }, (short) 0, 0, 0), null, (short) 0, 0, 0);
+        final var operatorNode = callNode(node, readNode, node.operator, node.value);
         final var writeNode = new Nodes.ConstantWriteNode(node.name, operatorNode, startOffset, length);
 
         return writeNode.accept(this);
@@ -1241,8 +1233,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         int length = node.length;
 
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
-        final var operatorNode = new Nodes.CallNode(target, node.operator,
-                new Nodes.ArgumentsNode(new Nodes.Node[]{ node.value }, (short) 0, 0, 0), null, (short) 0, 0, 0);
+        final var operatorNode = callNode(node, target, node.operator, node.value);
         final var writeNode = new Nodes.ConstantPathWriteNode(target, operatorNode, startOffset, length);
 
         final RubyNode rubyNode;
