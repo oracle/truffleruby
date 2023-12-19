@@ -985,7 +985,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     // so `when a, *b, c` is translated into `[a, *b, c].any?`
                     final RubyNode whenConditionNode = translateExpressionsList(whenConditions);
                     final RubyNode receiver = whenConditionNode;
-                    final RubyNode predicateNode = createCallNode(receiver, "any?");
+                    final RubyNode predicateNode = createCallNode(receiver, "any?", RubyNode.EMPTY_ARRAY);
 
                     // create `if` node
                     final RubyNode thenNode = translateNodeOrNil(when.statements);
@@ -1729,10 +1729,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final ReadConstantNode complexModuleNode = new ReadConstantNode(objectClassNode, "Complex");
         final RubyNode realComponentNode = new IntegerFixnumLiteralNode(0);
         final RubyNode imaginaryComponentNode = node.numeric.accept(this);
-
         RubyNode[] arguments = new RubyNode[]{ realComponentNode, imaginaryComponentNode };
-        RubyNode rubyNode = createCallNode(complexModuleNode, "convert", arguments);
 
+        RubyNode rubyNode = createCallNode(complexModuleNode, "convert", arguments);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2003,11 +2002,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var regexp = new Nodes.InterpolatedRegularExpressionNode(node.parts, node.flags, node.startOffset,
                 node.length);
         final var regexpNode = regexp.accept(this);
-
         final var lastLineNode = ReadGlobalVariableNodeGen.create("$_");
-        final RubyNode[] arguments = new RubyNode[]{ lastLineNode };
 
-        final RubyNode rubyNode = createCallNode(false, regexpNode, "=~", arguments);
+        final RubyNode rubyNode = createCallNode(false, regexpNode, "=~", lastLineNode);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2051,8 +2048,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitInterpolatedXStringNode(Nodes.InterpolatedXStringNode node) {
         var stringNode = new Nodes.InterpolatedStringNode(node.parts, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
-        final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
 
+        final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2213,11 +2210,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final var regexp = new Nodes.RegularExpressionNode(node.unescaped, node.flags, node.startOffset, node.length);
         final var regexpNode = regexp.accept(this);
-
         final var lastLineNode = ReadGlobalVariableNodeGen.create("$_");
-        final RubyNode[] arguments = new RubyNode[]{ lastLineNode };
 
-        final RubyNode rubyNode = createCallNode(false, regexpNode, "=~", arguments);
+        final RubyNode rubyNode = createCallNode(false, regexpNode, "=~", lastLineNode);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2464,8 +2459,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         RubyNode[] arguments = new RubyNode[]{ numeratorNode, denominatorNode };
-        RubyNode rubyNode = createCallNode(rationalModuleNode, "convert", arguments);
 
+        RubyNode rubyNode = createCallNode(rationalModuleNode, "convert", arguments);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2782,8 +2777,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
         var stringNode = new Nodes.StringNode((short) 0, node.unescaped, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
-        final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
 
+        final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
         return assignPositionAndFlags(node, rubyNode);
     }
 
