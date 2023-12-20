@@ -3367,7 +3367,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             descriptors.add(descriptor);
         }
 
-        // ignore Nodes.ImplicitRestNode in blocks
+        // Proc#parameters doesn't report anonymous rest parameter for implicit rest parameter (|a,|).
+        // So just ignore Nodes.ImplicitRestNode (that is only available in blocks).
         if (parametersNode.rest instanceof Nodes.RestParameterNode restParameterNode) {
             if (restParameterNode.name == null) {
                 descriptors.add(new ArgumentDescriptor(ArgumentType.anonrest));
@@ -3471,12 +3472,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             hasRest = parametersNode.rest != null;
         }
 
+        // blocks only can have implicit rest parameter (|a,|)
+        final boolean isImplicitRest = parametersNode.rest instanceof Nodes.ImplicitRestNode;
+
         // NOTE: when ... parameter is present then YARP keeps ForwardingParameterNode in ParametersNode#keyword_rest field.
         //      So `parametersNode.keyword_rest != null` works correctly to check if there is a keyword rest argument.
         return new Arity(
                 parametersNode.requireds.length,
                 parametersNode.optionals.length,
                 hasRest,
+                isImplicitRest,
                 parametersNode.posts.length,
                 keywordArguments,
                 requiredKeywordArgumentsCount,

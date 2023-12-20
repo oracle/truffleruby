@@ -63,18 +63,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             SourceSection sourceSection) {
         declareLocalVariables(locals);
 
-        final Arity arityForCheck; // to check Proc's arguments
-
-        /* Block with parameters |a,| has implicit rest argument, but it's ignored for `lambda {}`. `Proc#arity` ignores
-         * it as well even for blocks (see https://bugs.ruby-lang.org/issues/19971). Positional parameters are checked
-         * only for lambda and not checked for blocks, so it's safe to use this modified arity in RubyProcRootNode
-         * too. */
-        if (parameters != null && parameters.rest instanceof Nodes.ImplicitRestNode) {
-            arityForCheck = arity.withRest(false);
-        } else {
-            arityForCheck = arity;
-        }
-
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
                 parameters,
                 language,
@@ -94,7 +82,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         final boolean emitLambda = isStabbyLambda || isLambdaMethodCall;
 
         final Supplier<RootCallTarget> procCompiler = procCompiler(
-                arityForCheck,
+                arity,
                 preludeProc,
                 bodyNode,
                 isLambdaMethodCall,
@@ -104,7 +92,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
 
         final Supplier<RootCallTarget> lambdaCompiler = lambdaCompiler(
                 isStabbyLambda,
-                arityForCheck,
+                arity,
                 loadArguments,
                 bodyNode,
                 emitLambda,

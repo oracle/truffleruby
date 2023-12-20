@@ -23,7 +23,7 @@ ast: |
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
           type = PROC
       call targets:
           RubyProcRootNode
@@ -37,7 +37,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
                   split = HEURISTIC
               children:
                   body =
@@ -129,7 +129,7 @@ ast: |
                   checkKeywordArityNode =
                       CheckKeywordArityNode
                           attributes:
-                              arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}
+                              arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}
                           children:
                               readUserKeywordsHashNode =
                                   ReadUserKeywordsHashNode
