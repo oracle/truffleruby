@@ -1800,16 +1800,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             readArguments[i] = expression.getReadYARPNode();
         }
 
-        final Nodes.Node read = new Nodes.CallNode(readReceiver, "[]",
-                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
+        final Nodes.Node read = new Nodes.CallNode(NO_FLAGS, readReceiver, "[]",
+                new Nodes.ArgumentsNode(NO_FLAGS, readArguments, 0, 0), blockArgument, 0, 0);
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
 
         final Nodes.Node[] readArgumentsAndResult = new Nodes.Node[argumentsCount + 1];
         System.arraycopy(readArguments, 0, readArgumentsAndResult, 0, argumentsCount);
         readArgumentsAndResult[argumentsCount] = executeOperator;
 
-        final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
-                new Nodes.ArgumentsNode(readArgumentsAndResult, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
+        final Nodes.Node write = new Nodes.CallNode(NO_FLAGS, readReceiver, "[]=",
+                new Nodes.ArgumentsNode(NO_FLAGS, readArgumentsAndResult, 0, 0), blockArgument, 0, 0);
         final RubyNode writeNode = write.accept(this);
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
         final RubyNode rubyNode;
@@ -1878,16 +1878,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             blockArgument = null;
         }
 
-        final Nodes.Node read = new Nodes.CallNode(readReceiver, "[]",
-                new Nodes.ArgumentsNode(readArguments, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
+        final Nodes.Node read = new Nodes.CallNode(NO_FLAGS, readReceiver, "[]",
+                new Nodes.ArgumentsNode(NO_FLAGS, readArguments, 0, 0), blockArgument, 0, 0);
         final RubyNode readNode = read.accept(this);
 
         final Nodes.Node[] readArgumentsAndValue = new Nodes.Node[arguments.length + 1];
         System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, arguments.length);
         readArgumentsAndValue[arguments.length] = value;
 
-        final Nodes.Node write = new Nodes.CallNode(readReceiver, "[]=",
-                new Nodes.ArgumentsNode(readArgumentsAndValue, (short) 0, 0, 0), blockArgument, (short) 0, 0, 0);
+        final Nodes.Node write = new Nodes.CallNode(NO_FLAGS, readReceiver, "[]=",
+                new Nodes.ArgumentsNode(NO_FLAGS, readArgumentsAndValue, 0, 0), blockArgument, 0, 0);
         final RubyNode writeNode = write.accept(this);
 
         final RubyNode operatorNode;
@@ -1988,7 +1988,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitInterpolatedMatchLastLineNode(Nodes.InterpolatedMatchLastLineNode node) {
         // replace regexp with /.../ =~ $_
 
-        final var regexp = new Nodes.InterpolatedRegularExpressionNode(node.parts, node.flags, node.startOffset,
+        final var regexp = new Nodes.InterpolatedRegularExpressionNode(node.flags, node.parts, node.startOffset,
                 node.length);
         final var regexpNode = regexp.accept(this);
         final var lastLineNode = ReadGlobalVariableNodeGen.create("$_");
@@ -2197,7 +2197,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitMatchLastLineNode(Nodes.MatchLastLineNode node) {
         // replace regexp with /.../ =~ $_
 
-        final var regexp = new Nodes.RegularExpressionNode(node.unescaped, node.flags, node.startOffset, node.length);
+        final var regexp = new Nodes.RegularExpressionNode(node.flags, node.unescaped, node.startOffset, node.length);
         final var regexpNode = regexp.accept(this);
         final var lastLineNode = ReadGlobalVariableNodeGen.create("$_");
 
@@ -2764,7 +2764,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitXStringNode(Nodes.XStringNode node) {
         // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
-        var stringNode = new Nodes.StringNode((short) 0, node.unescaped, node.startOffset, node.length);
+        var stringNode = new Nodes.StringNode(NO_FLAGS, node.unescaped, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
 
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
@@ -3142,12 +3142,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             arguments[arguments.length - 1] = new Nodes.NilNode(0, 0);
 
             if (node.arguments == null) {
-                argumentsNode = new Nodes.ArgumentsNode(arguments, (short) 0, 0, 0);
+                argumentsNode = new Nodes.ArgumentsNode(NO_FLAGS, arguments, 0, 0);
             } else {
-                argumentsNode = new Nodes.ArgumentsNode(arguments, node.arguments.flags, node.arguments.startOffset,
+                argumentsNode = new Nodes.ArgumentsNode(node.arguments.flags, arguments, node.arguments.startOffset,
                         node.arguments.length);
             }
-            node = new Nodes.CallNode(node.receiver, node.name, argumentsNode, node.block, node.flags, node.startOffset,
+            node = new Nodes.CallNode(node.flags, node.receiver, node.name, argumentsNode, node.block, node.startOffset,
                     node.length);
         }
 
@@ -3315,8 +3315,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     protected static Nodes.CallNode callNode(Nodes.Node location, Nodes.Node receiver, String methodName,
             Nodes.Node... arguments) {
-        return new Nodes.CallNode(receiver, methodName,
-                new Nodes.ArgumentsNode(arguments, NO_FLAGS, location.startOffset, location.length), null, NO_FLAGS,
+        return new Nodes.CallNode(NO_FLAGS, receiver, methodName,
+                new Nodes.ArgumentsNode(NO_FLAGS, arguments, location.startOffset, location.length), null,
                 location.startOffset, location.length);
     }
 
