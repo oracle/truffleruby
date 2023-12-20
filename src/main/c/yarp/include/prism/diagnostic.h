@@ -6,6 +6,7 @@
 #ifndef PRISM_DIAGNOSTIC_H
 #define PRISM_DIAGNOSTIC_H
 
+#include "prism/ast.h"
 #include "prism/defines.h"
 #include "prism/util/pm_list.h"
 
@@ -22,11 +23,8 @@ typedef struct {
     /** The embedded base node. */
     pm_list_node_t node;
 
-    /** A pointer to the start of the source that generated the diagnostic. */
-    const uint8_t *start;
-
-    /** A pointer to the end of the source that generated the diagnostic. */
-    const uint8_t *end;
+    /** The location of the diagnostic in the source. */
+    pm_location_t location;
 
     /** The message associated with the diagnostic. */
     const char *message;
@@ -55,6 +53,7 @@ typedef enum {
     PM_ERR_ARGUMENT_FORMAL_GLOBAL,
     PM_ERR_ARGUMENT_FORMAL_IVAR,
     PM_ERR_ARGUMENT_FORWARDING_UNBOUND,
+    PM_ERR_ARGUMENT_IN,
     PM_ERR_ARGUMENT_NO_FORWARDING_AMP,
     PM_ERR_ARGUMENT_NO_FORWARDING_ELLIPSES,
     PM_ERR_ARGUMENT_NO_FORWARDING_STAR,
@@ -179,11 +178,13 @@ typedef enum {
     PM_ERR_LIST_W_UPPER_ELEMENT,
     PM_ERR_LIST_W_UPPER_TERM,
     PM_ERR_MALLOC_FAILED,
+    PM_ERR_MIXED_ENCODING,
     PM_ERR_MODULE_IN_METHOD,
     PM_ERR_MODULE_NAME,
     PM_ERR_MODULE_TERM,
     PM_ERR_MULTI_ASSIGN_MULTI_SPLATS,
     PM_ERR_NOT_EXPRESSION,
+    PM_ERR_NO_LOCAL_VARIABLE,
     PM_ERR_NUMBER_LITERAL_UNDERSCORE,
     PM_ERR_NUMBERED_PARAMETER_NOT_ALLOWED,
     PM_ERR_NUMBERED_PARAMETER_OUTER_SCOPE,
@@ -212,6 +213,7 @@ typedef enum {
     PM_ERR_PATTERN_EXPRESSION_AFTER_PIN,
     PM_ERR_PATTERN_EXPRESSION_AFTER_PIPE,
     PM_ERR_PATTERN_EXPRESSION_AFTER_RANGE,
+    PM_ERR_PATTERN_EXPRESSION_AFTER_REST,
     PM_ERR_PATTERN_HASH_KEY,
     PM_ERR_PATTERN_HASH_KEY_LABEL,
     PM_ERR_PATTERN_IDENT_AFTER_HROCKET,
@@ -248,6 +250,7 @@ typedef enum {
     PM_ERR_UNTIL_TERM,
     PM_ERR_VOID_EXPRESSION,
     PM_ERR_WHILE_TERM,
+    PM_ERR_WRITE_TARGET_IN_METHOD,
     PM_ERR_WRITE_TARGET_READONLY,
     PM_ERR_WRITE_TARGET_UNEXPECTED,
     PM_ERR_XSTRING_TERM,
