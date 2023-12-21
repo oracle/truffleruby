@@ -23,11 +23,11 @@ ast: |
           notRuby2KeywordsHashProfile = false
       children:
           arguments = [
-              StringLiteralNode
+              FrozenStringLiteralNode
                   attributes:
-                      encoding = UTF-8
+                      definition = expression
                       flags = 0
-                      tstring = echo 1
+                      frozenString = echo 1
           ]
           receiver =
               SelfNode

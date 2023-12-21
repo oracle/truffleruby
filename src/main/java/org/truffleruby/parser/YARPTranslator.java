@@ -2832,9 +2832,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitXStringNode(Nodes.XStringNode node) {
-        // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
         // convert EncodingFlags to StringFlags
-        int flags = 0;
+        int flags = Nodes.StringFlags.FROZEN; // it's always frozen
 
         if (node.isForcedBinaryEncoding()) {
             flags |= Nodes.StringFlags.FORCED_BINARY_ENCODING;

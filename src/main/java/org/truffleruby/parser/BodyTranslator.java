@@ -2888,9 +2888,9 @@ public class BodyTranslator extends BaseTranslator {
 
     @Override
     public RubyNode visitXStrNode(XStrParseNode node) {
-        final ParseNode argsNode = buildArrayNode(
-                node.getPosition(),
-                new StrParseNode(node.getPosition(), node.getValue(), node.encoding));
+        final var stringNode = new StrParseNode(node.getPosition(), node.getValue(), node.encoding);
+        stringNode.setFrozen(true); // it's always frozen
+        final ParseNode argsNode = buildArrayNode(node.getPosition(), stringNode);
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);

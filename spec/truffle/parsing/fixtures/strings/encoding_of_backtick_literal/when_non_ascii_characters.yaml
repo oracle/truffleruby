@@ -1,5 +1,5 @@
 subject: "String"
-description: "backtick literal / encoding / when there are non-ASCII characters"
+description: "backtick literal / encoding / when there are ASCII and non-ASCII characters"
 notes: >
   String may be forced to the BINARY (ASCII-8BIT) encoding sometimes
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
@@ -23,11 +23,11 @@ ast: |
           notRuby2KeywordsHashProfile = false
       children:
           arguments = [
-              StringLiteralNode
+              FrozenStringLiteralNode
                   attributes:
-                      encoding = ASCII-8BIT
+                      definition = expression
                       flags = 0
-                      tstring = echo \xFF 1
+                      frozenString = echo \xFF 1
           ]
           receiver =
               SelfNode
