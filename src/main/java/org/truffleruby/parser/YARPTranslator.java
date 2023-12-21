@@ -2833,7 +2833,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitXStringNode(Nodes.XStringNode node) {
         // TODO: pass flags, needs https://github.com/ruby/yarp/issues/1567
-        var stringNode = new Nodes.StringNode(NO_FLAGS, node.unescaped, node.startOffset, node.length);
+        // convert EncodingFlags to StringFlags
+        int flags = 0;
+
+        if (node.isForcedBinaryEncoding()) {
+            flags |= Nodes.StringFlags.FORCED_BINARY_ENCODING;
+        }
+
+        if (node.isForcedUtf8Encoding()) {
+            flags |= Nodes.StringFlags.FORCED_UTF8_ENCODING;
+        }
+
+        var stringNode = new Nodes.StringNode((short) flags, node.unescaped, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
 
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
