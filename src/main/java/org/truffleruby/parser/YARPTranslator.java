@@ -2760,8 +2760,21 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSymbolNode(Nodes.SymbolNode node) {
-        var tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
-        final RubySymbol symbol = language.getSymbol(tstring, sourceEncoding);
+        final RubyEncoding encoding;
+
+        if (node.isForcedUtf8Encoding()) {
+            encoding = Encodings.UTF_8;
+        } else if (node.isForcedUsAsciiEncoding()) {
+            encoding = Encodings.US_ASCII;
+        } else if (node.isForcedBinaryEncoding()) {
+            encoding = Encodings.BINARY;
+        } else {
+            encoding = sourceEncoding;
+        }
+
+        var tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
+        final RubySymbol symbol = language.getSymbol(tstring, encoding);
+
         final RubyNode rubyNode = new ObjectLiteralNode(symbol);
         return assignPositionAndFlags(node, rubyNode);
     }
