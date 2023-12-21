@@ -2536,10 +2536,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private RegexpEncodingAndOptions getRegexpEncodingAndOptions(Nodes.RegularExpressionFlags flags) {
+        RubyEncoding regexpEncoding;
+
+        // regexp options
         final KCode kcode;
-        final RubyEncoding regexpEncoding;
         final boolean fixed;
         boolean explicitEncoding = true;
+
         if (flags.isAscii8bit()) {
             fixed = false;
             kcode = KCode.NONE;
@@ -2561,6 +2564,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             kcode = KCode.NONE;
             regexpEncoding = sourceEncoding;
             explicitEncoding = false;
+        }
+
+        if (!explicitEncoding) {
+            if (flags.isForcedBinaryEncoding()) {
+                regexpEncoding = Encodings.BINARY;
+            } else if (flags.isForcedUsAsciiEncoding()) {
+                regexpEncoding = Encodings.US_ASCII;
+            } else if (flags.isForcedUtf8Encoding()) {
+                regexpEncoding = Encodings.UTF_8;
+            }
         }
 
         final RegexpOptions options = new RegexpOptions(kcode, fixed, flags.isOnce(), flags.isExtended(),
