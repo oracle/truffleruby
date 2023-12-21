@@ -2711,13 +2711,23 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitStringNode(Nodes.StringNode node) {
         final RubyNode rubyNode;
-        final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, sourceEncoding);
+        final RubyEncoding encoding;
+
+        if (node.isForcedUtf8Encoding()) {
+            encoding = Encodings.UTF_8;
+        } else if (node.isForcedBinaryEncoding()) {
+            encoding = Encodings.BINARY;
+        } else {
+            encoding = sourceEncoding;
+        }
+
+        final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
 
         if (!node.isFrozen()) {
-            final TruffleString cachedTString = language.tstringCache.getTString(tstring, sourceEncoding);
-            rubyNode = new StringLiteralNode(cachedTString, sourceEncoding);
+            final TruffleString cachedTString = language.tstringCache.getTString(tstring, encoding);
+            rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
-            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, sourceEncoding);
+            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, encoding);
             rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         }
 
