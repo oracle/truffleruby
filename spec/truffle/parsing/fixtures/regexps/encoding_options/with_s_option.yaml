@@ -1,0 +1,12 @@
+subject: "Regexp"
+description: "encoding options / with s option"
+note: >
+  The 's' modifiers overrides source encoding with Windows-31J encoding
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  /abc/s
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = RubyRegexp(source = abc, options = RegexpOptions(kcode: SJIS, fixed, literal), encoding = Windows-31J)
