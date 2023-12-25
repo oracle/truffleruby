@@ -2425,7 +2425,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitPostExecutionNode(Nodes.PostExecutionNode node) {
-        return defaultVisit(node);
+        // END blocks run after any other code - not just code in the same file
+        // Turn into a call to Truffle::KernelOperations.at_exit
+
+        // Create Prism CallNode to avoid duplication block literal related logic
+        final var receiver = new Nodes.ConstantReadNode("KernelOperations", 0, 0);
+        final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ new Nodes.FalseNode(0, 0) }, 0, 0);
+        final var block = new Nodes.BlockNode(StringUtils.EMPTY_STRING_ARRAY, 0, null, node.statements, 0, 0);
+
+        final var callNode = new Nodes.CallNode(NO_FLAGS, receiver, "at_exit", arguments, block, 0, 0).accept(this);
+        final RubyNode rubyNode = new OnceNode(callNode);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
