@@ -1,44 +1,89 @@
 subject: "BEGIN block"
 description: "BEGIN { ... }"
-focused_on_node: "org.truffleruby.language.control.SequenceNode"
+notes: >
+  Puts content of the BEGIN block at the beginning of the 
+focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
+  b
   BEGIN {
-    1
-    2
+    a
   }
 ast: |
-  SequenceNode
+  RubyTopLevelRootNode
       attributes:
-          flags = 12
+          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+          callTarget = <top (required)>
+          checkArityProfile = false
+          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_}
+          instrumentationBits = 0
+          keywordArguments = false
+          localReturnProfile = false
+          lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+          matchingReturnProfile = false
+          nextProfile = false
+          nonMatchingReturnProfile = false
+          polyglotRef = org.truffleruby.RubyLanguage@...
+          retryProfile = false
+          returnID = org.truffleruby.language.control.ReturnID@...
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <top (required)>, blockDepth = 0, parseName = <top (required)>, notes = null, argumentDescriptors = null)
+          split = HEURISTIC
       children:
-          body = [
-              EmitWarningsNode
+          body =
+              SequenceNode
                   attributes:
-                      flags = 0
-                      warnings = RubyDeferredWarnings(WarningMessage(message = 'Useless use of a literal in void context.', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 2))
-              WriteLocalVariableNode
-                  attributes:
-                      flags = 0
-                      frameSlot = 0 # (self)
+                      flags = 12
                   children:
-                      valueNode =
-                          ProfileArgumentNodeGen
+                      body = [
+                          WriteLocalVariableNode
                               attributes:
                                   flags = 0
+                                  frameSlot = 0 # (self)
                               children:
-                                  childNode_ =
-                                      ReadSelfNode
+                                  valueNode =
+                                      ProfileArgumentNodeGen
                                           attributes:
                                               flags = 0
-              IntegerFixnumLiteralNode
-                  attributes:
-                      flags = 1
-                      value = 1
-              IntegerFixnumLiteralNode
-                  attributes:
-                      flags = 1
-                      value = 2
-              NilLiteralNode
-                  attributes:
-                      flags = 0
-          ]
+                                          children:
+                                              childNode_ =
+                                                  ReadSelfNode
+                                                      attributes:
+                                                          flags = 0
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 1
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "a"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 1
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "b"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                      ]
