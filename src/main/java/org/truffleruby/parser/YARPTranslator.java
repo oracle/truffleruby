@@ -215,6 +215,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             "_9"
     };
 
+    // all the encountered BEGIN {} blocks
+    private final ArrayDeque<Nodes.PreExecutionNode> beginBlocksQueue = new ArrayDeque<>();
+
     public YARPTranslator(
             RubyLanguage language,
             TranslatorEnvironment environment,
@@ -2440,12 +2443,22 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitPreExecutionNode(Nodes.PreExecutionNode node) {
-        return defaultVisit(node);
+        beginBlocksQueue.add(node);
+        return null;
     }
 
     @Override
     public RubyNode visitProgramNode(Nodes.ProgramNode node) {
-        return node.statements.accept(this);
+        final RubyNode sequence = node.statements.accept(this);
+
+        // add BEGIN {} blocks at the very beginning of the program
+        ArrayList<RubyNode> nodes = new ArrayList<>();
+        for (var begin : beginBlocksQueue) {
+            nodes.add(begin.statements.accept(this));
+        }
+
+        nodes.add(sequence);
+        return sequence(node, nodes);
     }
 
     @Override

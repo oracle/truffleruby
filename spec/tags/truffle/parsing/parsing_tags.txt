@@ -1,4 +1,3 @@
-fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
 fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
 
 # Not supported yet by Prism
