@@ -48,7 +48,7 @@ ast: |
                           CatchBreakNode
                               attributes:
                                   breakID = org.truffleruby.language.control.BreakID@...
-                                  flags = 1
+                                  flags = 0
                                   isWhile = false
                               children:
                                   body =

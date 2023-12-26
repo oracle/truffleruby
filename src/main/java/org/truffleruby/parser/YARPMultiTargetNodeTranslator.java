@@ -148,6 +148,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     }
 
     @Override
+    // RequiredParameterNode is handled during destructuring method/proc arguments
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
         // NOTE: depth is not supposed to be used anyway so pass 0 value.

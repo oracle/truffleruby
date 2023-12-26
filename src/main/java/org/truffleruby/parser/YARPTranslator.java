@@ -472,7 +472,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private RubyNode translateBlockAndLambda(Nodes.Node node, Nodes.Node parametersNode,
             Nodes.Node body, String[] locals, String literalBlockPassedToMethod) {
         final boolean isStabbyLambda = node instanceof Nodes.LambdaNode;
-        final boolean hasOwnScope = true;
+
+        // Unset this flag for a `for`-loop's block
+        final boolean hasOwnScope = isStabbyLambda || !translatingForStatement; // TODO: isStabbyLambda seems excessive
 
         TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
         final String methodName = methodParent.getMethodName();
@@ -1524,9 +1526,138 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return assignPositionAndFlags(node, rubyNode);
     }
 
+    /** A Ruby for-loop, such as:
+     *
+     * <pre>
+     * for x in y
+     *     z = 0
+     *     puts x
+     * end
+     * </pre>
+     *
+     * naively desugars to:
+     *
+     * <pre>
+     * y.each do |x|
+     *     z = 0
+     *     puts x
+     * end
+     * </pre>
+     *
+     * The main difference is that z and x are always going to be local to the scope outside the block, so it's a bit
+     * more like:
+     *
+     * <pre>
+     * z = nil  #  unless z is already defined
+     * x = nil  #  unless x is already defined
+     *
+     * y.each do |temp|
+     *    x = temp
+     *    z = 0
+     *    puts x
+     * end
+     * </pre>
+     *
+     * Assigning x the temporary variable instead of defining x as a block parameter forces x to be defined in a proper
+     * scope.
+     *
+     * It also handles cases when the expression assigned in the for could is index assignment (a[b] in []), attribute
+     * assignment (a.b in []), multiple assignment (a, b, c in []), or whatever:
+     *
+     * <pre>
+     * for x[0] in y
+     *     puts x[0]
+     * end
+     * </pre>
+     *
+     * http://blog.grayproductions.net/articles/the_evils_of_the_for_loop
+     * http://stackoverflow.com/questions/3294509/for-vs-each-in-ruby
+     *
+     * The other complication is that normal locals should be defined in the enclosing scope, unlike a normal block. We
+     * do that by setting a flag on this translator object when we visit the new iter, translatingForStatement, which we
+     * recognise when visiting a block node. */
     @Override
     public RubyNode visitForNode(Nodes.ForNode node) {
-        return defaultVisit(node);
+        final String parameterName = environment.allocateLocalTemp("for");
+        environment.declareVar(parameterName); // it isn't necessary because the local variable is declared in the block's scope too
+
+        final var requireds = new Nodes.Node[]{ new Nodes.RequiredParameterNode(parameterName, 0, 0) };
+        final var parameters = new Nodes.ParametersNode(requireds, Nodes.Node.EMPTY_ARRAY, null, Nodes.Node.EMPTY_ARRAY,
+                Nodes.Node.EMPTY_ARRAY, null, null, 0, 0);
+        final var blockParameters = new Nodes.BlockParametersNode(parameters, Nodes.Node.EMPTY_ARRAY, 0, 0);
+
+        final var readParameter = new Nodes.LocalVariableReadNode(parameterName, 0, 0, 0);
+        final Nodes.Node writeIndex;
+
+        // replace -Target node with a -Write one
+        if (node.index instanceof Nodes.LocalVariableTargetNode target) {
+            writeIndex = new Nodes.LocalVariableWriteNode(target.name, target.depth, readParameter, 0, 0);
+        } else if (node.index instanceof Nodes.InstanceVariableTargetNode target) {
+            writeIndex = new Nodes.InstanceVariableWriteNode(target.name, readParameter, 0, 0);
+        } else if (node.index instanceof Nodes.ClassVariableTargetNode target) {
+            writeIndex = new Nodes.ClassVariableWriteNode(target.name, readParameter, 0, 0);
+        } else if (node.index instanceof Nodes.GlobalVariableTargetNode target) {
+            writeIndex = new Nodes.GlobalVariableWriteNode(target.name, readParameter, 0, 0);
+        } else if (node.index instanceof Nodes.ConstantTargetNode target) {
+            writeIndex = new Nodes.ConstantWriteNode(target.name, readParameter, 0, 0);
+        } else if (node.index instanceof Nodes.ConstantPathTargetNode target) {
+            final var constantPath = new Nodes.ConstantPathNode(target.parent, target.child, 0, 0);
+            writeIndex = new Nodes.ConstantPathWriteNode(constantPath, readParameter, 0, 0);
+        } else if (node.index instanceof Nodes.CallTargetNode target) {
+            final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ readParameter }, 0, 0);
+
+            // target flags could contain SAFE_NAVIGATION flag
+            int flags = target.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE;
+
+            writeIndex = new Nodes.CallNode((short) flags, target.receiver, target.name, arguments, null, 0, 0);
+        } else if (node.index instanceof Nodes.IndexTargetNode target) {
+            final Nodes.ArgumentsNode arguments;
+            final Nodes.Node[] statements;
+
+            if (target.arguments != null) {
+                statements = new Nodes.Node[target.arguments.arguments.length + 1];
+                System.arraycopy(target.arguments.arguments, 0, statements, 0, target.arguments.arguments.length);
+            } else {
+                statements = new Nodes.Node[1];
+            }
+
+            statements[statements.length - 1] = readParameter;
+            arguments = new Nodes.ArgumentsNode(NO_FLAGS, statements, 0, 0);
+
+            // there are no flags at the moment that could be set for target
+            int flags = target.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE;
+
+            writeIndex = new Nodes.CallNode((short) flags, target.receiver, "[]=", arguments, target.block, 0, 0);
+        } else if (node.index instanceof Nodes.MultiTargetNode target) {
+            writeIndex = new Nodes.MultiWriteNode(target.lefts, target.rest, target.rights, readParameter, 0, 0);
+        } else {
+            throw CompilerDirectives.shouldNotReachHere("Unexpected node class for for-loop index");
+        }
+
+        Nodes.Node[] statements = new Nodes.Node[node.statements.body.length + 1];
+        System.arraycopy(node.statements.body, 0, statements, 1, node.statements.body.length);
+        statements[0] = writeIndex;
+
+        final Nodes.Node body = new Nodes.StatementsNode(statements, node.statements.startOffset,
+                node.statements.length);
+        // in the block environment declare local variable only for parameter
+        // and skip declaration all the local variables defined in the block
+        String[] locals = new String[]{ parameterName };
+        final var block = new Nodes.BlockNode(locals, 0, blockParameters, body, 0, 0);
+        final var eachCall = new Nodes.CallNode(NO_FLAGS, node.collection, "each", null, block, node.startOffset,
+                node.length);
+
+        final RubyNode rubyNode;
+        final boolean translatingForStatement = this.translatingForStatement;
+        this.translatingForStatement = true;
+
+        try {
+            rubyNode = eachCall.accept(this);
+        } finally {
+            this.translatingForStatement = translatingForStatement;
+        }
+
+        return rubyNode;
     }
 
     @Override
