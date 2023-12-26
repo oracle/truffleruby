@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -50,7 +51,13 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
 
         final AssignableNode restNode;
         if (node.rest != null) {
-            restNode = node.rest.accept(this);
+            if (node.rest instanceof Nodes.ImplicitRestNode) {
+                // a, = []
+                // do nothing
+                restNode = null;
+            } else {
+                restNode = node.rest.accept(this);
+            }
         } else {
             restNode = null;
         }
@@ -97,6 +104,11 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
     public AssignableNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
+    }
+
+    @Override
+    public AssignableNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
     }
 
     @Override

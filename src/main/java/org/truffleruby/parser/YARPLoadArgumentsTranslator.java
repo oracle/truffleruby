@@ -262,7 +262,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         throw CompilerDirectives.shouldNotReachHere("handled in #translateWithParameters");
     }
 
-
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
