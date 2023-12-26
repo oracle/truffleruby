@@ -1,5 +1,8 @@
 subject: "Def"
 description: "parameter forwarding / forward arguments (...)"
+notes: >
+  Local variable %forward_rest, %forward_kwrest and %forward_block are used to pass parameters to a method call.
+yarp_specific: true # Use ArrayConcatNode instead of ArrayAppendOneNodeGen
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(...)
@@ -106,40 +109,42 @@ ast: |
                                           notRuby2KeywordsHashProfile = false
                                       children:
                                           arguments = [
-                                              ArrayAppendOneNodeGen
+                                              ArrayConcatNode
                                                   attributes:
                                                       flags = 0
                                                   children:
-                                                      arrayNode_ =
-                                                          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
+                                                      children = [
+                                                          SplatCastNodeGen
                                                               attributes:
+                                                                  conversionMethod = :to_a
+                                                                  copy = true
                                                                   flags = 0
-                                                              children:
-                                                                  selfNode_ =
-                                                                      SplatCastNodeGen
-                                                                          attributes:
-                                                                              conversionMethod = :to_a
-                                                                              copy = true
-                                                                              flags = 0
-                                                                              nilBehavior = CONVERT
-                                                                          children:
-                                                                              childNode_ =
-                                                                                  ReadLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 2 # %forward_rest
-                                                                                          type = FRAME_LOCAL
-                                                      valueNode_ =
-                                                          HashCastNodeGen$HashCastASTNodeGen
-                                                              attributes:
-                                                                  flags = 0
+                                                                  nilBehavior = CONVERT
                                                               children:
                                                                   childNode_ =
                                                                       ReadLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              frameSlot = 3 # %forward_kwrest
+                                                                              frameSlot = 2 # %forward_rest
                                                                               type = FRAME_LOCAL
+                                                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  language = org.truffleruby.RubyLanguage@...
+                                                              children:
+                                                                  values = [
+                                                                      HashCastNodeGen$HashCastASTNodeGen
+                                                                          attributes:
+                                                                              flags = 0
+                                                                          children:
+                                                                              childNode_ =
+                                                                                  ReadLocalVariableNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          frameSlot = 3 # %forward_kwrest
+                                                                                          type = FRAME_LOCAL
+                                                                  ]
+                                                      ]
                                           ]
                                           block =
                                               ToProcNodeGen

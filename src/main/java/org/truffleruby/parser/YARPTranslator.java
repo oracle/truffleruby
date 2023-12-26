@@ -25,6 +25,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -693,13 +694,35 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private ArgumentsAndBlockTranslation translateArgumentsAndBlock(Nodes.ArgumentsNode argumentsNode, Nodes.Node block,
             String methodName) {
-        final Nodes.Node[] arguments;
+        Nodes.Node[] arguments;
         if (argumentsNode == null) {
             arguments = EMPTY_NODE_ARRAY;
         } else {
             arguments = argumentsNode.arguments;
         }
 
+        boolean isForwardArguments = (arguments.length > 0 &&
+                ArrayUtils.getLast(arguments) instanceof Nodes.ForwardingArgumentsNode);
+
+        if (isForwardArguments) {
+            // use depth = 0 as far as it's ignored
+            final var readRest = new Nodes.LocalVariableReadNode(FORWARDED_REST_NAME, 0, 0, 0);
+            final var readKeyRest = new Nodes.LocalVariableReadNode(FORWARDED_KEYWORD_REST_NAME, 0, 0, 0);
+
+            final var splat = new Nodes.SplatNode(readRest, 0, 0);
+            final var keywordHash = new Nodes.KeywordHashNode((short) 0,
+                    new Nodes.Node[]{new Nodes.AssocSplatNode(readKeyRest, 0, 0)}, 0, 0);
+
+            // replace '...' argument with rest and keyrest arguments
+            final var forwarding = new Nodes.Node[arguments.length + 1];
+            System.arraycopy(arguments, 0, forwarding, 0, arguments.length - 1);
+            forwarding[forwarding.length - 2] = splat;
+            forwarding[forwarding.length - 1] = keywordHash;
+
+            arguments = forwarding;
+        }
+
+        // should be after handling of forward-argument as far as ... means there is a splatted argument
         boolean isSplatted = containYARPSplatNode(arguments);
         var argumentsDescriptor = getKeywordArgumentsDescriptor(arguments);
 
@@ -735,6 +758,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
+        } else if (isForwardArguments) {
+            // a(...)
+            // use depth = 0 as far as it's ignored
+            final var readBlock = new Nodes.LocalVariableReadNode(FORWARDED_BLOCK_NAME, 0, 0, 0);
+            final var readBlockNode = readBlock.accept(this);
+            blockNode = ToProcNodeGen.create(readBlockNode);
+            frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
         } else {
             blockNode = null;
             frameOnStackMarkerSlot = NO_FRAME_ON_STACK_MARKER;
@@ -749,7 +779,14 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             return NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
+        // consider there are keyword arguments if the last argument is either ... or a Hash
         Nodes.Node last = arguments[arguments.length - 1];
+
+        // a(...) means there are potentially forwarded keyword arguments
+        if (last instanceof Nodes.ForwardingArgumentsNode) {
+            return language.keywordArgumentsDescriptorManager
+                    .getArgumentsDescriptor(StringUtils.EMPTY_STRING_ARRAY);
+        }
 
         if (!(last instanceof Nodes.KeywordHashNode keywords)) {
             return NoKeywordArgumentsDescriptor.INSTANCE;
@@ -1672,7 +1709,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitForwardingArgumentsNode(Nodes.ForwardingArgumentsNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in visitCallNode");
     }
 
     @Override
