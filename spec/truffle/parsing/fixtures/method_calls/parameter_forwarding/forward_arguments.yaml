@@ -1,4 +1,4 @@
-subject: "Def"
+subject: "Method call"
 description: "parameter forwarding / forward arguments (...)"
 notes: >
   Local variable %forward_rest, %forward_kwrest and %forward_block are used to pass parameters to a method call.

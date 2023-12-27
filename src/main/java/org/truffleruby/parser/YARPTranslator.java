@@ -567,11 +567,19 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitBlockArgumentNode(Nodes.BlockArgumentNode node) {
-        // def a(&) b(&) end
-        assert node.expression != null; // Ruby 3.1's anonymous block parameter, that we don't support yet
+        final RubyNode rubyNode;
+        final RubyNode valueNode;
 
-        // a(&:b)
-        RubyNode rubyNode = ToProcNodeGen.create(node.expression.accept(this));
+        if (node.expression == null) {
+            // def foo(&) a(&) end
+            valueNode = environment.findLocalVarNode(FORWARDED_BLOCK_NAME, null);
+            assert valueNode != null : "block forwarding local variable should be declared";
+        } else {
+            // a(&:b)
+            valueNode = node.expression.accept(this);
+        }
+
+        rubyNode = ToProcNodeGen.create(valueNode);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -3709,9 +3717,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         if (parametersNode.block != null) {
-            // we don't support yet Ruby 3.1's anonymous block parameter
-            assert parametersNode.block.name != null;
-            descriptors.add(new ArgumentDescriptor(ArgumentType.block, parametersNode.block.name));
+            final String name;
+
+            if (parametersNode.block.name == null) {
+                // def a(&) ... end
+                name = FORWARDED_BLOCK_NAME;
+            } else {
+                name = parametersNode.block.name;
+            }
+
+            descriptors.add(new ArgumentDescriptor(ArgumentType.block, name));
         }
 
         return descriptors.toArray(ArgumentDescriptor.EMPTY_ARRAY);

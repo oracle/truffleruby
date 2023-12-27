@@ -11,7 +11,6 @@ package org.truffleruby.parser;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.language.RubyMethodRootNode;
@@ -98,9 +97,7 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
             switch (name) {
                 case "*" -> environment.declareVar(TranslatorEnvironment.DEFAULT_REST_NAME);
                 case "**" -> environment.declareVar(TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME);
-                case "&" ->
-                    // we don't support yet Ruby 3.1's anonymous block parameter
-                    throw CompilerDirectives.shouldNotReachHere("Anonymous block parameters aren't supported yet");
+                case "&" -> environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
                 case "..." -> {
                     environment.declareVar(TranslatorEnvironment.FORWARDED_REST_NAME);
                     environment.declareVar(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME);

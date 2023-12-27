@@ -921,7 +921,7 @@ end
 
 describe "Anonymous block forwarding" do
   ruby_version_is "3.1" do
-    it "forwards blocks to other functions that formally declare anonymous blocks" do
+    it "forwards blocks to other method that formally declares anonymous block" do
       eval <<-EOF
           def b(&); c(&) end
           def c(&); yield :non_null end

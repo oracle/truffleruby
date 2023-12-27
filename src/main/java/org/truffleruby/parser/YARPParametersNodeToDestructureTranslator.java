@@ -29,10 +29,16 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 
 
-// Translates Nodes.ParametersNode in a proc node
-// Destructures a Proc's single Array argument
-//
-// Based on org.truffleruby.parser.YARPLoadArgumentsTranslator (logic when useArray() -> true)
+/** Translates block's Nodes.ParametersNode to destructure a block's single Array argument.
+ * 
+ * When a block is called with a single argument that is Array (or could be converted to Array), this array is
+ * destructured and its elements are assigned to a block parameters (that is similar to multi-assignment):
+ * 
+ * <pre>
+ *   proc { |a, *b| [a, b] }.call([1, 2, 3]) # => [1, [2, 3]]
+ * </pre>
+ * 
+ * Based on org.truffleruby.parser.YARPLoadArgumentsTranslator */
 public final class YARPParametersNodeToDestructureTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private final Nodes.ParametersNode parameters;
@@ -209,9 +215,16 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     @Override
     public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
-        assert node.name != null; // we don't support yet Ruby 3.1's anonymous block parameter
+        final String name;
 
-        final int slot = environment.findFrameSlot(node.name);
+        if (node.name == null) {
+            // def a(&)
+            name = TranslatorEnvironment.FORWARDED_BLOCK_NAME;
+        } else {
+            name = node.name;
+        }
+
+        final int slot = environment.findFrameSlot(name);
         return new SaveMethodBlockNode(slot);
     }
 
