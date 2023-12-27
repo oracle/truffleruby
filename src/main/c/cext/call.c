@@ -214,3 +214,7 @@ VALUE rb_eval_cmd_kw(VALUE cmd, VALUE args, int kw_splat) {
     return RUBY_CEXT_INVOKE("rb_eval_string", cmd);
   }
 }
+
+int rb_frame_method_id_and_class(ID *idp, VALUE *klassp) {
+    return RUBY_CEXT_INVOKE("rb_frame_method_id_and_class", idp, klassp);
+}

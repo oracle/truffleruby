@@ -2071,4 +2071,35 @@ public abstract class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_frame_method_and_id", onSingleton = true, required = 2)
+    public abstract static class FrameMethodAndId extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        boolean frameMethodAndId(Object frameMethod, Object frameId) {
+            final Frame callingMethodFrame = findCallingMethodFrame();
+            frameMethod = RubyArguments.getMethod(callingMethodFrame);
+            frameId = System.identityHashCode(RubyArguments.tryGetSelf(callingMethodFrame));
+            return true;
+        }
+
+        @TruffleBoundary
+        private static Frame findCallingMethodFrame() {
+            return Truffle.getRuntime().iterateFrames(frameInstance -> {
+                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+
+                final InternalMethod method = RubyArguments.tryGetMethod(frame);
+
+                if (method == null) {
+                    return null;
+                } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_method_and_id") ||
+                        method.getName().equals(/* Truffle::Interop */ "execute_without_conversion")) {
+                    // TODO CS 11-Mar-17 must have a more precise check to skip these methods
+                    return null;
+                } else {
+                    return frame;
+                }
+            });
+        }
+    }
+
 }
