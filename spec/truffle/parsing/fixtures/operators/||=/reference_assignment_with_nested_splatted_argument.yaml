@@ -33,40 +33,33 @@ ast: |
                       frameSlot = 3 # %value_1
                   children:
                       valueNode =
-                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                          SplatCastNodeGen
                               attributes:
+                                  conversionMethod = :to_a
+                                  copy = true
                                   flags = 0
-                                  language = org.truffleruby.RubyLanguage@...
+                                  nilBehavior = CONVERT
                               children:
-                                  values = [
-                                      SplatCastNodeGen
+                                  childNode_ =
+                                      RubyCallNode
                                           attributes:
-                                              conversionMethod = :to_a
-                                              copy = true
+                                              descriptor = NoKeywordArgumentsDescriptor
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
                                               flags = 0
-                                              nilBehavior = CONVERT
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "a"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
                                           children:
-                                              childNode_ =
-                                                  RubyCallNode
+                                              receiver =
+                                                  SelfNode
                                                       attributes:
-                                                          descriptor = NoKeywordArgumentsDescriptor
-                                                          dispatchConfig = PRIVATE
-                                                          emptyKeywordsProfile = false
                                                           flags = 0
-                                                          isAttrAssign = false
-                                                          isSafeNavigation = false
-                                                          isSplatted = false
-                                                          isVCall = true
-                                                          lastArgIsNotHashProfile = false
-                                                          methodName = "a"
-                                                          notEmptyKeywordsProfile = false
-                                                          notRuby2KeywordsHashProfile = false
-                                                      children:
-                                                          receiver =
-                                                              SelfNode
-                                                                  attributes:
-                                                                      flags = 0
-                                  ]
               WriteLocalVariableNode
                   attributes:
                       flags = 0

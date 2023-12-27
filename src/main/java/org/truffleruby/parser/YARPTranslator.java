@@ -297,9 +297,15 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitArrayNode(Nodes.ArrayNode node) {
-        RubyNode[] elements = translate(node.elements);
-        RubyNode rubyNode = ArrayLiteralNode.create(language, elements);
-        return assignPositionAndFlags(node, rubyNode);
+        // handle splat operator properly (e.g [a, *b, c])
+        final RubyNode rubyNode = translateExpressionsList(node.elements);
+
+        // there are edge cases when node is already assigned a source section and flags (e.g. [*a])
+        if (!rubyNode.hasSource()) {
+            assignPositionAndFlags(node, rubyNode);
+        }
+
+        return rubyNode;
     }
 
     @Override
@@ -3102,7 +3108,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
      * operands. */
     private RubyNode translateExpressionsList(Nodes.Node[] nodes) {
         assert nodes != null;
-        assert nodes.length > 0;
+
+        if (nodes.length == 0) {
+            return ArrayLiteralNode.create(language, RubyNode.EMPTY_ARRAY);
+        }
 
         boolean containSplatOperator = containYARPSplatNode(nodes);
 
