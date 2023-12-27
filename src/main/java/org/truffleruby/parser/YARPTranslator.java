@@ -217,7 +217,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     };
 
     // all the encountered BEGIN {} blocks
-    private final ArrayList<Nodes.PreExecutionNode> beginBlocks = new ArrayList<>();
+    private final ArrayList<RubyNode> beginBlocks = new ArrayList<>();
 
     public YARPTranslator(
             RubyLanguage language,
@@ -2643,7 +2643,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitPreExecutionNode(Nodes.PreExecutionNode node) {
-        beginBlocks.add(node);
+        // BEGIN should be located in the top-level context, so it safe to evaluate a block right now
+        RubyNode sequence = node.statements.accept(this);
+        beginBlocks.add(sequence);
         return null;
     }
 
@@ -2652,12 +2654,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode sequence = node.statements.accept(this);
 
         // add BEGIN {} blocks at the very beginning of the program
-        ArrayList<RubyNode> nodes = new ArrayList<>();
-        for (var begin : beginBlocks) {
-            nodes.add(begin.statements.accept(this));
-        }
-
+        ArrayList<RubyNode> nodes = new ArrayList<>(beginBlocks);
         nodes.add(sequence);
+
         return sequence(node, nodes);
     }
 
