@@ -1856,7 +1856,25 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 }
 
                 keyValues.add(keyNode);
-                keyValues.add(assocNode.value.accept(this));
+
+                if (assocNode.value instanceof Nodes.ImplicitNode implicit) {
+                    if (implicit.value instanceof Nodes.CallNode call) {
+                        // Prism doesn't set VARIABLE_CALL flag
+                        int flags = call.flags | Nodes.CallNodeFlags.VARIABLE_CALL;
+                        final var copy = new Nodes.CallNode((short) flags, call.receiver, call.name, call.arguments,
+                                call.block, call.startOffset, call.length);
+
+                        final RubyNode valueNode = copy.accept(this);
+                        keyValues.add(valueNode);
+                    } else if (implicit.value instanceof Nodes.LocalVariableReadNode localVariableRead) {
+                        final RubyNode valueNode = localVariableRead.accept(this);
+                        keyValues.add(valueNode);
+                    } else {
+                        throw CompilerDirectives.shouldNotReachHere();
+                    }
+                } else {
+                    keyValues.add(assocNode.value.accept(this));
+                }
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
@@ -1920,7 +1938,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitImplicitNode(Nodes.ImplicitNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in #visitHashNode");
     }
 
     @Override
