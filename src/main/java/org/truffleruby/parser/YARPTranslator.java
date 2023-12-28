@@ -1526,8 +1526,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitEmbeddedStatementsNode(Nodes.EmbeddedStatementsNode node) {
-        // empty interpolation expression, e.g. in "a #{} b"
         if (node.statements == null) {
+            // empty interpolation expression, e.g. in "a #{} b"
             RubyNode rubyNode = new ObjectLiteralNode(
                     language.getFrozenStringLiteral(sourceEncoding.tencoding.getEmpty(), sourceEncoding));
             return assignPositionAndFlags(node, rubyNode);
@@ -1538,7 +1538,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitEmbeddedVariableNode(Nodes.EmbeddedVariableNode node) {
-        return defaultVisit(node);
+        return node.variable.accept(this);
     }
 
     @Override

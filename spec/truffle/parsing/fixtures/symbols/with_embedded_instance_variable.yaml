@@ -6,7 +6,7 @@ ruby: |
 ast: |
   StringToSymbolNodeGen
       attributes:
-          flags = 1
+          flags = 0
       children:
           stringNode_ =
               InterpolatedStringNode
@@ -22,7 +22,7 @@ ast: |
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
-                                              flags = 0
+                                              flags = 1
                                               tstring = foo 
                           ToSNodeGen
                               children:

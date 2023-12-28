@@ -1,12 +1,13 @@
 subject: "Regexp"
 description: "with embedded class variable (#@@a)"
+yarp_specific: true # there was an extra "" StringLiteralNode and RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /foo #@@bar/
 ast: |
   InterpolatedRegexpNode
       attributes:
-          flags = 1
+          flags = 0
           rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
       children:
           asTruffleStringNode =
@@ -14,7 +15,7 @@ ast: |
           builderNode =
               InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
                   attributes:
-                      options = RegexpOptions(kcode: NONE, kcodeDefault)
+                      options = RegexpOptions(kcode: NONE, kcodeDefault, literal)
                   children:
                       equalNode =
                           TruffleStringFactory$EqualNodeGen
@@ -24,16 +25,8 @@ ast: |
                       valueNode_ =
                           StringLiteralNode
                               attributes:
-                                  encoding = ASCII-8BIT
-                                  flags = 0
-                                  tstring = ""
-              ToSNodeGen
-                  children:
-                      valueNode_ =
-                          StringLiteralNode
-                              attributes:
                                   encoding = UTF-8
-                                  flags = 0
+                                  flags = 1
                                   tstring = foo 
               ToSNodeGen
                   children:
