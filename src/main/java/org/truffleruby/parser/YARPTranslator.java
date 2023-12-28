@@ -1695,12 +1695,20 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             throw CompilerDirectives.shouldNotReachHere("Unexpected node class for for-loop index");
         }
 
-        Nodes.Node[] statements = new Nodes.Node[node.statements.body.length + 1];
-        System.arraycopy(node.statements.body, 0, statements, 1, node.statements.body.length);
-        statements[0] = writeIndex;
+        final Nodes.Node body;
 
-        final Nodes.Node body = new Nodes.StatementsNode(statements, node.statements.startOffset,
-                node.statements.length);
+        if (node.statements != null) {
+            Nodes.Node[] statements = new Nodes.Node[1 + node.statements.body.length];
+            statements[0] = writeIndex;
+            System.arraycopy(node.statements.body, 0, statements, 1, node.statements.body.length);
+
+            body = new Nodes.StatementsNode(statements, node.statements.startOffset, node.statements.length);
+        } else {
+            // for loop with empty body
+            var statements = new Nodes.Node[]{ writeIndex };
+            body = new Nodes.StatementsNode(statements, 0, 0);
+        }
+
         // in the block environment declare local variable only for parameter
         // and skip declaration all the local variables defined in the block
         String[] locals = new String[]{ parameterName };
