@@ -1,0 +1,55 @@
+subject: "Regexp"
+description: "with embedded class variable (#@@a)"
+focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
+ruby: |
+  /foo #@@bar/
+ast: |
+  InterpolatedRegexpNode
+      attributes:
+          flags = 1
+          rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
+      children:
+          asTruffleStringNode =
+              TruffleStringFactory$AsTruffleStringNodeGen
+          builderNode =
+              InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
+                  attributes:
+                      options = RegexpOptions(kcode: NONE, kcodeDefault)
+                  children:
+                      equalNode =
+                          TruffleStringFactory$EqualNodeGen
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = ASCII-8BIT
+                                  flags = 0
+                                  tstring = ""
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foo 
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          ReadClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@bar"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  lookupClassVariableNode =
+                                      LookupClassVariableNodeGen
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+          ]

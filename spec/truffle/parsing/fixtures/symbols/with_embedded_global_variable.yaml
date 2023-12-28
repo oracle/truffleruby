@@ -1,0 +1,40 @@
+subject: "Symbol"
+description: "with embedded global variable (#$a)"
+focused_on_node: "org.truffleruby.core.cast.StringToSymbolNodeGen"
+ruby: |
+  :"foo #$bar"
+ast: |
+  StringToSymbolNodeGen
+      attributes:
+          flags = 1
+      children:
+          stringNode_ =
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              tstring = foo 
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      ReadGlobalVariableNodeGen
+                                          attributes:
+                                              flags = 0
+                                              name = "$bar"
+                                          children:
+                                              lookupGlobalVariableStorageNode =
+                                                  LookupGlobalVariableStorageNodeGen
+                                                      attributes:
+                                                          index = -1
+                                                          name = "$bar"
+                      ]

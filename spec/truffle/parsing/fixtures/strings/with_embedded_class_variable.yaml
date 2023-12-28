@@ -1,0 +1,39 @@
+subject: "String"
+description: "with embedded class variable (#@@a)"
+focused_on_node: "org.truffleruby.core.string.InterpolatedStringNode"
+ruby: |
+  "foo #@@bar"
+ast: |
+  InterpolatedStringNode
+      attributes:
+          emptyTString = ""
+          encoding = UTF-8
+          flags = 1
+      children:
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 0
+                                  tstring = foo 
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          ReadClassVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@@bar"
+                              children:
+                                  lexicalScopeNode =
+                                      ObjectLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              object =  :: Object
+                                  lookupClassVariableNode =
+                                      LookupClassVariableNodeGen
+                                  resolveTargetModuleNode =
+                                      ResolveTargetModuleForClassVariablesNodeGen
+          ]
