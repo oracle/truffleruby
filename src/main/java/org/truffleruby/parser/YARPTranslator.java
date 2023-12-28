@@ -1233,7 +1233,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
             target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
-                    node.target.startOffset);
+                    node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
         } else {
@@ -1297,7 +1297,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
             target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
-                    node.target.startOffset);
+                    node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
         } else {
@@ -1340,7 +1340,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
             target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
-                    node.target.startOffset);
+                    node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
         } else {
