@@ -388,8 +388,21 @@ public final class TranslatorEnvironment {
         return methodParent;
     }
 
-    /** Used only in tests to make temporary variable names stable and not changed every time they are run. It shouldn't
-     * be used for anything except that purpose. */
+    /** Return either outer method/module/top level environment or in case of eval("...") the topmost environment of the
+     * parsed (by eval) code */
+    public TranslatorEnvironment getSurroundingMethodOrEvalEnvironment() {
+        TranslatorEnvironment environment = this;
+
+        // eval's parsing environment still has frameDescriptor not initialized,
+        // but all the outer scopes are related to already parsed code and have initialized frameDescriptor.
+        while (environment.isBlock() && environment.getParent().frameDescriptor == null) {
+            environment = environment.getParent();
+        }
+        return environment;
+    }
+
+    /** Used only in tests to make temporary variable names stable and not changed every time tests are run. It
+     * shouldn't be used for anything except that purpose. */
     public static void resetTemporaryVariablesIndex() {
         tempIndex.set(0);
     }

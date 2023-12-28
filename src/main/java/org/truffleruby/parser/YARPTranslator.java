@@ -3176,11 +3176,15 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     /** Declare variable in the nearest non-block outer lexical scope - either method, class or top-level */
     protected FrameSlotAndDepth createFlipFlopState() {
-        final var target = environment.getSurroundingMethodEnvironment();
+        final var target = environment.getSurroundingMethodOrEvalEnvironment();
         final int frameSlot = target.declareLocalTemp("flipflop");
         target.getFlipFlopStates().add(frameSlot);
 
-        return new FrameSlotAndDepth(frameSlot, environment.getBlockDepth());
+        // Relative distance between environments where the local variable is used and is declared.
+        // In case of eval the target environment is not a method/module/top-level and has its own non-zero depth.
+        int depth = environment.getBlockDepth() - target.getBlockDepth();
+
+        return new FrameSlotAndDepth(frameSlot, depth);
     }
 
     /** Translate a list of nodes, e.g. break/return operands, into an array producing node. It returns ArrayLiteralNode
