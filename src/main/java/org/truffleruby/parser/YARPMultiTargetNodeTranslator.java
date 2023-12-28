@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -63,7 +64,14 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
         final AssignableNode restNode;
         if (node.rest != null) {
-            restNode = node.rest.accept(this);
+            // implicit rest in nested target is allowed only for multi-assignment and isn't allowed in block parameters
+            if (node.rest instanceof Nodes.ImplicitRestNode) {
+                // a, = []
+                // do nothing
+                restNode = null;
+            } else {
+                restNode = node.rest.accept(this);
+            }
         } else {
             restNode = null;
         }
@@ -110,6 +118,11 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     public AssignableNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
+    }
+
+    @Override
+    public AssignableNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
     }
 
     @Override
