@@ -1353,7 +1353,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         var readNode = (ReadConstantNode) target.accept(this);
         var writeNode = (WriteConstantNode) readNode.makeWriteNode(value);
-        final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
+        var andNode = AndNodeGen.create(new DefinedNode(readNode), readNode);
+        final RubyNode orNode = OrNodeGen.create(andNode, writeNode);
 
         final RubyNode rubyNode;
 
