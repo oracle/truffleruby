@@ -12,6 +12,6 @@ So any backported changelog change can be reviewed if it is under the correct re
 
 ## Use the GraalVM release version as ABI version
 
-Similar to https://github.com/oracle/truffleruby/commit/6ecaee25be7949f8354444723bf6a71269e048ab.
+In `lib/cext/include/truffleruby/truffleruby-abi-version.h`, similar to https://github.com/oracle/truffleruby/commit/0e920e6959166ea9a2d93f6130cd18ef9638806f.
 
 This avoids any potential reuse of truffleuby-head gems which could otherwise have the same ABI version but with a different meaning.
