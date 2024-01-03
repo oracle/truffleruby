@@ -224,15 +224,22 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
+            RubyEncoding sourceEncoding,
             ParserContext parserContext,
             Node currentNode) {
         this.language = language;
         this.environment = environment;
         this.sourceBytes = sourceBytes;
         this.source = source;
+
+        if (sourceEncoding != null) {
+            this.sourceEncoding = sourceEncoding;
+        } else {
+            this.sourceEncoding = Encodings.UTF_8;
+        }
+
         this.parserContext = parserContext;
         this.currentNode = currentNode;
-        this.sourceEncoding = Encodings.UTF_8; // TODO
     }
 
     public TranslatorEnvironment getEnvironment() {
@@ -549,6 +556,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 newEnvironment,
                 sourceBytes,
                 source,
+                sourceEncoding,
                 parserContext,
                 currentNode,
                 arity);
@@ -1487,6 +1495,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 newEnvironment,
                 sourceBytes,
                 source,
+                sourceEncoding,
                 parserContext,
                 currentNode);
         final CachedLazyCallTargetSupplier callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, arity);
@@ -3273,6 +3282,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 newEnvironment,
                 sourceBytes,
                 source,
+                sourceEncoding,
                 parserContext,
                 currentNode);
 

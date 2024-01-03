@@ -240,12 +240,14 @@ public final class YARPTranslatorDriver {
 
         // Translate to Ruby Truffle nodes
 
+        // use source encoding detected by manually, before source file is fully parsed
         byte[] sourceBytes = rubySource.getBytes();
         final YARPTranslator translator = new YARPTranslator(
                 language,
                 environment,
                 sourceBytes,
                 source,
+                rubySource.getEncoding(),
                 parserContext,
                 currentNode);
 
@@ -459,6 +461,9 @@ public final class YARPTranslatorDriver {
             String value = rubySource.getTStringWithEncoding()
                     .substring(magicComment.valueLocation.startOffset, magicComment.valueLocation.length)
                     .toJavaString();
+            // encoding magic comment is handled manually and available as RubySource#encoding
+
+            // check the `primitive` TruffleRuby specific magic comment
             if (RubyLexer.isMagicTruffleRubyPrimitivesComment(name)) {
                 configuration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
             }

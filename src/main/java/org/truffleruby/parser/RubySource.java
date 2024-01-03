@@ -30,7 +30,7 @@ import org.truffleruby.parser.lexer.RubyLexer;
 public final class RubySource {
 
     private final Source source;
-    /** The path that will be used by the parser for __FILE__, warnings and syntax errors. Currently the same as
+    /** The path that will be used by the parser for __FILE__, warnings and syntax errors. Currently, the same as
      * {@link RubyLanguage#getPath(Source)}. Kept separate as we might want to change Source#getName() for non-file
      * Sources in the future (but then we'll need to still use this path in Ruby backtraces). */
     private final String sourcePath;

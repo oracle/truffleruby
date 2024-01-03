@@ -20,6 +20,7 @@ import org.truffleruby.annotations.Split;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -51,10 +52,11 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
+            RubyEncoding sourceEncoding,
             ParserContext parserContext,
             Node currentNode,
             Arity arity) {
-        super(language, environment, sourceBytes, source, parserContext, currentNode);
+        super(language, environment, sourceBytes, source, sourceEncoding, parserContext, currentNode);
         this.arity = arity;
     }
 

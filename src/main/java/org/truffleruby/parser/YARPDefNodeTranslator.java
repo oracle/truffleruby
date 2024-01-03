@@ -13,6 +13,7 @@ import java.util.Arrays;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.RubyMethodRootNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.Arity;
@@ -30,9 +31,10 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
             TranslatorEnvironment environment,
             byte[] sourceBytes,
             Source source,
+            RubyEncoding sourceEncoding,
             ParserContext parserContext,
             Node currentNode) {
-        super(language, environment, sourceBytes, source, parserContext, currentNode);
+        super(language, environment, sourceBytes, source, sourceEncoding, parserContext, currentNode);
 
         if (parserContext.isEval() || environment.getParseEnvironment().isCoverageEnabled()) {
             shouldLazyTranslate = false;
