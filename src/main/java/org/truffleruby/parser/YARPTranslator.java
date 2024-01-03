@@ -1149,6 +1149,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length).accept(this);
         var andNode = AndNodeGen.create(new DefinedNode(readNode), readNode);
 
+        // TODO: should be used for every ||= node (class variable/etc)?
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(andNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1328,7 +1329,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode rubyNode;
 
         if (writeParentNode != null) {
+            // defined?(A::B += 1) returns 'expression' so don't use DefinedWrapperNode here
             rubyNode = sequence(Arrays.asList(writeParentNode, writeNode.accept(this)));
+
             // rubyNode may be already assigned source code in case writeParentNode is null
             assignPositionAndFlagsIfMissing(node, rubyNode);
         } else {

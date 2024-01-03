@@ -231,6 +231,14 @@ describe "The defined? keyword for an expression" do
     defined?(@@defined_specs_x = 2).should == "assignment"
   end
 
+  it "returns 'assignment' for assigning a constant" do
+    defined?(A = 2).should == "assignment"
+  end
+
+  it "returns 'assignment' for assigning a fully qualified constant" do
+    defined?(Object::A = 2).should == "assignment"
+  end
+
   it "returns 'assignment' for assigning multiple variables" do
     defined?((a, b = 1, 2)).should == "assignment"
   end
@@ -248,7 +256,17 @@ describe "The defined? keyword for an expression" do
   end
 
   it "returns 'assignment' for an expression with '+='" do
-    defined?(x += 2).should == "assignment"
+    defined?(a += 1).should == "assignment"
+    defined?(@a += 1).should == "assignment"
+    defined?(@@a += 1).should == "assignment"
+    defined?($a += 1).should == "assignment"
+    defined?(A += 1).should == "assignment"
+
+    # https://bugs.ruby-lang.org/issues/20111
+    defined?(Object::A += 1).should == "expression"
+
+    defined?(a.b += 1).should == "assignment"
+    defined?(a[:b] += 1).should == "assignment"
   end
 
   it "returns 'assignment' for an expression with '*='" do
@@ -279,12 +297,74 @@ describe "The defined? keyword for an expression" do
     defined?(x >>= 2).should == "assignment"
   end
 
-  it "returns 'assignment' for an expression with '||='" do
-    defined?(x ||= 2).should == "assignment"
+  context "||=" do
+    it "returns 'assignment' for assigning a local variable with '||='" do
+      defined?(a ||= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning an instance variable with '||='" do
+      defined?(@a ||= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a class variable with '||='" do
+      defined?(@@a ||= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a global variable with '||='" do
+      defined?($a ||= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a constant with '||='" do
+      defined?(A ||= true).should == "assignment"
+    end
+
+    # https://bugs.ruby-lang.org/issues/20111
+    it "returns 'expression' for assigning a fully qualified constant with '||='" do
+      defined?(Object::A ||= true).should == "expression"
+    end
+
+    it "returns 'assignment' for assigning an attribute with '||='" do
+      defined?(a.b ||= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a referenced element with '||='" do
+      defined?(a[:b] ||= true).should == "assignment"
+    end
   end
 
-  it "returns 'assignment' for an expression with '&&='" do
-    defined?(x &&= 2).should == "assignment"
+  context "&&=" do
+    it "returns 'assignment' for assigning a local variable with '&&='" do
+      defined?(a &&= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning an instance variable with '&&='" do
+      defined?(@a &&= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a class variable with '&&='" do
+      defined?(@@a &&= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a global variable with '&&='" do
+      defined?($a &&= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a constant with '&&='" do
+      defined?(A &&= true).should == "assignment"
+    end
+
+    # https://bugs.ruby-lang.org/issues/20111
+    it "returns 'expression' for assigning a fully qualified constant with '&&='" do
+      defined?(Object::A &&= true).should == "expression"
+    end
+
+    it "returns 'assignment' for assigning an attribute with '&&='" do
+      defined?(a.b &&= true).should == "assignment"
+    end
+
+    it "returns 'assignment' for assigning a referenced element with '&&='" do
+      defined?(a[:b] &&= true).should == "assignment"
+    end
   end
 
   it "returns 'assignment' for an expression with '**='" do
