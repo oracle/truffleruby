@@ -330,12 +330,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitBeginNode(Nodes.BeginNode node) {
         RubyNode rubyNode;
 
-        // empty begin/end block
-        if (node.statements == null) {
+        // empty begin/end block - so ignore possibly present rescue and else branches
+        if (node.statements == null && node.ensure_clause == null) {
             return new NilLiteralNode();
         }
 
-        rubyNode = node.statements.accept(this);
+        if (node.statements != null) {
+            rubyNode = node.statements.accept(this);
+        } else {
+            rubyNode = new NilLiteralNode();
+        }
 
         // fast path
         if (node.rescue_clause == null && node.ensure_clause == null) {
