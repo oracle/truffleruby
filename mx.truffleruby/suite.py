@@ -287,6 +287,7 @@ suite = {
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
+            "forceJavac": True, # GR-51148 We need to force javac to silence a ECJ warning in generated code
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
