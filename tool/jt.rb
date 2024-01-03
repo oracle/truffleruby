@@ -2516,15 +2516,16 @@ module Commands
     name = "truffleruby-#{@ruby_name}"
     mx_base_args = ['--env', env]
 
-    # Must clone enterprise before running `mx scheckimports` in `sforceimports?`
     ee = ee?
     cloned = clone_enterprise if ee
-    checkout_enterprise_revision(env) if cloned
 
-    if options.delete('--sforceimports') || sforceimports?(mx_base_args)
+    # If we just cloned graal-enterprise, we want to sforceimports to use the correct substratevm-enterprise-gcs commit.
+    # Because `mx checkout-downstream compiler graal-enterprise` has the effect to clone substratevm-enterprise-gcs as
+    # the import in graal-enterprise master, becauses it clones it before checking out the right graal-enterprise commit.
+    if cloned || options.delete('--sforceimports') || sforceimports?(mx_base_args)
       sforceimports
       if ee
-        checkout_enterprise_revision(env) if !cloned
+        checkout_enterprise_revision(env)
         # sforceimports for optional suites imported in vm-enterprise like substratevm-enterprise-gcs
         vm_enterprise = File.expand_path '../graal-enterprise/vm-enterprise', TRUFFLERUBY_DIR
         mx('--env', env_path(env), 'sforceimports', java_home: :none, primary_suite: vm_enterprise)
