@@ -1,0 +1,151 @@
+subject: "Method call"
+description: super / in a method body without explicit arguments when declared multiple underscore parameters
+notes: >
+  Is represented by SuperCallNode and ReadZSuperArgumentsNode nodes
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo(_, _, _)
+    super
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _$0, type = req), ArgumentDescriptor(name = _$0, type = req)])
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 3, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:_, #3:_$0, #4:%method_block_arg}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _$0, type = req), ArgumentDescriptor(name = _$0, type = req)])
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0 # (self)
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 2 # _
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 0
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 3 # _$0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 1
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 3 # _$0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 2
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 4
+                                  SuperCallNode
+                                      attributes:
+                                          descriptor = NoKeywordArgumentsDescriptor
+                                          emptyKeywordsProfile = false
+                                          flags = 0
+                                          isSplatted = false
+                                          lastArgIsNotHashProfile = false
+                                          notEmptyKeywordsProfile = false
+                                          notRuby2KeywordsHashProfile = false
+                                      children:
+                                          arguments =
+                                              ReadZSuperArgumentsNode
+                                                  attributes:
+                                                      flags = 0
+                                                      restArgIndex = -1
+                                                  children:
+                                                      reloadNodes = [
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 2 # _
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 3 # _$0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 3 # _$0
+                                                                  type = FRAME_LOCAL
+                                                      ]
+                                          block =
+                                              ReadLocalVariableNode
+                                                  attributes:
+                                                      flags = 0
+                                                      frameSlot = 4 # %method_block_arg
+                                                      type = FRAME_LOCAL
+                              ]
