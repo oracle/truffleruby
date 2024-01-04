@@ -1,0 +1,66 @@
+subject: "Warnings"
+description: "Warnings emitted during parsing"
+notes: >
+  Warnings are represented with EmitWarningsNode node.
+yarp_specific: true # YARP provides a bit different message and verbosity changed from VERBOSE to NON_VERBOSE
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  puts *[]
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              EmitWarningsNode
+                  attributes:
+                      flags = 0
+                      warnings = RubyDeferredWarnings(WarningMessage(message = 'ambiguous `*` has been interpreted as an argument prefix', verbosity = NON_VERBOSE, fileName = '<parse_ast>', lineNumber = 1))
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              RubyCallNode
+                  attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
+                      flags = 1
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = true
+                      isVCall = false
+                      lastArgIsNotHashProfile = false
+                      methodName = "puts"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      arguments = [
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_a
+                                  copy = false
+                                  flags = 0
+                                  nilBehavior = CONVERT
+                              children:
+                                  childNode_ =
+                                      ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              language = org.truffleruby.RubyLanguage@...
+                      ]
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
+          ]

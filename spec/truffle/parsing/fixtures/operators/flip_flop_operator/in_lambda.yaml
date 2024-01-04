@@ -18,11 +18,11 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
       call targets:
           RubyMethodRootNode
               attributes:
-                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
                   frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:%flipflop_0}
@@ -35,7 +35,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
                   split = HEURISTIC
               children:
                   body =
@@ -72,12 +72,12 @@ ast: |
                                           callTargets = ProcCallTargets(callTargetForProc = null, callTargetForLambda = block in Object#foo, altCallTargetCompiler = null)
                                           flags = 1
                                           frameOnStackMarkerSlot = -1
-                                          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
+                                          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
                                           type = LAMBDA
                                       call targets:
                                           RubyLambdaRootNode
                                               attributes:
-                                                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                                                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                                                   breakID = org.truffleruby.language.control.BreakID@...
                                                   callTarget = block in Object#foo
                                                   checkArityProfile = false
@@ -95,7 +95,7 @@ ast: |
                                                   redoProfile = false
                                                   retryProfile = false
                                                   returnID = org.truffleruby.language.control.ReturnID@...
-                                                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
+                                                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
                                                   split = HEURISTIC
                                               children:
                                                   body =

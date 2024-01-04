@@ -12,6 +12,7 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -34,12 +35,6 @@ import org.truffleruby.language.methods.Arity;
 // Based on org.truffleruby.parser.YARPLoadArgumentsTranslator (logic when useArray() -> true)
 public final class YARPParametersNodeToDestructureTranslator extends AbstractNodeVisitor<RubyNode> {
 
-    private enum State {
-        PRE,
-        OPT,
-        POST
-    }
-
     private final Nodes.ParametersNode parameters;
     private final RubyNode readArrayNode;
     private final TranslatorEnvironment environment;
@@ -49,7 +44,6 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     private int index; // position of actual argument in a frame that is being evaluated/read
                       // to match a read node and actual argument
-    private State state; // to distinguish pre and post Nodes.RequiredParameterNode parameters
 
     public YARPParametersNodeToDestructureTranslator(
             Nodes.ParametersNode parameters,
@@ -75,7 +69,6 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         sequence.add(Translator.loadSelf(language));
 
         if (parameters.requireds.length > 0) {
-            state = State.PRE;
             index = 0;
             for (var node : parameters.requireds) {
                 sequence.add(node.accept(this)); // Nodes.RequiredParameterNode is expected here
@@ -92,11 +85,17 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         }
 
         if (parameters.rest != null) {
-            sequence.add(parameters.rest.accept(this)); // Nodes.RestParameterNode is expected here
+            if (parameters.rest instanceof Nodes.ImplicitRestNode) {
+                // do nothing
+
+                // The only reason to save anonymous rest parameter in a local variable is to be able to forward it.
+                // Implicit rest is allowed only in blocks but anonymous rest forwarding works only in methods/lambdas.
+            } else {
+                sequence.add(parameters.rest.accept(this)); // Nodes.RestParameterNode is expected here
+            }
         }
 
         if (parameters.posts.length > 0) {
-            state = State.POST;
             index = -1;
 
             for (int i = parameters.posts.length - 1; i >= 0; i--) {
@@ -186,8 +185,15 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
     }
 
     @Override
+    public RubyNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
+    }
+
+    @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         // NOTE: we actually could do nothing if parameter is anonymous
+        //      as far as this translator handles a block parameters only,
+        //      but anonymous keyword rest forwarding doesn't work in blocks
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
         final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
         final int slot = environment.declareVar(name);

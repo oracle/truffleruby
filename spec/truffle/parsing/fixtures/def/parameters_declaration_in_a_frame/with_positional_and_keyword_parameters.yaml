@@ -21,11 +21,11 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
       call targets:
           RubyMethodRootNode
               attributes:
-                  arityForCheck = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}
+                  arityForCheck = Arity{preRequired = 1, optional = 1, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}
                   callTarget = Object#foo
                   checkArityProfile = false
                   frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:c, #5:d, #6:e, #7:f, #8:%method_block_arg}
@@ -38,7 +38,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 1, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [d, e], requiredKeywordArgumentsCount = 1, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = opt), ArgumentDescriptor(name = c, type = rest), ArgumentDescriptor(name = d, type = keyreq), ArgumentDescriptor(name = e, type = key), ArgumentDescriptor(name = f, type = keyrest)])
                   split = HEURISTIC
               children:
                   body =

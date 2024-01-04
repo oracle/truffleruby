@@ -76,6 +76,8 @@ describe "Parsing" do
       it "a #{subject} (#{description.strip}) case is parsed correctly" do
         skip "YARP specific test" if original_parser && yarp_specific
 
+        # p "a #{subject} (#{description.strip}) case is parsed correctly"
+
         if original_parser
           actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index).strip
         else

@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public final class YARPBlockNodeTranslator extends YARPTranslator {
-    private final Nodes.ParametersNode parameters;
     private final Arity arity;
 
     public YARPBlockNodeTranslator(
@@ -54,23 +53,15 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             Source source,
             ParserContext parserContext,
             Node currentNode,
-            RubyDeferredWarnings rubyWarnings,
-            Nodes.ParametersNode parameters,
             Arity arity) {
-        super(language, environment, sourceBytes, source, parserContext, currentNode, rubyWarnings);
-        this.parameters = parameters;
+        super(language, environment, sourceBytes, source, parserContext, currentNode);
         this.arity = arity;
     }
 
-    public RubyNode compileBlockNode(Nodes.Node body, String[] locals, boolean isStabbyLambda,
+    public RubyNode compileBlockNode(Nodes.Node body, Nodes.ParametersNode parameters, String[] locals,
+            boolean isStabbyLambda,
             SourceSection sourceSection) {
         declareLocalVariables(locals);
-
-        // TODO: handle a case with |a,|
-        // see org.truffleruby.parser.MethodTranslator.compileBlockNode
-        // https://github.com/ruby/prism/issues/1722
-        // https://bugs.ruby-lang.org/issues/19971
-        final Arity arityForCheck = arity;
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
                 parameters,
@@ -91,7 +82,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         final boolean emitLambda = isStabbyLambda || isLambdaMethodCall;
 
         final Supplier<RootCallTarget> procCompiler = procCompiler(
-                arityForCheck,
+                arity,
                 preludeProc,
                 bodyNode,
                 isLambdaMethodCall,
@@ -101,7 +92,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
 
         final Supplier<RootCallTarget> lambdaCompiler = lambdaCompiler(
                 isStabbyLambda,
-                arityForCheck,
+                arity,
                 loadArguments,
                 bodyNode,
                 emitLambda,

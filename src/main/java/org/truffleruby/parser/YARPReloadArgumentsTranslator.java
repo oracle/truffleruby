@@ -12,6 +12,7 @@ package org.truffleruby.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -19,9 +20,7 @@ import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
-import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.literal.ObjectLiteralNode;
 
 
@@ -68,6 +67,15 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             sequence.add(parametersNode.rest.accept(this)); // Nodes.RestParameterNode is expected here
         }
 
+        // ... parameter (so-called "forward arguments") means there is implicit * parameter
+        if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+            restParameterIndex = parametersNode.requireds.length + parametersNode.optionals.length;
+            final var readRestNode = yarpTranslator.getEnvironment().findLocalVarNode(
+                    TranslatorEnvironment.FORWARDED_REST_NAME,
+                    null);
+            sequence.add(readRestNode);
+        }
+
         int postCount = parametersNode.posts.length;
         if (postCount > 0) {
             index = -postCount;
@@ -80,34 +88,59 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
         RubyNode kwArgsNode = null;
 
         if (parametersNode.keywords.length > 0) {
-            final int keywordCount = parametersNode.keywords.length;
-            RubyNode[] keyValues = new RubyNode[keywordCount * 2];
+            final int keywordsCount = parametersNode.keywords.length;
+            RubyNode[] keysAndValues = new RubyNode[keywordsCount * 2];
 
-            for (int i = 0; i < keywordCount; i++) {
+            for (int i = 0; i < keywordsCount; i++) {
                 // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
-                final Nodes.Node kwArg = parametersNode.keywords[i];
-                final RubyNode value = kwArg.accept(this);
-                var name = ((ReadKeywordArgumentNode) value).getName();
-                RubyNode key = new ObjectLiteralNode(name);
-                keyValues[2 * i] = key;
-                keyValues[2 * i + 1] = value;
+                final Nodes.Node keyword = parametersNode.keywords[i];
+
+                final String name;
+                if (keyword instanceof Nodes.OptionalKeywordParameterNode optional) {
+                    name = optional.name;
+                } else if (keyword instanceof Nodes.RequiredKeywordParameterNode required) {
+                    name = required.name;
+                } else {
+                    throw CompilerDirectives.shouldNotReachHere();
+                }
+
+                final RubyNode nameNode = new ObjectLiteralNode(language.getSymbol(name));
+                final RubyNode readValueNode = keyword.accept(this);
+
+                keysAndValues[2 * i] = nameNode;
+                keysAndValues[2 * i + 1] = readValueNode;
             }
-            kwArgsNode = HashLiteralNode.create(keyValues, language);
+            kwArgsNode = HashLiteralNode.create(keysAndValues, language);
         }
 
         if (parametersNode.keyword_rest != null) {
-            // Nodes.KeywordRestParameterNode/Nodes.NoKeywordsParameterNode are expected here
-            final RubyNode keyRest = parametersNode.keyword_rest.accept(this);
-            if (kwArgsNode == null) {
-                kwArgsNode = keyRest;
-            } else {
-                kwArgsNode = new ConcatHashLiteralNode(new RubyNode[]{ kwArgsNode, keyRest });
-            }
+            if (parametersNode.keyword_rest instanceof Nodes.KeywordRestParameterNode) {
+                final RubyNode keyRest = parametersNode.keyword_rest.accept(this);
 
+                if (kwArgsNode == null) {
+                    kwArgsNode = keyRest;
+                } else {
+                    kwArgsNode = new ConcatHashLiteralNode(new RubyNode[]{ kwArgsNode, keyRest });
+                }
+            } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
+                // do nothing
+            } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+                // do nothing - it's already handled in the #reload method
+                // NOTE: don't handle '&' for now as far as anonymous & isn't supported yet
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
         }
 
         if (kwArgsNode != null) {
             sequence.add(kwArgsNode);
+        }
+
+        // ... parameter (so-called "forward arguments") means there is implicit ** parameter
+        if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
+            final var readKeyRestNode = yarpTranslator.getEnvironment()
+                    .findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
+            sequence.add(readKeyRestNode);
         }
 
         return sequence.toArray(RubyNode.EMPTY_ARRAY);
@@ -131,7 +164,8 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
 
     @Override
     public RubyNode visitRestParameterNode(Nodes.RestParameterNode node) {
-        return yarpTranslator.getEnvironment().findLocalVarNode(node.name, null);
+        final String name = node.name != null ? node.name : TranslatorEnvironment.DEFAULT_REST_NAME;
+        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
     }
 
     @Override
@@ -146,7 +180,8 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
 
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
-        return yarpTranslator.getEnvironment().findLocalVarNode(node.name, null);
+        final String name = node.name != null ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
     }
 
     @Override
@@ -155,9 +190,14 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
     }
 
     @Override
+    public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
+        // it's handled in the #reload method
+        throw CompilerDirectives.shouldNotReachHere();
+    }
+
+    @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
-        var nilNode = new NilLiteralNode();
-        return YARPTranslator.assignPositionAndFlags(node, nilNode);
+        return yarpTranslator.defaultVisit(node);
     }
 
 }

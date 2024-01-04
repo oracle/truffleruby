@@ -119,7 +119,7 @@ public final class RubyProc extends RubyDynamicObject implements ObjectGraphNode
     }
 
     public int getArityNumber() {
-        return arity.getArityNumber(type);
+        return arity.getProcArityNumber(type);
     }
 
     public ArgumentDescriptor[] getArgumentDescriptors() {

@@ -5,8 +5,8 @@ notes: >
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   begin
-    42
-    100500
+    foo
+    bar
   end
 ast: |
   SequenceNode
@@ -14,10 +14,6 @@ ast: |
           flags = 12
       children:
           body = [
-              EmitWarningsNode
-                  attributes:
-                      flags = 0
-                      warnings = org.truffleruby.parser.RubyDeferredWarnings@...
               WriteLocalVariableNode
                   attributes:
                       flags = 0
@@ -32,12 +28,42 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              IntegerFixnumLiteralNode
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 42
-              IntegerFixnumLiteralNode
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "foo"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 100500
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "bar"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
           ]

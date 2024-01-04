@@ -4012,6 +4012,13 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
 
             break;
         }
+        case PM_IMPLICIT_REST_NODE: {
+            pm_buffer_append_string(output_buffer, "@ ImplicitRestNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            break;
+        }
         case PM_IN_NODE: {
             pm_in_node_t *cast = (pm_in_node_t *) node;
             pm_buffer_append_string(output_buffer, "@ InNode (location: ", 20);
@@ -6325,6 +6332,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, " = \"", 4);
                 prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            break;
+        }
+        case PM_NUMBERED_PARAMETERS_NODE: {
+            pm_numbered_parameters_node_t *cast = (pm_numbered_parameters_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ NumberedParametersNode (location: ", 36);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // maximum
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 maximum:", 18);
+                pm_buffer_append_format(output_buffer, " %d\n", cast->maximum);
             }
 
             break;

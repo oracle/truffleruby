@@ -4,17 +4,13 @@ notes: >
   () are just ignored
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  (42)
+  (foo)
 ast: |
   SequenceNode
       attributes:
           flags = 12
       children:
           body = [
-              EmitWarningsNode
-                  attributes:
-                      flags = 0
-                      warnings = org.truffleruby.parser.RubyDeferredWarnings@...
               WriteLocalVariableNode
                   attributes:
                       flags = 0
@@ -29,8 +25,23 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              IntegerFixnumLiteralNode
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 42
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "foo"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
           ]

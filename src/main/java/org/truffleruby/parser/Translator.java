@@ -102,6 +102,10 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
             final boolean lastNode = n == sequence.size() - 1;
             final RubyNode node = sequence.get(n);
 
+            if (node == null) {
+                continue;
+            }
+
             if (node instanceof SequenceNode) {
                 flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence()), lastNode));
             } else if (node.canSubsumeFollowing() && !lastNode) {

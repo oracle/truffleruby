@@ -1,16 +1,7 @@
 subject: "||="
 description: "Assign an element referenced with multiple indexes (a[b, c, d] ||= e)"
 notes: >
-  `a[b, c, d] ||= e` is translated into `a[b, c, d] || a[b, c, d] = e` in the following way:
-  
-  ```ruby
-  temp_arg1 = b
-  temp_arg2 = c
-  temp_arg3 = d
-  temp_receiver = a
-  
-  temp_receiver[temp_arg1] || temp_receiver[temp_arg1] = c
-  ```
+  All the arguments should be assigned to local variables to evaluate them only once.
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   foo[42, 43, 44] ||= 100500
@@ -91,7 +82,7 @@ ast: |
                                               flags = 0
               OrNodeGen
                   attributes:
-                      flags = 1
+                      flags = 0
                   children:
                       left =
                           RubyCallNode

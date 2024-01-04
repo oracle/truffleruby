@@ -247,8 +247,7 @@ public final class YARPTranslatorDriver {
                 sourceBytes,
                 source,
                 parserContext,
-                currentNode,
-                rubyWarnings);
+                currentNode);
 
         final Memo<RubyNode> beginNodeMemo = new Memo<>(null);
         RubyNode truffleNode;
