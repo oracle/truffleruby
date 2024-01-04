@@ -105,16 +105,22 @@ ast: |
                                                                                           value = 2
                                                                               ]
                                               receiver =
-                                                  ReadConstantWithLexicalScopeNode
+                                                  ReadConstantNode
                                                       attributes:
                                                           flags = 0
-                                                          lexicalScope =  :: Object
                                                           name = "KernelOperations"
                                                       children:
-                                                          getConstantNode =
-                                                              GetConstantNodeGen
-                                                          lookupConstantNode =
-                                                              LookupConstantWithLexicalScopeNodeGen
+                                                          moduleNode =
+                                                              ReadConstantWithLexicalScopeNode
                                                                   attributes:
+                                                                      flags = 0
                                                                       lexicalScope =  :: Object
-                                                                      name = "KernelOperations"
+                                                                      name = "Truffle"
+                                                                  children:
+                                                                      getConstantNode =
+                                                                          GetConstantNodeGen
+                                                                      lookupConstantNode =
+                                                                          LookupConstantWithLexicalScopeNodeGen
+                                                                              attributes:
+                                                                                  lexicalScope =  :: Object
+                                                                                  name = "Truffle"

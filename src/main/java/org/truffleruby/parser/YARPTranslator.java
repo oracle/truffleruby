@@ -737,7 +737,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
             final var splat = new Nodes.SplatNode(readRest, 0, 0);
             final var keywordHash = new Nodes.KeywordHashNode((short) 0,
-                    new Nodes.Node[]{new Nodes.AssocSplatNode(readKeyRest, 0, 0)}, 0, 0);
+                    new Nodes.Node[]{ new Nodes.AssocSplatNode(readKeyRest, 0, 0) }, 0, 0);
 
             // replace '...' argument with rest and keyrest arguments
             final var forwarding = new Nodes.Node[arguments.length + 1];
@@ -2662,7 +2662,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // Turn into a call to Truffle::KernelOperations.at_exit
 
         // Create Prism CallNode to avoid duplication block literal related logic
-        final var receiver = new Nodes.ConstantReadNode("KernelOperations", 0, 0);
+        final var receiver = new Nodes.ConstantPathNode(
+                new Nodes.ConstantReadNode("Truffle", 0, 0),
+                new Nodes.ConstantReadNode("KernelOperations", 0, 0), 0, 0);
         final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ new Nodes.FalseNode(0, 0) }, 0, 0);
         final var block = new Nodes.BlockNode(StringUtils.EMPTY_STRING_ARRAY, 0, null, node.statements, 0, 0);
 
