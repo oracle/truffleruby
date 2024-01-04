@@ -85,7 +85,7 @@ class JavaHandler
 
     @file = File.open(java_file, 'wb')
     @file.puts contents[0...from+METHOD_START.length]
-    @file.puts "#{INDENT}// Generated from #{SCRIPT} on #{RUBY_PLATFORM}"
+    @file.puts "#{INDENT}// Generated from #{SCRIPT} on #{RUBY_PLATFORM.sub(/darwin\d+/, 'darwin')}"
     at_exit do
       @file.puts contents[to..-1]
       @file.close
