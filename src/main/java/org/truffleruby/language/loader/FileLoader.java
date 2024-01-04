@@ -139,7 +139,7 @@ public final class FileLoader {
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)
                 .canonicalizePath(false)
                 .mimeType(mimeType)
-                .content(sourceTStringWithEncoding.tstring.toString())
+                .content(new ByteBasedCharSequence(sourceTStringWithEncoding))
                 .internal(internal)
                 .cached(!coverageEnabled)
                 .build();

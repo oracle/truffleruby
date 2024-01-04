@@ -58,6 +58,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.debug.TruffleDebugNodes.ForeignArrayNode.ForeignArray;
@@ -77,6 +78,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.loader.ByteBasedCharSequence;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.annotations.Split;
@@ -343,9 +345,10 @@ public abstract class TruffleDebugNodes {
         Object ast(Object code,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String codeString = RubyGuards.getJavaString(code);
+            var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
+                    RubyStringLibrary.create().getEncoding(code));
             String name = "<parse_ast>";
-            var source = Source.newBuilder("ruby", codeString, name).build();
+            var source = Source.newBuilder("ruby", new ByteBasedCharSequence(codeString), name).build();
             var rubySource = new RubySource(source, name);
 
             var staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
@@ -1429,17 +1432,19 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
 
-            RubyRootNode rootNode = parse(sourceCodeString);
+            var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(sourceCode),
+                    RubyStringLibrary.create().getEncoding(sourceCode));
+
+            RubyRootNode rootNode = parse(code);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
 
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
 
-        private RubyRootNode parse(String sourceCode) {
-            Source source = Source.newBuilder("ruby", sourceCode, "<parse_ast>").build();
+        private RubyRootNode parse(TStringWithEncoding sourceCode) {
+            Source source = Source.newBuilder("ruby", new ByteBasedCharSequence(sourceCode), "<parse_ast>").build();
             TranslatorEnvironment.resetTemporaryVariablesIndex();
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
