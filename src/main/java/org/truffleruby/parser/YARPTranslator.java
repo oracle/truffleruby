@@ -599,10 +599,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
-        // Use Prism nodes and rely on CallNode translation to automatically set CallNode flags
-        // Ignore node.flags - it could be only SAFE_NAVIGATION that is handled manually
-        final RubyNode readNode = callNode(node, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY).accept(this);
-        final RubyNode writeNode = callNode(node, Nodes.CallNodeFlags.ATTRIBUTE_WRITE, readReceiver, node.write_name,
+        // Use Prism nodes and rely on CallNode translation to automatically set RubyCallNode attributes
+        short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
+        final RubyNode readNode = callNode(node, node.flags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY)
+                .accept(this);
+        final RubyNode writeNode = callNode(node, writeFlags, readReceiver, node.write_name,
                 node.value).accept(this);
         final RubyNode andNode = AndNodeGen.create(readNode, writeNode);
 
@@ -627,9 +628,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, node.block, methodName);
         var translatedArguments = argumentsAndBlock.arguments();
-
-        // if the receiver is explicit or implicit 'self' then we can call private methods
-        final boolean ignoreVisibility = node.receiver == null || node.receiver instanceof Nodes.SelfNode;
 
         if (environment.getParseEnvironment().inCore() && node.isVariableCall() && methodName.equals("undefined")) {
             // translate undefined
@@ -667,7 +665,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 argumentsAndBlock.argumentsDescriptor(),
                 translatedArguments,
                 argumentsAndBlock.isSplatted(),
-                ignoreVisibility,
+                node.isIgnoreVisibility(),
                 node.isVariableCall(),
                 node.isSafeNavigation(),
                 node.isAttributeWrite());
@@ -789,10 +787,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set CallNode flags
-        // Ignore node.flags - it could be only SAFE_NAVIGATION that is handled manually
-        final Nodes.Node read = callNode(node, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
+        short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
+        final Nodes.Node read = callNode(node, node.flags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
-        final Nodes.Node write = callNode(node, Nodes.CallNodeFlags.ATTRIBUTE_WRITE, readReceiver, node.write_name,
+        final Nodes.Node write = callNode(node, writeFlags, readReceiver, node.write_name,
                 executeOperator);
 
         final RubyNode writeNode = write.accept(this);
@@ -823,9 +821,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set CallNode flags
-        // Ignore node.flags - it could be only SAFE_NAVIGATION that is handled manually
-        final RubyNode readNode = callNode(node, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY).accept(this);
-        final RubyNode writeNode = callNode(node, Nodes.CallNodeFlags.ATTRIBUTE_WRITE, readReceiver, node.write_name,
+        short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
+        final RubyNode readNode = callNode(node, node.flags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY)
+                .accept(this);
+        final RubyNode writeNode = callNode(node, writeFlags, readReceiver, node.write_name,
                 node.value).accept(this);
         final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
 
@@ -1607,9 +1606,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ readParameter }, 0, 0);
 
             // preserve target flags because they can contain SAFE_NAVIGATION flag
-            int flags = target.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE;
+            short flags = (short) (target.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
 
-            writeIndex = new Nodes.CallNode((short) flags, target.receiver, target.name, arguments, null, 0, 0);
+            writeIndex = new Nodes.CallNode(flags, target.receiver, target.name, arguments, null, 0, 0);
         } else if (node.index instanceof Nodes.IndexTargetNode target) {
             final Nodes.ArgumentsNode arguments;
             final Nodes.Node[] statements;
@@ -1888,7 +1887,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final RubyNode rubyNode = translateIndexOrAndIndexAndWriteNodes(true, node.receiver, arguments, node.block,
-                node.value);
+                node.value, node.flags);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -1938,8 +1937,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             readArguments[i] = expression.getReadYARPNode();
         }
 
-        // Prism doesn't set any flag for IndexOperatorWriteNode right now
-        final Nodes.Node read = new Nodes.CallNode(NO_FLAGS, readReceiver, "[]",
+        final Nodes.Node read = new Nodes.CallNode(node.flags, readReceiver, "[]",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArguments, 0, 0), blockArgument, 0, 0);
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
 
@@ -1947,7 +1945,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         System.arraycopy(readArguments, 0, readArgumentsAndResult, 0, argumentsCount);
         readArgumentsAndResult[argumentsCount] = executeOperator;
 
-        final Nodes.Node write = new Nodes.CallNode(Nodes.CallNodeFlags.ATTRIBUTE_WRITE, readReceiver, "[]=",
+        short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
+        final Nodes.Node write = new Nodes.CallNode(writeFlags, readReceiver, "[]=",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArgumentsAndResult, 0, 0), blockArgument, 0, 0);
         final RubyNode writeNode = write.accept(this);
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
@@ -1974,7 +1973,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final RubyNode rubyNode = translateIndexOrAndIndexAndWriteNodes(false, node.receiver, arguments, node.block,
-                node.value);
+                node.value, node.flags);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2004,7 +2003,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     node.arguments.length);
         }
 
-        final var callNode = new Nodes.CallNode(node.flags, node.receiver, "[]=", argumentsNode, node.block,
+        short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
+        final var callNode = new Nodes.CallNode(writeFlags, node.receiver, "[]=", argumentsNode, node.block,
                 node.startOffset,
                 node.length);
         return callNode.accept(this);
@@ -2012,7 +2012,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
 
     private RubyNode translateIndexOrAndIndexAndWriteNodes(boolean isAndOperator, Nodes.Node receiver,
-            Nodes.Node[] arguments, Nodes.Node block, Nodes.Node value) {
+            Nodes.Node[] arguments, Nodes.Node block, Nodes.Node value, short flags) {
         // Handle both &&= and ||= operators:
         //   `a[b] ||= c` is translated into `a[b] || a[b] = c`
         //   `a[b] &&= c` is translated into `a[b] && a[b] = c`
@@ -2050,8 +2050,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             blockArgument = null;
         }
 
-        // Prism doesn't set any flag for IndexAndWriteNode and IndexOrWriteNode right now
-        final Nodes.Node read = new Nodes.CallNode(NO_FLAGS, readReceiver, "[]",
+        final Nodes.Node read = new Nodes.CallNode(flags, readReceiver, "[]",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArguments, 0, 0), blockArgument, 0, 0);
         final RubyNode readNode = read.accept(this);
 
@@ -2059,7 +2058,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         System.arraycopy(readArguments, 0, readArgumentsAndValue, 0, arguments.length);
         readArgumentsAndValue[arguments.length] = value;
 
-        final Nodes.Node write = new Nodes.CallNode(Nodes.CallNodeFlags.ATTRIBUTE_WRITE, readReceiver, "[]=",
+        short writeFlags = (short) (flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
+        final Nodes.Node write = new Nodes.CallNode(writeFlags, readReceiver, "[]=",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArgumentsAndValue, 0, 0), blockArgument, 0, 0);
         final RubyNode writeNode = write.accept(this);
 

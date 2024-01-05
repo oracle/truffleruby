@@ -17,6 +17,7 @@ notes: >
       (IsNilNode
         (ReadLocalVariableNode)) # %value_0
       (OrNodeGen ...))
+yarp_specific: true # assign true value (instead of false) to isSafeNavigation attribute for a.foo and a.foo= calls
 focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
 ruby: |
   a&.foo ||= 42
@@ -85,7 +86,7 @@ ast: |
                                                           emptyKeywordsProfile = false
                                                           flags = 0
                                                           isAttrAssign = false
-                                                          isSafeNavigation = false
+                                                          isSafeNavigation = true
                                                           isSplatted = false
                                                           isVCall = false
                                                           lastArgIsNotHashProfile = false
@@ -107,7 +108,7 @@ ast: |
                                                           emptyKeywordsProfile = false
                                                           flags = 0
                                                           isAttrAssign = true
-                                                          isSafeNavigation = false
+                                                          isSafeNavigation = true
                                                           isSplatted = false
                                                           isVCall = false
                                                           lastArgIsNotHashProfile = false
