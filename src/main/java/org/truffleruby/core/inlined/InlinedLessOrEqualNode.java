@@ -56,6 +56,7 @@ public abstract class InlinedLessOrEqualNode extends BinaryInlinedOperationNode 
         return rewriteAndCall(frame, a, b);
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = InlinedLessOrEqualNodeGen.create(
                 getLanguage(),

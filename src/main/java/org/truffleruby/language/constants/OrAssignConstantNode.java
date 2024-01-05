@@ -77,6 +77,7 @@ public abstract class OrAssignConstantNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = OrAssignConstantNodeGen.create(
                 (ReadConstantNode) readConstant.cloneUninitialized(),

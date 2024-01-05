@@ -200,7 +200,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private boolean translatingWhile = false;
 
     private boolean translatingNextExpression = false;
-    private boolean translatingForStatement = false;
+    @SuppressWarnings("unused") private boolean translatingForStatement = false;
 
     private static final String[] numberedParameterNames = {
             null,

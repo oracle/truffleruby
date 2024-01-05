@@ -207,12 +207,22 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
-        "org.truffleruby.rubysignal": {
+        "org.truffleruby.signal": {
+            "dir": "src/signal",
+            "sourceDirs": ["java"],
+            "jniHeaders": True,
+            "javaCompliance": "17+",
+            "checkstyle": "org.truffleruby",
+            "workingSets": "TruffleRuby",
+            "license": ["EPL-2.0"],
+        },
+
+        "org.truffleruby.librubysignal": {
             "dir": "src/main/c/rubysignal",
             "native": "shared_lib",
             "deliverable": "rubysignal",
             "buildDependencies": [
-                "org.truffleruby", # for the generated JNI header file
+                "org.truffleruby.signal", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
             "cflags": ["-g", "-Wall", "-Werror", "-pthread"],
@@ -245,7 +255,6 @@ suite = {
         "org.truffleruby": {
             "dir": "src/main",
             "sourceDirs": ["java"],
-            "jniHeaders": True,
             "requires": [
                 "java.logging",
                 "java.management",
@@ -278,6 +287,7 @@ suite = {
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
+            "forceJavac": True, # GR-51148 We need to force javac to silence a ECJ warning in generated code
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -449,11 +459,13 @@ suite = {
                 "exports": [
                     "org.truffleruby.shared to org.graalvm.ruby, org.graalvm.ruby.launcher",
                     "org.truffleruby.shared.options to org.graalvm.ruby, org.graalvm.ruby.launcher",
+                    "org.truffleruby.signal to org.graalvm.ruby, org.graalvm.ruby.launcher",
                 ],
             },
             "useModulePath": True,
             "dependencies": [
-                "org.truffleruby.shared"
+                "org.truffleruby.shared",
+                "org.truffleruby.signal",
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
@@ -700,7 +712,7 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
-                    "dependency:org.truffleruby.rubysignal",
+                    "dependency:org.truffleruby.librubysignal",
                 ],
                 # The platform-specific files from debug and rbs, see comment above
                 "lib/gems/": "file:lib/gems/extensions",

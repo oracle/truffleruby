@@ -70,7 +70,6 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.parser.RubyDeferredWarnings;
 
 public final class ClassicRegexp implements ReOptions {
-    private final RubyContext context;
     private final Regex pattern;
     private final TStringWithEncoding str;
     private RegexpOptions options;
@@ -114,9 +113,8 @@ public final class ClassicRegexp implements ReOptions {
         return newRegex;
     }
 
-    public ClassicRegexp(RubyContext context, TStringWithEncoding strEnc, RegexpOptions originalOptions)
+    public ClassicRegexp(TStringWithEncoding strEnc, RegexpOptions originalOptions)
             throws DeferredRaiseException {
-        this.context = context;
         this.options = originalOptions;
 
         if (strEnc.encoding.isDummy) {

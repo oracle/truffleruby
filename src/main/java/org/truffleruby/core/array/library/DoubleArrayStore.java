@@ -165,7 +165,7 @@ public final class DoubleArrayStore {
 
     @ExportMessage
     static Iterable<Object> getIterable(double[] store, int from, int length) {
-        return () -> new Iterator<Object>() {
+        return () -> new Iterator<>() {
 
             private int n = from;
 

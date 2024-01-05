@@ -48,6 +48,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.shared.Platform;
 
 public final class NativeConfiguration {
 

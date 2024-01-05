@@ -165,7 +165,7 @@ public final class IntegerArrayStore {
 
     @ExportMessage
     static Iterable<Object> getIterable(int[] store, int from, int length) {
-        return () -> new Iterator<Object>() {
+        return () -> new Iterator<>() {
 
             private int n = from;
 

@@ -221,7 +221,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     @ExportMessage
     static Iterable<Object> getIterable(NativeArrayStorage store, int from, int length,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
-        return () -> new Iterator<Object>() {
+        return () -> new Iterator<>() {
 
             private int n = from;
 

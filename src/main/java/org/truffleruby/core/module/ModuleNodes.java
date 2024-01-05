@@ -1377,6 +1377,7 @@ public abstract class ModuleNodes {
                 return lambdaBody.execute(frame);
             }
 
+            @Override
             public RubyNode cloneUninitialized() {
                 var copy = new CallMethodWithLambdaBody(
                         proc,

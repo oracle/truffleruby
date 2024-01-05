@@ -110,6 +110,7 @@ public class WarnNode extends RubyBaseNode {
         UncachedWarnNode() {
         }
 
+        @Override
         public boolean shouldWarn() {
             return coreLibrary().warningsEnabled();
         }

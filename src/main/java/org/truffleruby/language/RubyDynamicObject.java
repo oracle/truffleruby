@@ -64,8 +64,6 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_RET
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
 
-    private static final int FROZEN = 1;
-
     private RubyClass metaClass;
 
     public RubyDynamicObject(RubyClass metaClass, Shape shape) {

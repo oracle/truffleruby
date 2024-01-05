@@ -37,7 +37,7 @@ package org.truffleruby.shared;
 
 import java.util.Locale;
 
-public abstract class BasicPlatform {
+public abstract class Platform {
 
     public enum OS_TYPE {
         LINUX("linux"),
@@ -63,6 +63,10 @@ public abstract class BasicPlatform {
 
     public static final OS_TYPE OS = determineOS();
     public static final ARCH ARCHITECTURE = determineArchitecture();
+
+    public static final String LIB_SUFFIX = determineLibSuffix();
+    public static final String CEXT_SUFFIX = OS == OS_TYPE.DARWIN ? ".bundle" : LIB_SUFFIX;
+    public static final boolean CEXT_SUFFIX_IS_SO = CEXT_SUFFIX.equals(".so");
 
     public static String getOSName() {
         return OS.rubyName;
@@ -103,6 +107,15 @@ public abstract class BasicPlatform {
                 return ARCH.AARCH64;
             default:
                 throw new UnsupportedOperationException("Unsupported CPU architecture: " + architecture);
+        }
+    }
+
+    private static String determineLibSuffix() {
+        switch (OS) {
+            case DARWIN:
+                return ".dylib";
+            default:
+                return ".so";
         }
     }
 

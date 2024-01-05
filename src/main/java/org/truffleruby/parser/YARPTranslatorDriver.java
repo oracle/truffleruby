@@ -82,7 +82,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
-import org.truffleruby.platform.Platform;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.prism.Loader;
 import org.prism.Nodes;
@@ -443,18 +443,14 @@ public final class YARPTranslatorDriver {
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
             String message = context.fileLine(section) + ": " + error.message;
 
-            if (context != null) {
-                int lineNumber = RubySource.getStartLineAdjusted(context, section);
+            int lineNumber = RubySource.getStartLineAdjusted(context, section);
 
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
-                                message,
-                                null,
-                                rubySource.getSource().createSection(lineNumber)));
-            } else {
-                throw new UnsupportedOperationException(message);
-            }
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
+                            message,
+                            null,
+                            rubySource.getSource().createSection(lineNumber)));
         }
 
         for (var magicComment : parseResult.magicComments) {

@@ -208,6 +208,7 @@ public final class PatternMatchingTranslator extends BaseTranslator {
         return sequence(sourceSection, Arrays.asList(assignTemp, condition));
     }
 
+    @Override
     public RubyNode visitFindPatternNode(FindPatternParseNode findPatternParseNode) {
         return findPatternParseNode.accept(this);
     }

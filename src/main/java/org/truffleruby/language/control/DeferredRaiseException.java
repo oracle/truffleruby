@@ -31,6 +31,8 @@ public final class DeferredRaiseException extends Exception {
         RubyException getException(RubyContext context);
     }
 
+    @SuppressWarnings("sync-override")
+    @Override
     public Throwable fillInStackTrace() {
         return this;
     }

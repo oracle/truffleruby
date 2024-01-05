@@ -127,7 +127,6 @@ public abstract class RegexpNodes {
 
             try {
                 classicRegexp = new ClassicRegexp(
-                        getContext(),
                         new TStringWithEncoding(regexp.source, regexp.encoding),
                         RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
             } catch (DeferredRaiseException dre) {

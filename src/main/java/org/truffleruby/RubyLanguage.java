@@ -116,7 +116,7 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
-import org.truffleruby.platform.Platform;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;

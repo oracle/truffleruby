@@ -42,8 +42,8 @@ public final class TruffleRuby {
                 LANGUAGE_VERSION,
                 implementationName,
                 ImageInfo.inImageCode() ? "Native" : "JVM",
-                BasicPlatform.getArchName(),
-                BasicPlatform.getOSName());
+                Platform.getArchName(),
+                Platform.getOSName());
     }
 
     public static String getEngineVersion() {
