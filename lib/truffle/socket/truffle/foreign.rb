@@ -266,9 +266,13 @@ module Truffle
             # to succeed on some platforms (most notably, Solaris).
             Integer(port)
             type = ::Socket::SOCK_DGRAM
-          rescue ArgumentError
+          rescue ArgumentError, TypeError
             # Ignored.
           end
+        end
+
+        if Primitive.nil?(port)
+          port = 0
         end
 
         hints = Addrinfo.new
