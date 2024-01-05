@@ -1606,7 +1606,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else if (node.index instanceof Nodes.CallTargetNode target) {
             final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ readParameter }, 0, 0);
 
-            // target flags could contain SAFE_NAVIGATION flag
+            // preserve target flags because they can contain SAFE_NAVIGATION flag
             int flags = target.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE;
 
             writeIndex = new Nodes.CallNode((short) flags, target.receiver, target.name, arguments, null, 0, 0);
@@ -1624,10 +1624,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             statements[statements.length - 1] = readParameter;
             arguments = new Nodes.ArgumentsNode(NO_FLAGS, statements, 0, 0);
 
-            // there are no flags at the moment that could be set for target
-            int flags = target.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE;
-
-            writeIndex = new Nodes.CallNode((short) flags, target.receiver, "[]=", arguments, target.block, 0, 0);
+            writeIndex = new Nodes.CallNode(target.flags, target.receiver, "[]=", arguments, target.block, 0, 0);
         } else if (node.index instanceof Nodes.MultiTargetNode target) {
             writeIndex = new Nodes.MultiWriteNode(target.lefts, target.rest, target.rights, readParameter, 0, 0);
         } else {
@@ -2007,11 +2004,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     node.arguments.length);
         }
 
-        // Prism doesn't set any flag for IndexTargetNode right now
-        // but let's still take flags into account as far as there may be additional flags or other changes
-        short flags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
-
-        final var callNode = new Nodes.CallNode(flags, node.receiver, "[]=", argumentsNode, node.block,
+        final var callNode = new Nodes.CallNode(node.flags, node.receiver, "[]=", argumentsNode, node.block,
                 node.startOffset,
                 node.length);
         return callNode.accept(this);
