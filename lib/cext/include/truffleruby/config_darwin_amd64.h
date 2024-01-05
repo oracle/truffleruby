@@ -76,8 +76,6 @@
 #if defined(__x86_64__)
 #define HAVE_X86INTRIN_H 1
 #endif
-#define HAVE_GMP_H 1
-#define HAVE_LIBGMP 1
 #define HAVE_TYPEOF 1
 #define restrict __restrict__
 #define HAVE_LONG_LONG 1
