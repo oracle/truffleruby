@@ -10,6 +10,10 @@ package org.prism;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.StringBuilder;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,8 +22,12 @@ import java.util.Arrays;
 // @formatter:off
 public abstract class Nodes {
 
-    public static final byte[][] EMPTY_BYTE_ARRAY_ARRAY = {};
     public static final String[] EMPTY_STRING_ARRAY = {};
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Nullable {
+    }
 
     public static final class Location {
 
@@ -246,6 +254,9 @@ public abstract class Nodes {
         // a call that is an attribute write, so the value being written should be returned
         public static final short ATTRIBUTE_WRITE = 1 << 2;
 
+        // a call that ignores method visibility
+        public static final short IGNORE_VISIBILITY = 1 << 3;
+
         public static boolean isSafeNavigation(short flags) {
             return (flags & SAFE_NAVIGATION) != 0;
         }
@@ -256,6 +267,10 @@ public abstract class Nodes {
 
         public static boolean isAttributeWrite(short flags) {
             return (flags & ATTRIBUTE_WRITE) != 0;
+        }
+
+        public static boolean isIgnoreVisibility(short flags) {
+            return (flags & IGNORE_VISIBILITY) != 0;
         }
 
         private final short flags;
@@ -293,6 +308,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return (flags & ATTRIBUTE_WRITE) != 0;
+        }
+
+        public boolean isIgnoreVisibility() {
+            return (flags & IGNORE_VISIBILITY) != 0;
         }
 
     }
@@ -1167,10 +1186,10 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^^^^^^^
      */
     public static final class ArrayPatternNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node constant;
         public final Node[] requireds;
-        /** optional (can be null) */
+        @Nullable
         public final Node rest;
         public final Node[] posts;
 
@@ -1250,7 +1269,7 @@ public abstract class Nodes {
      */
     public static final class AssocNode extends Node {
         public final Node key;
-        /** optional (can be null) */
+        @Nullable
         public final Node value;
 
         public AssocNode(Node key, Node value, int startOffset, int length) {
@@ -1300,7 +1319,7 @@ public abstract class Nodes {
      *       ^^^^^
      */
     public static final class AssocSplatNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node value;
 
         public AssocSplatNode(Node value, int startOffset, int length) {
@@ -1389,13 +1408,13 @@ public abstract class Nodes {
      *     ^^^^^
      */
     public static final class BeginNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
-        /** optional (can be null) */
+        @Nullable
         public final RescueNode rescue_clause;
-        /** optional (can be null) */
+        @Nullable
         public final ElseNode else_clause;
-        /** optional (can be null) */
+        @Nullable
         public final EnsureNode ensure_clause;
 
         public BeginNode(StatementsNode statements, RescueNode rescue_clause, ElseNode else_clause, EnsureNode ensure_clause, int startOffset, int length) {
@@ -1466,7 +1485,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^^
      */
     public static final class BlockArgumentNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node expression;
 
         public BlockArgumentNode(Node expression, int startOffset, int length) {
@@ -1555,9 +1574,9 @@ public abstract class Nodes {
     public static final class BlockNode extends Node {
         public final String[] locals;
         public final int locals_body_index;
-        /** optional (can be null) */
+        @Nullable
         public final Node parameters;
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
 
         public BlockNode(String[] locals, int locals_body_index, Node parameters, Node body, int startOffset, int length) {
@@ -1623,7 +1642,7 @@ public abstract class Nodes {
      *     end
      */
     public static final class BlockParameterNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final String name;
 
         public BlockParameterNode(String name, int startOffset, int length) {
@@ -1670,7 +1689,7 @@ public abstract class Nodes {
      *     end
      */
     public static final class BlockParametersNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final ParametersNode parameters;
         public final Node[] locals;
 
@@ -1730,7 +1749,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^
      */
     public static final class BreakNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
 
         public BreakNode(ArgumentsNode arguments, int startOffset, int length) {
@@ -1776,7 +1795,7 @@ public abstract class Nodes {
      */
     public static final class CallAndWriteNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
         public final String read_name;
         public final String write_name;
@@ -1801,6 +1820,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1872,12 +1895,28 @@ public abstract class Nodes {
      */
     public static final class CallNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        /**
+         * <pre>
+         * The object that the method is being called on. This can be either
+         * `nil` or a node representing any kind of expression that returns a
+         * non-void value.
+         *
+         *     foo.bar
+         *     ^^^
+         *
+         *     +foo
+         *      ^^^
+         *
+         *     foo + bar
+         *     ^^^
+         * </pre>
+         */
+        @Nullable
         public final Node receiver;
         public final String name;
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
+        @Nullable
         public final Node block;
 
         public CallNode(short flags, Node receiver, String name, ArgumentsNode arguments, Node block, int startOffset, int length) {
@@ -1899,6 +1938,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -1959,7 +2002,7 @@ public abstract class Nodes {
      */
     public static final class CallOperatorWriteNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
         public final String read_name;
         public final String write_name;
@@ -1986,6 +2029,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2046,7 +2093,7 @@ public abstract class Nodes {
      */
     public static final class CallOrWriteNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
         public final String read_name;
         public final String write_name;
@@ -2071,6 +2118,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2155,6 +2206,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2250,10 +2305,10 @@ public abstract class Nodes {
      *     ^^^^^^^^^
      */
     public static final class CaseMatchNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node predicate;
         public final Node[] conditions;
-        /** optional (can be null) */
+        @Nullable
         public final ElseNode consequent;
 
         public CaseMatchNode(Node predicate, Node[] conditions, ElseNode consequent, int startOffset, int length) {
@@ -2322,10 +2377,10 @@ public abstract class Nodes {
      *     ^^^^^^^^^^
      */
     public static final class CaseNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node predicate;
         public final Node[] conditions;
-        /** optional (can be null) */
+        @Nullable
         public final ElseNode consequent;
 
         public CaseNode(Node predicate, Node[] conditions, ElseNode consequent, int startOffset, int length) {
@@ -2394,9 +2449,9 @@ public abstract class Nodes {
     public static final class ClassNode extends Node {
         public final String[] locals;
         public final Node constant_path;
-        /** optional (can be null) */
+        @Nullable
         public final Node superclass;
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
         public final String name;
 
@@ -2947,7 +3002,7 @@ public abstract class Nodes {
      *     ^^^^^^^^
      */
     public static final class ConstantPathNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node parent;
         public final Node child;
 
@@ -3100,7 +3155,7 @@ public abstract class Nodes {
      *     ^^^^^^^^  ^^^^^^^^
      */
     public static final class ConstantPathTargetNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node parent;
         public final Node child;
 
@@ -3340,11 +3395,11 @@ public abstract class Nodes {
     public static final class DefNode extends Node {
         public final int serializedLength;
         public final String name;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
-        /** optional (can be null) */
+        @Nullable
         public final ParametersNode parameters;
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
         public final String[] locals;
         public final int locals_body_index;
@@ -3466,7 +3521,7 @@ public abstract class Nodes {
      *                 ^^^^^^^^^^
      */
     public static final class ElseNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public ElseNode(StatementsNode statements, int startOffset, int length) {
@@ -3511,7 +3566,7 @@ public abstract class Nodes {
      *          ^^^^^^
      */
     public static final class EmbeddedStatementsNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public EmbeddedStatementsNode(StatementsNode statements, int startOffset, int length) {
@@ -3602,7 +3657,7 @@ public abstract class Nodes {
      *     end
      */
     public static final class EnsureNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public EnsureNode(StatementsNode statements, int startOffset, int length) {
@@ -3689,7 +3744,7 @@ public abstract class Nodes {
      *            ^^^^^^^^^^^^^^^^^^^^
      */
     public static final class FindPatternNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node constant;
         public final Node left;
         public final Node[] requireds;
@@ -3764,9 +3819,9 @@ public abstract class Nodes {
      */
     public static final class FlipFlopNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node left;
-        /** optional (can be null) */
+        @Nullable
         public final Node right;
 
         public FlipFlopNode(short flags, Node left, Node right, int startOffset, int length) {
@@ -3865,7 +3920,7 @@ public abstract class Nodes {
     public static final class ForNode extends Node {
         public final Node index;
         public final Node collection;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public ForNode(Node index, Node collection, StatementsNode statements, int startOffset, int length) {
@@ -3995,7 +4050,7 @@ public abstract class Nodes {
      *     ^^^^^
      */
     public static final class ForwardingSuperNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final BlockNode block;
 
         public ForwardingSuperNode(BlockNode block, int startOffset, int length) {
@@ -4373,10 +4428,10 @@ public abstract class Nodes {
      *            ^^^^^^^^^^^^^^^^^^^
      */
     public static final class HashPatternNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node constant;
         public final Node[] elements;
-        /** optional (can be null) */
+        @Nullable
         public final Node rest;
 
         public HashPatternNode(Node constant, Node[] elements, Node rest, int startOffset, int length) {
@@ -4447,9 +4502,9 @@ public abstract class Nodes {
      */
     public static final class IfNode extends Node {
         public final Node predicate;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
-        /** optional (can be null) */
+        @Nullable
         public final Node consequent;
 
         public IfNode(Node predicate, StatementsNode statements, Node consequent, int startOffset, int length) {
@@ -4645,7 +4700,7 @@ public abstract class Nodes {
      */
     public static final class InNode extends Node {
         public final Node pattern;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public InNode(Node pattern, StatementsNode statements, int startOffset, int length) {
@@ -4696,11 +4751,11 @@ public abstract class Nodes {
      */
     public static final class IndexAndWriteNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
+        @Nullable
         public final Node block;
         public final Node value;
 
@@ -4723,6 +4778,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4783,11 +4842,11 @@ public abstract class Nodes {
      */
     public static final class IndexOperatorWriteNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
+        @Nullable
         public final Node block;
         public final String operator;
         public final Node value;
@@ -4812,6 +4871,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4876,11 +4939,11 @@ public abstract class Nodes {
      */
     public static final class IndexOrWriteNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node receiver;
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
+        @Nullable
         public final Node block;
         public final Node value;
 
@@ -4903,6 +4966,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4972,9 +5039,9 @@ public abstract class Nodes {
     public static final class IndexTargetNode extends Node {
         public final short flags;
         public final Node receiver;
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
+        @Nullable
         public final Node block;
 
         public IndexTargetNode(short flags, Node receiver, ArgumentsNode arguments, Node block, int startOffset, int length) {
@@ -4995,6 +5062,10 @@ public abstract class Nodes {
 
         public boolean isAttributeWrite() {
             return CallNodeFlags.isAttributeWrite(this.flags);
+        }
+
+        public boolean isIgnoreVisibility() {
+            return CallNodeFlags.isIgnoreVisibility(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -5330,6 +5401,22 @@ public abstract class Nodes {
      *     ^
      */
     public static final class IntegerNode extends Node {
+        /**
+         * <pre>
+         * Represents flag indicating the base of the integer
+         *
+         *     10    base decimal, value 10
+         *     0d10  base decimal, value 10
+         *     0b10  base binary, value 2
+         *     0o10  base octal, value 8
+         *     010   base octal, value 8
+         *     0x10  base hexidecimal, value 16
+         *
+         * A 0 prefix indicates the number has a different base.
+         * The d, b, o, and x prefixes indicate the base. If one of those
+         * four letters is omitted, the base is assumed to be octal.
+         * </pre>
+         */
         public final short flags;
 
         public IntegerNode(short flags, int startOffset, int length) {
@@ -5829,7 +5916,7 @@ public abstract class Nodes {
      *     end
      */
     public static final class KeywordRestParameterNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final String name;
 
         public KeywordRestParameterNode(String name, int startOffset, int length) {
@@ -5874,9 +5961,9 @@ public abstract class Nodes {
     public static final class LambdaNode extends Node {
         public final String[] locals;
         public final int locals_body_index;
-        /** optional (can be null) */
+        @Nullable
         public final Node parameters;
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
 
         public LambdaNode(String[] locals, int locals_body_index, Node parameters, Node body, int startOffset, int length) {
@@ -6545,7 +6632,7 @@ public abstract class Nodes {
     public static final class ModuleNode extends Node {
         public final String[] locals;
         public final Node constant_path;
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
         public final String name;
 
@@ -6610,7 +6697,7 @@ public abstract class Nodes {
      */
     public static final class MultiTargetNode extends Node {
         public final Node[] lefts;
-        /** optional (can be null) */
+        @Nullable
         public final Node rest;
         public final Node[] rights;
 
@@ -6682,7 +6769,7 @@ public abstract class Nodes {
      */
     public static final class MultiWriteNode extends Node {
         public final Node[] lefts;
-        /** optional (can be null) */
+        @Nullable
         public final Node rest;
         public final Node[] rights;
         public final Node value;
@@ -6760,7 +6847,7 @@ public abstract class Nodes {
      *     ^^^^^^
      */
     public static final class NextNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
 
         public NextNode(ArgumentsNode arguments, int startOffset, int length) {
@@ -7112,13 +7199,13 @@ public abstract class Nodes {
     public static final class ParametersNode extends Node {
         public final Node[] requireds;
         public final Node[] optionals;
-        /** optional (can be null) */
+        @Nullable
         public final Node rest;
         public final Node[] posts;
         public final Node[] keywords;
-        /** optional (can be null) */
+        @Nullable
         public final Node keyword_rest;
-        /** optional (can be null) */
+        @Nullable
         public final BlockParameterNode block;
 
         public ParametersNode(Node[] requireds, Node[] optionals, Node rest, Node[] posts, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
@@ -7226,7 +7313,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^
      */
     public static final class ParenthesesNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
 
         public ParenthesesNode(Node body, int startOffset, int length) {
@@ -7362,7 +7449,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^
      */
     public static final class PostExecutionNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public PostExecutionNode(StatementsNode statements, int startOffset, int length) {
@@ -7407,7 +7494,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^
      */
     public static final class PreExecutionNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public PreExecutionNode(StatementsNode statements, int startOffset, int length) {
@@ -7504,9 +7591,9 @@ public abstract class Nodes {
      */
     public static final class RangeNode extends Node {
         public final short flags;
-        /** optional (can be null) */
+        @Nullable
         public final Node left;
-        /** optional (can be null) */
+        @Nullable
         public final Node right;
 
         public RangeNode(short flags, Node left, Node right, int startOffset, int length) {
@@ -7883,11 +7970,11 @@ public abstract class Nodes {
      */
     public static final class RescueNode extends Node {
         public final Node[] exceptions;
-        /** optional (can be null) */
+        @Nullable
         public final Node reference;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
-        /** optional (can be null) */
+        @Nullable
         public final RescueNode consequent;
 
         public RescueNode(Node[] exceptions, Node reference, StatementsNode statements, RescueNode consequent, int startOffset, int length) {
@@ -7963,7 +8050,7 @@ public abstract class Nodes {
      *     end
      */
     public static final class RestParameterNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final String name;
 
         public RestParameterNode(String name, int startOffset, int length) {
@@ -8042,7 +8129,7 @@ public abstract class Nodes {
      *     ^^^^^^^^
      */
     public static final class ReturnNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
 
         public ReturnNode(ArgumentsNode arguments, int startOffset, int length) {
@@ -8125,7 +8212,7 @@ public abstract class Nodes {
     public static final class SingletonClassNode extends Node {
         public final String[] locals;
         public final Node expression;
-        /** optional (can be null) */
+        @Nullable
         public final Node body;
 
         public SingletonClassNode(String[] locals, Node expression, Node body, int startOffset, int length) {
@@ -8297,7 +8384,7 @@ public abstract class Nodes {
      *      ^^
      */
     public static final class SplatNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final Node expression;
 
         public SplatNode(Node expression, int startOffset, int length) {
@@ -8460,9 +8547,9 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^^
      */
     public static final class SuperNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
-        /** optional (can be null) */
+        @Nullable
         public final Node block;
 
         public SuperNode(ArgumentsNode arguments, Node block, int startOffset, int length) {
@@ -8665,9 +8752,9 @@ public abstract class Nodes {
      */
     public static final class UnlessNode extends Node {
         public final Node predicate;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
-        /** optional (can be null) */
+        @Nullable
         public final ElseNode consequent;
 
         public UnlessNode(Node predicate, StatementsNode statements, ElseNode consequent, int startOffset, int length) {
@@ -8734,7 +8821,7 @@ public abstract class Nodes {
     public static final class UntilNode extends Node {
         public final short flags;
         public final Node predicate;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public UntilNode(short flags, Node predicate, StatementsNode statements, int startOffset, int length) {
@@ -8801,7 +8888,7 @@ public abstract class Nodes {
      */
     public static final class WhenNode extends Node {
         public final Node[] conditions;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public WhenNode(Node[] conditions, StatementsNode statements, int startOffset, int length) {
@@ -8865,7 +8952,7 @@ public abstract class Nodes {
     public static final class WhileNode extends Node {
         public final short flags;
         public final Node predicate;
-        /** optional (can be null) */
+        @Nullable
         public final StatementsNode statements;
 
         public WhileNode(short flags, Node predicate, StatementsNode statements, int startOffset, int length) {
@@ -8985,7 +9072,7 @@ public abstract class Nodes {
      *     ^^^^^^^
      */
     public static final class YieldNode extends Node {
-        /** optional (can be null) */
+        @Nullable
         public final ArgumentsNode arguments;
 
         public YieldNode(ArgumentsNode arguments, int startOffset, int length) {

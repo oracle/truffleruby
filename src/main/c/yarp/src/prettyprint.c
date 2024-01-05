@@ -1044,6 +1044,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
                     found = true;
                 }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
+                    found = true;
+                }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
@@ -1166,6 +1171,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_ATTRIBUTE_WRITE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
@@ -1324,6 +1334,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
                     found = true;
                 }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
+                    found = true;
+                }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
@@ -1457,6 +1472,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
                     found = true;
                 }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
+                    found = true;
+                }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
@@ -1579,6 +1599,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_ATTRIBUTE_WRITE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
@@ -4223,6 +4248,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
                     found = true;
                 }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
+                    found = true;
+                }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
@@ -4369,6 +4399,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_ATTRIBUTE_WRITE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
@@ -4528,6 +4563,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
                     found = true;
                 }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
+                    found = true;
+                }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
@@ -4674,6 +4714,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_ATTRIBUTE_WRITE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " attribute_write", 16);
+                    found = true;
+                }
+                if (cast->base.flags & PM_CALL_NODE_FLAGS_IGNORE_VISIBILITY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
                 if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
