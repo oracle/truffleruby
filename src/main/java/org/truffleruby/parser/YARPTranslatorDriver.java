@@ -57,6 +57,7 @@ import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
@@ -90,6 +91,8 @@ import org.prism.Nodes;
 import org.prism.ParseResult;
 import org.prism.Parser;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -132,19 +135,25 @@ public final class YARPTranslatorDriver {
          * we look them up ourselves after being told they're in some parent scope. */
 
         final TranslatorEnvironment parentEnvironment;
+        final ArrayList<ArrayList<String>> localVariableNames = new ArrayList<>();
 
         int blockDepth = 0;
         if (parentFrame != null) {
             MaterializedFrame frame = parentFrame;
 
             while (frame != null) {
+                ArrayList<String> names = new ArrayList<>();
+
                 for (Object identifier : FrameDescriptorNamesIterator.iterate(frame.getFrameDescriptor())) {
                     if (!BindingNodes.isHiddenVariable(identifier)) {
                         final String name = (String) identifier;
                         staticScope.addVariableThisScope(name.intern()); // StaticScope expects interned var names
+
+                        names.add(name);
                     }
                 }
 
+                localVariableNames.add(names);
                 frame = RubyArguments.getDeclarationFrame(frame);
                 blockDepth++;
             }
@@ -191,8 +200,8 @@ public final class YARPTranslatorDriver {
         ParseResult parseResult = context.getMetricsProfiler().callWithMetrics(
                 "parsing",
                 source.getName(),
-                () -> parseToYARPAST(context, language, rubySource, staticScope, parserConfiguration, rubyWarnings,
-                        parseEnvironment));
+                () -> parseToYARPAST(context, language, rubySource, staticScope, localVariableNames,
+                        parserConfiguration, rubyWarnings, parseEnvironment));
         printParseTranslateExecuteMetric("after-parsing", context, source);
         //        }
         node = parseResult.value;
@@ -406,9 +415,9 @@ public final class YARPTranslatorDriver {
         }
     }
 
-    public static org.prism.ParseResult parseToYARPAST(RubyContext context, RubyLanguage language, RubySource rubySource,
-            StaticScope blockScope, ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings,
-            ParseEnvironment parseEnvironment) {
+    public static org.prism.ParseResult parseToYARPAST(RubyContext context, RubyLanguage language,
+            RubySource rubySource, StaticScope blockScope, ArrayList<ArrayList<String>> localVariableNames,
+            ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings, ParseEnvironment parseEnvironment) {
         //        LexerSource lexerSource = new LexerSource(rubySource);
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
@@ -422,7 +431,50 @@ public final class YARPTranslatorDriver {
         // YARP begin
         byte[] sourceBytes = rubySource.getBytes();
         org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
-        byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
+
+        // Use CRuby syntax version 0 - it's the latest. We should select 3.3.0 instead.
+        // But https://github.com/ruby/prism/pull/2118#discussion_r1445987020, so latest for now.
+        Parser.ParsingOptions options;
+        if (rubySource.isEval()) {
+            int scopesCount = localVariableNames.size();
+            Charset sourceCharset = rubySource.getEncoding().jcoding.getCharset();
+            byte[][][] scopes = new byte[scopesCount][][];
+
+            for (int i = 0; i < scopesCount; i++) {
+                // Local variables are in order from inner scope to outer one, but Prism expects order from outer to inner.
+                // So we need to reverse the order
+                var namesList = localVariableNames.get(scopesCount - 1 - i);
+                byte[][] namesBytes = new byte[namesList.size()][];
+                int j = 0;
+                for (var name : namesList) {
+                    namesBytes[j] = name.getBytes(sourceCharset);
+                    j++;
+                }
+                scopes[i] = namesBytes;
+            }
+
+            options = new Parser.ParsingOptions(
+                    rubySource.getSourcePath().getBytes(rubySource.getEncoding().jcoding.getCharset()), // encoding of the eval's String argument
+                    rubySource.getLineOffset() + 1,
+                    StringOperations.encodeAsciiBytes(rubySource.getEncoding().name.toString()), // encoding name is supposed to contain only ASCII characters
+                    configuration.isFrozenStringLiteral(),
+                    false, // isSuppressWarnings,
+                    (byte) 0,
+                    scopes);
+        } else {
+            assert localVariableNames.isEmpty(); // parsing of the whole source file cannot have outer scopes
+
+            options = new Parser.ParsingOptions(
+                    rubySource.getSourcePath().getBytes(StandardCharsets.UTF_8), // filesystem encoding, that is supposed to be always UTF-8
+                    rubySource.getLineOffset() + 1,
+                    StringOperations.encodeAsciiBytes(rubySource.getEncoding().name.toString()), // encoding name is supposed to contain only ASCII characters
+                    configuration.isFrozenStringLiteral(),
+                    false, // isSuppressWarnings,
+                    (byte) 0,
+                    new byte[0][][]);
+        }
+
+        byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, options);
 
         Nodes.Source yarpSource = createYARPSource(sourceBytes, rubySource);
         parseEnvironment.yarpSource = yarpSource;
