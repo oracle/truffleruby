@@ -29,6 +29,24 @@ describe "Tools" do
     end
   end
 
+  describe "SIGQUIT" do
+    it "shows Java stacktraces" do
+      code = 'Process.kill :SIGQUIT, Process.pid; sleep 1'
+      out = ruby_exe(code, args: "2>&1")
+      out.should.include?("Full thread dump")
+      out.should.include?("RubyLauncher.runRubyMain")
+    end
+  end
+
+  describe "SIGALRM" do
+    it "shows Ruby backtraces" do
+      code = 'Process.kill :SIGALRM, Process.pid; sleep 1'
+      out = ruby_exe(code, args: "2>&1")
+      out.should.include?("All Thread and Fiber backtraces:")
+      out.should.include?(":in `show_backtraces'")
+    end
+  end
+
   describe "--coverage" do
     before :each do
       @file = tmp("main.rb")
