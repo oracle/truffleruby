@@ -251,7 +251,7 @@ local part_definitions = {
       platform_name:: "DarwinAMD64",
       "$.cap":: {
         # GR-45839, GR-46279: exclude macmini_late_2014_8gb, they are too slow, have too little RAM and cause various timeouts
-        normal_machine: ["darwin_mojave", "!macmini_late_2014_8gb"],
+        normal_machine: ["darwin_bigsur", "!macmini_late_2014_8gb"],
       },
       environment+: {
         LANG: "en_US.UTF-8",
@@ -521,7 +521,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-specs-linux-amd64-stable":    $.platform.linux  + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-linux-amd64-latest":    $.platform.linux  + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-amd64-stable":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      # "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" }, # GR-49652
+      "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-specs-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-specs-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.stable + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
@@ -551,7 +551,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-svm-ce-linux-amd64-stable":    $.platform.linux          + $.jdk.stable + $.env.native    + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log,
       "ruby-test-svm-ce-linux-amd64-latest":    $.platform.linux          + $.jdk.latest + $.env.native    + $.env.gdb_svm + gate + native_tests,
       "ruby-test-svm-ce-darwin-amd64-stable":   $.platform.darwin_amd64   + $.jdk.stable + $.env.native    + $.env.gdb_svm + gate + native_tests,
-      # "ruby-test-svm-ce-darwin-amd64-latest":   $.platform.darwin_amd64   + $.jdk.latest + $.env.native    + $.env.gdb_svm + gate + native_tests, # GR-49652
+      "ruby-test-svm-ce-darwin-amd64-latest":   $.platform.darwin_amd64   + $.jdk.latest + $.env.native    + $.env.gdb_svm + gate + native_tests,
       "ruby-test-svm-ce-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-ce-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.native    +                 gate + native_tests,
       "ruby-test-svm-ee-linux-amd64":    $.platform.linux          + $.jdk.stable + $.env.native_ee + $.env.gdb_svm + gate + native_tests + $.env.host_inlining_log + { timelimit: "01:30:00" },

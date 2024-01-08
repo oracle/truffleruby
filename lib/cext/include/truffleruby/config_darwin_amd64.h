@@ -76,8 +76,6 @@
 #if defined(__x86_64__)
 #define HAVE_X86INTRIN_H 1
 #endif
-#define HAVE_GMP_H 1
-#define HAVE_LIBGMP 1
 #define HAVE_TYPEOF 1
 #define restrict __restrict__
 #define HAVE_LONG_LONG 1
@@ -433,7 +431,7 @@
 #define SET_CURRENT_THREAD_NAME(name) pthread_setname_np(name)
 #define DEFINE_MCONTEXT_PTR(mc, uc) mcontext_t mc = (uc)->uc_mcontext
 #define HAVE_SYS_USER_H 1
-#define HAVE_CONST_PAGE_SIZE 1
+#define HAVE_CONST_PAGE_SIZE 0
 #define IOCTL_REQ_TYPE unsigned long
 #define NUM2IOCTLREQ(num) NUM2ULONG(num)
 #define HAVE_MACH_O_LOADER_H 1
@@ -455,5 +453,5 @@
 #define RUBY_JMP_BUF sigjmp_buf
 #define USE_MJIT 1
 #define USE_YJIT 0
-#define RUBY_PLATFORM "x86_64-darwin18"
+#define RUBY_PLATFORM "x86_64-darwin20"
 #endif /* INCLUDE_RUBY_CONFIG_H */

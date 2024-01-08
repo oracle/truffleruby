@@ -33,6 +33,7 @@ if [ ! -d "ruby-$VERSION" ]; then
 fi
 
 cd "ruby-$VERSION" || exit 1
-./configure || (cat config.log; exit 1)
+# Disable GMP as it might not be available on the runtime machine and we do not use it
+./configure --without-gmp || (cat config.log; exit 1)
 
 cp .ext/include/*/ruby/config.h "../lib/cext/include/truffleruby/config_${mx_platform}.h"
