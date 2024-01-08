@@ -669,12 +669,13 @@ public abstract class ThreadNodes {
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Bind("this") Node node,
                 @Cached("new(node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
-            final ThreadManager threadManager = getContext(node).getThreadManager();
+            var context = getContext(node);
+            final ThreadManager threadManager = context.getThreadManager();
             final Interrupter interrupter;
             if (unblocker == nil) {
                 interrupter = threadManager.getNativeCallInterrupter();
             } else {
-                interrupter = makeInterrupter(getContext(node), unblockWrapper, unblocker, unblockerArg);
+                interrupter = new CExtInterrupter(context, unblockWrapper, unblocker, unblockerArg);
             }
 
             final Object[] args = { function, arg };
@@ -685,12 +686,6 @@ public abstract class ThreadNodes {
                     args,
                     blockingCallInterruptible,
                     node);
-        }
-
-        @TruffleBoundary
-        private static Interrupter makeInterrupter(RubyContext context, Object wrapper, Object function,
-                Object argument) {
-            return new CExtInterrupter(context, wrapper, function, argument);
         }
 
         private static final class CExtInterrupter implements Interrupter {
@@ -721,7 +716,6 @@ public abstract class ThreadNodes {
                         }
                         prev = truffleContext.enter(null);
                     } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
-                        // Not in a context, so we cannot use TruffleLogger
                         context.getLogger().severe(
                                 "could not unblock thread inside blocking call in C extension because " +
                                         "the context does not allow multithreading (" + e.getMessage() + ")");
