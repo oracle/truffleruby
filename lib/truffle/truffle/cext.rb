@@ -206,8 +206,12 @@ module Truffle::CExt
   end
 
   def init_extension(library, library_path)
-    name = File.basename(library_path, '.*')
+    name = File.basename(library_path)
+    # We need the substring before the first dot, for "cool.io_ext.so" -> "Init_cool"
+    i = name.index('.')
+    name = name[0...i] if i
     function_name = "Init_#{name}"
+
     init_function = library[function_name]
     begin
       Primitive.call_with_c_mutex_and_frame(VOID_TO_VOID_WRAPPER, [init_function], nil, nil)
