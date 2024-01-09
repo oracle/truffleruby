@@ -13,6 +13,7 @@ Bug fixes:
 * Fix some C API functions which were failing when called with Ruby values represented as Java primitives (#3352, @eregon).
 * Fix `IO.select([io], nil, [io])` on macOS, it was hanging due to a bug in macOS `poll(2)` (#3346, @eregon, @andrykonchin).
 * Run context cleanup such as showing the output of tools when `SignalException` and `Interrupt` escape (@eregon).
+* Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
 
 Compatibility:
 

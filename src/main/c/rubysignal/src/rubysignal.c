@@ -50,3 +50,12 @@ JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_restoreSystemHa
   signal(signo, SIG_DFL);
   raise(signo);
 }
+
+// Declaration copied from lib/cext/include/ruby/internal/intern/thread.h
+typedef void rb_unblock_function_t(void *);
+
+JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_executeUnblockFunction(JNIEnv *env, jclass clazz, jlong function, jlong argument) {
+  rb_unblock_function_t* unblock_function = (rb_unblock_function_t*) function;
+  void* arg = (void*) argument;
+  unblock_function(arg);
+}

@@ -146,7 +146,7 @@ void *rb_thread_call_with_gvl(gvl_call *function, void *data1) {
 
 void* rb_thread_call_without_gvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   if (unblock_function == RUBY_UBF_IO) {
-    unblock_function = (rb_unblock_function_t*) rb_tr_unwrap(Qnil);
+    unblock_function = (rb_unblock_function_t*) NULL;
   }
 
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
