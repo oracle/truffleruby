@@ -6,7 +6,7 @@ notes: >
   Interpolation is handled with nodes:
     - InterpolatedRegexpNode
     - InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
-yarp_specific: true # there was an extra "" StringLiteralNode and RegexpOptions didn't have a 'literal' property
+yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   /foo #{bar} baz/ ? 1 : 2
@@ -54,6 +54,14 @@ ast: |
                                   equalNode =
                                       TruffleStringFactory$EqualNodeGen
                       children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = ASCII-8BIT
+                                              flags = 0
+                                              tstring = ""
                           ToSNodeGen
                               children:
                                   valueNode_ =

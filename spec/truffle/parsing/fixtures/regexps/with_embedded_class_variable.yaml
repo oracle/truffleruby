@@ -1,6 +1,6 @@
 subject: "Regexp"
 description: "with embedded class variable (#@@a)"
-yarp_specific: true # there was an extra "" StringLiteralNode and RegexpOptions didn't have a 'literal' property
+yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /foo #@@bar/
@@ -20,6 +20,14 @@ ast: |
                       equalNode =
                           TruffleStringFactory$EqualNodeGen
           children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = ASCII-8BIT
+                                  flags = 0
+                                  tstring = ""
               ToSNodeGen
                   children:
                       valueNode_ =

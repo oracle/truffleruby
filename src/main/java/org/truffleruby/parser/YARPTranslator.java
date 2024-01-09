@@ -2278,11 +2278,27 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
+        var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
         final ToSNode[] children = translateInterpolatedParts(node.parts);
 
-        var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
+        // TODO: optimise AST and pass initial encoding as a parameter instead of passing as a StringLiteralNode
+        // 0 element represents initial Regexp encoding derived from explicit Regexp modifiers
+        final ToSNode[] childrenWithPrefix = new ToSNode[children.length + 1];
+        System.arraycopy(children, 0, childrenWithPrefix, 1, children.length);
+        final RubyEncoding prefixEncoding;
+        if (!encodingAndOptions.options.isKcodeDefault()) { // explicit encoding
+            prefixEncoding = encodingAndOptions.encoding;
+        } else {
+            // use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
+            // see https://github.com/ruby/prism/issues/1997
+            prefixEncoding = Encodings.BINARY;
+        }
 
-        RubyNode rubyNode = new InterpolatedRegexpNode(children, encodingAndOptions.options);
+        var emptyTString = prefixEncoding.tencoding.getEmpty();
+        var stringNode = new StringLiteralNode(emptyTString, prefixEncoding);
+        childrenWithPrefix[0] = ToSNodeGen.create(stringNode);
+
+        RubyNode rubyNode = new InterpolatedRegexpNode(childrenWithPrefix, encodingAndOptions.options);
 
         if (node.isOnce()) {
             rubyNode = new OnceNode(rubyNode);
