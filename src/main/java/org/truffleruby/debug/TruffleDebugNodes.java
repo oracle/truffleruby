@@ -1425,31 +1425,32 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "parse_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
+    @CoreMethod(names = "parse_and_dump_truffle_ast", onSingleton = true, required = 4, lowerFixnum = 3)
     public abstract static class ParseAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         @TruffleBoundary
-        Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
+        Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index, boolean mainScript,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
 
             var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(sourceCode),
                     RubyStringLibrary.create().getEncoding(sourceCode));
 
-            RubyRootNode rootNode = parse(code);
+            RubyRootNode rootNode = parse(code, mainScript);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
 
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
 
-        private RubyRootNode parse(TStringWithEncoding sourceCode) {
+        private RubyRootNode parse(TStringWithEncoding sourceCode, boolean mainScript) {
             Source source = Source.newBuilder("ruby", new ByteBasedCharSequence(sourceCode), "<parse_ast>").build();
             TranslatorEnvironment.resetTemporaryVariablesIndex();
+            var parserContext = mainScript ? ParserContext.TOP_LEVEL_FIRST : ParserContext.TOP_LEVEL;
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     new RubySource(source, source.getName()),
-                    ParserContext.TOP_LEVEL,
+                    parserContext,
                     null,
                     getContext().getRootLexicalScope(),
                     null);
@@ -1458,18 +1459,18 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
+    @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 4, lowerFixnum = 3)
     public abstract static class ParseWithYARPAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(code)", limit = "1")
-        Object parseAndDump(Object code, Object focusedNodeClassName, int index,
+        Object parseAndDump(Object code, Object focusedNodeClassName, int index, boolean mainScript,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
             RubyRootNode rootNode;
             try {
-                rootNode = parse(code);
+                rootNode = parse(code, mainScript);
             } catch (Error e) {
                 if (e.getMessage() != null && e.getMessage().contains("does not know how to translate")) {
                     throw new RaiseException(getContext(), coreExceptions().runtimeError(e.getMessage(), this));
@@ -1481,12 +1482,13 @@ public abstract class TruffleDebugNodes {
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
 
-        private RubyRootNode parse(Object code) {
+        private RubyRootNode parse(Object code, boolean mainScript) {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
+            var parserContext = mainScript ? ParserContext.TOP_LEVEL_FIRST : ParserContext.TOP_LEVEL;
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parseWithYARP(
                     code,
-                    ParserContext.TOP_LEVEL,
+                    parserContext,
                     null,
                     getContext().getRootLexicalScope(),
                     null);

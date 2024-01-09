@@ -19,6 +19,7 @@ require_relative '../../ruby/spec_helper'
 #     "some additional details to explain what this case actually tests (optional)"
 #   yarp_specific: "true/false - we have different TruffleAST for YARP so don't run this test against JRuby parser"
 #   focused_on_node: "a node class name"
+#   main_script: true
 #   index: "integer, position of a node to focus on in AST when there are several such nodes and we need not the first one (optional)"
 #   ruby: |
 #     <Ruby source code>
@@ -33,6 +34,9 @@ require_relative '../../ruby/spec_helper'
 # - expected_ast
 #
 # index is an optional attribute. Missing it means we need a node with index 0.
+#
+# main_script - false by default. Means it's a loaded/required Ruby source file or the main one that is run by user.
+# Some logic is related to main script, e.g. initialization of the DATA constant etc.
 #
 # Don't run specs in multi-context mode and with JIT because they affect AST:
 # - in multi-context mode some nodes are replaced with dynamic-lexical-scope related ones
@@ -65,10 +69,11 @@ describe "Parsing" do
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
-    subject, description, yarp_specific, focused_on_node, index, source_code, expected_ast = yaml.values_at("subject", "description", "yarp_specific", "focused_on_node", "index", "ruby", "ast")
+    subject, description, yarp_specific, focused_on_node, index, main_script, source_code, expected_ast = yaml.values_at("subject", "description", "yarp_specific", "focused_on_node", "index", "main_script", "ruby", "ast")
     source_code.strip!
     expected_ast.strip!
     index = index.to_i
+    main_script = !!main_script
 
     # multiple-context mode, enabled JIT or changed default inline cache size affects Truffle AST.
     # So just don't run the pursing specs at all in such jobs on CI.
@@ -79,9 +84,9 @@ describe "Parsing" do
         # p "a #{subject} (#{description.strip}) case is parsed correctly"
 
         if original_parser
-          actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index).strip
+          actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index, main_script).strip
         else
-          actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code, focused_on_node, index).strip
+          actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code, focused_on_node, index, main_script).strip
         end
 
         if overwrite
