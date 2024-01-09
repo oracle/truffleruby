@@ -2669,7 +2669,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitRegularExpressionNode(Nodes.RegularExpressionNode node) {
         var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
         var encoding = encodingAndOptions.encoding;
-        var source = TruffleString.fromByteArrayUncached(node.unescaped, encoding.tencoding);
+        var source = TruffleString.fromByteArrayUncached(node.unescaped, encoding.tencoding, false);
         try {
             final RubyRegexp regexp = RubyRegexp.create(language, source, encoding,
                     encodingAndOptions.options, currentNode);
