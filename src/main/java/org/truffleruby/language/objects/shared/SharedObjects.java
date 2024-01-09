@@ -82,13 +82,14 @@ public final class SharedObjects {
         }
     }
 
-    public static void shareDeclarationFrame(RubyLanguage language, RubyProc block, String info) {
+    public static void shareBlockAndArguments(RubyLanguage language, RubyProc block, Object[] args, String info) {
         if (language.options.SHARED_OBJECTS_DEBUG) {
-            RubyLanguage.LOGGER.info("sharing decl frame of " + info);
+            RubyLanguage.LOGGER.info("sharing block and arguments of " + info);
         }
 
         final Set<Object> objects = ObjectGraph.newObjectSet();
         ObjectGraph.getObjectsInFrame(block.declarationFrame, objects);
+        ObjectGraph.addProperty(objects, args);
 
         final Deque<Object> stack = new ArrayDeque<>(objects);
         shareObjects(stack);

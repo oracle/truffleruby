@@ -293,6 +293,35 @@ describe "Sharing is correctly propagated for" do
     shared?(new_hash).should == true
   end
 
+  describe "Thread.new's" do
+    it "block" do
+      obj = Object.new
+      t = Thread.new { sleep }
+      begin
+        shared?(obj).should == true
+      ensure
+        t.kill
+        t.join
+      end
+    end
+
+    # avoid capturing local variables in the spec example below
+    thread_body = proc { sleep }
+
+    it "arguments" do
+      obj1 = Object.new
+      obj2 = Object.new
+      t = Thread.new(obj1, obj2, &thread_body)
+      begin
+        shared?(obj1).should == true
+        shared?(obj2).should == true
+      ensure
+        t.kill
+        t.join
+      end
+    end
+  end
+
   it "Fiber local variables which share the value (since they can be accessed from other threads)" do
     require 'fiber'
     # Create a new Thread to make sure the root Fiber is shared as expected
