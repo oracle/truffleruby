@@ -62,7 +62,7 @@ ast: |
                                       attributes:
                                           flags = 1
                                           frameDepth = 1
-                                          frameSlot = 2
+                                          frameSlot = 2 # foo
                                       children:
                                           valueNode =
                                               IntegerFixnumLiteralNode

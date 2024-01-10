@@ -154,7 +154,7 @@ ast: |
                                                                                                   attributes:
                                                                                                       flags = 1
                                                                                                       frameDepth = 1
-                                                                                                      frameSlot = 3
+                                                                                                      frameSlot = 3 # b
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ReadInstanceVariableNode

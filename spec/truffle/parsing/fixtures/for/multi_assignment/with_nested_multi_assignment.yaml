@@ -143,7 +143,7 @@ ast: |
                                                                                                               attributes:
                                                                                                                   flags = 0
                                                                                                                   frameDepth = 1
-                                                                                                                  frameSlot = 3
+                                                                                                                  frameSlot = 3 # a
                                                                                                           MultipleAssignmentNode
                                                                                                               attributes:
                                                                                                                   flags = 0
@@ -153,12 +153,12 @@ ast: |
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
-                                                                                                                              frameSlot = 4
+                                                                                                                              frameSlot = 4 # b
                                                                                                                       WriteDeclarationVariableNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
-                                                                                                                              frameSlot = 5
+                                                                                                                              frameSlot = 5 # c
                                                                                                                   ]
                                                                                                                   splatCastNode =
                                                                                                                       SplatCastNodeGen
@@ -185,7 +185,7 @@ ast: |
                                                                                                   attributes:
                                                                                                       flags = 1
                                                                                                       frameDepth = 1
-                                                                                                      frameSlot = 6
+                                                                                                      frameSlot = 6 # array
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ArrayLiteralNode$UninitialisedArrayLiteralNode
@@ -198,19 +198,19 @@ ast: |
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
-                                                                                                                              frameSlot = 3
+                                                                                                                              frameSlot = 3 # a
                                                                                                                               type = FRAME_LOCAL
                                                                                                                       ReadDeclarationVariableNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
-                                                                                                                              frameSlot = 4
+                                                                                                                              frameSlot = 4 # b
                                                                                                                               type = FRAME_LOCAL
                                                                                                                       ReadDeclarationVariableNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
-                                                                                                                              frameSlot = 5
+                                                                                                                              frameSlot = 5 # c
                                                                                                                               type = FRAME_LOCAL
                                                                                                                   ]
                                                                                           ]

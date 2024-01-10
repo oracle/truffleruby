@@ -71,7 +71,7 @@ ast: |
                                                               attributes:
                                                                   flags = 0
                                                                   frameDepth = 1
-                                                                  frameSlot = 2
+                                                                  frameSlot = 2 # bar
                                                                   type = FRAME_LOCAL
                                           ]
                                           tryPart =

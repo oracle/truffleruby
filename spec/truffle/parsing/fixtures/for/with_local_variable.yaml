@@ -138,7 +138,7 @@ ast: |
                                                                                                   attributes:
                                                                                                       flags = 0
                                                                                                       frameDepth = 1
-                                                                                                      frameSlot = 3
+                                                                                                      frameSlot = 3 # a
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ReadLocalVariableNode
@@ -150,14 +150,14 @@ ast: |
                                                                                                   attributes:
                                                                                                       flags = 1
                                                                                                       frameDepth = 1
-                                                                                                      frameSlot = 4
+                                                                                                      frameSlot = 4 # b
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ReadDeclarationVariableNode
                                                                                                               attributes:
                                                                                                                   flags = 0
                                                                                                                   frameDepth = 1
-                                                                                                                  frameSlot = 3
+                                                                                                                  frameSlot = 3 # a
                                                                                                                   type = FRAME_LOCAL
                                                                                           ]
                                                           receiver =
