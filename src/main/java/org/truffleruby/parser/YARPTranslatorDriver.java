@@ -58,6 +58,7 @@ import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.core.string.TStringWithEncoding;
+import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyEvalRootNode;
@@ -187,13 +188,14 @@ public final class YARPTranslatorDriver {
         //            node = ParserCache.INSTANCE.get(source.getName());
         //        } else {
         printParseTranslateExecuteMetric("before-parsing", context, source);
-        node = context.getMetricsProfiler().callWithMetrics(
+        ParseResult parseResult = context.getMetricsProfiler().callWithMetrics(
                 "parsing",
                 source.getName(),
                 () -> parseToYARPAST(context, language, rubySource, staticScope, parserConfiguration, rubyWarnings,
                         parseEnvironment));
         printParseTranslateExecuteMetric("after-parsing", context, source);
         //        }
+        node = parseResult.value;
 
         // Needs the magic comment to be parsed
         parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
@@ -342,12 +344,21 @@ public final class YARPTranslatorDriver {
                             new SetTopLevelBindingNode(),
                             truffleNode));
 
-            // TODO: repair this logic
-            //            if (node.hasEndPosition()) {
-            //                truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
-            //                        new DataNode(node.getEndPosition()),
-            //                        truffleNode));
-            //            }
+            if (parseResult.dataLocation != null) {
+                // startOffset - location of beginning of __END__, not ending
+                int offset = parseResult.dataLocation.startOffset + "__END__".length();
+
+                if (offset < source.getLength()) {
+                    // There are characters after __END__.
+                    // Handle optional "\n" after __END__ - it isn't part of DATA.
+                    // Don't handle \r\n as far as Windows isn't supported.
+                    offset += 1;
+                }
+
+                truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
+                        new DataNode(offset),
+                        truffleNode));
+            }
         }
 
         final FrameDescriptor frameDescriptor = environment.computeFrameDescriptor();
@@ -395,7 +406,7 @@ public final class YARPTranslatorDriver {
         }
     }
 
-    public static org.prism.Nodes.Node parseToYARPAST(RubyContext context, RubyLanguage language, RubySource rubySource,
+    public static org.prism.ParseResult parseToYARPAST(RubyContext context, RubyLanguage language, RubySource rubySource,
             StaticScope blockScope, ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings,
             ParseEnvironment parseEnvironment) {
         //        LexerSource lexerSource = new LexerSource(rubySource);
@@ -413,9 +424,9 @@ public final class YARPTranslatorDriver {
         org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes);
 
-        var yarpSource = createYARPSource(sourceBytes, rubySource);
+        Nodes.Source yarpSource = createYARPSource(sourceBytes, rubySource);
         parseEnvironment.yarpSource = yarpSource;
-        var parseResult = Loader.load(serializedBytes, yarpSource);
+        ParseResult parseResult = Loader.load(serializedBytes, yarpSource);
 
         final String filename = rubySource.getSourcePath();
         final ParseResult.Error[] errors = parseResult.errors;
@@ -464,7 +475,7 @@ public final class YARPTranslatorDriver {
             }
         }
 
-        return parseResult.value;
+        return parseResult;
         // YARP end
 
         //        RubyParser parser = new RubyParser(lexerSource, rubyWarnings);
