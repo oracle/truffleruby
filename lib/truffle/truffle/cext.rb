@@ -1977,25 +1977,15 @@ module Truffle::CExt
   end
 
   def rb_wait_for_single_fd(fd, events, tv_secs, tv_usecs)
-    io = IO.for_fd(fd)
-    io.autoclose = false
-    read = (events & RB_WAITFD_IN) != 0 ? [io] : nil
-    write = (events & RB_WAITFD_OUT) != 0 ? [io] : nil
-    error = (events & RB_WAITFD_PRI) != 0 ? [io] : nil
     timeout = nil
     if tv_secs >= 0 || tv_usecs >= 0
       timeout = tv_secs + tv_usecs/1.0e6
     end
-    r, w, e = Primitive.send_without_cext_lock(IO, :select, [read, write, error, *timeout], nil)
-    if Primitive.nil?(r) # timeout
-      0
-    else
-      result = 0
-      result |= RB_WAITFD_IN unless r.empty?
-      result |= RB_WAITFD_OUT unless w.empty?
-      result |= RB_WAITFD_PRI unless e.empty?
-      result
-    end
+
+    io = IO.for_fd(fd)
+    io.autoclose = false
+    returned_events = Primitive.send_without_cext_lock(Truffle::IOOperations, :poll, [io, events, timeout], nil)
+    returned_events & (RB_WAITFD_IN | RB_WAITFD_OUT | RB_WAITFD_PRI)
   end
 
   def rb_call_super(args)
