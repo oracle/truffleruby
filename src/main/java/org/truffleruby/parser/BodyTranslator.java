@@ -1545,8 +1545,6 @@ public class BodyTranslator extends BaseTranslator {
          * Here, JRuby calls the object being iterated over the 'iter'. */
 
         final String temp = environment.allocateLocalTemp("for");
-        environment.declareVar(temp);
-
         final ParseNode receiver = node.getIterNode();
 
         /* The x in for x in ... is like the nodes in multiple assignment - it has a dummy RHS which we need to replace

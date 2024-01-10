@@ -1589,7 +1589,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     @Override
     public RubyNode visitForNode(Nodes.ForNode node) {
         final String parameterName = environment.allocateLocalTemp("for");
-        environment.declareVar(parameterName); // it isn't necessary because the local variable is declared in the block's scope too
 
         final var requireds = new Nodes.Node[]{ new Nodes.RequiredParameterNode(parameterName, 0, 0) };
         final var parameters = new Nodes.ParametersNode(requireds, Nodes.Node.EMPTY_ARRAY, null, Nodes.Node.EMPTY_ARRAY,
