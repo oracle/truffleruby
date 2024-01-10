@@ -599,9 +599,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var writeReceiverNode = receiverExpression.getWriteNode();
         final var readReceiver = receiverExpression.getReadYARPNode();
 
-        // Use Prism nodes and rely on CallNode translation to automatically set RubyCallNode attributes
+        // Use Prism nodes and rely on CallNode translation to automatically set RubyCallNode attributes.
+        // Prism doesn't set ATTRIBUTE_WRITE flag, so we should add it manually
+        // safe navigation flag is handled separately, so as optimisation remove it from the flags
         short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
-        final RubyNode readNode = callNode(node, node.flags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY)
+        writeFlags = (short) (writeFlags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
+        short readFlags = (short) (node.flags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
+        final RubyNode readNode = callNode(node, readFlags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY)
                 .accept(this);
         final RubyNode writeNode = callNode(node, writeFlags, readReceiver, node.write_name,
                 node.value).accept(this);
@@ -787,8 +791,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set CallNode flags
+        // safe navigation flag is handled separately, so as optimisation remove it from the flags
         short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
-        final Nodes.Node read = callNode(node, node.flags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
+        writeFlags = (short) (writeFlags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
+        short readFlags = (short) (node.flags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
+        final Nodes.Node read = callNode(node, readFlags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
         final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
         final Nodes.Node write = callNode(node, writeFlags, readReceiver, node.write_name,
                 executeOperator);
@@ -821,8 +828,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var readReceiver = receiverExpression.getReadYARPNode();
 
         // Use Prism nodes and rely on CallNode translation to automatically set CallNode flags
+        // Prism doesn't set ATTRIBUTE_WRITE flag, so we should add it manually
+        // safe navigation flag is handled separately, so as optimisation remove it from the flags
         short writeFlags = (short) (node.flags | Nodes.CallNodeFlags.ATTRIBUTE_WRITE);
-        final RubyNode readNode = callNode(node, node.flags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY)
+        writeFlags = (short) (writeFlags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
+        short readFlags = (short) (node.flags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
+        final RubyNode readNode = callNode(node, readFlags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY)
                 .accept(this);
         final RubyNode writeNode = callNode(node, writeFlags, readReceiver, node.write_name,
                 node.value).accept(this);
