@@ -216,7 +216,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     };
 
     // all the encountered BEGIN {} blocks
-    private final ArrayDeque<Nodes.PreExecutionNode> beginBlocksQueue = new ArrayDeque<>();
+    private final ArrayList<Nodes.PreExecutionNode> beginBlocks = new ArrayList<>();
 
     public YARPTranslator(
             RubyLanguage language,
@@ -2577,7 +2577,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitPreExecutionNode(Nodes.PreExecutionNode node) {
-        beginBlocksQueue.add(node);
+        beginBlocks.add(node);
         return null;
     }
 
@@ -2587,7 +2587,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         // add BEGIN {} blocks at the very beginning of the program
         ArrayList<RubyNode> nodes = new ArrayList<>();
-        for (var begin : beginBlocksQueue) {
+        for (var begin : beginBlocks) {
             nodes.add(begin.statements.accept(this));
         }
 
