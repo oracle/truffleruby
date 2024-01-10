@@ -3,8 +3,7 @@ description: "Assign an referenced element with explicit self receiver (self[a] 
 notes: >
   Method call when receiver is `self` means a private or protected method could be successfully called.
   
-  In AST it's represented with RubyCallNode's field dispatchConfig.
-  `dispatchConfig = PRIVATE` means a method visibility is ignored.
+  In AST it's represented with method call parameter `ignoreVisibility=true`.
 yarp_specific: true # don't put self into a local variable and fixed call node and set ignoreVisibility=true
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
