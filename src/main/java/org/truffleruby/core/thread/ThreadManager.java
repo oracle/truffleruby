@@ -386,7 +386,7 @@ public final class ThreadManager {
     private void setException(RubyThread thread, RubyException exception, Node currentNode) {
         // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
         // to capture the backtrace from this thread.
-        final RaiseException truffleException = exception.backtrace.getRaiseException();
+        RaiseException truffleException = exception.backtrace == null ? null : exception.backtrace.getRaiseException();
         if (truffleException != null) {
             TruffleStackTrace.fillIn(truffleException);
         }
