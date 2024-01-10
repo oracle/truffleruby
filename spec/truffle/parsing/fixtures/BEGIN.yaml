@@ -1,7 +1,13 @@
 subject: "BEGIN block"
 description: "BEGIN { ... }"
 notes: >
-  Puts content of the BEGIN block at the beginning of the 
+  Put content of the BEGIN block at the beginning of the program.
+  So actual sequence of expressions is:
+  
+  ```ruby
+  a
+  b
+  ```
 focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
   b
