@@ -474,7 +474,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final boolean isStabbyLambda = node instanceof Nodes.LambdaNode;
 
         // Unset this flag for a `for`-loop's block
-        final boolean hasOwnScope = isStabbyLambda || !translatingForStatement; // TODO: isStabbyLambda seems excessive
+        final boolean hasOwnScope = !translatingForStatement;
 
         TranslatorEnvironment methodParent = environment.getSurroundingMethodEnvironment();
         final String methodName = methodParent.getMethodName();
