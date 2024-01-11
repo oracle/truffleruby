@@ -865,7 +865,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         // - the other just checks a list of expressions for truth.
 
         final RubyNode rubyNode;
-        RubyNode elseNode = translateNodeOrNil(node.consequent);
 
         if (node.predicate != null) {
             // Evaluate the case expression and store it in a local
@@ -875,6 +874,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
             // Build an if expression from `when` and `else` branches.
             // Work backwards to make the first if contain all the others in its `else` clause.
+            RubyNode elseNode = translateNodeOrNil(node.consequent);
+
             final Nodes.Node[] conditions = node.conditions;
 
             for (int n = conditions.length - 1; n >= 0; n--) {
@@ -935,6 +936,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         } else {
             // Build an if expression from `when` and `else` branches.
             // Work backwards to make the first if contain all the others in its `else` clause.
+
+            RubyNode elseNode = translateNodeOrNil(node.consequent);
 
             final Nodes.Node[] conditions = node.conditions;
 
