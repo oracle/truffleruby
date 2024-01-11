@@ -3135,6 +3135,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitYieldNode(Nodes.YieldNode node) {
+        // YARP doesn't handle it on its own yet
+        // See https://github.com/ruby/prism/issues/1604
+        if (isInvalidYield()) {
+            final RubyContext context = RubyLanguage.getCurrentContext();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().syntaxError(
+                            "Invalid yield",
+                            currentNode,
+                            getSourceSection(node)));
+        }
+
         var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, null, "<yield>");
 
         RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
@@ -3450,7 +3462,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private boolean isInvalidYield() {
-        return environment.getSurroundingMethodEnvironment().isModuleBody();
+        return environment.getSurroundingMethodEnvironment().isModuleBody(); // so not inside a method
     }
 
     // Arguments are represented by a single node:
