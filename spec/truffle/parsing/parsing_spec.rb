@@ -70,6 +70,7 @@ describe "Parsing" do
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
     subject, description, yarp_specific, focused_on_node, index, main_script, source_code, expected_ast = yaml.values_at("subject", "description", "yarp_specific", "focused_on_node", "index", "main_script", "ruby", "ast")
+    description&.strip!
     source_code.strip!
     expected_ast.strip!
     index = index.to_i
@@ -78,7 +79,7 @@ describe "Parsing" do
     # multiple-context mode, enabled JIT or changed default inline cache size affects Truffle AST.
     # So just don't run the pursing specs at all in such jobs on CI.
     guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? && Truffle::Boot.get_option("default-cache") != 0 } do
-      it "a #{subject} (#{description.strip}) case is parsed correctly" do
+      it "a #{subject} (#{description}) case is parsed correctly" do
         skip "YARP specific test" if original_parser && yarp_specific
 
         # p "a #{subject} (#{description.strip}) case is parsed correctly"

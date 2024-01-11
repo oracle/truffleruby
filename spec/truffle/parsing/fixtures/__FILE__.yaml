@@ -1,0 +1,11 @@
+subject: "__FILE__ keyword"
+description: "returns path to the current Ruby source file"
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  __FILE__
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = UTF-8
+          flags = 1
+          tstring = <parse_ast>
