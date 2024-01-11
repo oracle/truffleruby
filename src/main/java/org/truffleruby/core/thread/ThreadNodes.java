@@ -433,7 +433,7 @@ public abstract class ThreadNodes {
 
             if (getLanguage().options.SHARED_OBJECTS_ENABLED) {
                 getContext().getThreadManager().startSharing(thread, sharingReason);
-                SharedObjects.shareDeclarationFrame(getLanguage(), block, info);
+                SharedObjects.shareBlockAndArguments(getLanguage(), block, args, info);
             }
 
             getContext().getThreadManager().initialize(

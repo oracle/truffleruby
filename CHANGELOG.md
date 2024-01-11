@@ -14,6 +14,7 @@ Bug fixes:
 * Fix `IO.select([io], nil, [io])` on macOS, it was hanging due to a bug in macOS `poll(2)` (#3346, @eregon, @andrykonchin).
 * Run context cleanup such as showing the output of tools when `SignalException` and `Interrupt` escape (@eregon).
 * Handle a new variable inside the `case` target expression correctly (#3377, @eregon).
+* The arguments of `Thread.new(*args, &block)` need to be marked as shared between multiple threads (#3179, @eregon).
 
 Compatibility:
 
