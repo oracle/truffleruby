@@ -693,8 +693,6 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitCaseNode(CaseParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
-
         /* There are two sorts of case - one compares a list of expressions against a value, the other just checks a
          * list of expressions for truth. */
 
@@ -709,6 +707,8 @@ public class BodyTranslator extends BaseTranslator {
 
             /* Build an if expression from the whens and else. Work backwards because the first if contains all the
              * others in its else clause. */
+
+            RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
 
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
@@ -746,6 +746,8 @@ public class BodyTranslator extends BaseTranslator {
             // A top-level block assigns the temp then runs the if
             ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
         } else {
+            RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
 
