@@ -10,18 +10,16 @@
 # GNU Lesser General Public License version 2.1.
 
 module Coverage
-  UNDEFINED = Object.new
-
   def self.supported?(mode)
     mode == :lines
   end
 
-  def self.start(modes = UNDEFINED)
+  def self.start(modes = Truffle::UNDEFINED)
     if Truffle::Coverage.enabled?
       raise 'coverage measurement is already setup'
     end
 
-    if modes == :all || modes == UNDEFINED
+    if modes == :all || Primitive.undefined?(modes)
       options = {}
     else
       options = Truffle::Type.rb_convert_type(modes, Hash, :to_hash)
@@ -31,7 +29,7 @@ module Coverage
       raise 'cannot enable lines and oneshot_lines simultaneously'
     end
 
-    @default_mode = (modes == UNDEFINED)
+    @default_mode = Primitive.undefined?(modes)
     Truffle::Coverage.enable
 
     nil
