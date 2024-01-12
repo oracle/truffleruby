@@ -127,15 +127,7 @@ class Data
       def with(**changes)
         return self if changes.empty?
 
-        h = to_h
-        changes.each_pair do |key, value|
-          if h.include?(key)
-            h[key] = value
-          else
-            raise ArgumentError, Truffle::DataOperations.unknown_keywords_message(changes.keys, self)
-          end
-        end
-        Primitive.class(self).new(**h)
+        Primitive.class(self).new(**to_h.merge(changes))
       end
 
       def inspect
