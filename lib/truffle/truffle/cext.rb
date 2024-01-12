@@ -1728,6 +1728,10 @@ module Truffle::CExt
     object
   end
 
+  def run_data_finalizer(function, data)
+    Primitive.call_with_c_mutex_and_frame POINTER_TO_VOID_WRAPPER, [function, data], nil, nil
+  end
+
   def run_marker(obj)
     Primitive.array_mark_store(obj) if Primitive.array_store_native?(obj)
 
