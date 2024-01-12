@@ -89,8 +89,8 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     }
 
     @Override
-    public AssignableNode visitCallNode(Nodes.CallNode node) {
-        final RubyNode rubyNode = yarpTranslator.translateCallTargetNode(node);
+    public AssignableNode visitCallTargetNode(Nodes.CallTargetNode node) {
+        final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
@@ -108,6 +108,12 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     @Override
     public AssignableNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
+        final RubyNode rubyNode = node.accept(yarpTranslator);
+        return ((AssignableNode) rubyNode).toAssignableNode();
+    }
+
+    @Override
+    public AssignableNode visitIndexTargetNode(Nodes.IndexTargetNode node) {
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
@@ -142,6 +148,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     }
 
     @Override
+    // RequiredParameterNode is handled during destructuring method/proc arguments
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
         // NOTE: depth is not supposed to be used anyway so pass 0 value.

@@ -1,0 +1,35 @@
+subject: "String"
+description: "backtick literal / encoding / when there are ASCII and non-ASCII characters"
+notes: >
+  String may be forced to the BINARY (ASCII-8BIT) encoding sometimes
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  # encoding: us-ascii
+  `echo \xFF 1`
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = NoKeywordArgumentsDescriptor
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "`"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              FrozenStringLiteralNode
+                  attributes:
+                      definition = expression
+                      flags = 0
+                      frozenString = echo \xFF 1
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

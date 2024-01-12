@@ -9,6 +9,7 @@
 #include "prism/ast.h"
 #include "prism/defines.h"
 #include "prism/encoding.h"
+#include "prism/options.h"
 #include "prism/util/pm_constant_pool.h"
 #include "prism/util/pm_list.h"
 #include "prism/util/pm_newline_list.h"
@@ -382,11 +383,8 @@ typedef struct pm_comment {
     /** The embedded base node. */
     pm_list_node_t node;
 
-    /** A pointer to the start of the comment in the source. */
-    const uint8_t *start;
-
-    /** A pointer to the end of the comment in the source. */
-    const uint8_t *end;
+    /** The location of the comment in the source. */
+    pm_location_t location;
 
     /** The type of comment that we've found. */
     pm_comment_type_t type;
@@ -526,12 +524,6 @@ struct pm_parser {
         size_t index;
     } lex_modes;
 
-    /**
-     * The common_whitespace value from the most-recently-popped heredoc mode of the lexer, so we
-     * can dedent the heredoc after popping the lex mode.
-     */
-    size_t current_string_common_whitespace;
-
     /** The pointer to the start of the source. */
     const uint8_t *start;
 
@@ -584,7 +576,7 @@ struct pm_parser {
      * The encoding functions for the current file is attached to the parser as
      * it's parsing so that it can change with a magic comment.
      */
-    pm_encoding_t encoding;
+    const pm_encoding_t *encoding;
 
     /**
      * When the encoding that is being used to parse the source is changed by
@@ -640,6 +632,43 @@ struct pm_parser {
      */
     int32_t start_line;
 
+    /**
+     * When a string-like expression is being lexed, any byte or escape sequence
+     * that resolves to a value whose top bit is set (i.e., >= 0x80) will
+     * explicitly set the encoding to the same encoding as the source.
+     * Alternatively, if a unicode escape sequence is used (e.g., \\u{80}) that
+     * resolves to a value whose top bit is set, then the encoding will be
+     * explicitly set to UTF-8.
+     *
+     * The _next_ time this happens, if the encoding that is about to become the
+     * explicitly set encoding does not match the previously set explicit
+     * encoding, a mixed encoding error will be emitted.
+     *
+     * When the expression is finished being lexed, the explicit encoding
+     * controls the encoding of the expression. For the most part this means
+     * that the expression will either be encoded in the source encoding or
+     * UTF-8. This holds for all encodings except US-ASCII. If the source is
+     * US-ASCII and an explicit encoding was set that was _not_ UTF-8, then the
+     * expression will be encoded as ASCII-8BIT.
+     *
+     * Note that if the expression is a list, different elements within the same
+     * list can have different encodings, so this will get reset between each
+     * element. Furthermore all of this only applies to lists that support
+     * interpolation, because otherwise escapes that could change the encoding
+     * are ignored.
+     *
+     * At first glance, it may make more sense for this to live on the lexer
+     * mode, but we need it here to communicate back to the parser for character
+     * literals that do not push a new lexer mode.
+     */
+    const pm_encoding_t *explicit_encoding;
+
+    /** The current parameter name id on parsing its default value. */
+    pm_constant_id_t current_param_name;
+
+    /** The version of prism that we should use to parse. */
+    pm_options_version_t version;
+
     /** Whether or not we're at the beginning of a command. */
     bool command_start;
 
@@ -661,9 +690,6 @@ struct pm_parser {
 
     /** This flag indicates that we are currently parsing a keyword argument. */
     bool in_keyword_arg;
-
-    /** The current parameter name id on parsing its default value. */
-    pm_constant_id_t current_param_name;
 
     /**
      * Whether or not the parser has seen a token that has semantic meaning

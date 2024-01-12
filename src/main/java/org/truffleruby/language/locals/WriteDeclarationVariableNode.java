@@ -29,6 +29,10 @@ public final class WriteDeclarationVariableNode extends WriteLocalNode {
         this.frameDepth = frameDepth;
     }
 
+    public int getFrameDepth() {
+        return frameDepth;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         final Object value = valueNode.execute(frame);

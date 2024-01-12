@@ -1,3 +1,4 @@
-fails:Parsing a BEGIN block (BEGIN { ... }) case is parsed correctly
-fails:Parsing a END block (END { ... }) case is parsed correctly
-fails:Parsing a For operator (for ... in ... operator) case is parsed correctly
+# Not supported yet by Prism
+# See https://github.com/ruby/prism/issues/1997
+fails:Parsing a Regexp (encoding / when there are non-ASCII characters in a literal) case is parsed correctly
+fails:Parsing a Regexp (encoding in boolean context / when there are non-ASCII characters in a literal) case is parsed correctly

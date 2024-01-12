@@ -1,0 +1,29 @@
+subject: "Multi-assignment"
+description: "When implicit rest (a, = [])"
+notes: >
+  Implicit rest is just ignored
+focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
+ruby: |
+  a, = []
+ast: |
+  MultipleAssignmentNode
+      attributes:
+          flags = 1
+      children:
+          preNodes = [
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2 # a
+          ]
+          rhsNode =
+              ArrayLiteralNode$UninitialisedArrayLiteralNode
+                  attributes:
+                      flags = 0
+                      language = org.truffleruby.RubyLanguage@...
+          splatCastNode =
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_ary
+                      copy = true
+                      flags = 0
+                      nilBehavior = ARRAY_WITH_NIL

@@ -1547,8 +1547,6 @@ public class BodyTranslator extends BaseTranslator {
          * Here, JRuby calls the object being iterated over the 'iter'. */
 
         final String temp = environment.allocateLocalTemp("for");
-        environment.declareVar(temp);
-
         final ParseNode receiver = node.getIterNode();
 
         /* The x in for x in ... is like the nodes in multiple assignment - it has a dummy RHS which we need to replace
@@ -1822,7 +1820,7 @@ public class BodyTranslator extends BaseTranslator {
         final ArgsParseNode argsNode = node.getArgsNode();
 
         // Unset this flag for any blocks within the `for` statement's body
-        final boolean hasOwnScope = isStabbyLambda || !translatingForStatement;
+        final boolean hasOwnScope = !translatingForStatement;
 
         final boolean isProc = !isStabbyLambda;
 
@@ -2890,9 +2888,9 @@ public class BodyTranslator extends BaseTranslator {
 
     @Override
     public RubyNode visitXStrNode(XStrParseNode node) {
-        final ParseNode argsNode = buildArrayNode(
-                node.getPosition(),
-                new StrParseNode(node.getPosition(), node.getValue(), node.encoding));
+        final var stringNode = new StrParseNode(node.getPosition(), node.getValue(), node.encoding);
+        stringNode.setFrozen(true); // it's always frozen
+        final ParseNode argsNode = buildArrayNode(node.getPosition(), stringNode);
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);

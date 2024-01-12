@@ -1,0 +1,35 @@
+subject: "String"
+description: "backtick literal / encoding / when there are UTF-8 characters in a literal"
+notes: >
+  String may be forced to the UTF-8 encoding sometimes
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  # encoding: us-ascii
+  `echo \u{A3} 1`
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = NoKeywordArgumentsDescriptor
+          dispatchConfig = PRIVATE
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "`"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              FrozenStringLiteralNode
+                  attributes:
+                      definition = expression
+                      flags = 0
+                      frozenString = echo £ 1
+          ]
+          receiver =
+              SelfNode
+                  attributes:
+                      flags = 0

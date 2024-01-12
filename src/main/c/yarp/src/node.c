@@ -238,6 +238,12 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
             break;
         }
 #line 58 "node.c.erb"
+        case PM_CALL_TARGET_NODE: {
+            pm_call_target_node_t *cast = (pm_call_target_node_t *) node;
+            pm_node_destroy(parser, (pm_node_t *)cast->receiver);
+            break;
+        }
+#line 58 "node.c.erb"
         case PM_CAPTURE_PATTERN_NODE: {
             pm_capture_pattern_node_t *cast = (pm_capture_pattern_node_t *) node;
             pm_node_destroy(parser, (pm_node_t *)cast->value);
@@ -628,6 +634,18 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
                 pm_node_destroy(parser, (pm_node_t *)cast->block);
             }
             pm_node_destroy(parser, (pm_node_t *)cast->value);
+            break;
+        }
+#line 58 "node.c.erb"
+        case PM_INDEX_TARGET_NODE: {
+            pm_index_target_node_t *cast = (pm_index_target_node_t *) node;
+            pm_node_destroy(parser, (pm_node_t *)cast->receiver);
+            if (cast->arguments != NULL) {
+                pm_node_destroy(parser, (pm_node_t *)cast->arguments);
+            }
+            if (cast->block != NULL) {
+                pm_node_destroy(parser, (pm_node_t *)cast->block);
+            }
             break;
         }
 #line 58 "node.c.erb"
@@ -1346,6 +1364,13 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
             break;
         }
 #line 103 "node.c.erb"
+        case PM_CALL_TARGET_NODE: {
+            pm_call_target_node_t *cast = (pm_call_target_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            pm_node_memsize_node((pm_node_t *)cast->receiver, memsize);
+            break;
+        }
+#line 103 "node.c.erb"
         case PM_CAPTURE_PATTERN_NODE: {
             pm_capture_pattern_node_t *cast = (pm_capture_pattern_node_t *) node;
             memsize->memsize += sizeof(*cast);
@@ -1813,6 +1838,19 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
                 pm_node_memsize_node((pm_node_t *)cast->block, memsize);
             }
             pm_node_memsize_node((pm_node_t *)cast->value, memsize);
+            break;
+        }
+#line 103 "node.c.erb"
+        case PM_INDEX_TARGET_NODE: {
+            pm_index_target_node_t *cast = (pm_index_target_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            pm_node_memsize_node((pm_node_t *)cast->receiver, memsize);
+            if (cast->arguments != NULL) {
+                pm_node_memsize_node((pm_node_t *)cast->arguments, memsize);
+            }
+            if (cast->block != NULL) {
+                pm_node_memsize_node((pm_node_t *)cast->block, memsize);
+            }
             break;
         }
 #line 103 "node.c.erb"
@@ -2493,6 +2531,8 @@ pm_node_type_to_str(pm_node_type_t node_type)
             return "PM_CALL_OPERATOR_WRITE_NODE";
         case PM_CALL_OR_WRITE_NODE:
             return "PM_CALL_OR_WRITE_NODE";
+        case PM_CALL_TARGET_NODE:
+            return "PM_CALL_TARGET_NODE";
         case PM_CAPTURE_PATTERN_NODE:
             return "PM_CAPTURE_PATTERN_NODE";
         case PM_CASE_MATCH_NODE:
@@ -2597,6 +2637,8 @@ pm_node_type_to_str(pm_node_type_t node_type)
             return "PM_INDEX_OPERATOR_WRITE_NODE";
         case PM_INDEX_OR_WRITE_NODE:
             return "PM_INDEX_OR_WRITE_NODE";
+        case PM_INDEX_TARGET_NODE:
+            return "PM_INDEX_TARGET_NODE";
         case PM_INSTANCE_VARIABLE_AND_WRITE_NODE:
             return "PM_INSTANCE_VARIABLE_AND_WRITE_NODE";
         case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE:
