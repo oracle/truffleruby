@@ -34,11 +34,11 @@ describe 'Coverage.result' do
 
       result.should == {
         @class_file => {
-          :lines => [
+          lines: [
             nil, nil, 1, nil, nil, 1, nil, nil, 0, nil, nil, nil, nil, nil, nil, nil
           ],
-          :branches => {},
-          :methods => {
+          branches: {},
+          methods: {
             [SomeClass, :some_method, 6, 2, 11, 5] => 0
           }
         }
@@ -53,7 +53,7 @@ describe 'Coverage.result' do
       result.should == {
         @class_file =>
           {
-            :lines=> [
+            lines: [
               nil, nil, 1, nil, nil, 1, nil, nil, 0, nil, nil, nil, nil, nil, nil, nil
             ]
           }
@@ -122,9 +122,9 @@ describe 'Coverage.result' do
       result = Coverage.result
 
       result.should == {
-          @eval_code_file => [
-              1, nil, 1, nil, 1, nil, nil, nil, nil, nil, 1
-          ]
+        @eval_code_file => [
+          1, nil, 1, nil, 1, nil, nil, nil, nil, nil, 1
+        ]
       }
     end
   end
@@ -138,9 +138,9 @@ describe 'Coverage.result' do
       result = Coverage.result
 
       result.should == {
-          @eval_code_file => {
-              lines: [1, nil, 1, nil, 1, 1, nil, nil, nil, nil, 1]
-          }
+        @eval_code_file => {
+          lines: [1, nil, 1, nil, 1, 1, nil, nil, nil, nil, 1]
+        }
       }
     end
 
@@ -152,9 +152,9 @@ describe 'Coverage.result' do
       result = Coverage.result
 
       result.should == {
-          @eval_code_file => {
-              lines: [1, nil, 1, nil, 1, nil, nil, nil, nil, nil, 1]
-          }
+        @eval_code_file => {
+          lines: [1, nil, 1, nil, 1, nil, nil, nil, nil, nil, 1]
+        }
       }
     end
   end
