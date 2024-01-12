@@ -84,12 +84,13 @@ class Data
     # CRuby defines these directly on Data, but that is suboptimal for performance.
     # We want to have a specialized copy of these methods for each Data subclass.
     instance_methods_module = Module.new
-    instance_methods_module.module_eval "#{<<~'RUBY'}"
+    instance_methods_module.module_eval "#{<<~'RUBY'}", __FILE__, __LINE__+1
       # truffleruby_primitives: true
 
       def initialize(**kwargs)
         members_hash = Primitive.class(self)::CLASS_MEMBERS_HASH
         kwargs.each do |member, value|
+          member = member.to_sym
           if members_hash.include?(member)
             Primitive.object_hidden_var_set(self, member, value)
           else
