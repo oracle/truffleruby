@@ -121,7 +121,7 @@ class Data
         Primitive.class(self)::CLASS_MEMBERS.each do |member|
           h[member] = Primitive.object_hidden_var_get(self, member)
         end
-        h.to_h(&block)
+        block ? h.to_h(&block) : h
       end
 
       def with(**changes)
