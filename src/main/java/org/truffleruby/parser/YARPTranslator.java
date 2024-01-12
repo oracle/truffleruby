@@ -853,6 +853,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return assignPositionAndFlags(node, rubyNode);
     }
 
+    @Override
     public RubyNode visitCallTargetNode(Nodes.CallTargetNode node) {
         // extra argument should be added before node translation
         // to trigger correctly replacement with inlined nodes (e.g. InlinedIndexSetNodeGen)
@@ -1990,6 +1991,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return assignPositionAndFlags(node, rubyNode);
     }
 
+    @Override
     public RubyNode visitIndexTargetNode(Nodes.IndexTargetNode node) {
         // extra argument should be added before node translation
         // to trigger correctly replacement with inlined nodes (e.g. InlinedIndexSetNodeGen)
