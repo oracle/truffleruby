@@ -9,9 +9,12 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -76,6 +79,11 @@ public final class WriteConstantNode extends RubyContextSourceNode implements As
         if (warnAlreadyInitializedNode.shouldWarn()) {
             warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection(), prevSourceSection);
         }
+    }
+
+    @Override
+    public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
+        return FrozenStrings.ASSIGNMENT;
     }
 
     @Override

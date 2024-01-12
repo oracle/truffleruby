@@ -864,19 +864,19 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 executeOperator);
 
         final RubyNode writeNode = write.accept(this);
-        final RubyNode rubyNode;
+        final RubyNode sequence;
 
         if (node.isSafeNavigation()) {
             // immediately return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     writeNode);
-            rubyNode = sequence(Arrays.asList(writeReceiverNode, unlessNode));
+            sequence = sequence(Arrays.asList(writeReceiverNode, unlessNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeReceiverNode, writeNode));
+            sequence = sequence(Arrays.asList(writeReceiverNode, writeNode));
         }
 
-        // rubyNode may be already assigned source code in case writeReceiverNode is null
-        return assignPositionAndFlagsIfMissing(node, rubyNode);
+        final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
+        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
@@ -2058,15 +2058,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 new Nodes.ArgumentsNode(NO_FLAGS, readArgumentsAndResult, 0, 0), blockArgument, 0, 0);
         final RubyNode writeNode = write.accept(this);
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
-        final RubyNode rubyNode;
+        final RubyNode sequence;
 
         if (node.block != null) {
             // add block argument write node
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, writeNode));
+            sequence = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, writeNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, writeNode));
+            sequence = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, writeNode));
         }
 
+        final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2180,15 +2181,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
-        final RubyNode rubyNode;
+        final RubyNode sequence;
 
         if (block != null) {
             // add block argument write node
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, operatorNode));
+            sequence = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, operatorNode));
         } else {
-            rubyNode = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, operatorNode));
+            sequence = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, operatorNode));
         }
 
+        final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
         return rubyNode;
     }
 

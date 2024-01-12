@@ -9,9 +9,6 @@ fails:The defined? keyword for a variable scoped constant returns nil if the glo
 fails:The defined? keyword for a variable scoped constant returns nil if the class scoped constant is not defined
 fails:The defined? keyword for a variable scoped constant returns nil if the local scoped constant is not defined
 fails:The defined? keyword when called with a method name in a void context warns about the void context when parsing it
-fails:The defined? keyword for an expression returns 'assignment' for assigning a constant
-fails:The defined? keyword for an expression returns 'assignment' for assigning a fully qualified constant
-fails:The defined? keyword for an expression returns 'assignment' for an expression with '+='
-fails:The defined? keyword for an expression ||= returns 'assignment' for assigning a referenced element with '||='
+fails:The defined? keyword for an expression returns 'expression' for an assigning a fully qualified constant with '+='
 fails:The defined? keyword for an expression &&= returns 'expression' for assigning a fully qualified constant with '&&='
-fails:The defined? keyword for an expression &&= returns 'assignment' for assigning a referenced element with '&&='
+fails:The defined? keyword for an expression ||= returns 'expression' for assigning a fully qualified constant with '||='

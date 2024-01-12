@@ -2255,14 +2255,14 @@ public class BodyTranslator extends BaseTranslator {
                 node.getOperatorName(),
                 buildArrayNode(pos, node.getValueNode()),
                 null);
-        final ParseNode writeMethod = new CallParseNode(
+        final var writeMethod = new CallParseNode(
                 pos,
                 receiverValue.get(pos),
                 node.getVariableName() + "=",
                 buildArrayNode(pos, operation),
                 null);
 
-        RubyNode body = writeMethod.accept(this);
+        RubyNode body = translateCallNode(writeMethod, node.getReceiverNode() instanceof SelfParseNode, false, true);
 
         final SourceIndexLength sourceSection = pos;
 
@@ -2272,7 +2272,8 @@ public class BodyTranslator extends BaseTranslator {
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
-        final RubyNode ret = receiverValue.prepareAndThen(sourceSection, body);
+        final RubyNode sequence = receiverValue.prepareAndThen(sourceSection, body);
+        final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
 
         return addNewlineIfNeeded(node, ret);
     }
@@ -2351,6 +2352,7 @@ public class BodyTranslator extends BaseTranslator {
         while (listIterator.hasPrevious()) {
             ret = listIterator.previous().prepareAndThen(node.getPosition(), ret);
         }
+        ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, ret);
         return addNewlineIfNeeded(node, ret);
     }
 

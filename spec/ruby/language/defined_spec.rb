@@ -261,12 +261,22 @@ describe "The defined? keyword for an expression" do
     defined?(@@a += 1).should == "assignment"
     defined?($a += 1).should == "assignment"
     defined?(A += 1).should == "assignment"
-
-    # https://bugs.ruby-lang.org/issues/20111
-    defined?(Object::A += 1).should == "expression"
-
+    # fully qualified constant check is moved out into a separate test case
     defined?(a.b += 1).should == "assignment"
     defined?(a[:b] += 1).should == "assignment"
+  end
+
+  # https://bugs.ruby-lang.org/issues/20111
+  ruby_version_is ""..."3.4" do
+    it "returns 'expression' for an assigning a fully qualified constant with '+='" do
+      defined?(Object::A += 1).should == "expression"
+    end
+  end
+
+  ruby_version_is "3.4" do
+    it "returns 'assignment' for an assigning a fully qualified constant with '+='" do
+      defined?(Object::A += 1).should == "assignment"
+    end
   end
 
   it "returns 'assignment' for an expression with '*='" do
@@ -319,8 +329,16 @@ describe "The defined? keyword for an expression" do
     end
 
     # https://bugs.ruby-lang.org/issues/20111
-    it "returns 'expression' for assigning a fully qualified constant with '||='" do
-      defined?(Object::A ||= true).should == "expression"
+    ruby_version_is ""..."3.4" do
+      it "returns 'expression' for assigning a fully qualified constant with '||='" do
+        defined?(Object::A ||= true).should == "expression"
+      end
+    end
+
+    ruby_version_is "3.4" do
+      it "returns 'assignment' for assigning a fully qualified constant with '||='" do
+        defined?(Object::A ||= true).should == "assignment"
+      end
     end
 
     it "returns 'assignment' for assigning an attribute with '||='" do
@@ -354,8 +372,16 @@ describe "The defined? keyword for an expression" do
     end
 
     # https://bugs.ruby-lang.org/issues/20111
-    it "returns 'expression' for assigning a fully qualified constant with '&&='" do
-      defined?(Object::A &&= true).should == "expression"
+    ruby_version_is ""..."3.4" do
+      it "returns 'expression' for assigning a fully qualified constant with '&&='" do
+        defined?(Object::A &&= true).should == "expression"
+      end
+    end
+
+    ruby_version_is "3.4" do
+      it "returns 'assignment' for assigning a fully qualified constant with '&&='" do
+        defined?(Object::A &&= true).should == "assignment"
+      end
     end
 
     it "returns 'assignment' for assigning an attribute with '&&='" do
