@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.dsl.Bind;
@@ -109,13 +108,13 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.signal.LibRubySignal;
 
 import static org.truffleruby.language.SafepointPredicate.ALL_THREADS_AND_FIBERS;
 
@@ -658,23 +657,18 @@ public abstract class ThreadNodes {
         @SuppressWarnings("truffle-neverdefault") // GR-43642
         @Specialization(limit = "getCacheLimit()")
         static Object call(
-                RubyThread thread,
-                Object wrapper,
-                Object function,
-                Object arg,
-                Object unblockWrapper,
-                Object unblocker,
-                Object unblockerArg,
+                RubyThread thread, Object wrapper, Object function, Object arg, long unblocker, long unblockerArg,
                 @CachedLibrary("wrapper") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Bind("this") Node node,
                 @Cached("new(node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
-            final ThreadManager threadManager = getContext(node).getThreadManager();
+            var context = getContext(node);
+            final ThreadManager threadManager = context.getThreadManager();
             final Interrupter interrupter;
-            if (unblocker == nil) {
+            if (unblocker == 0) {
                 interrupter = threadManager.getNativeCallInterrupter();
             } else {
-                interrupter = makeInterrupter(getContext(node), unblockWrapper, unblocker, unblockerArg);
+                interrupter = new CExtInterrupter(unblocker, unblockerArg);
             }
 
             final Object[] args = { function, arg };
@@ -687,57 +681,19 @@ public abstract class ThreadNodes {
                     node);
         }
 
-        @TruffleBoundary
-        private static Interrupter makeInterrupter(RubyContext context, Object wrapper, Object function,
-                Object argument) {
-            return new CExtInterrupter(context, wrapper, function, argument);
-        }
-
         private static final class CExtInterrupter implements Interrupter {
 
-            private final RubyContext context;
-            private final Object wrapper;
-            private final Object function;
-            private final Object argument;
+            private final long function;
+            private final long argument;
 
-            public CExtInterrupter(RubyContext context, Object wrapper, Object function, Object argument) {
-                assert InteropLibrary.getUncached().isExecutable(wrapper);
-                this.context = context;
-                this.wrapper = wrapper;
+            public CExtInterrupter(long function, long argument) {
                 this.function = function;
                 this.argument = argument;
             }
 
             @Override
             public void interrupt(Thread thread) {
-                final TruffleContext truffleContext = context.getEnv().getContext();
-                final boolean alreadyEntered = truffleContext.isEntered();
-                Object prev = null;
-                if (!alreadyEntered) {
-                    // We need to enter the context to execute this unblocking action, as it runs on Sulong.
-                    try {
-                        if (context.getOptions().SINGLE_THREADED) {
-                            throw new IllegalStateException("--single-threaded was passed");
-                        }
-                        prev = truffleContext.enter(null);
-                    } catch (IllegalStateException e) { // Multi threaded access denied from Truffle
-                        // Not in a context, so we cannot use TruffleLogger
-                        context.getLogger().severe(
-                                "could not unblock thread inside blocking call in C extension because " +
-                                        "the context does not allow multithreading (" + e.getMessage() + ")");
-                        return;
-                    }
-                }
-
-                try {
-                    InteropLibrary.getUncached().execute(wrapper, function, argument);
-                } catch (InteropException e) {
-                    throw CompilerDirectives.shouldNotReachHere(e);
-                } finally {
-                    if (!alreadyEntered) {
-                        truffleContext.leave(null, prev);
-                    }
-                }
+                LibRubySignal.executeUnblockFunction(function, argument);
             }
 
             @Override

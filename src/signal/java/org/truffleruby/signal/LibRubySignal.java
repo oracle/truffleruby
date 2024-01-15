@@ -26,4 +26,6 @@ public abstract class LibRubySignal {
 
     public static native void restoreSystemHandlerAndRaise(int signalNumber);
 
+    public static native void executeUnblockFunction(long function, long argument);
+
 }

@@ -16,6 +16,7 @@ Bug fixes:
 * Handle a new variable inside the `case` target expression correctly (#3377, @eregon).
 * The arguments of `Thread.new(*args, &block)` need to be marked as shared between multiple threads (#3179, @eregon).
 * Fix `Range#bsearch` and raise `TypeError` when range boundaries are non-numeric and block not passed (@andrykonchin).
+* Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
 
 Compatibility:
 
