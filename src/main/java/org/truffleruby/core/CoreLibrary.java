@@ -389,7 +389,6 @@ public final class CoreLibrary {
         arrayClass = defineClass("Array");
         bindingClass = defineClass("Binding");
         defineClass("ConditionVariable");
-        defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
         enumeratorClass = defineClass("Enumerator");
@@ -1048,9 +1047,10 @@ public final class CoreLibrary {
             "/core/truffle/polyglot.rb",
             "/core/truffle/polyglot_methods.rb",
             "/core/posix.rb",
+            "/core/data.rb",
+            "/core/truffle/queue_operations.rb",
             "/core/main.rb",
             "/core/post.rb",
-            "/core/truffle/queue_operations.rb",
             POST_BOOT_FILE
     };
 

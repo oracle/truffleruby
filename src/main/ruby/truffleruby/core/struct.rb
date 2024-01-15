@@ -48,20 +48,7 @@ class Struct
       end
     end
 
-    attrs = attrs.map do |a|
-      case a
-      when Symbol
-        a
-      when String
-        sym = a.to_sym
-        unless Primitive.is_a?(sym, Symbol)
-          raise TypeError, "#to_sym didn't return a symbol"
-        end
-        sym
-      else
-        raise TypeError, "#{a.inspect} is not a symbol"
-      end
-    end
+    attrs = attrs.map { |a| Truffle::Type.symbol_or_string_to_symbol(a) }
 
     duplicates = attrs.uniq!
     if duplicates
@@ -354,6 +341,7 @@ class Struct
   def deconstruct_keys(keys)
     return to_h if Primitive.nil?(keys)
     raise TypeError, "wrong argument type #{Primitive.class(keys)} (expected Array or nil)" unless Primitive.is_a?(keys, Array)
+
     return {} if self.length < keys.length
 
     h = {}

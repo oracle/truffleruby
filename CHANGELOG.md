@@ -27,6 +27,7 @@ Compatibility:
 * Display "unhandled exception" as the message for `RuntimeError` instances with an empty message (#3255, @nirvdrum).
 * Set `RbConfig::CONFIG['configure_args']` for openssl and libyaml (#3170, #3303, @eregon).
 * Support `Socket.sockaddr_in(port, Socket::INADDR_ANY)` (#3361, @mtortonesi).
+* Implement the `Data` class from Ruby 3.2 (#3039, @moste00, @eregon).
 
 Performance:
 

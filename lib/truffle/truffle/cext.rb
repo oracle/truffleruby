@@ -107,6 +107,7 @@ module Truffle::CExt
   RUBY_FIXNUM_MAX = (1 << 62) - 1
 
   # This list of types is derived from MRI's error.c builtin_types array.
+  # It has the same indices as the ruby_value_type enum.
   BUILTIN_TYPES = [
     '',
     'Object',
@@ -341,8 +342,6 @@ module Truffle::CExt
       # See #rb_tr_cached_type, the final type must be calculated for each number.
       T_FIXNUM
     when Time
-      T_DATA
-    when Data
       T_DATA
     when BasicObject
       # See #rb_tr_cached_type, the final type must be calculated for each object.
