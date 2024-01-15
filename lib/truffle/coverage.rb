@@ -35,18 +35,33 @@ module Coverage
     nil
   end
 
-  def self.result(stop: true, clear: true)
+  def self.result(**options)
+    if options.empty?
+      stop = true
+      clear = true
+    else
+      stop = options[:stop]
+      clear = options[:clear]
+    end
+
+    if stop && !clear
+      warn 'stop implies clear', uplevel: 1
+    end
+
     result = peek_result
+
+    # TODO: There should be a difference between :stop and :clear in a way they affect counters.
+    #       :stop means to remove all the counters at all, :clear - to set 0 values only.
+    #       Now we remove counters in both cases.
     Truffle::Coverage.disable if stop || clear
     Truffle::Coverage.enable if !stop && clear
 
-    # if there is only the default mode (:lines only) - return result as array per file,
-    # otherwise return result for each mode separately (e.g. for :branches, :methods, :lines)
+    # By default provides only lines coverage measurement.
+    # If some mode was specified explicitly then return counters per mode separately (e.g. for :lines, :branches, etc).
+    # Support only :lines for now.
     if !@default_mode
-      result.transform_values! do |_, *lines_array|
-        # need to add nil to the beginning of each lines array, because the
-        # first line has index 1 and not 0
-        { lines: lines_array.unshift(nil) }
+      result.transform_values! do |lines|
+        { lines: lines }
       end
     end
 
