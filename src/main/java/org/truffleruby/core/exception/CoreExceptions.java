@@ -118,6 +118,13 @@ public final class CoreExceptions {
         return RubyGuards.getJavaString(rubyString);
     }
 
+    @TruffleBoundary
+    public String inspectFrozenObject(Object object) {
+        Object rubyString = DispatchNode.getUncached().call(
+                context.getCoreLibrary().truffleExceptionOperationsModule, "inspect_frozen_object", object);
+        return RubyGuards.getJavaString(rubyString);
+    }
+
     // ArgumentError
 
     public RubyException argumentErrorOneHashRequired(RubyBaseNode currentNode) {
@@ -295,7 +302,8 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException frozenError(Object object, Node currentNode) {
         String className = LogicalClassNode.getUncached().execute(object).fields.getName();
-        return frozenError(StringUtils.format("can't modify frozen %s: %s", className, inspect(object)), currentNode,
+        String string = inspectFrozenObject(object);
+        return frozenError(StringUtils.format("can't modify frozen %s: %s", className, string), currentNode,
                 object);
     }
 

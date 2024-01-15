@@ -15,6 +15,7 @@ Bug fixes:
 * Run context cleanup such as showing the output of tools when `SignalException` and `Interrupt` escape (@eregon).
 * Handle a new variable inside the `case` target expression correctly (#3377, @eregon).
 * The arguments of `Thread.new(*args, &block)` need to be marked as shared between multiple threads (#3179, @eregon).
+* Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
 
 Compatibility:
 
