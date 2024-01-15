@@ -9,3 +9,4 @@ exclude :test_signal_exception, "Expected /SIG-SIG/ to not match \"invalid signa
 exclude :test_trap, "ArgumentError: Unsupported command ''"
 exclude :test_signal2, "ArgumentError: ArgumentError"
 exclude :test_trap_system_default, "ArgumentError: Signal already used by VM or OS: SIGQUIT"
+exclude :test_signal, "transient: RuntimeError: Interrupt"
