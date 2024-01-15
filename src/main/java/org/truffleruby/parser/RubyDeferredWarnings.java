@@ -71,6 +71,7 @@ public final class RubyDeferredWarnings implements WarnCallback {
             return buffer.toString();
         }
 
+        @Override
         public String toString() {
             return "WarningMessage(" +
                     "message = '" + message + "'" +
@@ -117,6 +118,7 @@ public final class RubyDeferredWarnings implements WarnCallback {
                         message));
     }
 
+    @Override
     public String toString() {
         var strings = new ArrayList<String>();
 
