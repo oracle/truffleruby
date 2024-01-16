@@ -342,7 +342,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 } else {
                     getError()
                             .println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
-                    return 1;
+                    return ProcessStatus.exitCode(1);
                 }
             }
 
@@ -378,7 +378,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             getError().println(
                     "truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
             e.printStackTrace(System.err);
-            return 1;
+            return ProcessStatus.exitCode(1);
         }
     }
 
