@@ -2314,7 +2314,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitInterpolatedStringNode(Nodes.InterpolatedStringNode node) {
-        if (allPartsAreStringNodes(node)) {
+        // Skip encoding negotiation only if all parts are string literals, and they have
+        // the same encoding - source file encoding:
+        //   s = "abc" "def" "ghi"
+        if (allPartsAreStringNodesAndHaveSourceEncoding(node)) {
             return visitStringNode(concatStringNodes(node));
         }
 
@@ -2342,12 +2345,23 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return assignPositionAndFlags(node, rubyNode);
     }
 
-    private static boolean allPartsAreStringNodes(Nodes.InterpolatedStringNode node) {
+    private boolean allPartsAreStringNodesAndHaveSourceEncoding(Nodes.InterpolatedStringNode node) {
         for (var part : node.parts) {
-            if (!(part instanceof Nodes.StringNode)) {
+            if (!(part instanceof Nodes.StringNode stringNode)) {
+                return false;
+            }
+
+            // check all the possible force-encoding flags - forced encoding should equal the source encoding
+
+            if (stringNode.isForcedBinaryEncoding() && sourceEncoding != Encodings.BINARY) {
+                return false;
+            }
+
+            if (stringNode.isForcedUtf8Encoding() && sourceEncoding != Encodings.UTF_8) {
                 return false;
             }
         }
+
         return true;
     }
 
