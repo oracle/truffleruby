@@ -2749,7 +2749,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             // Translate as Rational.convert(numerator, denominator).
 
             // Assume float literal is in the ddd.ddd format and
-            // scientific format (e.g. 1.23e10) is not valid in Rational literals
+            // scientific format (e.g. 1.23e10) is not valid in Rational literals.
+            // Also assume a Float literal could be only decimal (so 0x1.2r literal is invalid).
             String string = toString(floatNode).replaceAll("_", ""); // remove '_' characters
             int pointIndex = string.indexOf('.');
             assert pointIndex != -1; // float literal in Ruby must contain '.'
@@ -2758,7 +2759,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             assert fractionLength > 0;
 
             String numerator = string.replace(".", ""); // remove float point
-            numeratorNode = translateIntegerLiteralString(numerator);
+            numeratorNode = translateIntegerLiteralString(numerator, 10); // string literal may have leading "0" (e.g. for 0.1r) so specify base explicitly
 
             String denominator = "1" + "0".repeat(fractionLength);
             denominatorNode = translateIntegerLiteralString(denominator);
@@ -3850,13 +3851,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     // parse Integer literal ourselves
     // See https://github.com/ruby/yarp/issues/1098
-    private RubyNode translateIntegerLiteralString(String string) {
+    private RubyNode translateIntegerLiteralString(String string, int base) {
         final RubyNode rubyNode;
         TruffleString tstring = toTString(string);
 
         Object numeratorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring,
                 sourceEncoding,
-                0,
+                base,
                 true);
 
         if (numeratorInteger instanceof Integer i) {
@@ -3870,6 +3871,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         return rubyNode;
+    }
+
+    private RubyNode translateIntegerLiteralString(String string) {
+        return translateIntegerLiteralString(string, 0); // detect base automatically
     }
 
 }
