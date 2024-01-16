@@ -91,6 +91,17 @@ module Truffle
       end
     end
 
+    # MRI: inspect_frozen_obj
+    def self.inspect_frozen_object(object)
+      string = nil
+
+      return '...' if Truffle::ThreadOperations.detect_recursion object do
+        string = Truffle::Type.rb_inspect(object)
+      end
+
+      string
+    end
+
     # default implementation of Exception#detailed_message hook
     def self.detailed_message(exception, highlight)
       message = StringValue exception.message.to_s

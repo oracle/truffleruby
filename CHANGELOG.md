@@ -17,6 +17,7 @@ Bug fixes:
 * The arguments of `Thread.new(*args, &block)` need to be marked as shared between multiple threads (#3179, @eregon).
 * Fix `Range#bsearch` and raise `TypeError` when range boundaries are non-numeric and block not passed (@andrykonchin).
 * Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
+* Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
 
 Compatibility:
 
