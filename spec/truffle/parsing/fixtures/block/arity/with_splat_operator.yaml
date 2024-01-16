@@ -184,8 +184,10 @@ ast: |
                                                                       ReadPostArgumentNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              hasRest = true
                                                                               indexFromCount = 1
                                                                               keywordArguments = false
+                                                                              optional = 0
                                                                               required = 4
                                                           WriteLocalVariableNode
                                                               attributes:
@@ -196,8 +198,10 @@ ast: |
                                                                       ReadPostArgumentNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              hasRest = true
                                                                               indexFromCount = 2
                                                                               keywordArguments = false
+                                                                              optional = 0
                                                                               required = 4
                                                       ]
                                           thenBody =

@@ -45,7 +45,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     private final Nodes.ParametersNode parameters;
     private int index; // position of actual argument in a frame that is being evaluated/read
-                      // to match a read node and actual argument
+                       // to match a read node and actual argument
     private State state; // to distinguish pre and post Nodes.RequiredParameterNode parameters
 
     private final RubyLanguage language;
@@ -125,10 +125,8 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             }
         }
 
-        if (hasKeywordArguments()) {
-            for (var node : parameters.keywords) {
-                sequence.add(node.accept(this)); // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
-            }
+        for (var node : parameters.keywords) {
+            sequence.add(node.accept(this)); // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
         }
 
         if (parameters.keyword_rest != null) {
@@ -172,7 +170,8 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
                             isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
 
         } else if (state == YARPLoadArgumentsTranslator.State.POST) {
-            readNode = new ReadPostArgumentNode(-index, hasKeywordArguments(), getRequiredCount());
+            readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
+                    hasKeywordArguments());
         } else {
             throw new IllegalStateException();
         }
@@ -204,7 +203,8 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
                             isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
 
         } else if (state == YARPLoadArgumentsTranslator.State.POST) {
-            readNode = new ReadPostArgumentNode(-index, hasKeywordArguments(), getRequiredCount());
+            readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
+                    hasKeywordArguments());
         } else {
             throw new IllegalStateException();
         }
@@ -322,8 +322,16 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return parameters.requireds.length + parameters.posts.length;
     }
 
+    private int getOptionalCount() {
+        return parameters.optionals.length;
+    }
+
     private boolean hasKeywordArguments() {
         return parameters.keywords.length != 0 || parameters.keyword_rest != null;
+    }
+
+    private boolean hasRest() {
+        return parameters.rest != null;
     }
 
 }
