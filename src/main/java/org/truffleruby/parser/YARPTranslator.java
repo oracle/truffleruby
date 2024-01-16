@@ -1096,6 +1096,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         final DefineClassNode defineOrGetClass = new DefineClassNode(node.name, lexicalParent, superClass);
+        assignPositionOnly(node, defineOrGetClass); // to assign source location to a new constant
 
         final RubyNode rubyNode = openModule(
                 node,
@@ -2599,6 +2600,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode lexicalParent = translateCPath(node.constant_path);
 
         final DefineModuleNode defineModuleNode = DefineModuleNodeGen.create(node.name, lexicalParent);
+        assignPositionOnly(node, defineModuleNode); // to assign source location to a new constant
 
         final RubyNode rubyNode = openModule(
                 node,
