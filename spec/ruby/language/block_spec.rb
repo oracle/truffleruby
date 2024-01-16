@@ -40,6 +40,28 @@ describe "A block yielded a single" do
       m([1, 2]) { |a=5, b, c, d| [a, b, c, d] }.should == [5, 1, 2, nil]
     end
 
+    it "assigns elements to pre arguments" do
+      m([1, 2]) { |a, b, c, d=5| [a, b, c, d] }.should == [1, 2, nil, 5]
+    end
+
+    it "assigns elements to pre and post arguments" do
+      m([1               ]) { |a, b=5, c=6, d, e| [a, b, c, d, e] }.should == [1, 5, 6, nil, nil]
+      m([1, 2            ]) { |a, b=5, c=6, d, e| [a, b, c, d, e] }.should == [1, 5, 6, 2, nil]
+      m([1, 2, 3         ]) { |a, b=5, c=6, d, e| [a, b, c, d, e] }.should == [1, 5, 6, 2, 3]
+      m([1, 2, 3, 4      ]) { |a, b=5, c=6, d, e| [a, b, c, d, e] }.should == [1, 2, 6, 3, 4]
+      m([1, 2, 3, 4, 5   ]) { |a, b=5, c=6, d, e| [a, b, c, d, e] }.should == [1, 2, 3, 4, 5]
+      m([1, 2, 3, 4, 5, 6]) { |a, b=5, c=6, d, e| [a, b, c, d, e] }.should == [1, 2, 3, 4, 5]
+    end
+
+    it "assigns elements to pre and post arguments when *rest is present" do
+      m([1               ]) { |a, b=5, c=6, *d, e, f| [a, b, c, d, e, f] }.should == [1, 5, 6, [], nil, nil]
+      m([1, 2            ]) { |a, b=5, c=6, *d, e, f| [a, b, c, d, e, f] }.should == [1, 5, 6, [], 2, nil]
+      m([1, 2, 3         ]) { |a, b=5, c=6, *d, e, f| [a, b, c, d, e, f] }.should == [1, 5, 6, [], 2, 3]
+      m([1, 2, 3, 4      ]) { |a, b=5, c=6, *d, e, f| [a, b, c, d, e, f] }.should == [1, 2, 6, [], 3, 4]
+      m([1, 2, 3, 4, 5   ]) { |a, b=5, c=6, *d, e, f| [a, b, c, d, e, f] }.should == [1, 2, 3, [], 4, 5]
+      m([1, 2, 3, 4, 5, 6]) { |a, b=5, c=6, *d, e, f| [a, b, c, d, e, f] }.should == [1, 2, 3, [4], 5, 6]
+    end
+
     ruby_version_is "3.2" do
       it "does not autosplat single argument to required arguments when a keyword rest argument is present" do
         m([1, 2]) { |a, **k| [a, k] }.should == [[1, 2], {}]
@@ -368,7 +390,6 @@ describe "A block" do
 
       -> { @y.s(obj) { |a, b| } }.should raise_error(ZeroDivisionError)
     end
-
   end
 
   describe "taking |a, *b| arguments" do
