@@ -331,13 +331,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         try (Context context = builder.build()) {
             Metrics.printTime("before-run");
 
-            Value rubyHome = context.eval(source(
-                    // language=ruby
-                    "Truffle::Boot.ruby_home"));
-            if (rubyHome.isString()) {
-                this.rubyHome = rubyHome.asString();
-            }
-
             if (config.executionAction == ExecutionAction.PATH) {
                 final Source source = source(// language=ruby
                         "-> name { Truffle::Boot.find_s_file(name) }");
@@ -368,6 +361,17 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final long argv = getNativeArgv();
             final String kind = config.executionAction.name();
             final int processStatus = context.eval(source).execute(argc, argv, kind, config.toExecute).asInt();
+
+            if (ProcessStatus.isSignal(processStatus)) {
+                // Only fetch the ruby home when necessary, because chromeinspector tests
+                // currently only work with a single Context#eval.
+                Value rubyHome = context.eval(source(// language=ruby
+                        "Truffle::Boot.ruby_home"));
+                if (rubyHome.isString()) {
+                    this.rubyHome = rubyHome.asString();
+                }
+            }
+
             Metrics.printTime("after-run");
             return processStatus;
         } catch (PolyglotException e) {
