@@ -60,7 +60,7 @@ describe "MatchData#byteoffset" do
       m.byteoffset(obj).should == [3, 6]
     end
 
-    it "raises IndexError if there is no group with provided name" do
+    it "raises IndexError if there is no group with the provided name" do
       m = /(?<f>foo)(?<b>bar)/.match("foobar")
 
       -> {
