@@ -10,6 +10,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
@@ -22,6 +23,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -3616,13 +3618,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return source.createSection(yarpNode.startOffset, yarpNode.length);
     }
 
-    public static RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
+    public RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
         assignPositionOnly(yarpNode, rubyNode);
         copyNewlineFlag(yarpNode, rubyNode);
         return rubyNode;
     }
 
-    public static RubyNode assignPositionAndFlagsIfMissing(Nodes.Node yarpNode, RubyNode rubyNode) {
+    public RubyNode assignPositionAndFlagsIfMissing(Nodes.Node yarpNode, RubyNode rubyNode) {
         if (rubyNode.hasSource()) {
             return rubyNode;
         }
@@ -3645,8 +3647,16 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         rubyNode.unsafeSetSourceSection(first.startOffset, length);
     }
 
-    private static void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
+    private void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
         if (yarpNode.hasNewLineFlag()) {
+            TruffleSafepoint.poll(DummyNode.INSTANCE);
+
+            if (environment.getParseEnvironment().isCoverageEnabled()) {
+                rubyNode.unsafeSetIsCoverageLine();
+                int startLine = environment.getParseEnvironment().yarpSource.line(yarpNode.startOffset);
+                language.coverageManager.setLineHasCode(source, startLine);
+            }
+
             rubyNode.unsafeSetIsNewLine();
         }
     }
