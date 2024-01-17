@@ -66,6 +66,7 @@ class MatchData
   def captures
     to_a[1..-1]
   end
+  alias_method :deconstruct, :captures
 
   def names
     regexp.names
