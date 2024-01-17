@@ -44,6 +44,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.prism.ParsingOptions;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
@@ -432,13 +433,22 @@ public final class YARPTranslatorDriver {
         byte[] sourceBytes = rubySource.getBytes();
         org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
 
+        byte[] filepath;
+        int line = rubySource.getLineOffset() + 1;
+        byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().name.toString()); // encoding name is supposed to contain only ASCII characters
+        boolean frozenStringLiteral = configuration.isFrozenStringLiteral();
+        boolean verbose = true;
         // Use CRuby syntax version 0 - it's the latest. We should select 3.3.0 instead.
         // But https://github.com/ruby/prism/pull/2118#discussion_r1445987020, so latest for now.
-        Parser.ParsingOptions options;
+        byte version = (byte) 0;
+        byte[][][] scopes;
+
         if (rubySource.isEval()) {
+            filepath = rubySource.getSourcePath().getBytes(rubySource.getEncoding().jcoding.getCharset()); // encoding of the eval's String argument
+
             int scopesCount = localVariableNames.size();
             Charset sourceCharset = rubySource.getEncoding().jcoding.getCharset();
-            byte[][][] scopes = new byte[scopesCount][][];
+            scopes = new byte[scopesCount][][];
 
             for (int i = 0; i < scopesCount; i++) {
                 // Local variables are in order from inner scope to outer one, but Prism expects order from outer to inner.
@@ -453,28 +463,16 @@ public final class YARPTranslatorDriver {
                 scopes[i] = namesBytes;
             }
 
-            options = new Parser.ParsingOptions(
-                    rubySource.getSourcePath().getBytes(rubySource.getEncoding().jcoding.getCharset()), // encoding of the eval's String argument
-                    rubySource.getLineOffset() + 1,
-                    StringOperations.encodeAsciiBytes(rubySource.getEncoding().name.toString()), // encoding name is supposed to contain only ASCII characters
-                    configuration.isFrozenStringLiteral(),
-                    false, // isSuppressWarnings,
-                    (byte) 0,
-                    scopes);
         } else {
             assert localVariableNames.isEmpty(); // parsing of the whole source file cannot have outer scopes
 
-            options = new Parser.ParsingOptions(
-                    rubySource.getSourcePath().getBytes(StandardCharsets.UTF_8), // filesystem encoding, that is supposed to be always UTF-8
-                    rubySource.getLineOffset() + 1,
-                    StringOperations.encodeAsciiBytes(rubySource.getEncoding().name.toString()), // encoding name is supposed to contain only ASCII characters
-                    configuration.isFrozenStringLiteral(),
-                    false, // isSuppressWarnings,
-                    (byte) 0,
-                    new byte[0][][]);
+            filepath = rubySource.getSourcePath().getBytes(StandardCharsets.UTF_8); // filesystem encoding, that is supposed to be always UTF-8
+            scopes = new byte[0][][];
         }
 
-        byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, options);
+        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, verbose,
+                version, scopes);
+        byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         Nodes.Source yarpSource = createYARPSource(sourceBytes, rubySource);
         parseEnvironment.yarpSource = yarpSource;
