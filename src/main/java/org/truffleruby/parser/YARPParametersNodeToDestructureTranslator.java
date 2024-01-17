@@ -18,15 +18,14 @@ import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArraySliceNodeGen;
+import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
+import org.truffleruby.language.arguments.ReadBlockOptionalArgumentFromArrayNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
-import org.truffleruby.language.arguments.ReadKeywordRestArgumentNode;
+import org.truffleruby.language.arguments.ReadBlockPostArgumentFromArrayNode;
 import org.truffleruby.language.arguments.SaveMethodBlockNode;
-import org.truffleruby.language.control.IfElseNodeGen;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
-import org.truffleruby.language.methods.Arity;
 
 
 /** Translates block's Nodes.ParametersNode to destructure a block's single Array argument.
@@ -41,40 +40,45 @@ import org.truffleruby.language.methods.Arity;
  * Based on org.truffleruby.parser.YARPLoadArgumentsTranslator */
 public final class YARPParametersNodeToDestructureTranslator extends AbstractNodeVisitor<RubyNode> {
 
-    private final Nodes.ParametersNode parameters;
-    private final RubyNode readArrayNode;
-    private final TranslatorEnvironment environment;
-    private final RubyLanguage language;
-    private final Arity arity;
     private final YARPTranslator yarpTranslator;
 
-    private int index; // position of actual argument in a frame that is being evaluated/read
-                      // to match a read node and actual argument
+    private enum State {
+        PRE,
+        OPT,
+        POST
+    }
+
+    private final Nodes.ParametersNode parameters;
+    /** position of actual argument in a frame that is being evaluated/read to match a read node and actual argument */
+    private int index;
+    /** to distinguish pre and post Nodes.RequiredParameterNode parameters */
+    private State state;
+
+    private final RubyLanguage language;
+    private final TranslatorEnvironment environment;
+
+    private final RubyNode readArrayNode;
 
     public YARPParametersNodeToDestructureTranslator(
             Nodes.ParametersNode parameters,
             RubyNode readArrayNode,
             TranslatorEnvironment environment,
             RubyLanguage language,
-            Arity arity,
             YARPTranslator yarpTranslator) {
         this.parameters = parameters;
         this.readArrayNode = readArrayNode;
         this.environment = environment;
         this.language = language;
-        this.arity = arity;
         this.yarpTranslator = yarpTranslator;
     }
 
     public RubyNode translate() {
-        assert parameters != null;
-        assert parameters.requireds.length + parameters.optionals.length + parameters.posts.length > 0;
-
         final List<RubyNode> sequence = new ArrayList<>();
 
         sequence.add(Translator.loadSelf(language));
 
         if (parameters.requireds.length > 0) {
+            state = State.PRE;
             index = 0;
             for (var node : parameters.requireds) {
                 sequence.add(node.accept(this)); // Nodes.RequiredParameterNode is expected here
@@ -102,6 +106,7 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         }
 
         if (parameters.posts.length > 0) {
+            state = State.POST;
             index = -1;
 
             for (int i = parameters.posts.length - 1; i >= 0; i--) {
@@ -110,10 +115,8 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
             }
         }
 
-        if (parameters.keywords.length != 0) {
-            for (var node : parameters.keywords) {
-                sequence.add(node.accept(this)); // Nodes.KeywordParameterNode is expected here
-            }
+        for (var node : parameters.keywords) {
+            sequence.add(node.accept(this)); // Nodes.OptionalKeywordParameterNode is expected here
         }
 
         if (parameters.keyword_rest != null) {
@@ -130,7 +133,17 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     @Override
     public RubyNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
-        final RubyNode readNode = ArrayIndexNodes.ReadConstantIndexNode.create(readArrayNode, index);
+        final RubyNode readNode;
+
+        if (state == State.PRE) {
+            readNode = ArrayIndexNodes.ReadConstantIndexNode.create(readArrayNode, index);
+        } else if (state == State.POST) {
+            readNode = new ReadBlockPostArgumentFromArrayNode(readArrayNode, -index, getRequiredCount(),
+                    getOptionalCount(), hasRest());
+        } else {
+            throw new IllegalStateException();
+        }
+
         final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, readNode);
         final RubyNode rubyNode = translator.translate();
         return rubyNode;
@@ -147,7 +160,18 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     @Override
     public RubyNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
-        final RubyNode readNode = ArrayIndexNodes.ReadConstantIndexNode.create(readArrayNode, index);
+        final RubyNode readNode;
+
+        if (state == State.PRE) {
+            readNode = ArrayIndexNodes.ReadConstantIndexNode.create(readArrayNode, index);
+        } else if (state == State.POST) {
+            readNode = new ReadBlockPostArgumentFromArrayNode(readArrayNode, -index, getRequiredCount(),
+                    getOptionalCount(), hasRest());
+        } else {
+            throw new IllegalStateException();
+        }
+
+
         final int slot = environment.findFrameSlot(node.name);
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -156,8 +180,10 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
         final int slot = environment.declareVar(node.name);
         final var defaultValue = node.value.accept(this);
-        final var readNode = ReadKeywordArgumentNode.create(language.getSymbol(node.name), defaultValue);
-        return new WriteLocalVariableNode(slot, readNode);
+
+        // keyword arguments couldn't be passed to a block in case of destructuring single Array argument,
+        // so assign default value directly
+        return new WriteLocalVariableNode(slot, defaultValue);
     }
 
     @Override
@@ -168,17 +194,16 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         int minimum = index + 1 + parameters.posts.length;
 
         // TODO CS 10-Jan-16 we should really hoist this check, or see if Graal does it for us
-        readNode = IfElseNodeGen.create(
-                new ArrayIsAtLeastAsLargeAsNode(minimum, readArrayNode),
-                ArrayIndexNodes.ReadConstantIndexNode.create(readArrayNode, index),
-                defaultValue);
+        readNode = new ReadBlockOptionalArgumentFromArrayNode(readArrayNode, index, minimum, defaultValue);
 
         return new WriteLocalVariableNode(slot, readNode);
     }
 
     @Override
     public RubyNode visitRestParameterNode(Nodes.RestParameterNode node) {
-        // NOTE: we actually could do nothing if parameter is anonymous
+        // NOTE: we actually could do nothing if parameter is anonymous as far as
+        // the only reason to store value of anonymous rest in a local variable is
+        // to forward in but forwarding doesn't work in blocks
         final RubyNode readNode;
 
         int from = parameters.requireds.length + parameters.optionals.length;
@@ -200,12 +225,13 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         // NOTE: we actually could do nothing if parameter is anonymous
         //      as far as this translator handles a block parameters only,
         //      but anonymous keyword rest forwarding doesn't work in blocks
-        final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
         final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
         final int slot = environment.declareVar(name);
 
-        // NOTE: actually we can immediately assign `{}` value
-        return new WriteLocalVariableNode(slot, readNode);
+        // keyword arguments couldn't be passed to a block in case of destructuring single Array argument,
+        // so immediately assign `{}` value
+        final var valueNode = HashLiteralNode.create(RubyNode.EMPTY_ARRAY, language);
+        return new WriteLocalVariableNode(slot, valueNode);
     }
 
     @Override
@@ -230,8 +256,20 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
 
     @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
-        // For normal expressions in the default value for optional arguments, use the normal body translator
+        // translate default values of optional positional and keyword arguments
         return node.accept(yarpTranslator);
+    }
+
+    private int getRequiredCount() {
+        return parameters.requireds.length + parameters.posts.length;
+    }
+
+    private int getOptionalCount() {
+        return parameters.optionals.length;
+    }
+
+    private boolean hasRest() {
+        return parameters.rest != null;
     }
 
 }

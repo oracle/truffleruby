@@ -170,7 +170,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
                     readArrayNode,
                     environment,
                     language,
-                    arity,
                     this);
             final RubyNode newDestructureArguments = translator.translate();
 

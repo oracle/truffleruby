@@ -20,15 +20,13 @@ notes: >
           (ArrayIndexNodesFactory$ReadConstantIndexNodeGen index = 0
             (ReadLocalVariableNode frameSlot = 3)))
         (WriteLocalVariableNode frameSlot = 2
-          (IfElseNode
-            (ArrayIsAtLeastAsLargeAsNode requiredSize = 2                   # condition
-              (ReadLocalVariableNode frameSlot = 3))
-            (ArrayIndexNodesFactory$ReadConstantIndexNodeGen index = 1)     # then
-              (ReadLocalVariableNode frameSlot = 3))
-            (IntegerFixnumLiteralNode value = 42)))                         # else
+          (ReadBlockOptionalArgumentFromArrayNode index = 1
+            (ReadLocalVariableNode frameSlot = 3)                   # %destructure_1
+            (IntegerFixnumLiteralNode value = 42)))                 # default
 
       ordinal parameters processing without destructing             # else branch
     )
+yarp_specific: true # use ReadBlockOptionalArgumentFromArrayNode for optional parameters at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |foo, bar = 42|
@@ -223,39 +221,23 @@ ast: |
                                                                   frameSlot = 2 # bar
                                                               children:
                                                                   valueNode =
-                                                                      IfElseNodeGen
+                                                                      ReadBlockOptionalArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              index = 1
+                                                                              minimum = 2
                                                                           children:
-                                                                              condition =
-                                                                                  ArrayIsAtLeastAsLargeAsNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          requiredSize = 2
-                                                                                      children:
-                                                                                          child =
-                                                                                              ReadLocalVariableNode
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                                      frameSlot = 3 # %destructure_1
-                                                                                                      type = FRAME_LOCAL
-                                                                              elseBody =
+                                                                              defaultValue =
                                                                                   IntegerFixnumLiteralNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           value = 42
-                                                                              thenBody =
-                                                                                  ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                              readArrayNode =
+                                                                                  ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          index = 1
-                                                                                      children:
-                                                                                          arrayNode_ =
-                                                                                              ReadLocalVariableNode
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                                                                      frameSlot = 3 # %destructure_1
-                                                                                                      type = FRAME_LOCAL
+                                                                                          frameSlot = 3 # %destructure_1
+                                                                                          type = FRAME_LOCAL
                                                       ]
                                   NilLiteralNode
                                       attributes:

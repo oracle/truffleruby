@@ -280,12 +280,15 @@ ast: |
                                                                   frameSlot = 4 # f
                                                               children:
                                                                   valueNode =
-                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                      ReadBlockPostArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              index = -1
+                                                                              hasRest = true
+                                                                              indexFromCount = 1
+                                                                              optional = 0
+                                                                              required = 4
                                                                           children:
-                                                                              arrayNode_ =
+                                                                              readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
@@ -297,12 +300,15 @@ ast: |
                                                                   frameSlot = 3 # d
                                                               children:
                                                                   valueNode =
-                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                      ReadBlockPostArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              index = -2
+                                                                              hasRest = true
+                                                                              indexFromCount = 2
+                                                                              optional = 0
+                                                                              required = 4
                                                                           children:
-                                                                              arrayNode_ =
+                                                                              readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
