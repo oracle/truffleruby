@@ -43,15 +43,15 @@ public class Parser {
             final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
             // path
-            output.writeBytes(serializeInt(path.length));
-            output.writeBytes(path);
+            write(output, serializeInt(path.length));
+            write(output, path);
 
             // line number
-            output.writeBytes(serializeInt(startLineNumber));
+            write(output, serializeInt(startLineNumber));
 
             // encoding
-            output.writeBytes(serializeInt(encoding.length));
-            output.writeBytes(encoding);
+            write(output, serializeInt(encoding.length));
+            write(output, encoding);
 
             // isFrozenStringLiteral
             if (isFrozenStringLiteral) {
@@ -73,20 +73,25 @@ public class Parser {
             // scopes
 
             // number of scopes
-            output.writeBytes(serializeInt(scopes.length));
+            write(output, serializeInt(scopes.length));
             // local variables in each scope
             for (byte[][] scope : scopes) {
                 // number of locals
-                output.writeBytes(serializeInt(scope.length));
+                write(output, serializeInt(scope.length));
 
                 // locals
                 for (byte[] local : scope) {
-                    output.writeBytes(serializeInt(local.length));
-                    output.writeBytes(local);
+                    write(output, serializeInt(local.length));
+                    write(output, local);
                 }
             }
 
             return output.toByteArray();
+        }
+
+        private static void write(ByteArrayOutputStream output, byte[] bytes) {
+            // Note: we cannot use output.writeBytes(local) because that's Java 11
+            output.write(bytes, 0, bytes.length);
         }
 
         private byte[] serializeInt(int n) {
