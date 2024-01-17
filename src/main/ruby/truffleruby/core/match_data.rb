@@ -68,6 +68,24 @@ class MatchData
   end
   alias_method :deconstruct, :captures
 
+  def deconstruct_keys(array_of_names)
+    Truffle::Type.rb_check_type(array_of_names, Array) unless Primitive.nil?(array_of_names)
+
+    hash = named_captures.transform_keys(&:to_sym)
+    return hash if Primitive.nil?(array_of_names)
+
+    ret = {}
+    return ret if array_of_names.size > hash.size
+
+    array_of_names.each do |key|
+      Truffle::Type.rb_check_type(key, Symbol)
+      break unless hash.key?(key)
+      ret[key] = hash[key]
+    end
+
+    ret
+  end
+
   def names
     regexp.names
   end
