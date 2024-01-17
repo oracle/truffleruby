@@ -32,6 +32,8 @@ import org.prism.Nodes;
 
 public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
 
+    private static final short NO_FLAGS = YARPTranslator.NO_FLAGS;
+
     private final Arity arity;
     private final boolean isProc; // block or lambda/method
     private final boolean isMethod; // method or proc
@@ -44,9 +46,10 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     }
 
     private final Nodes.ParametersNode parameters;
-    private int index; // position of actual argument in a frame that is being evaluated/read
-                       // to match a read node and actual argument
-    private State state; // to distinguish pre and post Nodes.RequiredParameterNode parameters
+    /** position of actual argument in a frame that is being evaluated/read to match a read node and actual argument */
+    private int index;
+    /** to distinguish pre and post Nodes.RequiredParameterNode parameters */
+    private State state;
 
     private final RubyLanguage language;
     private final TranslatorEnvironment environment;
@@ -301,9 +304,10 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         ArrayList<RubyNode> sequence = new ArrayList<>();
 
         // desugar ... to *, **, and & parameters
-        final var rest = new Nodes.RestParameterNode(TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
-        final var keyrest = new Nodes.KeywordRestParameterNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
-        final var block = new Nodes.BlockParameterNode(TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
+        final var rest = new Nodes.RestParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
+        final var keyrest = new Nodes.KeywordRestParameterNode(NO_FLAGS,
+                TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
+        final var block = new Nodes.BlockParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
 
         sequence.add(rest.accept(this));
         sequence.add(keyrest.accept(this));

@@ -198,7 +198,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
-    protected static final short NO_FLAGS = 0;
+    public static final short NO_FLAGS = 0;
 
     private boolean translatingWhile = false;
 
@@ -511,7 +511,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
             for (int i = 1; i <= maximum; i++) {
                 String name = numberedParameterNames[i];
-                requireds[i - 1] = new Nodes.RequiredParameterNode(name, 0, 0);
+                requireds[i - 1] = new Nodes.RequiredParameterNode(NO_FLAGS, name, 0, 0);
             }
 
             parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
@@ -1665,7 +1665,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public RubyNode visitForNode(Nodes.ForNode node) {
         final String parameterName = environment.allocateLocalTemp("for");
 
-        final var requireds = new Nodes.Node[]{ new Nodes.RequiredParameterNode(parameterName, 0, 0) };
+        final var requireds = new Nodes.Node[]{ new Nodes.RequiredParameterNode(NO_FLAGS, parameterName, 0, 0) };
         final var parameters = new Nodes.ParametersNode(requireds, Nodes.Node.EMPTY_ARRAY, null, Nodes.Node.EMPTY_ARRAY,
                 Nodes.Node.EMPTY_ARRAY, null, null, 0, 0);
         final var blockParameters = new Nodes.BlockParametersNode(parameters, Nodes.Node.EMPTY_ARRAY, 0, 0);
