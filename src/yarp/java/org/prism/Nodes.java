@@ -533,6 +533,49 @@ public abstract class Nodes {
     }
 
     /**
+     * Flags for parameter nodes.
+     */
+    public static final class ParameterFlags implements Comparable<ParameterFlags> {
+
+        // a parameter name that has been repeated in the method signature
+        public static final short REPEATED_PARAMETER = 1 << 0;
+
+        public static boolean isRepeatedParameter(short flags) {
+            return (flags & REPEATED_PARAMETER) != 0;
+        }
+
+        private final short flags;
+
+        public ParameterFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ParameterFlags)) {
+                return false;
+            }
+
+            return flags == ((ParameterFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(ParameterFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isRepeatedParameter() {
+            return (flags & REPEATED_PARAMETER) != 0;
+        }
+
+    }
+
+    /**
      * Flags for range and flip-flop nodes.
      */
     public static final class RangeFlags implements Comparable<RangeFlags> {
@@ -1268,7 +1311,34 @@ public abstract class Nodes {
      *       ^^^^^^
      */
     public static final class AssocNode extends Node {
+        /**
+         * <pre>
+         * The key of the association. This can be any node that represents a non-void expression.
+         *
+         *     { a: b }
+         *       ^
+         *
+         *     { foo => bar }
+         *       ^^^
+         *
+         *     { def a; end => 1 }
+         *       ^^^^^^^^^^
+         * </pre>
+         */
         public final Node key;
+        /**
+         * <pre>
+         * The value of the association, if present. This can be any node that
+         * represents a non-void expression. It can be optionally omitted if this
+         * node is an element in a `HashPatternNode`.
+         *
+         *     { foo => bar }
+         *              ^^^
+         *
+         *     { x: 1 }
+         *          ^
+         * </pre>
+         */
         @Nullable
         public final Node value;
 
@@ -1319,6 +1389,15 @@ public abstract class Nodes {
      *       ^^^^^
      */
     public static final class AssocSplatNode extends Node {
+        /**
+         * <pre>
+         * The value to be splatted, if present. Will be missing when keyword
+         * rest argument forwarding is used.
+         *
+         *     { **foo }
+         *         ^^^
+         * </pre>
+         */
         @Nullable
         public final Node value;
 
@@ -1530,13 +1609,19 @@ public abstract class Nodes {
      *            ^
      */
     public static final class BlockLocalVariableNode extends Node {
+        public final short flags;
         public final String name;
 
-        public BlockLocalVariableNode(String name, int startOffset, int length) {
+        public BlockLocalVariableNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1557,6 +1642,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
@@ -1642,14 +1731,20 @@ public abstract class Nodes {
      *     end
      */
     public static final class BlockParameterNode extends Node {
+        public final short flags;
         @Nullable
         public final String name;
 
-        public BlockParameterNode(String name, int startOffset, int length) {
+        public BlockParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1670,6 +1765,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
@@ -4377,6 +4476,17 @@ public abstract class Nodes {
      *     ^^^^^^^^^^
      */
     public static final class HashNode extends Node {
+        /**
+         * <pre>
+         * The elements of the hash. These can be either `AssocNode`s or `AssocSplatNode`s.
+         *
+         *     { a: b }
+         *       ^^^^
+         *
+         *     { **foo }
+         *       ^^^^^
+         * </pre>
+         */
         public final Node[] elements;
 
         public HashNode(Node[] elements, int startOffset, int length) {
@@ -5916,14 +6026,20 @@ public abstract class Nodes {
      *     end
      */
     public static final class KeywordRestParameterNode extends Node {
+        public final short flags;
         @Nullable
         public final String name;
 
-        public KeywordRestParameterNode(String name, int startOffset, int length) {
+        public KeywordRestParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -5944,6 +6060,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
@@ -7051,15 +7171,21 @@ public abstract class Nodes {
      *     end
      */
     public static final class OptionalKeywordParameterNode extends Node {
+        public final short flags;
         public final String name;
         public final Node value;
 
-        public OptionalKeywordParameterNode(String name, Node value, int startOffset, int length) {
+        public OptionalKeywordParameterNode(short flags, String name, Node value, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
             this.value = value;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -7082,6 +7208,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
@@ -7100,15 +7230,21 @@ public abstract class Nodes {
      *     end
      */
     public static final class OptionalParameterNode extends Node {
+        public final short flags;
         public final String name;
         public final Node value;
 
-        public OptionalParameterNode(String name, Node value, int startOffset, int length) {
+        public OptionalParameterNode(short flags, String name, Node value, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
             this.value = value;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -7130,6 +7266,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
@@ -7590,9 +7730,46 @@ public abstract class Nodes {
      *          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
      */
     public static final class RangeNode extends Node {
+        /**
+         * <pre>
+         * A flag indicating whether the range excludes the end value.
+         *
+         *     1..3  # includes 3
+         *
+         *     1...3 # excludes 3
+         * </pre>
+         */
         public final short flags;
+        /**
+         * <pre>
+         * The left-hand side of the range, if present. Can be either `nil` or
+         * a node representing any kind of expression that returns a non-void
+         * value.
+         *
+         *     1...
+         *     ^
+         *
+         *     hello...goodbye
+         *     ^^^^^
+         * </pre>
+         */
         @Nullable
         public final Node left;
+        /**
+         * <pre>
+         * The right-hand side of the range, if present. Can be either `nil` or
+         * a node representing any kind of expression that returns a non-void
+         * value.
+         *
+         *     ..5
+         *       ^
+         *
+         *     1...foo
+         *         ^^^
+         * If neither right-hand or left-hand side was included, this will be a
+         * MissingNode.
+         * </pre>
+         */
         @Nullable
         public final Node right;
 
@@ -7825,13 +8002,19 @@ public abstract class Nodes {
      *     end
      */
     public static final class RequiredKeywordParameterNode extends Node {
+        public final short flags;
         public final String name;
 
-        public RequiredKeywordParameterNode(String name, int startOffset, int length) {
+        public RequiredKeywordParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -7853,6 +8036,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
@@ -7868,13 +8055,19 @@ public abstract class Nodes {
      *     end
      */
     public static final class RequiredParameterNode extends Node {
+        public final short flags;
         public final String name;
 
-        public RequiredParameterNode(String name, int startOffset, int length) {
+        public RequiredParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -7895,6 +8088,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
@@ -8050,14 +8247,20 @@ public abstract class Nodes {
      *     end
      */
     public static final class RestParameterNode extends Node {
+        public final short flags;
         @Nullable
         public final String name;
 
-        public RestParameterNode(String name, int startOffset, int length) {
+        public RestParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -8078,6 +8281,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append(this.name == null ? "null" : "\"" + this.name + "\"");

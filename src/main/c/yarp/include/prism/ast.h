@@ -1289,16 +1289,42 @@ typedef struct pm_assoc_node {
 
     /**
      * AssocNode#key
+     *
+     * The key of the association. This can be any node that represents a non-void expression.
+     *
+     *     { a: b }
+     *       ^
+     *
+     *     { foo => bar }
+     *       ^^^
+     *
+     *     { def a; end => 1 }
+     *       ^^^^^^^^^^
      */
     struct pm_node *key;
 
     /**
      * AssocNode#value
+     *
+     * The value of the association, if present. This can be any node that
+     * represents a non-void expression. It can be optionally omitted if this
+     * node is an element in a `HashPatternNode`.
+     *
+     *     { foo => bar }
+     *              ^^^
+     *
+     *     { x: 1 }
+     *          ^
      */
     struct pm_node *value;
 
     /**
      * AssocNode#operator_loc
+     *
+     * The location of the `=>` operator, if present.
+     *
+     *     { foo => bar }
+     *           ^^
      */
     pm_location_t operator_loc;
 } pm_assoc_node_t;
@@ -1316,11 +1342,22 @@ typedef struct pm_assoc_splat_node {
 
     /**
      * AssocSplatNode#value
+     *
+     * The value to be splatted, if present. Will be missing when keyword
+     * rest argument forwarding is used.
+     *
+     *     { **foo }
+     *         ^^^
      */
     struct pm_node *value;
 
     /**
      * AssocSplatNode#operator_loc
+     *
+     * The location of the `**` operator.
+     *
+     *     { **x }
+     *       ^^
      */
     pm_location_t operator_loc;
 } pm_assoc_splat_node_t;
@@ -1410,6 +1447,8 @@ typedef struct pm_block_argument_node {
  * BlockLocalVariableNode
  *
  * Type: PM_BLOCK_LOCAL_VARIABLE_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -1469,6 +1508,8 @@ typedef struct pm_block_node {
  * BlockParameterNode
  *
  * Type: PM_BLOCK_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -3043,16 +3084,34 @@ typedef struct pm_hash_node {
 
     /**
      * HashNode#opening_loc
+     *
+     * The location of the opening brace.
+     *
+     *     { a => b }
+     *     ^
      */
     pm_location_t opening_loc;
 
     /**
      * HashNode#elements
+     *
+     * The elements of the hash. These can be either `AssocNode`s or `AssocSplatNode`s.
+     *
+     *     { a: b }
+     *       ^^^^
+     *
+     *     { **foo }
+     *       ^^^^^
      */
     struct pm_node_list elements;
 
     /**
      * HashNode#closing_loc
+     *
+     * The location of the closing brace.
+     *
+     *     { a => b }
+     *              ^
      */
     pm_location_t closing_loc;
 } pm_hash_node_t;
@@ -3798,6 +3857,8 @@ typedef struct pm_keyword_hash_node {
  * KeywordRestParameterNode
  *
  * Type: PM_KEYWORD_REST_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4417,6 +4478,8 @@ typedef struct pm_numbered_reference_read_node {
  * OptionalKeywordParameterNode
  *
  * Type: PM_OPTIONAL_KEYWORD_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4444,6 +4507,8 @@ typedef struct pm_optional_keyword_parameter_node {
  * OptionalParameterNode
  *
  * Type: PM_OPTIONAL_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4728,16 +4793,40 @@ typedef struct pm_range_node {
 
     /**
      * RangeNode#left
+     *
+     * The left-hand side of the range, if present. Can be either `nil` or
+     * a node representing any kind of expression that returns a non-void
+     * value.
+     *
+     *     1...
+     *     ^
+     *
+     *     hello...goodbye
+     *     ^^^^^
      */
     struct pm_node *left;
 
     /**
      * RangeNode#right
+     *
+     * The right-hand side of the range, if present. Can be either `nil` or
+     * a node representing any kind of expression that returns a non-void
+     * value.
+     *
+     *     ..5
+     *       ^
+     *
+     *     1...foo
+     *         ^^^
+     * If neither right-hand or left-hand side was included, this will be a
+     * MissingNode.
      */
     struct pm_node *right;
 
     /**
      * RangeNode#operator_loc
+     *
+     * The location of the `..` or `...` operator.
      */
     pm_location_t operator_loc;
 } pm_range_node_t;
@@ -4819,6 +4908,8 @@ typedef struct pm_regular_expression_node {
  * RequiredKeywordParameterNode
  *
  * Type: PM_REQUIRED_KEYWORD_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4841,6 +4932,8 @@ typedef struct pm_required_keyword_parameter_node {
  * RequiredParameterNode
  *
  * Type: PM_REQUIRED_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4927,6 +5020,8 @@ typedef struct pm_rescue_node {
  * RestParameterNode
  *
  * Type: PM_REST_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -5541,6 +5636,14 @@ typedef enum pm_loop_flags {
     /** a loop after a begin statement, so the body is executed first before the condition */
     PM_LOOP_FLAGS_BEGIN_MODIFIER = 1,
 } pm_loop_flags_t;
+
+/**
+ * Flags for parameter nodes.
+ */
+typedef enum pm_parameter_flags {
+    /** a parameter name that has been repeated in the method signature */
+    PM_PARAMETER_FLAGS_REPEATED_PARAMETER = 1,
+} pm_parameter_flags_t;
 
 /**
  * Flags for range and flip-flop nodes.
