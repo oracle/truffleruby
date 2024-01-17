@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
@@ -30,6 +31,10 @@ import org.truffleruby.language.methods.Arity;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 
+/** Translates method/block parameters and assign local variables.
+ *
+ * Parameters should be iterated in the same order {@link org.truffleruby.parser.YARPReloadArgumentsTranslator} iterates
+ * to handle multiple "_" parameters (and parameters with "_" prefix) correctly. */
 public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
 
     private static final short NO_FLAGS = YARPTranslator.NO_FLAGS;
@@ -47,9 +52,10 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     private final Nodes.ParametersNode parameters;
     /** position of actual argument in a frame that is being evaluated/read to match a read node and actual argument */
-    private int index;
+    private int index = 0;
     /** to distinguish pre and post Nodes.RequiredParameterNode parameters */
     private State state;
+    private int repeatedParameterCounter = 2;
 
     private final RubyLanguage language;
     private final TranslatorEnvironment environment;
@@ -86,9 +92,8 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
         if (parameters.requireds.length > 0) {
             state = State.PRE;
-            index = 0;
             for (var node : parameters.requireds) {
-                sequence.add(node.accept(this)); // Nodes.RequiredParameterNode is expected here
+                sequence.add(node.accept(this)); // Nodes.RequiredParameterNode, Nodes.MultiTargetNode are expected here
                 index++;
             }
         }
@@ -100,7 +105,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         }
 
         if (parameters.optionals.length > 0) {
-            index = parameters.requireds.length;
             for (var node : parameters.optionals) {
                 sequence.add(node.accept(this)); // Nodes.OptionalParameterNode is expected here
                 index++;
@@ -123,7 +127,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             index = -1;
 
             for (int i = parameters.posts.length - 1; i >= 0; i--) {
-                sequence.add(parameters.posts[i].accept(this)); // Nodes.RequiredParameterNode is expected here
+                sequence.add(parameters.posts[i].accept(this)); // Nodes.RequiredParameterNode, Nodes.MultiTargetNode are expected here
                 index--;
             }
         }
@@ -212,7 +216,14 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             throw new IllegalStateException();
         }
 
-        final int slot = environment.findFrameSlot(node.name);
+        final int slot;
+        if (node.isRepeatedParameter()) {
+            String name = createNameForRepeatedParameter(node.name);
+            slot = environment.declareVar(name);
+        } else {
+            slot = environment.findFrameSlot(node.name);
+        }
+
         return new WriteLocalVariableNode(slot, readNode);
     }
 
@@ -230,7 +241,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     public RubyNode visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
         final RubyNode readNode;
         final RubyNode defaultValue = node.value.accept(this);
-        final int slot = environment.declareVar(node.name);
         int minimum = index + 1 + parameters.posts.length;
 
         readNode = new ReadOptionalArgumentNode(
@@ -238,6 +248,14 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
                 minimum,
                 hasKeywordArguments(),
                 defaultValue);
+
+        final int slot;
+        if (node.isRepeatedParameter()) {
+            String name = createNameForRepeatedParameter(node.name);
+            slot = environment.declareVar(name);
+        } else {
+            slot = environment.findFrameSlot(node.name);
+        }
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -250,12 +268,22 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         int to = -parameters.posts.length;
         readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments());
 
-        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_REST_NAME;
+        final int slot;
 
-        // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
-        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
-        // declare this hidden variable beforehand. So declare it here right before usage.
-        final int slot = environment.declareVar(name);
+        if (node.name != null) {
+            if (node.isRepeatedParameter()) {
+                String name = createNameForRepeatedParameter(node.name);
+                slot = environment.declareVar(name);
+            } else {
+                slot = environment.findFrameSlot(node.name);
+            }
+        } else {
+            // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
+            // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
+            // declare this hidden variable beforehand. So declare it here right before usage.
+            String name = TranslatorEnvironment.DEFAULT_REST_NAME;
+            slot = environment.declareVar(name);
+        }
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -336,6 +364,11 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     private boolean hasRest() {
         return parameters.rest != null;
+    }
+
+    private String createNameForRepeatedParameter(String name) {
+        int count = repeatedParameterCounter++;
+        return Layouts.TEMP_PREFIX + name + count;
     }
 
 }
