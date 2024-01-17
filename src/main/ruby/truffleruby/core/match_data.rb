@@ -155,7 +155,7 @@ class MatchData
       end
       names_to_backref[index.to_sym].last
     else
-      Truffle::Type.coerce_to(index, Integer, :to_int)
+      Primitive.rb_to_int(index)
     end
   end
 end

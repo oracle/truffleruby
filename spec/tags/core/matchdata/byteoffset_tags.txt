@@ -1,1 +1,0 @@
-fails:MatchData#byteoffset raises TypeError if can't convert argument into Integer
