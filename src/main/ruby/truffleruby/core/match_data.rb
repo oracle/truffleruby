@@ -40,6 +40,11 @@ class MatchData
     undef_method :allocate
   end
 
+  def byteoffset(idx)
+    backref = backref_from_arg(idx)
+    [Primitive.match_data_byte_begin(self, backref), Primitive.match_data_byte_end(self, backref)]
+  end
+
   def offset(idx)
     [self.begin(idx), self.end(idx)]
   end
@@ -71,26 +76,12 @@ class MatchData
   end
 
   def begin(index)
-    backref = if Primitive.is_a?(index, String) || Primitive.is_a?(index, Symbol)
-                names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
-                names_to_backref[index.to_sym].last
-              else
-                Truffle::Type.coerce_to(index, Integer, :to_int)
-              end
-
-
+    backref = backref_from_arg(index)
     Primitive.match_data_begin(self, backref)
   end
 
   def end(index)
-    backref = if Primitive.is_a?(index, String) || Primitive.is_a?(index, Symbol)
-                names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
-                names_to_backref[index.to_sym].last
-              else
-                Truffle::Type.coerce_to(index, Integer, :to_int)
-              end
-
-
+    backref = backref_from_arg(index)
     Primitive.match_data_end(self, backref)
   end
 
@@ -152,6 +143,20 @@ class MatchData
 
   def to_s
     self[0]
+  end
+
+  private
+
+  def backref_from_arg(index)
+    if Primitive.is_a?(index, String) || Primitive.is_a?(index, Symbol)
+      names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
+      unless names_to_backref.key?(index.to_sym)
+        raise IndexError, "undefined group name reference: #{index}"
+      end
+      names_to_backref[index.to_sym].last
+    else
+      Truffle::Type.coerce_to(index, Integer, :to_int)
+    end
   end
 end
 

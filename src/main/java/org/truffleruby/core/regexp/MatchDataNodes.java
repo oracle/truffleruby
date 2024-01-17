@@ -627,6 +627,14 @@ public abstract class MatchDataNodes {
             }
         }
 
+        @TruffleBoundary
+        @Specialization(guards = "!inBounds(matchData, index)")
+        Object byteBeginError(RubyMatchData matchData, int index) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
+        }
+
         protected boolean inBounds(RubyMatchData matchData, int index) {
             return index >= 0 && index < matchData.region.numRegs;
         }
@@ -647,6 +655,14 @@ public abstract class MatchDataNodes {
             } else {
                 return end;
             }
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "!inBounds(matchData, index)")
+        Object byteEndError(RubyMatchData matchData, int index) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
         protected boolean inBounds(RubyMatchData matchData, int index) {
