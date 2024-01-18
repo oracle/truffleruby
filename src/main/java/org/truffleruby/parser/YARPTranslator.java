@@ -374,12 +374,18 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                             }
 
                             final RubyNode splatTranslated = translateNodeOrNil(splatNode.expression);
-                            RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
+
+                            RubyNode translatedBody;
 
                             if (rescueClause.reference != null) {
+                                // translate body after reference as far as reference could be used inside body
+                                // and if it's a local variable - it should be declared before reading
                                 final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
+                                translatedBody = translateNodeOrNil(rescueClause.statements);
                                 translatedBody = sequence(rescueClause,
                                         Arrays.asList(exceptionWriteNode, translatedBody));
+                            } else {
+                                translatedBody = translateNodeOrNil(rescueClause.statements);
                             }
 
                             final RescueNode rescueNode = new RescueSplatNode(language, splatTranslated,
@@ -401,11 +407,17 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                     }
                 } else {
                     // exception class isn't specified explicitly so use Ruby StandardError class
-                    RubyNode translatedBody = translateNodeOrNil(rescueClause.statements);
+
+                    RubyNode translatedBody;
 
                     if (rescueClause.reference != null) {
-                        final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
+                        // translate body after reference as far as reference could be used inside body
+                        // and if it's a local variable - it should be declared before reading
+                        RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
+                        translatedBody = translateNodeOrNil(rescueClause.statements);
                         translatedBody = sequence(rescueClause, Arrays.asList(exceptionWriteNode, translatedBody));
+                    } else {
+                        translatedBody = translateNodeOrNil(rescueClause.statements);
                     }
 
                     final RescueStandardErrorNode rescueNode = new RescueStandardErrorNode(translatedBody);
