@@ -190,7 +190,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     @Override
     public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
+        final int slot = environment.findFrameSlot(node.name);
         final var name = language.getSymbol(node.name);
         final var readNode = ReadKeywordArgumentNode.create(name, null);
 
@@ -229,7 +229,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     @Override
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
+        final int slot = environment.findFrameSlot(node.name);
         final var name = language.getSymbol(node.name);
         final var value = node.value.accept(this);
         final var readNode = ReadKeywordArgumentNode.create(name, value);
@@ -296,12 +296,17 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
-        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+        final int slot;
 
-        // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
-        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
-        // hidden variable beforehand. So declare it here right before usage.
-        final int slot = environment.declareVar(name);
+        if (node.name != null) {
+            slot = environment.findFrameSlot(node.name);
+        } else {
+            // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
+            // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
+            // hidden variable beforehand. So declare it here right before usage.
+            final String name = TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+            slot = environment.declareVar(name);
+        }
 
         return new WriteLocalVariableNode(slot, readNode);
     }

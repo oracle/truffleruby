@@ -171,14 +171,13 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
             throw new IllegalStateException();
         }
 
-
         final int slot = environment.findFrameSlot(node.name);
         return new WriteLocalVariableNode(slot, readNode);
     }
 
     @Override
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
+        final int slot = environment.findFrameSlot(node.name);
         final var defaultValue = node.value.accept(this);
 
         // keyword arguments couldn't be passed to a block in case of destructuring single Array argument,
@@ -190,7 +189,7 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
     public RubyNode visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
         final RubyNode readNode;
         final RubyNode defaultValue = node.value.accept(this);
-        final int slot = environment.declareVar(node.name);
+        final int slot = environment.findFrameSlot(node.name);
         int minimum = index + 1 + parameters.posts.length;
 
         // TODO CS 10-Jan-16 we should really hoist this check, or see if Graal does it for us
@@ -225,8 +224,14 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
         // NOTE: we actually could do nothing if parameter is anonymous
         //      as far as this translator handles a block parameters only,
         //      but anonymous keyword rest forwarding doesn't work in blocks
-        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
-        final int slot = environment.declareVar(name);
+        final int slot;
+
+        if (node.name != null) {
+            slot = environment.findFrameSlot(node.name);
+        } else {
+            final String name = TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+            slot = environment.declareVar(name);
+        }
 
         // keyword arguments couldn't be passed to a block in case of destructuring single Array argument,
         // so immediately assign `{}` value
