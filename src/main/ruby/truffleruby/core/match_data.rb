@@ -169,13 +169,14 @@ class MatchData
   def backref_from_arg(index)
     if Primitive.is_a?(index, String) || Primitive.is_a?(index, Symbol)
       names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
-      unless names_to_backref.key?(index.to_sym)
-        raise IndexError, "undefined group name reference: #{index}"
-      end
-      names_to_backref[index.to_sym].last
-    else
-      Primitive.rb_to_int(index)
+      key = index.to_sym
+
+      raise IndexError, "undefined group name reference: #{index}" unless names_to_backref.key?(key)
+
+      return names_to_backref[key].last
     end
+
+    Primitive.rb_to_int(index)
   end
 end
 
