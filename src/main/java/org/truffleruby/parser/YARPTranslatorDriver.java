@@ -580,6 +580,11 @@ public final class YARPTranslatorDriver {
             lineOffsets[line - 1] = source.getLineStartOffset(line);
         }
 
+        // Nodes.Source expects at least one line, but there are no any line in empty Ruby source file
+        if (lineOffsets.length == 0) {
+            lineOffsets = new int[]{ 0 };
+        }
+
         return new Nodes.Source(sourceBytes, 1, lineOffsets);
     }
 
