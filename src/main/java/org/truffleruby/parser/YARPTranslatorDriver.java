@@ -49,7 +49,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.aot.ParserCache;
-import org.truffleruby.collections.Memo;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.binding.BindingNodes;
@@ -263,7 +262,6 @@ public final class YARPTranslatorDriver {
                 parserContext,
                 currentNode);
 
-        final Memo<RubyNode> beginNodeMemo = new Memo<>(null);
         RubyNode truffleNode;
         printParseTranslateExecuteMetric("before-translate", context, source);
         try {
@@ -271,17 +269,11 @@ public final class YARPTranslatorDriver {
                     "translating",
                     source.getName(),
                     () -> {
-                        // TODO: handle BEGIN {} blocks finally
-                        //                        if (node.getBeginNode() != null) {
-                        //                            beginNodeMemo.set(translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode()));
-                        //                        }
-                        //                        return translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
                         return node.accept(translator);
                     });
         } finally {
             printParseTranslateExecuteMetric("after-translate", context, source);
         }
-        RubyNode beginNode = beginNodeMemo.get();
 
         // Load arguments
         if (argumentNames != null && argumentNames.length > 0) {
@@ -330,12 +322,14 @@ public final class YARPTranslatorDriver {
                     WhileNodeFactory.WhileRepeatingNodeGen.create(new KernelGetsNode(), truffleNode));
         }
 
-        if (beginNode != null) {
-            truffleNode = Translator.sequence(
-                    sourceIndexLength,
-                    Arrays.asList(beginNode, truffleNode));
-        }
+        ArrayList<RubyNode> beginBlocks = translator.getBeginBlocks();
 
+        // add BEGIN {} blocks at the very beginning of the program
+        if (!beginBlocks.isEmpty()) {
+            ArrayList<RubyNode> sequence = new ArrayList<>(beginBlocks);
+            sequence.add(truffleNode);
+            truffleNode = Translator.sequence(sourceIndexLength, sequence);
+        }
 
         final RubyNode writeSelfNode = Translator.loadSelf(language);
         truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));

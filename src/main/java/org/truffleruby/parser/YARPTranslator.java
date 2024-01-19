@@ -248,6 +248,10 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return environment;
     }
 
+    public ArrayList<RubyNode> getBeginBlocks() {
+        return beginBlocks;
+    }
+
     public RubyRootNode translate(Nodes.Node node) {
         var body = node.accept(this);
         var frameDescriptor = TranslatorEnvironment.newFrameDescriptorBuilderForMethod().build();
@@ -2734,13 +2738,11 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitProgramNode(Nodes.ProgramNode node) {
-        final RubyNode sequence = node.statements.accept(this);
-
-        // add BEGIN {} blocks at the very beginning of the program
-        ArrayList<RubyNode> nodes = new ArrayList<>(beginBlocks);
-        nodes.add(sequence);
-
-        return sequence(node, nodes);
+        // Don't prepend BEGIN blocks here because there are additional nodes prepended
+        // after program translation to handle Ruby's -l and -n command line options.
+        // So BEGIN blocks should precede these additional nodes at the very
+        // beginning of a program.
+        return node.statements.accept(this);
     }
 
     @Override
