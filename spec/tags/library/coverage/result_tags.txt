@@ -1,3 +1,6 @@
 fails:Coverage.result second Coverage.start give exception
-fails:Coverage.result indicates support for different features
 fails:Coverage.result returns the correct results when eval coverage is enabled
+fails:Coverage.result returns the correct results when eval coverage is disabled
+fails:Coverage.result returns results for each mode separately when enabled :all modes
+fails:Coverage.result clears counters (sets 0 values) when stop is not specified but clear: true specified
+fails:Coverage.result clears counters (sets 0 values) when stop: false and clear: true specified

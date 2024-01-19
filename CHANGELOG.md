@@ -29,6 +29,7 @@ Compatibility:
 * Set `RbConfig::CONFIG['configure_args']` for openssl and libyaml (#3170, #3303, @eregon).
 * Support `Socket.sockaddr_in(port, Socket::INADDR_ANY)` (#3361, @mtortonesi).
 * Implement the `Data` class from Ruby 3.2 (#3039, @moste00, @eregon).
+* Make `Coverage.start` and `Coverage.result` accept parameters (#3149, @mtortonesi, @andrykonchin).
 
 Performance:
 
