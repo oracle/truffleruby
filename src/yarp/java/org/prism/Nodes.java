@@ -1052,7 +1052,31 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^^
      */
     public static final class AndNode extends Node {
+        /**
+         * <pre>
+         * Represents the left side of the expression. It can be any kind of node
+         * that represents a non-void expression.
+         *
+         *     left and right
+         *     ^^^^
+         *
+         *     1 && 2
+         *     ^
+         * </pre>
+         */
         public final Node left;
+        /**
+         * <pre>
+         * Represents the right side of the expression. It can be any kind of
+         * node that represents a non-void expression.
+         *
+         *     left && right
+         *             ^^^^^
+         *
+         *     1 and 2
+         *           ^
+         * </pre>
+         */
         public final Node right;
 
         public AndNode(Node left, Node right, int startOffset, int length) {
@@ -1313,7 +1337,8 @@ public abstract class Nodes {
     public static final class AssocNode extends Node {
         /**
          * <pre>
-         * The key of the association. This can be any node that represents a non-void expression.
+         * The key of the association. This can be any node that represents a
+         * non-void expression.
          *
          *     { a: b }
          *       ^
@@ -1657,8 +1682,8 @@ public abstract class Nodes {
     /**
      * Represents a block of ruby code.
      *
-     * [1, 2, 3].each { |i| puts x }
-     *                ^^^^^^^^^^^^^^
+     *     [1, 2, 3].each { |i| puts x }
+     *                    ^^^^^^^^^^^^^^
      */
     public static final class BlockNode extends Node {
         public final String[] locals;
@@ -3395,7 +3420,8 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to a constant in a context that doesn't have an explicit value.
+     * Represents writing to a constant in a context that doesn't have an
+     * explicit value.
      *
      *     Foo, Bar = baz
      *     ^^^  ^^^
@@ -5511,22 +5537,6 @@ public abstract class Nodes {
      *     ^
      */
     public static final class IntegerNode extends Node {
-        /**
-         * <pre>
-         * Represents flag indicating the base of the integer
-         *
-         *     10    base decimal, value 10
-         *     0d10  base decimal, value 10
-         *     0b10  base binary, value 2
-         *     0o10  base octal, value 8
-         *     010   base octal, value 8
-         *     0x10  base hexidecimal, value 16
-         *
-         * A 0 prefix indicates the number has a different base.
-         * The d, b, o, and x prefixes indicate the base. If one of those
-         * four letters is omitted, the base is assumed to be octal.
-         * </pre>
-         */
         public final short flags;
 
         public IntegerNode(short flags, int startOffset, int length) {
@@ -6312,7 +6322,8 @@ public abstract class Nodes {
     /**
      * Represents reading a local variable. Note that this requires that a local
      * variable of the same name has already been written to in the same scope,
-     * otherwise it is parsed as a method call.
+     * otherwise it is parsed as a method call. Note that `it` default parameter
+     * has `0it` as the name of this node.
      *
      *     foo
      *     ^^^
@@ -7288,7 +7299,31 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^
      */
     public static final class OrNode extends Node {
+        /**
+         * <pre>
+         * Represents the left side of the expression. It can be any kind of node
+         * that represents a non-void expression.
+         *
+         *     left or right
+         *     ^^^^
+         *
+         *     1 || 2
+         *     ^
+         * </pre>
+         */
         public final Node left;
+        /**
+         * <pre>
+         * Represents the right side of the expression. It can be any kind of
+         * node that represents a non-void expression.
+         *
+         *     left || right
+         *             ^^^^^
+         *
+         *     1 or 2
+         *          ^
+         * </pre>
+         */
         public final Node right;
 
         public OrNode(Node left, Node right, int startOffset, int length) {
@@ -7730,15 +7765,6 @@ public abstract class Nodes {
      *          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
      */
     public static final class RangeNode extends Node {
-        /**
-         * <pre>
-         * A flag indicating whether the range excludes the end value.
-         *
-         *     1..3  # includes 3
-         *
-         *     1...3 # excludes 3
-         * </pre>
-         */
         public final short flags;
         /**
          * <pre>

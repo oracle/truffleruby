@@ -1172,16 +1172,39 @@ typedef struct pm_and_node {
 
     /**
      * AndNode#left
+     *
+     * Represents the left side of the expression. It can be any kind of node
+     * that represents a non-void expression.
+     *
+     *     left and right
+     *     ^^^^
+     *
+     *     1 && 2
+     *     ^
      */
     struct pm_node *left;
 
     /**
      * AndNode#right
+     *
+     * Represents the right side of the expression. It can be any kind of
+     * node that represents a non-void expression.
+     *
+     *     left && right
+     *             ^^^^^
+     *
+     *     1 and 2
+     *           ^
      */
     struct pm_node *right;
 
     /**
      * AndNode#operator_loc
+     *
+     * The location of the `and` keyword or the `&&` operator.
+     *
+     *     left and right
+     *          ^^^
      */
     pm_location_t operator_loc;
 } pm_and_node_t;
@@ -1290,7 +1313,8 @@ typedef struct pm_assoc_node {
     /**
      * AssocNode#key
      *
-     * The key of the association. This can be any node that represents a non-void expression.
+     * The key of the association. This can be any node that represents a
+     * non-void expression.
      *
      *     { a: b }
      *       ^
@@ -4550,16 +4574,39 @@ typedef struct pm_or_node {
 
     /**
      * OrNode#left
+     *
+     * Represents the left side of the expression. It can be any kind of node
+     * that represents a non-void expression.
+     *
+     *     left or right
+     *     ^^^^
+     *
+     *     1 || 2
+     *     ^
      */
     struct pm_node *left;
 
     /**
      * OrNode#right
+     *
+     * Represents the right side of the expression. It can be any kind of
+     * node that represents a non-void expression.
+     *
+     *     left || right
+     *             ^^^^^
+     *
+     *     1 or 2
+     *          ^
      */
     struct pm_node *right;
 
     /**
      * OrNode#operator_loc
+     *
+     * The location of the `or` keyword or the `||` operator.
+     *
+     *     left or right
+     *          ^^
      */
     pm_location_t operator_loc;
 } pm_or_node_t;
