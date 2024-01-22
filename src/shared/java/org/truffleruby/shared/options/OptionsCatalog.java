@@ -165,7 +165,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> RUN_TWICE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(RUN_TWICE_KEY.getDefaultValue());
     public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> PRISM_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PRISM_KEY = new OptionKey<>(true);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
             .newBuilder(LOAD_PATHS_KEY, "ruby.load-paths")

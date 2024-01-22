@@ -129,7 +129,7 @@ public final class LanguageOptions {
     public final boolean RUN_TWICE;
     /** --experimental-engine-caching=RUN_TWICE */
     public final boolean EXPERIMENTAL_ENGINE_CACHING;
-    /** --prism=false */
+    /** --prism=true */
     public final boolean PRISM;
 
     public LanguageOptions(Env env, OptionValues options, boolean singleContext) {

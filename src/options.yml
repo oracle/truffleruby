@@ -265,4 +265,4 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Options for the regular expression engines
     COMPARE_REGEX_ENGINES: [compare-regex-engines, boolean, false, 'Uses both Joni and the TRegex engine and compares their results']
 
-    PRISM: [prism, boolean, false, 'Use Prism as the parser for Ruby code']
+    PRISM: [prism, boolean, true, 'Use Prism as the parser for Ruby code']
