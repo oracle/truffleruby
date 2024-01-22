@@ -627,7 +627,6 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
         Object byteBeginError(RubyMatchData matchData, int index) {
             throw new RaiseException(
@@ -657,7 +656,6 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
         Object byteEndError(RubyMatchData matchData, int index) {
             throw new RaiseException(
