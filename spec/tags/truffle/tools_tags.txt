@@ -2,3 +2,6 @@ slow:Tools --coverage is available and works
 slow:Tools --coverage works for internal sources
 slow:Tools --engine.TraceCompilation works and outputs to STDERR
 slow:Tools --cpusampler works if Thread#kill is used
+slow:Tools SIGQUIT shows Java stacktraces
+slow:Tools SIGALRM shows Ruby backtraces
+slow:Tools --cpusampler works if interrupted by Ctrl+C
