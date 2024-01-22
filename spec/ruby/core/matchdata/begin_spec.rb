@@ -37,7 +37,7 @@ describe "MatchData#begin" do
       match_data.begin(obj).should == 2
     end
 
-    it "raises IndexError if index is out of matches" do
+    it "raises IndexError if index is out of bounds" do
       match_data = /(?<f>foo)(?<b>bar)/.match("foobar")
 
       -> {

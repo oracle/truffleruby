@@ -72,7 +72,7 @@ describe "MatchData#byteoffset" do
       }.should raise_error(IndexError, "undefined group name reference: y")
     end
 
-    it "raises IndexError if index is out of matches" do
+    it "raises IndexError if index is out of bounds" do
       m = /(?<f>foo)(?<b>bar)/.match("foobar")
 
       -> {
