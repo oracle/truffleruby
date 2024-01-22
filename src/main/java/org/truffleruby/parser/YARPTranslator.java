@@ -167,6 +167,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_REST_NAME;
@@ -1895,7 +1896,21 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                             .create(keyValues.toArray(RubyNode.EMPTY_ARRAY), language);
                     hashConcats.add(hashLiteralSoFar);
                 }
-                hashConcats.add(HashCastNodeGen.HashCastASTNodeGen.create(assocSplatNode.value.accept(this)));
+
+                final RubyNode valueNode;
+
+                if (assocSplatNode.value != null) {
+                    valueNode = assocSplatNode.value.accept(this);
+                } else {
+                    // forwarding ** in a method call, e.g.
+                    //   def foo(**)
+                    //     bar(**)
+                    //   end
+                    valueNode = environment.findLocalVarNode(DEFAULT_KEYWORD_REST_NAME, null);
+                    assert valueNode != null : "keyrest forwarding local variable should be declared";
+                }
+
+                hashConcats.add(HashCastNodeGen.HashCastASTNodeGen.create(valueNode));
                 keyValues.clear();
             } else if (pair instanceof Nodes.AssocNode assocNode) {
                 RubyNode keyNode = assocNode.key.accept(this);
@@ -3018,8 +3033,23 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSplatNode(Nodes.SplatNode node) {
-        final RubyNode value = translateNodeOrNil(node.expression);
-        final RubyNode rubyNode = SplatCastNodeGen.create(language, SplatCastNode.NilBehavior.CONVERT, false, value);
+        final RubyNode rubyNode;
+
+        if (node.expression != null) {
+            final RubyNode valueNode = node.expression.accept(this);
+            rubyNode = SplatCastNodeGen.create(language, SplatCastNode.NilBehavior.CONVERT, false,
+                    valueNode);
+        } else {
+            // forwarding * in a method call, e.g.
+            //   def foo(*)
+            //     bar(*)
+            //   end
+
+            // no need for SplatCastNodeGen for * because it's always an Array and cannot be reassigned
+            rubyNode = environment.findLocalVarNode(DEFAULT_REST_NAME, null);
+            assert rubyNode != null : "rest forwarding local variable should be declared";
+        }
+
         return assignPositionAndFlags(node, rubyNode);
     }
 
