@@ -32,6 +32,11 @@ NO_RETURN_FUNCTIONS = %w[
   rb_tr_not_implemented
 ]
 
+RETURN_STRUCT_BY_VALUE = {
+  'rb_time_timeval' => 'rb_tr_time_timeval',
+  'rb_time_timespec' => 'rb_tr_time_timespec',
+}
+
 type_regexp = /\b(?:(?:const|unsigned|volatile|struct|enum)\s+)*\w+\b(?:\s+const)?(?:\s*\*+\s*)?/
 function_pointer_arg_regexp = /\b\w+\s*\(\*(\w+)\)\s*\([^)]*?\)/
 argument_regexp = /\bvoid\b|\.\.\.|#{type_regexp}\s*(\w+)(?:\[\d*\])?|#{function_pointer_arg_regexp}/
@@ -65,7 +70,7 @@ functions.each do |declaration, return_type, function_name, argument_types|
   if declaration.include? "\n"
     abort "This declaration includes newlines but should not:\n#{declaration}\n\n"
   end
-  if struct_by_value? return_type
+  if struct_by_value?(return_type) and !RETURN_STRUCT_BY_VALUE.include?(function_name)
     abort "Returning a struct by value from Sulong to NFI is not supported for:\n#{declaration}"
   end
 end
@@ -183,12 +188,15 @@ C
 
   f.puts "\n// Functions\n\n"
   functions.each do |declaration, return_type, function_name, argument_types|
+    next if RETURN_STRUCT_BY_VALUE.include?(function_name)
     f.puts "#undef #{function_name}"
     f.puts "static #{declaration.sub(/\{$/, '').rstrip.sub(function_name, "(*impl_#{function_name})")};"
   end
   f.puts
 
   functions.each do |declaration, return_type, function_name, argument_types|
+    next if RETURN_STRUCT_BY_VALUE.include?(function_name)
+
     argument_names = argument_types.delete_prefix('(').delete_suffix(')')
     argument_names = argument_names.scan(/(?:^|,)\s*(#{argument_regexp})\s*(?=,|$)/o)
     argument_names = argument_names.map { |full_arg, name1, name2|
@@ -238,12 +246,31 @@ C
   end
 
   f.puts <<C
+// Return struct-by-value functions
+
+struct timeval rb_time_timeval(VALUE time) {
+  struct timeval result;
+  rb_tr_time_timeval(time, &result);
+  return result;
+}
+
+struct timespec rb_time_timespec(VALUE time) {
+  struct timespec result;
+  rb_tr_time_timespec(time, &result);
+  return result;
+}
+
+C
+
+  f.puts <<C
 // Init functions
+
 void rb_tr_trampoline_init_functions(TruffleEnv* env, void* (*get_libtruffleruby_function)(const char*)) {
   nfiContext = (*env)->getTruffleContext(env);
 
 C
   functions.each do |declaration, return_type, function_name, argument_types|
+    next if RETURN_STRUCT_BY_VALUE.include?(function_name)
     f.puts "  impl_#{function_name} = get_libtruffleruby_function(\"#{function_name}\");"
   end
   f.puts "}"
