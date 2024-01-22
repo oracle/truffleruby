@@ -30,6 +30,7 @@ Compatibility:
 * Support `Socket.sockaddr_in(port, Socket::INADDR_ANY)` (#3361, @mtortonesi).
 * Implement the `Data` class from Ruby 3.2 (#3039, @moste00, @eregon).
 * Make `Coverage.start` and `Coverage.result` accept parameters (#3149, @mtortonesi, @andrykonchin).
+* Implement `rb_check_funcall()` (@eregon).
 
 Performance:
 

@@ -49,6 +49,13 @@ VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *arg
     polyglot_from_VALUE_array(args, args_count)));
 }
 
+VALUE rb_check_funcall(VALUE object, ID name, int args_count, const VALUE *args) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_check_funcall",
+    rb_tr_unwrap(object),
+    rb_tr_unwrap(ID2SYM(name)),
+    rb_tr_unwrap(rb_ary_new_from_values(args_count, args))));
+}
+
 VALUE rb_apply(VALUE object, ID name, VALUE args) {
   return RUBY_CEXT_INVOKE("rb_apply", object, ID2SYM(name), args);
 }
