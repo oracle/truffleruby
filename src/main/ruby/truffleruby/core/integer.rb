@@ -88,6 +88,10 @@ class Integer < Numeric
     ((self / x) + 1) * x
   end
 
+  def ceildiv(other)
+    -div(-other)
+  end
+
   def coerce(other)
     if Primitive.is_a?(other, Integer)
       return [other, self]
