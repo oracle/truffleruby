@@ -3376,6 +3376,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     private ModuleBodyDefinition compileClassNode(Nodes.Node moduleNode, Nodes.Node bodyNode) {
         RubyNode body = translateNodeOrNil(bodyNode);
         body = new InsideModuleDefinitionNode(body);
+        assignPositionOnly(moduleNode, body); // source location is needed to trigger :class TracePoint event
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(Arrays.asList(initFlipFlopStates(environment), body));
