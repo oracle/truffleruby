@@ -314,12 +314,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
     }
 
     private boolean shouldConsiderDestructuringArrayArg(Arity arity) {
-        if (arity.getRequired() == 1 && arity.getOptional() == 0 && !arity.hasRest() && arity.hasKeywordsRest()) {
-            // Special case for: proc { |a, **kw| a }.call([1, 2]) => 1
-            // Seems inconsistent: https://bugs.ruby-lang.org/issues/16166#note-14
-            return true;
-        }
-
         if (!arity.hasRest() && arity.getRequired() + arity.getOptional() <= 1) {
             // If we accept at most 0 or 1 arguments, there's never any need to destructure
             return false;

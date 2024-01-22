@@ -66,12 +66,32 @@ describe "A block yielded a single" do
       it "does not autosplat single argument to required arguments when a keyword rest argument is present" do
         m([1, 2]) { |a, **k| [a, k] }.should == [[1, 2], {}]
       end
+
+      it "does not autosplat single argument to required arguments when keyword arguments are present" do
+        m([1, 2]) { |a, b: :b, c: :c| [a, b, c] }.should == [[1, 2], :b, :c]
+      end
+
+      it "raises error when required keyword arguments are present" do
+        -> {
+          m([1, 2]) { |a, b:, c:| [a, b, c] }
+        }.should raise_error(ArgumentError, "missing keywords: :b, :c")
+      end
     end
 
     ruby_version_is ''..."3.2" do
       # https://bugs.ruby-lang.org/issues/18633
       it "autosplats single argument to required arguments when a keyword rest argument is present" do
         m([1, 2]) { |a, **k| [a, k] }.should == [1, {}]
+      end
+
+      it "autosplats single argument to required arguments when optional keyword arguments are present" do
+        m([1, 2]) { |a, b: :b, c: :c| [a, b, c] }.should == [1, :b, :c]
+      end
+
+      it "raises error when required keyword arguments are present" do
+        -> {
+          m([1, 2]) { |a, b:, c:| [a, b, c] }
+        }.should raise_error(ArgumentError, "missing keywords: :b, :c")
       end
     end
 
