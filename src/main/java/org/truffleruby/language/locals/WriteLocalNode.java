@@ -11,17 +11,16 @@ package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.debug.SingleMemberDescriptor;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceAssignableNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags.WriteVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 
-public abstract class WriteLocalNode extends RubyContextSourceNode implements AssignableNode {
+public abstract class WriteLocalNode extends RubyContextSourceAssignableNode {
 
     protected final int frameSlot;
 
