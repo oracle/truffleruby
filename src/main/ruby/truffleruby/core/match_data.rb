@@ -79,8 +79,9 @@ class MatchData
 
     array_of_names.each do |key|
       Truffle::Type.rb_check_type(key, Symbol)
-      break unless hash.key?(key)
-      ret[key] = hash[key]
+      value = Primitive.hash_get_or_undefined(hash, key)
+      break if Primitive.undefined?(value)
+      ret[key] = value
     end
 
     ret
