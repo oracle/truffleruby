@@ -438,10 +438,10 @@ public final class YARPTranslatorDriver {
         byte[][][] scopes;
 
         if (rubySource.isEval()) {
-            filepath = rubySource.getSourcePath().getBytes(rubySource.getEncoding().jcoding.getCharset()); // encoding of the eval's String argument
+            Charset sourceCharset = rubySource.getEncoding().jcoding.getCharset();
+            filepath = rubySource.getSourcePath().getBytes(sourceCharset); // encoding of the eval's String argument
 
             int scopesCount = localVariableNames.size();
-            Charset sourceCharset = rubySource.getEncoding().jcoding.getCharset();
             scopes = new byte[scopesCount][][];
 
             for (int i = 0; i < scopesCount; i++) {
