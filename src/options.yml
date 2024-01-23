@@ -21,7 +21,6 @@ LANGUAGE_OPTIONS:
 - ARRAY_UNINITIALIZED_SIZE
 - PACK_RECOVER_LOOP_MIN
 - PACK_UNROLL_LIMIT
-- NO_HOME_PROVIDED
 - COVERAGE_GLOBAL
 - BIG_HASH_STRATEGY_IS_BUCKETS
 # Inline cache sizes
@@ -72,7 +71,6 @@ USER:
 EXPERT:
   EXPERIMENTAL:
     # Setting home and launcher, useful for embedding
-    NO_HOME_PROVIDED: [no-home-provided, boolean, false, set to true to explicitly state that no home is provided (silences the warnings)]
     LAUNCHER: [launcher, string, ['', '<set by launcher>'], The location of the TruffleRuby launcher program]
     CORE_LOAD_PATH: [core-load-path, string, ['resource:/truffleruby', '<path, default is from cache>'], Location to load the Truffle core library from]
 

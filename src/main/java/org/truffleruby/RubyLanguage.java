@@ -455,11 +455,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
                 setRubyHome(findRubyHome(env));
+                loadLibYARPBindings();
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
                 primitiveManager.loadCoreMethodNodes(this.options);
-                loadLibYARPBindings();
             }
         }
 
@@ -496,7 +496,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
             if (context.isPreInitializing()) {
                 synchronized (this) {
-                    setRubyHome(null);
+                    resetRubyHome();
                     resetCleaner();
                 }
             }
@@ -531,6 +531,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         synchronized (this) {
             setRubyHome(findRubyHome(newEnv));
+            loadLibYARPBindings();
             setupCleaner();
         }
 
@@ -720,9 +721,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public String getPathRelativeToHome(String path) {
-        final String home = rubyHome;
-        if (home != null && path.startsWith(home) && path.length() > home.length()) {
-            return path.substring(home.length() + 1);
+        if (path.startsWith(rubyHome) && path.length() > rubyHome.length()) {
+            return path.substring(rubyHome.length() + 1);
         } else {
             return path;
         }
@@ -731,8 +731,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     private void setRubyHome(TruffleFile home) {
         assert Thread.holdsLock(this);
         rubyHomeTruffleFile = home;
-        rubyHome = home == null ? null : home.getPath();
-        cextPath = home == null ? null : rubyHome + "/lib/truffle/truffle/cext_ruby.rb";
+        rubyHome = home.getPath();
+        cextPath = rubyHome + "/lib/truffle/truffle/cext_ruby.rb";
+    }
+
+    private void resetRubyHome() {
+        assert Thread.holdsLock(this);
+        rubyHomeTruffleFile = null;
+        rubyHome = null;
+        cextPath = null;
     }
 
     private TruffleFile findRubyHome(Env env) {
@@ -745,11 +752,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     // Returns a canonical path to the home
     private TruffleFile searchRubyHome(Env env) {
-        if (options.NO_HOME_PROVIDED) {
-            LOGGER.config("--ruby.no-home-provided set");
-            return null;
-        }
-
         final String truffleReported = getLanguageHome();
         if (truffleReported != null) {
             var truffleReportedFile = env.getInternalTruffleFile(truffleReported);
@@ -781,11 +783,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
         }
 
-        LOGGER.warning(
-                String.format("Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home",
-                        truffleReported, homeResource));
-        LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
-        return null;
+        throw new Error("Could not find TruffleRuby's home - not possible to parse Ruby code" + String.format(
+                " (Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home).",
+                truffleReported, homeResource));
     }
 
     private boolean isRubyHome(TruffleFile path) {

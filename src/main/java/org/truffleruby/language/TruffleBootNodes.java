@@ -66,11 +66,7 @@ public abstract class TruffleBootNodes {
         @Specialization
         Object rubyHome() {
             final String home = getLanguage().getRubyHome();
-            if (home == null) {
-                return nil;
-            } else {
-                return createString(fromJavaStringNode, home, Encodings.UTF_8);
-            }
+            return createString(fromJavaStringNode, home, Encodings.UTF_8);
         }
 
     }

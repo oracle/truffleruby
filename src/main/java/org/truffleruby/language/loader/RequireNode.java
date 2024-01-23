@@ -316,7 +316,7 @@ public abstract class RequireNode extends RubyBaseNode {
             final String linkError = linkerException.getMessage();
             final String message;
             final String home = getLanguage().getRubyHome();
-            final String postInstallHook = (home != null ? home + "/" : "") + "lib/truffle/post_install_hook.sh";
+            final String postInstallHook = home + "/lib/truffle/post_install_hook.sh";
 
             // Mismatches between the libssl compiled against and the libssl used at runtime (typically on a different machine)
             if (feature.contains("openssl")) {

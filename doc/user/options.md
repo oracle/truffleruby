@@ -148,7 +148,6 @@ Other binaries, such as `irb`, `gem`, and so on, support exactly the same switch
 
 TruffleRuby needs to know where to locate files such as the standard library.
 These are stored in the TruffleRuby home directory.
-The Ruby home is always the one that the Truffle framework reports.
+The Ruby home is always either the one that the Truffle framework reports or the extracted internal resources.
 
-If the Ruby home appears not to be correct, or is unset, a warning will be given but the program will continue and you will not be able to require standard libraries.
-You can tell TruffleRuby not to try to find a home at all using the `no-home-provided` option.
+If the Ruby home appears not to be correct, or is unset, a exception will be thrown.

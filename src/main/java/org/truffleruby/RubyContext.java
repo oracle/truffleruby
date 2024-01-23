@@ -107,7 +107,6 @@ public final class RubyContext {
 
     @CompilationFinal public TruffleLogger logger;
     @CompilationFinal private Options options;
-    @CompilationFinal private boolean hadHome;
 
     private final SafepointManager safepointManager;
     private final CodeLoader codeLoader;
@@ -278,7 +277,6 @@ public final class RubyContext {
             // Cannot save the file descriptor in this SecureRandom in the image
             random = null;
             // Do not save image generator paths in the image heap
-            hadHome = language.getRubyHome() != null;
             featureLoader.setWorkingDirectory(null);
         } else {
             initialized = true;
@@ -296,8 +294,7 @@ public final class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
-        final String newHome = language.getRubyHome();
-        if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
+        if (!compatibleOptions(oldOptions, newOptions)) {
             return false;
         }
         this.options = newOptions;
@@ -363,13 +360,8 @@ public final class RubyContext {
         }
     }
 
-    private boolean compatibleOptions(Options oldOptions, Options newOptions, boolean hadHome, boolean hasHome) {
+    private boolean compatibleOptions(Options oldOptions, Options newOptions) {
         final String notReusingContext = "not reusing pre-initialized context: ";
-
-        if (hadHome != hasHome) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "Ruby home is " + (hasHome ? "set" : "unset"));
-            return false;
-        }
 
         // Libraries loaded during pre-initialization
 

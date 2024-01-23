@@ -29,7 +29,6 @@ public final class OptionsCatalog {
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<Integer> BACKTRACE_LIMIT_KEY = new OptionKey<>(-1);
-    public static final OptionKey<Boolean> NO_HOME_PROVIDED_KEY = new OptionKey<>(false);
     public static final OptionKey<String> LAUNCHER_KEY = new OptionKey<>("");
     public static final OptionKey<String> CORE_LOAD_PATH_KEY = new OptionKey<>("resource:/truffleruby");
     public static final OptionKey<Boolean> FROZEN_STRING_LITERALS_KEY = new OptionKey<>(false);
@@ -237,14 +236,6 @@ public final class OptionsCatalog {
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
             .usageSyntax("-1")
-            .build();
-
-    public static final OptionDescriptor NO_HOME_PROVIDED = OptionDescriptor
-            .newBuilder(NO_HOME_PROVIDED_KEY, "ruby.no-home-provided")
-            .help("set to true to explicitly state that no home is provided (silences the warnings)")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAUNCHER = OptionDescriptor
@@ -1355,8 +1346,6 @@ public final class OptionsCatalog {
                 return EXTERNAL_ENCODING;
             case "ruby.backtrace-limit":
                 return BACKTRACE_LIMIT;
-            case "ruby.no-home-provided":
-                return NO_HOME_PROVIDED;
             case "ruby.launcher":
                 return LAUNCHER;
             case "ruby.core-load-path":
@@ -1645,7 +1634,6 @@ public final class OptionsCatalog {
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
             BACKTRACE_LIMIT,
-            NO_HOME_PROVIDED,
             LAUNCHER,
             CORE_LOAD_PATH,
             FROZEN_STRING_LITERALS,
