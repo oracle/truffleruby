@@ -8,9 +8,9 @@ ruby: |
 ast: |
   MultipleAssignmentNode
       attributes:
-          flags = 1
-          sourceCharIndex = 0
-          sourceLength = 35
+          flags = 0
+          sourceCharIndex = -1
+          sourceLength = 0
       children:
           preNodes = [
               RubyCallNode
@@ -31,18 +31,20 @@ ast: |
                       sourceLength = 10
                   children:
                       arguments = [
-                          ObjectLiteralNode
+                          ReadLocalVariableNode
                               attributes:
                                   flags = 0
-                                  object = :key
+                                  frameSlot = 4 # %argument_1
                                   sourceCharIndex = 2
                                   sourceLength = 4
-                          IntegerFixnumLiteralNode
+                                  type = FRAME_LOCAL
+                          ReadLocalVariableNode
                               attributes:
                                   flags = 0
+                                  frameSlot = 5 # %argument_2
                                   sourceCharIndex = 8
                                   sourceLength = 1
-                                  value = 0
+                                  type = FRAME_LOCAL
                           NilLiteralNode
                               attributes:
                                   flags = 0
@@ -50,29 +52,13 @@ ast: |
                                   sourceLength = 0
                       ]
                       receiver =
-                          RubyCallNode
+                          ReadLocalVariableNode
                               attributes:
-                                  descriptor = NoKeywordArgumentsDescriptor
-                                  dispatchConfig = PRIVATE
-                                  emptyKeywordsProfile = false
                                   flags = 0
-                                  isAttrAssign = false
-                                  isSafeNavigation = false
-                                  isSplatted = false
-                                  isVCall = true
-                                  lastArgIsNotHashProfile = false
-                                  methodName = "a"
-                                  notEmptyKeywordsProfile = false
-                                  notRuby2KeywordsHashProfile = false
+                                  frameSlot = 3 # %receiver_0
                                   sourceCharIndex = 0
                                   sourceLength = 1
-                              children:
-                                  receiver =
-                                      SelfNode
-                                          attributes:
-                                              flags = 0
-                                              sourceCharIndex = -1
-                                              sourceLength = 0
+                                  type = FRAME_LOCAL
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 2 # b
