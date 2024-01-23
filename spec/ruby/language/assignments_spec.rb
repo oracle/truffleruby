@@ -1,7 +1,61 @@
 require_relative '../spec_helper'
 
 # Should be synchronized with spec/ruby/language/optional_assignments_spec.rb
+# Some specs for assignments are locate in language/variables_spec.rb
 describe 'Assignments' do
+  describe 'using =' do
+    describe 'evaluation order' do
+      it 'evaluates expressions left to right when assignment with an accessor' do
+        object = Object.new
+        def object.a=(value) end
+        ScratchPad.record []
+
+        (ScratchPad << :receiver; object).a = (ScratchPad << :rhs; :value)
+        ScratchPad.recorded.should == [:receiver, :rhs]
+      end
+
+      it 'evaluates expressions left to right when assignment with a #[]' do
+        object = Object.new
+        def object.[]=(_, _) end
+        ScratchPad.record []
+
+        (ScratchPad << :receiver; object)[(ScratchPad << :argument; :a)] = (ScratchPad << :rhs; :value)
+        ScratchPad.recorded.should == [:receiver, :argument, :rhs]
+      end
+
+      # similar tests for evaluation order are located in language/constants_spec.rb
+      ruby_version_is ''...'3.2' do
+        it 'evaluates expressions right to left when assignment with compounded constant' do
+          m = Module.new
+          ScratchPad.record []
+
+          (ScratchPad << :module; m)::A = (ScratchPad << :rhs; :value)
+          ScratchPad.recorded.should == [:rhs, :module]
+        end
+      end
+
+      ruby_version_is '3.2' do
+        it 'evaluates expressions left to right when assignment with compounded constant' do
+          m = Module.new
+          ScratchPad.record []
+
+          (ScratchPad << :module; m)::A = (ScratchPad << :rhs; :value)
+          ScratchPad.recorded.should == [:module, :rhs]
+        end
+      end
+
+      it 'raises TypeError after evaluation of right-hand-side when compounded constant module is not a module' do
+        ScratchPad.record []
+
+        -> {
+          (:not_a_module)::A = (ScratchPad << :rhs; :value)
+        }.should raise_error(TypeError)
+
+        ScratchPad.recorded.should == [:rhs]
+      end
+    end
+  end
+
   describe 'using +=' do
     describe 'using an accessor' do
       before do

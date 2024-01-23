@@ -6,6 +6,8 @@ Bug fixes:
 
 Compatibility:
 
+* Change assignment evaluation order for fully qualified constant and evaluate left-hand-side before right-hand-side (#3039, @andrykonchin).
+
 Performance:
 
 Changes:
