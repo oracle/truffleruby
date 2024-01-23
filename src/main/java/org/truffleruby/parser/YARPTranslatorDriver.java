@@ -111,6 +111,8 @@ public final class YARPTranslatorDriver {
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
+        assert rubySource.isEval() == parserContext.isEval();
+
         if (rubySource.getSource() != parseEnvironment.source) {
             throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
         }
