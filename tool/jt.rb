@@ -1415,7 +1415,7 @@ module Commands
 
   ALL_CEXTS_TESTS = %w[
     tools postinstallhook
-    minimum module method globals backtraces xopenssl werror stripped
+    minimum module method globals backtraces xopenssl werror no_timespec stripped
     oily_png psd_native
     puma sqlite3 unf_ext json grpc RubyInline msgpack
   ]
@@ -1442,7 +1442,7 @@ module Commands
         # Test tools
         run_ruby 'test/truffle/cexts/test_preprocess.rb'
 
-      when 'minimum', 'module', 'method', 'globals', 'backtraces', 'xopenssl', 'werror', 'stripped'
+      when 'minimum', 'module', 'method', 'globals', 'backtraces', 'xopenssl', 'werror', 'no_timespec', 'stripped'
         # Test that we can compile and run some very basic C extensions
         output_file = 'cext-output.txt'
         dir = "test/truffle/cexts/#{test_name}"
