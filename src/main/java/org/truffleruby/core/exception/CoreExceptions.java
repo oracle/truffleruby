@@ -549,6 +549,12 @@ public final class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException typeErrorNotASingletonClass(Node currentNode, RubyClass rubyClass) {
+        String className = rubyClass.fields.getName();
+        return typeError(StringUtils.format("`%s' is not a singleton class", className), currentNode, null);
+    }
+
+    @TruffleBoundary
     public RubyException superclassMismatch(String name, Node currentNode) {
         return typeError("superclass mismatch for class " + name, currentNode);
     }

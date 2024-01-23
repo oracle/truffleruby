@@ -276,6 +276,22 @@ public abstract class ClassNodes {
         }
     }
 
+    @CoreMethod(names = "attached_object")
+    public abstract static class AttachedObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "rubyClass.isSingleton")
+        Object attachedObject(RubyClass rubyClass) {
+            return rubyClass.attached;
+        }
+
+        @Specialization(guards = "!rubyClass.isSingleton")
+        Object attachedObjectOfNonSingletonClass(RubyClass rubyClass) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorNotASingletonClass(this, rubyClass));
+        }
+    }
+
     // Worth always splitting to have monomorphic #__allocate__ and #initialize,
     // Worth always inlining as the field accesses and initializations are optimized when the allocation is visible,
     // and a non-inlined call to #__allocate__ would allocate the arguments Object[] which is about the same number of
