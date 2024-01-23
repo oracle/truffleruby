@@ -847,8 +847,9 @@ suite = {
             "dependencies": ["org.truffleruby.tck"],
             "distDependencies": [
                 "truffle:TRUFFLE_TCK",
-               # runtime-only dependencies
+                # runtime-only dependencies
                 "TRUFFLERUBY",
+                "TRUFFLERUBY-RESOURCES",
             ],
             "description" : "Truffle TCK provider for Ruby language.",
             "license": ["EPL-2.0"],
