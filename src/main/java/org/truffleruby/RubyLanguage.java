@@ -36,6 +36,7 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.options.OptionDescriptors;
+import org.prism.Parser;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -458,6 +459,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
                 primitiveManager.loadCoreMethodNodes(this.options);
+                loadLibYARPBindings();
             }
         }
 
@@ -791,6 +793,16 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return lib.resolve("truffle").isDirectory() &&
                 lib.resolve("gems").isDirectory() &&
                 lib.resolve("patches").isDirectory();
+    }
+
+    private void loadLibYARPBindings() {
+        String libyarpbindings;
+        if (options.BUILDING_CORE_CEXTS) {
+            libyarpbindings = System.getProperty("truffleruby.libyarpbindings");
+        } else {
+            libyarpbindings = getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX;
+        }
+        Parser.loadLibrary(libyarpbindings);
     }
 
     @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")

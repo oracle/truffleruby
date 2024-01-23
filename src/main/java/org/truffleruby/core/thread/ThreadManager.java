@@ -99,7 +99,7 @@ public final class ThreadManager {
     }
 
     public void initialize() {
-        useLibRubySignal = context.getOptions().NATIVE_PLATFORM && !context.getOptions().BUILDING_CORE_CEXTS &&
+        useLibRubySignal = context.getOptions().NATIVE_PLATFORM && !language.options.BUILDING_CORE_CEXTS &&
                 language.getRubyHome() != null;
         nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && useLibRubySignal;
         if (useLibRubySignal) {

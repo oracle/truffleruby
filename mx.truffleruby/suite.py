@@ -376,10 +376,11 @@ suite = {
 
         "org.truffleruby.bootstrap.launcher": {
             "class": "TruffleRubyBootstrapLauncherProject",
-            "buildDependencies": [
+            "buildDependencies": [ # These are used to build the module path
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "sulong:SULONG_NATIVE", # We need this jar to find the toolchain with Toolchain#getToolPath
+                "org.truffleruby.yarp.bindings", # libyarpbindings.so
             ],
             "license": ["EPL-2.0"],
         },

@@ -118,7 +118,6 @@ import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.prism.Loader;
 import org.prism.Parser;
-import org.truffleruby.shared.Platform;
 
 @CoreModule("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -255,12 +254,6 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    private static byte[] yarpSerialize(RubyLanguage language, byte[] source) {
-        // TODO: load it once during context initialization (when YARP is used as the main parser)
-        Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
-        return Parser.parseAndSerialize(source);
-    }
-
     @CoreMethod(names = "yarp_serialize", onSingleton = true, required = 1)
     public abstract static class YARPSerializeNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
@@ -273,7 +266,7 @@ public abstract class TruffleDebugNodes {
             var tencoding = strings.getTEncoding(code);
             var source = copyToByteArrayNode.execute(tstring, tencoding);
 
-            byte[] serialized = yarpSerialize(getLanguage(), source);
+            byte[] serialized = Parser.parseAndSerialize(source);
 
             return createString(fromByteArrayNode, serialized, Encodings.BINARY);
         }
@@ -291,7 +284,7 @@ public abstract class TruffleDebugNodes {
             var tencoding = strings.getTEncoding(code);
             var source = copyToByteArrayNode.execute(tstring, tencoding);
 
-            byte[] serialized = yarpSerialize(getLanguage(), source);
+            byte[] serialized = Parser.parseAndSerialize(source);
 
             var yarpSource = YARPTranslatorDriver.createYARPSource(source, YARPTranslatorDriver.createRubySource(code));
             var parseResult = Loader.load(serialized, yarpSource);

@@ -155,8 +155,6 @@ public final class Options {
     public final String[] ARGV_GLOBAL_VALUES;
     /** --argv-global-flags=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] ARGV_GLOBAL_FLAGS;
-    /** --building-core-cexts=false */
-    public final boolean BUILDING_CORE_CEXTS;
     /** --log-pending-interrupts=false */
     public final boolean LOG_PENDING_INTERRUPTS;
     /** --print-interned-tstring-stats=false */
@@ -276,7 +274,6 @@ public final class Options {
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
-        BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         PRINT_INTERNED_TSTRING_STATS = options.get(OptionsCatalog.PRINT_INTERNED_TSTRING_STATS_KEY);
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
@@ -437,8 +434,6 @@ public final class Options {
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv-global-flags":
                 return ARGV_GLOBAL_FLAGS;
-            case "ruby.building-core-cexts":
-                return BUILDING_CORE_CEXTS;
             case "ruby.log-pending-interrupts":
                 return LOG_PENDING_INTERRUPTS;
             case "ruby.print-interned-tstring-stats":

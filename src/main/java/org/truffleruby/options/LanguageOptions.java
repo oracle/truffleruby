@@ -45,6 +45,8 @@ public final class LanguageOptions {
     public final boolean BACKTRACES_OMIT_UNUSED;
     /** --buckets-big-hash=false */
     public final boolean BIG_HASH_STRATEGY_IS_BUCKETS;
+    /** --building-core-cexts=false */
+    public final boolean BUILDING_CORE_CEXTS;
     /** --lazy-translation-log=false */
     public final boolean LAZY_TRANSLATION_LOG;
     /** --constant-dynamic-lookup-log=false */
@@ -144,6 +146,7 @@ public final class LanguageOptions {
         LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : LAZY_CALLTARGETS;
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
         BIG_HASH_STRATEGY_IS_BUCKETS = options.get(OptionsCatalog.BIG_HASH_STRATEGY_IS_BUCKETS_KEY);
+        BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         LAZY_TRANSLATION_LOG = options.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY);
         LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
         LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : LAZY_CALLTARGETS;
@@ -213,6 +216,8 @@ public final class LanguageOptions {
                 return BACKTRACES_OMIT_UNUSED;
             case "ruby.buckets-big-hash":
                 return BIG_HASH_STRATEGY_IS_BUCKETS;
+            case "ruby.building-core-cexts":
+                return BUILDING_CORE_CEXTS;
             case "ruby.lazy-translation-log":
                 return LAZY_TRANSLATION_LOG;
             case "ruby.constant-dynamic-lookup-log":
@@ -316,6 +321,7 @@ public final class LanguageOptions {
                one.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY)) &&
                one.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY).equals(two.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY)) &&
                one.get(OptionsCatalog.BIG_HASH_STRATEGY_IS_BUCKETS_KEY).equals(two.get(OptionsCatalog.BIG_HASH_STRATEGY_IS_BUCKETS_KEY)) &&
+               one.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY).equals(two.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY)) &&
                one.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY).equals(two.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY)) &&
                one.get(OptionsCatalog.LAZY_BUILTINS_KEY).equals(two.get(OptionsCatalog.LAZY_BUILTINS_KEY)) &&
@@ -439,6 +445,13 @@ public final class LanguageOptions {
         newValue = newOptions.BIG_HASH_STRATEGY_IS_BUCKETS;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --buckets-big-hash differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.BUILDING_CORE_CEXTS;
+        newValue = newOptions.BUILDING_CORE_CEXTS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --building-core-cexts differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

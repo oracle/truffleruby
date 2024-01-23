@@ -84,7 +84,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
-import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.prism.Loader;
 import org.prism.Nodes;
@@ -425,7 +424,6 @@ public final class YARPTranslatorDriver {
 
         // YARP begin
         byte[] sourceBytes = rubySource.getBytes();
-        org.prism.Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
 
         byte[] filepath;
         int line = rubySource.getLineOffset() + 1;
