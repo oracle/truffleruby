@@ -481,7 +481,7 @@ public final class YARPTranslatorDriver {
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
             int lineNumber = RubySource.getStartLineAdjusted(context, section);
 
-            rubyWarnings.warn(filename, lineNumber, warning.message);
+            rubyWarnings.warning(filename, lineNumber, warning.message);
         }
 
         if (errors.length != 0) {
