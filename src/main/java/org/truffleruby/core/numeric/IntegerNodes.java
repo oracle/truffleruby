@@ -49,6 +49,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -495,15 +496,18 @@ public abstract class IntegerNodes {
         @Specialization
         Object idiv(Object a, Object b,
                 @Cached InlinedConditionProfile zeroProfile,
-                @Cached FloatToIntegerNode floatToIntegerNode) {
+                @Cached FloatToIntegerNode floatToIntegerNode,
+                @Cached DispatchNode floorNode) {
             Object quotient = divNode.executeDiv(a, b);
             if (quotient instanceof Double) {
                 if (zeroProfile.profile(this, (double) b == 0.0)) {
                     throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
                 return floatToIntegerNode.execute(this, Math.floor((double) quotient));
-            } else {
+            } else if (RubyGuards.isRubyInteger(quotient)) {
                 return quotient;
+            } else {
+                return floorNode.call(quotient, "floor");
             }
         }
 
