@@ -48,7 +48,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
 
-public final class RubyCallNode extends LiteralCallNode implements AssignableNode {
+public final class RubyCallNode extends LiteralCallAssignableNode {
 
     private final String methodName;
 
@@ -264,7 +264,8 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
     }
 
     public boolean hasLiteralBlock() {
-        return block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
+        RubyNode unwrappedBlock = RubyNode.unwrapNode(block);
+        return unwrappedBlock instanceof BlockDefinitionNode || unwrappedBlock instanceof LambdaToProcNode;
     }
 
     public RubyNode[] getArguments() {
@@ -272,7 +273,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
     }
 
     private RubyNode getLastArgumentNode() {
-        final RubyNode lastArg = arguments[arguments.length - 1];
+        final RubyNode lastArg = RubyNode.unwrapNode(arguments[arguments.length - 1]);
         if (isSplatted && lastArg instanceof ArrayAppendOneNode) {
             return ((ArrayAppendOneNode) lastArg).getValueNode();
         }

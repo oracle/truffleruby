@@ -27,7 +27,8 @@ import org.truffleruby.parser.MethodTranslator;
  * proc call target is needed instead. This node is thus needed to "deoptimize" such cases. */
 public final class LambdaToProcNode extends RubyContextSourceNode {
 
-    @Child private BlockDefinitionNode blockNode;
+    /** A {@link BlockDefinitionNode}, possibly wrapped in a RubyNodeWrapper by instrumentation */
+    @Child private RubyNode blockNode;
 
     public LambdaToProcNode(BlockDefinitionNode blockNode) {
         this.blockNode = blockNode;
@@ -35,7 +36,7 @@ public final class LambdaToProcNode extends RubyContextSourceNode {
 
     @Override
     public RubyProc execute(VirtualFrame frame) {
-        final RubyProc block = blockNode.execute(frame);
+        final RubyProc block = (RubyProc) blockNode.execute(frame);
         assert block.type == ProcType.LAMBDA;
         return ProcOperations.createProcFromBlock(getContext(), getLanguage(), block);
     }

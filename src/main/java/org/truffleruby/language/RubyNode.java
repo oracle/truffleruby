@@ -58,11 +58,10 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     protected static final int NO_SOURCE = -1;
 
-    /** This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of
-     * this method which would increase the number of runtime compilable methods. */
-    public void doExecuteVoid(VirtualFrame frame) {
-        execute(frame);
-    }
+    /* This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of this
+     * method which would increase the number of runtime compilable methods. */
+    // Declared abstract here so the instrumentation wrapper delegates it
+    public abstract void doExecuteVoid(VirtualFrame frame);
 
     // Declared abstract here so the instrumentation wrapper delegates it
     public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
@@ -250,6 +249,14 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
     @Override
     public WrapperNode createWrapper(ProbeNode probe) {
         return new RubyNodeWrapper(this, probe);
+    }
+
+    public static RubyNode unwrapNode(RubyNode node) {
+        if (node instanceof WrapperNode wrapperNode) {
+            return (RubyNode) wrapperNode.getDelegateNode();
+        } else {
+            return node;
+        }
     }
 
     /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes
