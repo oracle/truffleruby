@@ -54,6 +54,7 @@ Compatibility:
 * Limit maximum encoding set size by 256 (#3039, @thomasmarshall, @goyox86).
 * Remove deprecated methods `Dir.exists?`, `File.exists?`, and `Kernel#=~` (#3039, @patricklinpl, @nirvdrum).
 * Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
+* Remove deprecated `Fixnum` and `Bignum` constants (#3039, @andrykonchin).
 
 Performance:
 
