@@ -50,7 +50,6 @@ module FileTest
   def exist?(path)
     File.exist? path
   end
-  alias_method :exists?, :exist?
 
   def file?(path)
     File.file? path
@@ -126,7 +125,6 @@ module FileTest
                   :executable?,
                   :executable_real?,
                   :exist?,
-                  :exists?,
                   :file?,
                   :grpowned?,
                   :identical?,
