@@ -34,6 +34,7 @@ Compatibility:
 * Implement `rb_check_funcall()` (@eregon).
 * Implement `MatchData#{byteoffset,deconstruct,deconstruct_keys}` from Ruby 3.2 (#3039, @rwstauner).
 * Add `Integer#ceildiv` method (#3039, @simonlevasseur, @nirvdrum).
+* Implement `Class#attached_object` method (#3039, @andrykonchin).
 
 Performance:
 
