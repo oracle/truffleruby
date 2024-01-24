@@ -45,6 +45,7 @@ Compatibility:
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
 * Remove deprecated methods `Dir.exists?`, `File.exists?`, and `Kernel#=~` (#3039, @patricklinpl, @nirvdrum).
+* Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
 
 Performance:
 
