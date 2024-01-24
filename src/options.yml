@@ -54,6 +54,7 @@ LANGUAGE_OPTIONS:
 - ALWAYS_CLONE_ALL
 - PRISM
 - BUILDING_CORE_CEXTS
+- INSTRUMENT_ALL_NODES
 
 USER:
   STABLE:
@@ -186,6 +187,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     LAZY_BUILTINS: [lazy-builtins, boolean, LAZY_CALLTARGETS, Load builtin classes (core methods & primitives) lazily on first use]
     LAZY_TRANSLATION_CORE: [lazy-translation-core, boolean, LAZY_CALLTARGETS, Lazily translation of core source files]
     CHAOS_DATA: [chaos-data, boolean, false, Randomize data representations to stress specialization code paths]
+    INSTRUMENT_ALL_NODES: [instrument-all-nodes, boolean, false, 'Instrument all isInstrumentable() nodes, regardless of tags, to ensure instrumentation wrappers can be inserted']
 
     # Options to help debugging the implementation performance
     BASICOPS_INLINE: [basic-ops-inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]

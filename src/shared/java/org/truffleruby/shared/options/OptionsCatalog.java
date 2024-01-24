@@ -108,6 +108,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> CHAOS_DATA_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> INSTRUMENT_ALL_NODES_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BASICOPS_LOG_REWRITE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
@@ -870,6 +871,14 @@ public final class OptionsCatalog {
             .usageSyntax("")
             .build();
 
+    public static final OptionDescriptor INSTRUMENT_ALL_NODES = OptionDescriptor
+            .newBuilder(INSTRUMENT_ALL_NODES_KEY, "ruby.instrument-all-nodes")
+            .help("Instrument all isInstrumentable() nodes, regardless of tags, to ensure instrumentation wrappers can be inserted")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
     public static final OptionDescriptor BASICOPS_INLINE = OptionDescriptor
             .newBuilder(BASICOPS_INLINE_KEY, "ruby.basic-ops-inline")
             .help("Inline basic operations (like Fixnum operators) in the AST without a call")
@@ -1504,6 +1513,8 @@ public final class OptionsCatalog {
                 return LAZY_TRANSLATION_CORE;
             case "ruby.chaos-data":
                 return CHAOS_DATA;
+            case "ruby.instrument-all-nodes":
+                return INSTRUMENT_ALL_NODES;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
             case "ruby.basic-ops-log-rewrite":
@@ -1713,6 +1724,7 @@ public final class OptionsCatalog {
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             CHAOS_DATA,
+            INSTRUMENT_ALL_NODES,
             BASICOPS_INLINE,
             BASICOPS_LOG_REWRITE,
             PROFILE_ARGUMENTS,

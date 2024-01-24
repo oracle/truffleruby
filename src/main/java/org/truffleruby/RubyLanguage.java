@@ -26,8 +26,12 @@ import com.oracle.truffle.api.ContextThreadLocal;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.instrumentation.ExecutionEventListener;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
@@ -458,10 +462,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 loadLibYARPBindings();
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
-                this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
+                Instrumenter instrumenter = Objects.requireNonNull(env.lookup(Instrumenter.class));
+                this.coverageManager = new CoverageManager(options, instrumenter);
+                if (options.INSTRUMENT_ALL_NODES) {
+                    instrumentAllNodes(instrumenter);
+                }
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
+
 
         // Set rubyHomeTruffleFile every time, as pre-initialized contexts use a different FileSystem
         if (!firstContext) {
@@ -697,6 +706,22 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected Object getScope(RubyContext context) {
         return context.getTopScopeObject();
+    }
+
+    private static void instrumentAllNodes(Instrumenter instrumenter) {
+        instrumenter.attachExecutionEventListener(SourceSectionFilter.ANY, new ExecutionEventListener() {
+            @Override
+            public void onEnter(EventContext context, VirtualFrame frame) {
+            }
+
+            @Override
+            public void onReturnValue(EventContext context, VirtualFrame frame, Object result) {
+            }
+
+            @Override
+            public void onReturnExceptional(EventContext context, VirtualFrame frame, Throwable exception) {
+            }
+        });
     }
 
     private void setupCleaner() {
