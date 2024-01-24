@@ -116,6 +116,11 @@ describe "The defined? keyword when called with a method name" do
       defined?(obj.a_defined_method).should == "method"
     end
 
+    it "returns 'method' for []=" do
+      a = []
+      defined?(a[0] = 1).should == "method"
+    end
+
     it "returns nil if the method is not defined" do
       obj = DefinedSpecs::Basic.new
       defined?(obj.an_undefined_method).should be_nil
