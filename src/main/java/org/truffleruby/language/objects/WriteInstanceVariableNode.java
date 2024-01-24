@@ -15,7 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceAssignableNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 
-public abstract class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
+public abstract class WriteInstanceVariableNode extends RubyContextSourceAssignableNode {
 
     private final String name;
 

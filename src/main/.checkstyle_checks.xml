@@ -281,6 +281,10 @@
       <property name="format" value="Stream\.of\(|Arrays\.stream\(|\.stream\(\)|import java\.util\.stream\."/>
       <property name="message" value="Avoid using Java Streams, they cause lots of allocations and are slow for startup and in interpreter."/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="\bextends RubyContextSourceNode\b.+\bimplements AssignableNode\b"/>
+      <property name="message" value="Use `extends RubyContextSourceAssignableNode` to get the correct instrumentation wrapper."/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="PrintWriter"/>
@@ -292,6 +296,7 @@
     </module>
 
     <module name="SuppressionCommentFilter">
+      <!-- Note that it's "Checkstyle:" and not "CheckStyle:" ! -->
       <property name="offCommentFormat" value="Checkstyle: stop"/>
       <property name="onCommentFormat" value="Checkstyle: resume"/>
       <metadata name="com.atlassw.tools.eclipse.checkstyle.comment" value="Disable all checks"/>

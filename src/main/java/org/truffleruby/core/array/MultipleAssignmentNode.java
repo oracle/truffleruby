@@ -17,12 +17,12 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceAssignableNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public final class MultipleAssignmentNode extends RubyContextSourceNode implements AssignableNode {
+public final class MultipleAssignmentNode extends RubyContextSourceAssignableNode {
 
     @Child RubyNode rhsNode;
     @Child SplatCastNode splatCastNode;

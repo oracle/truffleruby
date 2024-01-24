@@ -17,7 +17,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.kernel.TruffleKernelNodes.GetSpecialVariableStorage;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceAssignableNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "valueNode", type = RubyNode.class)
-public abstract class WriteGlobalVariableNode extends RubyContextSourceNode implements AssignableNode {
+public abstract class WriteGlobalVariableNode extends RubyContextSourceAssignableNode {
 
     protected final String name;
     @Child LookupGlobalVariableStorageNode lookupGlobalVariableStorageNode;

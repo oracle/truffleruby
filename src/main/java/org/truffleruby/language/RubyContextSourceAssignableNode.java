@@ -17,8 +17,10 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 
+// Checkstyle: stop
 @GenerateWrapper
 public abstract class RubyContextSourceAssignableNode extends RubyContextSourceNode implements AssignableNode {
+    // Checkstyle: resume
 
     @Override
     public WrapperNode createWrapper(ProbeNode probeNode) {
