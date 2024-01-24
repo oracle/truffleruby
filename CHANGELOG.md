@@ -32,6 +32,7 @@ Compatibility:
 * Make `Coverage.start` and `Coverage.result` accept parameters (#3149, @mtortonesi, @andrykonchin).
 * Implement `rb_check_funcall()` (@eregon).
 * Implement `MatchData#{byteoffset,deconstruct,deconstruct_keys}` from Ruby 3.2 (#3039, @rwstauner).
+* Remove deprecated `File.exists?`, `Dir.exists?`, `FileTest.exists?`, and `Kernel#=~` methods (#3039, @andrykonchin).
 
 Performance:
 
