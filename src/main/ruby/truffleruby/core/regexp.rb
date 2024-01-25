@@ -144,8 +144,28 @@ class Regexp
 
     if Primitive.is_a?(opts, Integer)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
-    elsif !Primitive.undefined?(opts) && opts
-      opts = IGNORECASE
+    elsif Primitive.is_a?(opts, String)
+      opts = opts.chars.reduce(0) do |result, char|
+        case char
+        when 'i'
+          result | IGNORECASE
+        when 'm'
+          result | MULTILINE
+        when 'x'
+          result | EXTENDED
+        else
+          raise ArgumentError, "unknown regexp option: #{opts}"
+        end
+      end
+    elsif !Primitive.undefined?(opts)
+      # Valid values are true, false, nil.
+      # Other values warn but treat as true.
+      if Primitive.false?(opts) || Primitive.nil?(opts)
+        opts = 0
+      else
+        warn "expected true or false as ignorecase: #{opts}" unless Primitive.true?(opts)
+        opts = IGNORECASE
+      end
     else
       opts = 0
     end

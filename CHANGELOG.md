@@ -35,6 +35,7 @@ Compatibility:
 * Implement `MatchData#{byteoffset,deconstruct,deconstruct_keys}` from Ruby 3.2 (#3039, @rwstauner).
 * Add `Integer#ceildiv` method (#3039, @simonlevasseur, @nirvdrum).
 * Implement `Class#attached_object` method (#3039, @andrykonchin).
+* Accept options argument to `Regexp.{new,compile}` of String and warn for unknown types (#3039, @rwstauner).
 
 Performance:
 
