@@ -87,7 +87,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.shared.Metrics;
-import org.prism.Loader;
 import org.prism.Nodes;
 import org.prism.ParseResult;
 import org.prism.Parser;
@@ -469,7 +468,8 @@ public final class YARPTranslatorDriver {
 
         Nodes.Source yarpSource = createYARPSource(sourceBytes, rubySource);
         parseEnvironment.yarpSource = yarpSource;
-        ParseResult parseResult = Loader.load(serializedBytes, yarpSource);
+        ParseResult parseResult = YARPLoader.load(serializedBytes, yarpSource, context.getEncodingManager(),
+                rubySource);
 
         final String filename = rubySource.getSourcePath();
         final ParseResult.Error[] errors = parseResult.errors;
