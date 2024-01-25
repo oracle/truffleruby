@@ -51,17 +51,19 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
 
-    private static final byte FLAG_NEWLINE = 0;
-    private static final byte FLAG_COVERAGE_LINE = 1;
-    private static final byte FLAG_CALL = 2;
-    private static final byte FLAG_ROOT = 3;
+    private static final byte FLAG_NEWLINE = 0;       // 1<<0 = 1
+    private static final byte FLAG_COVERAGE_LINE = 1; // 1<<1 = 2
+    private static final byte FLAG_CALL = 2;          // 1<<2 = 4
+    private static final byte FLAG_ROOT = 3;          // 1<<3 = 8
 
     protected static final int NO_SOURCE = -1;
 
     /* This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of this
      * method which would increase the number of runtime compilable methods. */
     // Declared abstract here so the instrumentation wrapper delegates it
-    public abstract void doExecuteVoid(VirtualFrame frame);
+    public void doExecuteVoid(VirtualFrame frame) {
+        execute(frame);
+    }
 
     // Declared abstract here so the instrumentation wrapper delegates it
     public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);

@@ -22,11 +22,6 @@ public abstract class RubyContextSourceNode extends RubyNode {
     private byte flags;
 
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
-        execute(frame);
-    }
-
-    @Override
     public Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context) {
         return RubyNode.defaultIsDefined(this);
     }
