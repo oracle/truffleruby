@@ -31,6 +31,9 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringConstants;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 public final class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
@@ -54,6 +57,10 @@ public final class Encodings {
             .get(StringOperations.encodeAsciiBytes("UTF-32"))
             .getEncoding()
             .getIndex()];
+
+    /** On Linux and macOS the filesystem encoding is always UTF-8 */
+    public static final RubyEncoding FILESYSTEM = UTF_8;
+    public static final Charset FILESYSTEM_CHARSET = StandardCharsets.UTF_8;
 
     static final Encoding DUMMY_ENCODING_BASE = createDummyEncoding();
 

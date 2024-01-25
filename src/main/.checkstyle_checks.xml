@@ -285,6 +285,10 @@
       <property name="format" value="\bextends RubyContextSourceNode\b.+\bimplements AssignableNode\b"/>
       <property name="message" value="Use `extends RubyContextSourceAssignableNode` to get the correct instrumentation wrapper."/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="\.getCharset\(\)"/>
+      <property name="message" value="Use TStringUtils instead as Java does not have a Charset for every Ruby encoding."/>
+    </module>
     <module name="IllegalType">
       <!-- Use PrintStream instead of PrintWriter, PrintWriter does not consistently flush, even when writing \n.-->
       <property name="illegalClassNames" value="PrintWriter"/>

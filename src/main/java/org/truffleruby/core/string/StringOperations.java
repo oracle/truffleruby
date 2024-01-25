@@ -24,20 +24,14 @@
  */
 package org.truffleruby.core.string;
 
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
+/** Helpers for {@link java.lang.String} */
 public abstract class StringOperations {
 
     public static RubyString createUTF8String(RubyContext context, RubyLanguage language, String string) {
@@ -61,30 +55,6 @@ public abstract class StringOperations {
                 Encodings.UTF_8);
 
         return instance;
-    }
-
-    @TruffleBoundary
-    public static byte[] encodeBytes(String value, Encoding encoding) {
-        // Taken from org.jruby.RubyString#encodeByteList.
-
-        if (encoding == ASCIIEncoding.INSTANCE && !isAsciiOnly(value)) {
-            throw new UnsupportedOperationException(
-                    StringUtils.format(
-                            "Can't convert Java String (%s) to Ruby BINARY String because it contains non-ASCII characters",
-                            value));
-        }
-
-        Charset charset = encoding.getCharset();
-
-        if (charset == null) {
-            throw new UnsupportedOperationException("Cannot find Charset to encode " + value + " with " + encoding);
-        }
-
-        final ByteBuffer buffer = charset.encode(CharBuffer.wrap(value));
-        final byte[] bytes = new byte[buffer.limit()];
-        buffer.get(bytes);
-
-        return bytes;
     }
 
     public static boolean isAsciiOnly(String string) {

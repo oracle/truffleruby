@@ -53,6 +53,8 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.SetBindingFrameForEvalNode;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
@@ -90,8 +92,6 @@ import org.prism.Nodes;
 import org.prism.ParseResult;
 import org.prism.Parser;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -429,7 +429,7 @@ public final class YARPTranslatorDriver {
 
         byte[] filepath;
         int line = rubySource.getLineOffset() + 1;
-        byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().name.toString()); // encoding name is supposed to contain only ASCII characters
+        byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
         boolean frozenStringLiteral = configuration.isFrozenStringLiteral();
         boolean verbose = true;
         // The vendored version of prism in CRuby 3.3.0
@@ -438,8 +438,7 @@ public final class YARPTranslatorDriver {
         byte[][][] scopes;
 
         if (rubySource.isEval()) {
-            Charset sourceCharset = rubySource.getEncoding().jcoding.getCharset();
-            filepath = rubySource.getSourcePath().getBytes(sourceCharset); // encoding of the eval's String argument
+            filepath = rubySource.getSourcePath().getBytes(Encodings.FILESYSTEM_CHARSET);
 
             int scopesCount = localVariableNames.size();
             scopes = new byte[scopesCount][][];
@@ -451,7 +450,7 @@ public final class YARPTranslatorDriver {
                 byte[][] namesBytes = new byte[namesList.size()][];
                 int j = 0;
                 for (var name : namesList) {
-                    namesBytes[j] = name.getBytes(sourceCharset);
+                    namesBytes[j] = TStringUtils.javaStringToBytes(name, rubySource.getEncoding());
                     j++;
                 }
                 scopes[i] = namesBytes;
@@ -460,7 +459,7 @@ public final class YARPTranslatorDriver {
         } else {
             assert localVariableNames.isEmpty(); // parsing of the whole source file cannot have outer scopes
 
-            filepath = rubySource.getSourcePath().getBytes(StandardCharsets.UTF_8); // filesystem encoding, that is supposed to be always UTF-8
+            filepath = rubySource.getSourcePath().getBytes(Encodings.FILESYSTEM_CHARSET);
             scopes = new byte[0][][];
         }
 

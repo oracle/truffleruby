@@ -26,6 +26,7 @@ import org.truffleruby.core.string.StringGuards;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 
+/** Helpers for {@link TruffleString} and general byte[]/java.lang.String/TruffleString conversion */
 public final class TStringUtils {
 
     public static TruffleString.Encoding jcodingToTEncoding(Encoding jcoding) {
@@ -126,6 +127,17 @@ public final class TStringUtils {
             }
             return byteArray.getArray();
         }
+    }
+
+    public static byte[] javaStringToBytes(String value, RubyEncoding encoding) {
+        CompilerAsserts.neverPartOfCompilation("uncached");
+        var tstring = fromJavaString(value, encoding);
+        return getBytesOrCopy(tstring, encoding);
+    }
+
+    public static String bytesToJavaStringOrThrow(byte[] bytes, int offset, int length, RubyEncoding encoding) {
+        var tstring = TStringUtils.fromByteArray(bytes, offset, length, encoding.tencoding);
+        return TStringUtils.toJavaStringOrThrow(tstring, encoding);
     }
 
     public static boolean isSingleByteOptimizable(AbstractTruffleString truffleString, RubyEncoding encoding) {

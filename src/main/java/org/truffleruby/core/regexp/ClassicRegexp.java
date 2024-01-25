@@ -55,6 +55,7 @@ import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -995,12 +996,13 @@ public final class ClassicRegexp implements ReOptions {
             return EMPTY_STRING_ARRAY;
         }
 
+        RubyEncoding encoding = Encodings.getBuiltInEncoding(pattern.getEncoding());
         String[] names = new String[nameLength];
         int j = 0;
         for (Iterator<NameEntry> i = pattern.namedBackrefIterator(); i.hasNext();) {
             NameEntry e = i.next();
-            //intern() to improve footprint
-            names[j++] = new String(e.name, e.nameP, e.nameEnd - e.nameP, pattern.getEncoding().getCharset()).intern();
+            // intern() to improve footprint
+            names[j++] = TStringUtils.bytesToJavaStringOrThrow(e.name, e.nameP, e.nameEnd - e.nameP, encoding).intern();
         }
 
         return names;

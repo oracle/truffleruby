@@ -13,6 +13,7 @@ import java.util.Locale;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
+/** {@link TruffleBoundary} methods for {@link java.lang.String} */
 public abstract class StringUtils {
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
