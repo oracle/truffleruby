@@ -17,14 +17,15 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-public abstract class EnsureNode extends RubyContextSourceNode {
+public abstract class EnsureNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;
@@ -41,8 +42,9 @@ public abstract class EnsureNode extends RubyContextSourceNode {
     }
 
     @Override
-    public final void doExecuteVoid(VirtualFrame frame) {
+    public final Nil executeVoid(VirtualFrame frame) {
         executeCommon(frame, true);
+        return nil;
     }
 
     protected abstract Object executeCommon(VirtualFrame frame, boolean executeVoid);
@@ -62,7 +64,7 @@ public abstract class EnsureNode extends RubyContextSourceNode {
 
         try {
             if (executeVoid) {
-                tryPart.doExecuteVoid(frame);
+                tryPart.executeVoid(frame);
             } else {
                 value = tryPart.execute(frame);
             }
@@ -88,7 +90,7 @@ public abstract class EnsureNode extends RubyContextSourceNode {
             threadLocalGlobals.setLastException(exceptionObject);
         }
         try {
-            ensurePart.doExecuteVoid(frame);
+            ensurePart.executeVoid(frame);
         } finally {
             if (guestException != null) {
                 threadLocalGlobals.setLastException(previousException);

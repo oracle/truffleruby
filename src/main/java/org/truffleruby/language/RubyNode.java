@@ -58,12 +58,10 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     protected static final int NO_SOURCE = -1;
 
-    /* This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of this
-     * method which would increase the number of runtime compilable methods. */
-    // Declared abstract here so the instrumentation wrapper delegates it
-    public void doExecuteVoid(VirtualFrame frame) {
-        execute(frame);
-    }
+    // Used when the return value of a node is ignored syntactically.
+    // Returns Nil instead of void to force RubyNodeWrapper to call `delegateNode.executeVoid(frame)`, otherwise
+    // it would call `delegateNode.execute(frame)` in `execute()` which is semantically incorrect for defined?().
+    public abstract Nil executeVoid(VirtualFrame frame);
 
     // Declared abstract here so the instrumentation wrapper delegates it
     public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);

@@ -24,7 +24,7 @@ public final class ExecuteAndReturnTrueNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        child.doExecuteVoid(frame);
+        child.executeVoid(frame);
         return true;
     }
 

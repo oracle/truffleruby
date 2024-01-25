@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.language.RubyContextSourceNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
-public final class InitFlipFlopSlotNode extends RubyContextSourceNode {
+public final class InitFlipFlopSlotNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     private final int frameSlot;
 
@@ -23,13 +23,14 @@ public final class InitFlipFlopSlotNode extends RubyContextSourceNode {
     }
 
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public Nil executeVoid(VirtualFrame frame) {
         frame.setBoolean(frameSlot, false);
+        return nil;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        doExecuteVoid(frame);
+        executeVoid(frame);
         return null;
     }
 
