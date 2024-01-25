@@ -36,6 +36,10 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNodeCustomExecut
         this.values = values;
     }
 
+    public RubyNode[] getValues() {
+        return values;
+    }
+
     protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
         final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(language, values);
         newNode.copyFlags(this);

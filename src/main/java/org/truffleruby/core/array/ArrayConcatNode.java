@@ -33,6 +33,11 @@ public final class ArrayConcatNode extends RubyContextSourceNodeCustomExecuteVoi
         this.children = children;
     }
 
+    // getChildren method name is already used
+    public RubyNode[] getElements() {
+        return children;
+    }
+
     @ExplodeLoop
     @Override
     public RubyArray execute(VirtualFrame frame) {

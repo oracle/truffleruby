@@ -17,6 +17,8 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
+import org.truffleruby.core.array.ArrayConcatNode;
+import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -218,11 +220,15 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
 
     @ExplodeLoop
     private void executeArgumentsToAssign(VirtualFrame frame, Object[] rubyArgs) {
+        // BodyTranslator-specific logic: the last element could be DeadNode that is disallowed to be executed
+        // TODO: use #executeArguments method instead after complete switching to YARP
+
+        // execute all arguments but the last one
         for (int i = 0; i < arguments.length - 1; i++) {
             RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
         }
 
-        // the last element should be either NilNode or DeadNode but DeadNode is disallowed to be executed
+        // execute the last argument
         final int lastIndex = arguments.length - 1;
         if (arguments[lastIndex] instanceof DeadNode) {
             RubyArguments.setArgument(rubyArgs, lastIndex, nil);
@@ -274,9 +280,32 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
 
     private RubyNode getLastArgumentNode() {
         final RubyNode lastArg = RubyNode.unwrapNode(arguments[arguments.length - 1]);
-        if (isSplatted && lastArg instanceof ArrayAppendOneNode) {
-            return ((ArrayAppendOneNode) lastArg).getValueNode();
+
+        // BodyTranslator-specific condition
+        if (isSplatted && lastArg instanceof ArrayAppendOneNode arrayAppendOneNode) {
+            return arrayAppendOneNode.getValueNode();
         }
+
+        // YARP-specific condition
+        // In case of splat argument (e.g. for code `a[*b], c = 1, 2`) a method (e.g. `#[]=`) has extra argument - value.
+        // Arguments are supposed to have the following structure - ArrayConcatNode(... ArrayLiteralNode([placeholder])).
+        // So return this placeholder node.
+        if (isSplatted && lastArg instanceof ArrayConcatNode arrayConcatNode) {
+            RubyNode[] elements = arrayConcatNode.getElements();
+            assert elements.length > 0;
+
+            RubyNode last = elements[elements.length - 1];
+
+            if (last instanceof ArrayLiteralNode arrayLiteralNode) {
+                RubyNode[] values = arrayLiteralNode.getValues();
+                assert values.length > 0;
+
+                return values[values.length - 1];
+            } else {
+                return last;
+            }
+        }
+
         return lastArg;
     }
 
