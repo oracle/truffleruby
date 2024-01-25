@@ -78,6 +78,10 @@ class << ENV
   end
   alias_method :store, :[]=
 
+  def clone
+    raise TypeError, 'Cannot clone ENV, use ENV.to_h to get a copy of ENV as a hash'
+  end
+
   def delete(key)
     existing_value = lookup(key)
     if existing_value
@@ -87,6 +91,10 @@ class << ENV
       yield key
     end
     existing_value
+  end
+
+  def dup
+    raise TypeError, 'Cannot dup ENV, use ENV.to_h to get a copy of ENV as a hash'
   end
 
   def shift

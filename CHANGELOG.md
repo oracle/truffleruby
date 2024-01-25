@@ -32,6 +32,7 @@ Compatibility:
 * Make `Coverage.start` and `Coverage.result` accept parameters (#3149, @mtortonesi, @andrykonchin).
 * Implement `rb_check_funcall()` (@eregon).
 * Implement `MatchData#{byteoffset,deconstruct,deconstruct_keys}` from Ruby 3.2 (#3039, @rwstauner).
+* Fix `ENV#{clone,dup}` and raise `TypeError` (#3039, @andrykonchin).
 
 Performance:
 
