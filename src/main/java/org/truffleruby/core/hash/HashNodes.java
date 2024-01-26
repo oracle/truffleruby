@@ -28,8 +28,6 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.core.hash.HashNodesFactory.CopyHashAndSetRuby2KeywordsNodeGen;
-import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.hash.library.HashStoreLibrary.EachEntryCallback;
@@ -172,7 +170,7 @@ public abstract class HashNodes {
 
         @NeverDefault
         public static CopyHashAndSetRuby2KeywordsNode create() {
-            return CopyHashAndSetRuby2KeywordsNodeGen.create();
+            return HashNodesFactory.CopyHashAndSetRuby2KeywordsNodeGen.create();
         }
 
         public abstract RubyHash execute(RubyHash self, boolean ruby2_keywords);
@@ -419,7 +417,7 @@ public abstract class HashNodes {
 
         @NeverDefault
         public static InitializeCopyNode create() {
-            return InitializeCopyNodeFactory.create(null);
+            return HashNodesFactory.InitializeCopyNodeFactory.create(null);
         }
 
         public abstract RubyHash execute(RubyHash self, RubyHash from);

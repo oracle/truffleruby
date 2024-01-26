@@ -85,7 +85,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
-import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolNodes;
 import org.truffleruby.core.thread.RubyThread;
@@ -126,7 +125,6 @@ import org.truffleruby.language.objects.CheckIVarNameNode;
 import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsCopyableObjectNode;
-import org.truffleruby.language.objects.IsCopyableObjectNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LazySingletonClassNode;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -534,10 +532,9 @@ public abstract class KernelNodes {
     @Primitive(name = "kernel_clone") // "clone"
     public abstract static class CloneNode extends PrimitiveArrayArgumentsNode {
 
-        @Child IsCopyableObjectNode isCopyableObjectNode = IsCopyableObjectNodeGen.create();
-
         @Specialization(guards = "isCopyableObjectNode.execute(object)")
         static RubyDynamicObject copyable(Object object, Object freeze,
+                @Cached @Shared IsCopyableObjectNode isCopyableObjectNode,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CopyNode copyNode,
                 @Cached DispatchNode initializeCloneNode,
@@ -576,6 +573,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "!isCopyableObjectNode.execute(object)")
         Object notCopyable(Object object, Object freeze,
+                @Cached @Shared IsCopyableObjectNode isCopyableObjectNode,
                 @Cached InlinedBranchProfile cantUnfreezeErrorProfile) {
             if (forceNotFrozen(freeze)) {
                 raiseCantUnfreezeError(cantUnfreezeErrorProfile, object);
@@ -1084,14 +1082,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "instance_variables")
     public abstract static class InstanceVariablesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ObjectInstanceVariablesNode instanceVariablesNode = ObjectInstanceVariablesNodeFactory
-                .create(null);
-
         @Specialization
-        RubyArray instanceVariables(Object self) {
+        RubyArray instanceVariables(Object self,
+                @Cached ObjectInstanceVariablesNode instanceVariablesNode) {
             return instanceVariablesNode.executeGetIVars(self);
         }
-
     }
 
     @Primitive(name = "any_instance_variable?")

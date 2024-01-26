@@ -55,7 +55,6 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
-import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import org.truffleruby.parser.BlockDescriptorInfo;
 import org.truffleruby.parser.TranslatorEnvironment;
 
@@ -333,7 +332,7 @@ public abstract class BindingNodes {
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
-                @Cached("createWriteNode(cachedFrameSlot.slot)") WriteFrameSlotNode writeLocalVariableNode) {
+                @Cached(parameters = "cachedFrameSlot.slot") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = RubyArguments
                     .getDeclarationFrame(binding.getFrame(), cachedFrameSlot.depth);
             writeLocalVariableNode.executeWrite(frame, value);
@@ -352,7 +351,7 @@ public abstract class BindingNodes {
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, binding.getFrame())") FrameSlotAndDepth cachedFrameSlot,
                 @Cached("newFrameDescriptor(cachedFrameDescriptor, name)") FrameDescriptor newDescriptor,
-                @Cached("createWriteNode(NEW_VAR_INDEX)") WriteFrameSlotNode writeLocalVariableNode) {
+                @Cached(parameters = "NEW_VAR_INDEX") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = newFrame(binding, newDescriptor);
             writeLocalVariableNode.executeWrite(frame, value);
             return value;
@@ -385,10 +384,6 @@ public abstract class BindingNodes {
             throw new RaiseException(
                     getContext(node),
                     coreExceptions(node).nameError("Bad local variable name", binding, name, node));
-        }
-
-        protected static WriteFrameSlotNode createWriteNode(int frameSlot) {
-            return WriteFrameSlotNodeGen.create(frameSlot);
         }
 
         protected int getCacheLimit() {

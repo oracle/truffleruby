@@ -62,9 +62,6 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
-import org.truffleruby.core.module.ModuleNodesFactory.GeneratedReaderNodeFactory;
-import org.truffleruby.core.module.ModuleNodesFactory.GeneratedWriterNodeFactory;
-import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
@@ -110,7 +107,6 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
@@ -298,7 +294,7 @@ public abstract class ModuleNodes {
         private Object isSubclass(RubyModule self, RubyModule other) {
             if (subclassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                subclassNode = insert(IsSubclassOfOrEqualToNodeFactory.create(null));
+                subclassNode = insert(ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory.create(null));
             }
             return subclassNode.executeIsSubclassOfOrEqualTo(self, other);
         }
@@ -519,8 +515,8 @@ public abstract class ModuleNodes {
                     null);
 
             final NodeFactory<? extends RubyBaseNode> alwaysInlinedNodeFactory = accessor == READER
-                    ? GeneratedReaderNodeFactory.getInstance()
-                    : GeneratedWriterNodeFactory.getInstance();
+                    ? ModuleNodesFactory.GeneratedReaderNodeFactory.getInstance()
+                    : ModuleNodesFactory.GeneratedWriterNodeFactory.getInstance();
 
             final RubyRootNode reRaiseRootNode = new RubyRootNode(
                     getLanguage(),
@@ -1467,14 +1463,13 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SingletonClassNode singletonClassNode;
-
         @Specialization(guards = { "!isRubyClass(self)", "!isRubyClass(from)" })
-        Object initializeCopyModule(RubyModule self, RubyModule from) {
+        Object initializeCopyModule(RubyModule self, RubyModule from,
+                @Cached @Shared SingletonClassNode singletonClassNode) {
             self.fields.initCopy(from);
 
-            final RubyClass selfMetaClass = getSingletonClass(self);
-            final RubyClass fromMetaClass = getSingletonClass(from);
+            final RubyClass selfMetaClass = singletonClassNode.execute(self);
+            final RubyClass fromMetaClass = singletonClassNode.execute(from);
             selfMetaClass.fields.initCopy(fromMetaClass);
 
             return nil;
@@ -1482,6 +1477,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         Object initializeCopyClass(RubyClass self, RubyClass from,
+                @Cached @Shared SingletonClassNode singletonClassNode,
                 @Cached InlinedBranchProfile errorProfile) {
             if (from == coreLibrary().basicObjectClass) {
                 errorProfile.enter(this);
@@ -1493,7 +1489,7 @@ public abstract class ModuleNodes {
 
             self.fields.initCopy(from);
 
-            final RubyClass selfMetaClass = getSingletonClass(self);
+            final RubyClass selfMetaClass = singletonClassNode.execute(self);
             final RubyClass fromMetaClass = from.getMetaClass();
 
             assert fromMetaClass.isSingleton;
@@ -1502,15 +1498,6 @@ public abstract class ModuleNodes {
             selfMetaClass.fields.initCopy(fromMetaClass); // copy class methods
 
             return nil;
-        }
-
-        protected RubyClass getSingletonClass(RubyModule object) {
-            if (singletonClassNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                singletonClassNode = insert(SingletonClassNodeGen.create());
-            }
-
-            return singletonClassNode.execute(object);
         }
 
     }
