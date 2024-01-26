@@ -130,7 +130,6 @@ import org.truffleruby.language.locals.WriteLocalNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.language.methods.CatchBreakNode;
 import org.truffleruby.language.methods.LiteralMethodDefinitionNode;
 import org.truffleruby.language.methods.ModuleBodyDefinition;
@@ -520,7 +519,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
         final Nodes.ParametersNode parameters;
         if (parametersNode instanceof Nodes.BlockParametersNode blockParameters) {
-            parameters = blockParameters.parameters;
+            parameters = blockParameters.parameters != null ? blockParameters.parameters : ZERO_PARAMETERS_NODE;
         } else if (parametersNode instanceof Nodes.NumberedParametersNode numberedParameters) {
             // build Nodes.BlockParametersNode with required parameters _1, _2, etc
             final int maximum = numberedParameters.maximum;
@@ -534,7 +533,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
                     EMPTY_NODE_ARRAY, null, null, 0, 0);
         } else if (parametersNode == null) {
-            parameters = null;
+            parameters = ZERO_PARAMETERS_NODE;
         } else {
             throw CompilerDirectives.shouldNotReachHere();
         }
@@ -1487,8 +1486,13 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             singletonClassNode = null;
         }
 
-        final Arity arity = createArity(node.parameters);
-        final ArgumentDescriptor[] argumentDescriptors = parametersNodeToArgumentDescriptors(node.parameters);
+        Nodes.ParametersNode parameters = node.parameters;
+        if (parameters == null) {
+            parameters = ZERO_PARAMETERS_NODE;
+        }
+
+        final Arity arity = createArity(parameters);
+        final ArgumentDescriptor[] argumentDescriptors = parametersNodeToArgumentDescriptors(parameters);
         final boolean isReceiverSelf = node.receiver instanceof Nodes.SelfNode;
 
         final String parseName = modulePathAndMethodName(node.name, node.receiver != null, isReceiverSelf);
@@ -1515,7 +1519,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 null,
                 null,
                 environment.modulePath);
-        newEnvironment.parametersNode = node.parameters;
+        newEnvironment.parametersNode = parameters;
 
         final var defNodeTranslator = new YARPDefNodeTranslator(
                 language,
@@ -1525,7 +1529,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 sourceEncoding,
                 parserContext,
                 currentNode);
-        final CachedLazyCallTargetSupplier callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, arity);
+        var callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, parameters, arity);
 
         final boolean isDefSingleton = singletonClassNode != null;
 
@@ -3770,7 +3774,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private ArgumentDescriptor[] parametersNodeToArgumentDescriptors(Nodes.ParametersNode parametersNode) {
-        if (parametersNode == null) {
+        if (parametersNode == ZERO_PARAMETERS_NODE) {
             return ArgumentDescriptor.EMPTY_ARRAY;
         }
 
@@ -3866,7 +3870,8 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     private Arity createArity(Nodes.ParametersNode parametersNode) {
-        if (parametersNode == null) {
+        if (parametersNode == ZERO_PARAMETERS_NODE) {
+            // Arity.NO_ARGUMENTS would be tempting here but that would affect method identity
             return new Arity(0, 0, false);
         }
 

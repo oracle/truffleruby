@@ -45,11 +45,11 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
         }
     }
 
-    private RubyNode compileMethodBody(Nodes.DefNode node, Arity arity) {
+    private RubyNode compileMethodBody(Nodes.DefNode node, Nodes.ParametersNode parameters, Arity arity) {
         declareLocalVariables(node);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
-                node.parameters,
+                parameters,
                 language,
                 environment,
                 arity,
@@ -67,8 +67,8 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
         return body;
     }
 
-    private RubyMethodRootNode translateMethodNode(Nodes.DefNode node, Arity arity) {
-        RubyNode body = compileMethodBody(node, arity);
+    private RubyMethodRootNode translateMethodNode(Nodes.DefNode node, Nodes.ParametersNode parameters, Arity arity) {
+        RubyNode body = compileMethodBody(node, parameters, arity);
 
         return new RubyMethodRootNode(
                 language,
@@ -81,12 +81,13 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
                 arity);
     }
 
-    public CachedLazyCallTargetSupplier buildMethodNodeCompiler(Nodes.DefNode node, Arity arity) {
+    public CachedLazyCallTargetSupplier buildMethodNodeCompiler(Nodes.DefNode node, Nodes.ParametersNode parameters,
+            Arity arity) {
         if (shouldLazyTranslate) {
             return new CachedLazyCallTargetSupplier(
-                    () -> translateMethodNode(node, arity).getCallTarget());
+                    () -> translateMethodNode(node, parameters, arity).getCallTarget());
         } else {
-            final RubyMethodRootNode root = translateMethodNode(node, arity);
+            final RubyMethodRootNode root = translateMethodNode(node, parameters, arity);
             return new CachedLazyCallTargetSupplier(() -> root.getCallTarget());
         }
     }

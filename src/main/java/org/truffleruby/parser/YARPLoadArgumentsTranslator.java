@@ -11,6 +11,7 @@ package org.truffleruby.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
@@ -74,18 +75,10 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         this.isProc = isProc;
         this.isMethod = isMethod;
         this.yarpTranslator = yarpTranslator;
-        this.parameters = parameters;
+        this.parameters = Objects.requireNonNull(parameters);
     }
 
     public RubyNode translate() {
-        if (parameters != null) {
-            return translateWithParameters();
-        } else {
-            return translateWithoutParameters();
-        }
-    }
-
-    private RubyNode translateWithParameters() {
         final List<RubyNode> sequence = new ArrayList<>();
 
         sequence.add(Translator.loadSelf(language));
@@ -102,6 +95,11 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         // its default value via a `yield`.
         if (isMethod) {
             sequence.add(saveMethodBlockArg());
+        }
+
+        // Early return for the common case of zero parameters
+        if (parameters == YARPTranslator.ZERO_PARAMETERS_NODE) {
+            return YARPTranslator.sequence(sequence);
         }
 
         if (parameters.optionals.length > 0) {
@@ -143,17 +141,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
         if (parameters.block != null) {
             sequence.add(parameters.block.accept(this));
-        }
-
-        return YARPTranslator.sequence(sequence);
-    }
-
-    private RubyNode translateWithoutParameters() {
-        final List<RubyNode> sequence = new ArrayList<>();
-
-        sequence.add(Translator.loadSelf(language));
-        if (isMethod) {
-            sequence.add(saveMethodBlockArg());
         }
 
         return YARPTranslator.sequence(sequence);
