@@ -3018,9 +3018,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitSourceFileNode(Nodes.SourceFileNode node) {
-        // Note: ideally we would use the filesystem encoding here, but it is too early to get that.
-        // The filesystem encoding on Linux and macOS is UTF-8 anyway, so keep it simple.
-        RubyEncoding encoding = Encodings.UTF_8;
+        RubyEncoding encoding = Encodings.FILESYSTEM;
         var path = TruffleString.fromByteArrayUncached(node.filepath, encoding.tencoding);
         var rubyNode = new StringLiteralNode(path, encoding);
         return assignPositionAndFlags(node, rubyNode);

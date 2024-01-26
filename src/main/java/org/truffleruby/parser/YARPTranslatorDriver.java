@@ -429,7 +429,7 @@ public final class YARPTranslatorDriver {
         byte[] filepath;
         int line = rubySource.getLineOffset() + 1;
         byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
-        boolean frozenStringLiteral = configuration.isFrozenStringLiteral();
+        boolean frozenStringLiteral = language.options.FROZEN_STRING_LITERALS;
         boolean verbose = true;
         // The vendored version of prism in CRuby 3.3.0
         // See pm_options_version_t in c/yarp/include/prism/options.h
