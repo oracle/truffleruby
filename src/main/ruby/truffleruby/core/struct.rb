@@ -56,7 +56,8 @@ class Struct
     end
 
     klass = Class.new self do
-      _specialize attrs unless keyword_init
+      # _specialize doesn't support keyword arguments
+      _specialize attrs if Primitive.false?(keyword_init)
 
       attrs.each do |a|
         define_method(a) { Primitive.object_hidden_var_get(self, a) }
@@ -71,6 +72,7 @@ class Struct
         new(*args)
       end
 
+      # This doesn't apply when keyword_init is nil.
       if keyword_init
         def self.inspect
           super + '(keyword_init: true)'
@@ -156,7 +158,13 @@ class Struct
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
     end
 
-    if Primitive.class(self)::KEYWORD_INIT
+    keyword_init = Primitive.class(self)::KEYWORD_INIT
+
+    # When keyword_init is nil:
+    #   If there are any positional args we treat them all as positional.
+    #   If there are no args at all we also want to run the positional handling code.
+
+    if keyword_init || (Primitive.nil?(keyword_init) && args.empty? && !kwargs.empty?)
       # Accept a single positional hash for https://bugs.ruby-lang.org/issues/18632 and spec
       if kwargs.empty? && args.size == 1 && Primitive.is_a?(args.first, Hash)
         kwargs = args.first
