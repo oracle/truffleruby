@@ -35,6 +35,7 @@ Compatibility:
 * Implement `MatchData#{byteoffset,deconstruct,deconstruct_keys}` from Ruby 3.2 (#3039, @rwstauner).
 * Add `Integer#ceildiv` method (#3039, @simonlevasseur, @nirvdrum).
 * Implement `Class#attached_object` method (#3039, @andrykonchin).
+* Fix `ENV#{clone,dup}` and raise `TypeError` (#3039, @andrykonchin).
 
 Performance:
 
