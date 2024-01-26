@@ -388,13 +388,13 @@ public final class TranslatorEnvironment {
         return methodParent;
     }
 
-    /** Return either outer method/module/top level environment or in case of eval("...") the topmost environment of the
-     * parsed (by eval) code */
+    /** Return either outer method/module/top level environment or in case of eval("...") the outermost environment of
+     * the parsed (by eval) code */
     public TranslatorEnvironment getSurroundingMethodOrEvalEnvironment() {
         TranslatorEnvironment environment = this;
 
         // eval's parsing environment still has frameDescriptor not initialized,
-        // but all the outer scopes are related to already parsed code and have initialized frameDescriptor.
+        // but all the outer scopes are related to already parsed code and have frameDescriptor != null.
         while (environment.isBlock() && environment.getParent().frameDescriptor == null) {
             environment = environment.getParent();
         }
