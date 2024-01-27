@@ -256,6 +256,11 @@ public abstract class TypeNodes {
     @Primitive(name = "object_ivars")
     public abstract static class ObjectInstanceVariablesNode extends PrimitiveArrayArgumentsNode {
 
+        @NeverDefault
+        public static ObjectInstanceVariablesNode create() {
+            return TypeNodesFactory.ObjectInstanceVariablesNodeFactory.create(null);
+        }
+
         public abstract RubyArray executeGetIVars(Object self);
 
         @Specialization(limit = "getDynamicObjectCacheLimit()")

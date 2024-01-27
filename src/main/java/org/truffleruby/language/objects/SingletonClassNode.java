@@ -20,7 +20,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -155,7 +154,8 @@ public abstract class SingletonClassNode extends RubyBaseNode {
 
         @Override
         public RubyNode cloneUninitialized() {
-            return SingletonClassASTNodeGen.create(getValueNode().cloneUninitialized()).copyFlags(this);
+            return SingletonClassNodeGen.SingletonClassASTNodeGen.create(getValueNode().cloneUninitialized())
+                    .copyFlags(this);
         }
     }
 

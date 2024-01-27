@@ -27,7 +27,6 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -104,7 +103,7 @@ public abstract class RegexpNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         public static ToSNode create() {
-            return ToSNodeFactory.create(null);
+            return RegexpNodesFactory.ToSNodeFactory.create(null);
         }
 
         public abstract RubyString execute(RubyRegexp regexp);

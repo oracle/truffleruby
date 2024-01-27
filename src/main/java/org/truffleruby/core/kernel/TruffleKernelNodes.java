@@ -27,7 +27,6 @@ import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.kernel.TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -213,7 +212,7 @@ public abstract class TruffleKernelNodes {
 
         @NeverDefault
         public static GetSpecialVariableStorage create() {
-            return GetSpecialVariableStorageNodeGen.create();
+            return TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen.create();
         }
 
         public final SpecialVariableStorage executeCached(Frame frame) {
@@ -221,7 +220,7 @@ public abstract class TruffleKernelNodes {
         }
 
         public static SpecialVariableStorage executeUncached(Frame frame) {
-            return GetSpecialVariableStorageNodeGen.getUncached().execute(frame, null);
+            return TruffleKernelNodesFactory.GetSpecialVariableStorageNodeGen.getUncached().execute(frame, null);
         }
 
         public abstract SpecialVariableStorage execute(Frame frame, Node node);
@@ -366,10 +365,6 @@ public abstract class TruffleKernelNodes {
             SpecialVariableStorage.set(frame, storage);
             // TODO: should invalidate here?
             return nil;
-        }
-
-        public static GetSpecialVariableStorage create() {
-            return GetSpecialVariableStorageNodeGen.create();
         }
     }
 
