@@ -130,11 +130,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         }
         case PM_ASSOC_NODE: {
             pm_serialize_node(parser, (pm_node_t *)((pm_assoc_node_t *)node)->key, buffer);
-            if (((pm_assoc_node_t *)node)->value == NULL) {
-                pm_buffer_append_byte(buffer, 0);
-            } else {
-                pm_serialize_node(parser, (pm_node_t *)((pm_assoc_node_t *)node)->value, buffer);
-            }
+            pm_serialize_node(parser, (pm_node_t *)((pm_assoc_node_t *)node)->value, buffer);
             break;
         }
         case PM_ASSOC_SPLAT_NODE: {
@@ -1361,6 +1357,8 @@ pm_serialize_diagnostic(pm_parser_t *parser, pm_diagnostic_t *diagnostic, pm_buf
 
     // serialize location
     pm_serialize_location(parser, &diagnostic->location, buffer);
+
+    pm_buffer_append_byte(buffer, diagnostic->level);
 }
 
 static void
@@ -1383,7 +1381,7 @@ pm_serialize_encoding(const pm_encoding_t *encoding, pm_buffer_t *buffer) {
     pm_buffer_append_string(buffer, encoding->name, encoding_length);
 }
 
-#line 216 "serialize.c.erb"
+#line 218 "serialize.c.erb"
 /**
  * Serialize the encoding, metadata, nodes, and constant pool.
  */

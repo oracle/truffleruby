@@ -424,6 +424,11 @@ lex_state_beg_p(pm_parser_t *parser) {
 }
 
 static inline bool
+lex_state_arg_labeled_p(pm_parser_t *parser) {
+    return (parser->lex_state & (PM_LEX_STATE_ARG | PM_LEX_STATE_LABELED)) == (PM_LEX_STATE_ARG | PM_LEX_STATE_LABELED);
+}
+
+static inline bool
 lex_state_arg_p(pm_parser_t *parser) {
     return lex_state_p(parser, PM_LEX_STATE_ARG_ANY);
 }
@@ -1344,7 +1349,7 @@ pm_assoc_node_create(pm_parser_t *parser, pm_node_t *key, const pm_token_t *oper
     pm_assoc_node_t *node = PM_ALLOC_NODE(parser, pm_assoc_node_t);
     const uint8_t *end;
 
-    if (value != NULL) {
+    if (value != NULL && value->location.end > key->location.end) {
         end = value->location.end;
     } else if (operator->type != PM_TOKEN_NOT_PROVIDED) {
         end = operator->end;
@@ -1352,16 +1357,18 @@ pm_assoc_node_create(pm_parser_t *parser, pm_node_t *key, const pm_token_t *oper
         end = key->location.end;
     }
 
+    // Hash string keys will be frozen, so we can mark them as frozen here so
+    // that the compiler picks them up and also when we check for static literal
+    // on the keys it gets factored in.
+    if (PM_NODE_TYPE_P(key, PM_STRING_NODE)) {
+        key->flags |= PM_STRING_FLAGS_FROZEN | PM_NODE_FLAG_STATIC_LITERAL;
+    }
+
     // If the key and value of this assoc node are both static literals, then
     // we can mark this node as a static literal.
     pm_node_flags_t flags = 0;
     if (value && !PM_NODE_TYPE_P(value, PM_ARRAY_NODE) && !PM_NODE_TYPE_P(value, PM_HASH_NODE) && !PM_NODE_TYPE_P(value, PM_RANGE_NODE)) {
         flags = key->flags & value->flags & PM_NODE_FLAG_STATIC_LITERAL;
-    }
-
-    // Hash string keys should be frozen
-    if (PM_NODE_TYPE_P(key, PM_STRING_NODE)) {
-        key->flags |= PM_STRING_FLAGS_FROZEN;
     }
 
     *node = (pm_assoc_node_t) {
@@ -3997,9 +4004,8 @@ pm_keyword_hash_node_create(pm_parser_t *parser) {
  */
 static void
 pm_keyword_hash_node_elements_append(pm_keyword_hash_node_t *hash, pm_node_t *element) {
-    // If the element being added is not an AssocNode or does not have a symbol key, then
-    // we want to turn the STATIC_KEYS flag off.
-    // TODO: Rename the flag to SYMBOL_KEYS instead.
+    // If the element being added is not an AssocNode or does not have a symbol
+    // key, then we want to turn the SYMBOL_KEYS flag off.
     if (!PM_NODE_TYPE_P(element, PM_ASSOC_NODE) || !PM_NODE_TYPE_P(((pm_assoc_node_t *) element)->key, PM_SYMBOL_NODE)) {
         pm_node_flag_unset((pm_node_t *)hash, PM_KEYWORD_HASH_NODE_FLAGS_SYMBOL_KEYS);
     }
@@ -5466,17 +5472,58 @@ pm_super_node_create(pm_parser_t *parser, const pm_token_t *keyword, pm_argument
 }
 
 /**
+ * Read through the contents of a string and check if it consists solely of US ASCII code points.
+ */
+static bool
+pm_ascii_only_p(const pm_string_t *contents) {
+    const size_t length = pm_string_length(contents);
+    const uint8_t *source = pm_string_source(contents);
+
+    for (size_t index = 0; index < length; index++) {
+        if (source[index] & 0x80) return false;
+    }
+
+    return true;
+}
+
+/**
+ * Ruby "downgrades" the encoding of Symbols to US-ASCII if the associated
+ * encoding is ASCII-compatible and the Symbol consists only of US-ASCII code
+ * points. Otherwise, the encoding may be explicitly set with an escape
+ * sequence.
+ */
+static inline pm_node_flags_t
+parse_symbol_encoding(const pm_parser_t *parser, const pm_string_t *contents) {
+    if (parser->explicit_encoding != NULL) {
+        // A Symbol may optionally have its encoding explicitly set. This will
+        // happen if an escape sequence results in a non-ASCII code point.
+        if (parser->explicit_encoding == PM_ENCODING_UTF_8_ENTRY) {
+            return PM_SYMBOL_FLAGS_FORCED_UTF8_ENCODING;
+        } else if (parser->encoding == PM_ENCODING_US_ASCII_ENTRY) {
+            return PM_SYMBOL_FLAGS_FORCED_BINARY_ENCODING;
+        }
+    } else if (pm_ascii_only_p(contents)) {
+        // Ruby stipulates that all source files must use an ASCII-compatible
+        // encoding. Thus, all symbols appearing in source are eligible for
+        // "downgrading" to US-ASCII.
+        return PM_SYMBOL_FLAGS_FORCED_US_ASCII_ENCODING;
+    }
+
+    return 0;
+}
+
+/**
  * Allocate and initialize a new SymbolNode node with the given unescaped
  * string.
  */
 static pm_symbol_node_t *
-pm_symbol_node_create_unescaped(pm_parser_t *parser, const pm_token_t *opening, const pm_token_t *value, const pm_token_t *closing, const pm_string_t *unescaped) {
+pm_symbol_node_create_unescaped(pm_parser_t *parser, const pm_token_t *opening, const pm_token_t *value, const pm_token_t *closing, const pm_string_t *unescaped, pm_node_flags_t flags) {
     pm_symbol_node_t *node = PM_ALLOC_NODE(parser, pm_symbol_node_t);
 
     *node = (pm_symbol_node_t) {
         {
             .type = PM_SYMBOL_NODE,
-            .flags = PM_NODE_FLAG_STATIC_LITERAL,
+            .flags = PM_NODE_FLAG_STATIC_LITERAL | flags,
             .location = {
                 .start = (opening->type == PM_TOKEN_NOT_PROVIDED ? value->start : opening->start),
                 .end = (closing->type == PM_TOKEN_NOT_PROVIDED ? value->end : closing->end)
@@ -5496,7 +5543,7 @@ pm_symbol_node_create_unescaped(pm_parser_t *parser, const pm_token_t *opening, 
  */
 static inline pm_symbol_node_t *
 pm_symbol_node_create(pm_parser_t *parser, const pm_token_t *opening, const pm_token_t *value, const pm_token_t *closing) {
-    return pm_symbol_node_create_unescaped(parser, opening, value, closing, &PM_STRING_EMPTY);
+    return pm_symbol_node_create_unescaped(parser, opening, value, closing, &PM_STRING_EMPTY, 0);
 }
 
 /**
@@ -5504,7 +5551,7 @@ pm_symbol_node_create(pm_parser_t *parser, const pm_token_t *opening, const pm_t
  */
 static pm_symbol_node_t *
 pm_symbol_node_create_current_string(pm_parser_t *parser, const pm_token_t *opening, const pm_token_t *value, const pm_token_t *closing) {
-    pm_symbol_node_t *node = pm_symbol_node_create_unescaped(parser, opening, value, closing, &parser->current_string);
+    pm_symbol_node_t *node = pm_symbol_node_create_unescaped(parser, opening, value, closing, &parser->current_string, parse_symbol_encoding(parser, &parser->current_string));
     parser->current_string = PM_STRING_EMPTY;
     return node;
 }
@@ -5526,6 +5573,8 @@ pm_symbol_node_label_create(pm_parser_t *parser, const pm_token_t *token) {
 
             assert((label.end - label.start) >= 0);
             pm_string_shared_init(&node->unescaped, label.start, label.end);
+            pm_node_flag_set((pm_node_t *) node, parse_symbol_encoding(parser, &node->unescaped));
+
             break;
         }
         case PM_TOKEN_MISSING: {
@@ -5587,6 +5636,8 @@ pm_string_node_to_symbol_node(pm_parser_t *parser, pm_string_node_t *node, const
         .closing_loc = PM_OPTIONAL_LOCATION_TOKEN_VALUE(closing),
         .unescaped = node->unescaped
     };
+
+    pm_node_flag_set((pm_node_t *)new_node, parse_symbol_encoding(parser, &node->unescaped));
 
     // We are explicitly _not_ using pm_node_destroy here because we don't want
     // to trash the unescaped string. We could instead copy the string if we
@@ -8109,7 +8160,6 @@ pm_token_buffer_push(pm_token_buffer_t *token_buffer, uint8_t byte) {
 /**
  * When we're about to return from lexing the current token and we know for sure
  * that we have found an escape sequence, this function is called to copy the
- *
  * contents of the token buffer into the current string on the parser so that it
  * can be attached to the correct node.
  */
@@ -8124,7 +8174,6 @@ pm_token_buffer_copy(pm_parser_t *parser, pm_token_buffer_t *token_buffer) {
  * string. If we haven't pushed anything into the buffer, this means that we
  * never found an escape sequence, so we can directly reference the bounds of
  * the current string. Either way, at the return of this function it is expected
- *
  * that parser->current_string is established in such a way that it can be
  * attached to a node.
  */
@@ -8142,7 +8191,6 @@ pm_token_buffer_flush(pm_parser_t *parser, pm_token_buffer_t *token_buffer) {
  * When we've found an escape sequence, we need to copy everything up to this
  * point into the buffer because we're about to provide a string that has
  * different content than a direct slice of the source.
- *
  *
  * It is expected that the parser's current token end will be pointing at one
  * byte past the backslash that starts the escape sequence.
@@ -11019,7 +11067,7 @@ parse_write(pm_parser_t *parser, pm_node_t *target, pm_token_t *operator, pm_nod
                     return target;
                 }
 
-                if (*call->message_loc.start == '_' || parser->encoding->alnum_char(call->message_loc.start, call->message_loc.end - call->message_loc.start)) {
+                if (char_is_identifier_start(parser, call->message_loc.start)) {
                     // When we get here, we have a method call, because it was
                     // previously marked as a method call but now we have an =. This
                     // looks like:
@@ -11137,6 +11185,7 @@ parse_targets(pm_parser_t *parser, pm_node_t *first_target, pm_binding_power_t b
 static pm_node_t *
 parse_targets_validate(pm_parser_t *parser, pm_node_t *first_target, pm_binding_power_t binding_power) {
     pm_node_t *result = parse_targets(parser, first_target, binding_power);
+    accept1(parser, PM_TOKEN_NEWLINE);
 
     // Ensure that we have either an = or a ) after the targets.
     if (!match2(parser, PM_TOKEN_EQUAL, PM_TOKEN_PARENTHESIS_RIGHT)) {
@@ -12589,8 +12638,14 @@ static inline pm_node_flags_t
 parse_unescaped_encoding(const pm_parser_t *parser) {
     if (parser->explicit_encoding != NULL) {
         if (parser->explicit_encoding == PM_ENCODING_UTF_8_ENTRY) {
+            // If the there's an explicit encoding and it's using a UTF-8 escape
+            // sequence, then mark the string as UTF-8.
             return PM_STRING_FLAGS_FORCED_UTF8_ENCODING;
         } else if (parser->encoding == PM_ENCODING_US_ASCII_ENTRY) {
+            // If there's a non-UTF-8 escape sequence being used, then the
+            // string uses the source encoding, unless the source is marked as
+            // US-ASCII. In that case the string is forced as ASCII-8BIT in
+            // order to keep the string valid.
             return PM_STRING_FLAGS_FORCED_BINARY_ENCODING;
         }
     }
@@ -12719,25 +12774,31 @@ parse_string_part(pm_parser_t *parser) {
  * automatically drop trailing `@` characters. This happens at the parser level,
  * such that `~@` is parsed as `~` and `!@` is parsed as `!`. We do that here.
  */
+static const uint8_t *
+parse_operator_symbol_name(const pm_token_t *name) {
+    switch (name->type) {
+        case PM_TOKEN_TILDE:
+        case PM_TOKEN_BANG:
+            if (name->end[-1] == '@') return name->end - 1;
+        /* fallthrough */
+        default:
+            return name->end;
+    }
+}
+
 static pm_node_t *
 parse_operator_symbol(pm_parser_t *parser, const pm_token_t *opening, pm_lex_state_t next_state) {
     pm_token_t closing = not_provided(parser);
     pm_symbol_node_t *symbol = pm_symbol_node_create(parser, opening, &parser->current, &closing);
 
-    const uint8_t *end = parser->current.end;
-    switch (parser->current.type) {
-        case PM_TOKEN_TILDE:
-        case PM_TOKEN_BANG:
-            if (parser->current.end[-1] == '@') end--;
-            break;
-        default:
-            break;
-    }
+    const uint8_t *end = parse_operator_symbol_name(&parser->current);
 
     if (next_state != PM_LEX_STATE_NONE) lex_state_set(parser, next_state);
     parser_lex(parser);
 
     pm_string_shared_init(&symbol->unescaped, parser->previous.start, end);
+    pm_node_flag_set((pm_node_t *) symbol, PM_SYMBOL_FLAGS_FORCED_US_ASCII_ENCODING);
+
     return (pm_node_t *) symbol;
 }
 
@@ -12776,6 +12837,8 @@ parse_symbol(pm_parser_t *parser, pm_lex_mode_t *lex_mode, pm_lex_state_t next_s
         pm_symbol_node_t *symbol = pm_symbol_node_create(parser, &opening, &parser->previous, &closing);
 
         pm_string_shared_init(&symbol->unescaped, parser->previous.start, parser->previous.end);
+        pm_node_flag_set((pm_node_t *) symbol, parse_symbol_encoding(parser, &symbol->unescaped));
+
         return (pm_node_t *) symbol;
     }
 
@@ -12872,7 +12935,8 @@ parse_symbol(pm_parser_t *parser, pm_lex_mode_t *lex_mode, pm_lex_state_t next_s
     } else {
         expect1(parser, PM_TOKEN_STRING_END, PM_ERR_SYMBOL_TERM_DYNAMIC);
     }
-    return (pm_node_t *) pm_symbol_node_create_unescaped(parser, &opening, &content, &parser->previous, &unescaped);
+
+    return (pm_node_t *) pm_symbol_node_create_unescaped(parser, &opening, &content, &parser->previous, &unescaped, parse_symbol_encoding(parser, &unescaped));
 }
 
 /**
@@ -12897,6 +12961,8 @@ parse_undef_argument(pm_parser_t *parser) {
             pm_symbol_node_t *symbol = pm_symbol_node_create(parser, &opening, &parser->previous, &closing);
 
             pm_string_shared_init(&symbol->unescaped, parser->previous.start, parser->previous.end);
+            pm_node_flag_set((pm_node_t *) symbol, parse_symbol_encoding(parser, &symbol->unescaped));
+
             return (pm_node_t *) symbol;
         }
         case PM_TOKEN_SYMBOL_BEGIN: {
@@ -12936,6 +13002,8 @@ parse_alias_argument(pm_parser_t *parser, bool first) {
             pm_symbol_node_t *symbol = pm_symbol_node_create(parser, &opening, &parser->previous, &closing);
 
             pm_string_shared_init(&symbol->unescaped, parser->previous.start, parser->previous.end);
+            pm_node_flag_set((pm_node_t *) symbol, parse_symbol_encoding(parser, &symbol->unescaped));
+
             return (pm_node_t *) symbol;
         }
         case PM_TOKEN_SYMBOL_BEGIN: {
@@ -13327,42 +13395,76 @@ parse_pattern_keyword_rest(pm_parser_t *parser) {
 }
 
 /**
+ * Create an implicit node for the value of a hash pattern that has omitted the
+ * value. This will use an implicit local variable target.
+ */
+static pm_node_t *
+parse_pattern_hash_implicit_value(pm_parser_t *parser, pm_symbol_node_t *key) {
+    const pm_location_t *value_loc = &((pm_symbol_node_t *) key)->value_loc;
+    pm_constant_id_t name = pm_parser_constant_id_location(parser, value_loc->start, value_loc->end);
+
+    int current_depth = pm_parser_local_depth_constant_id(parser, name);
+    uint32_t depth;
+
+    if (current_depth == -1) {
+        pm_parser_local_add_location(parser, value_loc->start, value_loc->end);
+        depth = 0;
+    } else {
+        depth = (uint32_t) current_depth;
+    }
+
+    pm_local_variable_target_node_t *target = pm_local_variable_target_node_create_values(parser, value_loc, name, depth);
+    return (pm_node_t *) pm_implicit_node_create(parser, (pm_node_t *) target);
+}
+
+/**
  * Parse a hash pattern.
  */
 static pm_hash_pattern_node_t *
-parse_pattern_hash(pm_parser_t *parser, pm_node_t *first_assoc) {
+parse_pattern_hash(pm_parser_t *parser, pm_node_t *first_node) {
     pm_node_list_t assocs = { 0 };
     pm_node_t *rest = NULL;
 
-    switch (PM_NODE_TYPE(first_assoc)) {
-        case PM_ASSOC_NODE: {
-            if (!match7(parser, PM_TOKEN_COMMA, PM_TOKEN_KEYWORD_THEN, PM_TOKEN_BRACE_RIGHT, PM_TOKEN_BRACKET_RIGHT, PM_TOKEN_PARENTHESIS_RIGHT, PM_TOKEN_NEWLINE, PM_TOKEN_SEMICOLON)) {
-                // Here we have a value for the first assoc in the list, so we will
-                // parse it now and update the first assoc.
-                pm_node_t *value = parse_pattern(parser, false, PM_ERR_PATTERN_EXPRESSION_AFTER_KEY);
-
-                pm_assoc_node_t *assoc = (pm_assoc_node_t *) first_assoc;
-                assoc->base.location.end = value->location.end;
-                assoc->value = value;
-            } else {
-                pm_node_t *key = ((pm_assoc_node_t *) first_assoc)->key;
-
-                if (PM_NODE_TYPE_P(key, PM_SYMBOL_NODE)) {
-                    const pm_location_t *value_loc = &((pm_symbol_node_t *) key)->value_loc;
-                    pm_parser_local_add_location(parser, value_loc->start, value_loc->end);
-                }
-            }
-
-            pm_node_list_append(&assocs, first_assoc);
-            break;
-        }
+    switch (PM_NODE_TYPE(first_node)) {
         case PM_ASSOC_SPLAT_NODE:
         case PM_NO_KEYWORDS_PARAMETER_NODE:
-            rest = first_assoc;
+            rest = first_node;
             break;
-        default:
-            assert(false);
+        case PM_SYMBOL_NODE: {
+            if (pm_symbol_node_label_p(first_node)) {
+                pm_node_t *value;
+
+                if (!match7(parser, PM_TOKEN_COMMA, PM_TOKEN_KEYWORD_THEN, PM_TOKEN_BRACE_RIGHT, PM_TOKEN_BRACKET_RIGHT, PM_TOKEN_PARENTHESIS_RIGHT, PM_TOKEN_NEWLINE, PM_TOKEN_SEMICOLON)) {
+                    // Here we have a value for the first assoc in the list, so
+                    // we will parse it now.
+                    value = parse_pattern(parser, false, PM_ERR_PATTERN_EXPRESSION_AFTER_KEY);
+                } else {
+                    // Otherwise, we will create an implicit local variable
+                    // target for the value.
+                    value = parse_pattern_hash_implicit_value(parser, (pm_symbol_node_t *) first_node);
+                }
+
+                pm_token_t operator = not_provided(parser);
+                pm_node_t *assoc = (pm_node_t *) pm_assoc_node_create(parser, first_node, &operator, value);
+
+                pm_node_list_append(&assocs, assoc);
+                break;
+            }
+        }
+        /* fallthrough */
+        default: {
+            // If we get anything else, then this is an error. For this we'll
+            // create a missing node for the value and create an assoc node for
+            // the first node in the list.
+            pm_parser_err_node(parser, first_node, PM_ERR_PATTERN_HASH_KEY_LABEL);
+
+            pm_token_t operator = not_provided(parser);
+            pm_node_t *value = (pm_node_t *) pm_missing_node_create(parser, first_node->location.start, first_node->location.end);
+            pm_node_t *assoc = (pm_node_t *) pm_assoc_node_create(parser, first_node, &operator, value);
+
+            pm_node_list_append(&assocs, assoc);
             break;
+        }
     }
 
     // If there are any other assocs, then we'll parse them now.
@@ -13391,6 +13493,7 @@ parse_pattern_hash(pm_parser_t *parser, pm_node_t *first_assoc) {
             } else {
                 const pm_location_t *value_loc = &((pm_symbol_node_t *) key)->value_loc;
                 pm_parser_local_add_location(parser, value_loc->start, value_loc->end);
+                value = parse_pattern_hash_implicit_value(parser, (pm_symbol_node_t *) key);
             }
 
             pm_token_t operator = not_provided(parser);
@@ -13496,45 +13599,29 @@ parse_pattern_primitive(pm_parser_t *parser, pm_diagnostic_id_t diag_id) {
                 // pattern node.
                 node = pm_hash_pattern_node_empty_create(parser, &opening, &parser->previous);
             } else {
-                pm_node_t *first_assoc;
+                pm_node_t *first_node;
 
                 switch (parser->current.type) {
-                    case PM_TOKEN_LABEL: {
+                    case PM_TOKEN_LABEL:
                         parser_lex(parser);
-
-                        pm_symbol_node_t *key = pm_symbol_node_label_create(parser, &parser->previous);
-                        pm_token_t operator = not_provided(parser);
-
-                        first_assoc = (pm_node_t *) pm_assoc_node_create(parser, (pm_node_t *) key, &operator, NULL);
+                        first_node = (pm_node_t *) pm_symbol_node_label_create(parser, &parser->previous);
                         break;
-                    }
                     case PM_TOKEN_USTAR_STAR:
-                        first_assoc = parse_pattern_keyword_rest(parser);
+                        first_node = parse_pattern_keyword_rest(parser);
                         break;
-                    case PM_TOKEN_STRING_BEGIN: {
-                        pm_node_t *key = parse_expression(parser, PM_BINDING_POWER_MAX, false, PM_ERR_PATTERN_HASH_KEY);
-                        pm_token_t operator = not_provided(parser);
-
-                        if (!pm_symbol_node_label_p(key)) {
-                            pm_parser_err_node(parser, key, PM_ERR_PATTERN_HASH_KEY_LABEL);
-                        }
-
-                        first_assoc = (pm_node_t *) pm_assoc_node_create(parser, key, &operator, NULL);
+                    case PM_TOKEN_STRING_BEGIN:
+                        first_node = parse_expression(parser, PM_BINDING_POWER_MAX, false, PM_ERR_PATTERN_HASH_KEY);
                         break;
-                    }
                     default: {
                         parser_lex(parser);
                         pm_parser_err_previous(parser, PM_ERR_PATTERN_HASH_KEY);
 
-                        pm_missing_node_t *key = pm_missing_node_create(parser, parser->previous.start, parser->previous.end);
-                        pm_token_t operator = not_provided(parser);
-
-                        first_assoc = (pm_node_t *) pm_assoc_node_create(parser, (pm_node_t *) key, &operator, NULL);
+                        first_node = (pm_node_t *) pm_missing_node_create(parser, parser->previous.start, parser->previous.end);
                         break;
                     }
                 }
 
-                node = parse_pattern_hash(parser, first_assoc);
+                node = parse_pattern_hash(parser, first_node);
 
                 accept1(parser, PM_TOKEN_NEWLINE);
                 expect1(parser, PM_TOKEN_BRACE_RIGHT, PM_ERR_PATTERN_TERM_BRACE);
@@ -13778,9 +13865,7 @@ parse_pattern(pm_parser_t *parser, bool top_pattern, pm_diagnostic_id_t diag_id)
         case PM_TOKEN_LABEL: {
             parser_lex(parser);
             pm_node_t *key = (pm_node_t *) pm_symbol_node_label_create(parser, &parser->previous);
-            pm_token_t operator = not_provided(parser);
-
-            return (pm_node_t *) parse_pattern_hash(parser, (pm_node_t *) pm_assoc_node_create(parser, key, &operator, NULL));
+            return (pm_node_t *) parse_pattern_hash(parser, key);
         }
         case PM_TOKEN_USTAR_STAR: {
             node = parse_pattern_keyword_rest(parser);
@@ -13803,8 +13888,7 @@ parse_pattern(pm_parser_t *parser, bool top_pattern, pm_diagnostic_id_t diag_id)
     // If we got a dynamic label symbol, then we need to treat it like the
     // beginning of a hash pattern.
     if (pm_symbol_node_label_p(node)) {
-        pm_token_t operator = not_provided(parser);
-        return (pm_node_t *) parse_pattern_hash(parser, (pm_node_t *) pm_assoc_node_create(parser, node, &operator, NULL));
+        return (pm_node_t *) parse_pattern_hash(parser, node);
     }
 
     if (top_pattern && match1(parser, PM_TOKEN_COMMA)) {
@@ -13903,7 +13987,7 @@ parse_strings(pm_parser_t *parser, pm_node_t *current) {
     assert(parser->current.type == PM_TOKEN_STRING_BEGIN);
 
     bool concating = false;
-    bool state_is_arg_labeled = lex_state_p(parser, PM_LEX_STATE_ARG | PM_LEX_STATE_LABELED);
+    bool state_is_arg_labeled = lex_state_arg_labeled_p(parser);
 
     while (match1(parser, PM_TOKEN_STRING_BEGIN)) {
         pm_node_t *node = NULL;
@@ -13978,7 +14062,7 @@ parse_strings(pm_parser_t *parser, pm_node_t *current) {
                 expect1(parser, PM_TOKEN_STRING_END, PM_ERR_STRING_LITERAL_TERM);
                 node = (pm_node_t *) pm_interpolated_string_node_create(parser, &opening, &parts, &parser->previous);
             } else if (accept1(parser, PM_TOKEN_LABEL_END) && !state_is_arg_labeled) {
-                node = (pm_node_t *) pm_symbol_node_create_unescaped(parser, &opening, &content, &parser->previous, &unescaped);
+                node = (pm_node_t *) pm_symbol_node_create_unescaped(parser, &opening, &content, &parser->previous, &unescaped, parse_symbol_encoding(parser, &unescaped));
             } else if (match1(parser, PM_TOKEN_EOF)) {
                 pm_parser_err_token(parser, &opening, PM_ERR_STRING_LITERAL_TERM);
                 node = (pm_node_t *) pm_string_node_create_unescaped(parser, &opening, &content, &parser->current, &unescaped);
@@ -14000,7 +14084,7 @@ parse_strings(pm_parser_t *parser, pm_node_t *current) {
                 pm_node_flag_set(node, parse_unescaped_encoding(parser));
                 expect1(parser, PM_TOKEN_STRING_END, PM_ERR_STRING_LITERAL_TERM);
             } else if (accept1(parser, PM_TOKEN_LABEL_END)) {
-                node = (pm_node_t *) pm_symbol_node_create_unescaped(parser, &opening, &content, &parser->previous, &unescaped);
+                node = (pm_node_t *) pm_symbol_node_create_unescaped(parser, &opening, &content, &parser->previous, &unescaped, parse_symbol_encoding(parser, &unescaped));
             } else {
                 // If we get here, then we have interpolation so we'll need
                 // to create a string or symbol node with interpolation.
@@ -14373,7 +14457,7 @@ parse_expression_prefix(pm_parser_t *parser, pm_binding_power_t binding_power, b
                 match1(parser, PM_TOKEN_PARENTHESIS_LEFT) ||
                 (accepts_command_call && (token_begins_expression_p(parser->current.type) || match3(parser, PM_TOKEN_UAMPERSAND, PM_TOKEN_USTAR, PM_TOKEN_USTAR_STAR))) ||
                 (pm_accepts_block_stack_p(parser) && match1(parser, PM_TOKEN_KEYWORD_DO)) ||
-		match1(parser, PM_TOKEN_BRACE_LEFT)
+                match1(parser, PM_TOKEN_BRACE_LEFT)
             ) {
                 pm_arguments_t arguments = { 0 };
                 parse_arguments_list(parser, &arguments, true, accepts_command_call);
@@ -14498,7 +14582,7 @@ parse_expression_prefix(pm_parser_t *parser, pm_binding_power_t binding_power, b
                 if (
                     (accepts_command_call && (token_begins_expression_p(parser->current.type) || match3(parser, PM_TOKEN_UAMPERSAND, PM_TOKEN_USTAR, PM_TOKEN_USTAR_STAR))) ||
                     (pm_accepts_block_stack_p(parser) && match1(parser, PM_TOKEN_KEYWORD_DO)) ||
-		    match1(parser, PM_TOKEN_BRACE_LEFT)
+                    match1(parser, PM_TOKEN_BRACE_LEFT)
                 ) {
                     pm_arguments_t arguments = { 0 };
                     parse_arguments_list(parser, &arguments, true, accepts_command_call);
@@ -14835,11 +14919,11 @@ parse_expression_prefix(pm_parser_t *parser, pm_binding_power_t binding_power, b
                     // for guard clauses in the form of `if` or `unless` statements.
                     if (accept1(parser, PM_TOKEN_KEYWORD_IF_MODIFIER)) {
                         pm_token_t keyword = parser->previous;
-                        pm_node_t *predicate = parse_value_expression(parser, PM_BINDING_POWER_DEFINED, true, PM_ERR_CONDITIONAL_IF_PREDICATE);
+                        pm_node_t *predicate = parse_value_expression(parser, PM_BINDING_POWER_COMPOSITION, true, PM_ERR_CONDITIONAL_IF_PREDICATE);
                         pattern = (pm_node_t *) pm_if_node_modifier_create(parser, pattern, &keyword, predicate);
                     } else if (accept1(parser, PM_TOKEN_KEYWORD_UNLESS_MODIFIER)) {
                         pm_token_t keyword = parser->previous;
-                        pm_node_t *predicate = parse_value_expression(parser, PM_BINDING_POWER_DEFINED, true, PM_ERR_CONDITIONAL_UNLESS_PREDICATE);
+                        pm_node_t *predicate = parse_value_expression(parser, PM_BINDING_POWER_COMPOSITION, true, PM_ERR_CONDITIONAL_UNLESS_PREDICATE);
                         pattern = (pm_node_t *) pm_unless_node_modifier_create(parser, pattern, &keyword, predicate);
                     }
 
@@ -15378,6 +15462,13 @@ parse_expression_prefix(pm_parser_t *parser, pm_binding_power_t binding_power, b
 
             pm_parser_scope_pop(parser);
             pm_parser_current_param_name_restore(parser, saved_param_name);
+
+            /**
+             * If the final character is @. As is the case when defining
+             * methods to override the unary operators, we should ignore
+             * the @ in the same way we do for symbols.
+             */
+            name.end = parse_operator_symbol_name(&name);
 
             return (pm_node_t *) pm_def_node_create(
                 parser,
@@ -17862,7 +17953,7 @@ pm_parser_errors_format_sort(const pm_list_t *error_list, const pm_newline_list_
         if (start.line == end.line) {
             column_end = (uint32_t) end.column;
         } else {
-            column_end = (uint32_t) (newline_list->offsets[start.line + 1] - newline_list->offsets[start.line] - 1);
+            column_end = (uint32_t) (newline_list->offsets[start.line] - newline_list->offsets[start.line - 1] - 1);
         }
 
         // Ensure we have at least one column of error.
@@ -17881,16 +17972,16 @@ pm_parser_errors_format_sort(const pm_list_t *error_list, const pm_newline_list_
 
 static inline void
 pm_parser_errors_format_line(const pm_parser_t *parser, const pm_newline_list_t *newline_list, const char *number_prefix, size_t line, pm_buffer_t *buffer) {
-    const uint8_t *start = &parser->start[newline_list->offsets[line]];
+    const uint8_t *start = &parser->start[newline_list->offsets[line - 1]];
     const uint8_t *end;
 
-    if (line + 1 >= newline_list->size) {
+    if (line >= newline_list->size) {
         end = parser->end;
     } else {
-        end = &parser->start[newline_list->offsets[line + 1]];
+        end = &parser->start[newline_list->offsets[line]];
     }
 
-    pm_buffer_append_format(buffer, number_prefix, (uint32_t) (line + 1));
+    pm_buffer_append_format(buffer, number_prefix, (uint32_t) line);
     pm_buffer_append_string(buffer, (const char *) start, (size_t) (end - start));
 
     if (end == parser->end && end[-1] != '\n') {
@@ -17915,7 +18006,7 @@ pm_parser_errors_format(const pm_parser_t *parser, pm_buffer_t *buffer, bool col
     // blank lines based on the maximum number of digits in the line numbers
     // that are going to be displayed.
     pm_error_format_t error_format;
-    size_t max_line_number = errors[error_list->size - 1].line + 1;
+    size_t max_line_number = errors[error_list->size - 1].line;
 
     if (max_line_number < 10) {
         if (colorize) {
@@ -17997,7 +18088,7 @@ pm_parser_errors_format(const pm_parser_t *parser, pm_buffer_t *buffer, bool col
     // the source before the error to give some context. We'll be careful not to
     // display the same line twice in case the errors are close enough in the
     // source.
-    uint32_t last_line = (uint32_t) -1;
+    uint32_t last_line = 0;
     const pm_encoding_t *encoding = parser->encoding;
 
     for (size_t index = 0; index < error_list->size; index++) {
@@ -18043,7 +18134,7 @@ pm_parser_errors_format(const pm_parser_t *parser, pm_buffer_t *buffer, bool col
         pm_buffer_append_string(buffer, error_format.blank_prefix, error_format.blank_prefix_length);
 
         size_t column = 0;
-        const uint8_t *start = &parser->start[newline_list->offsets[error->line]];
+        const uint8_t *start = &parser->start[newline_list->offsets[error->line - 1]];
 
         while (column < error->column_end) {
             if (column < error->column_start) {
@@ -18067,7 +18158,7 @@ pm_parser_errors_format(const pm_parser_t *parser, pm_buffer_t *buffer, bool col
         // Here we determine how many lines of padding to display after the
         // error, depending on where the next error is in source.
         last_line = error->line;
-        size_t next_line = (index == error_list->size - 1) ? newline_list->size - 1 : errors[index + 1].line;
+        size_t next_line = (index == error_list->size - 1) ? newline_list->size : errors[index + 1].line;
 
         if (next_line - last_line > 1) {
             pm_buffer_append_string(buffer, "  ", 2);

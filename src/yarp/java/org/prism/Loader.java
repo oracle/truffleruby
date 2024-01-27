@@ -181,8 +181,9 @@ public class Loader {
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
+            ParseResult.ErrorLevel level = ParseResult.ERROR_LEVELS[buffer.get()];
 
-            ParseResult.Error error = new ParseResult.Error(message, location);
+            ParseResult.Error error = new ParseResult.Error(message, location, level);
             errors[i] = error;
         }
 
@@ -198,8 +199,9 @@ public class Loader {
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
+            ParseResult.WarningLevel level = ParseResult.WARNING_LEVELS[buffer.get()];
 
-            ParseResult.Warning warning = new ParseResult.Warning(message, location);
+            ParseResult.Warning warning = new ParseResult.Warning(message, location, level);
             warnings[i] = warning;
         }
 
@@ -315,7 +317,7 @@ public class Loader {
             case 7:
                 return new Nodes.ArrayPatternNode(loadOptionalNode(), loadNodes(), loadOptionalNode(), loadNodes(), startOffset, length);
             case 8:
-                return new Nodes.AssocNode(loadNode(), loadOptionalNode(), startOffset, length);
+                return new Nodes.AssocNode(loadNode(), loadNode(), startOffset, length);
             case 9:
                 return new Nodes.AssocSplatNode(loadOptionalNode(), startOffset, length);
             case 10:

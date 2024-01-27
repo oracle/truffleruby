@@ -1173,8 +1173,7 @@ typedef struct pm_and_node {
     /**
      * AndNode#left
      *
-     * Represents the left side of the expression. It can be any kind of node
-     * that represents a non-void expression.
+     * Represents the left side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     left and right
      *     ^^^^
@@ -1187,8 +1186,7 @@ typedef struct pm_and_node {
     /**
      * AndNode#right
      *
-     * Represents the right side of the expression. It can be any kind of
-     * node that represents a non-void expression.
+     * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     left && right
      *             ^^^^^
@@ -1313,8 +1311,7 @@ typedef struct pm_assoc_node {
     /**
      * AssocNode#key
      *
-     * The key of the association. This can be any node that represents a
-     * non-void expression.
+     * The key of the association. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     { a: b }
      *       ^
@@ -1330,9 +1327,7 @@ typedef struct pm_assoc_node {
     /**
      * AssocNode#value
      *
-     * The value of the association, if present. This can be any node that
-     * represents a non-void expression. It can be optionally omitted if this
-     * node is an element in a `HashPatternNode`.
+     * The value of the association, if present. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     { foo => bar }
      *              ^^^
@@ -1367,8 +1362,7 @@ typedef struct pm_assoc_splat_node {
     /**
      * AssocSplatNode#value
      *
-     * The value to be splatted, if present. Will be missing when keyword
-     * rest argument forwarding is used.
+     * The value to be splatted, if present. Will be missing when keyword rest argument forwarding is used.
      *
      *     { **foo }
      *         ^^^
@@ -1399,6 +1393,12 @@ typedef struct pm_back_reference_read_node {
 
     /**
      * BackReferenceReadNode#name
+     *
+     * The name of the back-reference variable, including the leading `$`.
+     *
+     *     $& # name `:$&`
+     *
+     *     $+ # name `:$+`
      */
     pm_constant_id_t name;
 } pm_back_reference_read_node_t;
@@ -1682,9 +1682,7 @@ typedef struct pm_call_node {
     /**
      * CallNode#receiver
      *
-     * The object that the method is being called on. This can be either
-     * `nil` or a node representing any kind of expression that returns a
-     * non-void value.
+     * The object that the method is being called on. This can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     foo.bar
      *     ^^^
@@ -2146,6 +2144,12 @@ typedef struct pm_class_variable_read_node {
 
     /**
      * ClassVariableReadNode#name
+     *
+     * The name of the class variable, which is a `@@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @@abc   # name `:@@abc`
+     *
+     *     @@_test # name `:@@_test`
      */
     pm_constant_id_t name;
 } pm_class_variable_read_node_t;
@@ -2480,6 +2484,12 @@ typedef struct pm_constant_read_node {
 
     /**
      * ConstantReadNode#name
+     *
+     * The name of the [constant](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#constants).
+     *
+     *     X              # name `:X`
+     *
+     *     SOME_CONSTANT  # name `:SOME_CONSTANT`
      */
     pm_constant_id_t name;
 } pm_constant_read_node_t;
@@ -3042,6 +3052,12 @@ typedef struct pm_global_variable_read_node {
 
     /**
      * GlobalVariableReadNode#name
+     *
+     * The name of the global variable, which is a `$` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifier). Alternatively, it can be one of the special global variables designated by a symbol.
+     *
+     *     $foo   # name `:$foo`
+     *
+     *     $_Test # name `:$_Test`
      */
     pm_constant_id_t name;
 } pm_global_variable_read_node_t;
@@ -3629,6 +3645,12 @@ typedef struct pm_instance_variable_read_node {
 
     /**
      * InstanceVariableReadNode#name
+     *
+     * The name of the instance variable, which is a `@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @x     # name `:@x`
+     *
+     *     @_test # name `:@_test`
      */
     pm_constant_id_t name;
 } pm_instance_variable_read_node_t;
@@ -4082,11 +4104,33 @@ typedef struct pm_local_variable_read_node {
 
     /**
      * LocalVariableReadNode#name
+     *
+     * The name of the local variable, which is an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     x      # name `:x`
+     *
+     *     _Test  # name `:_Test`
+     *
+     * Note that this can also be an underscore followed by a number for the default block parameters.
+     *
+     *     _1     # name `:_1`
+     *
+     * Finally, for the default `it` block parameter, the name is `0it`. This is to distinguish it from an `it` local variable that is explicitly declared.
+     *
+     *     it     # name `:0it`
      */
     pm_constant_id_t name;
 
     /**
      * LocalVariableReadNode#depth
+     *
+     * The number of visible scopes that should be searched to find the origin of this local variable.
+     *
+     *     foo = 1; foo # depth 0
+     *
+     *     bar = 2; tap { bar } # depth 1
+     *
+     * The specific rules for calculating the depth may differ from individual Ruby implementations, as they are not specified by the language. For more information, see [the Prism documentation](https://github.com/ruby/prism/blob/main/docs/local_variable_depth.md).
      */
     uint32_t depth;
 } pm_local_variable_read_node_t;
@@ -4494,6 +4538,14 @@ typedef struct pm_numbered_reference_read_node {
 
     /**
      * NumberedReferenceReadNode#number
+     *
+     * The (1-indexed, from the left) number of the capture group. Numbered references that would overflow a `uint32`  result in a `number` of exactly `2**32 - 1`.
+     *
+     *     $1          # number `1`
+     *
+     *     $5432       # number `5432`
+     *
+     *     $4294967296 # number `4294967295`
      */
     uint32_t number;
 } pm_numbered_reference_read_node_t;
@@ -4575,8 +4627,7 @@ typedef struct pm_or_node {
     /**
      * OrNode#left
      *
-     * Represents the left side of the expression. It can be any kind of node
-     * that represents a non-void expression.
+     * Represents the left side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     left or right
      *     ^^^^
@@ -4589,8 +4640,7 @@ typedef struct pm_or_node {
     /**
      * OrNode#right
      *
-     * Represents the right side of the expression. It can be any kind of
-     * node that represents a non-void expression.
+     * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     left || right
      *             ^^^^^
@@ -4841,9 +4891,7 @@ typedef struct pm_range_node {
     /**
      * RangeNode#left
      *
-     * The left-hand side of the range, if present. Can be either `nil` or
-     * a node representing any kind of expression that returns a non-void
-     * value.
+     * The left-hand side of the range, if present. It can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     1...
      *     ^
@@ -4856,17 +4904,14 @@ typedef struct pm_range_node {
     /**
      * RangeNode#right
      *
-     * The right-hand side of the range, if present. Can be either `nil` or
-     * a node representing any kind of expression that returns a non-void
-     * value.
+     * The right-hand side of the range, if present. It can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     ..5
      *       ^
      *
      *     1...foo
      *         ^^^
-     * If neither right-hand or left-hand side was included, this will be a
-     * MissingNode.
+     * If neither right-hand or left-hand side was included, this will be a MissingNode.
      */
     struct pm_node *right;
 

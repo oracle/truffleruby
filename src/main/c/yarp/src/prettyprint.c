@@ -46,7 +46,7 @@ static inline void
 prettyprint_location(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_location_t *location) {
     pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start);
     pm_line_column_t end = pm_newline_list_line_column(&parser->newline_list, location->end);
-    pm_buffer_append_format(output_buffer, "(%lu,%lu)-(%lu,%lu)", (unsigned long) (start.line + 1), (unsigned long) start.column, (unsigned long) (end.line + 1), (unsigned long) end.column);
+    pm_buffer_append_format(output_buffer, "(%lu,%lu)-(%lu,%lu)", (unsigned long) start.line, (unsigned long) start.column, (unsigned long) end.line, (unsigned long) end.column);
 }
 
 static inline void
@@ -518,17 +518,13 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
-                if (cast->value == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
-                } else {
-                    pm_buffer_append_byte(output_buffer, '\n');
+                pm_buffer_append_byte(output_buffer, '\n');
 
-                    size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    pm_buffer_concat(output_buffer, prefix_buffer);
-                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
-                    prefix_buffer->length = prefix_length;
-                }
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
 
             // operator_loc
