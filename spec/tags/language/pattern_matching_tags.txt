@@ -1,7 +1,6 @@
 fails:Pattern matching variable pattern supports using any name with _ at the beginning in a pattern several times
 fails:Pattern matching variable pattern supports existing variables in a pattern specified with ^ operator
 fails:Pattern matching variable pattern allows applying ^ operator to bound variables
-fails:Pattern matching variable pattern requires bound variable to be specified in a pattern before ^ operator when it relies on a bound variable
 fails:Pattern matching alternative pattern matches if any of patterns matches
 fails:Pattern matching alternative pattern does not support variable binding
 fails:Pattern matching alternative pattern support underscore prefixed variables in alternation

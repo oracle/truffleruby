@@ -959,7 +959,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitCaseMatchNode(Nodes.CaseMatchNode node) {
-        return super.visitCaseMatchNode(node);
+        var context = RubyLanguage.getCurrentContext();
+        throw new RaiseException(context, context.getCoreExceptions()
+                .syntaxError("`case/in` pattern matching not yet implemented", currentNode, getSourceSection(node)));
     }
 
     @Override
@@ -2564,7 +2566,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     public RubyNode visitMatchRequiredNode(Nodes.MatchRequiredNode node) {
-        return defaultVisit(node);
+        var context = RubyLanguage.getCurrentContext();
+        throw new RaiseException(context, context.getCoreExceptions()
+                .syntaxError("`=>` pattern matching not yet implemented", currentNode, getSourceSection(node)));
     }
 
     // See BodyTranslator#visitMatch2Node
