@@ -18,6 +18,7 @@ import org.truffleruby.language.objects.SelfNode;
 
 /** Similar to ValueFromNode class but for YARP nodes */
 public final class YARPExecutedOnceExpression {
+
     final String name;
     final int slot;
     final Nodes.Node node;

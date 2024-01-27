@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
@@ -32,9 +31,8 @@ import org.truffleruby.language.literal.ObjectLiteralNode;
  *
  * Parameters should be iterated in the same order {@link org.truffleruby.parser.YARPLoadArgumentsTranslator} iterates
  * to handle multiple "_" parameters (and parameters with "_" prefix) correctly. */
-public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
+public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
 
-    private final RubyLanguage language;
     private final YARPTranslator yarpTranslator;
     private final boolean hasKeywordArguments;
 
@@ -44,9 +42,11 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
 
     public YARPReloadArgumentsTranslator(
             RubyLanguage language,
+            TranslatorEnvironment environment,
+            RubySource rubySource,
             YARPTranslator yarpTranslator,
             Nodes.ParametersNode parametersNode) {
-        this.language = language;
+        super(language, environment, rubySource);
         this.yarpTranslator = yarpTranslator;
         this.hasKeywordArguments = parametersNode.keywords.length > 0 || parametersNode.keyword_rest != null;
     }
@@ -139,14 +139,11 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
         if (parameters.keyword_rest instanceof Nodes.ForwardingParameterNode) {
             // ... parameter (so-called "forward arguments") means there is implicit * parameter
             restParameterIndex = parameters.requireds.length + parameters.optionals.length;
-            final var readRestNode = yarpTranslator.getEnvironment().findLocalVarNode(
-                    TranslatorEnvironment.FORWARDED_REST_NAME,
-                    null);
+            var readRestNode = environment.findLocalVarNode(TranslatorEnvironment.FORWARDED_REST_NAME, null);
             sequence.add(readRestNode);
 
             // ... parameter (so-called "forward arguments") means there is implicit ** parameter
-            final var readKeyRestNode = yarpTranslator.getEnvironment()
-                    .findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
+            var readKeyRestNode = environment.findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
             sequence.add(readKeyRestNode);
         }
 
@@ -163,7 +160,7 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             name = node.name;
         }
 
-        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name, null);
     }
 
     @Override
@@ -176,7 +173,7 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             name = node.name;
         }
 
-        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name, null);
     }
 
     @Override
@@ -199,23 +196,23 @@ public final class YARPReloadArgumentsTranslator extends AbstractNodeVisitor<Rub
             name = TranslatorEnvironment.DEFAULT_REST_NAME;
         }
 
-        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name, null);
     }
 
     @Override
     public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
-        return yarpTranslator.getEnvironment().findLocalVarNode(node.name, null);
+        return environment.findLocalVarNode(node.name, null);
     }
 
     @Override
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
-        return yarpTranslator.getEnvironment().findLocalVarNode(node.name, null);
+        return environment.findLocalVarNode(node.name, null);
     }
 
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final String name = node.name != null ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
-        return yarpTranslator.getEnvironment().findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name, null);
     }
 
     @Override

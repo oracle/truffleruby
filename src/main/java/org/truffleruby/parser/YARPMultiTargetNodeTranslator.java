@@ -24,6 +24,7 @@ import org.truffleruby.language.literal.NilLiteralNode;
 // Could be used in ordinal multi-assignment and for destructuring array argument in method/proc parameters:
 // - a, (b, c) = 1, [2, 3]
 // - def foo(a, (b, c)) end
+// NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode.
 public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiTargetNode node;

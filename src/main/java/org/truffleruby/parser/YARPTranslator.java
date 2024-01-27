@@ -10,11 +10,8 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.Windows_31JEncoding;
@@ -23,7 +20,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -61,7 +57,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
@@ -149,7 +144,6 @@ import org.truffleruby.language.objects.SingletonClassNodeGen.SingletonClassASTN
 import org.truffleruby.language.objects.WriteInstanceVariableNodeGen;
 import org.truffleruby.language.objects.classvariables.ReadClassVariableNode;
 import org.truffleruby.language.objects.classvariables.WriteClassVariableNode;
-import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.language.supercall.ReadSuperArgumentsNode;
 import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
@@ -177,33 +171,19 @@ import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_REST_NAME;
 // * there is typically no need for such an object since YARP location info is correct.
 
 /** Translate (or convert) AST provided by a parser (YARP parser) to Truffle AST */
-public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
-
-    protected final RubyLanguage language;
-    protected final TranslatorEnvironment environment;
-    // TODO: Since these fields don't seem to change per translator instance we could/should store them in ParseEnvironment
-    private final ParserContext parserContext;
-    private final byte[] sourceBytes;
-    private final Source source;
-    private final Node currentNode;
-    private final RubyEncoding sourceEncoding;
-
-    public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
+public class YARPTranslator extends YARPBaseTranslator {
 
     public static final int NO_FRAME_ON_STACK_MARKER = Translator.NO_FRAME_ON_STACK_MARKER;
 
-    public static final Nodes.Node[] EMPTY_NODE_ARRAY = Nodes.Node.EMPTY_ARRAY;
-    public static final Nodes.ParametersNode ZERO_PARAMETERS_NODE = new Nodes.ParametersNode(EMPTY_NODE_ARRAY,
-            EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY, EMPTY_NODE_ARRAY, null, null, 0, 0);
-
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
-    public static final short NO_FLAGS = 0;
-
+    // TODO: Since these fields don't seem to change per translator instance we could/should store them in ParseEnvironment
+    private final ParserContext parserContext;
+    private final Node currentNode;
+    public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
     private boolean translatingWhile = false;
-
     private boolean translatingNextExpression = false;
-    @SuppressWarnings("unused") private boolean translatingForStatement = false;
+    private boolean translatingForStatement = false;
 
     private static final String[] numberedParameterNames = {
             null,
@@ -224,28 +204,12 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
     public YARPTranslator(
             RubyLanguage language,
             TranslatorEnvironment environment,
-            byte[] sourceBytes,
-            Source source,
-            RubyEncoding sourceEncoding,
+            RubySource rubySource,
             ParserContext parserContext,
             Node currentNode) {
-        this.language = language;
-        this.environment = environment;
-        this.sourceBytes = sourceBytes;
-        this.source = source;
-
-        if (sourceEncoding != null) {
-            this.sourceEncoding = sourceEncoding;
-        } else {
-            this.sourceEncoding = Encodings.UTF_8;
-        }
-
+        super(language, environment, rubySource);
         this.parserContext = parserContext;
         this.currentNode = currentNode;
-    }
-
-    public TranslatorEnvironment getEnvironment() {
-        return environment;
     }
 
     public ArrayList<RubyNode> getBeginBlocks() {
@@ -576,9 +540,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final YARPBlockNodeTranslator methodCompiler = new YARPBlockNodeTranslator(
                 language,
                 newEnvironment,
-                sourceBytes,
-                source,
-                sourceEncoding,
+                rubySource,
                 parserContext,
                 currentNode,
                 arity);
@@ -975,7 +937,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         if (node.predicate != null) {
             // Evaluate the case expression and store it in a local
             final int tempSlot = environment.declareLocalTemp("case");
-            final ReadLocalNode readTemp = environment.readNode(tempSlot, null);
+            final ReadLocalNode readTemp = environment.readNode(tempSlot, node);
             final RubyNode assignTemp = readTemp.makeWriteNode(node.predicate.accept(this));
 
             // Build an if expression from `when` and `else` branches.
@@ -1526,9 +1488,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final var defNodeTranslator = new YARPDefNodeTranslator(
                 language,
                 newEnvironment,
-                sourceBytes,
-                source,
-                sourceEncoding,
+                rubySource,
                 parserContext,
                 currentNode);
         var callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, parameters, arity);
@@ -1800,7 +1760,9 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
             // parametersNode == null for a method means zero parameters: https://github.com/ruby/prism/issues/1915
             parametersNode = ZERO_PARAMETERS_NODE;
         }
-        var reloadTranslator = new YARPReloadArgumentsTranslator(language, this, parametersNode);
+        // TODO should this use `environment` and not `this.environment`? But that fails some specs
+        var reloadTranslator = new YARPReloadArgumentsTranslator(language, this.environment, rubySource, this,
+                parametersNode);
 
         final RubyNode[] reloadSequence = reloadTranslator.reload(parametersNode);
 
@@ -3234,15 +3196,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return assignPositionAndFlags(node, rubyNode);
     }
 
-    @Override
-    protected RubyNode defaultVisit(Nodes.Node node) {
-        String code = toString(node);
-        throw new Error(
-                this.getClass().getSimpleName() + " does not know how to translate " + node.getClass().getSimpleName() +
-                        " at " + RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)) +
-                        "\nCode snippet:\n" + code + "\nPrism AST:\n" + node);
-    }
-
     /** Declare variable in the nearest non-block outer lexical scope - either method, class or top-level */
     protected FrameSlotAndDepth createFlipFlopState() {
         final var target = environment.getSurroundingMethodOrEvalEnvironment();
@@ -3391,9 +3344,7 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         final YARPTranslator moduleTranslator = new YARPTranslator(
                 language,
                 newEnvironment,
-                sourceBytes,
-                source,
-                sourceEncoding,
+                rubySource,
                 parserContext,
                 currentNode);
 
@@ -3522,24 +3473,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    protected RubyNode translateNodeOrNil(Nodes.Node node) {
-        final RubyNode rubyNode;
-        if (node == null) {
-            rubyNode = new NilLiteralNode();
-        } else {
-            rubyNode = node.accept(this);
-        }
-        return rubyNode;
-    }
-
-    protected RubyNode translateNodeOrDeadNode(Nodes.Node node, String label) {
-        if (node != null) {
-            return node.accept(this);
-        } else {
-            return new DeadNode(label);
-        }
-    }
-
     private boolean isInvalidYield() {
         return environment.getSurroundingMethodEnvironment().isModuleBody(); // so not inside a method
     }
@@ -3610,22 +3543,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    protected RubyContextSourceNode createCallNode(RubyNode receiver, String method, RubyNode... arguments) {
-        return createCallNode(true, receiver, method, arguments);
-    }
-
-    protected RubyContextSourceNode createCallNode(boolean ignoreVisibility, RubyNode receiver, String method,
-            RubyNode... arguments) {
-        var parameters = new RubyCallNodeParameters(
-                receiver,
-                method,
-                null,
-                NoKeywordArgumentsDescriptor.INSTANCE,
-                arguments,
-                ignoreVisibility);
-        return language.coreMethodAssumptions.createCallNode(parameters);
-    }
-
     protected boolean isSideEffectFreeRescueExpression(Nodes.Node node) {
         return node instanceof Nodes.InstanceVariableReadNode ||
                 node instanceof Nodes.LocalVariableReadNode ||
@@ -3641,75 +3558,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
                 node instanceof Nodes.TrueNode ||
                 node instanceof Nodes.FalseNode ||
                 node instanceof Nodes.NilNode;
-    }
-
-    protected TruffleString toTString(Nodes.Node node) {
-        return TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding,
-                false);
-    }
-
-    protected TruffleString toTString(String string) {
-        return TStringUtils.fromJavaString(string, sourceEncoding);
-    }
-
-    protected String toString(Nodes.Node node) {
-        return TStringUtils.toJavaStringOrThrow(toTString(node), sourceEncoding);
-    }
-
-    protected TruffleString toTString(byte[] bytes) {
-        return TruffleString.fromByteArrayUncached(bytes, sourceEncoding.tencoding, false);
-    }
-
-    protected String toString(byte[] bytes) {
-        return TStringUtils.toJavaStringOrThrow(
-                toTString(bytes), sourceEncoding);
-    }
-
-    protected SourceSection getSourceSection(Nodes.Node yarpNode) {
-        return source.createSection(yarpNode.startOffset, yarpNode.length);
-    }
-
-    public RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
-        assignPositionOnly(yarpNode, rubyNode);
-        copyNewlineFlag(yarpNode, rubyNode);
-        return rubyNode;
-    }
-
-    public RubyNode assignPositionAndFlagsIfMissing(Nodes.Node yarpNode, RubyNode rubyNode) {
-        if (rubyNode.hasSource()) {
-            return rubyNode;
-        }
-
-        assignPositionOnly(yarpNode, rubyNode);
-        copyNewlineFlag(yarpNode, rubyNode);
-        return rubyNode;
-    }
-
-    private static void assignPositionOnly(Nodes.Node yarpNode, RubyNode rubyNode) {
-        rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
-    }
-
-    // assign position based on a list of nodes (arguments list, exception classes list in a rescue section, etc)
-    private void assignPositionOnly(Nodes.Node[] nodes, RubyNode rubyNode) {
-        final Nodes.Node first = nodes[0];
-        final Nodes.Node last = nodes[nodes.length - 1];
-
-        final int length = last.endOffset() - first.startOffset;
-        rubyNode.unsafeSetSourceSection(first.startOffset, length);
-    }
-
-    private void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
-        if (yarpNode.hasNewLineFlag()) {
-            TruffleSafepoint.poll(DummyNode.INSTANCE);
-
-            if (environment.getParseEnvironment().isCoverageEnabled()) {
-                rubyNode.unsafeSetIsCoverageLine();
-                int startLine = environment.getParseEnvironment().yarpSource.line(yarpNode.startOffset);
-                language.coverageManager.setLineHasCode(source, startLine);
-            }
-
-            rubyNode.unsafeSetIsNewLine();
-        }
     }
 
     protected static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
@@ -3759,20 +3607,6 @@ public class YARPTranslator extends AbstractNodeVisitor<RubyNode> {
         }
 
         return false;
-    }
-
-    private RubyNode[] translate(Nodes.Node[] nodes) {
-        if (nodes.length == 0) {
-            return RubyNode.EMPTY_ARRAY;
-        }
-
-        RubyNode[] rubyNodes = new RubyNode[nodes.length];
-
-        for (int i = 0; i < nodes.length; i++) {
-            rubyNodes[i] = nodes[i].accept(this);
-        }
-
-        return rubyNodes;
     }
 
     private ArgumentDescriptor[] parametersNodeToArgumentDescriptors(Nodes.ParametersNode parametersNode) {

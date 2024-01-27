@@ -29,16 +29,13 @@ import org.truffleruby.language.arguments.SaveMethodBlockNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 
 import org.truffleruby.language.methods.Arity;
-import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 
 /** Translates method/block parameters and assign local variables.
  *
  * Parameters should be iterated in the same order {@link org.truffleruby.parser.YARPReloadArgumentsTranslator} iterates
  * to handle multiple "_" parameters (and parameters with "_" prefix) correctly. */
-public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
-
-    private static final short NO_FLAGS = YARPTranslator.NO_FLAGS;
+public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
     private final Arity arity;
     private final boolean isProc; // block or lambda/method
@@ -58,19 +55,16 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     private State state;
     private int repeatedParameterCounter = 2;
 
-    private final RubyLanguage language;
-    private final TranslatorEnvironment environment;
-
     public YARPLoadArgumentsTranslator(
-            Nodes.ParametersNode parameters,
             RubyLanguage language,
             TranslatorEnvironment environment,
+            RubySource rubySource,
+            Nodes.ParametersNode parameters,
             Arity arity,
             boolean isProc,
             boolean isMethod,
             YARPTranslator yarpTranslator) {
-        this.language = language;
-        this.environment = environment;
+        super(language, environment, rubySource);
         this.arity = arity;
         this.isProc = isProc;
         this.isMethod = isMethod;
@@ -98,8 +92,8 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         }
 
         // Early return for the common case of zero parameters
-        if (parameters == YARPTranslator.ZERO_PARAMETERS_NODE) {
-            return YARPTranslator.sequence(sequence);
+        if (parameters == ZERO_PARAMETERS_NODE) {
+            return sequence(sequence);
         }
 
         if (parameters.optionals.length > 0) {
@@ -143,7 +137,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             sequence.add(parameters.block.accept(this));
         }
 
-        return YARPTranslator.sequence(sequence);
+        return sequence(sequence);
     }
 
     public RubyNode saveMethodBlockArg() {
@@ -333,7 +327,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         sequence.add(keyrest.accept(this));
         sequence.add(block.accept(this));
 
-        return YARPTranslator.sequence(sequence);
+        return sequence(sequence);
     }
 
     @Override

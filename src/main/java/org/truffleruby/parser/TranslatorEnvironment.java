@@ -276,6 +276,12 @@ public final class TranslatorEnvironment {
         return node;
     }
 
+    public ReadLocalVariableNode readNode(int slot, Nodes.Node yarpNode) {
+        var node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
+        node.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        return node;
+    }
+
     public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
         RubyNode node = findLocalVarNode(name, sourceSection);
         if (node == null) {

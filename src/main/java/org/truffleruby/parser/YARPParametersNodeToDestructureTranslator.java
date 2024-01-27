@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -38,7 +37,7 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
  * </pre>
  * 
  * Based on org.truffleruby.parser.YARPLoadArgumentsTranslator */
-public final class YARPParametersNodeToDestructureTranslator extends AbstractNodeVisitor<RubyNode> {
+public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTranslator {
 
     private final YARPTranslator yarpTranslator;
 
@@ -54,21 +53,18 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
     /** to distinguish pre and post Nodes.RequiredParameterNode parameters */
     private State state;
 
-    private final RubyLanguage language;
-    private final TranslatorEnvironment environment;
-
     private final RubyNode readArrayNode;
 
     public YARPParametersNodeToDestructureTranslator(
+            RubyLanguage language,
+            TranslatorEnvironment environment,
+            RubySource rubySource,
             Nodes.ParametersNode parameters,
             RubyNode readArrayNode,
-            TranslatorEnvironment environment,
-            RubyLanguage language,
             YARPTranslator yarpTranslator) {
+        super(language, environment, rubySource);
         this.parameters = parameters;
         this.readArrayNode = readArrayNode;
-        this.environment = environment;
-        this.language = language;
         this.yarpTranslator = yarpTranslator;
     }
 
@@ -128,7 +124,7 @@ public final class YARPParametersNodeToDestructureTranslator extends AbstractNod
             sequence.add(parameters.block.accept(this));
         }
 
-        return YARPTranslator.sequence(sequence);
+        return sequence(sequence);
     }
 
     @Override

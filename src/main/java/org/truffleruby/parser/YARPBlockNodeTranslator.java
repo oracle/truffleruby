@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -20,7 +19,6 @@ import org.truffleruby.annotations.Split;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.language.RubyLambdaRootNode;
@@ -45,18 +43,17 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public final class YARPBlockNodeTranslator extends YARPTranslator {
+
     private final Arity arity;
 
     public YARPBlockNodeTranslator(
             RubyLanguage language,
             TranslatorEnvironment environment,
-            byte[] sourceBytes,
-            Source source,
-            RubyEncoding sourceEncoding,
+            RubySource rubySource,
             ParserContext parserContext,
             Node currentNode,
             Arity arity) {
-        super(language, environment, sourceBytes, source, sourceEncoding, parserContext, currentNode);
+        super(language, environment, rubySource, parserContext, currentNode);
         this.arity = arity;
     }
 
@@ -66,9 +63,10 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         declareLocalVariables(locals);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
-                parameters,
                 language,
                 environment,
+                rubySource,
+                parameters,
                 arity,
                 !isStabbyLambda,
                 false,
@@ -166,10 +164,11 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             final RubyNode readArrayNode = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot);
 
             final var translator = new YARPParametersNodeToDestructureTranslator(
+                    language,
+                    environment,
+                    rubySource,
                     parameters,
                     readArrayNode,
-                    environment,
-                    language,
                     this);
             final RubyNode newDestructureArguments = translator.translate();
 
