@@ -20,6 +20,7 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -65,11 +66,14 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
 
     @Override
     protected RubyNode defaultVisit(Nodes.Node node) {
+        var context = RubyLanguage.getCurrentContext();
         String code = toString(node);
-        throw new Error(
-                this.getClass().getSimpleName() + " does not know how to translate " + node.getClass().getSimpleName() +
-                        " at " + RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)) +
-                        "\nCode snippet:\n" + code + "\nPrism AST:\n" + node);
+        var message = this.getClass().getSimpleName() + " does not know how to translate " +
+                node.getClass().getSimpleName() + " at " + context.fileLine(getSourceSection(node)) +
+                "\nCode snippet:\n" + code + "\nPrism AST:\n" + node;
+        throw new RaiseException(context,
+                context.getCoreExceptions().syntaxError(message, null, getSourceSection(node)));
+        // throw new Error(message);
     }
 
     protected static RubyNode[] createArray(int size) {

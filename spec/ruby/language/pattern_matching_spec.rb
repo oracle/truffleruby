@@ -207,7 +207,7 @@ describe "Pattern matching" do
         in []
         end
       RUBY
-    }.should raise_error(SyntaxError, /syntax error, unexpected `in'|\(eval\):3: syntax error, unexpected keyword_in/)
+    }.should raise_error(SyntaxError, /syntax error, unexpected `in'|\(eval\):3: syntax error, unexpected keyword_in|cannot parse the expression/)
 
     -> {
       eval <<~RUBY
@@ -216,7 +216,7 @@ describe "Pattern matching" do
         when 1 == 1
         end
       RUBY
-    }.should raise_error(SyntaxError, /syntax error, unexpected `when'|\(eval\):3: syntax error, unexpected keyword_when/)
+    }.should raise_error(SyntaxError, /syntax error, unexpected `when'|\(eval\):3: syntax error, unexpected keyword_when|cannot parse the expression/)
   end
 
   it "checks patterns until the first matching" do
@@ -273,7 +273,7 @@ describe "Pattern matching" do
           true
         end
       RUBY
-    }.should raise_error(SyntaxError, /unexpected/)
+    }.should raise_error(SyntaxError, /unexpected|expected a delimiter after the predicates of a `when` clause/)
   end
 
   it "evaluates the case expression once for multiple patterns, caching the result" do
@@ -1398,15 +1398,26 @@ describe "Pattern matching" do
       RUBY
 
       eval(<<~RUBY).should == true
-        case {name: '2.6', released_at: Time.new(2018, 12, 25)}
-          in {released_at: ^(Time.new(2010)..Time.new(2020))}
+        case 0
+        in ^(0+0)
           true
         end
       RUBY
+    end
 
+    it "supports pinning expressions in array pattern" do
       eval(<<~RUBY).should == true
-        case 0
-        in ^(0+0)
+        case [3]
+        in [^(1+2)]
+          true
+        end
+      RUBY
+    end
+
+    it "supports pinning expressions in hash pattern" do
+      eval(<<~RUBY).should == true
+        case {name: '2.6', released_at: Time.new(2018, 12, 25)}
+          in {released_at: ^(Time.new(2010)..Time.new(2020))}
           true
         end
       RUBY

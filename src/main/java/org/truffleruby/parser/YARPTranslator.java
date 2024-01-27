@@ -81,6 +81,7 @@ import org.truffleruby.language.control.IfNodeGen;
 import org.truffleruby.language.control.InvalidReturnNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
+import org.truffleruby.language.control.NoMatchingPatternNodeGen;
 import org.truffleruby.language.control.NotNodeGen;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrLazyValueDefinedNodeGen;
@@ -922,8 +923,47 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitCaseMatchNode(Nodes.CaseMatchNode node) {
         var context = RubyLanguage.getCurrentContext();
-        throw new RaiseException(context, context.getCoreExceptions()
-                .syntaxError("`case/in` pattern matching not yet implemented", currentNode, getSourceSection(node)));
+        if (!context.getOptions().PATTERN_MATCHING) {
+            throw new RaiseException(context, context.getCoreExceptions().syntaxError(
+                    "`case/in` pattern matching not yet implemented", currentNode, getSourceSection(node)));
+        }
+
+        var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
+
+        // Evaluate the case expression and store it in a local
+        final int tempSlot = environment.declareLocalTemp("case in value");
+        final ReadLocalNode readTemp = environment.readNode(tempSlot, node);
+        final RubyNode assignTemp = readTemp.makeWriteNode(node.predicate.accept(this));
+
+        /* Build an if expression from the in's and else. Work backwards because the first IfElseNode contains all the
+         * others in its else clause. */
+
+        RubyNode elseNode;
+        if (node.consequent == null) {
+            elseNode = NoMatchingPatternNodeGen.create(readTemp);
+        } else {
+            elseNode = node.consequent.accept(this);
+        }
+
+        for (int n = node.conditions.length - 1; n >= 0; n--) {
+            Nodes.InNode inNode = (Nodes.InNode) node.conditions[n];
+            Nodes.Node patternNode = inNode.pattern;
+
+            final RubyNode conditionNode = translator.translatePatternNode(patternNode, readTemp);
+            // Create the if node
+            final RubyNode thenNode = translateNodeOrNil(inNode.statements);
+            final IfElseNode ifNode = IfElseNodeGen.create(conditionNode, thenNode, elseNode);
+
+            // This if becomes the else for the next if
+            elseNode = ifNode;
+        }
+
+        final RubyNode ifNode = elseNode;
+
+        // A top-level block assigns the temp then runs the if
+        final RubyNode ret = sequence(Arrays.asList(assignTemp, ifNode));
+
+        return assignPositionAndFlags(node, ret);
     }
 
     @Override
@@ -2471,7 +2511,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
-    public RubyNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
+    public WriteLocalNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
         final String name = node.name;
 
         if (environment.getNeverAssignInParentScope()) {
@@ -2499,11 +2539,12 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode rhs = translateNodeOrDeadNode(node.value, "YARPTranslator#visitLocalVariableWriteNode");
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
-        return assignPositionAndFlags(node, rubyNode);
+        assignPositionAndFlags(node, rubyNode);
+        return rubyNode;
     }
 
     @Override
-    public RubyNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
+    public WriteLocalNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
         // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
         return visitLocalVariableWriteNode(
                 new Nodes.LocalVariableWriteNode(node.name, node.depth, null, node.startOffset, node.length));
@@ -2529,8 +2570,23 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitMatchRequiredNode(Nodes.MatchRequiredNode node) {
         var context = RubyLanguage.getCurrentContext();
-        throw new RaiseException(context, context.getCoreExceptions()
-                .syntaxError("`=>` pattern matching not yet implemented", currentNode, getSourceSection(node)));
+        if (!context.getOptions().PATTERN_MATCHING) {
+            throw new RaiseException(context, context.getCoreExceptions()
+                    .syntaxError("`=>` pattern matching not yet implemented", currentNode, getSourceSection(node)));
+        }
+
+        var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
+
+        // Evaluate the expression and store it in a local
+        final int tempSlot = environment.declareLocalTemp("value_of_=>");
+        final ReadLocalNode readTemp = environment.readNode(tempSlot, node);
+        final RubyNode assignTemp = readTemp.makeWriteNode(node.value.accept(this));
+
+        RubyNode condition = translator.translatePatternNode(node.pattern, readTemp);
+        RubyNode check = UnlessNodeGen.create(condition, NoMatchingPatternNodeGen.create(NodeUtil.cloneNode(readTemp)));
+
+        final RubyNode ret = sequence(Arrays.asList(assignTemp, check));
+        return assignPositionAndFlags(node, ret);
     }
 
     // See BodyTranslator#visitMatch2Node
