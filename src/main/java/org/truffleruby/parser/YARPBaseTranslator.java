@@ -11,6 +11,7 @@ package org.truffleruby.parser;
 
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -20,7 +21,6 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -64,16 +64,20 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         return environment;
     }
 
-    @Override
-    protected RubyNode defaultVisit(Nodes.Node node) {
+    protected RuntimeException fail(Nodes.Node node) {
         var context = RubyLanguage.getCurrentContext();
         String code = toString(node);
         var message = this.getClass().getSimpleName() + " does not know how to translate " +
                 node.getClass().getSimpleName() + " at " + context.fileLine(getSourceSection(node)) +
                 "\nCode snippet:\n" + code + "\nPrism AST:\n" + node;
-        throw new RaiseException(context,
-                context.getCoreExceptions().syntaxError(message, null, getSourceSection(node)));
-        // throw new Error(message);
+        // throw new RaiseException(context,
+        //         context.getCoreExceptions().syntaxError(message, null, getSourceSection(node)));
+        throw CompilerDirectives.shouldNotReachHere(message);
+    }
+
+    @Override
+    protected RubyNode defaultVisit(Nodes.Node node) {
+        throw fail(node);
     }
 
     protected static RubyNode[] createArray(int size) {

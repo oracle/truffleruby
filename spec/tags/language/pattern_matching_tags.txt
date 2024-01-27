@@ -1,48 +1,10 @@
-fails:Pattern matching variable pattern supports using any name with _ at the beginning in a pattern several times
-fails:Pattern matching alternative pattern matches if any of patterns matches
 fails:Pattern matching alternative pattern does not support variable binding
-fails:Pattern matching alternative pattern support underscore prefixed variables in alternation
-fails:Pattern matching AS pattern binds a variable to a value if pattern matches
-fails:Pattern matching AS pattern can be used as a nested pattern
-fails:Pattern matching Hash pattern supports form id: pat, id: pat, ...
-fails:Pattern matching Hash pattern supports a: which means a: a
-fails:Pattern matching Hash pattern can mix key (a:) and key-value (a: b) declarations
-fails:Pattern matching Hash pattern does not match object if Constant === object returns false
-fails:Pattern matching Hash pattern does not match object without #deconstruct_keys method
-fails:Pattern matching Hash pattern does not match object if #deconstruct_keys method does not return Hash
-fails:Pattern matching Hash pattern does not match object if #deconstruct_keys method returns Hash with non-symbol keys
-fails:Pattern matching Hash pattern does not match object if elements of Hash returned by #deconstruct_keys method does not match values in pattern
-fails:Pattern matching Hash pattern passes keys specified in pattern as arguments to #deconstruct_keys method
-fails:Pattern matching Hash pattern passes keys specified in pattern to #deconstruct_keys method if pattern contains double splat operator **
-fails:Pattern matching Hash pattern passes nil to #deconstruct_keys method if pattern contains double splat operator **rest
-fails:Pattern matching Hash pattern binds variables
-fails:Pattern matching Hash pattern supports double splat operator **rest
-fails:Pattern matching Hash pattern treats **nil like there should not be any other keys in a matched Hash
-fails:Pattern matching Hash pattern matches anything with **
-fails:Pattern matching refinements are used for #deconstruct_keys
-fails:Pattern matching Array pattern accepts a subclass of Array from #deconstruct
 fails:Pattern matching Array pattern calls #deconstruct once for multiple patterns, caching the result
 fails:Pattern matching find pattern captures both preceding and following elements to the pattern
 fails:Pattern matching warning when one-line form warns about pattern matching is experimental feature
-fails:Pattern matching alternative pattern can be used as a nested pattern
-fails:Pattern matching Array pattern can be used as a nested pattern
-fails:Pattern matching Hash pattern can be used as a nested pattern
 fails:Pattern matching find pattern can be nested
 fails:Pattern matching find pattern can be nested with an array pattern
 fails:Pattern matching find pattern can be nested within a hash pattern
 fails:Pattern matching find pattern can nest hash and array patterns
-fails:Pattern matching can omit parentheses in one line pattern matching
-fails:Pattern matching Hash pattern supports form Constant(id: pat, id: pat, ...)
-fails:Pattern matching Hash pattern supports form Constant[id: pat, id: pat, ...]
-fails:Pattern matching Hash pattern supports form {id: pat, id: pat, ...}
-fails:Pattern matching Hash pattern supports 'string': key literal
-fails:Pattern matching Hash pattern matches an object with #deconstruct_keys method which returns a Hash with equal keys and each value in Hash matches value in pattern
-fails:Pattern matching Hash pattern calls #deconstruct_keys per pattern
-fails:Pattern matching Hash pattern can match partially
-fails:Pattern matching Hash pattern matches {} with {}
-fails:Pattern matching refinements are used for #deconstruct
 fails:Pattern matching variable pattern does not support using variable name (except _) several times
-fails:Pattern matching Hash pattern does not support non-symbol keys
-fails:Pattern matching Hash pattern does not support string interpolation in keys
 fails:Pattern matching Hash pattern raise SyntaxError when keys duplicate in pattern
-fails:Pattern matching supports pinning expressions in hash pattern

@@ -3135,6 +3135,13 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitSymbolNode(Nodes.SymbolNode node) {
+        final var symbol = translateSymbol(node);
+
+        final RubyNode rubyNode = new ObjectLiteralNode(symbol);
+        return assignPositionAndFlags(node, rubyNode);
+    }
+
+    public RubySymbol translateSymbol(Nodes.SymbolNode node) {
         final RubyEncoding encoding;
 
         if (node.isForcedUtf8Encoding()) {
@@ -3148,10 +3155,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         var tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
-        final RubySymbol symbol = language.getSymbol(tstring, encoding);
-
-        final RubyNode rubyNode = new ObjectLiteralNode(symbol);
-        return assignPositionAndFlags(node, rubyNode);
+        return language.getSymbol(tstring, encoding);
     }
 
     @Override

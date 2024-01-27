@@ -77,7 +77,7 @@ public abstract class TypeNodes {
     @Primitive(name = "respond_to?")
     public abstract static class RespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        boolean respondTo(Object object, Object name, boolean includePrivate,
+        boolean respondTo(Object object, RubySymbol name, boolean includePrivate,
                 @Cached KernelNodes.RespondToNode respondToNode) {
             // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
             return respondToNode.executeDoesRespondTo(object, name, includePrivate);

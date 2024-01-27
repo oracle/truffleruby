@@ -56,23 +56,4 @@ module Truffle::Internal
       c === expression
     end
   end
-
-  def self.deconstruct_checked(pattern)
-    if pattern.respond_to? :deconstruct
-      deconstructed = pattern.deconstruct
-      if Primitive.is_a?(deconstructed, Array)
-        deconstructed
-      else
-        raise TypeError,'deconstruct must return Array'
-      end
-    else
-      nil
-    end
-  end
-
-  def self.hash_pattern_matches?(pattern, expression)
-    pattern.all? do |key, value|
-      expression.has_key?(key) && value === expression.fetch(key)
-    end
-  end
 end

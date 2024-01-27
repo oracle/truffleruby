@@ -206,11 +206,15 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method) {
+        return callWithFrame(PRIVATE, frame, receiver, method);
+    }
+
+    public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method) {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
-        return execute(frame, receiver, method, rubyArgs, PRIVATE);
+        return execute(frame, receiver, method, rubyArgs, config);
     }
 
     public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method,

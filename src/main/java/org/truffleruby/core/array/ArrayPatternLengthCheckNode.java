@@ -9,44 +9,43 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+@NodeChild(value = "valueNode", type = RubyNode.class)
+public abstract class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
 
-public final class ArrayPatternLengthCheckNode extends RubyContextSourceNode {
-
-    @Child RubyNode currentValueToMatch;
     final int patternLength;
     final boolean hasRest;
 
-    final ConditionProfile isArrayProfile = ConditionProfile.create();
-
-    public ArrayPatternLengthCheckNode(int patternLength, RubyNode currentValueToMatch, boolean hasRest) {
-        this.currentValueToMatch = currentValueToMatch;
+    public ArrayPatternLengthCheckNode(int patternLength, boolean hasRest) {
         this.patternLength = patternLength;
         this.hasRest = hasRest;
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        Object matchArray = currentValueToMatch.execute(frame);
-        if (isArrayProfile.profile(matchArray instanceof RubyArray)) {
-            long size = ((RubyArray) matchArray).getArraySize();
-            if (hasRest) {
-                return patternLength <= size;
-            } else {
-                return patternLength == size;
-            }
+    abstract RubyNode getValueNode();
+
+    @Specialization
+    boolean arrayLengthCheck(RubyArray matchArray) {
+        int size = matchArray.size;
+        if (hasRest) {
+            return patternLength <= size;
         } else {
-            return false;
+            return patternLength == size;
         }
+    }
+
+    @Fallback
+    boolean notArray(Object value) {
+        return false;
     }
 
     @Override
     public RubyNode cloneUninitialized() {
-        return new ArrayPatternLengthCheckNode(patternLength, currentValueToMatch.cloneUninitialized(), hasRest)
+        return ArrayPatternLengthCheckNodeGen.create(patternLength, hasRest, getValueNode().cloneUninitialized())
                 .copyFlags(this);
     }
 }

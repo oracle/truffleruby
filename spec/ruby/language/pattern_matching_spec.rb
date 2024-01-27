@@ -770,11 +770,7 @@ describe "Pattern matching" do
     it "accepts a subclass of Array from #deconstruct" do
       obj = Object.new
       def obj.deconstruct
-        subarray = Class.new(Array).new(2)
-        def subarray.[](n)
-          n
-        end
-        subarray
+        Class.new(Array).new([0, 1])
       end
 
       eval(<<~RUBY).should == true
@@ -1004,7 +1000,7 @@ describe "Pattern matching" do
           in {"a" => 1}
           end
         RUBY
-      }.should raise_error(SyntaxError, /unexpected/)
+      }.should raise_error(SyntaxError, /unexpected|expected a label as the key in the hash pattern/)
     end
 
     it "does not support string interpolation in keys" do
@@ -1016,7 +1012,7 @@ describe "Pattern matching" do
           in {"#{x}": 1}
           end
         RUBY
-      }.should raise_error(SyntaxError, /symbol literal with interpolation is not allowed/)
+      }.should raise_error(SyntaxError, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
     end
 
     it "raise SyntaxError when keys duplicate in pattern" do
