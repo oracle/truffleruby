@@ -219,7 +219,11 @@ module Utilities
     if which('mx')
       'mx'
     else
-      mx_repo = find_or_clone_repo('https://github.com/graalvm/mx.git')
+      common_json = File.read(graal_common_json)
+      regex = /"mx_version":\s*"([^"]+)"/
+      raise "mx version not found in #{graal_common_json}" unless regex =~ common_json
+      mx_version = $1
+      mx_repo = find_or_clone_repo('https://github.com/graalvm/mx.git', mx_version)
       "#{mx_repo}/mx"
     end
   end
