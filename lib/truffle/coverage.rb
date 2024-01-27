@@ -11,6 +11,7 @@
 
 module Coverage
   def self.supported?(mode)
+    Truffle::Type.rb_check_type(mode, Symbol)
     mode == :lines
   end
 

@@ -36,6 +36,7 @@ Compatibility:
 * Add `Integer#ceildiv` method (#3039, @simonlevasseur, @nirvdrum).
 * Implement `Class#attached_object` method (#3039, @andrykonchin).
 * Fix `ENV#{clone,dup}` and raise `TypeError` (#3039, @andrykonchin).
+* Fix `Coverage.supported?` and raise `TypeError` if argument is not Symbol (#3039, @andrykonchin).
 
 Performance:
 
