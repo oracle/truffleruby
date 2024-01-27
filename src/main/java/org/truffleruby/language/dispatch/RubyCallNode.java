@@ -283,7 +283,7 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
 
         // BodyTranslator-specific condition
         if (isSplatted && lastArg instanceof ArrayAppendOneNode arrayAppendOneNode) {
-            return arrayAppendOneNode.getValueNode();
+            return RubyNode.unwrapNode(arrayAppendOneNode.getValueNode());
         }
 
         // YARP-specific condition
@@ -294,13 +294,13 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
             RubyNode[] elements = arrayConcatNode.getElements();
             assert elements.length > 0;
 
-            RubyNode last = elements[elements.length - 1];
+            RubyNode last = RubyNode.unwrapNode(elements[elements.length - 1]);
 
             if (last instanceof ArrayLiteralNode arrayLiteralNode) {
                 RubyNode[] values = arrayLiteralNode.getValues();
                 assert values.length > 0;
 
-                return values[values.length - 1];
+                return RubyNode.unwrapNode(values[values.length - 1]);
             } else {
                 return last;
             }
