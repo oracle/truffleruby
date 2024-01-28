@@ -1336,87 +1336,115 @@ describe "Pattern matching" do
     end
   end
 
-  ruby_version_is "3.1" do
-    it "can omit parentheses in one line pattern matching" do
-      eval(<<~RUBY).should == [1, 2]
-        [1, 2] => a, b
-        [a, b]
-      RUBY
+  describe "Ruby 3.1 improvements" do
+    ruby_version_is "3.1" do
+      it "can omit parentheses in one line pattern matching" do
+        eval(<<~RUBY).should == [1, 2]
+          [1, 2] => a, b
+          [a, b]
+        RUBY
 
-      eval(<<~RUBY).should == 1
-        {a: 1} => a:
-        a
-      RUBY
-    end
+        eval(<<~RUBY).should == 1
+          {a: 1} => a:
+          a
+        RUBY
+      end
 
-    it "supports pinning instance variables" do
-      eval(<<~RUBY).should == true
-        @a = /a/
-        case 'abc'
-        in ^@a
-          true
-        end
-      RUBY
-    end
-
-    it "supports pinning class variables" do
-      result = nil
-      Module.new do
-        result = module_eval(<<~RUBY)
-          @@a = 0..10
-
-          case 2
-          in ^@@a
+      it "supports pinning instance variables" do
+        eval(<<~RUBY).should == true
+          @a = /a/
+          case 'abc'
+          in ^@a
             true
           end
         RUBY
       end
 
-      result.should == true
+      it "supports pinning class variables" do
+        result = nil
+        Module.new do
+          result = module_eval(<<~RUBY)
+            @@a = 0..10
+  
+            case 2
+            in ^@@a
+              true
+            end
+          RUBY
+        end
+
+        result.should == true
+      end
+
+      it "supports pinning global variables" do
+        eval(<<~RUBY).should == true
+          $a = /a/
+          case 'abc'
+          in ^$a
+            true
+          end
+        RUBY
+      end
+
+      it "supports pinning expressions" do
+        eval(<<~RUBY).should == true
+          case 'abc'
+            in ^(/a/)
+            true
+          end
+        RUBY
+
+        eval(<<~RUBY).should == true
+          case 0
+          in ^(0+0)
+            true
+          end
+        RUBY
+      end
+
+      it "supports pinning expressions in array pattern" do
+        eval(<<~RUBY).should == true
+          case [3]
+          in [^(1+2)]
+            true
+          end
+        RUBY
+      end
+
+      it "supports pinning expressions in hash pattern" do
+        eval(<<~RUBY).should == true
+          case {name: '2.6', released_at: Time.new(2018, 12, 25)}
+            in {released_at: ^(Time.new(2010)..Time.new(2020))}
+            true
+          end
+        RUBY
+      end
+    end
+  end
+
+  describe "value in pattern" do
+    it "returns true if the pattern matches" do
+      eval("1 in 1").should == true
+
+      eval("1 in Integer").should == true
+
+      e = nil
+      eval("[1, 2] in [1, e]").should == true
+      e.should == 2
+
+      k = nil
+      eval("{k: 1} in {k:}").should == true
+      k.should == 1
     end
 
-    it "supports pinning global variables" do
-      eval(<<~RUBY).should == true
-        $a = /a/
-        case 'abc'
-        in ^$a
-          true
-        end
-      RUBY
-    end
+    it "returns false if the pattern does not match" do
+      eval("1 in 2").should == false
 
-    it "supports pinning expressions" do
-      eval(<<~RUBY).should == true
-        case 'abc'
-          in ^(/a/)
-          true
-        end
-      RUBY
+      eval("1 in Float").should == false
 
-      eval(<<~RUBY).should == true
-        case 0
-        in ^(0+0)
-          true
-        end
-      RUBY
-    end
+      eval("[1, 2] in [2, e]").should == false
 
-    it "supports pinning expressions in array pattern" do
-      eval(<<~RUBY).should == true
-        case [3]
-        in [^(1+2)]
-          true
-        end
-      RUBY
-    end
-
-    it "supports pinning expressions in hash pattern" do
-      eval(<<~RUBY).should == true
-        case {name: '2.6', released_at: Time.new(2018, 12, 25)}
-          in {released_at: ^(Time.new(2010)..Time.new(2020))}
-          true
-        end
-      RUBY
+      eval("{k: 1} in {k: 2}").should == false
     end
   end
 end
