@@ -1256,6 +1256,37 @@ describe "Pattern matching" do
       RUBY
     end
 
+    it "in {} only matches empty hashes" do
+      eval(<<~RUBY).should == false
+        case {a: 1}
+        in {}
+          true
+        else
+          false
+        end
+      RUBY
+    end
+
+    it "in {**nil} only matches empty hashes" do
+      eval(<<~RUBY).should == true
+        case {}
+        in {**nil}
+          true
+        else
+          false
+        end
+      RUBY
+
+      eval(<<~RUBY).should == false
+        case {a: 1}
+        in {**nil}
+          true
+        else
+          false
+        end
+      RUBY
+    end
+
     it "matches anything with **" do
       eval(<<~RUBY).should == true
         case {a: 1}
