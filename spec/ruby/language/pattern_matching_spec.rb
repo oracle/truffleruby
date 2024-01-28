@@ -739,6 +739,20 @@ describe "Pattern matching" do
       RUBY
     end
 
+    it "checks Constant === object before calling #deconstruct" do
+      c1 = Class.new
+      obj = c1.new
+      obj.should_not_receive(:deconstruct)
+      eval(<<~RUBY).should == false
+        case obj
+        in String[1]
+          true
+        else
+          false
+        end
+      RUBY
+    end
+
     it "does not match object without #deconstruct method" do
       obj = Object.new
       obj.should_receive(:respond_to?).with(:deconstruct)
@@ -1061,6 +1075,20 @@ describe "Pattern matching" do
       eval(<<~RUBY).should == false
         case {a: 1}
         in String[a: 1]
+          true
+        else
+          false
+        end
+      RUBY
+    end
+
+    it "checks Constant === object before calling #deconstruct_keys" do
+      c1 = Class.new
+      obj = c1.new
+      obj.should_not_receive(:deconstruct_keys)
+      eval(<<~RUBY).should == false
+        case obj
+        in String(a: 1)
           true
         else
           false
