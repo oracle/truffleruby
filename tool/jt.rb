@@ -1363,7 +1363,7 @@ module Commands
       end
     end
 
-    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
+    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
     run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
   end
