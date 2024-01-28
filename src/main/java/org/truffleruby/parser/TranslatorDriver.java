@@ -157,7 +157,7 @@ public final class TranslatorDriver {
             }
         }
 
-        boolean isInlineSource = rubySource.getSourcePath().equals("-e");
+        boolean isInlineSource = rubySource.getSourcePath(language).equals("-e");
         boolean isEvalParse = parserContext.isEval();
         final ParserConfiguration parserConfiguration = new ParserConfiguration(
                 context,
