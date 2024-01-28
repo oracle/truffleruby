@@ -2558,7 +2558,17 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitMatchPredicateNode(Nodes.MatchPredicateNode node) {
-        return defaultVisit(node);
+        var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
+
+        // Evaluate the expression and store it in a local
+        final int tempSlot = environment.declareLocalTemp("value_of_=>");
+        final ReadLocalNode readTemp = environment.readNode(tempSlot, node);
+        final RubyNode assignTemp = readTemp.makeWriteNode(node.value.accept(this));
+
+        RubyNode condition = translator.translatePatternNode(node.pattern, readTemp);
+
+        final RubyNode ret = sequence(Arrays.asList(assignTemp, condition));
+        return assignPositionAndFlags(node, ret);
     }
 
     @Override
