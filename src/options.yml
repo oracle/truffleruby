@@ -97,7 +97,6 @@ EXPERT:
     # Ruby-level features
     TRACE_CALLS: [trace-calls, boolean, true, 'Support tracing (set_trace_func, TracePoint) of method calls']
     COVERAGE_GLOBAL: [coverage-global, boolean, false, Run coverage for all code and print results on exit]
-    PATTERN_MATCHING: [pattern-matching, boolean, false, Enable pattern matching syntax]
 
     # Options helpful for debugging, potentially also for user code
     CORE_AS_INTERNAL: [core-as-internal, boolean, false, 'Mark core library sources as internal']

@@ -46,7 +46,6 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> HOST_INTEROP_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> TRACE_CALLS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> COVERAGE_GLOBAL_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> PATTERN_MATCHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CORE_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> STDLIB_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
@@ -370,14 +369,6 @@ public final class OptionsCatalog {
     public static final OptionDescriptor COVERAGE_GLOBAL = OptionDescriptor
             .newBuilder(COVERAGE_GLOBAL_KEY, "ruby.coverage-global")
             .help("Run coverage for all code and print results on exit")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("")
-            .build();
-
-    public static final OptionDescriptor PATTERN_MATCHING = OptionDescriptor
-            .newBuilder(PATTERN_MATCHING_KEY, "ruby.pattern-matching")
-            .help("Enable pattern matching syntax")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -1389,8 +1380,6 @@ public final class OptionsCatalog {
                 return TRACE_CALLS;
             case "ruby.coverage-global":
                 return COVERAGE_GLOBAL;
-            case "ruby.pattern-matching":
-                return PATTERN_MATCHING;
             case "ruby.core-as-internal":
                 return CORE_AS_INTERNAL;
             case "ruby.stdlib-as-internal":
@@ -1662,7 +1651,6 @@ public final class OptionsCatalog {
             HOST_INTEROP,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
-            PATTERN_MATCHING,
             CORE_AS_INTERNAL,
             STDLIB_AS_INTERNAL,
             LAZY_TRANSLATION_USER,

@@ -1706,8 +1706,6 @@ module Commands
 
 
     vm_args << '--polyglot' if truffleruby_jvm?
-    # Until pattern matching is complete, we enable it in specs but not globally
-    vm_args << '--experimental-options' << '--pattern-matching'
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 

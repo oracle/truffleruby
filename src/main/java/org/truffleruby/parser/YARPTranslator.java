@@ -922,12 +922,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitCaseMatchNode(Nodes.CaseMatchNode node) {
-        var context = RubyLanguage.getCurrentContext();
-        if (!context.getOptions().PATTERN_MATCHING) {
-            throw new RaiseException(context, context.getCoreExceptions().syntaxError(
-                    "`case/in` pattern matching not yet implemented", currentNode, getSourceSection(node)));
-        }
-
         var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
 
         // Evaluate the case expression and store it in a local
@@ -2569,12 +2563,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitMatchRequiredNode(Nodes.MatchRequiredNode node) {
-        var context = RubyLanguage.getCurrentContext();
-        if (!context.getOptions().PATTERN_MATCHING) {
-            throw new RaiseException(context, context.getCoreExceptions()
-                    .syntaxError("`=>` pattern matching not yet implemented", currentNode, getSourceSection(node)));
-        }
-
         var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
 
         // Evaluate the expression and store it in a local
