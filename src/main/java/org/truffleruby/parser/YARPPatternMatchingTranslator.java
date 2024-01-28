@@ -249,10 +249,13 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
 
             var rest = node.rest;
             if (rest != null) {
+                RubyNode withoutMatchedKeys = keys.length == 0
+                        ? readTemp
+                        : HashSubtractKeysNodeGen.create(keys, readTemp);
                 if (rest instanceof Nodes.AssocSplatNode assocSplatNode) {
                     if (assocSplatNode.value != null) {
                         RubyNode prev = currentValueToMatch;
-                        currentValueToMatch = HashSubtractKeysNodeGen.create(keys, readTemp);
+                        currentValueToMatch = withoutMatchedKeys;
                         try {
                             condition = AndNodeGen.create(condition, assocSplatNode.value.accept(this));
                         } finally {
@@ -262,8 +265,7 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                         // nothing
                     }
                 } else if (rest instanceof Nodes.NoKeywordsParameterNode) {
-                    condition = AndNodeGen.create(condition,
-                            new HashIsEmptyNode(HashSubtractKeysNodeGen.create(keys, readTemp)));
+                    condition = AndNodeGen.create(condition, new HashIsEmptyNode(withoutMatchedKeys));
                 } else {
                     throw fail(rest);
                 }
