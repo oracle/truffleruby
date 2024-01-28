@@ -94,6 +94,13 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitArrayPatternNode(Nodes.ArrayPatternNode node) {
+        RubyNode condition;
+        if (node.constant != null) { // Constant[a]
+            condition = matchValue(node.constant);
+        } else {
+            condition = null;
+        }
+
         var preNodes = node.requireds;
         var restNode = node.rest;
         var postNodes = node.posts;
@@ -110,10 +117,13 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
         RubyNode outerPrev = currentValueToMatch;
         currentValueToMatch = readTemp;
         try {
-            RubyNode condition = ArrayPatternLengthCheckNodeGen.create(preSize + postSize, restNode != null, readTemp);
-
-            if (node.constant != null) { // Constant[a]
-                condition = AndNodeGen.create(matchValue(node.constant), condition);
+            RubyNode check = YARPTranslator.sequence(Arrays.asList(
+                    assignTemp,
+                    ArrayPatternLengthCheckNodeGen.create(preSize + postSize, restNode != null, readTemp)));
+            if (condition == null) {
+                condition = check;
+            } else {
+                condition = AndNodeGen.create(condition, check);
             }
 
             for (int i = 0; i < preNodes.length; i++) {
@@ -160,8 +170,7 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 }
             }
 
-            RubyNode ret = YARPTranslator.sequence(Arrays.asList(assignTemp, condition));
-            return assignPositionAndFlags(node, ret);
+            return assignPositionAndFlags(node, condition);
         } finally {
             currentValueToMatch = outerPrev;
         }
@@ -169,6 +178,13 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitHashPatternNode(Nodes.HashPatternNode node) {
+        RubyNode condition;
+        if (node.constant != null) { // Constant(a: 0)
+            condition = matchValue(node.constant);
+        } else {
+            condition = null;
+        }
+
         Nodes.Node[] pairs = node.elements;
         RubySymbol[] keys = new RubySymbol[pairs.length];
         for (int i = 0; i < pairs.length; i++) {
@@ -200,11 +216,13 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
         RubyNode outerPrev = currentValueToMatch;
         currentValueToMatch = readTemp;
         try {
-
-            RubyNode condition = HashPatternLengthCheckNodeGen.create(node.elements.length, readTemp);
-
-            if (node.constant != null) { // Constant[a: 0]
-                condition = AndNodeGen.create(matchValue(node.constant), condition);
+            RubyNode check = YARPTranslator.sequence(Arrays.asList(
+                    assignTemp,
+                    HashPatternLengthCheckNodeGen.create(node.elements.length, readTemp)));
+            if (condition == null) {
+                condition = check;
+            } else {
+                condition = AndNodeGen.create(condition, check);
             }
 
             for (int i = 0; i < pairs.length; i++) {
@@ -220,10 +238,10 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 RubyNode prev = currentValueToMatch;
                 currentValueToMatch = readValue;
                 try {
-                    RubyNode check = YARPTranslator.sequence(assocNode, Arrays.asList(
+                    RubyNode valueCondition = YARPTranslator.sequence(assocNode, Arrays.asList(
                             writeValue,
                             AndNodeGen.create(new IsNotUndefinedNode(readValue), assocNode.value.accept(this))));
-                    condition = AndNodeGen.create(condition, check);
+                    condition = AndNodeGen.create(condition, valueCondition);
                 } finally {
                     currentValueToMatch = prev;
                 }
@@ -251,8 +269,7 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 }
             }
 
-            RubyNode ret = YARPTranslator.sequence(Arrays.asList(assignTemp, condition));
-            return assignPositionAndFlags(node, ret);
+            return assignPositionAndFlags(node, condition);
         } finally {
             currentValueToMatch = outerPrev;
         }
