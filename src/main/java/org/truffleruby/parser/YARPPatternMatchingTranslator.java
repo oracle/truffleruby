@@ -267,6 +267,9 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 } else {
                     throw fail(rest);
                 }
+            } else if (pairs.length == 0) {
+                // rest == null && pairs.length == 0 means `in {}` which checks if empty
+                condition = AndNodeGen.create(condition, new HashIsEmptyNode(readTemp));
             }
 
             return assignPositionAndFlags(node, condition);

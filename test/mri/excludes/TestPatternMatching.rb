@@ -1,5 +1,5 @@
 exclude :test_alternative_pattern, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_pattern_matching.rb:204:in `test_alternative_pattern'."
-exclude :test_hash_pattern, "Failed assertion, no message given."
+exclude :test_hash_pattern, "expected: /(?:.*:[47]: warning: unused literal ignored\\n){2}/"
 exclude :test_invalid_syntax, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_pattern_matching.rb:1269:in `test_invalid_syntax'."
 exclude :test_literal_value_pattern, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_pattern_matching.rb:347:in `test_literal_value_pattern'."
 exclude :test_single_pattern_error_alternative_pattern, "Expected Exception(NoMatchingPatternError) was raised, but the message doesn't match."
