@@ -14,7 +14,6 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.Nodes;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.core.hash.HashLiteralNode;
@@ -56,13 +55,11 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
     private final RubyNode readArrayNode;
 
     public YARPParametersNodeToDestructureTranslator(
-            RubyLanguage language,
             TranslatorEnvironment environment,
-            RubySource rubySource,
             Nodes.ParametersNode parameters,
             RubyNode readArrayNode,
             YARPTranslator yarpTranslator) {
-        super(language, environment, rubySource);
+        super(environment);
         this.parameters = parameters;
         this.readArrayNode = readArrayNode;
         this.yarpTranslator = yarpTranslator;

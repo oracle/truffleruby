@@ -15,7 +15,6 @@ import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
@@ -56,15 +55,13 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
     private int repeatedParameterCounter = 2;
 
     public YARPLoadArgumentsTranslator(
-            RubyLanguage language,
             TranslatorEnvironment environment,
-            RubySource rubySource,
             Nodes.ParametersNode parameters,
             Arity arity,
             boolean isProc,
             boolean isMethod,
             YARPTranslator yarpTranslator) {
-        super(language, environment, rubySource);
+        super(environment);
         this.arity = arity;
         this.isProc = isProc;
         this.isMethod = isMethod;

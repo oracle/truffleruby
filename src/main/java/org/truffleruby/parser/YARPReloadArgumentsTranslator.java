@@ -16,7 +16,6 @@ import java.util.List;
 import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.Nodes;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
@@ -41,12 +40,10 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
     private int repeatedParameterCounter = 2;
 
     public YARPReloadArgumentsTranslator(
-            RubyLanguage language,
             TranslatorEnvironment environment,
-            RubySource rubySource,
             YARPTranslator yarpTranslator,
             Nodes.ParametersNode parametersNode) {
-        super(language, environment, rubySource);
+        super(environment);
         this.yarpTranslator = yarpTranslator;
         this.hasKeywordArguments = parametersNode.keywords.length > 0 || parametersNode.keyword_rest != null;
     }

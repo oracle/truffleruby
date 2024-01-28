@@ -10,7 +10,9 @@
 package org.truffleruby.parser;
 
 import java.util.List;
+import java.util.Objects;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -32,14 +34,15 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
 
-    protected final RubyLanguage language;
     protected final TranslatorEnvironment environment;
-    protected final RubySource rubySource;
 
-    // For convenient/concise access, actually redundant with the rubySource field
+    // For convenient/concise access, actually redundant with environment.getParseEnvironment()
+    protected final ParseEnvironment parseEnvironment;
+    protected final RubyLanguage language;
+    protected final RubySource rubySource;
     protected final Source source;
-    protected final byte[] sourceBytes;
     protected final RubyEncoding sourceEncoding;
+    protected final Node currentNode;
 
     public static final Nodes.Node[] EMPTY_NODE_ARRAY = Nodes.Node.EMPTY_ARRAY;
 
@@ -48,16 +51,14 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
 
     public static final short NO_FLAGS = 0;
 
-    public YARPBaseTranslator(
-            RubyLanguage language,
-            TranslatorEnvironment environment,
-            RubySource rubySource) {
-        this.language = language;
-        this.environment = environment;
-        this.rubySource = rubySource;
+    public YARPBaseTranslator(TranslatorEnvironment environment) {
+        this.environment = Objects.requireNonNull(environment);
+        this.parseEnvironment = environment.getParseEnvironment();
+        this.language = parseEnvironment.language;
+        this.rubySource = parseEnvironment.rubySource;
         this.source = rubySource.getSource();
-        this.sourceBytes = rubySource.getBytes();
         this.sourceEncoding = rubySource.getEncoding();
+        this.currentNode = parseEnvironment.currentNode;
     }
 
     public final TranslatorEnvironment getEnvironment() {
@@ -131,8 +132,8 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected final TruffleString toTString(Nodes.Node node) {
-        return TruffleString.fromByteArrayUncached(sourceBytes, node.startOffset, node.length, sourceEncoding.tencoding,
-                false);
+        return TruffleString.fromByteArrayUncached(rubySource.getBytes(), node.startOffset, node.length,
+                sourceEncoding.tencoding, false);
     }
 
     protected final TruffleString toTString(String string) {
@@ -188,9 +189,9 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         if (yarpNode.hasNewLineFlag()) {
             TruffleSafepoint.poll(DummyNode.INSTANCE);
 
-            if (environment.getParseEnvironment().isCoverageEnabled()) {
+            if (parseEnvironment.isCoverageEnabled()) {
                 rubyNode.unsafeSetIsCoverageLine();
-                int startLine = environment.getParseEnvironment().yarpSource.line(yarpNode.startOffset);
+                int startLine = parseEnvironment.yarpSource.line(yarpNode.startOffset);
                 language.coverageManager.setLineHasCode(source, startLine);
             }
 

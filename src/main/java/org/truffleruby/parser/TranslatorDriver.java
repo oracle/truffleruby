@@ -104,7 +104,7 @@ public final class TranslatorDriver {
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
-        this.parseEnvironment = new ParseEnvironment(language, rubySource, parserContext);
+        this.parseEnvironment = new ParseEnvironment(language, rubySource, parserContext, currentNode);
 
         if (language.options.PRISM) {
             return new YARPTranslatorDriver(context).parse(rubySource, parserContext, argumentNames,

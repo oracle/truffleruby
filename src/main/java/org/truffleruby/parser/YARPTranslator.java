@@ -10,7 +10,6 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.specific.EUCJPEncoding;
@@ -178,9 +177,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
-    // TODO: Since these fields don't seem to change per translator instance we could/should store them in ParseEnvironment
-    private final ParserContext parserContext;
-    private final Node currentNode;
     public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
     private boolean translatingWhile = false;
     private boolean translatingNextExpression = false;
@@ -202,15 +198,8 @@ public class YARPTranslator extends YARPBaseTranslator {
     // all the encountered BEGIN {} blocks
     private final ArrayList<RubyNode> beginBlocks = new ArrayList<>();
 
-    public YARPTranslator(
-            RubyLanguage language,
-            TranslatorEnvironment environment,
-            RubySource rubySource,
-            ParserContext parserContext,
-            Node currentNode) {
-        super(language, environment, rubySource);
-        this.parserContext = parserContext;
-        this.currentNode = currentNode;
+    public YARPTranslator(TranslatorEnvironment environment) {
+        super(environment);
     }
 
     public ArrayList<RubyNode> getBeginBlocks() {
@@ -520,7 +509,6 @@ public class YARPTranslator extends YARPBaseTranslator {
                 methodName,
                 argumentDescriptors);
 
-        final ParseEnvironment parseEnvironment = environment.getParseEnvironment();
         // "stabby lambda" is a common name for the `->() {}` lambda syntax
         final ReturnID returnID = isStabbyLambda ? parseEnvironment.allocateReturnID() : environment.getReturnID();
 
@@ -539,11 +527,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         newEnvironment.literalBlockPassedToMethod = literalBlockPassedToMethod;
 
         final YARPBlockNodeTranslator methodCompiler = new YARPBlockNodeTranslator(
-                language,
                 newEnvironment,
-                rubySource,
-                parserContext,
-                currentNode,
                 arity);
 
         methodCompiler.frameOnStackMarkerSlotStack = frameOnStackMarkerSlotStack;
@@ -641,7 +625,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, node.block, methodName);
         var translatedArguments = argumentsAndBlock.arguments();
 
-        if (environment.getParseEnvironment().inCore() && node.isVariableCall() && methodName.equals("undefined")) {
+        if (parseEnvironment.inCore() && node.isVariableCall() && methodName.equals("undefined")) {
             // translate undefined
             final RubyNode rubyNode = new ObjectLiteralNode(NotProvided.INSTANCE);
             return assignPositionAndFlags(node, rubyNode);
@@ -660,7 +644,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         //   Primitive.foo arg1, arg2, argN
         // into
         //   FooPrimitiveNode(arg1, arg2, ..., argN)
-        if (environment.getParseEnvironment().canUsePrimitives() &&
+        if (parseEnvironment.canUsePrimitives() &&
                 node.receiver instanceof Nodes.ConstantReadNode constantReadNode &&
                 constantReadNode.name.equals("Primitive")) {
 
@@ -922,7 +906,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitCaseMatchNode(Nodes.CaseMatchNode node) {
-        var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
+        var translator = new YARPPatternMatchingTranslator(environment, this);
 
         // Evaluate the case expression and store it in a local
         final int tempSlot = environment.declareLocalTemp("case in value");
@@ -1507,8 +1491,8 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 environment,
-                environment.getParseEnvironment(),
-                environment.getParseEnvironment().allocateReturnID(),
+                parseEnvironment,
+                parseEnvironment.allocateReturnID(),
                 true,
                 false,
                 sharedMethodInfo,
@@ -1521,10 +1505,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final var defNodeTranslator = new YARPDefNodeTranslator(
                 language,
-                newEnvironment,
-                rubySource,
-                parserContext,
-                currentNode);
+                newEnvironment);
         var callTargetSupplier = defNodeTranslator.buildMethodNodeCompiler(node, parameters, arity);
 
         final boolean isDefSingleton = singletonClassNode != null;
@@ -1795,7 +1776,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             parametersNode = ZERO_PARAMETERS_NODE;
         }
         // TODO should this use `environment` and not `this.environment`? But that fails some specs
-        var reloadTranslator = new YARPReloadArgumentsTranslator(language, this.environment, rubySource, this,
+        var reloadTranslator = new YARPReloadArgumentsTranslator(this.environment, this,
                 parametersNode);
 
         final RubyNode[] reloadSequence = reloadTranslator.reload(parametersNode);
@@ -2558,7 +2539,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitMatchPredicateNode(Nodes.MatchPredicateNode node) {
-        var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
+        var translator = new YARPPatternMatchingTranslator(environment, this);
 
         // Evaluate the expression and store it in a local
         final int tempSlot = environment.declareLocalTemp("value_of_=>");
@@ -2573,7 +2554,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitMatchRequiredNode(Nodes.MatchRequiredNode node) {
-        var translator = new YARPPatternMatchingTranslator(language, environment, rubySource, this);
+        var translator = new YARPPatternMatchingTranslator(environment, this);
 
         // Evaluate the expression and store it in a local
         final int tempSlot = environment.declareLocalTemp("value_of_=>");
@@ -3048,7 +3029,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitSourceLineNode(Nodes.SourceLineNode node) {
         // Note: we use the YARP source here, notably to account for the lineOffset.
         // Instead of getSourceSection(node).getStartLine() which would also create the TextMap early.
-        int line = environment.getParseEnvironment().yarpSource.line(node.startOffset);
+        int line = parseEnvironment.yarpSource.line(node.startOffset);
         var rubyNode = new IntegerFixnumLiteralNode(line);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -3388,7 +3369,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                 environment,
-                environment.getParseEnvironment(),
+                parseEnvironment,
                 ReturnID.MODULE_BODY,
                 true,
                 true,
@@ -3399,12 +3380,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 null,
                 modulePath);
 
-        final YARPTranslator moduleTranslator = new YARPTranslator(
-                language,
-                newEnvironment,
-                rubySource,
-                parserContext,
-                currentNode);
+        final YARPTranslator moduleTranslator = new YARPTranslator(newEnvironment);
 
         final ModuleBodyDefinition definition = moduleTranslator.compileClassNode(moduleNode, bodyNode);
 
@@ -3571,7 +3547,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         final RubyNode body;
-        final BreakID whileBreakID = environment.getParseEnvironment().allocateBreakID();
+        final BreakID whileBreakID = parseEnvironment.allocateBreakID();
 
         final boolean oldTranslatingWhile = translatingWhile;
         translatingWhile = true;

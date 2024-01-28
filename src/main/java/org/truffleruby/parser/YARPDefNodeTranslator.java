@@ -18,7 +18,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 
-import com.oracle.truffle.api.nodes.Node;
 import org.prism.Nodes;
 
 public final class YARPDefNodeTranslator extends YARPTranslator {
@@ -27,13 +26,10 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
 
     public YARPDefNodeTranslator(
             RubyLanguage language,
-            TranslatorEnvironment environment,
-            RubySource rubySource,
-            ParserContext parserContext,
-            Node currentNode) {
-        super(language, environment, rubySource, parserContext, currentNode);
+            TranslatorEnvironment environment) {
+        super(environment);
 
-        if (parserContext.isEval() || environment.getParseEnvironment().isCoverageEnabled()) {
+        if (parseEnvironment.parserContext.isEval() || parseEnvironment.isCoverageEnabled()) {
             shouldLazyTranslate = false;
         } else if (language.getSourcePath(source).startsWith(language.coreLoadPath)) {
             shouldLazyTranslate = language.options.LAZY_TRANSLATION_CORE;
@@ -46,9 +42,7 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
         declareLocalVariables(node);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
-                language,
                 environment,
-                rubySource,
                 parameters,
                 arity,
                 false,

@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import java.util.Arrays;
 
 import org.prism.Nodes;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayDeconstructNodeGen;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayPatternLengthCheckNodeGen;
@@ -44,11 +43,9 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
     private RubyNode currentValueToMatch;
 
     public YARPPatternMatchingTranslator(
-            RubyLanguage language,
             TranslatorEnvironment environment,
-            RubySource rubySource,
             YARPTranslator yarpTranslator) {
-        super(language, environment, rubySource);
+        super(environment);
         this.yarpTranslator = yarpTranslator;
     }
 

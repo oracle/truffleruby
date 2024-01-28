@@ -10,7 +10,6 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.SourceSection;
 import org.prism.Nodes;
@@ -46,14 +45,8 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
 
     private final Arity arity;
 
-    public YARPBlockNodeTranslator(
-            RubyLanguage language,
-            TranslatorEnvironment environment,
-            RubySource rubySource,
-            ParserContext parserContext,
-            Node currentNode,
-            Arity arity) {
-        super(language, environment, rubySource, parserContext, currentNode);
+    public YARPBlockNodeTranslator(TranslatorEnvironment environment, Arity arity) {
+        super(environment);
         this.arity = arity;
     }
 
@@ -63,9 +56,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         declareLocalVariables(locals);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
-                language,
                 environment,
-                rubySource,
                 parameters,
                 arity,
                 !isStabbyLambda,
@@ -164,9 +155,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             final RubyNode readArrayNode = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot);
 
             final var translator = new YARPParametersNodeToDestructureTranslator(
-                    language,
                     environment,
-                    rubySource,
                     parameters,
                     readArrayNode,
                     this);
