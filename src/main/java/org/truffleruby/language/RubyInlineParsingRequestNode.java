@@ -47,7 +47,7 @@ public final class RubyInlineParsingRequestNode extends ExecutableNode {
         final RubySource rubySource = new RubySource(source, language.getSourcePath(source), null, true, 0);
 
         // We use the current frame as the lexical scope to parse, but then we may run with a new frame in the future
-        final TranslatorDriver translator = new TranslatorDriver(context, rubySource);
+        final TranslatorDriver translator = new TranslatorDriver(context);
         final RootCallTarget callTarget = translator.parse(
                 rubySource,
                 ParserContext.INLINE,

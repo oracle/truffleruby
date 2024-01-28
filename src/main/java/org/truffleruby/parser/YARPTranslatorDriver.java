@@ -100,21 +100,18 @@ public final class YARPTranslatorDriver {
     /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;
     private final RubyLanguage language;
-    private final ParseEnvironment parseEnvironment;
+    private ParseEnvironment parseEnvironment;
 
-    public YARPTranslatorDriver(RubyContext context, RubySource rubySource) {
+    public YARPTranslatorDriver(RubyContext context) {
         this.context = context;
         this.language = context.getLanguageSlow();
-        this.parseEnvironment = new ParseEnvironment(language, rubySource);
     }
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
-        assert rubySource.isEval() == parserContext.isEval();
+        this.parseEnvironment = new ParseEnvironment(language, rubySource, parserContext);
 
-        if (rubySource.getSource() != parseEnvironment.source) {
-            throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
-        }
+        assert rubySource.isEval() == parserContext.isEval();
 
         if (parserContext.isTopLevel() != (parentFrame == null)) {
             throw CompilerDirectives.shouldNotReachHere(

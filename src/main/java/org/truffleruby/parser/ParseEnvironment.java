@@ -22,6 +22,7 @@ import org.truffleruby.language.control.ReturnID;
 public final class ParseEnvironment {
 
     public final Source source;
+    public final ParserContext parserContext;
     private final boolean inCore;
     private final boolean coverageEnabled;
 
@@ -30,8 +31,9 @@ public final class ParseEnvironment {
     // Set once after parsing and before translating
     public Boolean allowTruffleRubyPrimitives = null;
 
-    public ParseEnvironment(RubyLanguage language, RubySource rubySource) {
+    public ParseEnvironment(RubyLanguage language, RubySource rubySource, ParserContext parserContext) {
         this.source = rubySource.getSource();
+        this.parserContext = parserContext;
         this.inCore = RubyLanguage.getPath(source).startsWith(language.corePath);
         this.coverageEnabled = RubyLanguage.MIME_TYPE_COVERAGE.equals(rubySource.getSource().getMimeType());
     }
