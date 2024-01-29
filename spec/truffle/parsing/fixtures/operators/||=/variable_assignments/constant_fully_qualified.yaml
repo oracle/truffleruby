@@ -56,9 +56,10 @@ ast: |
                                                                   attributes:
                                                                       lexicalScope =  :: Object
                                                                       name = "FOO"
-                                      OrNodeGen
+                                      OrLazyValueDefinedNodeGen
                                           attributes:
                                               flags = 0
+                                              rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
                                           children:
                                               left =
                                                   AndNodeGen

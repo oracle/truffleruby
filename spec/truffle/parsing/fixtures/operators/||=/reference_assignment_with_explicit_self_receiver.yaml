@@ -49,9 +49,10 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           value = 42
-                                      OrNodeGen
+                                      OrLazyValueDefinedNodeGen
                                           attributes:
                                               flags = 0
+                                              rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
                                           children:
                                               left =
                                                   InlinedIndexGetNodeGen

@@ -861,7 +861,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 .accept(this);
         final RubyNode writeNode = callNode(node, writeFlags, readReceiver, node.write_name,
                 node.value).accept(this);
-        final RubyNode orNode = OrNodeGen.create(readNode, writeNode);
+        final RubyNode orNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
 
         final RubyNode sequence;
         if (node.isSafeNavigation()) {
@@ -1146,7 +1146,6 @@ public class YARPTranslator extends YARPBaseTranslator {
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length).accept(this);
         var andNode = AndNodeGen.create(new DefinedNode(readNode), readNode);
 
-        // TODO: should be used for every ||= node (class variable/etc)?
         final RubyNode rubyNode = OrLazyValueDefinedNodeGen.create(andNode, writeNode);
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1366,7 +1365,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         var readNode = (ReadConstantNode) target.accept(this);
         var writeNode = (WriteConstantNode) readNode.makeWriteNode(value);
         var andNode = AndNodeGen.create(new DefinedNode(readNode), readNode);
-        final RubyNode orNode = OrNodeGen.create(andNode, writeNode);
+        final RubyNode orNode = OrLazyValueDefinedNodeGen.create(andNode, writeNode);
 
         final RubyNode rubyNode;
 
@@ -2190,7 +2189,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         if (isAndOperator) {
             operatorNode = AndNodeGen.create(readNode, writeNode);
         } else {
-            operatorNode = OrNodeGen.create(readNode, writeNode);
+            operatorNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
         }
 
         final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
