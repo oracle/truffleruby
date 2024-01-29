@@ -1,7 +1,0 @@
-fails:Time#deconstruct_keys returns whole hash for nil as an argument
-fails:Time#deconstruct_keys returns only specified keys
-fails:Time#deconstruct_keys requires one argument
-fails:Time#deconstruct_keys it raises error when argument is neither nil nor array
-fails:Time#deconstruct_keys returns {} when passed []
-fails:Time#deconstruct_keys ignores non-Symbol keys
-fails:Time#deconstruct_keys ignores not existing Symbol keys
