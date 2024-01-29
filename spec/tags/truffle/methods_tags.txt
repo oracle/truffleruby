@@ -81,24 +81,16 @@ fails:Public methods on StringIO should not include to_yaml_properties
 fails:Public methods on StringIO should not include yaml_initialize
 fails:Public methods on StringIO should include set_encoding_by_bom
 fails:Public methods on Process.singleton_class should include getsid
-fails:Public methods on ENV.singleton_class should include clone
-fails:Public methods on ENV.singleton_class should include dup
 fails:Public methods on GC.singleton_class should include using_rvargc?
 fails:Public methods on Class should include attached_object
 fails:Public methods on Enumerable should include to_set
-fails:Public methods on Exception should include detailed_message
 fails:Public methods on Fiber should include storage
 fails:Public methods on Fiber should include storage=
-fails:Public methods on File should not include path
-fails:Public methods on File should not include to_path
 fails:Public methods on GC.singleton_class should include stat_heap
 fails:Public methods on IO should not include nread
 fails:Public methods on IO should not include ready?
-fails:Public methods on IO should include path
 fails:Public methods on IO should include timeout
 fails:Public methods on IO should include timeout=
-fails:Public methods on IO should include to_path
-fails:Public methods on Integer should include ceildiv
 fails:Public methods on Kernel should not include =~
 fails:Public methods on Method should not include private?
 fails:Public methods on Method should not include protected?
