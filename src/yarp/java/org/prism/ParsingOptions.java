@@ -6,6 +6,23 @@ import java.nio.ByteOrder;
 
 // @formatter:off
 public abstract class ParsingOptions {
+    /** The version of Ruby syntax that we should be parsing with.
+     * See pm_options_version_t in c/yarp/include/prism/options.h */
+    public enum SyntaxVersion {
+        LATEST(0),
+        V3_3_0(1);
+
+        private final int value;
+
+        SyntaxVersion(int value) {
+            this.value = value;
+        }
+
+        public byte getValue() {
+            return (byte) value;
+        }
+    }
+
     /** Serialize parsing options into byte array.
      *
      * @param filepath the name of the file that is currently being parsed
@@ -17,7 +34,7 @@ public abstract class ParsingOptions {
      * @param scopes scopes surrounding the code that is being parsed with local variable names defined in every scope
      *            ordered from the outermost scope to the innermost one */
     public static byte[] serialize(byte[] filepath, int line, byte[] encoding, boolean frozenStringLiteral,
-            boolean verbose, byte version, byte[][][] scopes) {
+            boolean verbose, SyntaxVersion version, byte[][][] scopes) {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         // filepath
@@ -47,7 +64,7 @@ public abstract class ParsingOptions {
         }
 
         // version
-        output.write(version);
+        output.write(version.getValue());
 
         // scopes
 
