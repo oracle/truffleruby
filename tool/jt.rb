@@ -1700,7 +1700,7 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
-      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false'
+      vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
       vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
