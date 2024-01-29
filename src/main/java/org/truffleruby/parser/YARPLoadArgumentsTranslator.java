@@ -158,7 +158,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
             readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
                     hasKeywordArguments());
         } else {
-            throw new IllegalStateException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, readNode);
@@ -191,7 +191,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
             readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
                     hasKeywordArguments());
         } else {
-            throw new IllegalStateException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final int slot;

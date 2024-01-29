@@ -134,7 +134,7 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
             readNode = new ReadBlockPostArgumentFromArrayNode(readArrayNode, -index, getRequiredCount(),
                     getOptionalCount(), hasRest());
         } else {
-            throw new IllegalStateException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, readNode);
@@ -161,7 +161,7 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
             readNode = new ReadBlockPostArgumentFromArrayNode(readArrayNode, -index, getRequiredCount(),
                     getOptionalCount(), hasRest());
         } else {
-            throw new IllegalStateException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final int slot = environment.findFrameSlot(node.name);
