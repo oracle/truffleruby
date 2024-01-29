@@ -771,7 +771,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         // consider there are keyword arguments if the last argument is either ... or a Hash
-        Nodes.Node last = arguments[arguments.length - 1];
+        Nodes.Node last = ArrayUtils.getLast(arguments);
 
         // a(...) means there are potentially forwarded keyword arguments
         if (last instanceof Nodes.ForwardingArgumentsNode) {
@@ -2400,7 +2400,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         int start = parts[0].startOffset;
-        var last = parts[parts.length - 1];
+        var last = ArrayUtils.getLast(parts);
         int length = last.endOffset() - start;
         return new Nodes.StringNode(NO_FLAGS, concatenated, start, length);
     }

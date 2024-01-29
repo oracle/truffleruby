@@ -19,6 +19,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
 import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -184,7 +185,7 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
 
         final Object returnValue = dispatch.execute(frame, receiverObject, methodName, rubyArgs, dispatchConfig);
         if (isAttrAssign) {
-            final Object value = rubyArgs[rubyArgs.length - 1];
+            final Object value = ArrayUtils.getLast(rubyArgs);
             assert RubyGuards.assertIsValidRubyValue(value);
             return value;
         } else {
@@ -279,7 +280,7 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
     }
 
     private RubyNode getLastArgumentNode() {
-        final RubyNode lastArg = RubyNode.unwrapNode(arguments[arguments.length - 1]);
+        final RubyNode lastArg = RubyNode.unwrapNode(ArrayUtils.getLast(arguments));
 
         // BodyTranslator-specific condition
         if (isSplatted && lastArg instanceof ArrayAppendOneNode arrayAppendOneNode) {
@@ -294,13 +295,13 @@ public final class RubyCallNode extends LiteralCallAssignableNode {
             RubyNode[] elements = arrayConcatNode.getElements();
             assert elements.length > 0;
 
-            RubyNode last = RubyNode.unwrapNode(elements[elements.length - 1]);
+            RubyNode last = RubyNode.unwrapNode(ArrayUtils.getLast(elements));
 
             if (last instanceof ArrayLiteralNode arrayLiteralNode) {
                 RubyNode[] values = arrayLiteralNode.getValues();
                 assert values.length > 0;
 
-                return RubyNode.unwrapNode(values[values.length - 1]);
+                return RubyNode.unwrapNode(ArrayUtils.getLast(values));
             } else {
                 return last;
             }

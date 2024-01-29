@@ -17,6 +17,7 @@ import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.DummyNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -179,7 +180,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     // assign position based on a list of nodes (arguments list, exception classes list in a rescue section, etc)
     protected final void assignPositionOnly(Nodes.Node[] nodes, RubyNode rubyNode) {
         final Nodes.Node first = nodes[0];
-        final Nodes.Node last = nodes[nodes.length - 1];
+        final Nodes.Node last = ArrayUtils.getLast(nodes);
 
         final int length = last.endOffset() - first.startOffset;
         rubyNode.unsafeSetSourceSection(first.startOffset, length);
