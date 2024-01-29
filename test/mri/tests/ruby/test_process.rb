@@ -1823,7 +1823,12 @@ class TestProcess < Test::Unit::TestCase
       end
     end
   ensure
-    Process.kill(:KILL, pid) if (pid != 0) rescue false
+    # https://github.com/ruby/prism/issues/2289
+    # Process.kill(:KILL, pid) if (pid != 0) rescue false
+    begin
+      Process.kill(:KILL, pid) if (pid != 0)
+    rescue Errno::ESRCH
+    end
   end
 
   if Process.respond_to?(:daemon)
