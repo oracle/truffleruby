@@ -285,7 +285,7 @@ public abstract class TruffleDebugNodes {
 
             byte[] serialized = Parser.parseAndSerialize(source);
 
-            var yarpSource = YARPTranslatorDriver.createYARPSource(source, YARPTranslatorDriver.createRubySource(code));
+            var yarpSource = YARPTranslatorDriver.createYARPSource(source);
             var parseResult = Loader.load(serialized, yarpSource);
             var ast = parseResult.value;
 

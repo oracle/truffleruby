@@ -109,7 +109,7 @@ public final class YARPTranslatorDriver {
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
-        Nodes.Source yarpSource = createYARPSource(rubySource.getBytes(), rubySource);
+        Nodes.Source yarpSource = createYARPSource(rubySource.getBytes());
         this.parseEnvironment = new ParseEnvironment(language, rubySource, yarpSource, parserContext, currentNode);
 
         assert rubySource.isEval() == parserContext.isEval();
@@ -565,19 +565,8 @@ public final class YARPTranslatorDriver {
         return new RubySource(source, source.getName(), sourceTString);
     }
 
-    public static Nodes.Source createYARPSource(byte[] sourceBytes, RubySource rubySource) {
-        Source source = rubySource.getSource();
-        int[] lineOffsets = new int[source.getLineCount()];
-        for (int line = 1; line <= source.getLineCount(); line++) {
-            lineOffsets[line - 1] = source.getLineStartOffset(line);
-        }
-
-        // Nodes.Source expects at least one line, but there are no any line in empty Ruby source file
-        if (lineOffsets.length == 0) {
-            lineOffsets = new int[]{ 0 };
-        }
-
-        return new Nodes.Source(sourceBytes, 1, lineOffsets);
+    public static Nodes.Source createYARPSource(byte[] sourceBytes) {
+        return new Nodes.Source(sourceBytes);
     }
 
     private TranslatorEnvironment environmentForFrame(RubyContext context, MaterializedFrame frame, int blockDepth) {
