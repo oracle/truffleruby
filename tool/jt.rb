@@ -184,6 +184,10 @@ module Utilities
     "#{GRAAL_DIR}/common.json"
   end
 
+  def truffleruby_common_json
+    "#{TRUFFLERUBY_DIR}/common.json"
+  end
+
   def jvmci_version
     @jvmci_version ||= begin
       sforceimports unless File.directory?(GRAAL_DIR)
@@ -219,9 +223,9 @@ module Utilities
     if which('mx')
       'mx'
     else
-      common_json = File.read(graal_common_json)
+      common_json = File.read(truffleruby_common_json)
       regex = /"mx_version":\s*"([^"]+)"/
-      raise "mx version not found in #{graal_common_json}" unless regex =~ common_json
+      raise "mx version not found in #{truffleruby_common_json}" unless regex =~ common_json
       mx_version = $1
       mx_repo = find_or_clone_repo('https://github.com/graalvm/mx.git', mx_version)
       "#{mx_repo}/mx"
