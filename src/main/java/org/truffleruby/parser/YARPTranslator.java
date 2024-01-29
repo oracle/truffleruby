@@ -290,11 +290,6 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitBeginNode(Nodes.BeginNode node) {
         RubyNode rubyNode;
 
-        // empty begin/end block - so ignore possibly present rescue and else branches
-        if (node.statements == null && node.ensure_clause == null) {
-            return new NilLiteralNode();
-        }
-
         if (node.statements != null) {
             rubyNode = node.statements.accept(this);
         } else {
@@ -303,6 +298,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         // fast path
         if (node.rescue_clause == null && node.ensure_clause == null) {
+            assert node.else_clause == null;
             return rubyNode;
         }
 
