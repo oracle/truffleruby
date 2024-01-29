@@ -37,6 +37,7 @@ Compatibility:
 * Implement `Class#attached_object` method (#3039, @andrykonchin).
 * Fix `ENV#{clone,dup}` and raise `TypeError` (#3039, @andrykonchin).
 * Fix `Coverage.supported?` and raise `TypeError` if argument is not Symbol (#3039, @andrykonchin).
+* Accept options argument to `Regexp.{new,compile}` of String and warn for unknown types (#3039, @rwstauner).
 
 Performance:
 
