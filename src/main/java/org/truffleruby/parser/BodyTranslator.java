@@ -1115,6 +1115,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final InterpolatedRegexpNode i = new InterpolatedRegexpNode(
                 children.toArray(EMPTY_TO_S_NODE_ARRAY),
+                Encodings.getBuiltInEncoding(node.getEncoding()),
                 node.getOptions());
         i.unsafeSetSourceSection(sourceSection);
 

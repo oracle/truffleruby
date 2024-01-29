@@ -7,6 +7,7 @@ ruby: |
 ast: |
   InterpolatedRegexpNode
       attributes:
+          encoding = ASCII-8BIT
           flags = 0
           rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
       children:
@@ -15,19 +16,12 @@ ast: |
           builderNode =
               InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
                   attributes:
+                      encoding = ASCII-8BIT
                       options = RegexpOptions(kcode: NONE, kcodeDefault, literal)
                   children:
                       equalNode =
                           TruffleStringFactory$EqualNodeGen
           children = [
-              ToSNodeGen
-                  children:
-                      valueNode_ =
-                          StringLiteralNode
-                              attributes:
-                                  encoding = ASCII-8BIT
-                                  flags = 0
-                                  tstring = ""
               ToSNodeGen
                   children:
                       valueNode_ =

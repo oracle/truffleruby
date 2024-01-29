@@ -12,6 +12,7 @@ package org.truffleruby.core.regexp;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import org.truffleruby.core.cast.ToSNode;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.NotOptimizedWarningNode;
@@ -33,10 +34,13 @@ public final class InterpolatedRegexpNode extends RubyContextSourceNode {
     @Child private RegexpBuilderNode builderNode;
     private final RubyStringLibrary rubyStringLibrary = RubyStringLibrary.create();
     @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
+    /** initial encoding to start encodings negotiation */
+    private final RubyEncoding encoding;
 
-    public InterpolatedRegexpNode(ToSNode[] children, RegexpOptions options) {
+    public InterpolatedRegexpNode(ToSNode[] children, RubyEncoding encoding, RegexpOptions options) {
         this.children = children;
-        this.builderNode = RegexpBuilderNode.create(options);
+        this.encoding = encoding;
+        this.builderNode = RegexpBuilderNode.create(encoding, options);
     }
 
     @Override
@@ -60,6 +64,7 @@ public final class InterpolatedRegexpNode extends RubyContextSourceNode {
     public RubyNode cloneUninitialized() {
         var copy = new InterpolatedRegexpNode(
                 cloneUninitialized(children),
+                encoding,
                 builderNode.options);
         return copy.copyFlags(this);
     }
@@ -75,13 +80,15 @@ public final class InterpolatedRegexpNode extends RubyContextSourceNode {
     public abstract static class RegexpBuilderNode extends RubyBaseNode {
 
         @Child private TruffleString.EqualNode equalNode = TruffleString.EqualNode.create();
+        private final RubyEncoding encoding;
         private final RegexpOptions options;
 
-        public static RegexpBuilderNode create(RegexpOptions options) {
-            return RegexpBuilderNodeGen.create(options);
+        public static RegexpBuilderNode create(RubyEncoding encoding, RegexpOptions options) {
+            return RegexpBuilderNodeGen.create(encoding, options);
         }
 
-        public RegexpBuilderNode(RegexpOptions options) {
+        public RegexpBuilderNode(RubyEncoding encoding, RegexpOptions options) {
+            this.encoding = encoding;
             this.options = options;
         }
 
@@ -117,8 +124,13 @@ public final class InterpolatedRegexpNode extends RubyContextSourceNode {
 
         @TruffleBoundary
         protected RubyRegexp createRegexp(TStringWithEncoding[] strings) {
+            // initial encoding is represented as a leading "" string in this encoding
+            TStringWithEncoding[] stringsWithPrefix = new TStringWithEncoding[1 + strings.length];
+            stringsWithPrefix[0] = new TStringWithEncoding(encoding.tencoding.getEmpty(), encoding);
+            System.arraycopy(strings, 0, stringsWithPrefix, 1, strings.length);
+
             try {
-                var preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
+                var preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), stringsWithPrefix, options);
                 return RubyRegexp.create(getLanguage(), preprocessed.tstring, preprocessed.encoding, options, this);
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext());
