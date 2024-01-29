@@ -25,13 +25,14 @@ public final class ParseEnvironment {
     public final RubyLanguage language;
     public final RubySource rubySource;
     public final Source source;
+    /** Used to compute line numbers */
+    public final Nodes.Source yarpSource;
     public final ParserContext parserContext;
     public final Node currentNode;
 
     private final boolean inCore;
     private final boolean coverageEnabled;
 
-    public Nodes.Source yarpSource = null;
 
     // Set once after parsing and before translating
     public Boolean allowTruffleRubyPrimitives = null;
@@ -39,11 +40,13 @@ public final class ParseEnvironment {
     public ParseEnvironment(
             RubyLanguage language,
             RubySource rubySource,
+            Nodes.Source yarpSource,
             ParserContext parserContext,
             Node currentNode) {
         this.language = language;
         this.rubySource = rubySource;
         this.source = rubySource.getSource();
+        this.yarpSource = yarpSource;
         this.parserContext = parserContext;
         this.currentNode = currentNode;
 

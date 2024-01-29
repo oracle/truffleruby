@@ -109,7 +109,8 @@ public final class YARPTranslatorDriver {
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
-        this.parseEnvironment = new ParseEnvironment(language, rubySource, parserContext, currentNode);
+        Nodes.Source yarpSource = createYARPSource(rubySource.getBytes(), rubySource);
+        this.parseEnvironment = new ParseEnvironment(language, rubySource, yarpSource, parserContext, currentNode);
 
         assert rubySource.isEval() == parserContext.isEval();
 
@@ -457,8 +458,7 @@ public final class YARPTranslatorDriver {
                 version, scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
-        Nodes.Source yarpSource = createYARPSource(sourceBytes, rubySource);
-        parseEnvironment.yarpSource = yarpSource;
+        Nodes.Source yarpSource = parseEnvironment.yarpSource;
         ParseResult parseResult = YARPLoader.load(serializedBytes, yarpSource, context.getEncodingManager(),
                 rubySource);
 
