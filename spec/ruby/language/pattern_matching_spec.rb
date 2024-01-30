@@ -207,7 +207,7 @@ describe "Pattern matching" do
         in []
         end
       RUBY
-    }.should raise_error(SyntaxError, /syntax error, unexpected `in'|\(eval\):3: syntax error, unexpected keyword_in|cannot parse the expression/)
+    }.should raise_error(SyntaxError, /syntax error, unexpected `in'|\(eval\):3: syntax error, unexpected keyword_in|unexpected 'in'/)
 
     -> {
       eval <<~RUBY
@@ -216,7 +216,7 @@ describe "Pattern matching" do
         when 1 == 1
         end
       RUBY
-    }.should raise_error(SyntaxError, /syntax error, unexpected `when'|\(eval\):3: syntax error, unexpected keyword_when|cannot parse the expression/)
+    }.should raise_error(SyntaxError, /syntax error, unexpected `when'|\(eval\):3: syntax error, unexpected keyword_when|unexpected 'when'/)
   end
 
   it "checks patterns until the first matching" do
