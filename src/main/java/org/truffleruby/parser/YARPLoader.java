@@ -39,7 +39,7 @@ package org.truffleruby.parser;
 import org.prism.Loader;
 import org.prism.Nodes;
 import org.prism.ParseResult;
-import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 
@@ -47,24 +47,21 @@ import java.nio.charset.Charset;
 
 public final class YARPLoader extends Loader {
 
-    public static ParseResult load(byte[] serialized, Nodes.Source source, EncodingManager encodingManager,
-            RubySource rubySource) {
-        return new YARPLoader(serialized, source, encodingManager, rubySource).load();
+    public static ParseResult load(byte[] serialized, Nodes.Source source, RubySource rubySource) {
+        return new YARPLoader(serialized, source, rubySource).load();
     }
 
-    private final EncodingManager encodingManager;
     private final RubySource rubySource;
     private RubyEncoding encoding = null;
 
-    public YARPLoader(byte[] serialized, Nodes.Source source, EncodingManager encodingManager, RubySource rubySource) {
+    public YARPLoader(byte[] serialized, Nodes.Source source, RubySource rubySource) {
         super(serialized, source);
-        this.encodingManager = encodingManager;
         this.rubySource = rubySource;
     }
 
     @Override
     public Charset getEncodingCharset(String encodingName) {
-        encoding = encodingManager.getRubyEncoding(encodingName);
+        encoding = Encodings.getBuiltInEncoding(encodingName);
         assert encoding == rubySource.getEncoding();
         return null; // encodingCharset is not used
     }

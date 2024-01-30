@@ -179,7 +179,7 @@ public final class TranslatorDriver {
         // TOPLEVEL_BINDING.eval("self") would use the cache which is wrong.
         if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL &&
                 ParserCache.INSTANCE.containsKey(source.getName())) {
-            node = ParserCache.INSTANCE.get(source.getName());
+            node = null;
         } else {
             printParseTranslateExecuteMetric("before-parsing", context, source);
             node = context.getMetricsProfiler().callWithMetrics(

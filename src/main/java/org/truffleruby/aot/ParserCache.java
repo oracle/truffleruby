@@ -10,34 +10,35 @@
 package org.truffleruby.aot;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.source.Source;
+import org.graalvm.collections.Pair;
+import org.prism.ParseResult;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.loader.ResourceLoader;
+import org.truffleruby.parser.ParseEnvironment;
+import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubyDeferredWarnings;
-import org.truffleruby.parser.RubyDeferredWarnings.WarningMessage;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
-import org.truffleruby.parser.ast.RootParseNode;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.parser.parser.ParserConfiguration;
-import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.shared.options.OptionsCatalog;
 
 import com.oracle.truffle.api.TruffleOptions;
 
 public final class ParserCache {
 
-    public static final Map<String, RootParseNode> INSTANCE;
+    public static final Map<String, Pair<ParseResult, Source>> INSTANCE;
 
     static {
         if (TruffleOptions.AOT) {
             final String defaultCoreLibraryPath = OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue();
-            final Map<String, RootParseNode> cache = new HashMap<>();
+            final Map<String, Pair<ParseResult, Source>> cache = new HashMap<>();
 
             for (String coreFile : CoreLibrary.CORE_FILES) {
                 //intern() to improve footprint
@@ -62,17 +63,18 @@ public final class ParserCache {
         }
     }
 
-    private static RootParseNode parse(RubySource source) {
-        final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
-        final ParserConfiguration parserConfiguration = new ParserConfiguration(null, false, true, false);
-        RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
-        var rootParseNode = TranslatorDriver.parseToJRubyAST(null, source, staticScope, parserConfiguration,
-                rubyWarnings);
-        if (!rubyWarnings.warnings.isEmpty()) {
-            throw new RuntimeException("Core files should not emit warnings: " +
-                    StringUtils.join(ArrayUtils.map(rubyWarnings.warnings, WarningMessage::getWarningMessage), "\n"));
-        }
-        return rootParseNode;
+    private static Pair<ParseResult, Source> parse(RubySource source) {
+        var language = RubyLanguage.getCurrentLanguage();
+        var parserConfiguration = new ParserConfiguration(null, false, true, false);
+        var rubyWarnings = new RubyDeferredWarnings();
+        var parseEnvironment = new ParseEnvironment(language, source,
+                YARPTranslatorDriver.createYARPSource(source.getBytes()), ParserContext.TOP_LEVEL, null);
+
+        var parseResult = YARPTranslatorDriver.parseToYARPAST(null, language, source, Collections.emptyList(),
+                parserConfiguration,
+                rubyWarnings, parseEnvironment);
+
+        return Pair.create(parseResult, source.getSource());
     }
 
 }

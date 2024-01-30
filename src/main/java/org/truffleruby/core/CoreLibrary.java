@@ -64,7 +64,6 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
-import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.shared.BuildInformationImpl;
@@ -787,8 +786,8 @@ public final class CoreLibrary {
     public RubySource loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
-                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
-                return new RubySource(rootParseNode.getSource(), path);
+                Source source = ParserCache.INSTANCE.get(path).getRight();
+                return new RubySource(source, path);
             } else {
                 return new RubySource(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), path);
             }

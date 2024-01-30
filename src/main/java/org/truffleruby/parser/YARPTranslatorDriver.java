@@ -174,29 +174,25 @@ public final class YARPTranslatorDriver {
         }
 
         // Parse to the YARP AST
-
-        final org.prism.Nodes.Node node;
-
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
 
         // Only use the cache while loading top-level core library files, as eval() later could use
         // the same Source name but should not use the cache. For instance,
         // TOPLEVEL_BINDING.eval("self") would use the cache which is wrong.
-
-        // TODO: use cache
-        //        if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL &&
-        //                ParserCache.INSTANCE.containsKey(source.getName())) {
-        //            node = ParserCache.INSTANCE.get(source.getName());
-        //        } else {
-        printParseTranslateExecuteMetric("before-parsing", context, source);
-        ParseResult parseResult = context.getMetricsProfiler().callWithMetrics(
-                "parsing",
-                source.getName(),
-                () -> parseToYARPAST(context, language, rubySource, staticScope, localVariableNames,
-                        parserConfiguration, rubyWarnings, parseEnvironment));
-        printParseTranslateExecuteMetric("after-parsing", context, source);
-        //        }
-        node = parseResult.value;
+        final ParseResult parseResult;
+        if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL &&
+                ParserCache.INSTANCE.containsKey(source.getName())) {
+            parseResult = ParserCache.INSTANCE.get(source.getName()).getLeft();
+        } else {
+            printParseTranslateExecuteMetric("before-parsing", context, source);
+            parseResult = context.getMetricsProfiler().callWithMetrics(
+                    "parsing",
+                    source.getName(),
+                    () -> parseToYARPAST(context, language, rubySource, localVariableNames,
+                            parserConfiguration, rubyWarnings, parseEnvironment));
+            printParseTranslateExecuteMetric("after-parsing", context, source);
+        }
+        var node = parseResult.value;
 
         // Needs the magic comment to be parsed
         parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
@@ -397,7 +393,6 @@ public final class YARPTranslatorDriver {
             ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings, ParseEnvironment parseEnvironment) {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
 
-        // YARP begin
         byte[] sourceBytes = rubySource.getBytes();
 
         byte[] filepath;
@@ -442,8 +437,7 @@ public final class YARPTranslatorDriver {
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         Nodes.Source yarpSource = parseEnvironment.yarpSource;
-        ParseResult parseResult = YARPLoader.load(serializedBytes, yarpSource, context.getEncodingManager(),
-                rubySource);
+        ParseResult parseResult = YARPLoader.load(serializedBytes, yarpSource, rubySource);
 
         final ParseResult.Error[] errors = parseResult.errors;
 
@@ -451,6 +445,12 @@ public final class YARPTranslatorDriver {
         for (ParseResult.Warning warning : parseResult.warnings) {
             Nodes.Location location = warning.location;
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
+
+            if (context == null) {
+                throw CompilerDirectives.shouldNotReachHere(
+                        "Warning in " + RubyLanguage.filenameLine(section) + ": " + warning.message);
+            }
+
             int lineNumber = RubySource.getStartLineAdjusted(context, section);
 
             switch (warning.level) {
@@ -462,7 +462,7 @@ public final class YARPTranslatorDriver {
         if (errors.length != 0) {
             // print warnings immediately
             // if there is no syntax error they will be printed in runtime
-            if (!rubyWarnings.warnings.isEmpty()) {
+            if (!rubyWarnings.warnings.isEmpty() && context != null) {
                 EmitWarningsNode.printWarnings(context, rubyWarnings);
             }
 
@@ -473,8 +473,13 @@ public final class YARPTranslatorDriver {
 
             Nodes.Location location = error.location;
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
-            String message = context.fileLine(section) + ": " + error.message;
 
+            if (context == null) {
+                throw CompilerDirectives.shouldNotReachHere(
+                        "Parse error in " + RubyLanguage.filenameLine(section) + ": " + error.message);
+            }
+
+            String message = context.fileLine(section) + ": " + error.message;
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(message, null, section));
@@ -495,47 +500,6 @@ public final class YARPTranslatorDriver {
         }
 
         return parseResult;
-        // YARP end
-
-        //        RubyParser parser = new RubyParser(lexerSource, rubyWarnings);
-        //        TruffleSafepoint.poll(DummyNode.INSTANCE); // RubyParser <clinit> takes a while
-        //        RubyParserResult result;
-        //        try {
-        //            result = parser.parse(configuration);
-        //        } catch (SyntaxException e) {
-        //            if (!rubyWarnings.warnings.isEmpty()) {
-        //                EmitWarningsNode.printWarnings(context, rubyWarnings);
-        //            }
-        //            switch (e.getPid()) {
-        //                case UNKNOWN_ENCODING:
-        //                case NOT_ASCII_COMPATIBLE:
-        //                    if (context != null) {
-        //                        throw new RaiseException(
-        //                                context,
-        //                                context.getCoreExceptions().argumentError(e.getMessage(), null));
-        //                    } else {
-        //                        throw e;
-        //                    }
-        //                default:
-        //                    StringBuilder buffer = new StringBuilder(100);
-        //                    buffer.append(e.getFile()).append(':');
-        //                    buffer.append(e.getLine() + rubySource.getLineOffset()).append(": ");
-        //                    buffer.append(e.getMessage());
-        //
-        //                    if (context != null) {
-        //                        throw new RaiseException(
-        //                                context,
-        //                                context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(
-        //                                        buffer.toString(),
-        //                                        null,
-        //                                        rubySource.getSource().createSection(e.getLine())));
-        //                    } else {
-        //                        throw new UnsupportedOperationException(buffer.toString(), e);
-        //                    }
-        //            }
-        //        }
-
-        //        return (RootParseNode) result.getAST();
     }
 
     public static RubySource createRubySource(Object code) {
