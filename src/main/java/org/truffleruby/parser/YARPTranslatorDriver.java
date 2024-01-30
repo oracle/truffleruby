@@ -188,10 +188,13 @@ public final class YARPTranslatorDriver {
             parseResult = context.getMetricsProfiler().callWithMetrics(
                     "parsing",
                     source.getName(),
-                    () -> parseToYARPAST(context, language, rubySource, localVariableNames,
-                            parserConfiguration, rubyWarnings, parseEnvironment));
+                    () -> parseToYARPAST(language, rubySource, localVariableNames,
+                            parseEnvironment));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
+
+        handleWarningsErrorsPrimitives(context, language, parseResult, rubySource, parserConfiguration, rubyWarnings);
+
         var node = parseResult.value;
 
         // Needs the magic comment to be parsed
@@ -388,9 +391,8 @@ public final class YARPTranslatorDriver {
         }
     }
 
-    public static org.prism.ParseResult parseToYARPAST(RubyContext context, RubyLanguage language,
-            RubySource rubySource, List<List<String>> localVariableNames,
-            ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings, ParseEnvironment parseEnvironment) {
+    public static ParseResult parseToYARPAST(RubyLanguage language, RubySource rubySource,
+            List<List<String>> localVariableNames, ParseEnvironment parseEnvironment) {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
 
         byte[] sourceBytes = rubySource.getBytes();
@@ -437,7 +439,15 @@ public final class YARPTranslatorDriver {
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         Nodes.Source yarpSource = parseEnvironment.yarpSource;
-        ParseResult parseResult = YARPLoader.load(serializedBytes, yarpSource, rubySource);
+        return YARPLoader.load(serializedBytes, yarpSource, rubySource);
+    }
+
+    public static void handleWarningsErrorsPrimitives(RubyContext context, RubyLanguage language,
+            ParseResult parseResult, RubySource rubySource, ParserConfiguration configuration,
+            RubyDeferredWarnings rubyWarnings) {
+
+        // intern() to improve footprint
+        String sourcePath = rubySource.getSourcePath(language).intern();
 
         final ParseResult.Error[] errors = parseResult.errors;
 
@@ -446,12 +456,7 @@ public final class YARPTranslatorDriver {
             Nodes.Location location = warning.location;
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
 
-            if (context == null) {
-                throw CompilerDirectives.shouldNotReachHere(
-                        "Warning in " + RubyLanguage.filenameLine(section) + ": " + warning.message);
-            }
-
-            int lineNumber = RubySource.getStartLineAdjusted(context, section);
+            int lineNumber = section.getStartLine() + rubySource.getLineOffset();
 
             switch (warning.level) {
                 case WARNING_DEFAULT -> rubyWarnings.warn(sourcePath, lineNumber, warning.message);
@@ -462,7 +467,7 @@ public final class YARPTranslatorDriver {
         if (errors.length != 0) {
             // print warnings immediately
             // if there is no syntax error they will be printed in runtime
-            if (!rubyWarnings.warnings.isEmpty() && context != null) {
+            if (!rubyWarnings.warnings.isEmpty()) {
                 EmitWarningsNode.printWarnings(context, rubyWarnings);
             }
 
@@ -473,11 +478,6 @@ public final class YARPTranslatorDriver {
 
             Nodes.Location location = error.location;
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
-
-            if (context == null) {
-                throw CompilerDirectives.shouldNotReachHere(
-                        "Parse error in " + RubyLanguage.filenameLine(section) + ": " + error.message);
-            }
 
             String message = context.fileLine(section) + ": " + error.message;
             throw new RaiseException(
@@ -498,8 +498,25 @@ public final class YARPTranslatorDriver {
                 configuration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
             }
         }
+    }
 
-        return parseResult;
+    public static void handleWarningsErrorsNoContext(RubyLanguage language, ParseResult parseResult,
+            RubySource rubySource, Nodes.Source yarpSource) {
+        if (parseResult.errors.length > 0) {
+            var error = parseResult.errors[0];
+            throw CompilerDirectives.shouldNotReachHere("Parse error in " +
+                    fileLineYARPSource(error.location, language, rubySource, yarpSource) + ": " + error.message);
+        }
+
+        for (var warning : parseResult.warnings) {
+            throw CompilerDirectives.shouldNotReachHere("Warning in " +
+                    fileLineYARPSource(warning.location, language, rubySource, yarpSource) + ": " + warning.message);
+        }
+    }
+
+    private static String fileLineYARPSource(Nodes.Location location, RubyLanguage language, RubySource rubySource,
+            Nodes.Source yarpSource) {
+        return rubySource.getSourcePath(language) + ":" + yarpSource.line(location.startOffset);
     }
 
     public static RubySource createRubySource(Object code) {

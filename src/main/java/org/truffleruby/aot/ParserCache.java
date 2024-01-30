@@ -23,10 +23,8 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.loader.ResourceLoader;
 import org.truffleruby.parser.ParseEnvironment;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.YARPTranslatorDriver;
-import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.shared.options.OptionsCatalog;
 
 import com.oracle.truffle.api.TruffleOptions;
@@ -65,14 +63,13 @@ public final class ParserCache {
 
     private static Pair<ParseResult, Source> parse(RubySource source) {
         var language = RubyLanguage.getCurrentLanguage();
-        var parserConfiguration = new ParserConfiguration(null, false, true, false);
-        var rubyWarnings = new RubyDeferredWarnings();
-        var parseEnvironment = new ParseEnvironment(language, source,
-                YARPTranslatorDriver.createYARPSource(source.getBytes()), ParserContext.TOP_LEVEL, null);
+        var yarpSource = YARPTranslatorDriver.createYARPSource(source.getBytes());
+        var parseEnvironment = new ParseEnvironment(language, source, yarpSource, ParserContext.TOP_LEVEL, null);
 
-        var parseResult = YARPTranslatorDriver.parseToYARPAST(null, language, source, Collections.emptyList(),
-                parserConfiguration,
-                rubyWarnings, parseEnvironment);
+        var parseResult = YARPTranslatorDriver.parseToYARPAST(language, source, Collections.emptyList(),
+                parseEnvironment);
+
+        YARPTranslatorDriver.handleWarningsErrorsNoContext(language, parseResult, source, yarpSource);
 
         return Pair.create(parseResult, source.getSource());
     }
