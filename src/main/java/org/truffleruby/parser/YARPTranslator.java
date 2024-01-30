@@ -41,6 +41,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
@@ -52,6 +53,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.debug.ChaosNode;
 import org.truffleruby.language.LexicalScope;
@@ -2304,7 +2306,20 @@ public class YARPTranslator extends YARPBaseTranslator {
         } else {
             // use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
             // see https://github.com/ruby/prism/issues/1997
+            // The logic comes from ParserSupport#createMaster
             encoding = Encodings.BINARY;
+        }
+
+        for (ToSNode child : children) {
+            if (child.getValueNode() instanceof StringLiteralNode stringLiteralNode) {
+                var fragment = new TStringWithEncoding(stringLiteralNode.getTString(), stringLiteralNode.getEncoding());
+                try {
+                    ClassicRegexp.regexpFragmentCheck(fragment, encodingAndOptions.options, sourceEncoding,
+                            currentNode);
+                } catch (DeferredRaiseException dre) {
+                    throw regexpErrorToSyntaxError(dre, node);
+                }
+            }
         }
 
         RubyNode rubyNode = new InterpolatedRegexpNode(children, encoding, encodingAndOptions.options);
@@ -2838,14 +2853,22 @@ public class YARPTranslator extends YARPBaseTranslator {
         var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
         var encoding = encodingAndOptions.encoding;
         var source = TruffleString.fromByteArrayUncached(node.unescaped, encoding.tencoding, false);
+        var sourceWithEnc = new TStringWithEncoding(source, encoding);
+
+        final RubyRegexp regexp;
         try {
-            final RubyRegexp regexp = RubyRegexp.create(language, source, encoding,
+            // Needed until https://github.com/ruby/prism/issues/1997 is fixed
+            sourceWithEnc = ClassicRegexp.findEncodingForRegexpLiteral(sourceWithEnc, encodingAndOptions.options,
+                    sourceEncoding, currentNode);
+
+            regexp = RubyRegexp.create(language, sourceWithEnc.tstring, sourceWithEnc.encoding,
                     encodingAndOptions.options, currentNode);
-            final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
-            return assignPositionAndFlags(node, literalNode);
         } catch (DeferredRaiseException dre) {
-            throw dre.getException(RubyLanguage.getCurrentContext());
+            throw regexpErrorToSyntaxError(dre, node);
         }
+
+        final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
+        return assignPositionAndFlags(node, literalNode);
     }
 
     private record RegexpEncodingAndOptions(RubyEncoding encoding, RegexpOptions options) {
@@ -2895,6 +2918,18 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RegexpOptions options = new RegexpOptions(kcode, fixed, flags.isOnce(), flags.isExtended(),
                 flags.isMultiLine(), flags.isIgnoreCase(), flags.isAscii8bit(), !explicitEncoding, true);
         return new RegexpEncodingAndOptions(regexpEncoding, options);
+    }
+
+    private RaiseException regexpErrorToSyntaxError(DeferredRaiseException dre, Nodes.Node node) {
+        var context = RubyLanguage.getCurrentContext();
+        RaiseException raiseException = dre.getException(context);
+        if (raiseException.getException().getLogicalClass() == context.getCoreLibrary().regexpErrorClass) {
+            // Convert RegexpError to SyntaxError when found during parsing/translating for compatibility
+            throw new RaiseException(context, context.getCoreExceptions().syntaxError(raiseException.getMessage(),
+                    currentNode, getSourceSection(node)));
+        } else {
+            throw raiseException;
+        }
     }
 
     @Override

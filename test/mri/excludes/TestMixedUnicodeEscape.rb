@@ -1,1 +1,1 @@
-exclude :test_basic, "prism missing regexp encoding flags"
+exclude :test_basic, "prism"

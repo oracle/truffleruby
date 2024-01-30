@@ -50,5 +50,3 @@ exclude :test_cache_optimization_exponential, "NoMethodError: undefined method `
 exclude :test_s_timeout_corner_cases, "NoMethodError: private method `timeout' called for Regexp:Class"
 exclude :test_bug_19467, "NoMethodError: undefined method `timeout=' for Regexp:Class"
 exclude :test_s_timeout, "NoMethodError: undefined method `timeout=' for Regexp:Class"
-exclude :test_unicode, "prism missing regexp encoding flags"
-exclude :test_char_class, "prism missing regexp encoding flags"

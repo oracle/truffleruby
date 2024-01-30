@@ -31,7 +31,7 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
         return ToSNodeGen.create(value);
     }
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     RubyString toS(RubyString string) {
