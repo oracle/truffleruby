@@ -85,7 +85,6 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserConfiguration;
-import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.shared.Metrics;
 import org.prism.Nodes;
 import org.prism.ParseResult;
@@ -126,14 +125,12 @@ public final class YARPTranslatorDriver {
 
         final Source source = rubySource.getSource();
 
-        final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
-
         // TODO: check if we still need this for YARP
         /* Note that jruby-parser will be mistaken about how deep the existing variables are, but that doesn't matter as
          * we look them up ourselves after being told they're in some parent scope. */
 
         final TranslatorEnvironment parentEnvironment;
-        final ArrayList<ArrayList<String>> localVariableNames = new ArrayList<>();
+        final List<List<String>> localVariableNames = new ArrayList<>();
 
         int blockDepth = 0;
         if (parentFrame != null) {
@@ -145,9 +142,7 @@ public final class YARPTranslatorDriver {
                 for (Object identifier : FrameDescriptorNamesIterator.iterate(frame.getFrameDescriptor())) {
                     if (!BindingNodes.isHiddenVariable(identifier)) {
                         final String name = (String) identifier;
-                        staticScope.addVariableThisScope(name.intern()); // StaticScope expects interned var names
-
-                        names.add(name);
+                        names.add(name.intern()); // intern() for footprint
                     }
                 }
 
@@ -162,9 +157,7 @@ public final class YARPTranslatorDriver {
         }
 
         if (argumentNames != null) {
-            for (String name : argumentNames) {
-                staticScope.addVariableThisScope(name.intern()); // StaticScope expects interned var names
-            }
+            // TODO: add these variables and treat it more like an eval case
         }
 
         String sourcePath = rubySource.getSourcePath(language);
@@ -259,9 +252,7 @@ public final class YARPTranslatorDriver {
             truffleNode = context.getMetricsProfiler().callWithMetrics(
                     "translating",
                     source.getName(),
-                    () -> {
-                        return node.accept(translator);
-                    });
+                    () -> node.accept(translator));
         } finally {
             printParseTranslateExecuteMetric("after-translate", context, source);
         }
@@ -402,16 +393,8 @@ public final class YARPTranslatorDriver {
     }
 
     public static org.prism.ParseResult parseToYARPAST(RubyContext context, RubyLanguage language,
-            RubySource rubySource, StaticScope blockScope, ArrayList<ArrayList<String>> localVariableNames,
+            RubySource rubySource, List<List<String>> localVariableNames,
             ParserConfiguration configuration, RubyDeferredWarnings rubyWarnings, ParseEnvironment parseEnvironment) {
-        //        LexerSource lexerSource = new LexerSource(rubySource);
-        // We only need to pass in current scope if we are evaluating as a block (which
-        // is only done for evals).  We need to pass this in so that we can appropriately scope
-        // down to captured scopes when we are parsing.
-        if (blockScope != null) {
-            configuration.parseAsBlock(blockScope);
-        }
-
         TruffleSafepoint.poll(DummyNode.INSTANCE);
 
         // YARP begin
