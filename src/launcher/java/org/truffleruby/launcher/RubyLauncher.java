@@ -311,17 +311,10 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         if (ProcessStatus.isSignal(processStatus)) {
             int signalNumber = ProcessStatus.toSignal(processStatus);
 
-            if (rubyHome != null) {
-                LibRubySignal.loadLibrary(rubyHome, Platform.LIB_SUFFIX);
-                LibRubySignal.restoreSystemHandlerAndRaise(signalNumber);
-                // Some signals are ignored by default, such as SIGWINCH and SIGCHLD, in that exit with 1 like CRuby
-                return 1;
-            } else {
-                System.err.println("The TruffleRuby context ended with signal " + signalNumber +
-                        " but since librubysignal is not found we exit with code " + signalNumber +
-                        " instead of raising the signal");
-                return signalNumber;
-            }
+            LibRubySignal.loadLibrary(rubyHome, Platform.LIB_SUFFIX);
+            LibRubySignal.restoreSystemHandlerAndRaise(signalNumber);
+            // Some signals are ignored by default, such as SIGWINCH and SIGCHLD, in that exit with 1 like CRuby
+            return 1;
         }
 
         return processStatus;
@@ -367,9 +360,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 // currently only work with a single Context#eval.
                 Value rubyHome = context.eval(source(// language=ruby
                         "Truffle::Boot.ruby_home"));
-                if (rubyHome.isString()) {
-                    this.rubyHome = rubyHome.asString();
-                }
+                this.rubyHome = rubyHome.asString();
             }
 
             Metrics.printTime("after-run");

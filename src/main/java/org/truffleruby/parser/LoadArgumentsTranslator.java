@@ -309,7 +309,8 @@ public final class LoadArgumentsTranslator extends Translator {
                                 hasKeywordArguments,
                                 isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
             } else if (state == State.POST) {
-                return new ReadPostArgumentNode(-index, hasKeywordArguments, required);
+                return new ReadPostArgumentNode(-index, required, argsNode.getOptionalArgsCount(),
+                        argsNode.hasRestArg(), hasKeywordArguments);
             } else {
                 throw new IllegalStateException();
             }

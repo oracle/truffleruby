@@ -39,6 +39,8 @@ public final class ReadOptionalArgumentNode extends RubyContextSourceNode {
         final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
 
         if (positionalArgumentsCount >= minimum) {
+            // it's enough arguments to fulfill pre and post parameters and optional parameters till the current one:
+            //   proc { |a, b=:b, c=:c, d| [a, b, c, d] }.call(1, 2, 3) # => [1, 2, :c, 3]
             return RubyArguments.getArgument(frame, index);
         } else {
             defaultValueProfile.enter();

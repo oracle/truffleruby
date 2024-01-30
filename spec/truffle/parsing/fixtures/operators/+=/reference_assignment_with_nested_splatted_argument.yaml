@@ -27,26 +27,56 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              WriteLocalVariableNode
+              DefinedWrapperNode
                   attributes:
-                      flags = 0
-                      frameSlot = 3 # %value_1
+                      definition = assignment
+                      flags = 1
                   children:
-                      valueNode =
-                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                      child =
+                          SequenceNode
                               attributes:
                                   flags = 0
-                                  language = org.truffleruby.RubyLanguage@...
                               children:
-                                  values = [
-                                      SplatCastNodeGen
+                                  body = [
+                                      WriteLocalVariableNode
                                           attributes:
-                                              conversionMethod = :to_a
-                                              copy = true
                                               flags = 0
-                                              nilBehavior = CONVERT
+                                              frameSlot = 3 # %value_1
                                           children:
-                                              childNode_ =
+                                              valueNode =
+                                                  SplatCastNodeGen
+                                                      attributes:
+                                                          conversionMethod = :to_a
+                                                          copy = true
+                                                          flags = 0
+                                                          nilBehavior = CONVERT
+                                                      children:
+                                                          childNode_ =
+                                                              RubyCallNode
+                                                                  attributes:
+                                                                      descriptor = NoKeywordArgumentsDescriptor
+                                                                      dispatchConfig = PRIVATE
+                                                                      emptyKeywordsProfile = false
+                                                                      flags = 0
+                                                                      isAttrAssign = false
+                                                                      isSafeNavigation = false
+                                                                      isSplatted = false
+                                                                      isVCall = true
+                                                                      lastArgIsNotHashProfile = false
+                                                                      methodName = "a"
+                                                                      notEmptyKeywordsProfile = false
+                                                                      notRuby2KeywordsHashProfile = false
+                                                                  children:
+                                                                      receiver =
+                                                                          SelfNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                      WriteLocalVariableNode
+                                          attributes:
+                                              flags = 0
+                                              frameSlot = 2 # %opelementassign_0
+                                          children:
+                                              valueNode =
                                                   RubyCallNode
                                                       attributes:
                                                           descriptor = NoKeywordArgumentsDescriptor
@@ -58,7 +88,7 @@ ast: |
                                                           isSplatted = false
                                                           isVCall = true
                                                           lastArgIsNotHashProfile = false
-                                                          methodName = "a"
+                                                          methodName = "foo"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
                                                       children:
@@ -66,127 +96,102 @@ ast: |
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
-                                  ]
-              WriteLocalVariableNode
-                  attributes:
-                      flags = 0
-                      frameSlot = 2 # %opelementassign_0
-                  children:
-                      valueNode =
-                          RubyCallNode
-                              attributes:
-                                  descriptor = NoKeywordArgumentsDescriptor
-                                  dispatchConfig = PRIVATE
-                                  emptyKeywordsProfile = false
-                                  flags = 0
-                                  isAttrAssign = false
-                                  isSafeNavigation = false
-                                  isSplatted = false
-                                  isVCall = true
-                                  lastArgIsNotHashProfile = false
-                                  methodName = "foo"
-                                  notEmptyKeywordsProfile = false
-                                  notRuby2KeywordsHashProfile = false
-                              children:
-                                  receiver =
-                                      SelfNode
+                                      RubyCallNode
                                           attributes:
+                                              descriptor = NoKeywordArgumentsDescriptor
+                                              dispatchConfig = PROTECTED
+                                              emptyKeywordsProfile = false
                                               flags = 0
-              RubyCallNode
-                  attributes:
-                      descriptor = NoKeywordArgumentsDescriptor
-                      dispatchConfig = PROTECTED
-                      emptyKeywordsProfile = false
-                      flags = 0
-                      isAttrAssign = true
-                      isSafeNavigation = false
-                      isSplatted = true
-                      isVCall = false
-                      lastArgIsNotHashProfile = false
-                      methodName = "[]="
-                      notEmptyKeywordsProfile = false
-                      notRuby2KeywordsHashProfile = false
-                  children:
-                      arguments = [
-                          ArrayConcatNode
-                              attributes:
-                                  flags = 0
-                              children:
-                                  children = [
-                                      SplatCastNodeGen
-                                          attributes:
-                                              conversionMethod = :to_a
-                                              copy = true
-                                              flags = 0
-                                              nilBehavior = CONVERT
+                                              isAttrAssign = true
+                                              isSafeNavigation = false
+                                              isSplatted = true
+                                              isVCall = false
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "[]="
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
                                           children:
-                                              childNode_ =
-                                                  ReadLocalVariableNode
+                                              arguments = [
+                                                  ArrayConcatNode
                                                       attributes:
                                                           flags = 0
-                                                          frameSlot = 3 # %value_1
-                                                          type = FRAME_LOCAL
-                                      ArrayLiteralNode$UninitialisedArrayLiteralNode
-                                          attributes:
-                                              flags = 0
-                                              language = org.truffleruby.RubyLanguage@...
-                                          children:
-                                              values = [
-                                                  InlinedAddNodeGen
-                                                      attributes:
-                                                          assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
-                                                          flags = 0
-                                                          parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
                                                       children:
-                                                          leftNode_ =
-                                                              RubyCallNode
+                                                          children = [
+                                                              SplatCastNodeGen
                                                                   attributes:
-                                                                      descriptor = NoKeywordArgumentsDescriptor
-                                                                      dispatchConfig = PROTECTED
-                                                                      emptyKeywordsProfile = false
+                                                                      conversionMethod = :to_a
+                                                                      copy = true
                                                                       flags = 0
-                                                                      isAttrAssign = false
-                                                                      isSafeNavigation = false
-                                                                      isSplatted = true
-                                                                      isVCall = false
-                                                                      lastArgIsNotHashProfile = false
-                                                                      methodName = "[]"
-                                                                      notEmptyKeywordsProfile = false
-                                                                      notRuby2KeywordsHashProfile = false
+                                                                      nilBehavior = CONVERT
                                                                   children:
-                                                                      arguments = [
-                                                                          SplatCastNodeGen
-                                                                              attributes:
-                                                                                  conversionMethod = :to_a
-                                                                                  copy = false
-                                                                                  flags = 0
-                                                                                  nilBehavior = CONVERT
-                                                                              children:
-                                                                                  childNode_ =
-                                                                                      ReadLocalVariableNode
-                                                                                          attributes:
-                                                                                              flags = 0
-                                                                                              frameSlot = 3 # %value_1
-                                                                                              type = FRAME_LOCAL
-                                                                      ]
-                                                                      receiver =
+                                                                      childNode_ =
                                                                           ReadLocalVariableNode
                                                                               attributes:
                                                                                   flags = 0
-                                                                                  frameSlot = 2 # %opelementassign_0
+                                                                                  frameSlot = 3 # %value_1
                                                                                   type = FRAME_LOCAL
-                                                          rightNode_ =
-                                                              IntegerFixnumLiteralNode
+                                                              ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      value = 100500
+                                                                      language = org.truffleruby.RubyLanguage@...
+                                                                  children:
+                                                                      values = [
+                                                                          InlinedAddNodeGen
+                                                                              attributes:
+                                                                                  assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                                                                                  flags = 0
+                                                                                  parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                                              children:
+                                                                                  leftNode_ =
+                                                                                      RubyCallNode
+                                                                                          attributes:
+                                                                                              descriptor = NoKeywordArgumentsDescriptor
+                                                                                              dispatchConfig = PROTECTED
+                                                                                              emptyKeywordsProfile = false
+                                                                                              flags = 0
+                                                                                              isAttrAssign = false
+                                                                                              isSafeNavigation = false
+                                                                                              isSplatted = true
+                                                                                              isVCall = false
+                                                                                              lastArgIsNotHashProfile = false
+                                                                                              methodName = "[]"
+                                                                                              notEmptyKeywordsProfile = false
+                                                                                              notRuby2KeywordsHashProfile = false
+                                                                                          children:
+                                                                                              arguments = [
+                                                                                                  SplatCastNodeGen
+                                                                                                      attributes:
+                                                                                                          conversionMethod = :to_a
+                                                                                                          copy = false
+                                                                                                          flags = 0
+                                                                                                          nilBehavior = CONVERT
+                                                                                                      children:
+                                                                                                          childNode_ =
+                                                                                                              ReadLocalVariableNode
+                                                                                                                  attributes:
+                                                                                                                      flags = 0
+                                                                                                                      frameSlot = 3 # %value_1
+                                                                                                                      type = FRAME_LOCAL
+                                                                                              ]
+                                                                                              receiver =
+                                                                                                  ReadLocalVariableNode
+                                                                                                      attributes:
+                                                                                                          flags = 0
+                                                                                                          frameSlot = 2 # %opelementassign_0
+                                                                                                          type = FRAME_LOCAL
+                                                                                  rightNode_ =
+                                                                                      IntegerFixnumLiteralNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                                                              value = 100500
+                                                                      ]
+                                                          ]
                                               ]
+                                              receiver =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2 # %opelementassign_0
+                                                          type = FRAME_LOCAL
                                   ]
-                      ]
-                      receiver =
-                          ReadLocalVariableNode
-                              attributes:
-                                  flags = 0
-                                  frameSlot = 2 # %opelementassign_0
-                                  type = FRAME_LOCAL
           ]

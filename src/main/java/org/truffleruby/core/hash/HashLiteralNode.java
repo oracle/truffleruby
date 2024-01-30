@@ -15,13 +15,14 @@ import org.truffleruby.core.hash.library.CompactHashStore;
 import org.truffleruby.core.hash.library.EmptyHashStore;
 import org.truffleruby.core.hash.library.PackedHashStoreLibrary;
 import org.truffleruby.core.hash.library.PackedHashStoreLibraryFactory;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-public abstract class HashLiteralNode extends RubyContextSourceNode {
+public abstract class HashLiteralNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Children protected final RubyNode[] keyValues;
 
@@ -48,9 +49,10 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     @ExplodeLoop
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public final Nil executeVoid(VirtualFrame frame) {
         for (RubyNode child : keyValues) {
-            child.doExecuteVoid(frame);
+            child.executeVoid(frame);
         }
+        return nil;
     }
 }

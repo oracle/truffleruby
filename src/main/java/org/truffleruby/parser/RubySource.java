@@ -30,10 +30,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 public final class RubySource {
 
     private final Source source;
-    /** The path that will be used by the parser for __FILE__, warnings and syntax errors. Currently the same as
-     * {@link RubyLanguage#getPath(Source)}. Kept separate as we might want to change Source#getName() for non-file
-     * Sources in the future (but then we'll need to still use this path in Ruby backtraces). */
-    private final String sourcePath;
     private final TruffleString code;
     private byte[] bytes;
     private final RubyEncoding encoding;
@@ -52,11 +48,14 @@ public final class RubySource {
         this(source, sourcePath, code, isEval, 0);
     }
 
+    /** @param sourcePath The path that will be used by the parser for __FILE__, warnings and syntax errors. Currently,
+     *            the same as {@link RubyLanguage#getPath(Source)}. Kept separate as we might want to change
+     *            Source#getName() for non-file Sources in the future (but then we'll need to still use this path in
+     *            Ruby backtraces). */
     public RubySource(Source source, String sourcePath, TStringWithEncoding code, boolean isEval, int lineOffset) {
         assert RubyLanguage.getPath(source).equals(sourcePath) : RubyLanguage.getPath(source) + " vs " + sourcePath;
+
         this.source = Objects.requireNonNull(source);
-        //intern() to improve footprint
-        this.sourcePath = Objects.requireNonNull(sourcePath).intern();
 
         if (code == null) {
             // We only have the Source, which only contains a java.lang.String.
@@ -87,8 +86,9 @@ public final class RubySource {
         return source;
     }
 
-    public String getSourcePath() {
-        return sourcePath;
+    public String getSourcePath(RubyLanguage language) {
+        // NOTE: we avoid storing the source path in RubySource because that is problematic for pre-initialization
+        return language.getSourcePath(source);
     }
 
     public TruffleString getTruffleString() {

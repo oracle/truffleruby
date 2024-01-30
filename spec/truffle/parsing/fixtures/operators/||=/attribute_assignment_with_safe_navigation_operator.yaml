@@ -73,9 +73,10 @@ ast: |
                                                           frameSlot = 2 # %value_0
                                                           type = FRAME_LOCAL
                                   thenBody =
-                                      OrNodeGen
+                                      OrLazyValueDefinedNodeGen
                                           attributes:
                                               flags = 0
+                                              rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
                                           children:
                                               left =
                                                   RubyCallNode

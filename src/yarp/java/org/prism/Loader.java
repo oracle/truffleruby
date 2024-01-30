@@ -181,8 +181,9 @@ public class Loader {
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
+            ParseResult.ErrorLevel level = ParseResult.ERROR_LEVELS[buffer.get()];
 
-            ParseResult.Error error = new ParseResult.Error(message, location);
+            ParseResult.Error error = new ParseResult.Error(message, location, level);
             errors[i] = error;
         }
 
@@ -198,8 +199,9 @@ public class Loader {
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
+            ParseResult.WarningLevel level = ParseResult.WARNING_LEVELS[buffer.get()];
 
-            ParseResult.Warning warning = new ParseResult.Warning(message, location);
+            ParseResult.Warning warning = new ParseResult.Warning(message, location, level);
             warnings[i] = warning;
         }
 
@@ -315,7 +317,7 @@ public class Loader {
             case 7:
                 return new Nodes.ArrayPatternNode(loadOptionalNode(), loadNodes(), loadOptionalNode(), loadNodes(), startOffset, length);
             case 8:
-                return new Nodes.AssocNode(loadNode(), loadOptionalNode(), startOffset, length);
+                return new Nodes.AssocNode(loadNode(), loadNode(), startOffset, length);
             case 9:
                 return new Nodes.AssocSplatNode(loadOptionalNode(), startOffset, length);
             case 10:
@@ -325,11 +327,11 @@ public class Loader {
             case 12:
                 return new Nodes.BlockArgumentNode(loadOptionalNode(), startOffset, length);
             case 13:
-                return new Nodes.BlockLocalVariableNode(loadConstant(), startOffset, length);
+                return new Nodes.BlockLocalVariableNode(loadFlags(), loadConstant(), startOffset, length);
             case 14:
                 return new Nodes.BlockNode(loadConstants(), loadVarUInt(), loadOptionalNode(), loadOptionalNode(), startOffset, length);
             case 15:
-                return new Nodes.BlockParameterNode(loadOptionalConstant(), startOffset, length);
+                return new Nodes.BlockParameterNode(loadFlags(), loadOptionalConstant(), startOffset, length);
             case 16:
                 return new Nodes.BlockParametersNode((Nodes.ParametersNode) loadOptionalNode(), loadNodes(), startOffset, length);
             case 17:
@@ -477,7 +479,7 @@ public class Loader {
             case 88:
                 return new Nodes.KeywordHashNode(loadFlags(), loadNodes(), startOffset, length);
             case 89:
-                return new Nodes.KeywordRestParameterNode(loadOptionalConstant(), startOffset, length);
+                return new Nodes.KeywordRestParameterNode(loadFlags(), loadOptionalConstant(), startOffset, length);
             case 90:
                 return new Nodes.LambdaNode(loadConstants(), loadVarUInt(), loadOptionalNode(), loadOptionalNode(), startOffset, length);
             case 91:
@@ -519,9 +521,9 @@ public class Loader {
             case 109:
                 return new Nodes.NumberedReferenceReadNode(loadVarUInt(), startOffset, length);
             case 110:
-                return new Nodes.OptionalKeywordParameterNode(loadConstant(), loadNode(), startOffset, length);
+                return new Nodes.OptionalKeywordParameterNode(loadFlags(), loadConstant(), loadNode(), startOffset, length);
             case 111:
-                return new Nodes.OptionalParameterNode(loadConstant(), loadNode(), startOffset, length);
+                return new Nodes.OptionalParameterNode(loadFlags(), loadConstant(), loadNode(), startOffset, length);
             case 112:
                 return new Nodes.OrNode(loadNode(), loadNode(), startOffset, length);
             case 113:
@@ -547,15 +549,15 @@ public class Loader {
             case 123:
                 return new Nodes.RegularExpressionNode(loadFlags(), loadString(), startOffset, length);
             case 124:
-                return new Nodes.RequiredKeywordParameterNode(loadConstant(), startOffset, length);
+                return new Nodes.RequiredKeywordParameterNode(loadFlags(), loadConstant(), startOffset, length);
             case 125:
-                return new Nodes.RequiredParameterNode(loadConstant(), startOffset, length);
+                return new Nodes.RequiredParameterNode(loadFlags(), loadConstant(), startOffset, length);
             case 126:
                 return new Nodes.RescueModifierNode(loadNode(), loadNode(), startOffset, length);
             case 127:
                 return new Nodes.RescueNode(loadNodes(), loadOptionalNode(), (Nodes.StatementsNode) loadOptionalNode(), (Nodes.RescueNode) loadOptionalNode(), startOffset, length);
             case 128:
-                return new Nodes.RestParameterNode(loadOptionalConstant(), startOffset, length);
+                return new Nodes.RestParameterNode(loadFlags(), loadOptionalConstant(), startOffset, length);
             case 129:
                 return new Nodes.RetryNode(startOffset, length);
             case 130:

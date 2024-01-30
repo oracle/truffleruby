@@ -782,16 +782,6 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitCaseInNode(CaseInParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        if (!RubyLanguage.getCurrentContext().getOptions().PATTERN_MATCHING) {
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().syntaxError(
-                            "syntax error, unexpected keyword_in",
-                            currentNode,
-                            sourceSection.toSourceSection(source)));
-        }
-
         PatternMatchingTranslator translator = new PatternMatchingTranslator(language, source, parserContext,
                 currentNode, environment, this);
 
@@ -1125,6 +1115,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final InterpolatedRegexpNode i = new InterpolatedRegexpNode(
                 children.toArray(EMPTY_TO_S_NODE_ARRAY),
+                Encodings.getBuiltInEncoding(node.getEncoding()),
                 node.getOptions());
         i.unsafeSetSourceSection(sourceSection);
 
@@ -2255,14 +2246,14 @@ public class BodyTranslator extends BaseTranslator {
                 node.getOperatorName(),
                 buildArrayNode(pos, node.getValueNode()),
                 null);
-        final ParseNode writeMethod = new CallParseNode(
+        final var writeMethod = new CallParseNode(
                 pos,
                 receiverValue.get(pos),
                 node.getVariableName() + "=",
                 buildArrayNode(pos, operation),
                 null);
 
-        RubyNode body = writeMethod.accept(this);
+        RubyNode body = translateCallNode(writeMethod, node.getReceiverNode() instanceof SelfParseNode, false, true);
 
         final SourceIndexLength sourceSection = pos;
 
@@ -2272,7 +2263,8 @@ public class BodyTranslator extends BaseTranslator {
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
-        final RubyNode ret = receiverValue.prepareAndThen(sourceSection, body);
+        final RubyNode sequence = receiverValue.prepareAndThen(sourceSection, body);
+        final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
 
         return addNewlineIfNeeded(node, ret);
     }
@@ -2351,6 +2343,7 @@ public class BodyTranslator extends BaseTranslator {
         while (listIterator.hasPrevious()) {
             ret = listIterator.previous().prepareAndThen(node.getPosition(), ret);
         }
+        ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, ret);
         return addNewlineIfNeeded(node, ret);
     }
 

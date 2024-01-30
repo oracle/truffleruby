@@ -1,7 +1,8 @@
 subject: "Method call"
 description: super / in a method body without explicit arguments when declared anonymous rest and keyrest parameters
 notes: >
-  Is represented by SuperCallNode and ReadZSuperArgumentsNode nodes
+  Is represented by SuperCallNode and ReadZSuperArgumentsNode nodes,
+  that read parameter values from `%unnamed_rest` and `%kwrest` local variables.
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(*, **)

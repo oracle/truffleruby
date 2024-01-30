@@ -20,6 +20,7 @@ import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 
+// NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode.
 public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiWriteNode node;

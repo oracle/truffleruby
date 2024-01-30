@@ -117,9 +117,7 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
         case PM_ASSOC_NODE: {
             pm_assoc_node_t *cast = (pm_assoc_node_t *) node;
             pm_node_destroy(parser, (pm_node_t *)cast->key);
-            if (cast->value != NULL) {
-                pm_node_destroy(parser, (pm_node_t *)cast->value);
-            }
+            pm_node_destroy(parser, (pm_node_t *)cast->value);
             break;
         }
 #line 58 "node.c.erb"
@@ -1223,9 +1221,7 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
             pm_assoc_node_t *cast = (pm_assoc_node_t *) node;
             memsize->memsize += sizeof(*cast);
             pm_node_memsize_node((pm_node_t *)cast->key, memsize);
-            if (cast->value != NULL) {
-                pm_node_memsize_node((pm_node_t *)cast->value, memsize);
-            }
+            pm_node_memsize_node((pm_node_t *)cast->value, memsize);
             break;
         }
 #line 103 "node.c.erb"

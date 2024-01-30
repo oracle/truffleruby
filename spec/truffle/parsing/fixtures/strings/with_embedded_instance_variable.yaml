@@ -1,0 +1,34 @@
+subject: "String"
+description: "with embedded instance variable (#@a)"
+focused_on_node: "org.truffleruby.core.string.InterpolatedStringNode"
+ruby: |
+  "foo #@bar"
+ast: |
+  InterpolatedStringNode
+      attributes:
+          emptyTString = ""
+          encoding = UTF-8
+          flags = 0
+      children:
+          children = [
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          StringLiteralNode
+                              attributes:
+                                  encoding = UTF-8
+                                  flags = 1
+                                  tstring = foo 
+              ToSNodeGen
+                  children:
+                      valueNode_ =
+                          ReadInstanceVariableNode
+                              attributes:
+                                  flags = 0
+                                  name = "@bar"
+                              children:
+                                  readSelfSlotNode =
+                                      ReadFrameSlotNodeGen
+                                          attributes:
+                                              frameSlot = 0 # (self)
+          ]

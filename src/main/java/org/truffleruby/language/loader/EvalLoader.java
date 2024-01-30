@@ -38,9 +38,8 @@ public abstract class EvalLoader {
                     .argumentError(sourceEncoding + " is not ASCII compatible", currentNode));
         }
 
-        final String sourceString;
         try {
-            sourceString = sourceTString.toJavaStringOrThrow();
+            sourceTString.toJavaStringOrThrow();
         } catch (CannotConvertBinaryRubyStringToJavaString e) {
             // In such a case, we have no way to build a Java String for the Truffle Source that
             // could accurately represent the source string, so we throw an error.
@@ -55,7 +54,8 @@ public abstract class EvalLoader {
                             currentNode.getEncapsulatingSourceSection()));
         }
 
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, new ByteBasedCharSequence(sourceTString), file)
+                .build();
 
         final RubySource rubySource = new RubySource(source, file, sourceTString, true, line - 1);
 

@@ -16,13 +16,13 @@ import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceAssignableNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.control.RaiseException;
 
-public final class WriteClassVariableNode extends RubyContextSourceNode implements AssignableNode {
+public final class WriteClassVariableNode extends RubyContextSourceAssignableNode {
 
     private final String name;
     private final BranchProfile topLevelProfile = BranchProfile.create();

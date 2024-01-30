@@ -95,23 +95,20 @@ public final class TranslatorDriver {
     /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;
     private final RubyLanguage language;
-    private final ParseEnvironment parseEnvironment;
+    private ParseEnvironment parseEnvironment;
 
-    public TranslatorDriver(RubyContext context, RubySource rubySource) {
+    public TranslatorDriver(RubyContext context) {
         this.context = context;
         this.language = context.getLanguageSlow();
-        this.parseEnvironment = new ParseEnvironment(language, rubySource);
     }
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
-        if (language.options.PRISM) {
-            return new YARPTranslatorDriver(context, rubySource).parse(rubySource, parserContext, argumentNames,
-                    parentFrame, staticLexicalScope, currentNode);
-        }
+        this.parseEnvironment = new ParseEnvironment(language, rubySource, null, parserContext, currentNode);
 
-        if (rubySource.getSource() != parseEnvironment.source) {
-            throw CompilerDirectives.shouldNotReachHere("TranslatorDriver used with a different Source");
+        if (language.options.PRISM) {
+            return new YARPTranslatorDriver(context).parse(rubySource, parserContext, argumentNames,
+                    parentFrame, staticLexicalScope, currentNode);
         }
 
         if (parserContext.isTopLevel() != (parentFrame == null)) {
@@ -160,7 +157,7 @@ public final class TranslatorDriver {
             }
         }
 
-        boolean isInlineSource = rubySource.getSourcePath().equals("-e");
+        boolean isInlineSource = rubySource.getSourcePath(language).equals("-e");
         boolean isEvalParse = parserContext.isEval();
         final ParserConfiguration parserConfiguration = new ParserConfiguration(
                 context,

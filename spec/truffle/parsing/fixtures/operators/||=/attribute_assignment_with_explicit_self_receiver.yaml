@@ -15,9 +15,10 @@ ast: |
           flags = 1
       children:
           child =
-              OrNodeGen
+              OrLazyValueDefinedNodeGen
                   attributes:
                       flags = 0
+                      rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
                   children:
                       left =
                           RubyCallNode

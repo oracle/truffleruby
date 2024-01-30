@@ -1,0 +1,45 @@
+subject: "Hash"
+description: "with omitted value and local variable missing"
+notes: >
+  treats name as a method call
+focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
+ruby: |
+  {a:, b: 42}
+ast: |
+  PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+      attributes:
+          flags = 1
+      children:
+          keyValues = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :a
+              RubyCallNode
+                  attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
+                      flags = 0
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "a"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :b
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
+          ]

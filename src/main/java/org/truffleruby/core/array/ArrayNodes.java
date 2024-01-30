@@ -162,13 +162,23 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
+        @Specialization(guards = "count < 0")
+        RubyArray mulNeg(RubyArray array, long count) {
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
+        }
+
         @Specialization(guards = "count == 0")
         RubyArray mulZero(RubyArray array, int count) {
             return createEmptyArray();
         }
 
+        @Specialization(guards = { "count > 0", "isEmptyArray(array)" })
+        RubyArray mulEmpty(RubyArray array, long count) {
+            return createEmptyArray();
+        }
+
         @Specialization(
-                guards = { "!isEmptyArray(array)", "count > 0" },
+                guards = { "count > 0", "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         RubyArray mulOther(RubyArray array, int count,
                 @Bind("array.getStore()") Object store,
@@ -197,19 +207,9 @@ public abstract class ArrayNodes {
             return createArray(newStore, newSize);
         }
 
-        @Specialization(guards = "count < 0")
-        RubyArray mulNeg(RubyArray array, long count) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
-        }
-
-        @Specialization(guards = { "!isEmptyArray(array)", "count >= 0", "!fitsInInteger(count)" })
+        @Specialization(guards = { "count > 0", "!isEmptyArray(array)", "!fitsInInteger(count)" })
         RubyArray mulLong(RubyArray array, long count) {
             throw new RaiseException(getContext(), coreExceptions().rangeError("array size too big", this));
-        }
-
-        @Specialization(guards = { "isEmptyArray(array)" })
-        RubyArray mulEmpty(RubyArray array, long count) {
-            return createEmptyArray();
         }
 
         @Specialization(guards = { "!isImplicitLong(count)" })

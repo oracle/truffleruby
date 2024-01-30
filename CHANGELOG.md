@@ -3,6 +3,8 @@
 New features:
 
 * C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility, smaller distribution and faster installation for C/C++ extensions (#3118, @eregon).
+* Full suport for the Ruby 3.2 and Ruby 3.3 syntax by adopting the [Prism](https://github.com/ruby/prism) parser (#3117, #3038, #3039, @andrykonchin, @eregon).
+* Pattern matching is now fully supported, with the exception of Find pattern (`in [*, a, *]`) (#3332, #2683, @eregon, @razetime).
 
 Bug fixes:
 
@@ -39,6 +41,8 @@ Compatibility:
 * Fix `Coverage.supported?` and raise `TypeError` if argument is not Symbol (#3039, @andrykonchin).
 * Accept options argument to `Regexp.{new,compile}` of String and warn for unknown types (#3039, @rwstauner).
 * Implement `Time#deconstruct_keys` from Ruby 3.2 (#3039, @rwstauner).
+* Do not autosplat a proc that accepts a single positional argument and keywords (#3039, @andrykonchin).
+* Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 
 Performance:
 

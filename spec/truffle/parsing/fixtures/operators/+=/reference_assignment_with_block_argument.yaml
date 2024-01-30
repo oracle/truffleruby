@@ -27,111 +27,94 @@ ast: |
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              WriteLocalVariableNode
+              DefinedWrapperNode
                   attributes:
-                      flags = 0
-                      frameSlot = 4 # %value_2
+                      definition = assignment
+                      flags = 1
                   children:
-                      valueNode =
-                          IntegerFixnumLiteralNode
-                              attributes:
-                                  flags = 0
-                                  value = 42
-              WriteLocalVariableNode
-                  attributes:
-                      flags = 0
-                      frameSlot = 3 # %value_1
-                  children:
-                      valueNode =
-                          ToProcNodeGen
+                      child =
+                          SequenceNode
                               attributes:
                                   flags = 0
                               children:
-                                  childNode_ =
-                                      RubyCallNode
+                                  body = [
+                                      WriteLocalVariableNode
                                           attributes:
-                                              descriptor = NoKeywordArgumentsDescriptor
-                                              dispatchConfig = PRIVATE
-                                              emptyKeywordsProfile = false
                                               flags = 0
-                                              isAttrAssign = false
-                                              isSafeNavigation = false
-                                              isSplatted = false
-                                              isVCall = true
-                                              lastArgIsNotHashProfile = false
-                                              methodName = "block"
-                                              notEmptyKeywordsProfile = false
-                                              notRuby2KeywordsHashProfile = false
+                                              frameSlot = 4 # %value_2
                                           children:
-                                              receiver =
-                                                  SelfNode
+                                              valueNode =
+                                                  IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
-              WriteLocalVariableNode
-                  attributes:
-                      flags = 0
-                      frameSlot = 2 # %opelementassign_0
-                  children:
-                      valueNode =
-                          RubyCallNode
-                              attributes:
-                                  descriptor = NoKeywordArgumentsDescriptor
-                                  dispatchConfig = PRIVATE
-                                  emptyKeywordsProfile = false
-                                  flags = 0
-                                  isAttrAssign = false
-                                  isSafeNavigation = false
-                                  isSplatted = false
-                                  isVCall = true
-                                  lastArgIsNotHashProfile = false
-                                  methodName = "foo"
-                                  notEmptyKeywordsProfile = false
-                                  notRuby2KeywordsHashProfile = false
-                              children:
-                                  receiver =
-                                      SelfNode
+                                                          value = 42
+                                      WriteLocalVariableNode
                                           attributes:
                                               flags = 0
-              RubyCallNode
-                  attributes:
-                      descriptor = NoKeywordArgumentsDescriptor
-                      dispatchConfig = PROTECTED
-                      emptyKeywordsProfile = false
-                      flags = 0
-                      isAttrAssign = true
-                      isSafeNavigation = false
-                      isSplatted = false
-                      isVCall = false
-                      lastArgIsNotHashProfile = false
-                      methodName = "[]="
-                      notEmptyKeywordsProfile = false
-                      notRuby2KeywordsHashProfile = false
-                  children:
-                      arguments = [
-                          ReadLocalVariableNode
-                              attributes:
-                                  flags = 0
-                                  frameSlot = 4 # %value_2
-                                  type = FRAME_LOCAL
-                          InlinedAddNodeGen
-                              attributes:
-                                  assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
-                                  flags = 0
-                                  parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
-                              children:
-                                  leftNode_ =
+                                              frameSlot = 3 # %value_1
+                                          children:
+                                              valueNode =
+                                                  ToProcNodeGen
+                                                      attributes:
+                                                          flags = 0
+                                                      children:
+                                                          childNode_ =
+                                                              RubyCallNode
+                                                                  attributes:
+                                                                      descriptor = NoKeywordArgumentsDescriptor
+                                                                      dispatchConfig = PRIVATE
+                                                                      emptyKeywordsProfile = false
+                                                                      flags = 0
+                                                                      isAttrAssign = false
+                                                                      isSafeNavigation = false
+                                                                      isSplatted = false
+                                                                      isVCall = true
+                                                                      lastArgIsNotHashProfile = false
+                                                                      methodName = "block"
+                                                                      notEmptyKeywordsProfile = false
+                                                                      notRuby2KeywordsHashProfile = false
+                                                                  children:
+                                                                      receiver =
+                                                                          SelfNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                      WriteLocalVariableNode
+                                          attributes:
+                                              flags = 0
+                                              frameSlot = 2 # %opelementassign_0
+                                          children:
+                                              valueNode =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
                                       RubyCallNode
                                           attributes:
                                               descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
                                               flags = 0
-                                              isAttrAssign = false
+                                              isAttrAssign = true
                                               isSafeNavigation = false
                                               isSplatted = false
                                               isVCall = false
                                               lastArgIsNotHashProfile = false
-                                              methodName = "[]"
+                                              methodName = "[]="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
                                           children:
@@ -141,6 +124,57 @@ ast: |
                                                           flags = 0
                                                           frameSlot = 4 # %value_2
                                                           type = FRAME_LOCAL
+                                                  InlinedAddNodeGen
+                                                      attributes:
+                                                          assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                                                          flags = 0
+                                                          parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                      children:
+                                                          leftNode_ =
+                                                              RubyCallNode
+                                                                  attributes:
+                                                                      descriptor = NoKeywordArgumentsDescriptor
+                                                                      dispatchConfig = PROTECTED
+                                                                      emptyKeywordsProfile = false
+                                                                      flags = 0
+                                                                      isAttrAssign = false
+                                                                      isSafeNavigation = false
+                                                                      isSplatted = false
+                                                                      isVCall = false
+                                                                      lastArgIsNotHashProfile = false
+                                                                      methodName = "[]"
+                                                                      notEmptyKeywordsProfile = false
+                                                                      notRuby2KeywordsHashProfile = false
+                                                                  children:
+                                                                      arguments = [
+                                                                          ReadLocalVariableNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  frameSlot = 4 # %value_2
+                                                                                  type = FRAME_LOCAL
+                                                                      ]
+                                                                      block =
+                                                                          ToProcNodeGen
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                              children:
+                                                                                  childNode_ =
+                                                                                      ReadLocalVariableNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                                                              frameSlot = 3 # %value_1
+                                                                                              type = FRAME_LOCAL
+                                                                      receiver =
+                                                                          ReadLocalVariableNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  frameSlot = 2 # %opelementassign_0
+                                                                                  type = FRAME_LOCAL
+                                                          rightNode_ =
+                                                              IntegerFixnumLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      value = 100500
                                               ]
                                               block =
                                                   ToProcNodeGen
@@ -159,27 +193,5 @@ ast: |
                                                           flags = 0
                                                           frameSlot = 2 # %opelementassign_0
                                                           type = FRAME_LOCAL
-                                  rightNode_ =
-                                      IntegerFixnumLiteralNode
-                                          attributes:
-                                              flags = 0
-                                              value = 100500
-                      ]
-                      block =
-                          ToProcNodeGen
-                              attributes:
-                                  flags = 0
-                              children:
-                                  childNode_ =
-                                      ReadLocalVariableNode
-                                          attributes:
-                                              flags = 0
-                                              frameSlot = 3 # %value_1
-                                              type = FRAME_LOCAL
-                      receiver =
-                          ReadLocalVariableNode
-                              attributes:
-                                  flags = 0
-                                  frameSlot = 2 # %opelementassign_0
-                                  type = FRAME_LOCAL
+                                  ]
           ]

@@ -563,7 +563,7 @@ public final class CoreLibrary {
         final ConcurrentMap<String, Boolean> patchFiles = new ConcurrentHashMap<>();
 
         final String rubyHome = language.getRubyHome();
-        if (context.getOptions().PATCHING && rubyHome != null) {
+        if (context.getOptions().PATCHING) {
             try {
                 final Path patchesDirectory = Paths.get(rubyHome, "lib", "patches");
                 Files.walkFileTree(

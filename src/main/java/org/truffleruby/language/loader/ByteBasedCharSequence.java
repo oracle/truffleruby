@@ -10,7 +10,6 @@
 package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.TStringWithEncoding;
 
@@ -25,11 +24,6 @@ public final class ByteBasedCharSequence implements CharSequence {
 
     public ByteBasedCharSequence(TStringWithEncoding tstringWithEnc) {
         this(tstringWithEnc.getBytesOrCopy(), 0, tstringWithEnc.byteLength(), tstringWithEnc.encoding);
-
-        // Ensure it can be converted to a Java String early
-        if (tstringWithEnc.encoding == Encodings.BINARY) {
-            tstringWithEnc.toJavaStringOrThrow();
-        }
     }
 
     private ByteBasedCharSequence(byte[] bytes, int offset, int length, RubyEncoding encoding) {

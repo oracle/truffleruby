@@ -242,7 +242,7 @@ public abstract class ArrayUtils {
         return newArray;
     }
 
-    public static Object getLast(Object[] array) {
+    public static <T> T getLast(T[] array) {
         assert array.length >= 1;
         return array[array.length - 1];
     }

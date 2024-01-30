@@ -1,0 +1,1 @@
+fails(https://github.com/ruby/prism/issues/2116):Regexp with character classes supports [[:alpha:][:digit:][:etc:]] (predefined character classes)

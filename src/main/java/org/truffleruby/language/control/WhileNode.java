@@ -97,7 +97,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
             while (true) { // for redo
                 try {
-                    body.doExecuteVoid(frame);
+                    body.executeVoid(frame);
                     return true;
                 } catch (NextException e) {
                     nextUsed.enter(this);
@@ -131,7 +131,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 @Cached InlinedBranchProfile redoUsed,
                 @Cached InlinedBranchProfile nextUsed) {
             try {
-                body.doExecuteVoid(frame);
+                body.executeVoid(frame);
             } catch (NextException e) {
                 nextUsed.enter(this);
             } catch (RedoException e) {

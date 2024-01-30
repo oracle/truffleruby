@@ -376,10 +376,11 @@ suite = {
 
         "org.truffleruby.bootstrap.launcher": {
             "class": "TruffleRubyBootstrapLauncherProject",
-            "buildDependencies": [
+            "buildDependencies": [ # These are used to build the module path
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "sulong:SULONG_NATIVE", # We need this jar to find the toolchain with Toolchain#getToolPath
+                "org.truffleruby.yarp.bindings", # libyarpbindings.so
             ],
             "license": ["EPL-2.0"],
         },
@@ -846,8 +847,9 @@ suite = {
             "dependencies": ["org.truffleruby.tck"],
             "distDependencies": [
                 "truffle:TRUFFLE_TCK",
-               # runtime-only dependencies
+                # runtime-only dependencies
                 "TRUFFLERUBY",
+                "TRUFFLERUBY-RESOURCES",
             ],
             "description" : "Truffle TCK provider for Ruby language.",
             "license": ["EPL-2.0"],

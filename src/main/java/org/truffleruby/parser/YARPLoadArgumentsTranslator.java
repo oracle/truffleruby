@@ -11,9 +11,10 @@ package org.truffleruby.parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.CheckNoKeywordArgumentsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
@@ -27,10 +28,13 @@ import org.truffleruby.language.arguments.SaveMethodBlockNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 
 import org.truffleruby.language.methods.Arity;
-import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 
-public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyNode> {
+/** Translates method/block parameters and assign local variables.
+ *
+ * Parameters should be iterated in the same order {@link org.truffleruby.parser.YARPReloadArgumentsTranslator} iterates
+ * to handle multiple "_" parameters (and parameters with "_" prefix) correctly. */
+public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
     private final Arity arity;
     private final boolean isProc; // block or lambda/method
@@ -44,48 +48,36 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     }
 
     private final Nodes.ParametersNode parameters;
-    private int index; // position of actual argument in a frame that is being evaluated/read
-                      // to match a read node and actual argument
-    private State state; // to distinguish pre and post Nodes.RequiredParameterNode parameters
-
-    private final RubyLanguage language;
-    private final TranslatorEnvironment environment;
+    /** position of actual argument in a frame that is being evaluated/read to match a read node and actual argument */
+    private int index = 0;
+    /** to distinguish pre and post Nodes.RequiredParameterNode parameters */
+    private State state;
+    private int repeatedParameterCounter = 2;
 
     public YARPLoadArgumentsTranslator(
-            Nodes.ParametersNode parameters,
-            RubyLanguage language,
             TranslatorEnvironment environment,
+            Nodes.ParametersNode parameters,
             Arity arity,
             boolean isProc,
             boolean isMethod,
             YARPTranslator yarpTranslator) {
-        this.language = language;
-        this.environment = environment;
+        super(environment);
         this.arity = arity;
         this.isProc = isProc;
         this.isMethod = isMethod;
         this.yarpTranslator = yarpTranslator;
-        this.parameters = parameters;
+        this.parameters = Objects.requireNonNull(parameters);
     }
 
     public RubyNode translate() {
-        if (parameters != null) {
-            return translateWithParameters();
-        } else {
-            return translateWithoutParameters();
-        }
-    }
-
-    private RubyNode translateWithParameters() {
         final List<RubyNode> sequence = new ArrayList<>();
 
         sequence.add(Translator.loadSelf(language));
 
         if (parameters.requireds.length > 0) {
             state = State.PRE;
-            index = 0;
             for (var node : parameters.requireds) {
-                sequence.add(node.accept(this)); // Nodes.RequiredParameterNode is expected here
+                sequence.add(node.accept(this)); // Nodes.RequiredParameterNode, Nodes.MultiTargetNode are expected here
                 index++;
             }
         }
@@ -96,8 +88,12 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             sequence.add(saveMethodBlockArg());
         }
 
+        // Early return for the common case of zero parameters
+        if (parameters == ZERO_PARAMETERS_NODE) {
+            return sequence(sequence);
+        }
+
         if (parameters.optionals.length > 0) {
-            index = parameters.requireds.length;
             for (var node : parameters.optionals) {
                 sequence.add(node.accept(this)); // Nodes.OptionalParameterNode is expected here
                 index++;
@@ -120,15 +116,13 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             index = -1;
 
             for (int i = parameters.posts.length - 1; i >= 0; i--) {
-                sequence.add(parameters.posts[i].accept(this)); // Nodes.RequiredParameterNode is expected here
+                sequence.add(parameters.posts[i].accept(this)); // Nodes.RequiredParameterNode, Nodes.MultiTargetNode are expected here
                 index--;
             }
         }
 
-        if (hasKeywordArguments()) {
-            for (var node : parameters.keywords) {
-                sequence.add(node.accept(this)); // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
-            }
+        for (var node : parameters.keywords) {
+            sequence.add(node.accept(this)); // Nodes.RequiredKeywordParameterNode/Nodes.OptionalKeywordParameterNode are expected here
         }
 
         if (parameters.keyword_rest != null) {
@@ -140,18 +134,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
             sequence.add(parameters.block.accept(this));
         }
 
-        return YARPTranslator.sequence(sequence);
-    }
-
-    private RubyNode translateWithoutParameters() {
-        final List<RubyNode> sequence = new ArrayList<>();
-
-        sequence.add(Translator.loadSelf(language));
-        if (isMethod) {
-            sequence.add(saveMethodBlockArg());
-        }
-
-        return YARPTranslator.sequence(sequence);
+        return sequence(sequence);
     }
 
     public RubyNode saveMethodBlockArg() {
@@ -172,9 +155,10 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
                             isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
 
         } else if (state == YARPLoadArgumentsTranslator.State.POST) {
-            readNode = new ReadPostArgumentNode(-index, hasKeywordArguments(), getRequiredCount());
+            readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
+                    hasKeywordArguments());
         } else {
-            throw new IllegalStateException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
         final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, readNode);
@@ -184,7 +168,7 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     @Override
     public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
+        final int slot = environment.findFrameSlot(node.name);
         final var name = language.getSymbol(node.name);
         final var readNode = ReadKeywordArgumentNode.create(name, null);
 
@@ -204,18 +188,26 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
                             isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
 
         } else if (state == YARPLoadArgumentsTranslator.State.POST) {
-            readNode = new ReadPostArgumentNode(-index, hasKeywordArguments(), getRequiredCount());
+            readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
+                    hasKeywordArguments());
         } else {
-            throw new IllegalStateException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
 
-        final int slot = environment.findFrameSlot(node.name);
+        final int slot;
+        if (node.isRepeatedParameter()) {
+            String name = createNameForRepeatedParameter(node.name);
+            slot = environment.declareVar(name);
+        } else {
+            slot = environment.findFrameSlot(node.name);
+        }
+
         return new WriteLocalVariableNode(slot, readNode);
     }
 
     @Override
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
-        final int slot = environment.declareVar(node.name);
+        final int slot = environment.findFrameSlot(node.name);
         final var name = language.getSymbol(node.name);
         final var value = node.value.accept(this);
         final var readNode = ReadKeywordArgumentNode.create(name, value);
@@ -227,7 +219,6 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     public RubyNode visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
         final RubyNode readNode;
         final RubyNode defaultValue = node.value.accept(this);
-        final int slot = environment.declareVar(node.name);
         int minimum = index + 1 + parameters.posts.length;
 
         readNode = new ReadOptionalArgumentNode(
@@ -235,6 +226,14 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
                 minimum,
                 hasKeywordArguments(),
                 defaultValue);
+
+        final int slot;
+        if (node.isRepeatedParameter()) {
+            String name = createNameForRepeatedParameter(node.name);
+            slot = environment.declareVar(name);
+        } else {
+            slot = environment.findFrameSlot(node.name);
+        }
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -247,12 +246,22 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         int to = -parameters.posts.length;
         readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments());
 
-        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_REST_NAME;
+        final int slot;
 
-        // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
-        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
-        // declare this hidden variable beforehand. So declare it here right before usage.
-        final int slot = environment.declareVar(name);
+        if (node.name != null) {
+            if (node.isRepeatedParameter()) {
+                String name = createNameForRepeatedParameter(node.name);
+                slot = environment.declareVar(name);
+            } else {
+                slot = environment.findFrameSlot(node.name);
+            }
+        } else {
+            // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
+            // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
+            // declare this hidden variable beforehand. So declare it here right before usage.
+            String name = TranslatorEnvironment.DEFAULT_REST_NAME;
+            slot = environment.declareVar(name);
+        }
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -265,12 +274,17 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
-        final String name = (node.name != null) ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+        final int slot;
 
-        // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
-        // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
-        // hidden variable beforehand. So declare it here right before usage.
-        final int slot = environment.declareVar(name);
+        if (node.name != null) {
+            slot = environment.findFrameSlot(node.name);
+        } else {
+            // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
+            // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
+            // hidden variable beforehand. So declare it here right before usage.
+            final String name = TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
+            slot = environment.declareVar(name);
+        }
 
         return new WriteLocalVariableNode(slot, readNode);
     }
@@ -282,10 +296,16 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
 
     @Override
     public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
-        // we don't support yet Ruby 3.1's anonymous block parameter
-        assert node.name != null;
+        final String name;
 
-        final int slot = environment.findFrameSlot(node.name);
+        if (node.name == null) {
+            // def a(&)
+            name = TranslatorEnvironment.FORWARDED_BLOCK_NAME;
+        } else {
+            name = node.name;
+        }
+
+        final int slot = environment.findFrameSlot(name);
         return new SaveMethodBlockNode(slot);
     }
 
@@ -295,15 +315,16 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         ArrayList<RubyNode> sequence = new ArrayList<>();
 
         // desugar ... to *, **, and & parameters
-        final var rest = new Nodes.RestParameterNode(TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
-        final var keyrest = new Nodes.KeywordRestParameterNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
-        final var block = new Nodes.BlockParameterNode(TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
+        final var rest = new Nodes.RestParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
+        final var keyrest = new Nodes.KeywordRestParameterNode(NO_FLAGS,
+                TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
+        final var block = new Nodes.BlockParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
 
         sequence.add(rest.accept(this));
         sequence.add(keyrest.accept(this));
         sequence.add(block.accept(this));
 
-        return YARPTranslator.sequence(sequence);
+        return sequence(sequence);
     }
 
     @Override
@@ -316,8 +337,21 @@ public final class YARPLoadArgumentsTranslator extends AbstractNodeVisitor<RubyN
         return parameters.requireds.length + parameters.posts.length;
     }
 
+    private int getOptionalCount() {
+        return parameters.optionals.length;
+    }
+
     private boolean hasKeywordArguments() {
         return parameters.keywords.length != 0 || parameters.keyword_rest != null;
+    }
+
+    private boolean hasRest() {
+        return parameters.rest != null;
+    }
+
+    private String createNameForRepeatedParameter(String name) {
+        int count = repeatedParameterCounter++;
+        return Layouts.TEMP_PREFIX + name + count;
     }
 
 }

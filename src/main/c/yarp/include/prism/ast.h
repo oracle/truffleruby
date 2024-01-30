@@ -1172,16 +1172,37 @@ typedef struct pm_and_node {
 
     /**
      * AndNode#left
+     *
+     * Represents the left side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     left and right
+     *     ^^^^
+     *
+     *     1 && 2
+     *     ^
      */
     struct pm_node *left;
 
     /**
      * AndNode#right
+     *
+     * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     left && right
+     *             ^^^^^
+     *
+     *     1 and 2
+     *           ^
      */
     struct pm_node *right;
 
     /**
      * AndNode#operator_loc
+     *
+     * The location of the `and` keyword or the `&&` operator.
+     *
+     *     left and right
+     *          ^^^
      */
     pm_location_t operator_loc;
 } pm_and_node_t;
@@ -1289,16 +1310,40 @@ typedef struct pm_assoc_node {
 
     /**
      * AssocNode#key
+     *
+     * The key of the association. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     { a: b }
+     *       ^
+     *
+     *     { foo => bar }
+     *       ^^^
+     *
+     *     { def a; end => 1 }
+     *       ^^^^^^^^^^
      */
     struct pm_node *key;
 
     /**
      * AssocNode#value
+     *
+     * The value of the association, if present. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     { foo => bar }
+     *              ^^^
+     *
+     *     { x: 1 }
+     *          ^
      */
     struct pm_node *value;
 
     /**
      * AssocNode#operator_loc
+     *
+     * The location of the `=>` operator, if present.
+     *
+     *     { foo => bar }
+     *           ^^
      */
     pm_location_t operator_loc;
 } pm_assoc_node_t;
@@ -1316,11 +1361,21 @@ typedef struct pm_assoc_splat_node {
 
     /**
      * AssocSplatNode#value
+     *
+     * The value to be splatted, if present. Will be missing when keyword rest argument forwarding is used.
+     *
+     *     { **foo }
+     *         ^^^
      */
     struct pm_node *value;
 
     /**
      * AssocSplatNode#operator_loc
+     *
+     * The location of the `**` operator.
+     *
+     *     { **x }
+     *       ^^
      */
     pm_location_t operator_loc;
 } pm_assoc_splat_node_t;
@@ -1338,6 +1393,12 @@ typedef struct pm_back_reference_read_node {
 
     /**
      * BackReferenceReadNode#name
+     *
+     * The name of the back-reference variable, including the leading `$`.
+     *
+     *     $& # name `:$&`
+     *
+     *     $+ # name `:$+`
      */
     pm_constant_id_t name;
 } pm_back_reference_read_node_t;
@@ -1410,6 +1471,8 @@ typedef struct pm_block_argument_node {
  * BlockLocalVariableNode
  *
  * Type: PM_BLOCK_LOCAL_VARIABLE_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -1469,6 +1532,8 @@ typedef struct pm_block_node {
  * BlockParameterNode
  *
  * Type: PM_BLOCK_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -1617,9 +1682,7 @@ typedef struct pm_call_node {
     /**
      * CallNode#receiver
      *
-     * The object that the method is being called on. This can be either
-     * `nil` or a node representing any kind of expression that returns a
-     * non-void value.
+     * The object that the method is being called on. This can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     foo.bar
      *     ^^^
@@ -2081,6 +2144,12 @@ typedef struct pm_class_variable_read_node {
 
     /**
      * ClassVariableReadNode#name
+     *
+     * The name of the class variable, which is a `@@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @@abc   # name `:@@abc`
+     *
+     *     @@_test # name `:@@_test`
      */
     pm_constant_id_t name;
 } pm_class_variable_read_node_t;
@@ -2415,6 +2484,12 @@ typedef struct pm_constant_read_node {
 
     /**
      * ConstantReadNode#name
+     *
+     * The name of the [constant](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#constants).
+     *
+     *     X              # name `:X`
+     *
+     *     SOME_CONSTANT  # name `:SOME_CONSTANT`
      */
     pm_constant_id_t name;
 } pm_constant_read_node_t;
@@ -2977,6 +3052,12 @@ typedef struct pm_global_variable_read_node {
 
     /**
      * GlobalVariableReadNode#name
+     *
+     * The name of the global variable, which is a `$` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifier). Alternatively, it can be one of the special global variables designated by a symbol.
+     *
+     *     $foo   # name `:$foo`
+     *
+     *     $_Test # name `:$_Test`
      */
     pm_constant_id_t name;
 } pm_global_variable_read_node_t;
@@ -3043,16 +3124,34 @@ typedef struct pm_hash_node {
 
     /**
      * HashNode#opening_loc
+     *
+     * The location of the opening brace.
+     *
+     *     { a => b }
+     *     ^
      */
     pm_location_t opening_loc;
 
     /**
      * HashNode#elements
+     *
+     * The elements of the hash. These can be either `AssocNode`s or `AssocSplatNode`s.
+     *
+     *     { a: b }
+     *       ^^^^
+     *
+     *     { **foo }
+     *       ^^^^^
      */
     struct pm_node_list elements;
 
     /**
      * HashNode#closing_loc
+     *
+     * The location of the closing brace.
+     *
+     *     { a => b }
+     *              ^
      */
     pm_location_t closing_loc;
 } pm_hash_node_t;
@@ -3546,6 +3645,12 @@ typedef struct pm_instance_variable_read_node {
 
     /**
      * InstanceVariableReadNode#name
+     *
+     * The name of the instance variable, which is a `@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @x     # name `:@x`
+     *
+     *     @_test # name `:@_test`
      */
     pm_constant_id_t name;
 } pm_instance_variable_read_node_t;
@@ -3798,6 +3903,8 @@ typedef struct pm_keyword_hash_node {
  * KeywordRestParameterNode
  *
  * Type: PM_KEYWORD_REST_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -3997,11 +4104,33 @@ typedef struct pm_local_variable_read_node {
 
     /**
      * LocalVariableReadNode#name
+     *
+     * The name of the local variable, which is an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     x      # name `:x`
+     *
+     *     _Test  # name `:_Test`
+     *
+     * Note that this can also be an underscore followed by a number for the default block parameters.
+     *
+     *     _1     # name `:_1`
+     *
+     * Finally, for the default `it` block parameter, the name is `0it`. This is to distinguish it from an `it` local variable that is explicitly declared.
+     *
+     *     it     # name `:0it`
      */
     pm_constant_id_t name;
 
     /**
      * LocalVariableReadNode#depth
+     *
+     * The number of visible scopes that should be searched to find the origin of this local variable.
+     *
+     *     foo = 1; foo # depth 0
+     *
+     *     bar = 2; tap { bar } # depth 1
+     *
+     * The specific rules for calculating the depth may differ from individual Ruby implementations, as they are not specified by the language. For more information, see [the Prism documentation](https://github.com/ruby/prism/blob/main/docs/local_variable_depth.md).
      */
     uint32_t depth;
 } pm_local_variable_read_node_t;
@@ -4409,6 +4538,14 @@ typedef struct pm_numbered_reference_read_node {
 
     /**
      * NumberedReferenceReadNode#number
+     *
+     * The (1-indexed, from the left) number of the capture group. Numbered references that would overflow a `uint32`  result in a `number` of exactly `2**32 - 1`.
+     *
+     *     $1          # number `1`
+     *
+     *     $5432       # number `5432`
+     *
+     *     $4294967296 # number `4294967295`
      */
     uint32_t number;
 } pm_numbered_reference_read_node_t;
@@ -4417,6 +4554,8 @@ typedef struct pm_numbered_reference_read_node {
  * OptionalKeywordParameterNode
  *
  * Type: PM_OPTIONAL_KEYWORD_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4444,6 +4583,8 @@ typedef struct pm_optional_keyword_parameter_node {
  * OptionalParameterNode
  *
  * Type: PM_OPTIONAL_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4485,16 +4626,37 @@ typedef struct pm_or_node {
 
     /**
      * OrNode#left
+     *
+     * Represents the left side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     left or right
+     *     ^^^^
+     *
+     *     1 || 2
+     *     ^
      */
     struct pm_node *left;
 
     /**
      * OrNode#right
+     *
+     * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     left || right
+     *             ^^^^^
+     *
+     *     1 or 2
+     *          ^
      */
     struct pm_node *right;
 
     /**
      * OrNode#operator_loc
+     *
+     * The location of the `or` keyword or the `||` operator.
+     *
+     *     left or right
+     *          ^^
      */
     pm_location_t operator_loc;
 } pm_or_node_t;
@@ -4728,16 +4890,35 @@ typedef struct pm_range_node {
 
     /**
      * RangeNode#left
+     *
+     * The left-hand side of the range, if present. It can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     1...
+     *     ^
+     *
+     *     hello...goodbye
+     *     ^^^^^
      */
     struct pm_node *left;
 
     /**
      * RangeNode#right
+     *
+     * The right-hand side of the range, if present. It can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     ..5
+     *       ^
+     *
+     *     1...foo
+     *         ^^^
+     * If neither right-hand or left-hand side was included, this will be a MissingNode.
      */
     struct pm_node *right;
 
     /**
      * RangeNode#operator_loc
+     *
+     * The location of the `..` or `...` operator.
      */
     pm_location_t operator_loc;
 } pm_range_node_t;
@@ -4819,6 +5000,8 @@ typedef struct pm_regular_expression_node {
  * RequiredKeywordParameterNode
  *
  * Type: PM_REQUIRED_KEYWORD_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4841,6 +5024,8 @@ typedef struct pm_required_keyword_parameter_node {
  * RequiredParameterNode
  *
  * Type: PM_REQUIRED_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -4927,6 +5112,8 @@ typedef struct pm_rescue_node {
  * RestParameterNode
  *
  * Type: PM_REST_PARAMETER_NODE
+ * Flags:
+ *    PM_PARAMETER_FLAGS_REPEATED_PARAMETER
  *
  * @extends pm_node_t
  */
@@ -5541,6 +5728,14 @@ typedef enum pm_loop_flags {
     /** a loop after a begin statement, so the body is executed first before the condition */
     PM_LOOP_FLAGS_BEGIN_MODIFIER = 1,
 } pm_loop_flags_t;
+
+/**
+ * Flags for parameter nodes.
+ */
+typedef enum pm_parameter_flags {
+    /** a parameter name that has been repeated in the method signature */
+    PM_PARAMETER_FLAGS_REPEATED_PARAMETER = 1,
+} pm_parameter_flags_t;
 
 /**
  * Flags for range and flip-flop nodes.

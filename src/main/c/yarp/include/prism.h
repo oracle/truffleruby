@@ -168,7 +168,24 @@ PRISM_EXPORTED_FUNCTION bool pm_parse_success_p(const uint8_t *source, size_t si
  * @param token_type The token type to convert to a string.
  * @return A string representation of the given token type.
  */
-PRISM_EXPORTED_FUNCTION const char * pm_token_type_to_str(pm_token_type_t token_type);
+PRISM_EXPORTED_FUNCTION const char * pm_token_type_name(pm_token_type_t token_type);
+
+/**
+ * Returns the human name of the given token type.
+ *
+ * @param token_type The token type to convert to a human name.
+ * @return The human name of the given token type.
+ */
+const char * pm_token_type_human(pm_token_type_t token_type);
+
+/**
+ * Format the errors on the parser into the given buffer.
+ *
+ * @param parser The parser to format the errors for.
+ * @param buffer The buffer to format the errors into.
+ * @param colorize Whether or not to colorize the errors with ANSI escape sequences.
+ */
+PRISM_EXPORTED_FUNCTION void pm_parser_errors_format(const pm_parser_t *parser, pm_buffer_t *buffer, bool colorize);
 
 /**
  * @mainpage

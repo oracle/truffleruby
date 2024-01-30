@@ -234,8 +234,8 @@ public class RubyRootNode extends RubyBaseRootNode {
         }
 
         // Ignore instrumental wrappers (e.g. RubyNodeWrapper)
-        if (original instanceof WrapperNode) {
-            ensureClonedCorrectly(((WrapperNode) original).getDelegateNode(), clone, specializedNodes);
+        if (original instanceof WrapperNode wrapperNode) {
+            ensureClonedCorrectly(wrapperNode.getDelegateNode(), clone, specializedNodes);
             return;
         }
 

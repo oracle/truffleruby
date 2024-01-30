@@ -45,6 +45,10 @@ import java.util.Iterator;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
+import org.jcodings.specific.EUCJPEncoding;
+import org.jcodings.specific.SJISEncoding;
+import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Option;
 import org.joni.Regex;
@@ -55,6 +59,7 @@ import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -70,6 +75,7 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.parser.RubyDeferredWarnings;
 
 public final class ClassicRegexp implements ReOptions {
+
     private final Regex pattern;
     private final TStringWithEncoding str;
     private RegexpOptions options;
@@ -995,15 +1001,93 @@ public final class ClassicRegexp implements ReOptions {
             return EMPTY_STRING_ARRAY;
         }
 
+        RubyEncoding encoding = Encodings.getBuiltInEncoding(pattern.getEncoding());
         String[] names = new String[nameLength];
         int j = 0;
         for (Iterator<NameEntry> i = pattern.namedBackrefIterator(); i.hasNext();) {
             NameEntry e = i.next();
-            //intern() to improve footprint
-            names[j++] = new String(e.name, e.nameP, e.nameEnd - e.nameP, pattern.getEncoding().getCharset()).intern();
+            // intern() to improve footprint
+            names[j++] = TStringUtils.bytesToJavaStringOrThrow(e.name, e.nameP, e.nameEnd - e.nameP, encoding).intern();
         }
 
         return names;
+    }
+
+    // Code that used to be in ParserSupport but copied here as ParserSupport is coupled with the JRuby lexer & parser.
+    // Needed until https://github.com/ruby/prism/issues/1997 is fixed.
+
+    // From ParserSupport#newRegexpNode
+    public static TStringWithEncoding findEncodingForRegexpLiteral(TStringWithEncoding regexp, RegexpOptions options,
+            RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
+        TStringWithEncoding meat = regexpFragmentCheck(regexp, options, lexerEncoding, currentNode);
+        checkRegexpSyntax(meat, options.withoutOnce());
+        return meat;
+    }
+
+    // MRI: reg_fragment_check
+    public static TStringWithEncoding regexpFragmentCheck(TStringWithEncoding value, RegexpOptions options,
+            RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
+        final TStringWithEncoding strEnc = setRegexpEncoding(value, options, lexerEncoding, currentNode);
+        ClassicRegexp.preprocessCheck(strEnc);
+        return strEnc;
+    }
+
+    // MRI: reg_fragment_setenc_gen
+    private static TStringWithEncoding setRegexpEncoding(TStringWithEncoding value, RegexpOptions options,
+            RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
+        options = options.setup();
+        final RubyEncoding optionsEncoding = options.getEncoding() == null
+                ? null
+                : Encodings.getBuiltInEncoding(options.getEncoding());
+        final RubyEncoding encoding = value.encoding;
+        // Change encoding to one specified by regexp options as long as the string is compatible.
+        if (optionsEncoding != null) {
+            if (optionsEncoding != encoding && !value.isAsciiOnly()) {
+                String message = "regexp encoding option '" + optionsEncodingChar(optionsEncoding.jcoding) +
+                        "' differs from source encoding '" + encoding + "'";
+                throw new DeferredRaiseException(
+                        context -> context.getCoreExceptions().syntaxError(message, currentNode, null));
+            }
+
+            value = value.forceEncoding(optionsEncoding);
+        } else if (options.isEncodingNone()) {
+            if (encoding == Encodings.BINARY && !value.isAsciiOnly()) {
+                String message = "regexp encoding option ' ' differs from source encoding '" + encoding + "'";
+                throw new DeferredRaiseException(
+                        context -> context.getCoreExceptions().syntaxError(message, currentNode, null));
+            }
+            value = value.forceEncoding(Encodings.BINARY);
+        } else if (lexerEncoding == Encodings.US_ASCII) {
+            if (!value.isAsciiOnly()) {
+                value = value.forceEncoding(Encodings.US_ASCII); // This will raise later
+            } else {
+                value = value.forceEncoding(Encodings.BINARY);
+            }
+        }
+        return value;
+    }
+
+    private static ClassicRegexp checkRegexpSyntax(TStringWithEncoding value, RegexpOptions options)
+            throws DeferredRaiseException {
+        // This is only for syntax checking but this will as a side effect create an entry in the regexp cache.
+        return new ClassicRegexp(value, options);
+    }
+
+    private static char optionsEncodingChar(Encoding optionEncoding) {
+        if (optionEncoding == USASCIIEncoding.INSTANCE) {
+            return 'n';
+        }
+        if (optionEncoding == EUCJPEncoding.INSTANCE) {
+            return 'e';
+        }
+        if (optionEncoding == SJISEncoding.INSTANCE) {
+            return 's';
+        }
+        if (optionEncoding == UTF8Encoding.INSTANCE) {
+            return 'u';
+        }
+
+        return ' ';
     }
 
 }

@@ -1,0 +1,68 @@
+subject: "__END__"
+description: Presence of __END__ in main Ruby script means a DATA constant should be defined
+notes: >
+  DATA is defined by DataNode node
+focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
+main_script: true
+ruby: |
+  a = 1
+  __END__
+  some data
+ast: |
+  RubyTopLevelRootNode
+      attributes:
+          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+          callTarget = <main>
+          checkArityProfile = false
+          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a}
+          instrumentationBits = 0
+          keywordArguments = false
+          localReturnProfile = false
+          lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+          matchingReturnProfile = false
+          nextProfile = false
+          nonMatchingReturnProfile = false
+          polyglotRef = org.truffleruby.RubyLanguage@...
+          retryProfile = false
+          returnID = org.truffleruby.language.control.ReturnID@...
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <main>, blockDepth = 0, parseName = <main>, notes = null, argumentDescriptors = null)
+          split = HEURISTIC
+      children:
+          body =
+              SequenceNode
+                  attributes:
+                      flags = 12
+                  children:
+                      body = [
+                          DataNode
+                              attributes:
+                                  endPosition = 14
+                                  flags = 0
+                          SetTopLevelBindingNode
+                              attributes:
+                                  flags = 0
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 0 # (self)
+                              children:
+                                  valueNode =
+                                      ProfileArgumentNodeGen
+                                          attributes:
+                                              flags = 0
+                                          children:
+                                              childNode_ =
+                                                  ReadSelfNode
+                                                      attributes:
+                                                          flags = 0
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 1
+                                  frameSlot = 2 # a
+                              children:
+                                  valueNode =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 1
+                      ]

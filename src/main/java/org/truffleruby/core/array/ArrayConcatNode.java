@@ -10,7 +10,8 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -19,7 +20,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Concatenate argument arrays (translating a org.jruby.ast.ArgsCatParseNode). */
-public final class ArrayConcatNode extends RubyContextSourceNode {
+public final class ArrayConcatNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Children private final RubyNode[] children;
     // Use an arrayBuilderNode to stabilize the array type for a given location.
@@ -30,6 +31,11 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
     public ArrayConcatNode(RubyNode[] children) {
         assert children.length > 1;
         this.children = children;
+    }
+
+    // getChildren method name is already used
+    public RubyNode[] getElements() {
+        return children;
     }
 
     @ExplodeLoop
@@ -75,10 +81,11 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
 
     @ExplodeLoop
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public Nil executeVoid(VirtualFrame frame) {
         for (int n = 0; n < children.length; n++) {
-            children[n].doExecuteVoid(frame);
+            children[n].executeVoid(frame);
         }
+        return nil;
     }
 
     @Override

@@ -456,7 +456,8 @@ class Struct
       "hash = Primitive.vm_hash_update hash, #{calc}"
     end.join("\n")
 
-    code, line = <<-CODE, __LINE__+1
+    code, line = <<~CODE, __LINE__+1
+      # truffleruby_primitives: true
       def initialize(#{args.join(", ")})
         #{assigns.join(';')}
         self

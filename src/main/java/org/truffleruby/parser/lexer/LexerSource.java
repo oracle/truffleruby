@@ -38,6 +38,7 @@ package org.truffleruby.parser.lexer;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.jcodings.Encoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.parser.RubySource;
@@ -59,7 +60,7 @@ public final class LexerSource {
 
     public LexerSource(RubySource rubySource) {
         this.source = rubySource.getSource();
-        this.sourcePath = rubySource.getSourcePath();
+        this.sourcePath = RubyLanguage.getPath(rubySource.getSource());
 
         final RubyEncoding rubyEncoding = rubySource.getEncoding();
         this.sourceBytes = rubySource.getTruffleString();

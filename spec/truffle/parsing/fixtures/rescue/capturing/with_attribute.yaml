@@ -1,6 +1,5 @@
 subject: "Rescue keyword"
 description: "capturing / with an attribute"
-yarp_specific: true # an AssignRescueVariableNode node is introduced
 notes: >
   Capturing exception to a setter is represented as a `a.foo=()` method call.
   
@@ -16,7 +15,8 @@ notes: >
   ```ruby
   a.foo = $!
   ```
-yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
+yarp_specific: true # an AssignRescueVariableNode node is introduced
+                    # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin

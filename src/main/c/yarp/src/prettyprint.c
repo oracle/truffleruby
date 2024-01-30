@@ -46,7 +46,7 @@ static inline void
 prettyprint_location(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_location_t *location) {
     pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start);
     pm_line_column_t end = pm_newline_list_line_column(&parser->newline_list, location->end);
-    pm_buffer_append_format(output_buffer, "(%lu,%lu)-(%lu,%lu)", (unsigned long) (start.line + 1), (unsigned long) start.column, (unsigned long) (end.line + 1), (unsigned long) end.column);
+    pm_buffer_append_format(output_buffer, "(%lu,%lu)-(%lu,%lu)", (unsigned long) start.line, (unsigned long) start.column, (unsigned long) end.line, (unsigned long) end.column);
 }
 
 static inline void
@@ -518,17 +518,13 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
-                if (cast->value == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
-                } else {
-                    pm_buffer_append_byte(output_buffer, '\n');
+                pm_buffer_append_byte(output_buffer, '\n');
 
-                    size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    pm_buffer_concat(output_buffer, prefix_buffer);
-                    prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
-                    prefix_buffer->length = prefix_length;
-                }
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
+                prefix_buffer->length = prefix_length;
             }
 
             // operator_loc
@@ -754,6 +750,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
 
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -787,7 +797,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals_body_index:", 28);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->locals_body_index);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->locals_body_index);
             }
 
             // parameters
@@ -855,6 +865,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ BlockParameterNode (location: ", 32);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // name
             {
@@ -2911,7 +2935,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals_body_index:", 28);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->locals_body_index);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->locals_body_index);
             }
 
             // def_keyword_loc
@@ -5576,6 +5600,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
 
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -5641,7 +5679,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals_body_index:", 28);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->locals_body_index);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->locals_body_index);
             }
 
             // operator_loc
@@ -5772,7 +5810,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             break;
@@ -5842,7 +5880,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             break;
@@ -5903,7 +5941,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             break;
@@ -5927,7 +5965,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             break;
@@ -5951,7 +5989,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             break;
@@ -5975,7 +6013,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 depth:", 16);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->depth);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             // name_loc
@@ -6687,7 +6725,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 maximum:", 18);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->maximum);
+                pm_buffer_append_format(output_buffer, " %" PRIu8 "\n", cast->maximum);
             }
 
             break;
@@ -6702,7 +6740,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 number:", 17);
-                pm_buffer_append_format(output_buffer, " %d\n", cast->number);
+                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->number);
             }
 
             break;
@@ -6712,6 +6750,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ OptionalKeywordParameterNode (location: ", 42);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // name
             {
@@ -6754,6 +6806,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ OptionalParameterNode (location: ", 35);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // name
             {
@@ -7521,6 +7587,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
 
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -7549,6 +7629,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ RequiredParameterNode (location: ", 35);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // name
             {
@@ -7724,6 +7818,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ RestParameterNode (location: ", 31);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                bool found = false;
+                if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // name
             {

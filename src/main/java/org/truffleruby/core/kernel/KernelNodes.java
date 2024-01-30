@@ -1389,7 +1389,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "respond_to?", required = 1, optional = 1, alwaysInlined = true)
     public abstract static class RespondToNode extends AlwaysInlinedMethodNode {
 
-        public final boolean executeDoesRespondTo(Object self, Object name, boolean includeProtectedAndPrivate) {
+        public final boolean executeDoesRespondTo(Object self, RubySymbol name, boolean includeProtectedAndPrivate) {
             final Object[] rubyArgs = RubyArguments.allocate(2);
             RubyArguments.setArgument(rubyArgs, 0, name);
             RubyArguments.setArgument(rubyArgs, 1, includeProtectedAndPrivate);

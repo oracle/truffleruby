@@ -171,7 +171,7 @@ public class RubyDebugTest {
         stepInto(1);
         assertLocation(
                 14,
-                "if n <= 1",
+                "n <= 1",
                 "n",
                 "2",
                 "nMinusOne",
@@ -249,6 +249,10 @@ public class RubyDebugTest {
                 suspendedEvent.getTopStackFrame().eval("shortArg(90000)");
                 Assert.fail("DebugException is expected.");
             } catch (DebugException dex) {
+                if (dex.isInternalError()) {
+                    System.err.println("DebugException internal error:");
+                    dex.printStackTrace(System.err);
+                }
                 assertNull(dex.getCatchLocation());
                 Assert.assertFalse(dex.isInternalError());
                 dex.getThrowLocation();
@@ -392,7 +396,7 @@ public class RubyDebugTest {
             assertNotNull(suspendedEvent);
             final int currentLine = suspendedEvent.getSourceSection().getStartLine();
             assertEquals(line, currentLine);
-            final String currentCode = suspendedEvent.getSourceSection().getCharacters().toString().strip();
+            final String currentCode = suspendedEvent.getSourceSection().getCharacters().toString();
             assertEquals(code, currentCode);
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
 

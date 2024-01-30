@@ -1,0 +1,2 @@
+fails(https://github.com/ruby/prism/issues/2116):Regexps with modifiers supports (?imx-imx) (inline modifiers)
+fails(https://github.com/ruby/prism/issues/2116):Regexps with modifiers supports (?imx-imx:expr) (scoped inline modifiers)

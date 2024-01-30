@@ -533,6 +533,49 @@ public abstract class Nodes {
     }
 
     /**
+     * Flags for parameter nodes.
+     */
+    public static final class ParameterFlags implements Comparable<ParameterFlags> {
+
+        // a parameter name that has been repeated in the method signature
+        public static final short REPEATED_PARAMETER = 1 << 0;
+
+        public static boolean isRepeatedParameter(short flags) {
+            return (flags & REPEATED_PARAMETER) != 0;
+        }
+
+        private final short flags;
+
+        public ParameterFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ParameterFlags)) {
+                return false;
+            }
+
+            return flags == ((ParameterFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(ParameterFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isRepeatedParameter() {
+            return (flags & REPEATED_PARAMETER) != 0;
+        }
+
+    }
+
+    /**
      * Flags for range and flip-flop nodes.
      */
     public static final class RangeFlags implements Comparable<RangeFlags> {
@@ -1009,7 +1052,29 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^^
      */
     public static final class AndNode extends Node {
+        /**
+         * <pre>
+         * Represents the left side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     left and right
+         *     ^^^^
+         *
+         *     1 && 2
+         *     ^
+         * </pre>
+         */
         public final Node left;
+        /**
+         * <pre>
+         * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     left && right
+         *             ^^^^^
+         *
+         *     1 and 2
+         *           ^
+         * </pre>
+         */
         public final Node right;
 
         public AndNode(Node left, Node right, int startOffset, int length) {
@@ -1109,8 +1174,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents an array literal. This can be a regular array using brackets or
-     * a special array using % like %w or %i.
+     * Represents an array literal. This can be a regular array using brackets or a special array using % like %w or %i.
      *
      *     [1, 2, 3]
      *     ^^^^^^^^^
@@ -1268,8 +1332,32 @@ public abstract class Nodes {
      *       ^^^^^^
      */
     public static final class AssocNode extends Node {
+        /**
+         * <pre>
+         * The key of the association. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     { a: b }
+         *       ^
+         *
+         *     { foo => bar }
+         *       ^^^
+         *
+         *     { def a; end => 1 }
+         *       ^^^^^^^^^^
+         * </pre>
+         */
         public final Node key;
-        @Nullable
+        /**
+         * <pre>
+         * The value of the association, if present. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     { foo => bar }
+         *              ^^^
+         *
+         *     { x: 1 }
+         *          ^
+         * </pre>
+         */
         public final Node value;
 
         public AssocNode(Node key, Node value, int startOffset, int length) {
@@ -1280,9 +1368,7 @@ public abstract class Nodes {
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.key.accept(visitor);
-            if (this.value != null) {
-                this.value.accept(visitor);
-            }
+            this.value.accept(visitor);
         }
 
         public Node[] childNodes() {
@@ -1307,7 +1393,7 @@ public abstract class Nodes {
             builder.append(this.key.toString(nextIndent));
             builder.append(nextIndent);
             builder.append("value: ");
-            builder.append(this.value == null ? "null\n" : this.value.toString(nextIndent));
+            builder.append(this.value.toString(nextIndent));
             return builder.toString();
         }
     }
@@ -1319,6 +1405,14 @@ public abstract class Nodes {
      *       ^^^^^
      */
     public static final class AssocSplatNode extends Node {
+        /**
+         * <pre>
+         * The value to be splatted, if present. Will be missing when keyword rest argument forwarding is used.
+         *
+         *     { **foo }
+         *         ^^^
+         * </pre>
+         */
         @Nullable
         public final Node value;
 
@@ -1364,6 +1458,15 @@ public abstract class Nodes {
      *     ^^
      */
     public static final class BackReferenceReadNode extends Node {
+        /**
+         * <pre>
+         * The name of the back-reference variable, including the leading `$`.
+         *
+         *     $& # name `:$&`
+         *
+         *     $+ # name `:$+`
+         * </pre>
+         */
         public final String name;
 
         public BackReferenceReadNode(String name, int startOffset, int length) {
@@ -1530,13 +1633,19 @@ public abstract class Nodes {
      *            ^
      */
     public static final class BlockLocalVariableNode extends Node {
+        public final short flags;
         public final String name;
 
-        public BlockLocalVariableNode(String name, int startOffset, int length) {
+        public BlockLocalVariableNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1558,6 +1667,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
@@ -1568,8 +1681,8 @@ public abstract class Nodes {
     /**
      * Represents a block of ruby code.
      *
-     * [1, 2, 3].each { |i| puts x }
-     *                ^^^^^^^^^^^^^^
+     *     [1, 2, 3].each { |i| puts x }
+     *                    ^^^^^^^^^^^^^^
      */
     public static final class BlockNode extends Node {
         public final String[] locals;
@@ -1642,14 +1755,20 @@ public abstract class Nodes {
      *     end
      */
     public static final class BlockParameterNode extends Node {
+        public final short flags;
         @Nullable
         public final String name;
 
-        public BlockParameterNode(String name, int startOffset, int length) {
+        public BlockParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -1670,6 +1789,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
@@ -1897,9 +2020,7 @@ public abstract class Nodes {
         public final short flags;
         /**
          * <pre>
-         * The object that the method is being called on. This can be either
-         * `nil` or a node representing any kind of expression that returns a
-         * non-void value.
+         * The object that the method is being called on. This can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
          *
          *     foo.bar
          *     ^^^
@@ -2672,6 +2793,15 @@ public abstract class Nodes {
      *     ^^^^^
      */
     public static final class ClassVariableReadNode extends Node {
+        /**
+         * <pre>
+         * The name of the class variable, which is a `@@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     @@abc   # name `:@@abc`
+         *
+         *     @@_test # name `:@@_test`
+         * </pre>
+         */
         public final String name;
 
         public ClassVariableReadNode(String name, int startOffset, int length) {
@@ -3260,6 +3390,15 @@ public abstract class Nodes {
      *     ^^^
      */
     public static final class ConstantReadNode extends Node {
+        /**
+         * <pre>
+         * The name of the [constant](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#constants).
+         *
+         *     X              # name `:X`
+         *
+         *     SOME_CONSTANT  # name `:SOME_CONSTANT`
+         * </pre>
+         */
         public final String name;
 
         public ConstantReadNode(String name, int startOffset, int length) {
@@ -4245,6 +4384,15 @@ public abstract class Nodes {
      *     ^^^^
      */
     public static final class GlobalVariableReadNode extends Node {
+        /**
+         * <pre>
+         * The name of the global variable, which is a `$` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifier). Alternatively, it can be one of the special global variables designated by a symbol.
+         *
+         *     $foo   # name `:$foo`
+         *
+         *     $_Test # name `:$_Test`
+         * </pre>
+         */
         public final String name;
 
         public GlobalVariableReadNode(String name, int startOffset, int length) {
@@ -4377,6 +4525,17 @@ public abstract class Nodes {
      *     ^^^^^^^^^^
      */
     public static final class HashNode extends Node {
+        /**
+         * <pre>
+         * The elements of the hash. These can be either `AssocNode`s or `AssocSplatNode`s.
+         *
+         *     { a: b }
+         *       ^^^^
+         *
+         *     { **foo }
+         *       ^^^^^
+         * </pre>
+         */
         public final Node[] elements;
 
         public HashNode(Node[] elements, int startOffset, int length) {
@@ -4602,14 +4761,16 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a node that is implicitly being added to the tree but doesn't
-     * correspond directly to a node in the source.
+     * Represents a node that is implicitly being added to the tree but doesn't correspond directly to a node in the source.
      *
      *     { foo: }
      *       ^^^^
      *
      *     { Foo: }
      *       ^^^^
+     *
+     *     foo in { bar: }
+     *              ^^^^
      */
     public static final class ImplicitNode extends Node {
         public final Node value;
@@ -5269,6 +5430,15 @@ public abstract class Nodes {
      *     ^^^^
      */
     public static final class InstanceVariableReadNode extends Node {
+        /**
+         * <pre>
+         * The name of the instance variable, which is a `@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     @x     # name `:@x`
+         *
+         *     @_test # name `:@_test`
+         * </pre>
+         */
         public final String name;
 
         public InstanceVariableReadNode(String name, int startOffset, int length) {
@@ -5401,22 +5571,6 @@ public abstract class Nodes {
      *     ^
      */
     public static final class IntegerNode extends Node {
-        /**
-         * <pre>
-         * Represents flag indicating the base of the integer
-         *
-         *     10    base decimal, value 10
-         *     0d10  base decimal, value 10
-         *     0b10  base binary, value 2
-         *     0o10  base octal, value 8
-         *     010   base octal, value 8
-         *     0x10  base hexidecimal, value 16
-         *
-         * A 0 prefix indicates the number has a different base.
-         * The d, b, o, and x prefixes indicate the base. If one of those
-         * four letters is omitted, the base is assumed to be octal.
-         * </pre>
-         */
         public final short flags;
 
         public IntegerNode(short flags, int startOffset, int length) {
@@ -5469,9 +5623,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a regular expression literal that contains interpolation that
-     * is being used in the predicate of a conditional to implicitly match
-     * against the last line read by an IO object.
+     * Represents a regular expression literal that contains interpolation that is being used in the predicate of a conditional to implicitly match against the last line read by an IO object.
      *
      *     if /foo #{bar} baz/ then end
      *        ^^^^^^^^^^^^^^^^
@@ -5916,14 +6068,20 @@ public abstract class Nodes {
      *     end
      */
     public static final class KeywordRestParameterNode extends Node {
+        public final short flags;
         @Nullable
         public final String name;
 
-        public KeywordRestParameterNode(String name, int startOffset, int length) {
+        public KeywordRestParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -5944,6 +6102,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
@@ -6190,15 +6352,41 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents reading a local variable. Note that this requires that a local
-     * variable of the same name has already been written to in the same scope,
-     * otherwise it is parsed as a method call.
+     * Represents reading a local variable. Note that this requires that a local variable of the same name has already been written to in the same scope, otherwise it is parsed as a method call.
      *
      *     foo
      *     ^^^
      */
     public static final class LocalVariableReadNode extends Node {
+        /**
+         * <pre>
+         * The name of the local variable, which is an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     x      # name `:x`
+         *
+         *     _Test  # name `:_Test`
+         *
+         * Note that this can also be an underscore followed by a number for the default block parameters.
+         *
+         *     _1     # name `:_1`
+         *
+         * Finally, for the default `it` block parameter, the name is `0it`. This is to distinguish it from an `it` local variable that is explicitly declared.
+         *
+         *     it     # name `:0it`
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * The number of visible scopes that should be searched to find the origin of this local variable.
+         *
+         *     foo = 1; foo # depth 0
+         *
+         *     bar = 2; tap { bar } # depth 1
+         *
+         * The specific rules for calculating the depth may differ from individual Ruby implementations, as they are not specified by the language. For more information, see [the Prism documentation](https://github.com/ruby/prism/blob/main/docs/local_variable_depth.md).
+         * </pre>
+         */
         public final int depth;
 
         public LocalVariableReadNode(String name, int depth, int startOffset, int length) {
@@ -6342,9 +6530,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a regular expression literal used in the predicate of a
-     * conditional to implicitly match against the last line read by an IO
-     * object.
+     * Represents a regular expression literal used in the predicate of a conditional to implicitly match against the last line read by an IO object.
      *
      *     if /foo/i then end
      *        ^^^^^^
@@ -6532,8 +6718,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing local variables using a regular expression match with
-     * named capture groups.
+     * Represents writing local variables using a regular expression match with named capture groups.
      *
      *     /(?<foo>bar)/ =~ baz
      *     ^^^^^^^^^^^^^^^^^^^^
@@ -6590,8 +6775,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a node that is missing from the source and results in a syntax
-     * error.
+     * Represents a node that is missing from the source and results in a syntax error.
      */
     public static final class MissingNode extends Node {
 
@@ -6959,8 +7143,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents an implicit set of parameters through the use of numbered
-     * parameters within a block or lambda.
+     * Represents an implicit set of parameters through the use of numbered parameters within a block or lambda.
      *
      *     -> { _1 + _2 }
      *     ^^^^^^^^^^^^^^
@@ -7008,6 +7191,17 @@ public abstract class Nodes {
      *     ^^
      */
     public static final class NumberedReferenceReadNode extends Node {
+        /**
+         * <pre>
+         * The (1-indexed, from the left) number of the capture group. Numbered references that would overflow a `uint32`  result in a `number` of exactly `2**32 - 1`.
+         *
+         *     $1          # number `1`
+         *
+         *     $5432       # number `5432`
+         *
+         *     $4294967296 # number `4294967295`
+         * </pre>
+         */
         public final int number;
 
         public NumberedReferenceReadNode(int number, int startOffset, int length) {
@@ -7051,15 +7245,21 @@ public abstract class Nodes {
      *     end
      */
     public static final class OptionalKeywordParameterNode extends Node {
+        public final short flags;
         public final String name;
         public final Node value;
 
-        public OptionalKeywordParameterNode(String name, Node value, int startOffset, int length) {
+        public OptionalKeywordParameterNode(short flags, String name, Node value, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
             this.value = value;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -7082,6 +7282,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
@@ -7100,15 +7304,21 @@ public abstract class Nodes {
      *     end
      */
     public static final class OptionalParameterNode extends Node {
+        public final short flags;
         public final String name;
         public final Node value;
 
-        public OptionalParameterNode(String name, Node value, int startOffset, int length) {
+        public OptionalParameterNode(short flags, String name, Node value, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
             this.value = value;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             this.value.accept(visitor);
         }
@@ -7131,6 +7341,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
@@ -7148,7 +7362,29 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^
      */
     public static final class OrNode extends Node {
+        /**
+         * <pre>
+         * Represents the left side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     left or right
+         *     ^^^^
+         *
+         *     1 || 2
+         *     ^
+         * </pre>
+         */
         public final Node left;
+        /**
+         * <pre>
+         * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     left || right
+         *             ^^^^^
+         *
+         *     1 or 2
+         *          ^
+         * </pre>
+         */
         public final Node right;
 
         public OrNode(Node left, Node right, int startOffset, int length) {
@@ -7357,8 +7593,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `^` operator for pinning an expression in a
-     * pattern matching expression.
+     * Represents the use of the `^` operator for pinning an expression in a pattern matching expression.
      *
      *     foo in ^(bar)
      *            ^^^^^^
@@ -7400,8 +7635,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `^` operator for pinning a variable in a pattern
-     * matching expression.
+     * Represents the use of the `^` operator for pinning a variable in a pattern matching expression.
      *
      *     foo in ^bar
      *            ^^^^
@@ -7591,8 +7825,31 @@ public abstract class Nodes {
      */
     public static final class RangeNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The left-hand side of the range, if present. It can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     1...
+         *     ^
+         *
+         *     hello...goodbye
+         *     ^^^^^
+         * </pre>
+         */
         @Nullable
         public final Node left;
+        /**
+         * <pre>
+         * The right-hand side of the range, if present. It can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     ..5
+         *       ^
+         *
+         *     1...foo
+         *         ^^^
+         * If neither right-hand or left-hand side was included, this will be a MissingNode.
+         * </pre>
+         */
         @Nullable
         public final Node right;
 
@@ -7825,13 +8082,19 @@ public abstract class Nodes {
      *     end
      */
     public static final class RequiredKeywordParameterNode extends Node {
+        public final short flags;
         public final String name;
 
-        public RequiredKeywordParameterNode(String name, int startOffset, int length) {
+        public RequiredKeywordParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -7853,6 +8116,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
@@ -7868,13 +8135,19 @@ public abstract class Nodes {
      *     end
      */
     public static final class RequiredParameterNode extends Node {
+        public final short flags;
         public final String name;
 
-        public RequiredParameterNode(String name, int startOffset, int length) {
+        public RequiredParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -7895,6 +8168,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append('"').append(this.name).append('"');
@@ -7965,8 +8242,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
      *     end
      *
-     * `Foo, *splat, Bar` are in the `exceptions` field.
-     * `ex` is in the `exception` field.
+     * `Foo, *splat, Bar` are in the `exceptions` field. `ex` is in the `exception` field.
      */
     public static final class RescueNode extends Node {
         public final Node[] exceptions;
@@ -8050,14 +8326,20 @@ public abstract class Nodes {
      *     end
      */
     public static final class RestParameterNode extends Node {
+        public final short flags;
         @Nullable
         public final String name;
 
-        public RestParameterNode(String name, int startOffset, int length) {
+        public RestParameterNode(short flags, String name, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.name = name;
         }
-                
+        
+        public boolean isRepeatedParameter() {
+            return ParameterFlags.isRepeatedParameter(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -8078,6 +8360,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("name: ");
             builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
@@ -8471,8 +8757,7 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a string literal, a string contained within a `%w` list, or
-     * plain string content within an interpolated string.
+     * Represents a string literal, a string contained within a `%w` list, or plain string content within an interpolated string.
      *
      *     "foo"
      *     ^^^^^

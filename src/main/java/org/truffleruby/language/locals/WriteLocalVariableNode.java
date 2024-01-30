@@ -26,19 +26,18 @@ public final class WriteLocalVariableNode extends WriteLocalNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object value = valueNode.execute(frame);
+        assign(frame, value);
+        return value;
+    }
 
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
         if (writeFrameSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             writeFrameSlotNode = insert(WriteFrameSlotNodeGen.create(frameSlot));
         }
 
         writeFrameSlotNode.executeWrite(frame, value);
-        return value;
-    }
-
-    @Override
-    public void assign(VirtualFrame frame, Object value) {
-        throw CompilerDirectives.shouldNotReachHere("Should be simplified with getSimplifiedAssignableNode()");
     }
 
     @Override

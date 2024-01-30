@@ -17,6 +17,9 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayAppendOneNode;
+import org.truffleruby.core.array.ArrayConcatNode;
+import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -48,7 +51,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PROTECTED;
 
-public final class RubyCallNode extends LiteralCallNode implements AssignableNode {
+public final class RubyCallNode extends LiteralCallAssignableNode {
 
     private final String methodName;
 
@@ -182,7 +185,7 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
 
         final Object returnValue = dispatch.execute(frame, receiverObject, methodName, rubyArgs, dispatchConfig);
         if (isAttrAssign) {
-            final Object value = rubyArgs[rubyArgs.length - 1];
+            final Object value = ArrayUtils.getLast(rubyArgs);
             assert RubyGuards.assertIsValidRubyValue(value);
             return value;
         } else {
@@ -218,11 +221,15 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
 
     @ExplodeLoop
     private void executeArgumentsToAssign(VirtualFrame frame, Object[] rubyArgs) {
+        // BodyTranslator-specific logic: the last element could be DeadNode that is disallowed to be executed
+        // TODO: use #executeArguments method instead after complete switching to YARP
+
+        // execute all arguments but the last one
         for (int i = 0; i < arguments.length - 1; i++) {
             RubyArguments.setArgument(rubyArgs, i, arguments[i].execute(frame));
         }
 
-        // the last element should be either NilNode or DeadNode but DeadNode is disallowed to be executed
+        // execute the last argument
         final int lastIndex = arguments.length - 1;
         if (arguments[lastIndex] instanceof DeadNode) {
             RubyArguments.setArgument(rubyArgs, lastIndex, nil);
@@ -264,7 +271,8 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
     }
 
     public boolean hasLiteralBlock() {
-        return block instanceof BlockDefinitionNode || block instanceof LambdaToProcNode;
+        RubyNode unwrappedBlock = RubyNode.unwrapNode(block);
+        return unwrappedBlock instanceof BlockDefinitionNode || unwrappedBlock instanceof LambdaToProcNode;
     }
 
     public RubyNode[] getArguments() {
@@ -272,10 +280,33 @@ public final class RubyCallNode extends LiteralCallNode implements AssignableNod
     }
 
     private RubyNode getLastArgumentNode() {
-        final RubyNode lastArg = arguments[arguments.length - 1];
-        if (isSplatted && lastArg instanceof ArrayAppendOneNode) {
-            return ((ArrayAppendOneNode) lastArg).getValueNode();
+        final RubyNode lastArg = RubyNode.unwrapNode(ArrayUtils.getLast(arguments));
+
+        // BodyTranslator-specific condition
+        if (isSplatted && lastArg instanceof ArrayAppendOneNode arrayAppendOneNode) {
+            return RubyNode.unwrapNode(arrayAppendOneNode.getValueNode());
         }
+
+        // YARP-specific condition
+        // In case of splat argument (e.g. for code `a[*b], c = 1, 2`) a method (e.g. `#[]=`) has extra argument - value.
+        // Arguments are supposed to have the following structure - ArrayConcatNode(... ArrayLiteralNode([placeholder])).
+        // So return this placeholder node.
+        if (isSplatted && lastArg instanceof ArrayConcatNode arrayConcatNode) {
+            RubyNode[] elements = arrayConcatNode.getElements();
+            assert elements.length > 0;
+
+            RubyNode last = RubyNode.unwrapNode(ArrayUtils.getLast(elements));
+
+            if (last instanceof ArrayLiteralNode arrayLiteralNode) {
+                RubyNode[] values = arrayLiteralNode.getValues();
+                assert values.length > 0;
+
+                return RubyNode.unwrapNode(ArrayUtils.getLast(values));
+            } else {
+                return last;
+            }
+        }
+
         return lastArg;
     }
 

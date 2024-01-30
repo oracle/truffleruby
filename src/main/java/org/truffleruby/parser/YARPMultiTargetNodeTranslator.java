@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -23,6 +24,7 @@ import org.truffleruby.language.literal.NilLiteralNode;
 // Could be used in ordinal multi-assignment and for destructuring array argument in method/proc parameters:
 // - a, (b, c) = 1, [2, 3]
 // - def foo(a, (b, c)) end
+// NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode.
 public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiTargetNode node;
@@ -63,7 +65,14 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
         final AssignableNode restNode;
         if (node.rest != null) {
-            restNode = node.rest.accept(this);
+            // implicit rest in nested target is allowed only for multi-assignment and isn't allowed in block parameters
+            if (node.rest instanceof Nodes.ImplicitRestNode) {
+                // a, = []
+                // do nothing
+                restNode = null;
+            } else {
+                restNode = node.rest.accept(this);
+            }
         } else {
             restNode = null;
         }
@@ -110,6 +119,11 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     public AssignableNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
+    }
+
+    @Override
+    public AssignableNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
     }
 
     @Override

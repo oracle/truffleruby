@@ -23,7 +23,7 @@ public final class DataNode extends RubyContextSourceNode {
     @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
     @Child private DispatchNode callHelperNode;
 
-    private final int endPosition;
+    private final int endPosition; // position in a source file at the beginning of a line right after __END__ keyword in bytes
 
     public DataNode(int endPosition) {
         this.endPosition = endPosition;

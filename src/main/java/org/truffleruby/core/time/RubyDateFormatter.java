@@ -556,7 +556,7 @@ public abstract class RubyDateFormatter {
             // reset formatter
             formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
 
-            toAppendTo.append(StringOperations.encodeBytes(output, toAppendTo.getEncoding()));
+            toAppendTo.append(TStringUtils.javaStringToBytes(output, toAppendTo.getRubyEncoding()));
         }
 
         return toAppendTo;

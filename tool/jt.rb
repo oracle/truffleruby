@@ -1367,7 +1367,7 @@ module Commands
       end
     end
 
-    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
+    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
     run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
   end
@@ -1704,14 +1704,12 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
-      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false'
+      vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
       vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
 
     vm_args << '--polyglot' if truffleruby_jvm?
-    # Until pattern matching is complete, we enable it in specs but not globally
-    vm_args << '--experimental-options' << '--pattern-matching'
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 

@@ -1,0 +1,1 @@
+fails:The super keyword without explicit arguments that are '_'

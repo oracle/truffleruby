@@ -180,8 +180,10 @@ ast: |
                                                                       ReadPostArgumentNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              hasRest = true
                                                                               indexFromCount = 1
                                                                               keywordArguments = false
+                                                                              optional = 0
                                                                               required = 2
                                                           WriteLocalVariableNode
                                                               attributes:
@@ -192,8 +194,10 @@ ast: |
                                                                       ReadPostArgumentNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              hasRest = true
                                                                               indexFromCount = 2
                                                                               keywordArguments = false
+                                                                              optional = 0
                                                                               required = 2
                                                       ]
                                           thenBody =
@@ -240,12 +244,15 @@ ast: |
                                                                   frameSlot = 3 # bar
                                                               children:
                                                                   valueNode =
-                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                      ReadBlockPostArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              index = -1
+                                                                              hasRest = true
+                                                                              indexFromCount = 1
+                                                                              optional = 0
+                                                                              required = 2
                                                                           children:
-                                                                              arrayNode_ =
+                                                                              readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
@@ -257,12 +264,15 @@ ast: |
                                                                   frameSlot = 2 # foo
                                                               children:
                                                                   valueNode =
-                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                      ReadBlockPostArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              index = -2
+                                                                              hasRest = true
+                                                                              indexFromCount = 2
+                                                                              optional = 0
+                                                                              required = 2
                                                                           children:
-                                                                              arrayNode_ =
+                                                                              readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0

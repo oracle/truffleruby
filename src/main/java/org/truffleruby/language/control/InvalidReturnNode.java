@@ -24,7 +24,7 @@ public final class InvalidReturnNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        value.doExecuteVoid(frame);
+        value.executeVoid(frame);
         throw new RaiseException(getContext(), coreExceptions().unexpectedReturn(this));
     }
 

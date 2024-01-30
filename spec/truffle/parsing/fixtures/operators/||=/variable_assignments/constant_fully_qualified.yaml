@@ -56,22 +56,45 @@ ast: |
                                                                   attributes:
                                                                       lexicalScope =  :: Object
                                                                       name = "FOO"
-                                      OrNodeGen
+                                      OrLazyValueDefinedNodeGen
                                           attributes:
                                               flags = 0
+                                              rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
                                           children:
                                               left =
-                                                  ReadConstantNode
+                                                  AndNodeGen
                                                       attributes:
                                                           flags = 0
-                                                          name = "BAR"
                                                       children:
-                                                          moduleNode =
-                                                              ReadLocalVariableNode
+                                                          left =
+                                                              DefinedNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      frameSlot = 2 # %value_0
-                                                                      type = FRAME_LOCAL
+                                                                  children:
+                                                                      child =
+                                                                          ReadConstantNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  name = "BAR"
+                                                                              children:
+                                                                                  moduleNode =
+                                                                                      ReadLocalVariableNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                                                              frameSlot = 2 # %value_0
+                                                                                              type = FRAME_LOCAL
+                                                          right =
+                                                              ReadConstantNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      name = "BAR"
+                                                                  children:
+                                                                      moduleNode =
+                                                                          ReadLocalVariableNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  frameSlot = 2 # %value_0
+                                                                                  type = FRAME_LOCAL
                                               right =
                                                   WriteConstantNode
                                                       attributes:

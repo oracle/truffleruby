@@ -38,7 +38,6 @@
 module RbConfig
 
   ruby_home = Truffle::Boot.ruby_home
-  raise 'The TruffleRuby home needs to be set to require RbConfig' unless ruby_home
   TOPDIR = ruby_home
 
   sulong = Truffle::Boot.get_option('cexts-sulong')

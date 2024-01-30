@@ -259,6 +259,9 @@ typedef struct pm_parser pm_parser_t;
  * token that is understood by a parent context but not by the current context.
  */
 typedef enum {
+    /** a null context, used for returning a value from a function */
+    PM_CONTEXT_NONE = 0,
+
     /** a begin statement */
     PM_CONTEXT_BEGIN,
 
@@ -557,7 +560,11 @@ struct pm_parser {
     /** The list of magic comments that have been found while parsing. */
     pm_list_t magic_comment_list;
 
-    /** The optional location of the __END__ keyword and its contents. */
+    /**
+     * An optional location that represents the location of the __END__ marker
+     * and the rest of the content of the file. This content is loaded into the
+     * DATA constant when the file being parsed is the main file being executed.
+     */
     pm_location_t data_loc;
 
     /** The list of warnings that have been found while parsing. */

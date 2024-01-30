@@ -42,13 +42,6 @@ guard -> { TruffleRuby.native? } do
       out.should include("\nfalse\n")
     end
 
-    it "is not used when the home is unset but was set at build time" do
-      code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
-      out = ruby_exe(code, options: "--experimental-options --log.level=FINE --no-home-provided", args: "2>&1")
-      out.should include("[nil, false]\n")
-      out.should include("not reusing pre-initialized context: --no-home-provided differs, was: false and is now: true")
-    end
-
     it "is used when $VERBOSE changes" do
       code = "p [$VERBOSE, Truffle::Boot.was_preinitialized?]"
       # -w/-W in RUBYOPT overrides -w on the command-line, like in MRI,

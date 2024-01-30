@@ -1,0 +1,76 @@
+subject: "Array"
+description: "Array with splat operator and following elements ([*a, b, c])"
+yarp_specific: true # Removed excessive SplatCastNodeGen:
+                    #   SplatCastNodeGen(UninitialisedArrayLiteralNode) -> UninitialisedArrayLiteralNode
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  [*foo, 1, 2]
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              ArrayConcatNode
+                  attributes:
+                      flags = 1
+                  children:
+                      children = [
+                          SplatCastNodeGen
+                              attributes:
+                                  conversionMethod = :to_a
+                                  copy = true
+                                  flags = 0
+                                  nilBehavior = CONVERT
+                              children:
+                                  childNode_ =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = NoKeywordArgumentsDescriptor
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "foo"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                          children:
+                                              receiver =
+                                                  SelfNode
+                                                      attributes:
+                                                          flags = 0
+                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                              attributes:
+                                  flags = 0
+                                  language = org.truffleruby.RubyLanguage@...
+                              children:
+                                  values = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 1
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              value = 2
+                                  ]
+                      ]
+          ]

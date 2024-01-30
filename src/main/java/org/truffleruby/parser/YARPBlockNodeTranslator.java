@@ -10,9 +10,7 @@
 package org.truffleruby.parser;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -44,17 +42,11 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 public final class YARPBlockNodeTranslator extends YARPTranslator {
+
     private final Arity arity;
 
-    public YARPBlockNodeTranslator(
-            RubyLanguage language,
-            TranslatorEnvironment environment,
-            byte[] sourceBytes,
-            Source source,
-            ParserContext parserContext,
-            Node currentNode,
-            Arity arity) {
-        super(language, environment, sourceBytes, source, parserContext, currentNode);
+    public YARPBlockNodeTranslator(TranslatorEnvironment environment, Arity arity) {
+        super(environment);
         this.arity = arity;
     }
 
@@ -64,9 +56,8 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
         declareLocalVariables(locals);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
-                parameters,
-                language,
                 environment,
+                parameters,
                 arity,
                 !isStabbyLambda,
                 false,
@@ -164,11 +155,9 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             final RubyNode readArrayNode = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, arraySlot);
 
             final var translator = new YARPParametersNodeToDestructureTranslator(
+                    environment,
                     parameters,
                     readArrayNode,
-                    environment,
-                    language,
-                    arity,
                     this);
             final RubyNode newDestructureArguments = translator.translate();
 
@@ -313,12 +302,6 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
     }
 
     private boolean shouldConsiderDestructuringArrayArg(Arity arity) {
-        if (arity.getRequired() == 1 && arity.getOptional() == 0 && !arity.hasRest() && arity.hasKeywordsRest()) {
-            // Special case for: proc { |a, **kw| a }.call([1, 2]) => 1
-            // Seems inconsistent: https://bugs.ruby-lang.org/issues/16166#note-14
-            return true;
-        }
-
         if (!arity.hasRest() && arity.getRequired() + arity.getOptional() <= 1) {
             // If we accept at most 0 or 1 arguments, there's never any need to destructure
             return false;
