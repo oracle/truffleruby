@@ -1,1 +1,0 @@
-fails(https://github.com/ruby/prism/issues/2116):Regexps with grouping raises a SyntaxError when parentheses aren't balanced
