@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -38,6 +38,7 @@ public final class WhileNode extends RubyContextSourceNode {
         return nil;
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var repeatingNode = (WhileRepeatingBaseNode) loopNode.getRepeatingNode();
         var copy = new WhileNode(repeatingNode.cloneUninitialized());
@@ -96,7 +97,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
             while (true) { // for redo
                 try {
-                    body.doExecuteVoid(frame);
+                    body.executeVoid(frame);
                     return true;
                 } catch (NextException e) {
                     nextUsed.enter(this);
@@ -130,7 +131,7 @@ public final class WhileNode extends RubyContextSourceNode {
                 @Cached InlinedBranchProfile redoUsed,
                 @Cached InlinedBranchProfile nextUsed) {
             try {
-                body.doExecuteVoid(frame);
+                body.executeVoid(frame);
             } catch (NextException e) {
                 nextUsed.enter(this);
             } catch (RedoException e) {

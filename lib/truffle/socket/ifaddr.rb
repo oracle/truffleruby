@@ -28,7 +28,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Socket < BasicSocket
-  class Ifaddr < Data
+  class Ifaddr
     attr_reader :addr, :broadaddr, :dstaddr, :flags, :ifindex, :name, :netmask
 
     def initialize(addr: nil, broadaddr: nil, dstaddr: nil, flags: nil, ifindex: nil, name: nil, netmask: nil)

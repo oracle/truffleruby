@@ -2,3 +2,4 @@ slow:Warning.warn has Warning as the method owner
 slow:Warning.warn can be overridden
 slow:Warning.warn does not add a newline
 slow:Warning.warn returns nil
+fails(https://github.com/ruby/prism/issues/2005):Warning.warn is called by parser warnings

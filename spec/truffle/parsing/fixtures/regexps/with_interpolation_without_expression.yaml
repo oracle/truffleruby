@@ -3,13 +3,14 @@ description: "a literal with interpolation but without expression (#{})"
 notes: >
   An empty expression is represented as a frozen empty string with
   (ObjectLiteralNode object = '') node.
-yarp_specific: true # there is an extra "" StringLiteralNode with old translator
+yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /a#{}c/
 ast: |
   InterpolatedRegexpNode
       attributes:
+          encoding = ASCII-8BIT
           flags = 0
           rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
       children:
@@ -18,6 +19,7 @@ ast: |
           builderNode =
               InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
                   attributes:
+                      encoding = ASCII-8BIT
                       options = RegexpOptions(kcode: NONE, kcodeDefault, literal)
                   children:
                       equalNode =

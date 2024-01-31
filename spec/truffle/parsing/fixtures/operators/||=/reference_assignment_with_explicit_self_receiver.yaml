@@ -1,0 +1,97 @@
+subject: "||="
+description: "Assign an referenced element with explicit self receiver (self[a] ||= b)"
+notes: >
+  Method call when receiver is `self` means a private or protected method could be successfully called.
+  
+  In AST it's represented with method call parameter `ignoreVisibility=true`.
+yarp_specific: true # don't put self into a local variable and fixed call node and set ignoreVisibility=true
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  self[42] ||= 100500
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              DefinedWrapperNode
+                  attributes:
+                      definition = assignment
+                      flags = 1
+                  children:
+                      child =
+                          SequenceNode
+                              attributes:
+                                  flags = 0
+                              children:
+                                  body = [
+                                      WriteLocalVariableNode
+                                          attributes:
+                                              flags = 0
+                                              frameSlot = 2 # %value_0
+                                          children:
+                                              valueNode =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          value = 42
+                                      OrLazyValueDefinedNodeGen
+                                          attributes:
+                                              flags = 0
+                                              rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+                                          children:
+                                              left =
+                                                  InlinedIndexGetNodeGen
+                                                      attributes:
+                                                          assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                                          flags = 0
+                                                          parameters = RubyCallNodeParameters{methodName='[]', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                      children:
+                                                          leftNode_ =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                          rightNode_ =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2 # %value_0
+                                                                      type = FRAME_LOCAL
+                                              right =
+                                                  InlinedIndexSetNodeGen
+                                                      attributes:
+                                                          assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                                          flags = 0
+                                                          parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
+                                                      children:
+                                                          operand1Node_ =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2 # %value_0
+                                                                      type = FRAME_LOCAL
+                                                          operand2Node_ =
+                                                              IntegerFixnumLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      value = 100500
+                                                          receiver_ =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                  ]
+          ]

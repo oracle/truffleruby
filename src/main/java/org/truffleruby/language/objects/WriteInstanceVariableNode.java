@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,7 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.AssignableNode;
 import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceAssignableNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 
-public abstract class WriteInstanceVariableNode extends RubyContextSourceNode implements AssignableNode {
+public abstract class WriteInstanceVariableNode extends RubyContextSourceAssignableNode {
 
     private final String name;
 
@@ -35,6 +35,7 @@ public abstract class WriteInstanceVariableNode extends RubyContextSourceNode im
 
     @CompilationFinal private boolean frozenProfile;
 
+    @Override
     public abstract Object execute(VirtualFrame frame);
 
     public WriteInstanceVariableNode(String name, RubyNode rhs) {

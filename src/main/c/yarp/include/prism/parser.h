@@ -8,7 +8,8 @@
 
 #include "prism/ast.h"
 #include "prism/defines.h"
-#include "prism/enc/pm_encoding.h"
+#include "prism/encoding.h"
+#include "prism/options.h"
 #include "prism/util/pm_constant_pool.h"
 #include "prism/util/pm_list.h"
 #include "prism/util/pm_newline_list.h"
@@ -258,6 +259,9 @@ typedef struct pm_parser pm_parser_t;
  * token that is understood by a parent context but not by the current context.
  */
 typedef enum {
+    /** a null context, used for returning a value from a function */
+    PM_CONTEXT_NONE = 0,
+
     /** a begin statement */
     PM_CONTEXT_BEGIN,
 
@@ -297,6 +301,9 @@ typedef enum {
     /** an ensure statement */
     PM_CONTEXT_ENSURE,
 
+    /** an ensure statement within a method definition */
+    PM_CONTEXT_ENSURE_DEF,
+
     /** a for loop */
     PM_CONTEXT_FOR,
 
@@ -333,8 +340,14 @@ typedef enum {
     /** a rescue else statement */
     PM_CONTEXT_RESCUE_ELSE,
 
+    /** a rescue else statement within a method definition */
+    PM_CONTEXT_RESCUE_ELSE_DEF,
+
     /** a rescue statement */
     PM_CONTEXT_RESCUE,
+
+    /** a rescue statement within a method definition */
+    PM_CONTEXT_RESCUE_DEF,
 
     /** a singleton class definition */
     PM_CONTEXT_SCLASS,
@@ -361,8 +374,7 @@ typedef struct pm_context_node {
 /** This is the type of a comment that we've found while parsing. */
 typedef enum {
     PM_COMMENT_INLINE,
-    PM_COMMENT_EMBDOC,
-    PM_COMMENT___END__
+    PM_COMMENT_EMBDOC
 } pm_comment_type_t;
 
 /**
@@ -374,11 +386,8 @@ typedef struct pm_comment {
     /** The embedded base node. */
     pm_list_node_t node;
 
-    /** A pointer to the start of the comment in the source. */
-    const uint8_t *start;
-
-    /** A pointer to the end of the comment in the source. */
-    const uint8_t *end;
+    /** The location of the comment in the source. */
+    pm_location_t location;
 
     /** The type of comment that we've found. */
     pm_comment_type_t type;
@@ -412,14 +421,6 @@ typedef struct {
  * we provide the ability here to call out to a user-defined function.
  */
 typedef void (*pm_encoding_changed_callback_t)(pm_parser_t *parser);
-
-/**
- * When an encoding is encountered that isn't understood by prism, we provide
- * the ability here to call out to a user-defined function to get an encoding
- * struct. If the function returns something that isn't NULL, we set that to
- * our encoding and use it to parse identifiers.
- */
-typedef pm_encoding_t *(*pm_encoding_decode_callback_t)(pm_parser_t *parser, const uint8_t *name, size_t width);
 
 /**
  * When you are lexing through a file, the lexer needs all of the information
@@ -469,18 +470,12 @@ typedef struct pm_scope {
     bool explicit_params;
 
     /**
-     * A boolean indicating whether or not this scope has numbered parameters.
+     * An integer indicating the number of numbered parameters on this scope.
      * This is necessary to determine if child blocks are allowed to use
-     * numbered parameters.
+     * numbered parameters, and to pass information to consumers of the AST
+     * about how many numbered parameters exist.
      */
-    bool numbered_params;
-
-    /**
-     * A transparent scope is a scope that cannot have locals set on itself.
-     * When a local is set on this scope, it will instead be set on the parent
-     * scope's local table.
-     */
-    bool transparent;
+    uint8_t numbered_parameters;
 } pm_scope_t;
 
 /**
@@ -532,12 +527,6 @@ struct pm_parser {
         size_t index;
     } lex_modes;
 
-    /**
-     * The common_whitespace value from the most-recently-popped heredoc mode of the lexer, so we
-     * can dedent the heredoc after popping the lex mode.
-     */
-    size_t current_string_common_whitespace;
-
     /** The pointer to the start of the source. */
     const uint8_t *start;
 
@@ -571,6 +560,13 @@ struct pm_parser {
     /** The list of magic comments that have been found while parsing. */
     pm_list_t magic_comment_list;
 
+    /**
+     * An optional location that represents the location of the __END__ marker
+     * and the rest of the content of the file. This content is loaded into the
+     * DATA constant when the file being parsed is the main file being executed.
+     */
+    pm_location_t data_loc;
+
     /** The list of warnings that have been found while parsing. */
     pm_list_t warning_list;
 
@@ -587,7 +583,7 @@ struct pm_parser {
      * The encoding functions for the current file is attached to the parser as
      * it's parsing so that it can change with a magic comment.
      */
-    pm_encoding_t encoding;
+    const pm_encoding_t *encoding;
 
     /**
      * When the encoding that is being used to parse the source is changed by
@@ -595,14 +591,6 @@ struct pm_parser {
      * function.
      */
     pm_encoding_changed_callback_t encoding_changed_callback;
-
-    /**
-     * When an encoding is encountered that isn't understood by prism, we
-     * provide the ability here to call out to a user-defined function to get an
-     * encoding struct. If the function returns something that isn't NULL, we
-     * set that to our encoding and use it to parse identifiers.
-     */
-    pm_encoding_decode_callback_t encoding_decode_callback;
 
     /**
      * This pointer indicates where a comment must start if it is to be
@@ -649,7 +637,44 @@ struct pm_parser {
      * The line number at the start of the parse. This will be used to offset
      * the line numbers of all of the locations.
      */
-    uint32_t start_line;
+    int32_t start_line;
+
+    /**
+     * When a string-like expression is being lexed, any byte or escape sequence
+     * that resolves to a value whose top bit is set (i.e., >= 0x80) will
+     * explicitly set the encoding to the same encoding as the source.
+     * Alternatively, if a unicode escape sequence is used (e.g., \\u{80}) that
+     * resolves to a value whose top bit is set, then the encoding will be
+     * explicitly set to UTF-8.
+     *
+     * The _next_ time this happens, if the encoding that is about to become the
+     * explicitly set encoding does not match the previously set explicit
+     * encoding, a mixed encoding error will be emitted.
+     *
+     * When the expression is finished being lexed, the explicit encoding
+     * controls the encoding of the expression. For the most part this means
+     * that the expression will either be encoded in the source encoding or
+     * UTF-8. This holds for all encodings except US-ASCII. If the source is
+     * US-ASCII and an explicit encoding was set that was _not_ UTF-8, then the
+     * expression will be encoded as ASCII-8BIT.
+     *
+     * Note that if the expression is a list, different elements within the same
+     * list can have different encodings, so this will get reset between each
+     * element. Furthermore all of this only applies to lists that support
+     * interpolation, because otherwise escapes that could change the encoding
+     * are ignored.
+     *
+     * At first glance, it may make more sense for this to live on the lexer
+     * mode, but we need it here to communicate back to the parser for character
+     * literals that do not push a new lexer mode.
+     */
+    const pm_encoding_t *explicit_encoding;
+
+    /** The current parameter name id on parsing its default value. */
+    pm_constant_id_t current_param_name;
+
+    /** The version of prism that we should use to parse. */
+    pm_options_version_t version;
 
     /** Whether or not we're at the beginning of a command. */
     bool command_start;

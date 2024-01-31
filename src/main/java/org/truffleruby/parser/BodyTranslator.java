@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -693,8 +693,6 @@ public class BodyTranslator extends BaseTranslator {
     public RubyNode visitCaseNode(CaseParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
-
         /* There are two sorts of case - one compares a list of expressions against a value, the other just checks a
          * list of expressions for truth. */
 
@@ -709,6 +707,8 @@ public class BodyTranslator extends BaseTranslator {
 
             /* Build an if expression from the whens and else. Work backwards because the first if contains all the
              * others in its else clause. */
+
+            RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
 
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
@@ -746,6 +746,8 @@ public class BodyTranslator extends BaseTranslator {
             // A top-level block assigns the temp then runs the if
             ret = sequence(sourceSection, Arrays.asList(assignTemp, ifNode));
         } else {
+            RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
+
             for (int n = node.getCases().size() - 1; n >= 0; n--) {
                 final WhenParseNode when = (WhenParseNode) node.getCases().get(n);
 
@@ -779,16 +781,6 @@ public class BodyTranslator extends BaseTranslator {
     @Override
     public RubyNode visitCaseInNode(CaseInParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-
-        if (!RubyLanguage.getCurrentContext().getOptions().PATTERN_MATCHING) {
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().syntaxError(
-                            "syntax error, unexpected keyword_in",
-                            currentNode,
-                            sourceSection.toSourceSection(source)));
-        }
 
         PatternMatchingTranslator translator = new PatternMatchingTranslator(language, source, parserContext,
                 currentNode, environment, this);
@@ -1123,6 +1115,7 @@ public class BodyTranslator extends BaseTranslator {
 
         final InterpolatedRegexpNode i = new InterpolatedRegexpNode(
                 children.toArray(EMPTY_TO_S_NODE_ARRAY),
+                Encodings.getBuiltInEncoding(node.getEncoding()),
                 node.getOptions());
         i.unsafeSetSourceSection(sourceSection);
 
@@ -1545,8 +1538,6 @@ public class BodyTranslator extends BaseTranslator {
          * Here, JRuby calls the object being iterated over the 'iter'. */
 
         final String temp = environment.allocateLocalTemp("for");
-        environment.declareVar(temp);
-
         final ParseNode receiver = node.getIterNode();
 
         /* The x in for x in ... is like the nodes in multiple assignment - it has a dummy RHS which we need to replace
@@ -1820,7 +1811,7 @@ public class BodyTranslator extends BaseTranslator {
         final ArgsParseNode argsNode = node.getArgsNode();
 
         // Unset this flag for any blocks within the `for` statement's body
-        final boolean hasOwnScope = isStabbyLambda || !translatingForStatement;
+        final boolean hasOwnScope = !translatingForStatement;
 
         final boolean isProc = !isStabbyLambda;
 
@@ -2226,7 +2217,14 @@ public class BodyTranslator extends BaseTranslator {
             RubyNode lhs = readMethod.accept(this);
             RubyNode rhs = writeMethod.accept(this);
 
-            final RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
+            RubyNode controlNode = isOrOperator ? OrNodeGen.create(lhs, rhs) : AndNodeGen.create(lhs, rhs);
+
+            if (node.isLazy()) {
+                controlNode = UnlessNodeGen.create(
+                        new IsNilNode(receiverValue.get(sourceSection).accept(this)),
+                        controlNode);
+                controlNode.unsafeSetSourceSection(sourceSection);
+            }
 
             final RubyNode ret = new DefinedWrapperNode(
                     language.coreStrings.ASSIGNMENT,
@@ -2248,24 +2246,25 @@ public class BodyTranslator extends BaseTranslator {
                 node.getOperatorName(),
                 buildArrayNode(pos, node.getValueNode()),
                 null);
-        final ParseNode writeMethod = new CallParseNode(
+        final var writeMethod = new CallParseNode(
                 pos,
                 receiverValue.get(pos),
                 node.getVariableName() + "=",
                 buildArrayNode(pos, operation),
                 null);
 
-        RubyNode body = writeMethod.accept(this);
+        RubyNode body = translateCallNode(writeMethod, node.getReceiverNode() instanceof SelfParseNode, false, true);
 
         final SourceIndexLength sourceSection = pos;
 
         if (node.isLazy()) {
-            body = IfNodeGen.create(
-                    NotNodeGen.create(new IsNilNode(receiverValue.get(sourceSection).accept(this))),
+            body = UnlessNodeGen.create(
+                    new IsNilNode(receiverValue.get(sourceSection).accept(this)),
                     body);
             body.unsafeSetSourceSection(sourceSection);
         }
-        final RubyNode ret = receiverValue.prepareAndThen(sourceSection, body);
+        final RubyNode sequence = receiverValue.prepareAndThen(sourceSection, body);
+        final RubyNode ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
 
         return addNewlineIfNeeded(node, ret);
     }
@@ -2344,6 +2343,7 @@ public class BodyTranslator extends BaseTranslator {
         while (listIterator.hasPrevious()) {
             ret = listIterator.previous().prepareAndThen(node.getPosition(), ret);
         }
+        ret = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, ret);
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2881,9 +2881,9 @@ public class BodyTranslator extends BaseTranslator {
 
     @Override
     public RubyNode visitXStrNode(XStrParseNode node) {
-        final ParseNode argsNode = buildArrayNode(
-                node.getPosition(),
-                new StrParseNode(node.getPosition(), node.getValue(), node.encoding));
+        final var stringNode = new StrParseNode(node.getPosition(), node.getValue(), node.encoding);
+        stringNode.setFrozen(true); // it's always frozen
+        final ParseNode argsNode = buildArrayNode(node.getPosition(), stringNode);
         final ParseNode callNode = new FCallParseNode(node.getPosition(), "`", argsNode, null);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);

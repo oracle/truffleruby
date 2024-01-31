@@ -1,0 +1,1 @@
+exclude :test_timeout_during_non_chunked_streamed_HTTP_session_write, "transient"

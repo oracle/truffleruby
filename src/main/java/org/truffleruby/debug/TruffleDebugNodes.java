@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -58,6 +58,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.debug.TruffleDebugNodes.ForeignArrayNode.ForeignArray;
@@ -75,8 +76,8 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
+import org.truffleruby.language.loader.ByteBasedCharSequence;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.annotations.Split;
@@ -114,7 +115,6 @@ import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.parser.scope.StaticScope;
-import org.truffleruby.platform.Platform;
 import org.prism.Loader;
 import org.prism.Parser;
 
@@ -253,12 +253,6 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    private static byte[] yarpSerialize(RubyLanguage language, byte[] source) {
-        // TODO: load it once during context initialization (when YARP is used as the main parser)
-        Parser.loadLibrary(language.getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX);
-        return Parser.parseAndSerialize(source);
-    }
-
     @CoreMethod(names = "yarp_serialize", onSingleton = true, required = 1)
     public abstract static class YARPSerializeNode extends CoreMethodArrayArgumentsNode {
         @TruffleBoundary
@@ -271,7 +265,7 @@ public abstract class TruffleDebugNodes {
             var tencoding = strings.getTEncoding(code);
             var source = copyToByteArrayNode.execute(tstring, tencoding);
 
-            byte[] serialized = yarpSerialize(getLanguage(), source);
+            byte[] serialized = Parser.parseAndSerialize(source);
 
             return createString(fromByteArrayNode, serialized, Encodings.BINARY);
         }
@@ -289,9 +283,9 @@ public abstract class TruffleDebugNodes {
             var tencoding = strings.getTEncoding(code);
             var source = copyToByteArrayNode.execute(tstring, tencoding);
 
-            byte[] serialized = yarpSerialize(getLanguage(), source);
+            byte[] serialized = Parser.parseAndSerialize(source);
 
-            var yarpSource = YARPTranslatorDriver.createYARPSource(source, YARPTranslatorDriver.createRubySource(code));
+            var yarpSource = YARPTranslatorDriver.createYARPSource(source);
             var parseResult = Loader.load(serialized, yarpSource);
             var ast = parseResult.value;
 
@@ -343,9 +337,10 @@ public abstract class TruffleDebugNodes {
         Object ast(Object code,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String codeString = RubyGuards.getJavaString(code);
+            var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
+                    RubyStringLibrary.create().getEncoding(code));
             String name = "<parse_ast>";
-            var source = Source.newBuilder("ruby", codeString, name).build();
+            var source = Source.newBuilder("ruby", new ByteBasedCharSequence(codeString), name).build();
             var rubySource = new RubySource(source, name);
 
             var staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
@@ -1422,29 +1417,32 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "parse_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
+    @CoreMethod(names = "parse_and_dump_truffle_ast", onSingleton = true, required = 4, lowerFixnum = 3)
     public abstract static class ParseAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         @TruffleBoundary
-        Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index,
+        Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index, boolean mainScript,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
 
-            RubyRootNode rootNode = parse(sourceCodeString);
+            var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(sourceCode),
+                    RubyStringLibrary.create().getEncoding(sourceCode));
+
+            RubyRootNode rootNode = parse(code, mainScript);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
 
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
 
-        private RubyRootNode parse(String sourceCode) {
-            Source source = Source.newBuilder("ruby", sourceCode, "<parse_ast>").build();
+        private RubyRootNode parse(TStringWithEncoding sourceCode, boolean mainScript) {
+            Source source = Source.newBuilder("ruby", new ByteBasedCharSequence(sourceCode), "<parse_ast>").build();
             TranslatorEnvironment.resetTemporaryVariablesIndex();
+            var parserContext = mainScript ? ParserContext.TOP_LEVEL_FIRST : ParserContext.TOP_LEVEL;
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parse(
                     new RubySource(source, source.getName()),
-                    ParserContext.TOP_LEVEL,
+                    parserContext,
                     null,
                     getContext().getRootLexicalScope(),
                     null);
@@ -1453,35 +1451,27 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 3, lowerFixnum = 3)
+    @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 4, lowerFixnum = 3)
     public abstract static class ParseWithYARPAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(code)", limit = "1")
-        Object parseAndDump(Object code, Object focusedNodeClassName, int index,
+        Object parseAndDump(Object code, Object focusedNodeClassName, int index, boolean mainScript,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
-            RubyRootNode rootNode;
-            try {
-                rootNode = parse(code);
-            } catch (Error e) {
-                if (e.getMessage().contains("does not know how to translate")) {
-                    throw new RaiseException(getContext(), coreExceptions().runtimeError(e.getMessage(), this));
-                } else {
-                    throw e;
-                }
-            }
+            RubyRootNode rootNode = parse(code, mainScript);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
             return createString(fromJavaStringNode, output, Encodings.UTF_8);
         }
 
-        private RubyRootNode parse(Object code) {
+        private RubyRootNode parse(Object code, boolean mainScript) {
             TranslatorEnvironment.resetTemporaryVariablesIndex();
+            var parserContext = mainScript ? ParserContext.TOP_LEVEL_FIRST : ParserContext.TOP_LEVEL;
 
             final RootCallTarget callTarget = getContext().getCodeLoader().parseWithYARP(
                     code,
-                    ParserContext.TOP_LEVEL,
+                    parserContext,
                     null,
                     getContext().getRootLexicalScope(),
                     null);

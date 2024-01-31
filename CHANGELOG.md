@@ -3,6 +3,8 @@
 New features:
 
 * C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility, smaller distribution and faster installation for C/C++ extensions (#3118, @eregon).
+* Full suport for the Ruby 3.2 and Ruby 3.3 syntax by adopting the [Prism](https://github.com/ruby/prism) parser (#3117, #3038, #3039, @andrykonchin, @eregon).
+* Pattern matching is now fully supported, with the exception of Find pattern (`in [*, a, *]`) (#3332, #2683, @eregon, @razetime).
 
 Bug fixes:
 
@@ -12,6 +14,13 @@ Bug fixes:
 * Fix `Proc#parameters` and return all the numbered parameters lower than the used explicitly ones (@andrykonchin).
 * Fix some C API functions which were failing when called with Ruby values represented as Java primitives (#3352, @eregon).
 * Fix `IO.select([io], nil, [io])` on macOS, it was hanging due to a bug in macOS `poll(2)` (#3346, @eregon, @andrykonchin).
+* Run context cleanup such as showing the output of tools when `SignalException` and `Interrupt` escape (@eregon).
+* Handle a new variable inside the `case` target expression correctly (#3377, @eregon).
+* The arguments of `Thread.new(*args, &block)` need to be marked as shared between multiple threads (#3179, @eregon).
+* Fix `Range#bsearch` and raise `TypeError` when range boundaries are non-numeric and block not passed (@andrykonchin).
+* Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
+* Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
+* Fix `Integer#div` returning the wrong object type when the divisor is a `Rational` (@simonlevasseur, @nirvdrum).
 
 Compatibility:
 
@@ -21,6 +30,20 @@ Compatibility:
 * Promote `File#path` and `File#to_path` to `IO#path` and `IO#to_path` and make IO#new accept an optional `path:` keyword argument (#3039, @moste00)
 * Display "unhandled exception" as the message for `RuntimeError` instances with an empty message (#3255, @nirvdrum).
 * Set `RbConfig::CONFIG['configure_args']` for openssl and libyaml (#3170, #3303, @eregon).
+* Support `Socket.sockaddr_in(port, Socket::INADDR_ANY)` (#3361, @mtortonesi).
+* Implement the `Data` class from Ruby 3.2 (#3039, @moste00, @eregon).
+* Make `Coverage.start` and `Coverage.result` accept parameters (#3149, @mtortonesi, @andrykonchin).
+* Implement `rb_check_funcall()` (@eregon).
+* Implement `MatchData#{byteoffset,deconstruct,deconstruct_keys}` from Ruby 3.2 (#3039, @rwstauner).
+* Add `Integer#ceildiv` method (#3039, @simonlevasseur, @nirvdrum).
+* Implement `Class#attached_object` method (#3039, @andrykonchin).
+* Fix `ENV#{clone,dup}` and raise `TypeError` (#3039, @andrykonchin).
+* Fix `Coverage.supported?` and raise `TypeError` if argument is not Symbol (#3039, @andrykonchin).
+* Accept options argument to `Regexp.{new,compile}` of String and warn for unknown types (#3039, @rwstauner).
+* Implement `Time#deconstruct_keys` from Ruby 3.2 (#3039, @rwstauner).
+* Do not autosplat a proc that accepts a single positional argument and keywords (#3039, @andrykonchin).
+* Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
+* Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
 
 Performance:
 

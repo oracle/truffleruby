@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -44,10 +44,10 @@ public final class RubyInlineParsingRequestNode extends ExecutableNode {
         super(language);
         this.context = context;
 
-        final RubySource rubySource = new RubySource(source, language.getSourcePath(source));
+        final RubySource rubySource = new RubySource(source, language.getSourcePath(source), null, true, 0);
 
         // We use the current frame as the lexical scope to parse, but then we may run with a new frame in the future
-        final TranslatorDriver translator = new TranslatorDriver(context, rubySource);
+        final TranslatorDriver translator = new TranslatorDriver(context);
         final RootCallTarget callTarget = translator.parse(
                 rubySource,
                 ParserContext.INLINE,

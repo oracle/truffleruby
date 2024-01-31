@@ -5,7 +5,7 @@ which are the only supported ways to use TruffleRuby.
 
 ## TruffleRuby
 
-TruffleRuby is copyright (c) 2013-2023 Oracle and/or its
+TruffleRuby is copyright (c) 2013-2024 Oracle and/or its
 affiliates, and is made available to you under the terms of any one of the
 following three licenses:
 
@@ -165,9 +165,14 @@ files.
 
 #### FFI
 
-TruffleRuby includes parts of the FFI gem 1.14.2. The FFI gem is copyright
-2008-2016, Ruby FFI project contributors, and covered by the three-clause BSD
-licence (see `ffi.txt`).
+TruffleRuby includes parts of the FFI gem (version as described in [lib/truffle/ffi/version.rb](../../lib/truffle/ffi/version.rb)).
+The FFI gem is copyright  2008-2016, Ruby FFI project contributors, and covered by the three-clause BSD licence (see `ffi.txt`).
+
+#### Prism
+
+TruffleRuby uses the [Prism](https://github.com/ruby/prism) Ruby parser
+(version as described in [src/main/c/yarp/include/prism/version.h](../../src/main/c/yarp/include/prism/version.h)),
+copyright Shopify Inc. and is available under an MIT licence (see `src/main/c/yarp/LICENSE.md`).
 
 # Java dependencies
 

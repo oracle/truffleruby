@@ -1,0 +1,44 @@
+subject: "Symbol"
+description: "with embedded class variable (#@@a)"
+focused_on_node: "org.truffleruby.core.cast.StringToSymbolNodeGen"
+ruby: |
+  :"foo #@@bar"
+ast: |
+  StringToSymbolNodeGen
+      attributes:
+          flags = 0
+      children:
+          stringNode_ =
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 1
+                                              tstring = foo 
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      ReadClassVariableNode
+                                          attributes:
+                                              flags = 0
+                                              name = "@@bar"
+                                          children:
+                                              lexicalScopeNode =
+                                                  ObjectLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          object =  :: Object
+                                              lookupClassVariableNode =
+                                                  LookupClassVariableNodeGen
+                                              resolveTargetModuleNode =
+                                                  ResolveTargetModuleForClassVariablesNodeGen
+                      ]

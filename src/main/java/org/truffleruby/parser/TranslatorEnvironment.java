@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -276,6 +276,12 @@ public final class TranslatorEnvironment {
         return node;
     }
 
+    public ReadLocalVariableNode readNode(int slot, Nodes.Node yarpNode) {
+        var node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
+        node.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        return node;
+    }
+
     public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
         RubyNode node = findLocalVarNode(name, sourceSection);
         if (node == null) {
@@ -347,6 +353,7 @@ public final class TranslatorEnvironment {
         return !isBlock();
     }
 
+    /** A way to check current scope is a module/class. If in a block, isModuleBody is always false. */
     public boolean isModuleBody() {
         return isModuleBody;
     }
@@ -387,8 +394,21 @@ public final class TranslatorEnvironment {
         return methodParent;
     }
 
-    /** Used only in tests to make temporary variable names stable and not changed every time they are run. It shouldn't
-     * be used for anything except that purpose. */
+    /** Return either outer method/module/top level environment or in case of eval("...") the outermost environment of
+     * the parsed (by eval) code */
+    public TranslatorEnvironment getSurroundingMethodOrEvalEnvironment() {
+        TranslatorEnvironment environment = this;
+
+        // eval's parsing environment still has frameDescriptor not initialized,
+        // but all the outer scopes are related to already parsed code and have frameDescriptor != null.
+        while (environment.isBlock() && environment.getParent().frameDescriptor == null) {
+            environment = environment.getParent();
+        }
+        return environment;
+    }
+
+    /** Used only in tests to make temporary variable names stable and not changed every time tests are run. It
+     * shouldn't be used for anything except that purpose. */
     public static void resetTemporaryVariablesIndex() {
         tempIndex.set(0);
     }

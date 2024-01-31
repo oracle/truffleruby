@@ -20,11 +20,11 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = null, type = anonrest), ArgumentDescriptor(name = d, type = req), ArgumentDescriptor(name = f, type = req)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = null, type = anonrest), ArgumentDescriptor(name = d, type = req), ArgumentDescriptor(name = f, type = req)])
       call targets:
           RubyMethodRootNode
               attributes:
-                  arityForCheck = Arity{preRequired = 2, optional = 0, hasRest = true, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  arityForCheck = Arity{preRequired = 2, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
                   frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:%unnamed_rest, #5:d, #6:f, #7:%method_block_arg}
@@ -37,7 +37,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = null, type = anonrest), ArgumentDescriptor(name = d, type = req), ArgumentDescriptor(name = f, type = req)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = b, type = req), ArgumentDescriptor(name = null, type = anonrest), ArgumentDescriptor(name = d, type = req), ArgumentDescriptor(name = f, type = req)])
                   split = HEURISTIC
               children:
                   body =
@@ -120,8 +120,10 @@ ast: |
                                               ReadPostArgumentNode
                                                   attributes:
                                                       flags = 0
+                                                      hasRest = true
                                                       indexFromCount = 1
                                                       keywordArguments = false
+                                                      optional = 0
                                                       required = 4
                                   WriteLocalVariableNode
                                       attributes:
@@ -132,8 +134,10 @@ ast: |
                                               ReadPostArgumentNode
                                                   attributes:
                                                       flags = 0
+                                                      hasRest = true
                                                       indexFromCount = 2
                                                       keywordArguments = false
+                                                      optional = 0
                                                       required = 4
                                   NilLiteralNode
                                       attributes:

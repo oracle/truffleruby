@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -37,11 +37,25 @@ JNIEXPORT jint JNICALL Java_org_truffleruby_signal_LibRubySignal_sendSIGVTALRMTo
 }
 
 JNIEXPORT jlong JNICALL Java_org_truffleruby_signal_LibRubySignal_getNativeThreadID(JNIEnv *env, jclass clazz) {
-  #ifdef __APPLE__
-      uint64_t native_id;
-      pthread_threadid_np(NULL, &native_id);
-  #elif defined(__linux__)
-      pid_t native_id = (pid_t) syscall(SYS_gettid);
-  #endif
-      return (jlong) native_id;
+#ifdef __APPLE__
+  uint64_t native_id;
+  pthread_threadid_np(NULL, &native_id);
+#elif defined(__linux__)
+  pid_t native_id = (pid_t) syscall(SYS_gettid);
+#endif
+  return (jlong) native_id;
+}
+
+JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_restoreSystemHandlerAndRaise(JNIEnv *env, jclass clazz, jint signo) {
+  signal(signo, SIG_DFL);
+  raise(signo);
+}
+
+// Declaration copied from lib/cext/include/ruby/internal/intern/thread.h
+typedef void rb_unblock_function_t(void *);
+
+JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_executeUnblockFunction(JNIEnv *env, jclass clazz, jlong function, jlong argument) {
+  rb_unblock_function_t* unblock_function = (rb_unblock_function_t*) function;
+  void* arg = (void*) argument;
+  unblock_function(arg);
 }

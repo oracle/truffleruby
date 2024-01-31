@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -115,6 +115,13 @@ public final class CoreExceptions {
     public String inspectReceiver(Object receiver) {
         Object rubyString = DispatchNode.getUncached().call(
                 context.getCoreLibrary().truffleExceptionOperationsModule, "receiver_string", receiver);
+        return RubyGuards.getJavaString(rubyString);
+    }
+
+    @TruffleBoundary
+    public String inspectFrozenObject(Object object) {
+        Object rubyString = DispatchNode.getUncached().call(
+                context.getCoreLibrary().truffleExceptionOperationsModule, "inspect_frozen_object", object);
         return RubyGuards.getJavaString(rubyString);
     }
 
@@ -295,7 +302,8 @@ public final class CoreExceptions {
     @TruffleBoundary
     public RubyException frozenError(Object object, Node currentNode) {
         String className = LogicalClassNode.getUncached().execute(object).fields.getName();
-        return frozenError(StringUtils.format("can't modify frozen %s: %s", className, inspect(object)), currentNode,
+        String string = inspectFrozenObject(object);
+        return frozenError(StringUtils.format("can't modify frozen %s: %s", className, string), currentNode,
                 object);
     }
 
@@ -538,6 +546,12 @@ public final class CoreExceptions {
 
     public RubyException typeErrorCantCreateInstanceOfSingletonClass(Node currentNode) {
         return typeError("can't create instance of singleton class", currentNode, null);
+    }
+
+    @TruffleBoundary
+    public RubyException typeErrorNotASingletonClass(Node currentNode, RubyClass rubyClass) {
+        String className = rubyClass.fields.getName();
+        return typeError(StringUtils.format("`%s' is not a singleton class", className), currentNode, null);
     }
 
     @TruffleBoundary

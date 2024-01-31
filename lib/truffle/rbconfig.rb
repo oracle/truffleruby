@@ -1,7 +1,7 @@
 # frozen-string-literal: false
 # truffleruby_primitives: true
 
-# Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -38,7 +38,6 @@
 module RbConfig
 
   ruby_home = Truffle::Boot.ruby_home
-  raise 'The TruffleRuby home needs to be set to require RbConfig' unless ruby_home
   TOPDIR = ruby_home
 
   sulong = Truffle::Boot.get_option('cexts-sulong')

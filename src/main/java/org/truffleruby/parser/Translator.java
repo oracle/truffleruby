@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -101,6 +101,10 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         for (; n < sequence.size(); n++) {
             final boolean lastNode = n == sequence.size() - 1;
             final RubyNode node = sequence.get(n);
+
+            if (node == null) {
+                continue;
+            }
 
             if (node instanceof SequenceNode) {
                 flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence()), lastNode));

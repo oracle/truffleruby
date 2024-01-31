@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2017, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -56,6 +56,7 @@ public abstract class InlinedLessOrEqualNode extends BinaryInlinedOperationNode 
         return rewriteAndCall(frame, a, b);
     }
 
+    @Override
     public RubyNode cloneUninitialized() {
         var copy = InlinedLessOrEqualNodeGen.create(
                 getLanguage(),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -70,7 +70,10 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
         try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
             var encoding = findEncoding(fileContent);
             if (encoding != null) {
+                // Unfortunately here we have no choice to return a Charset. Not every Ruby encoding has a Charset.
+                // Checkstyle: stop
                 return encoding.jcoding.getCharset();
+                // Checkstyle: resume
             }
         } catch (IOException | SecurityException e) {
             // Reading random files could cause all sorts of errors

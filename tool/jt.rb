@@ -184,6 +184,10 @@ module Utilities
     "#{GRAAL_DIR}/common.json"
   end
 
+  def truffleruby_common_json
+    "#{TRUFFLERUBY_DIR}/common.json"
+  end
+
   def jvmci_version
     @jvmci_version ||= begin
       sforceimports unless File.directory?(GRAAL_DIR)
@@ -219,7 +223,11 @@ module Utilities
     if which('mx')
       'mx'
     else
-      mx_repo = find_or_clone_repo('https://github.com/graalvm/mx.git')
+      common_json = File.read(truffleruby_common_json)
+      regex = /"mx_version":\s*"([^"]+)"/
+      raise "mx version not found in #{truffleruby_common_json}" unless regex =~ common_json
+      mx_version = $1
+      mx_repo = find_or_clone_repo('https://github.com/graalvm/mx.git', mx_version)
       "#{mx_repo}/mx"
     end
   end
@@ -1359,7 +1367,7 @@ module Commands
       end
     end
 
-    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
+    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
     run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
   end
@@ -1415,7 +1423,7 @@ module Commands
 
   ALL_CEXTS_TESTS = %w[
     tools postinstallhook
-    minimum module method globals backtraces xopenssl werror stripped
+    minimum module method globals backtraces xopenssl werror no_timespec stripped
     oily_png psd_native
     puma sqlite3 unf_ext json grpc RubyInline msgpack
   ]
@@ -1442,7 +1450,7 @@ module Commands
         # Test tools
         run_ruby 'test/truffle/cexts/test_preprocess.rb'
 
-      when 'minimum', 'module', 'method', 'globals', 'backtraces', 'xopenssl', 'werror', 'stripped'
+      when 'minimum', 'module', 'method', 'globals', 'backtraces', 'xopenssl', 'werror', 'no_timespec', 'stripped'
         # Test that we can compile and run some very basic C extensions
         output_file = 'cext-output.txt'
         dir = "test/truffle/cexts/#{test_name}"
@@ -1696,14 +1704,12 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
-      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false'
+      vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
       vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
 
     vm_args << '--polyglot' if truffleruby_jvm?
-    # Until pattern matching is complete, we enable it in specs but not globally
-    vm_args << '--experimental-options' << '--pattern-matching'
 
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 

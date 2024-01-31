@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,6 +29,7 @@ import org.truffleruby.language.methods.Arity;
 
 /** Read a single keyword argument or execute its default value expression if missing */
 @ImportStatic(HashGuards.class)
+@SuppressWarnings("all")
 public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode implements PEBiFunction {
 
     private final RubySymbol name;
@@ -38,6 +39,12 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
 
     public static ReadKeywordArgumentNode create(RubySymbol name, RubyNode defaultValue) {
         return ReadKeywordArgumentNodeGen.create(name, defaultValue);
+    }
+
+    protected ReadKeywordArgumentNode(RubySymbol name, RubyNode defaultValue) {
+        this.name = name;
+        this.defaultValue = defaultValue;
+        this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
     }
 
     public RubySymbol getName() {
@@ -51,18 +58,13 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
 
     public abstract Object execute(VirtualFrame frame, RubyHash hash);
 
-    protected ReadKeywordArgumentNode(RubySymbol name, RubyNode defaultValue) {
-        this.name = name;
-        this.defaultValue = defaultValue;
-        readUserKeywordsHashNode = new ReadUserKeywordsHashNode();
-    }
 
-    @Specialization(guards = "hash == null")
+    @Specialization(guards = "isNull(hash)")
     Object nullHash(VirtualFrame frame, RubyHash hash) {
         return getDefaultValue().execute(frame);
     }
 
-    @Specialization(guards = "hash != null", limit = "hashStrategyLimit()")
+    @Specialization(guards = "!isNull(hash)", limit = "hashStrategyLimit()")
     Object lookupKeywordInHash(VirtualFrame frame, RubyHash hash,
             @CachedLibrary("getHashStore(hash)") HashStoreLibrary hashes) {
         return hashes.lookupOrDefault(hash.store, frame, hash, name, this);
@@ -72,6 +74,11 @@ public abstract class ReadKeywordArgumentNode extends RubyContextSourceNode impl
     // hash is null. The guard will fail afterwards anyway, so return a valid store in that case.
     protected Object getHashStore(RubyHash hash) {
         return hash == null ? EmptyHashStore.NULL_HASH_STORE : hash.store;
+    }
+
+    // Workaround for ECJ to not warn about dead code in generated code
+    static boolean isNull(RubyHash hash) {
+        return hash == null;
     }
 
     @Override

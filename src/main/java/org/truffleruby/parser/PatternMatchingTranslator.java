@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2021 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -11,9 +11,10 @@ package org.truffleruby.parser;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayDeconstructNodeGen;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
-import org.truffleruby.core.array.ArrayPatternLengthCheckNode;
+import org.truffleruby.core.array.ArrayPatternLengthCheckNodeGen;
 import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
@@ -123,8 +124,7 @@ public final class PatternMatchingTranslator extends BaseTranslator {
         var postNodes = arrayPatternParseNode.getPostArgs();
         var restNode = arrayPatternParseNode.getRestArg();
 
-        var deconstructed = createCallNode(new TruffleInternalModuleLiteralNode(), "deconstruct_checked",
-                currentValueToMatch);
+        var deconstructed = ArrayDeconstructNodeGen.create(currentValueToMatch);
 
         final int deconstructedSlot = environment.declareLocalTemp("p_decon_array");
         final ReadLocalNode readTemp = environment.readNode(deconstructedSlot, sourceSection);
@@ -133,8 +133,8 @@ public final class PatternMatchingTranslator extends BaseTranslator {
 
         int preSize = arrayPatternParseNode.preArgsNum();
 
-        RubyNode condition = new ArrayPatternLengthCheckNode(arrayPatternParseNode.minimumArgsNum(),
-                currentValueToMatch, arrayPatternParseNode.hasRestArg());
+        RubyNode condition = ArrayPatternLengthCheckNodeGen.create(arrayPatternParseNode.minimumArgsNum(),
+                arrayPatternParseNode.hasRestArg(), currentValueToMatch);
 
         // Constant === pattern.deconstruct
         if (arrayPatternParseNode.hasConstant()) {
@@ -208,6 +208,7 @@ public final class PatternMatchingTranslator extends BaseTranslator {
         return sequence(sourceSection, Arrays.asList(assignTemp, condition));
     }
 
+    @Override
     public RubyNode visitFindPatternNode(FindPatternParseNode findPatternParseNode) {
         return findPatternParseNode.accept(this);
     }

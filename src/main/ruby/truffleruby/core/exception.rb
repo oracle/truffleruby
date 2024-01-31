@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -373,7 +373,6 @@ class KeyError < IndexError
 end
 
 class SignalException < Exception
-
   alias_method :signm, :message
   attr_reader :signo
 
@@ -415,22 +414,6 @@ class SignalException < Exception
     @signo = signo
     super(name_with_prefix)
   end
-
-  private def reached_top_level
-    if @signo == Signal::Names['VTALRM']
-      warn 'not acting on top level SignalException for SIGVTALRM as it is VM reserved'
-      return
-    end
-
-    begin
-      Signal.trap(@signo, 'SYSTEM_DEFAULT')
-    rescue ArgumentError
-      # some signals are reserved but we can raise them anyways
-      nil
-    end
-    Truffle::POSIX.raise_signal(@signo)
-  end
-
 end
 
 class StopIteration

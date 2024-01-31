@@ -96,6 +96,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitCallTargetNode(Nodes.CallTargetNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitCapturePatternNode(Nodes.CapturePatternNode node) {
         return defaultVisit(node);
     }
@@ -284,6 +288,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitInNode(Nodes.InNode node) {
         return defaultVisit(node);
     }
@@ -297,6 +305,10 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     public T visitIndexOrWriteNode(Nodes.IndexOrWriteNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitIndexTargetNode(Nodes.IndexTargetNode node) {
         return defaultVisit(node);
     }
 
@@ -425,6 +437,10 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     public T visitNoKeywordsParameterNode(Nodes.NoKeywordsParameterNode node) {
+        return defaultVisit(node);
+    }
+
+    public T visitNumberedParametersNode(Nodes.NumberedParametersNode node) {
         return defaultVisit(node);
     }
 

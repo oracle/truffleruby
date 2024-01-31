@@ -1,0 +1,125 @@
+subject: "BEGIN block"
+description: "when multiple occurrences in a program"
+notes: >
+  Put content of the BEGIN blocks in order they are located in a program.
+  So sequence of expressions is:
+  
+  ```ruby
+  a
+  b
+  c
+  ```
+focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
+ruby: |
+  BEGIN {
+    a
+  }
+  
+  BEGIN {
+    b
+  }
+  
+  BEGIN {
+    c
+  }
+ast: |
+  RubyTopLevelRootNode
+      attributes:
+          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+          callTarget = <top (required)>
+          checkArityProfile = false
+          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_}
+          instrumentationBits = 0
+          keywordArguments = false
+          localReturnProfile = false
+          lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+          matchingReturnProfile = false
+          nextProfile = false
+          nonMatchingReturnProfile = false
+          polyglotRef = org.truffleruby.RubyLanguage@...
+          retryProfile = false
+          returnID = org.truffleruby.language.control.ReturnID@...
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <top (required)>, blockDepth = 0, parseName = <top (required)>, notes = null, argumentDescriptors = null)
+          split = HEURISTIC
+      children:
+          body =
+              SequenceNode
+                  attributes:
+                      flags = 12
+                  children:
+                      body = [
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 0 # (self)
+                              children:
+                                  valueNode =
+                                      ProfileArgumentNodeGen
+                                          attributes:
+                                              flags = 0
+                                          children:
+                                              childNode_ =
+                                                  ReadSelfNode
+                                                      attributes:
+                                                          flags = 0
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 1
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "a"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 1
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "b"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 1
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "c"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                          NilLiteralNode
+                              attributes:
+                                  flags = 0
+                      ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -63,8 +63,6 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_RET
 /** All Ruby DynamicObjects extend this. */
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
-
-    private static final int FROZEN = 1;
 
     private RubyClass metaClass;
 

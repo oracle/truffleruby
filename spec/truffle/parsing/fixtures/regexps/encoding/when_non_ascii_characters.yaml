@@ -1,0 +1,13 @@
+subject: "Regexp"
+description: "encoding / when there are non-ASCII characters in a literal"
+notes: >
+  Regexp may be forced to the BINARY (ASCII-8BIT) encoding sometimes
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  # encoding: us-ascii
+  /abc \xFF/
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = RubyRegexp(source = abc \xFF, options = RegexpOptions(kcode: NONE, fixed, kcodeDefault, literal), encoding = ASCII-8BIT)

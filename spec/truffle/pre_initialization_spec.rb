@@ -1,4 +1,4 @@
-# Copyright (c) 2018, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2018, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -40,13 +40,6 @@ guard -> { TruffleRuby.native? } do
       out.should include("createContext()")
       out.should include("initializeContext()")
       out.should include("\nfalse\n")
-    end
-
-    it "is not used when the home is unset but was set at build time" do
-      code = "p [Truffle::Boot.ruby_home, Truffle::Boot.was_preinitialized?]"
-      out = ruby_exe(code, options: "--experimental-options --log.level=FINE --no-home-provided", args: "2>&1")
-      out.should include("[nil, false]\n")
-      out.should include("not reusing pre-initialized context: --no-home-provided differs, was: false and is now: true")
     end
 
     it "is used when $VERBOSE changes" do

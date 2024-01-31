@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -171,7 +171,7 @@ public class RubyDebugTest {
         stepInto(1);
         assertLocation(
                 14,
-                "if n <= 1",
+                "n <= 1",
                 "n",
                 "2",
                 "nMinusOne",
@@ -249,6 +249,10 @@ public class RubyDebugTest {
                 suspendedEvent.getTopStackFrame().eval("shortArg(90000)");
                 Assert.fail("DebugException is expected.");
             } catch (DebugException dex) {
+                if (dex.isInternalError()) {
+                    System.err.println("DebugException internal error:");
+                    dex.printStackTrace(System.err);
+                }
                 assertNull(dex.getCatchLocation());
                 Assert.assertFalse(dex.isInternalError());
                 dex.getThrowLocation();
@@ -392,7 +396,7 @@ public class RubyDebugTest {
             assertNotNull(suspendedEvent);
             final int currentLine = suspendedEvent.getSourceSection().getStartLine();
             assertEquals(line, currentLine);
-            final String currentCode = suspendedEvent.getSourceSection().getCharacters().toString().strip();
+            final String currentCode = suspendedEvent.getSourceSection().getCharacters().toString();
             assertEquals(code, currentCode);
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
 

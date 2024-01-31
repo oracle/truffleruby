@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -45,7 +45,6 @@ import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.core.array.ArrayIndexNodes.ReadSliceNormalizedNode;
-import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.array.library.SharedArrayStorage;
@@ -64,7 +63,6 @@ import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
@@ -164,13 +162,23 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
+        @Specialization(guards = "count < 0")
+        RubyArray mulNeg(RubyArray array, long count) {
+            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
+        }
+
         @Specialization(guards = "count == 0")
         RubyArray mulZero(RubyArray array, int count) {
             return createEmptyArray();
         }
 
+        @Specialization(guards = { "count > 0", "isEmptyArray(array)" })
+        RubyArray mulEmpty(RubyArray array, long count) {
+            return createEmptyArray();
+        }
+
         @Specialization(
-                guards = { "!isEmptyArray(array)", "count > 0" },
+                guards = { "count > 0", "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         RubyArray mulOther(RubyArray array, int count,
                 @Bind("array.getStore()") Object store,
@@ -199,19 +207,9 @@ public abstract class ArrayNodes {
             return createArray(newStore, newSize);
         }
 
-        @Specialization(guards = "count < 0")
-        RubyArray mulNeg(RubyArray array, long count) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
-        }
-
-        @Specialization(guards = { "!isEmptyArray(array)", "count >= 0", "!fitsInInteger(count)" })
+        @Specialization(guards = { "count > 0", "!isEmptyArray(array)", "!fitsInInteger(count)" })
         RubyArray mulLong(RubyArray array, long count) {
             throw new RaiseException(getContext(), coreExceptions().rangeError("array size too big", this));
-        }
-
-        @Specialization(guards = { "isEmptyArray(array)" })
-        RubyArray mulEmpty(RubyArray array, long count) {
-            return createEmptyArray();
         }
 
         @Specialization(guards = { "!isImplicitLong(count)" })
@@ -1103,7 +1101,6 @@ public abstract class ArrayNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode toAryNode;
-        @Child private KernelNodes.RespondToNode respondToToAryNode;
 
         protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
                 Object block);
@@ -1244,9 +1241,10 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isImplicitLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
         RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, Nil block,
+                @Cached KernelNodes.RespondToNode respondToNode,
                 @Cached @Shared ToIntNode toIntNode) {
             RubyArray copy = null;
-            if (respondToToAry(object)) {
+            if (respondToNode.executeDoesRespondTo(object, coreSymbols().TO_ARY, true)) {
                 Object toAryResult = callToAry(object);
                 if (toAryResult instanceof RubyArray) {
                     copy = (RubyArray) toAryResult;
@@ -1259,14 +1257,6 @@ public abstract class ArrayNodes {
                 int size = toIntNode.execute(object);
                 return executeInitialize(array, size, NotProvided.INSTANCE, nil);
             }
-        }
-
-        public boolean respondToToAry(Object object) {
-            if (respondToToAryNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create());
-            }
-            return respondToToAryNode.executeDoesRespondTo(object, coreSymbols().TO_ARY, true);
         }
 
         protected Object callToAry(Object object) {
@@ -1786,7 +1776,7 @@ public abstract class ArrayNodes {
 
         @NeverDefault
         public static ReplaceNode create() {
-            return ReplaceNodeFactory.create(null, null);
+            return ArrayNodesFactory.ReplaceNodeFactory.create(null, null);
         }
 
         public abstract RubyArray executeReplace(RubyArray array, RubyArray other);

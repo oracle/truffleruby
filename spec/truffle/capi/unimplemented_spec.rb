@@ -1,4 +1,4 @@
-# Copyright (c) 2018, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2018, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -11,11 +11,9 @@ require_relative '../../ruby/optional/capi/spec_helper'
 extension_path = load_extension("unimplemented")
 
 describe "Unimplemented functions in the C-API" do
-  guard_not -> { Truffle::Boot.get_option('cexts-sulong') } do
-    it "abort the process and show an error including the function name" do
-      expected_status = platform_is(:darwin) ? :SIGABRT : 127
-      out = ruby_exe('require ARGV[0]; CApiRbTrErrorSpecs.new.not_implemented_function("foo")', args: "#{extension_path} 2>&1", exit_status: expected_status)
-      out.should =~ /undefined symbol: rb_str_shared_replace|Symbol not found: _rb_str_shared_replace/
-    end
+  it "abort the process and show an error including the function name" do
+    expected_status = platform_is(:darwin) ? :SIGABRT : 127
+    out = ruby_exe('require ARGV[0]; CApiRbTrErrorSpecs.new.not_implemented_function("foo")', args: "#{extension_path} 2>&1", exit_status: expected_status)
+    out.should =~ /undefined symbol: rb_str_shared_replace|Symbol not found: _rb_str_shared_replace/
   end
 end

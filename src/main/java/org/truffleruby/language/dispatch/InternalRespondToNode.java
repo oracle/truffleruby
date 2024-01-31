@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -98,6 +98,7 @@ public class InternalRespondToNode extends RubyBaseNode {
             super(config, null, null);
         }
 
+        @Override
         public boolean execute(Frame frame, Object receiver, String methodName) {
             return executeInternal(frame, receiver, methodName,
                     config,

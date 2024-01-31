@@ -1,0 +1,131 @@
+subject: "||="
+description: "Assign attribute with safe navigation operator (a&.b ||= c)"
+notes: >
+  Safe navigation means `nil` is returned when a not supported method is called on `nil`.
+  
+  So actual code looks like:
+    ```ruby
+    if receiver == nil
+      return nil
+    else
+      ...
+    end
+    ```
+  
+  This is implemented with the following AST:
+    (UnlessNodeGen
+      (IsNilNode
+        (ReadLocalVariableNode)) # %value_0
+      (OrNodeGen ...))
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  a&.foo ||= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+      children:
+          child =
+              SequenceNode
+                  attributes:
+                      flags = 0
+                  children:
+                      body = [
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 2 # %value_0
+                              children:
+                                  valueNode =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = NoKeywordArgumentsDescriptor
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "a"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                          children:
+                                              receiver =
+                                                  SelfNode
+                                                      attributes:
+                                                          flags = 0
+                          UnlessNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  condition =
+                                      IsNilNode
+                                          attributes:
+                                              flags = 0
+                                          children:
+                                              child =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2 # %value_0
+                                                          type = FRAME_LOCAL
+                                  thenBody =
+                                      OrLazyValueDefinedNodeGen
+                                          attributes:
+                                              flags = 0
+                                              rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+                                          children:
+                                              left =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          receiver =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2 # %value_0
+                                                                      type = FRAME_LOCAL
+                                              right =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = true
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo="
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                      children:
+                                                          arguments = [
+                                                              IntegerFixnumLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      value = 42
+                                                          ]
+                                                          receiver =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2 # %value_0
+                                                                      type = FRAME_LOCAL
+                      ]

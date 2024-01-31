@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -32,7 +32,7 @@ public final class ConcurrentWeakSet<E> extends ConcurrentWeakKeysMap<E, Boolean
 
     @TruffleBoundary
     public WeakSetIterator<E> iterator() {
-        return new WeakSetIterator<E>(map.keySet().iterator());
+        return new WeakSetIterator<>(map.keySet().iterator());
     }
 
     private static final class WeakSetIterator<E> implements Iterator<E> {

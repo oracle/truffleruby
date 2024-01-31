@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -23,7 +23,7 @@ public final class DataNode extends RubyContextSourceNode {
     @Child private TruffleString.FromJavaStringNode fromJavaStringNode;
     @Child private DispatchNode callHelperNode;
 
-    private final int endPosition;
+    private final int endPosition; // position in a source file at the beginning of a line right after __END__ keyword in bytes
 
     public DataNode(int endPosition) {
         this.endPosition = endPosition;

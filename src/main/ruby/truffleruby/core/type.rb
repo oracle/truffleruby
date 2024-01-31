@@ -449,6 +449,19 @@ module Truffle
       end
     end
 
+    def self.symbol_or_string_to_symbol(obj)
+      case obj
+      when Symbol
+        obj
+      when String
+        sym = obj.to_sym
+        raise TypeError, "#to_sym didn't return a symbol" unless Primitive.is_a?(sym, Symbol)
+        sym
+      else
+        raise TypeError, "#{obj.inspect} is not a symbol"
+      end
+    end
+
     # Equivalent of num_exact in MRI's time.c, used by Time methods.
     def self.coerce_to_exact_num(obj)
       if Primitive.is_a? obj, Integer

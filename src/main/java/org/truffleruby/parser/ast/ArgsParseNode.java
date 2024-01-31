@@ -165,6 +165,7 @@ public final class ArgsParseNode extends ParseNode {
                 getPreCount(),
                 getOptionalArgsCount(),
                 hasRestArg(),
+                isImplicitRestArg(),
                 getPostCount(),
                 keywordArguments,
                 requiredKeywordArgumentsCount,
@@ -248,6 +249,15 @@ public final class ArgsParseNode extends ParseNode {
 
     public ArgumentParseNode getRestArgNode() {
         return restArgNode;
+    }
+
+    // block may have implicit rest parameter (|a, |)
+    private boolean isImplicitRestArg() {
+        if (restArgNode instanceof UnnamedRestArgParseNode) {
+            return !((UnnamedRestArgParseNode) restArgNode).isStar();
+        }
+
+        return false;
     }
 
     public boolean hasKeyRest() {

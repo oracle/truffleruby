@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -86,6 +86,10 @@ class Integer < Numeric
     return self unless precision < 0
     x = 10 ** precision.abs
     ((self / x) + 1) * x
+  end
+
+  def ceildiv(other)
+    -div(-other)
   end
 
   def coerce(other)

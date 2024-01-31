@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,7 +29,6 @@ public final class OptionsCatalog {
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<Integer> BACKTRACE_LIMIT_KEY = new OptionKey<>(-1);
-    public static final OptionKey<Boolean> NO_HOME_PROVIDED_KEY = new OptionKey<>(false);
     public static final OptionKey<String> LAUNCHER_KEY = new OptionKey<>("");
     public static final OptionKey<String> CORE_LOAD_PATH_KEY = new OptionKey<>("resource:/truffleruby");
     public static final OptionKey<Boolean> FROZEN_STRING_LITERALS_KEY = new OptionKey<>(false);
@@ -47,7 +46,6 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> HOST_INTEROP_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> TRACE_CALLS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> COVERAGE_GLOBAL_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> PATTERN_MATCHING_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CORE_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> STDLIB_AS_INTERNAL_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_TRANSLATION_USER_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
@@ -109,6 +107,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(LAZY_CALLTARGETS_KEY.getDefaultValue());
     public static final OptionKey<Boolean> CHAOS_DATA_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> INSTRUMENT_ALL_NODES_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BASICOPS_LOG_REWRITE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
@@ -165,7 +164,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> RUN_TWICE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXPERIMENTAL_ENGINE_CACHING_KEY = new OptionKey<>(RUN_TWICE_KEY.getDefaultValue());
     public static final OptionKey<Boolean> COMPARE_REGEX_ENGINES_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> PRISM_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PRISM_KEY = new OptionKey<>(true);
 
     public static final OptionDescriptor LOAD_PATHS = OptionDescriptor
             .newBuilder(LOAD_PATHS_KEY, "ruby.load-paths")
@@ -237,14 +236,6 @@ public final class OptionsCatalog {
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
             .usageSyntax("-1")
-            .build();
-
-    public static final OptionDescriptor NO_HOME_PROVIDED = OptionDescriptor
-            .newBuilder(NO_HOME_PROVIDED_KEY, "ruby.no-home-provided")
-            .help("set to true to explicitly state that no home is provided (silences the warnings)")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("")
             .build();
 
     public static final OptionDescriptor LAUNCHER = OptionDescriptor
@@ -378,14 +369,6 @@ public final class OptionsCatalog {
     public static final OptionDescriptor COVERAGE_GLOBAL = OptionDescriptor
             .newBuilder(COVERAGE_GLOBAL_KEY, "ruby.coverage-global")
             .help("Run coverage for all code and print results on exit")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("")
-            .build();
-
-    public static final OptionDescriptor PATTERN_MATCHING = OptionDescriptor
-            .newBuilder(PATTERN_MATCHING_KEY, "ruby.pattern-matching")
-            .help("Enable pattern matching syntax")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
@@ -879,6 +862,14 @@ public final class OptionsCatalog {
             .usageSyntax("")
             .build();
 
+    public static final OptionDescriptor INSTRUMENT_ALL_NODES = OptionDescriptor
+            .newBuilder(INSTRUMENT_ALL_NODES_KEY, "ruby.instrument-all-nodes")
+            .help("Instrument all isInstrumentable() nodes, regardless of tags, to ensure instrumentation wrappers can be inserted")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("")
+            .build();
+
     public static final OptionDescriptor BASICOPS_INLINE = OptionDescriptor
             .newBuilder(BASICOPS_INLINE_KEY, "ruby.basic-ops-inline")
             .help("Inline basic operations (like Fixnum operators) in the AST without a call")
@@ -1355,8 +1346,6 @@ public final class OptionsCatalog {
                 return EXTERNAL_ENCODING;
             case "ruby.backtrace-limit":
                 return BACKTRACE_LIMIT;
-            case "ruby.no-home-provided":
-                return NO_HOME_PROVIDED;
             case "ruby.launcher":
                 return LAUNCHER;
             case "ruby.core-load-path":
@@ -1391,8 +1380,6 @@ public final class OptionsCatalog {
                 return TRACE_CALLS;
             case "ruby.coverage-global":
                 return COVERAGE_GLOBAL;
-            case "ruby.pattern-matching":
-                return PATTERN_MATCHING;
             case "ruby.core-as-internal":
                 return CORE_AS_INTERNAL;
             case "ruby.stdlib-as-internal":
@@ -1515,6 +1502,8 @@ public final class OptionsCatalog {
                 return LAZY_TRANSLATION_CORE;
             case "ruby.chaos-data":
                 return CHAOS_DATA;
+            case "ruby.instrument-all-nodes":
+                return INSTRUMENT_ALL_NODES;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
             case "ruby.basic-ops-log-rewrite":
@@ -1645,7 +1634,6 @@ public final class OptionsCatalog {
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
             BACKTRACE_LIMIT,
-            NO_HOME_PROVIDED,
             LAUNCHER,
             CORE_LOAD_PATH,
             FROZEN_STRING_LITERALS,
@@ -1663,7 +1651,6 @@ public final class OptionsCatalog {
             HOST_INTEROP,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
-            PATTERN_MATCHING,
             CORE_AS_INTERNAL,
             STDLIB_AS_INTERNAL,
             LAZY_TRANSLATION_USER,
@@ -1725,6 +1712,7 @@ public final class OptionsCatalog {
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             CHAOS_DATA,
+            INSTRUMENT_ALL_NODES,
             BASICOPS_INLINE,
             BASICOPS_LOG_REWRITE,
             PROFILE_ARGUMENTS,

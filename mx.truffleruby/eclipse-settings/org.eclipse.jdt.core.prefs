@@ -1,4 +1,5 @@
 org.eclipse.jdt.core.compiler.problem.invalidJavadoc=warning
+org.eclipse.jdt.core.compiler.problem.invalidJavadocTags=disabled
 org.eclipse.jdt.core.compiler.problem.missingDeprecatedAnnotation=warning
 org.eclipse.jdt.core.compiler.problem.missingOverrideAnnotation=warning
 org.eclipse.jdt.core.compiler.problem.unusedParameter=ignore
@@ -6,6 +7,7 @@ org.eclipse.jdt.core.compiler.problem.reportMethodCanBeStatic=ignore
 org.eclipse.jdt.core.compiler.problem.localVariableHiding=ignore
 org.eclipse.jdt.core.compiler.problem.parameterAssignment=ignore
 org.eclipse.jdt.core.compiler.problem.unusedWarningToken=ignore
+org.eclipse.jdt.core.compiler.problem.overridingPackageDefaultMethod=ignore
 org.eclipse.jdt.core.formatter.insert_space_after_opening_brace_in_array_initializer=insert
 org.eclipse.jdt.core.formatter.insert_space_before_closing_brace_in_array_initializer=insert
 org.eclipse.jdt.core.formatter.never_indent_block_comments_on_first_column=false

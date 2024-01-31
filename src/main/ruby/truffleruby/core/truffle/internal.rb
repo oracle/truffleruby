@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -54,25 +54,6 @@ module Truffle::Internal
   def self.when_splat(cases, expression)
     cases.any? do |c|
       c === expression
-    end
-  end
-
-  def self.deconstruct_checked(pattern)
-    if pattern.respond_to? :deconstruct
-      deconstructed = pattern.deconstruct
-      if Primitive.is_a?(deconstructed, Array)
-        deconstructed
-      else
-        raise TypeError,'deconstruct must return Array'
-      end
-    else
-      nil
-    end
-  end
-
-  def self.hash_pattern_matches?(pattern, expression)
-    pattern.all? do |key, value|
-      expression.has_key?(key) && value === expression.fetch(key)
     end
   end
 end

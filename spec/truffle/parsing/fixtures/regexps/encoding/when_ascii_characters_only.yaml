@@ -1,0 +1,13 @@
+subject: "Regexp"
+description: "encoding / when there are ASCII characters only in a literal"
+notes: >
+  Regexp is forced to the US-ASCII encoding
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  # encoding: utf-8
+  /abc/
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = RubyRegexp(source = abc, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)

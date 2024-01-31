@@ -142,15 +142,7 @@ void rb_tr_time_timeval(VALUE time, struct timeval *result);
  * @exception  rb_eRangeError  `time` is out of range of `timeval::tv_sec`.
  * @return     A struct that represents the identical time to `num`.
  */
-#ifdef TRUFFLERUBY
-static inline struct timeval rb_time_timeval(VALUE time) {
-    struct timeval result;
-    rb_tr_time_timeval(time, &result);
-    return result;
-}
-#else
 struct timeval rb_time_timeval(VALUE time);
-#endif
 
 #ifdef TRUFFLERUBY
 void rb_tr_time_timespec(VALUE time, struct timespec *result);
@@ -163,15 +155,7 @@ void rb_tr_time_timespec(VALUE time, struct timespec *result);
  * @exception  rb_eRangeError  `time` is out of range of `timeval::tv_sec`.
  * @return     A struct that represents the identical time to `num`.
  */
-#ifdef TRUFFLERUBY
-static inline struct timespec rb_time_timespec(VALUE time) {
-    struct timespec result;
-    rb_tr_time_timespec(time, &result);
-    return result;
-}
-#else
 struct timespec rb_time_timespec(VALUE time);
-#endif
 
 /**
  * Identical to rb_time_interval(), except for return type.

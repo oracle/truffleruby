@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -89,6 +89,17 @@ module Truffle
       else
         "#{ret}:#{class_name(receiver)}"
       end
+    end
+
+    # MRI: inspect_frozen_obj
+    def self.inspect_frozen_object(object)
+      string = nil
+
+      return '...' if Truffle::ThreadOperations.detect_recursion object do
+        string = Truffle::Type.rb_inspect(object)
+      end
+
+      string
     end
 
     # default implementation of Exception#detailed_message hook

@@ -6,12 +6,31 @@
 #ifndef PRISM_DIAGNOSTIC_H
 #define PRISM_DIAGNOSTIC_H
 
+#include "prism/ast.h"
 #include "prism/defines.h"
 #include "prism/util/pm_list.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
+
+/**
+ * The levels of errors generated during parsing.
+ */
+typedef enum {
+    /** For errors that cannot be recovered from. */
+    PM_ERROR_LEVEL_FATAL = 0
+} pm_error_level_t;
+
+/**
+ * The levels of warnings generated during parsing.
+ */
+typedef enum {
+    /** For warnings which should be emitted if $VERBOSE != nil. */
+    PM_WARNING_LEVEL_DEFAULT = 0,
+    /** For warnings which should be emitted if $VERBOSE == true. */
+    PM_WARNING_LEVEL_VERBOSE = 1
+} pm_warning_level_t;
 
 /**
  * This struct represents a diagnostic generated during parsing.
@@ -22,11 +41,8 @@ typedef struct {
     /** The embedded base node. */
     pm_list_node_t node;
 
-    /** A pointer to the start of the source that generated the diagnostic. */
-    const uint8_t *start;
-
-    /** A pointer to the end of the source that generated the diagnostic. */
-    const uint8_t *end;
+    /** The location of the diagnostic in the source. */
+    pm_location_t location;
 
     /** The message associated with the diagnostic. */
     const char *message;
@@ -37,6 +53,12 @@ typedef struct {
      * diagnostic is freed.
      */
     bool owned;
+
+    /**
+     * The level of the diagnostic, see `pm_error_level_t` and
+     * `pm_warning_level_t` for possible values.
+     */
+    uint8_t level;
 } pm_diagnostic_t;
 
 /**
@@ -44,17 +66,24 @@ typedef struct {
  * of errors between the parser and the user.
  */
 typedef enum {
+    // This is a special error that we can potentially replace by others. For
+    // an example of how this is used, see parse_expression_prefix.
+    PM_ERR_CANNOT_PARSE_EXPRESSION,
+
+    // These are the error codes.
     PM_ERR_ALIAS_ARGUMENT,
     PM_ERR_AMPAMPEQ_MULTI_ASSIGN,
     PM_ERR_ARGUMENT_AFTER_BLOCK,
     PM_ERR_ARGUMENT_AFTER_FORWARDING_ELLIPSES,
     PM_ERR_ARGUMENT_BARE_HASH,
+    PM_ERR_ARGUMENT_BLOCK_FORWARDING,
     PM_ERR_ARGUMENT_BLOCK_MULTI,
     PM_ERR_ARGUMENT_FORMAL_CLASS,
     PM_ERR_ARGUMENT_FORMAL_CONSTANT,
     PM_ERR_ARGUMENT_FORMAL_GLOBAL,
     PM_ERR_ARGUMENT_FORMAL_IVAR,
     PM_ERR_ARGUMENT_FORWARDING_UNBOUND,
+    PM_ERR_ARGUMENT_IN,
     PM_ERR_ARGUMENT_NO_FORWARDING_AMP,
     PM_ERR_ARGUMENT_NO_FORWARDING_ELLIPSES,
     PM_ERR_ARGUMENT_NO_FORWARDING_STAR,
@@ -76,7 +105,6 @@ typedef enum {
     PM_ERR_BLOCK_PARAM_PIPE_TERM,
     PM_ERR_BLOCK_TERM_BRACE,
     PM_ERR_BLOCK_TERM_END,
-    PM_ERR_CANNOT_PARSE_EXPRESSION,
     PM_ERR_CANNOT_PARSE_STRING_PART,
     PM_ERR_CASE_EXPRESSION_AFTER_CASE,
     PM_ERR_CASE_EXPRESSION_AFTER_WHEN,
@@ -167,6 +195,7 @@ typedef enum {
     PM_ERR_INVALID_PERCENT,
     PM_ERR_INVALID_TOKEN,
     PM_ERR_INVALID_VARIABLE_GLOBAL,
+    PM_ERR_IT_NOT_ALLOWED,
     PM_ERR_LAMBDA_OPEN,
     PM_ERR_LAMBDA_TERM_BRACE,
     PM_ERR_LAMBDA_TERM_END,
@@ -179,11 +208,13 @@ typedef enum {
     PM_ERR_LIST_W_UPPER_ELEMENT,
     PM_ERR_LIST_W_UPPER_TERM,
     PM_ERR_MALLOC_FAILED,
+    PM_ERR_MIXED_ENCODING,
     PM_ERR_MODULE_IN_METHOD,
     PM_ERR_MODULE_NAME,
     PM_ERR_MODULE_TERM,
     PM_ERR_MULTI_ASSIGN_MULTI_SPLATS,
     PM_ERR_NOT_EXPRESSION,
+    PM_ERR_NO_LOCAL_VARIABLE,
     PM_ERR_NUMBER_LITERAL_UNDERSCORE,
     PM_ERR_NUMBERED_PARAMETER_NOT_ALLOWED,
     PM_ERR_NUMBERED_PARAMETER_OUTER_SCOPE,
@@ -192,6 +223,7 @@ typedef enum {
     PM_ERR_OPERATOR_WRITE_BLOCK,
     PM_ERR_PARAMETER_ASSOC_SPLAT_MULTI,
     PM_ERR_PARAMETER_BLOCK_MULTI,
+    PM_ERR_PARAMETER_CIRCULAR,
     PM_ERR_PARAMETER_METHOD_NAME,
     PM_ERR_PARAMETER_NAME_REPEAT,
     PM_ERR_PARAMETER_NO_DEFAULT,
@@ -211,6 +243,7 @@ typedef enum {
     PM_ERR_PATTERN_EXPRESSION_AFTER_PIN,
     PM_ERR_PATTERN_EXPRESSION_AFTER_PIPE,
     PM_ERR_PATTERN_EXPRESSION_AFTER_RANGE,
+    PM_ERR_PATTERN_EXPRESSION_AFTER_REST,
     PM_ERR_PATTERN_HASH_KEY,
     PM_ERR_PATTERN_HASH_KEY_LABEL,
     PM_ERR_PATTERN_IDENT_AFTER_HROCKET,
@@ -243,20 +276,25 @@ typedef enum {
     PM_ERR_UNARY_RECEIVER_MINUS,
     PM_ERR_UNARY_RECEIVER_PLUS,
     PM_ERR_UNARY_RECEIVER_TILDE,
+    PM_ERR_UNEXPECTED_TOKEN_CLOSE_CONTEXT,
+    PM_ERR_UNEXPECTED_TOKEN_IGNORE,
     PM_ERR_UNDEF_ARGUMENT,
     PM_ERR_UNTIL_TERM,
     PM_ERR_VOID_EXPRESSION,
     PM_ERR_WHILE_TERM,
+    PM_ERR_WRITE_TARGET_IN_METHOD,
     PM_ERR_WRITE_TARGET_READONLY,
     PM_ERR_WRITE_TARGET_UNEXPECTED,
     PM_ERR_XSTRING_TERM,
+
+    // These are the warning codes.
     PM_WARN_AMBIGUOUS_FIRST_ARGUMENT_MINUS,
     PM_WARN_AMBIGUOUS_FIRST_ARGUMENT_PLUS,
     PM_WARN_AMBIGUOUS_PREFIX_STAR,
     PM_WARN_AMBIGUOUS_SLASH,
     PM_WARN_END_IN_METHOD,
 
-    /* This must be the last member. */
+    // This is the number of diagnostic codes.
     PM_DIAGNOSTIC_ID_LEN,
 } pm_diagnostic_id_t;
 

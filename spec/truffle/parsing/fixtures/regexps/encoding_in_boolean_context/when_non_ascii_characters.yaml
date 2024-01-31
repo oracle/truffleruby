@@ -1,0 +1,41 @@
+subject: "Regexp"
+description: "encoding in boolean context / when there are non-ASCII characters in a literal"
+notes: >
+  Regexp may be forced to the BINARY (ASCII-8BIT) encoding sometimes
+focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
+ruby: |
+  # encoding: us-ascii
+  /abc \xFF/ ? 1 : 2
+ast: |
+  RubyCallNode
+      attributes:
+          descriptor = NoKeywordArgumentsDescriptor
+          dispatchConfig = PROTECTED
+          emptyKeywordsProfile = false
+          flags = 1
+          isAttrAssign = false
+          isSafeNavigation = false
+          isSplatted = false
+          isVCall = false
+          lastArgIsNotHashProfile = false
+          methodName = "=~"
+          notEmptyKeywordsProfile = false
+          notRuby2KeywordsHashProfile = false
+      children:
+          arguments = [
+              ReadGlobalVariableNodeGen
+                  attributes:
+                      flags = 0
+                      name = "$_"
+                  children:
+                      lookupGlobalVariableStorageNode =
+                          LookupGlobalVariableStorageNodeGen
+                              attributes:
+                                  index = -1
+                                  name = "$_"
+          ]
+          receiver =
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = RubyRegexp(source = abc \xFF, options = RegexpOptions(kcode: NONE, fixed, kcodeDefault, literal), encoding = ASCII-8BIT)

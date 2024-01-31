@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -19,6 +20,7 @@ import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 
+// NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode.
 public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiWriteNode node;
@@ -50,7 +52,13 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
 
         final AssignableNode restNode;
         if (node.rest != null) {
-            restNode = node.rest.accept(this);
+            if (node.rest instanceof Nodes.ImplicitRestNode) {
+                // a, = []
+                // do nothing
+                restNode = null;
+            } else {
+                restNode = node.rest.accept(this);
+            }
         } else {
             restNode = null;
         }
@@ -76,8 +84,8 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
     }
 
     @Override
-    public AssignableNode visitCallNode(Nodes.CallNode node) {
-        final RubyNode rubyNode = yarpTranslator.translateCallTargetNode(node);
+    public AssignableNode visitCallTargetNode(Nodes.CallTargetNode node) {
+        final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
@@ -95,6 +103,17 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
 
     @Override
     public AssignableNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
+        final RubyNode rubyNode = node.accept(yarpTranslator);
+        return ((AssignableNode) rubyNode).toAssignableNode();
+    }
+
+    @Override
+    public AssignableNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
+    }
+
+    @Override
+    public AssignableNode visitIndexTargetNode(Nodes.IndexTargetNode node) {
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }

@@ -1,7 +1,12 @@
 subject: "Block"
 description: "Arity / with implicit rest parameter (|a,|)"
 notes: >
-  Implicit rest parameter should be ignored with `hasRest=false`.
+  Implicit rest parameter should be ignored.
+  
+  Arity's attributes:
+  - hasRest = true,
+  - isImplicitRest = true
+yarp_specific: true # there is no declaration of '*` local variable, don't save implicit rest parameter into local variable
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a,|
@@ -13,13 +18,13 @@ ast: |
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = true, isImplicitRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req)])
           type = PROC
       call targets:
           RubyProcRootNode
               attributes:
                   callTarget = block in <top (required)>
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:%anonymous_rest, #3:%destructure_1, #4:*}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:a, #2:%destructure_1}
                   instrumentationBits = 0
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   nextProfile = false
@@ -27,7 +32,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = true, isImplicitRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = req)])
                   split = HEURISTIC
               children:
                   body =
@@ -59,7 +64,7 @@ ast: |
                                                                       WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              frameSlot = 3 # %destructure_1
+                                                                              frameSlot = 2 # %destructure_1
                                                                           children:
                                                                               valueNode =
                                                                                   SplatCastNodeGen
@@ -94,7 +99,7 @@ ast: |
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
-                                                                                                      frameSlot = 3 # %destructure_1
+                                                                                                      frameSlot = 2 # %destructure_1
                                                                                                       type = FRAME_LOCAL
                                                                   ]
                                           elseBody =
@@ -134,19 +139,6 @@ ast: |
                                                                                           index = 0
                                                                                           keywordArguments = false
                                                                                           missingArgumentBehavior = NIL
-                                                          WriteLocalVariableNode
-                                                              attributes:
-                                                                  flags = 0
-                                                                  frameSlot = 2 # %anonymous_rest
-                                                              children:
-                                                                  valueNode =
-                                                                      ReadRestArgumentNode
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              keywordArguments = false
-                                                                              markKeywordHashWithFlag = false
-                                                                              postArgumentsCount = 0
-                                                                              startIndex = 1
                                                       ]
                                           thenBody =
                                               SequenceNode
@@ -183,25 +175,7 @@ ast: |
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
-                                                                                          frameSlot = 3 # %destructure_1
-                                                                                          type = FRAME_LOCAL
-                                                          WriteLocalVariableNode
-                                                              attributes:
-                                                                  flags = 0
-                                                                  frameSlot = 2 # %anonymous_rest
-                                                              children:
-                                                                  valueNode =
-                                                                      ArraySliceNodeGen
-                                                                          attributes:
-                                                                              flags = 0
-                                                                              from = 1
-                                                                              to = 0
-                                                                          children:
-                                                                              arrayNode_ =
-                                                                                  ReadLocalVariableNode
-                                                                                      attributes:
-                                                                                          flags = 0
-                                                                                          frameSlot = 3 # %destructure_1
+                                                                                          frameSlot = 2 # %destructure_1
                                                                                           type = FRAME_LOCAL
                                                       ]
                                   NilLiteralNode

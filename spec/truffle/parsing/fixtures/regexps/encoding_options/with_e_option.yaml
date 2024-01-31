@@ -1,0 +1,12 @@
+subject: "Regexp"
+description: "encoding options / with e option"
+note: >
+  The 'e' modifiers overrides source encoding with EUC-JP encoding
+focused_on_node: "org.truffleruby.language.literal.ObjectLiteralNode"
+ruby: |
+  /abc/e
+ast: |
+  ObjectLiteralNode
+      attributes:
+          flags = 1
+          object = RubyRegexp(source = abc, options = RegexpOptions(kcode: EUC, fixed, literal), encoding = EUC-JP)

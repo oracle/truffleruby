@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,7 +9,8 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -18,7 +19,7 @@ import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
-public final class SequenceNode extends RubyContextSourceNode {
+public final class SequenceNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Children private final RubyNode[] body;
 
@@ -31,7 +32,7 @@ public final class SequenceNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         for (int n = 0; n < body.length - 1; n++) {
-            body[n].doExecuteVoid(frame);
+            body[n].executeVoid(frame);
         }
 
         return body[body.length - 1].execute(frame);
@@ -39,10 +40,11 @@ public final class SequenceNode extends RubyContextSourceNode {
 
     @ExplodeLoop
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public Nil executeVoid(VirtualFrame frame) {
         for (int n = 0; n < body.length; n++) {
-            body[n].doExecuteVoid(frame);
+            body[n].executeVoid(frame);
         }
+        return nil;
     }
 
     public RubyNode[] getSequence() {

@@ -1656,7 +1656,7 @@ public final class StringSupport {
                                 context,
                                 context.getCoreExceptions().runtimeError(INVALID_FORMAT_MESSAGE, currentNode));
                     }
-                    String encnameString = new String(bytes, encname, size, encoding.jcoding.getCharset());
+                    String encnameString = TStringUtils.bytesToJavaStringOrThrow(bytes, encname, size, encoding);
                     RubyEncoding enc2 = context.getEncodingManager().getRubyEncoding(encnameString);
                     if (enc2 == null) {
                         throw new RaiseException(

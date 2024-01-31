@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -26,19 +26,18 @@ public final class WriteLocalVariableNode extends WriteLocalNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object value = valueNode.execute(frame);
+        assign(frame, value);
+        return value;
+    }
 
+    @Override
+    public void assign(VirtualFrame frame, Object value) {
         if (writeFrameSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             writeFrameSlotNode = insert(WriteFrameSlotNodeGen.create(frameSlot));
         }
 
         writeFrameSlotNode.executeWrite(frame, value);
-        return value;
-    }
-
-    @Override
-    public void assign(VirtualFrame frame, Object value) {
-        throw CompilerDirectives.shouldNotReachHere("Should be simplified with getSimplifiedAssignableNode()");
     }
 
     @Override

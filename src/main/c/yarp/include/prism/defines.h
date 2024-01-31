@@ -17,6 +17,14 @@
 #include <string.h>
 
 /**
+ * We want to be able to use the PRI* macros for printing out integers, but on
+ * some platforms they aren't included unless this is already defined.
+ */
+#define __STDC_FORMAT_MACROS
+
+#include <inttypes.h>
+
+/**
  * By default, we compile with -fvisibility=hidden. When this is enabled, we
  * need to mark certain functions as being publically-visible. This macro does
  * that in a compiler-agnostic way.
@@ -72,6 +80,23 @@
  */
 #if !defined(snprintf) && defined(_MSC_VER) && (_MSC_VER < 1900)
 #   define snprintf _snprintf
+#endif
+
+/**
+ * A simple utility macro to concatenate two tokens together, necessary when one
+ * of the tokens is itself a macro.
+ */
+#define PM_CONCATENATE(left, right) left ## right
+
+/**
+ * We want to be able to use static assertions, but they weren't standardized
+ * until C11. As such, we polyfill it here by making a hacky typedef that will
+ * fail to compile due to a negative array size if the condition is false.
+ */
+#if defined(_Static_assert)
+#   define PM_STATIC_ASSERT(line, condition, message) _Static_assert(condition, message)
+#else
+#   define PM_STATIC_ASSERT(line, condition, message) typedef char PM_CONCATENATE(static_assert_, line)[(condition) ? 1 : -1]
 #endif
 
 #endif

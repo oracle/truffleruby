@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -77,7 +77,7 @@ public abstract class TypeNodes {
     @Primitive(name = "respond_to?")
     public abstract static class RespondToPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
-        boolean respondTo(Object object, Object name, boolean includePrivate,
+        boolean respondTo(Object object, RubySymbol name, boolean includePrivate,
                 @Cached KernelNodes.RespondToNode respondToNode) {
             // Do not pass a frame here, we want to ignore refinements and not need to read the caller frame
             return respondToNode.executeDoesRespondTo(object, name, includePrivate);
@@ -255,6 +255,11 @@ public abstract class TypeNodes {
 
     @Primitive(name = "object_ivars")
     public abstract static class ObjectInstanceVariablesNode extends PrimitiveArrayArgumentsNode {
+
+        @NeverDefault
+        public static ObjectInstanceVariablesNode create() {
+            return TypeNodesFactory.ObjectInstanceVariablesNodeFactory.create(null);
+        }
 
         public abstract RubyArray executeGetIVars(Object self);
 

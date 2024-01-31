@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,6 +29,9 @@ public final class Arity {
     private final int preRequired;
     private final int optional;
     private final boolean hasRest;
+    /* Block with parameters |a, | has implicit rest argument, but it's ignored for `lambda {}`. `Proc#arity` ignores it
+     * as well even for blocks (see https://bugs.ruby-lang.org/issues/19971). */
+    private final boolean isImplicitRest;
     private final int postRequired;
     private final boolean hasKeywordsRest;
     private final String[] keywordArguments;
@@ -39,14 +42,14 @@ public final class Arity {
     private final int procArityNumber;
 
     public Arity(int preRequired, int optional, boolean hasRest) {
-        this(preRequired, optional, hasRest, 0, NO_KEYWORDS, 0, false);
+        this(preRequired, optional, hasRest, false, 0, NO_KEYWORDS, 0, false);
     }
-
 
     public Arity(
             int preRequired,
             int optional,
             boolean hasRest,
+            boolean isImplicitRest,
             int postRequired,
             String[] keywordArguments,
             int requiredKeywordArgumentsCount,
@@ -54,6 +57,7 @@ public final class Arity {
         this.preRequired = preRequired;
         this.optional = optional;
         this.hasRest = hasRest;
+        this.isImplicitRest = isImplicitRest;
         this.postRequired = postRequired;
         // Required keywords are located at the beginning of the `keywordArguments` array.
         // So we can specify them with only one `int` field (`requiredKeywordArgumentsCount`).
@@ -66,22 +70,12 @@ public final class Arity {
         assert keywordArguments != null && preRequired >= 0 && optional >= 0 && postRequired >= 0 : toString();
     }
 
-    public Arity withRest(boolean hasRest) {
-        return new Arity(
-                preRequired,
-                optional,
-                hasRest,
-                postRequired,
-                keywordArguments,
-                requiredKeywordArgumentsCount,
-                hasKeywordsRest);
-    }
-
     public Arity consumingFirstRequired() {
         return new Arity(
                 Integer.max(preRequired - 1, 0),
                 optional,
                 hasRest,
+                isImplicitRest,
                 postRequired,
                 keywordArguments,
                 requiredKeywordArgumentsCount,
@@ -92,7 +86,9 @@ public final class Arity {
         CompilerAsserts.partialEvaluationConstant(this);
 
         int required = getRequired();
-        return given >= required && (hasRest || given <= required + optional);
+        // assume this check is used only for method/lambda (and not used for block)
+        // so implicit rest parameter should be ignored (if block was converted to lambda/method)
+        return given >= required && ((hasRest && !isImplicitRest) || given <= required + optional);
     }
 
     public int getPreRequired() {
@@ -109,6 +105,10 @@ public final class Arity {
 
     public boolean hasRest() {
         return hasRest;
+    }
+
+    public boolean isImplicitRest() {
+        return isImplicitRest;
     }
 
     public boolean acceptsKeywords() {
@@ -134,14 +134,15 @@ public final class Arity {
             count++;
         }
 
-        if (hasRest || (!isProc && (optional > 0 || (acceptsKeywords() && allKeywordsOptional())))) {
+        if ((hasRest && !isImplicitRest) ||
+                (!isProc && (optional > 0 || (acceptsKeywords() && allKeywordsOptional())))) {
             count = -count - 1;
         }
 
         return count;
     }
 
-    public int getArityNumber(ProcType type) {
+    public int getProcArityNumber(ProcType type) {
         return type == ProcType.PROC ? procArityNumber : arityNumber;
     }
 
@@ -199,6 +200,7 @@ public final class Arity {
                 "preRequired = " + preRequired +
                 ", optional = " + optional +
                 ", hasRest = " + hasRest +
+                ", isImplicitRest = " + isImplicitRest +
                 ", postRequired = " + postRequired +
                 ", keywordArguments = " + Arrays.toString(keywordArguments) +
                 ", requiredKeywordArgumentsCount = " + requiredKeywordArgumentsCount +

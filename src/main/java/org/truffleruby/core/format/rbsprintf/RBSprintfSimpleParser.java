@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -20,11 +20,9 @@ import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 public final class RBSprintfSimpleParser {
 
     private final char[] source;
-    private final boolean isDebug;
 
-    public RBSprintfSimpleParser(char[] source, boolean isDebug) {
+    public RBSprintfSimpleParser(char[] source) {
         this.source = source;
-        this.isDebug = isDebug;
     }
 
     public List<RBSprintfConfig> parse() {
@@ -32,7 +30,6 @@ public final class RBSprintfSimpleParser {
         ArgType argType = ArgType.NONE;
 
         final int end = source.length;
-        int argCount = 0;
 
         for (int i = 0; i < end;) {
 
@@ -137,7 +134,6 @@ public final class RBSprintfSimpleParser {
                             i = numberDollarWidth.getNextI();
                         } else {
                             checkNextArg(argType, 1); // TODO index next args
-                            argCount += 1;
                             argType = ArgType.UNNUMBERED;
                             config.setWidthStar(true);
                             i++;
@@ -161,7 +157,6 @@ public final class RBSprintfSimpleParser {
                                 i = numberDollar.getNextI();
                             } else {
                                 checkNextArg(argType, 1); // TODO idx
-                                argCount += 1;
                                 argType = ArgType.UNNUMBERED;
                                 config.setPrecisionStar(true);
                                 i += 2;
@@ -243,7 +238,6 @@ public final class RBSprintfSimpleParser {
                         i++;
                         if (!argTypeSet) { // Speculative
                             checkNextArg(argType, 1);
-                            argCount += 1;
                             argType = ArgType.UNNUMBERED;
                         }
                         finished = true;
@@ -256,7 +250,6 @@ public final class RBSprintfSimpleParser {
                         i++;
                         if (!argTypeSet) { // Speculative
                             checkNextArg(argType, 1);
-                            argCount += 1;
                             argType = ArgType.UNNUMBERED;
                         }
                         finished = true;
@@ -280,7 +273,6 @@ public final class RBSprintfSimpleParser {
                         config.setFormat(p);
                         if (!argTypeSet) { // Speculative
                             checkNextArg(argType, 1);
-                            argCount += 1;
                             argType = ArgType.UNNUMBERED;
                         }
                         finished = true;
@@ -295,7 +287,6 @@ public final class RBSprintfSimpleParser {
                         }
                         if (!argTypeSet) {
                             checkNextArg(argType, 1); // TODO idx correctly
-                            argCount += 1;
                             argType = ArgType.UNNUMBERED;
                         }
                         config.setFormatType(RBSprintfConfig.FormatType.INTEGER);
@@ -316,7 +307,6 @@ public final class RBSprintfSimpleParser {
                         }
                         if (!argTypeSet) {
                             checkNextArg(argType, 1);
-                            argCount += 1;
                             argType = ArgType.UNNUMBERED;
                         }
                         config.setFormatType(RBSprintfConfig.FormatType.FLOAT);

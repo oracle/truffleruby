@@ -1,11 +1,59 @@
 subject: "String"
 description: "Literal with interpolation when expressions are Strings"
-focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+yarp_specific: String was represented with a single StringLiteralNode node and joined String sections into one
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   "ab#{ "123" }cd"
 ast: |
-  StringLiteralNode
+  SequenceNode
       attributes:
-          encoding = UTF-8
-          flags = 1
-          tstring = ab123cd
+          flags = 12
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 1
+                                              tstring = ab
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              tstring = 123
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              tstring = cd
+                      ]
+          ]

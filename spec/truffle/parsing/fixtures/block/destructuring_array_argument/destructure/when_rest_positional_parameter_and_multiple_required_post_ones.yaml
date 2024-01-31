@@ -54,7 +54,7 @@ ast: |
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = other, type = rest), ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = other, type = rest), ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req)])
           type = PROC
       call targets:
           RubyProcRootNode
@@ -68,7 +68,7 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = other, type = rest), ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = other, type = rest), ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req)])
                   split = HEURISTIC
               children:
                   body =
@@ -180,8 +180,10 @@ ast: |
                                                                       ReadPostArgumentNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              hasRest = true
                                                                               indexFromCount = 1
                                                                               keywordArguments = false
+                                                                              optional = 0
                                                                               required = 2
                                                           WriteLocalVariableNode
                                                               attributes:
@@ -192,8 +194,10 @@ ast: |
                                                                       ReadPostArgumentNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              hasRest = true
                                                                               indexFromCount = 2
                                                                               keywordArguments = false
+                                                                              optional = 0
                                                                               required = 2
                                                       ]
                                           thenBody =
@@ -240,12 +244,15 @@ ast: |
                                                                   frameSlot = 3 # bar
                                                               children:
                                                                   valueNode =
-                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                      ReadBlockPostArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              index = -1
+                                                                              hasRest = true
+                                                                              indexFromCount = 1
+                                                                              optional = 0
+                                                                              required = 2
                                                                           children:
-                                                                              arrayNode_ =
+                                                                              readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
@@ -257,12 +264,15 @@ ast: |
                                                                   frameSlot = 2 # foo
                                                               children:
                                                                   valueNode =
-                                                                      ArrayIndexNodesFactory$ReadConstantIndexNodeGen
+                                                                      ReadBlockPostArgumentFromArrayNode
                                                                           attributes:
                                                                               flags = 0
-                                                                              index = -2
+                                                                              hasRest = true
+                                                                              indexFromCount = 2
+                                                                              optional = 0
+                                                                              required = 2
                                                                           children:
-                                                                              arrayNode_ =
+                                                                              readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0

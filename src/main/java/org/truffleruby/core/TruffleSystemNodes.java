@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -69,8 +69,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.platform.Platform;
-import org.truffleruby.shared.BasicPlatform;
+import org.truffleruby.shared.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
@@ -214,7 +213,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         RubyString hostCPU() {
-            return createString(fromJavaStringNode, BasicPlatform.getArchName(), Encodings.UTF_8);
+            return createString(fromJavaStringNode, Platform.getArchName(), Encodings.UTF_8);
         }
 
     }

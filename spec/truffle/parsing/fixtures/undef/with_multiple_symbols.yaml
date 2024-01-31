@@ -1,5 +1,6 @@
 subject: "Undef"
 description: "with multiple Symbols"
+yarp_specific: true # multiple ModuleNodes$UndefNode nodes (per each name) are replaced with a single node
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   undef :a, :b, :c
@@ -25,29 +26,17 @@ ast: |
                                               flags = 0
               ModuleNodes$UndefNode
                   attributes:
-                      flags = 0
+                      flags = 1
                   children:
                       names = [
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :a
-                      ]
-              ModuleNodes$UndefNode
-                  attributes:
-                      flags = 0
-                  children:
-                      names = [
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :b
-                      ]
-              ModuleNodes$UndefNode
-                  attributes:
-                      flags = 0
-                  children:
-                      names = [
                           ObjectLiteralNode
                               attributes:
                                   flags = 0

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -53,7 +53,6 @@ import org.truffleruby.parser.ast.ArgsParseNode;
 import org.truffleruby.parser.ast.MethodDefParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.SuperParseNode;
-import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -101,18 +100,6 @@ public final class MethodTranslator extends BodyTranslator {
             boolean isStabbyLambda, String[] variables) {
         declareArguments();
         final Arity arity = argsNode.getArity();
-        final Arity arityForCheck;
-
-        /* If you have a block with parameters |a,| Ruby checks the arity as if was minimum 1, maximum 1 like |a|.
-         * That's counter-intuitive - as you'd expect the anonymous rest argument to cause it to have no maximum. It
-         * differs from |a| for non-lambda Procs where it causes destructuring. See
-         * https://github.com/jruby/jruby/blob/324cd78c/core/src/main/java/org/jruby/runtime/Signature.java#L117-L120 */
-        if (argsNode.getRestArgNode() instanceof UnnamedRestArgParseNode &&
-                !((UnnamedRestArgParseNode) argsNode.getRestArgNode()).isStar()) {
-            arityForCheck = arity.withRest(false);
-        } else {
-            arityForCheck = arity;
-        }
 
         final RubyNode loadArguments = new LoadArgumentsTranslator(
                 currentNode,
@@ -143,7 +130,7 @@ public final class MethodTranslator extends BodyTranslator {
         final Supplier<RootCallTarget> procCompiler = procCompiler(
                 sourceSection,
                 source,
-                arityForCheck,
+                arity,
                 preludeProc,
                 body,
                 methodCalledLambda,
@@ -154,7 +141,7 @@ public final class MethodTranslator extends BodyTranslator {
                 sourceSection,
                 source,
                 isStabbyLambda,
-                arityForCheck,
+                arity,
                 loadArguments,
                 body,
                 emitLambda,

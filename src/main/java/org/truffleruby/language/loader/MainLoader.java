@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -15,6 +15,7 @@ import java.io.IOException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.lexer.RubyLexer;
@@ -39,8 +40,9 @@ public final class MainLoader {
     }
 
     public RubySource loadFromCommandLineArgument(String code) {
+        var sourceCode = new TStringWithEncoding(TStringUtils.fromJavaString(code, Encodings.UTF_8), Encodings.UTF_8);
         final Source source = Source
-                .newBuilder(TruffleRuby.LANGUAGE_ID, code, "-e")
+                .newBuilder(TruffleRuby.LANGUAGE_ID, new ByteBasedCharSequence(sourceCode), "-e")
                 .mimeType(RubyLanguage.MIME_TYPE_MAIN_SCRIPT)
                 .build();
         return new RubySource(source, "-e");
@@ -51,7 +53,7 @@ public final class MainLoader {
         var sourceTString = transformScript(currentNode, path, sourceBytes);
 
         final Source source = Source
-                .newBuilder(TruffleRuby.LANGUAGE_ID, sourceTString.toString(), path)
+                .newBuilder(TruffleRuby.LANGUAGE_ID, new ByteBasedCharSequence(sourceTString), path)
                 .mimeType(RubyLanguage.MIME_TYPE_MAIN_SCRIPT)
                 .build();
         return new RubySource(source, path, sourceTString);

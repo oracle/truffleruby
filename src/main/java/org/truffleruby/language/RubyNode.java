@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -51,18 +51,17 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
 
-    private static final byte FLAG_NEWLINE = 0;
-    private static final byte FLAG_COVERAGE_LINE = 1;
-    private static final byte FLAG_CALL = 2;
-    private static final byte FLAG_ROOT = 3;
+    private static final byte FLAG_NEWLINE = 0;       // 1<<0 = 1
+    private static final byte FLAG_COVERAGE_LINE = 1; // 1<<1 = 2
+    private static final byte FLAG_CALL = 2;          // 1<<2 = 4
+    private static final byte FLAG_ROOT = 3;          // 1<<3 = 8
 
     protected static final int NO_SOURCE = -1;
 
-    /** This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of
-     * this method which would increase the number of runtime compilable methods. */
-    public void doExecuteVoid(VirtualFrame frame) {
-        execute(frame);
-    }
+    // Used when the return value of a node is ignored syntactically.
+    // Returns Nil instead of void to force RubyNodeWrapper to call `delegateNode.executeVoid(frame)`, otherwise
+    // it would call `delegateNode.execute(frame)` in `execute()` which is semantically incorrect for defined?().
+    public abstract Nil executeVoid(VirtualFrame frame);
 
     // Declared abstract here so the instrumentation wrapper delegates it
     public abstract Object isDefined(VirtualFrame frame, RubyLanguage language, RubyContext context);
@@ -252,6 +251,14 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         return new RubyNodeWrapper(this, probe);
     }
 
+    public static RubyNode unwrapNode(RubyNode node) {
+        if (node instanceof WrapperNode wrapperNode) {
+            return (RubyNode) wrapperNode.getDelegateNode();
+        } else {
+            return node;
+        }
+    }
+
     /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes
      * such as those representing a return or other control flow may wish to override this. */
     public boolean isContinuable() {
@@ -334,6 +341,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
                 method);
     }
 
+    @Override
     public abstract RubyNode cloneUninitialized();
 
     public static RubyNode cloneUninitialized(RubyNode node) {

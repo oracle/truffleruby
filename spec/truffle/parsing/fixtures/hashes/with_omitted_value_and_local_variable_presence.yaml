@@ -1,0 +1,32 @@
+subject: "Hash"
+description: "with omitted value and local variable presence"
+notes: >
+  treats name as a local variable accessing
+focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
+ruby: |
+  a = 100500
+  {a:, b: 42}
+ast: |
+  PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+      attributes:
+          flags = 1
+      children:
+          keyValues = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :a
+              ReadLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 2 # a
+                      type = FRAME_LOCAL
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :b
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      value = 42
+          ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -26,7 +26,6 @@ import org.truffleruby.annotations.Visibility;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -385,13 +384,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "instance_exec", needsBlock = true, rest = true)
     public abstract static class InstanceExecNode extends CoreMethodArrayArgumentsNode {
 
-        public static InstanceExecNode create() {
-            return InstanceExecNodeFactory.create(null);
-        }
-
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
-
-        abstract Object executeInstanceExec(VirtualFrame frame, Object self, Object[] args, RubyProc block);
 
         @Specialization
         Object instanceExec(VirtualFrame frame, Object receiver, Object[] arguments, RubyProc block) {

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -253,6 +253,42 @@ class Time
     time = Time.allocate
     time.send(:initialize_copy, self)
     time + (ceiled - original)
+  end
+
+  DEFAULT_DECONSTRUCT_KEYS = %i[year month day yday wday hour min sec subsec dst zone]
+
+  def deconstruct_keys(array_of_names)
+    unless Primitive.nil?(array_of_names) || Primitive.is_a?(array_of_names, Array)
+      raise TypeError, "wrong argument type #{Primitive.class(array_of_names)} (expected Array or nil)"
+    end
+
+    if Primitive.nil?(array_of_names)
+      array_of_names = DEFAULT_DECONSTRUCT_KEYS
+    end
+
+    ret = {}
+
+    array_of_names.each do |key|
+      value = case key
+              when :year   then year
+              when :month  then month
+              when :day    then day
+              when :yday   then yday
+              when :wday   then wday
+              when :hour   then hour
+              when :min    then min
+              when :sec    then sec
+              when :subsec then subsec
+              when :dst    then dst?
+              when :zone   then zone
+              else
+                undefined
+              end
+
+      ret[key] = value unless Primitive.undefined?(value)
+    end
+
+    ret
   end
 
   def self._load(data)

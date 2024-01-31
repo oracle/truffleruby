@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -217,7 +217,7 @@ public final class CompactHashStore {
     Object deleteLast(RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetIndexPosFromKeyPosNode getIndexPosFromKeyPosNode,
-            @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
+            @Cached @Shared InlinedLoopConditionProfile nonNullKeyNotYetFound,
             @Bind("$node") Node node) {
         assert hash.size > 0;
         int keyPos = firstNonNullKeyPosFromEnd(nonNullKeyNotYetFound, node);
@@ -238,7 +238,7 @@ public final class CompactHashStore {
     RubyArray shift(RubyHash hash,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetIndexPosFromKeyPosNode getIndexPosFromKeyPosNode,
-            @Cached @Exclusive InlinedLoopConditionProfile nonNullKeyNotYetFound,
+            @Cached @Shared InlinedLoopConditionProfile nonNullKeyNotYetFound,
             @Bind("$node") Node node) {
         assert hash.size > 0;
         int keyPos = firstNonNullKeyPosFromBeginning(nonNullKeyNotYetFound, node);

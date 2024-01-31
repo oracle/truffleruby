@@ -107,15 +107,21 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
     def contents(self, result):
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
         jvm_args = [pipes.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
+
         debug_args = mx.java_debug_args()
         jvm_args.extend(debug_args)
         if debug_args:
             jvm_args.extend(['-ea', '-esa'])
+
         jvm_args.append('-Dorg.graalvm.language.ruby.home=' + root)
+
+        libyarpbindings = list(mx.project('org.truffleruby.yarp.bindings').getArchivableResults())[0][0]
+        jvm_args.append('-Dtruffleruby.libyarpbindings=' + libyarpbindings)
+
         main_class = 'org.truffleruby.launcher.RubyLauncher'
         ruby_options = [
             '--experimental-options',
-            '--building-core-cexts',
+            '--building-core-cexts', # This lets the process know it's miniruby
             '--launcher=' + result,
             '--disable-gems',
             '--disable-rubyopt',
