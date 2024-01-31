@@ -5,9 +5,6 @@ notes: >
   A simplified AST for array argument destructuring:
   
     (ReadKeywordArgumentNodeGen name = :c)
-yarp_specific: true # there is optimization in destructuring a single array argument
-                    # to return ReadKeywordArgumentNodeGen for required keyword parameter
-                    # instead of (WriteLocalVariableNode (ReadKeywordArgumentNodeGen))
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, c:|

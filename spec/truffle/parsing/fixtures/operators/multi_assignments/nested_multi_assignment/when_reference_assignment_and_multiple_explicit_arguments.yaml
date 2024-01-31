@@ -1,7 +1,6 @@
 subject: "Multi-assignment"
 description: "When nested multi assignment / element reference and multiple explicit arguments (a[:foo, :bar], b = foo)"
 notes: >
-yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
 ruby: |
   (a[:key, 0], b), c = []

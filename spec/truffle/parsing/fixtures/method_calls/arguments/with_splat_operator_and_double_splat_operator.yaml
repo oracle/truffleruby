@@ -1,6 +1,5 @@
 subject: "Method call"
 description: "Arguments / with splat operator and double splat operator (*args, **keys)"
-yarp_specific: true # Use ArrayConcatNode instead of ArrayAppendOneNodeGen
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   foo(*bar, **baz)

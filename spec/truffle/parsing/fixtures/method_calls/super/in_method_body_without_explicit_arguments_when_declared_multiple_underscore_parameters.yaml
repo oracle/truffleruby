@@ -4,7 +4,6 @@ notes: >
   Is represented by SuperCallNode and ReadZSuperArgumentsNode nodes.
   
   All the "_" but the first one are stored in temporary local variables %_2, %_3, etc.
-yarp_specific: true # store in local variables all the "_" parameters, not the first two
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(_, _, _=0, _=1, *_, _, _)

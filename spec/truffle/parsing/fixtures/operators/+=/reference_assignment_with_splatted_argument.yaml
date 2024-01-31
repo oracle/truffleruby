@@ -10,7 +10,6 @@ notes: >
   
   receiver.[](*argument0) && receiver.[]=(*argument0, 100500)
   ```
-yarp_specific: true # Simplified AST of `foo.[]=(*a, 100500)` and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   foo[*a] += 100500

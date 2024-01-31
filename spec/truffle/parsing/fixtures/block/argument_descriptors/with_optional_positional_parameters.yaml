@@ -7,7 +7,6 @@ notes: >
     - ArgumentDescriptor(name = c, type = opt)
   
   So the optional positional arguments are described as `opt` variables.
-yarp_specific: true # use ReadBlockOptionalArgumentFromArrayNode for optional parameters at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b=42, c=100500|

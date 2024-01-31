@@ -2,8 +2,6 @@ subject: "&&="
 description: "Assign an element referenced with nested splatted argument (a[*[*b]] &&= c)"
 notes: >
   Nested * operator shouldn't be desugared
-yarp_specific: true # don't desugar [*a] to a and put only one SplatCastNodeGen to call #to_a only once
-                    # Simplified AST of `foo.[]=(*[*a], 100500)` and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   foo[*[*a]] &&= 100500

@@ -26,7 +26,6 @@ notes: >
 
   That is equivalent to a Ruby expression:
       [foo, bar] + *foobar + [foo2, bar2]
-yarp_specific: true # removed excessive SplatCastNodeGen to convert to array ArrayLiteralNode$UninitialisedArrayLiteralNode
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def a

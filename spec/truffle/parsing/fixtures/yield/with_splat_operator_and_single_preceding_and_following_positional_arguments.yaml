@@ -18,7 +18,6 @@ notes: >
 
   That is equivalent to a Ruby expression:
       [foo] + *bar + [baz]
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def a

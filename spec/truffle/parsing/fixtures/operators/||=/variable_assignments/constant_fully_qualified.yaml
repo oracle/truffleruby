@@ -2,7 +2,6 @@ subject: "||="
 description: "Variable assignment/fully qualified constant (A::B ||= c)"
 notes: >
   `A::B ||= c` is translated into `A::B || A::B = c`
-yarp_specific: true # evaluate parent (FOO::) only once and cache its value into a local variable
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   FOO::BAR ||= 42

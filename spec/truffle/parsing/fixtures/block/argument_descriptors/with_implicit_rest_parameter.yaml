@@ -2,7 +2,6 @@ subject: "Block"
 description: "Argument descriptors / with implicit rest parameter (|a,|)"
 notes: >
   Implicit rest parameter should be ignored (there is no 'type=anonrest' descriptor).
-yarp_specific: true # there is no declaration of '*` local variable, don't save implicit rest parameter into local variable
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a,|

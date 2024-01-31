@@ -2,7 +2,6 @@ subject: "Multi-assignment"
 description: "When there is a nested element reference on the LHS (a[0][:key], b = foo )"
 notes: >
   Attribute assignment is represented as a method call `v.foo=(nil)`
-yarp_specific: true # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.core.array.MultipleAssignmentNode"
 ruby: |
   a[0][:key], b = 'foo', 'bar', 'baz'

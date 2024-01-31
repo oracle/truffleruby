@@ -17,7 +17,6 @@ require_relative '../../ruby/spec_helper'
 #   description: "long description"
 #   notes: >
 #     "some additional details to explain what this case actually tests (optional)"
-#   yarp_specific: "true/false - we have different TruffleAST for YARP so don't run this test against JRuby parser"
 #   focused_on_node: "a node class name"
 #   main_script: true
 #   index: "integer, position of a node to focus on in AST when there are several such nodes and we need not the first one (optional)"
@@ -69,7 +68,7 @@ describe "Parsing" do
 
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
-    subject, description, yarp_specific, focused_on_node, index, main_script, source_code, expected_ast = yaml.values_at("subject", "description", "yarp_specific", "focused_on_node", "index", "main_script", "ruby", "ast")
+    subject, description, focused_on_node, index, main_script, source_code, expected_ast = yaml.values_at("subject", "description", "focused_on_node", "index", "main_script", "ruby", "ast")
     description&.strip!
     source_code.strip!
     expected_ast.strip!
@@ -80,8 +79,6 @@ describe "Parsing" do
     # So just don't run the pursing specs at all in such jobs on CI.
     guard -> { Primitive.vm_single_context? && !TruffleRuby.jit? && Truffle::Boot.get_option("default-cache") != 0 } do
       it "a #{subject} (#{description}) case is parsed correctly" do
-        skip "YARP specific test" if original_parser && yarp_specific
-
         # p "a #{subject} (#{description.strip}) case is parsed correctly"
 
         if original_parser

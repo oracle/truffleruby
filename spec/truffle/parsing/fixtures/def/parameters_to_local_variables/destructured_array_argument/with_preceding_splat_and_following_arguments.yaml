@@ -1,7 +1,6 @@
 subject: "Def"
 description: "Parameters to local variables / with destructured Array argument / preceding, splat operator and following parameters"
 notes: >
-yarp_specific: true # destructuring was optimized and generating a sequence of AST nodes is replaced by MultipleAssignmentNode
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(a, (b, *c, d), e)

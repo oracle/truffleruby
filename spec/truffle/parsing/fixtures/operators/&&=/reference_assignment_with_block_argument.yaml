@@ -3,7 +3,6 @@ description: "Assign an referenced element with block argument (a[&b] &&= c)"
 notes: >
   A block argument should be stored in RubyCallNode#block field and not in
   a #arguments field with positional ones.
-yarp_specific: true # wasn't supported
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   foo[42, &block] &&= 100500

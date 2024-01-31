@@ -1,6 +1,5 @@
 subject: "Regexp"
 description: "with embedded instance variable (#@a)"
-yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /foo #@bar/

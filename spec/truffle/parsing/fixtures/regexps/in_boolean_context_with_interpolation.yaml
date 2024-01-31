@@ -6,7 +6,6 @@ notes: >
   Interpolation is handled with nodes:
     - InterpolatedRegexpNode
     - InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
-yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   /foo #{bar} baz/ ? 1 : 2

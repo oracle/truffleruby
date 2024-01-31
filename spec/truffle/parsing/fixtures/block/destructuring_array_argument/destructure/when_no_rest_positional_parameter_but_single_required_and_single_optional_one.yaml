@@ -26,7 +26,6 @@ notes: >
 
       ordinal parameters processing without destructing             # else branch
     )
-yarp_specific: true # use ReadBlockOptionalArgumentFromArrayNode for optional parameters at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |foo, bar = 42|

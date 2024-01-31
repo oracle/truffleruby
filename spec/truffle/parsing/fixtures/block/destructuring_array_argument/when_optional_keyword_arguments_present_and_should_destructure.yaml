@@ -7,7 +7,6 @@ notes: >
     (WriteLocalVariableNode frameSlot = 3
       (ReadKeywordArgumentNodeGen name = :c
         (StringLiteralNode tstring = c)))          # defaultValue
-yarp_specific: true # change how optional keyword argument is handled and assign default value (StringLiteralNode) directly at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, c: 'c'|

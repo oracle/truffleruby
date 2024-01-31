@@ -6,8 +6,6 @@ notes: >
   - SplatCastNodeGen
   - ArrayLiteralNode$UninitialisedArrayLiteralNode
   nodes
-yarp_specific: true # Removed excessive SplatCastNodeGen:
-                    #   SplatCastNodeGen(UninitialisedArrayLiteralNode) -> UninitialisedArrayLiteralNode
 focused_on_node: "org.truffleruby.language.control.BreakNode"
 ruby: |
   while true

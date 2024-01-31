@@ -15,8 +15,6 @@ notes: >
   ```ruby
   a.foo = $!
   ```
-yarp_specific: true # an AssignRescueVariableNode node is introduced
-                    # generate explicit NilLiteralNode (isImplicit = false)
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin

@@ -2,7 +2,6 @@ subject: "+="
 description: "Variable assignment/fully qualified constant with implicit parent (::A += b)"
 notes: >
   `::A += b` is translated into `::A = ::A + b`
-yarp_specific: true # fixed call node parameters and set `ignoreVisibility=false`, fixed operator second argument
 focused_on_node: "org.truffleruby.language.constants.WriteConstantNode"
 ruby: |
   ::FOO += 42

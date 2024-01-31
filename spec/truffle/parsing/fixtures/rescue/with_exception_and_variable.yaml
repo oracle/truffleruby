@@ -15,7 +15,6 @@ notes: >
   ```ruby
   error = $!
   ```
-yarp_specific: true # an AssignRescueVariableNode node is introduced
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin

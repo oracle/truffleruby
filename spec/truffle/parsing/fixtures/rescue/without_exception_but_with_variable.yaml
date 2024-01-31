@@ -3,7 +3,6 @@ description: "without exception but with a variable"
 notes: >
   The rescue branch is represented as a RescueStandardErrorNode node
   and assigning a local variable with `$!` global variable.
-yarp_specific: true # an AssignRescueVariableNode node is introduced
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin

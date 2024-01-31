@@ -2,7 +2,6 @@ subject: "case expression"
 description: "without expression to match / and splat operator (case when *a ... end)"
 notes: >
   Splat operator is handled with `Array#any?` method to check that there is at least one truthy `when`'s operand
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
   case

@@ -9,8 +9,6 @@ notes: >
     - ArgumentDescriptor(name = f, type = req)
   
   So the * operator without variable name is described as `anonrest` variable.
-yarp_specific: true # destructuring of a single Array argument was optimized,
-                    # different order of parameter names in FrameDescriptor (:%unnamed_rest is shifted)
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, *, d, f|

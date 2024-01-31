@@ -7,7 +7,6 @@ notes: >
     - ArgumentDescriptor(name = e, type = req)
   
   So the destructured argument is described as a `anonreq` variable.
-yarp_specific: true # destructuring was optimized and generating a sequence of AST nodes is replaced by MultipleAssignmentNode
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(a, (b, *c, d), e)

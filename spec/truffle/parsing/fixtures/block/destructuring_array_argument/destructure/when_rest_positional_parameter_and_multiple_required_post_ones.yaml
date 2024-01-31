@@ -42,7 +42,6 @@ notes: >
   
       ordinal parameters processing without destructing             # else branch
     )
-yarp_specific: true # destructuring of a single Array argument was optimized
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |*other, foo, bar|

@@ -2,7 +2,6 @@ subject: "Rational number"
 description: "with big Integer value (>= 2^64)."
 notes: >
   Big Integer value is represented by ObjectLiteralNode.
-yarp_specific: true # LongFixnumLiteralNode is replaced with IntegerFixnumLiteralNode to represent denominator (1)
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   18446744073709551617r

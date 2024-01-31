@@ -1,6 +1,5 @@
 subject: "Symbol"
 description: "Literal with interpolation when expressions are Strings"
-yarp_specific: String was represented with a single Symbol literal with joined sections into one
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   :"ab#{ "123" }cd"

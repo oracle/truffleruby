@@ -8,8 +8,6 @@ notes: >
       (ReadBlockOptionalArgumentFromArrayNode index = 1
         (ReadLocalVariableNode frameSlot = 4)             # %destructure_1
         (IntegerFixnumLiteralNode 42)))                   # defaultValue
-
-yarp_specific: true # use ReadBlockOptionalArgumentFromArrayNode for optional parameters at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b=42, c=100500|

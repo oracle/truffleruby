@@ -2,8 +2,6 @@ subject: "END block"
 description: "END { ... }"
 notes: >
   Is translated into a `Truffle::KernelOperations.at_exit(false) { ... }` call.
-yarp_specific: true # don't optimize reading KernelOperations constant
-                    # with TruffleKernelOperationsModuleLiteralNode
 focused_on_node: "org.truffleruby.language.control.OnceNode"
 ruby: |
   END {

@@ -1,6 +1,5 @@
 subject: "String"
 description: "Literal with interpolation when expressions are Strings"
-yarp_specific: String was represented with a single StringLiteralNode node and joined String sections into one
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   "ab#{ "123" }cd"

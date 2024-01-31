@@ -1,6 +1,5 @@
 subject: "Undef"
 description: "with multiple Symbols"
-yarp_specific: true # multiple ModuleNodes$UndefNode nodes (per each name) are replaced with a single node
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   undef :a, :b, :c

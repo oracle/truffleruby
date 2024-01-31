@@ -2,7 +2,6 @@ subject: "Method call"
 description: "Arguments/with positional argument and splat operator (a, *args)"
 notes: |
   is represented by ArrayConcatNode and SplatCastNodeGen
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   foo(bar, *baz)

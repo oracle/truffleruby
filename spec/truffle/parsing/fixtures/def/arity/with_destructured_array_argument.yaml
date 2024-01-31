@@ -9,7 +9,6 @@ notes: >
     - keywordArguments = []
     - requiredKeywordArgumentsCount = 0
     - hasKeywordsRest = false
-yarp_specific: true # destructuring was optimized and generating a sequence of AST nodes is replaced by MultipleAssignmentNode
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(a, (b, *c, d), e)

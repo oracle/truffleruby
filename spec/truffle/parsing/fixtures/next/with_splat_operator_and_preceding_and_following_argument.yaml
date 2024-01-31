@@ -6,7 +6,6 @@ notes: >
   - SplatCastNodeGen
   - ArrayLiteralNode$UninitialisedArrayLiteralNode
   nodes
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.NextNode"
 ruby: |
   while (true)

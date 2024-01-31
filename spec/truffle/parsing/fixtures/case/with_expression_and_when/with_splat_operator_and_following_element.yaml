@@ -2,7 +2,6 @@ subject: "case expression"
 description: "with expression to match / and splat operator with following element (case exp when *a, b ... end)"
 notes: >
   Splat operator is handled with `Truffle::Internal.when_splat` method implemented in Ruby
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
   case 42

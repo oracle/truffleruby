@@ -1,7 +1,5 @@
 subject: "Rescue keyword"
 description: "capturing / with element reference and multiple explicit arguments"
-yarp_specific: true # an AssignRescueVariableNode node is introduced,
-                    # generate explicit NilLiteralNode (isImplicit = false)
 notes: >
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |

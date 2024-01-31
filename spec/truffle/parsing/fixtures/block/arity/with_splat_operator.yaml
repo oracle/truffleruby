@@ -12,7 +12,6 @@ notes: >
   
   So all the positional parameters are reflected in the `preRequired=2`, `hasRest=true`
   and `postRequired=2` attributes.
-yarp_specific: true # destructuring of a single Array argument was optimized
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, *c, d, f|

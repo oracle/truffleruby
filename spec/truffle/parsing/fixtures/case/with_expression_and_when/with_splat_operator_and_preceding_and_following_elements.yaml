@@ -2,8 +2,6 @@ subject: "case expression"
 description: "with expression to match / and splat operator with preceding and following elements (case exp when a, b, *c, d, e ... end)"
 notes: >
   Splat operator is handled with `Truffle::Internal.when_splat` method implemented in Ruby
-yarp_specific: true # Removed excessive SplatCastNodeGen:
-                    #   SplatCastNodeGen(UninitialisedArrayLiteralNode) -> UninitialisedArrayLiteralNode
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
   case 42

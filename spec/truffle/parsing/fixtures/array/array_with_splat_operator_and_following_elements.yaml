@@ -1,7 +1,5 @@
 subject: "Array"
 description: "Array with splat operator and following elements ([*a, b, c])"
-yarp_specific: true # Removed excessive SplatCastNodeGen:
-                    #   SplatCastNodeGen(UninitialisedArrayLiteralNode) -> UninitialisedArrayLiteralNode
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   [*foo, 1, 2]

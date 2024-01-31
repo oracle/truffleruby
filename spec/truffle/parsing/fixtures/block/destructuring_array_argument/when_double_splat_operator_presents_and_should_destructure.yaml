@@ -6,7 +6,6 @@ notes: >
   
     (WriteLocalVariableNode frameSlot = 3
       (ReadKeywordRestArgumentNode))
-yarp_specific: true # use EmptyHashStore$EmptyHashLiteralNode as value of key rest parameter at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b, **c|

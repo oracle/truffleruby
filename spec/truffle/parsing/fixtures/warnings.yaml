@@ -2,7 +2,6 @@ subject: "Warnings"
 description: "Warnings emitted during parsing"
 notes: >
   Warnings are represented with EmitWarningsNode node.
-yarp_specific: true # YARP provides a bit different message and verbosity changed from VERBOSE to NON_VERBOSE
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   puts *[]

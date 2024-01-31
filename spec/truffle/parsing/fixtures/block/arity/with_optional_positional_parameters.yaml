@@ -11,7 +11,6 @@ notes: >
     - hasKeywordsRest=false
   
   So the optional positional parameters are reflected in the `optional=2` attribute.
-yarp_specific: true # use ReadBlockOptionalArgumentFromArrayNode for optional parameters at destructuring single Array argument
 focused_on_node: "org.truffleruby.language.methods.BlockDefinitionNode"
 ruby: |
   proc do |a, b=42, c=100500|

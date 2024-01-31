@@ -1,6 +1,5 @@
 subject: "Regexp"
 description: "a literal with interpolation (with #{...})"
-yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /a#{ 42 }c/
