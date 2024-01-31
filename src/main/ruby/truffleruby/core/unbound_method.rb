@@ -10,7 +10,7 @@
 
 class UnboundMethod
   def inspect
-    Truffle::MethodOperations.inspect_method(self, Primitive.unbound_method_origin(self), owner)
+    Truffle::MethodOperations.inspect_method(self, owner, owner)
   end
   alias_method :to_s, :inspect
 

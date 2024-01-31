@@ -133,16 +133,6 @@ public abstract class UnboundMethodNodes {
 
     }
 
-    @Primitive(name = "unbound_method_origin")
-    public abstract static class OriginNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        RubyModule origin(RubyUnboundMethod unboundMethod) {
-            return unboundMethod.origin;
-        }
-
-    }
-
     @CoreMethod(names = "original_name")
     public abstract static class OriginalNameNode extends CoreMethodArrayArgumentsNode {
 
