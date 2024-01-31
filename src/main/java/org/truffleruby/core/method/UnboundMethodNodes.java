@@ -52,8 +52,7 @@ public abstract class UnboundMethodNodes {
 
         @Specialization
         boolean equal(RubyUnboundMethod self, RubyUnboundMethod other) {
-            return self.origin == other.origin &&
-                    MethodNodes.areInternalMethodEqual(self.method, other.method);
+            return MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
