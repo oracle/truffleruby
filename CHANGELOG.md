@@ -43,6 +43,7 @@ Compatibility:
 * Implement `Time#deconstruct_keys` from Ruby 3.2 (#3039, @rwstauner).
 * Do not autosplat a proc that accepts a single positional argument and keywords (#3039, @andrykonchin).
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
+* Support `connect_timeout` keyword argument to `TCPSocket.{new,open}` (#3421, @manefz, @patricklinpl, @nirvdrum, @rwstauner).
 
 Performance:
 
