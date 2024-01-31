@@ -106,7 +106,7 @@ public final class TranslatorDriver {
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
         this.parseEnvironment = new ParseEnvironment(language, rubySource, null, parserContext, currentNode);
 
-        if (language.options.PRISM) {
+        if (true) {
             return new YARPTranslatorDriver(context).parse(rubySource, parserContext, argumentNames,
                     parentFrame, staticLexicalScope, currentNode);
         }

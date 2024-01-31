@@ -52,7 +52,6 @@ LANGUAGE_OPTIONS:
 - RUN_TWICE
 - CHECK_CLONE_UNINITIALIZED_CORRECTNESS
 - ALWAYS_CLONE_ALL
-- PRISM
 - BUILDING_CORE_CEXTS
 - INSTRUMENT_ALL_NODES
 
@@ -264,5 +263,3 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Options for the regular expression engines
     COMPARE_REGEX_ENGINES: [compare-regex-engines, boolean, false, 'Uses both Joni and the TRegex engine and compares their results']
-
-    PRISM: [prism, boolean, true, 'Use Prism as the parser for Ruby code']
