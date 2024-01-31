@@ -44,6 +44,7 @@ Compatibility:
 * Do not autosplat a proc that accepts a single positional argument and keywords (#3039, @andrykonchin).
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
+* Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
 
 Performance:
 

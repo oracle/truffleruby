@@ -584,6 +584,11 @@ static VALUE string_spec_rb_str_unlocktmp(VALUE self, VALUE str) {
   return rb_str_unlocktmp(str);
 }
 
+static VALUE string_spec_rb_enc_interned_str_cstr(VALUE self, VALUE str, VALUE enc) {
+  rb_encoding *e = rb_to_encoding(enc);
+  return rb_enc_interned_str_cstr(RSTRING_PTR(str), e);
+}
+
 void Init_string_spec(void) {
   VALUE cls = rb_define_class("CApiStringSpecs", rb_cObject);
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
@@ -685,6 +690,7 @@ void Init_string_spec(void) {
   rb_define_method(cls, "rb_str_catf", string_spec_rb_str_catf, 1);
   rb_define_method(cls, "rb_str_locktmp", string_spec_rb_str_locktmp, 1);
   rb_define_method(cls, "rb_str_unlocktmp", string_spec_rb_str_unlocktmp, 1);
+  rb_define_method(cls, "rb_enc_interned_str_cstr", string_spec_rb_enc_interned_str_cstr, 2);
 }
 
 #ifdef __cplusplus
