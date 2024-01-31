@@ -1,0 +1,77 @@
+subject: "Local variable"
+description: "in a class / assigning local variable leads to its declaration"
+notes: >
+  Declaration is represented by a RubyRootNode's attribute frameDescriptor:
+    frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:foo}
+focused_on_node: "org.truffleruby.language.objects.RunModuleDefinitionNode"
+ruby: |
+  class M
+    foo = 42
+  end
+ast: |
+  RunModuleDefinitionNode
+      attributes:
+          flags = 1
+          moduleBodyDefinition = ModuleBodyDefinition(name = <class:M>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:M>, blockDepth = 0, parseName = <class:M>, notes = null, argumentDescriptors = null), callTarget = <class:M>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+      children:
+          callModuleDefinitionNode =
+              DefaultIndirectCallNode
+          definingModule =
+              DefineClassNode
+                  attributes:
+                      flags = 0
+                      name = "M"
+                  children:
+                      lexicalParentModule =
+                          LexicalScopeNode
+                              attributes:
+                                  flags = 0
+                                  lexicalScope =  :: Object
+      call targets:
+          RubyRootNode
+              attributes:
+                  callTarget = <class:M>
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:foo}
+                  instrumentationBits = 0
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  returnID = MODULE_BODY
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:M>, blockDepth = 0, parseName = <class:M>, notes = null, argumentDescriptors = null)
+                  split = NEVER
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0 # (self)
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                  InsideModuleDefinitionNode
+                                      attributes:
+                                          flags = 0
+                                      children:
+                                          body =
+                                              WriteLocalVariableNode
+                                                  attributes:
+                                                      flags = 1
+                                                      frameSlot = 2 # foo
+                                                  children:
+                                                      valueNode =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  value = 42
+                              ]

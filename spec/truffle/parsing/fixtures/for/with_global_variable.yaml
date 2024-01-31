@@ -11,7 +11,7 @@ ast: |
           arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
           callTarget = <top (required)>
           checkArityProfile = false
-          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%frame_on_stack_marker_1, #3:b}
+          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:b, #3:%frame_on_stack_marker_1}
           instrumentationBits = 0
           keywordArguments = false
           localReturnProfile = false
@@ -55,7 +55,7 @@ ast: |
                                       FrameOnStackNode
                                           attributes:
                                               flags = 0
-                                              frameOnStackMarkerSlot = 2
+                                              frameOnStackMarkerSlot = 3
                                           children:
                                               child =
                                                   RubyCallNode
@@ -79,7 +79,7 @@ ast: |
                                                                       breakID = org.truffleruby.language.control.BreakID@...
                                                                       callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
                                                                       flags = 0
-                                                                      frameOnStackMarkerSlot = 2
+                                                                      frameOnStackMarkerSlot = 3
                                                                       sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
                                                                       type = PROC
                                                                   call targets:
@@ -154,7 +154,7 @@ ast: |
                                                                                                   attributes:
                                                                                                       flags = 1
                                                                                                       frameDepth = 1
-                                                                                                      frameSlot = 3 # b
+                                                                                                      frameSlot = 2 # b
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ReadGlobalVariableNodeGen

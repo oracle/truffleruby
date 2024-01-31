@@ -43,7 +43,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3 # bar
+                      frameSlot = 2 # bar
                   children:
                       valueNode =
                           NilLiteralNode
@@ -54,7 +54,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2 # %match_data_0
+                      frameSlot = 3 # %match_data_0
                   children:
                       valueNode =
                           ReadGlobalVariableNodeGen
@@ -71,7 +71,7 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3 # bar
+                      frameSlot = 2 # bar
                   children:
                       valueNode =
                           MatchDataNodes$GetFixedNameMatchNode
@@ -88,6 +88,6 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2 # %match_data_0
+                                              frameSlot = 3 # %match_data_0
                                               type = FRAME_LOCAL
           ]

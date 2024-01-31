@@ -1100,6 +1100,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 node,
                 defineOrGetClass,
                 node.name,
+                node.locals,
                 node.body,
                 OpenModule.CLASS,
                 shouldUseDynamicConstantLookupForModuleBody(node));
@@ -2646,6 +2647,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 node,
                 defineModuleNode,
                 node.name,
+                node.locals,
                 node.body,
                 OpenModule.MODULE,
                 shouldUseDynamicConstantLookupForModuleBody(node));
@@ -2760,6 +2762,11 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitProgramNode(Nodes.ProgramNode node) {
+        // declare variable defined at the top-level
+        for (String name : node.locals) {
+            environment.declareVar(name);
+        }
+
         // Don't prepend BEGIN blocks here because there are additional nodes prepended
         // after program translation to handle Ruby's -l and -n command line options.
         // So BEGIN blocks should precede these additional nodes at the very
@@ -3027,6 +3034,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 node,
                 singletonClassNode,
                 modulePath,
+                node.locals,
                 node.body,
                 OpenModule.SINGLETON_CLASS,
                 dynamicConstantLookup);
@@ -3366,7 +3374,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     private RubyNode openModule(Nodes.Node moduleNode, RubyNode defineOrGetNode, String moduleName,
-            Nodes.Node bodyNode, OpenModule type, boolean dynamicConstantLookup) {
+            String[] locals, Nodes.Node bodyNode, OpenModule type, boolean dynamicConstantLookup) {
         final String methodName = type.format(moduleName);
 
         final LexicalScope newLexicalScope = dynamicConstantLookup
@@ -3401,6 +3409,11 @@ public class YARPTranslator extends YARPBaseTranslator {
                 null,
                 null,
                 modulePath);
+
+        // declare variable assigned/defined in a module/class body
+        for (String name : locals) {
+            newEnvironment.declareVar(name);
+        }
 
         final YARPTranslator moduleTranslator = new YARPTranslator(newEnvironment);
 

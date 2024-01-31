@@ -412,7 +412,10 @@ public final class YARPTranslatorDriver {
             filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
 
             int scopesCount = localVariableNames.size();
-            scopes = new byte[scopesCount][][];
+            // Add one empty extra scope at the end to have local variables treated by Prism
+            // as declared in the outer scope.
+            // See https://github.com/ruby/prism/issues/2327 and https://github.com/ruby/prism/issues/2192
+            scopes = new byte[scopesCount + 1][][];
 
             for (int i = 0; i < scopesCount; i++) {
                 // Local variables are in order from inner scope to outer one, but Prism expects order from outer to inner.
@@ -427,6 +430,7 @@ public final class YARPTranslatorDriver {
                 scopes[i] = namesBytes;
             }
 
+            scopes[scopes.length - 1] = new byte[][]{};
         } else {
             assert localVariableNames.isEmpty(); // parsing of the whole source file cannot have outer scopes
 
