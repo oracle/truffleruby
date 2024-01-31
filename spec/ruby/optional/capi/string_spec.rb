@@ -1227,4 +1227,29 @@ end
       -> { @s.rb_str_unlocktmp("test") }.should raise_error(RuntimeError, 'temporal unlocking already unlocked string')
     end
   end
+
+  describe "rb_enc_interned_str_cstr" do
+    it "returns a frozen string" do
+      str = "hello"
+      val = @s.rb_enc_interned_str_cstr(str, Encoding::US_ASCII)
+
+      val.should.is_a?(String)
+      val.encoding.should == Encoding::US_ASCII
+      val.should.frozen?
+    end
+
+    it "returns the same frozen string" do
+      str = "hello"
+      result1 = @s.rb_enc_interned_str_cstr(str, Encoding::US_ASCII)
+      result2 = @s.rb_enc_interned_str_cstr(str, Encoding::US_ASCII)
+      result1.should.equal?(result2)
+    end
+
+    it "returns different frozen strings for different encodings" do
+      str = "hello"
+      result1 = @s.rb_enc_interned_str_cstr(str, Encoding::US_ASCII)
+      result2 = @s.rb_enc_interned_str_cstr(str, Encoding::UTF_8)
+      result1.should_not.equal?(result2)
+    end
+  end
 end

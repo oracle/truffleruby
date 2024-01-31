@@ -437,3 +437,8 @@ long rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding
   *cr = ENC_CODERANGE_VALID;
   return e - s;
 }
+
+VALUE rb_enc_interned_str_cstr(const char *ptr, rb_encoding *enc) {
+  VALUE str = rb_enc_str_new_cstr(ptr, enc);
+  return rb_fstring(str);
+}
