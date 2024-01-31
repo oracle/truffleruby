@@ -1,2 +1,0 @@
-fails:Struct#initialize warns about passing only keyword arguments
-fails:Struct#initialize can be initialized with keyword arguments
