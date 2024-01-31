@@ -91,7 +91,7 @@ public final class Identifiers {
     // MRI: similar to is_identchar but does not allow numeric
     @TruffleBoundary
     private static boolean isInitialCharacter(int c) {
-        return Character.isAlphabetic(c) || c == '_' || c >= 128;
+        return c >= 128 || c == '_' || Character.isAlphabetic(c);
     }
 
     private static boolean isConstantFirstCodePoint(int first) {
