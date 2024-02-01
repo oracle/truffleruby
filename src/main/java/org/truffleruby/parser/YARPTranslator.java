@@ -3490,10 +3490,6 @@ public class YARPTranslator extends YARPBaseTranslator {
         return sequence(Arrays.asList(initNodes));
     }
 
-    protected static RubyNode[] createArray(int size) {
-        return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
-    }
-
     public static RubyNode loadSelf(RubyLanguage language) {
         return new WriteLocalVariableNode(SelfNode.SELF_INDEX, profileArgument(language, new ReadSelfNode()));
     }
@@ -3617,30 +3613,6 @@ public class YARPTranslator extends YARPBaseTranslator {
                 node instanceof Nodes.TrueNode ||
                 node instanceof Nodes.FalseNode ||
                 node instanceof Nodes.NilNode;
-    }
-
-    protected static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
-        assert !yarpNode.hasNewLineFlag() : "Expected node passed to sequence() to not have a newline flag";
-
-        RubyNode sequenceNode = sequence(sequence);
-
-        if (!sequenceNode.hasSource()) {
-            assignPositionOnly(yarpNode, sequenceNode);
-        }
-
-        return sequenceNode;
-    }
-
-    protected static Nodes.CallNode callNode(Nodes.Node location, Nodes.Node receiver, String methodName,
-            Nodes.Node... arguments) {
-        return callNode(location, NO_FLAGS, receiver, methodName, arguments);
-    }
-
-    protected static Nodes.CallNode callNode(Nodes.Node location, short flags, Nodes.Node receiver, String methodName,
-            Nodes.Node... arguments) {
-        return new Nodes.CallNode(flags, receiver, methodName,
-                new Nodes.ArgumentsNode(NO_FLAGS, arguments, location.startOffset, location.length), null,
-                location.startOffset, location.length);
     }
 
     private boolean containYARPSplatNode(Nodes.Node[] nodes) {
