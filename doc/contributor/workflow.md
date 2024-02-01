@@ -321,9 +321,3 @@ file to fix it.
 
 You can also recompute the tags automatically for an entire test file with
 `jt retag test/mri/tests/file.rb`.
-
-## Building the parser
-
-TruffleRuby uses the Jay parser generator. A copy of this is located in
-`tool/jay`. The command `jt build parser` will build Jay, if needed, and then
-regenerate the parser. We check the generated parser into the source repository.
