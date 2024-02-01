@@ -83,7 +83,6 @@ import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.shared.Metrics;
 import org.prism.Nodes;
@@ -483,7 +482,7 @@ public final class YARPTranslatorDriver {
             // encoding magic comment is handled manually and available as RubySource#encoding
 
             // check the `primitive` TruffleRuby specific magic comment
-            if (RubyLexer.isMagicTruffleRubyPrimitivesComment(name)) {
+            if (MagicCommentParser.isMagicTruffleRubyPrimitivesComment(name)) {
                 configuration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
             }
         }
@@ -511,7 +510,7 @@ public final class YARPTranslatorDriver {
     public static RubySource createRubySource(Object code) {
         var tstringWithEnc = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
                 RubyStringLibrary.getUncached().getEncoding(code));
-        var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(tstringWithEnc,
+        var sourceTString = MagicCommentParser.createSourceTStringBasedOnMagicEncodingComment(tstringWithEnc,
                 tstringWithEnc.encoding);
         var charSequence = new ByteBasedCharSequence(sourceTString);
         Source source = Source.newBuilder("ruby", charSequence, "<parse_ast>").build();
