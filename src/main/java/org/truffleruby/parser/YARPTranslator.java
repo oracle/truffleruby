@@ -2491,30 +2491,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public WriteLocalNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
         final String name = node.name;
+        final ReadLocalNode lhs = environment.findLocalVarNode(name, null);
 
-        if (environment.getNeverAssignInParentScope()) {
-            environment.declareVar(name);
-        }
+        assert lhs != null;
 
-        ReadLocalNode lhs = environment.findLocalVarNode(name, null);
-
-        // TODO: it should always be present if we use byte[][] locals
-        if (lhs == null) {
-            TranslatorEnvironment environmentToDeclareIn = environment;
-            while (!environmentToDeclareIn.hasOwnScopeForAssignments()) {
-                environmentToDeclareIn = environmentToDeclareIn.getParent();
-            }
-            environmentToDeclareIn.declareVar(name);
-
-            lhs = environment.findLocalVarNode(name, null);
-
-            if (lhs == null) {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-        }
-
-        // TODO simplify once visitLocalVariableTargetNode does not reuse this method
-        final RubyNode rhs = translateNodeOrDeadNode(node.value, "YARPTranslator#visitLocalVariableWriteNode");
+        final RubyNode rhs = node.value.accept(this);
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
         assignPositionAndFlags(node, rubyNode);
@@ -2523,9 +2504,16 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public WriteLocalNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
-        // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
-        return visitLocalVariableWriteNode(
-                new Nodes.LocalVariableWriteNode(node.name, node.depth, null, node.startOffset, node.length));
+        final String name = node.name;
+        final ReadLocalNode lhs = environment.findLocalVarNode(name, null);
+
+        assert lhs != null;
+
+        final RubyNode rhs = new DeadNode("YARPTranslator#visitLocalVariableTargetNode");
+        final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
+
+        assignPositionAndFlags(node, rubyNode);
+        return rubyNode;
     }
 
     @Override

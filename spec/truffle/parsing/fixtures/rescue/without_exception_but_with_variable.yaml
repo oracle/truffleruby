@@ -42,7 +42,7 @@ ast: |
                                                               DeadNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      reason = "YARPTranslator#visitLocalVariableWriteNode"
+                                                                      reason = "YARPTranslator#visitLocalVariableTargetNode"
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
