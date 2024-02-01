@@ -45,6 +45,7 @@ Compatibility:
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
 * Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
+* Add `rb_str_to_interned_str` function (#3408, @thomasmarshall).
 
 Performance:
 

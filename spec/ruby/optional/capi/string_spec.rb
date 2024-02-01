@@ -1252,4 +1252,20 @@ end
       result1.should_not.equal?(result2)
     end
   end
+
+  describe "rb_str_to_interned_str" do
+    it "returns a frozen string" do
+      str = "hello"
+      result = @s.rb_str_to_interned_str(str)
+      result.should.is_a?(String)
+      result.should.frozen?
+    end
+
+    it "returns the same frozen string" do
+      str = "hello"
+      result1 = @s.rb_str_to_interned_str(str)
+      result2 = @s.rb_str_to_interned_str(str)
+      result1.should.equal?(result2)
+    end
+  end
 end
