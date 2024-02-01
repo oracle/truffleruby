@@ -81,17 +81,6 @@ public final class CodeLoader {
     }
 
     @TruffleBoundary
-    public RootCallTarget parseWithYARP(Object code,
-            ParserContext parserContext,
-            MaterializedFrame parentFrame,
-            LexicalScope lexicalScope,
-            Node currentNode) {
-        RubySource rubySource = YARPTranslatorDriver.createRubySource(code);
-        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context);
-        return translator.parse(rubySource, parserContext, null, parentFrame, lexicalScope, currentNode);
-    }
-
-    @TruffleBoundary
     public DeferredCall prepareExecute(RootCallTarget callTarget,
             ParserContext parserContext,
             DeclarationContext declarationContext,

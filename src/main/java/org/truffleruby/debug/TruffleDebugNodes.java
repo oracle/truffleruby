@@ -1369,33 +1369,4 @@ public abstract class TruffleDebugNodes {
         }
     }
 
-    @CoreMethod(names = "parse_with_yarp_and_dump_truffle_ast", onSingleton = true, required = 4, lowerFixnum = 3)
-    public abstract static class ParseWithYARPAndDumpTruffleASTNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(code)", limit = "1")
-        Object parseAndDump(Object code, Object focusedNodeClassName, int index, boolean mainScript,
-                @Cached RubyStringLibrary strings,
-                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
-            RubyRootNode rootNode = parse(code, mainScript);
-            String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
-            return createString(fromJavaStringNode, output, Encodings.UTF_8);
-        }
-
-        private RubyRootNode parse(Object code, boolean mainScript) {
-            TranslatorEnvironment.resetTemporaryVariablesIndex();
-            var parserContext = mainScript ? ParserContext.TOP_LEVEL_FIRST : ParserContext.TOP_LEVEL;
-
-            final RootCallTarget callTarget = getContext().getCodeLoader().parseWithYARP(
-                    code,
-                    parserContext,
-                    null,
-                    getContext().getRootLexicalScope(),
-                    null);
-
-            return RubyRootNode.of(callTarget);
-        }
-    }
-
 }

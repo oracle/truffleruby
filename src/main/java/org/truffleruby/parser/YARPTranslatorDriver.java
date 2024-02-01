@@ -60,12 +60,10 @@ import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyEvalRootNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
@@ -77,8 +75,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.control.WhileNodeFactory;
-import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.language.loader.ByteBasedCharSequence;
 import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
@@ -490,16 +486,6 @@ public final class YARPTranslatorDriver {
     private static String fileLineYARPSource(Nodes.Location location, RubyLanguage language, RubySource rubySource,
             Nodes.Source yarpSource) {
         return rubySource.getSourcePath(language) + ":" + yarpSource.line(location.startOffset);
-    }
-
-    public static RubySource createRubySource(Object code) {
-        var tstringWithEnc = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
-                RubyStringLibrary.getUncached().getEncoding(code));
-        var sourceTString = MagicCommentParser.createSourceTStringBasedOnMagicEncodingComment(tstringWithEnc,
-                tstringWithEnc.encoding);
-        var charSequence = new ByteBasedCharSequence(sourceTString);
-        Source source = Source.newBuilder("ruby", charSequence, "<parse_ast>").build();
-        return new RubySource(source, source.getName(), sourceTString);
     }
 
     public static Nodes.Source createYARPSource(byte[] sourceBytes) {

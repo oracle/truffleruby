@@ -83,11 +83,7 @@ describe "Parsing" do
       it "a #{subject} (#{description}) case is parsed correctly" do
         # p "a #{subject} (#{description.strip}) case is parsed correctly"
 
-        if original_parser
-          actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index, main_script).strip
-        else
-          actual_ast = Truffle::Debug.parse_with_yarp_and_dump_truffle_ast(source_code, focused_on_node, index, main_script).strip
-        end
+        actual_ast = Truffle::Debug.parse_and_dump_truffle_ast(source_code, focused_on_node, index, main_script).strip
 
         if overwrite
           example = File.read(filename)
