@@ -7,4 +7,4 @@ ast: |
   ObjectLiteralNode
       attributes:
           flags = 1
-          object = org.truffleruby.core.range.RubyLongRange@...(begin = 4294967296, end = 4294967296, excludedEnd = false)
+          object = 4294967296..4294967296

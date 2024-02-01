@@ -23,7 +23,7 @@ ast: |
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
-                                  object = org.truffleruby.core.range.RubyIntRange@...(begin = 0, end = 42, excludedEnd = false)
+                                  object = 0..42
           ]
           tryPart =
               StringLiteralNode

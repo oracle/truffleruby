@@ -9,8 +9,16 @@
  */
 package org.truffleruby.core.range;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 
+@ExportLibrary(InteropLibrary.class)
 public final class RubyIntRange extends RubyIntOrLongRange {
 
     public final int begin;
@@ -22,10 +30,33 @@ public final class RubyIntRange extends RubyIntOrLongRange {
         this.end = end;
     }
 
+    @TruffleBoundary
     @Override
     public String toString() {
-        String suffix = StringUtils.format("(begin = %s, end = %s, excludedEnd = %s)", begin, end, excludedEnd);
-        return super.toString() + suffix;
+        if (excludedEnd) {
+            return StringUtils.format("%d...%d", begin, end);
+        } else {
+            return StringUtils.format("%d..%d", begin, end);
+        }
     }
+
+    // region InteropLibrary messages
+    @Override
+    @ExportMessage
+    public String toDisplayString(boolean allowSideEffects) {
+        return toString();
+    }
+
+    @ExportMessage
+    public boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    public RubyClass getMetaObject(
+            @CachedLibrary("this") InteropLibrary node) {
+        return RubyContext.get(node).getCoreLibrary().rangeClass;
+    }
+    // endregion
 
 }
