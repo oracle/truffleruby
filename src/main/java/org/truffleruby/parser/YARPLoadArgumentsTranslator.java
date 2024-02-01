@@ -90,7 +90,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
         // Early return for the common case of zero parameters
         if (parameters == ZERO_PARAMETERS_NODE) {
-            return sequence(sequence);
+            return sequence(sequence.toArray(RubyNode.EMPTY_ARRAY));
         }
 
         if (parameters.optionals.length > 0) {
@@ -134,7 +134,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
             sequence.add(parameters.block.accept(this));
         }
 
-        return sequence(sequence);
+        return sequence(sequence.toArray(RubyNode.EMPTY_ARRAY));
     }
 
     public RubyNode saveMethodBlockArg() {
@@ -312,7 +312,6 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
         // is allowed in method parameters only
-        ArrayList<RubyNode> sequence = new ArrayList<>();
 
         // desugar ... to *, **, and & parameters
         final var rest = new Nodes.RestParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
@@ -320,11 +319,10 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
                 TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);
         final var block = new Nodes.BlockParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_BLOCK_NAME, 0, 0);
 
-        sequence.add(rest.accept(this));
-        sequence.add(keyrest.accept(this));
-        sequence.add(block.accept(this));
-
-        return sequence(sequence);
+        return sequence(
+                rest.accept(this),
+                keyrest.accept(this),
+                block.accept(this));
     }
 
     @Override

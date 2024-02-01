@@ -9,8 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import java.util.Arrays;
-
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.language.RubyMethodRootNode;
@@ -50,10 +48,10 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
                 this).translate();
 
         RubyNode body = translateNodeOrNil(node.body).simplifyAsTailExpression();
-        body = sequence(Arrays.asList(loadArguments, body));
+        body = sequence(loadArguments, body);
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(Arrays.asList(initFlipFlopStates(environment), body));
+            body = sequence(initFlipFlopStates(environment), body);
         }
 
         return body;

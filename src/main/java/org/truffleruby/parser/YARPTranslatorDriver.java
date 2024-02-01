@@ -271,51 +271,50 @@ public final class YARPTranslatorDriver {
             }
 
             sequence.add(truffleNode);
-            truffleNode = YARPTranslator.sequence(sequence);
+            truffleNode = YARPTranslator.sequence(sequence.toArray(RubyNode.EMPTY_ARRAY));
         }
 
         // Load flip-flop states
 
         if (environment.getFlipFlopStates().size() > 0) {
-            truffleNode = YARPTranslator.sequence(
-                    Arrays.asList(YARPTranslator.initFlipFlopStates(environment), truffleNode));
+            truffleNode = YARPTranslator.sequence(YARPTranslator.initFlipFlopStates(environment), truffleNode);
         }
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {
             if (context.getOptions().PRINT_LOOP) {
-                truffleNode = YARPTranslator.sequence(Arrays.asList(truffleNode, new KernelPrintLastLineNode()));
+                truffleNode = YARPTranslator.sequence(truffleNode, new KernelPrintLastLineNode());
             }
             if (context.getOptions().SPLIT_LOOP) {
-                truffleNode = YARPTranslator.sequence(Arrays.asList(new AutoSplitNode(), truffleNode));
+                truffleNode = YARPTranslator.sequence(new AutoSplitNode(), truffleNode);
             }
 
             if (context.getOptions().CHOMP_LOOP) {
-                truffleNode = YARPTranslator.sequence(Arrays.asList(new ChompLoopNode(), truffleNode));
+                truffleNode = YARPTranslator.sequence(new ChompLoopNode(), truffleNode);
             }
             truffleNode = new WhileNode(
                     WhileNodeFactory.WhileRepeatingNodeGen.create(new KernelGetsNode(), truffleNode));
         }
 
-        ArrayList<RubyNode> beginBlocks = translator.getBeginBlocks();
+        RubyNode[] beginBlocks = translator.getBeginBlocks();
 
         // add BEGIN {} blocks at the very beginning of the program
-        if (!beginBlocks.isEmpty()) {
-            ArrayList<RubyNode> sequence = new ArrayList<>(beginBlocks);
-            sequence.add(truffleNode);
+        if (beginBlocks.length > 0) {
+            RubyNode[] sequence = Arrays.copyOf(beginBlocks, beginBlocks.length + 1);
+            sequence[sequence.length - 1] = truffleNode;
             truffleNode = YARPTranslator.sequence(sequence);
         }
 
         final RubyNode writeSelfNode = YARPTranslator.loadSelf(language);
-        truffleNode = YARPTranslator.sequence(Arrays.asList(writeSelfNode, truffleNode));
+        truffleNode = YARPTranslator.sequence(writeSelfNode, truffleNode);
 
         if (!rubyWarnings.warnings.isEmpty()) {
-            truffleNode = YARPTranslator.sequence(Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
+            truffleNode = YARPTranslator.sequence(new EmitWarningsNode(rubyWarnings), truffleNode);
         }
 
         // Top-level exception handling
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST) {
-            truffleNode = YARPTranslator.sequence(Arrays.asList(new SetTopLevelBindingNode(), truffleNode));
+            truffleNode = YARPTranslator.sequence(new SetTopLevelBindingNode(), truffleNode);
 
             if (parseResult.dataLocation != null) {
                 // startOffset - location of beginning of __END__, not ending
@@ -328,7 +327,7 @@ public final class YARPTranslatorDriver {
                     offset += 1;
                 }
 
-                truffleNode = YARPTranslator.sequence(Arrays.asList(new DataNode(offset), truffleNode));
+                truffleNode = YARPTranslator.sequence(new DataNode(offset), truffleNode);
             }
         }
 

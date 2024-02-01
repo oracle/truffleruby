@@ -154,7 +154,6 @@ import org.truffleruby.language.yield.YieldExpressionNode;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
@@ -202,8 +201,8 @@ public class YARPTranslator extends YARPBaseTranslator {
         super(environment);
     }
 
-    public ArrayList<RubyNode> getBeginBlocks() {
-        return beginBlocks;
+    public RubyNode[] getBeginBlocks() {
+        return beginBlocks.toArray(RubyNode.EMPTY_ARRAY);
     }
 
     public RubyRootNode translate(Nodes.Node node) {
@@ -337,7 +336,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                                 final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
                                 translatedBody = translateNodeOrNil(rescueClause.statements);
                                 translatedBody = sequence(rescueClause,
-                                        Arrays.asList(exceptionWriteNode, translatedBody));
+                                        exceptionWriteNode, translatedBody);
                             } else {
                                 translatedBody = translateNodeOrNil(rescueClause.statements);
                             }
@@ -369,7 +368,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                         // and if it's a local variable - it should be declared before reading
                         RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
                         translatedBody = translateNodeOrNil(rescueClause.statements);
-                        translatedBody = sequence(rescueClause, Arrays.asList(exceptionWriteNode, translatedBody));
+                        translatedBody = sequence(rescueClause, exceptionWriteNode, translatedBody);
                     } else {
                         translatedBody = translateNodeOrNil(rescueClause.statements);
                     }
@@ -430,7 +429,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             final RubyNode exceptionWriteNode = translateRescueException(rescueClause.reference);
             var translatedStatements = translateNodeOrNil(rescueClause.statements);
             translatedBody = sequence(rescueClause,
-                    Arrays.asList(exceptionWriteNode, translatedStatements));
+                    exceptionWriteNode, translatedStatements);
         } else {
             translatedBody = translateNodeOrNil(rescueClause.statements);
         }
@@ -604,9 +603,9 @@ public class YARPTranslator extends YARPBaseTranslator {
             // immediately return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     andNode);
-            sequence = sequence(Arrays.asList(writeReceiverNode, unlessNode));
+            sequence = sequence(writeReceiverNode, unlessNode);
         } else {
-            sequence = sequence(Arrays.asList(writeReceiverNode, andNode));
+            sequence = sequence(writeReceiverNode, andNode);
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -835,9 +834,9 @@ public class YARPTranslator extends YARPBaseTranslator {
             // immediately return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     writeNode);
-            sequence = sequence(Arrays.asList(writeReceiverNode, unlessNode));
+            sequence = sequence(writeReceiverNode, unlessNode);
         } else {
-            sequence = sequence(Arrays.asList(writeReceiverNode, writeNode));
+            sequence = sequence(writeReceiverNode, writeNode);
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -872,9 +871,9 @@ public class YARPTranslator extends YARPBaseTranslator {
             // return `nil` if receiver is `nil`
             final RubyNode unlessNode = UnlessNodeGen.create(new IsNilNode(receiverExpression.getReadNode()),
                     orNode);
-            sequence = sequence(Arrays.asList(writeReceiverNode, unlessNode));
+            sequence = sequence(writeReceiverNode, unlessNode);
         } else {
-            sequence = sequence(Arrays.asList(writeReceiverNode, orNode));
+            sequence = sequence(writeReceiverNode, orNode);
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -939,7 +938,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode ifNode = elseNode;
 
         // A top-level block assigns the temp then runs the if
-        final RubyNode ret = sequence(Arrays.asList(assignTemp, ifNode));
+        final RubyNode ret = sequence(assignTemp, ifNode);
 
         return assignPositionAndFlags(node, ret);
     }
@@ -1018,7 +1017,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             final RubyNode ifNode = elseNode;
 
             // A top-level block assigns the temp then runs the `if`
-            rubyNode = sequence(Arrays.asList(assignTemp, ifNode));
+            rubyNode = sequence(assignTemp, ifNode);
         } else {
             // Build an if expression from `when` and `else` branches.
             // Work backwards to make the first if contain all the others in its `else` clause.
@@ -1265,7 +1264,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode rubyNode;
 
         if (writeParentNode != null) {
-            RubyNode sequence = sequence(Arrays.asList(writeParentNode, andNode));
+            RubyNode sequence = sequence(writeParentNode, andNode);
             rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
         } else {
             rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, andNode);
@@ -1331,7 +1330,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         if (writeParentNode != null) {
             // defined?(A::B += 1) returns 'expression' so don't use DefinedWrapperNode here
-            rubyNode = sequence(Arrays.asList(writeParentNode, writeNode.accept(this)));
+            rubyNode = sequence(writeParentNode, writeNode.accept(this));
 
             // rubyNode may be already assigned source code in case writeParentNode is null
             assignPositionAndFlagsIfMissing(node, rubyNode);
@@ -1375,7 +1374,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode rubyNode;
 
         if (writeParentNode != null) {
-            RubyNode sequence = sequence(Arrays.asList(writeParentNode, orNode));
+            RubyNode sequence = sequence(writeParentNode, orNode);
             rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
         } else {
             rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, orNode);
@@ -1968,7 +1967,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         } else {
             // if (condition)
             // end
-            return sequence(node, Arrays.asList(conditionNode, new NilLiteralNode()));
+            return sequence(node, conditionNode, new NilLiteralNode());
         }
     }
 
@@ -2074,14 +2073,14 @@ public class YARPTranslator extends YARPBaseTranslator {
         final Nodes.Node write = new Nodes.CallNode(writeFlags, readReceiver, "[]=",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArgumentsAndResult, 0, 0), blockArgument, 0, 0);
         final RubyNode writeNode = write.accept(this);
-        final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
+        final RubyNode writeArgumentsNode = sequence(writeArgumentsNodes);
         final RubyNode sequence;
 
         if (node.block != null) {
             // add block argument write node
-            sequence = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, writeNode));
+            sequence = sequence(writeArgumentsNode, writeBlockNode, writeReceiverNode, writeNode);
         } else {
-            sequence = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, writeNode));
+            sequence = sequence(writeArgumentsNode, writeReceiverNode, writeNode);
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -2197,14 +2196,14 @@ public class YARPTranslator extends YARPBaseTranslator {
             operatorNode = OrLazyValueDefinedNodeGen.create(readNode, writeNode);
         }
 
-        final RubyNode writeArgumentsNode = sequence(Arrays.asList(writeArgumentsNodes));
+        final RubyNode writeArgumentsNode = sequence(writeArgumentsNodes);
         final RubyNode sequence;
 
         if (block != null) {
             // add block argument write node
-            sequence = sequence(Arrays.asList(writeArgumentsNode, writeBlockNode, writeReceiverNode, operatorNode));
+            sequence = sequence(writeArgumentsNode, writeBlockNode, writeReceiverNode, operatorNode);
         } else {
-            sequence = sequence(Arrays.asList(writeArgumentsNode, writeReceiverNode, operatorNode));
+            sequence = sequence(writeArgumentsNode, writeReceiverNode, operatorNode);
         }
 
         final RubyNode rubyNode = new DefinedWrapperNode(language.coreStrings.ASSIGNMENT, sequence);
@@ -2541,7 +2540,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         RubyNode condition = translator.translatePatternNode(node.pattern, readTemp);
 
-        final RubyNode ret = sequence(Arrays.asList(assignTemp, condition));
+        final RubyNode ret = sequence(assignTemp, condition);
         return assignPositionAndFlags(node, ret);
     }
 
@@ -2557,7 +2556,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         RubyNode condition = translator.translatePatternNode(node.pattern, readTemp);
         RubyNode check = UnlessNodeGen.create(condition, NoMatchingPatternNodeGen.create(NodeUtil.cloneNode(readTemp)));
 
-        final RubyNode ret = sequence(Arrays.asList(assignTemp, check));
+        final RubyNode ret = sequence(assignTemp, check);
         return assignPositionAndFlags(node, ret);
     }
 
@@ -3079,7 +3078,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitStatementsNode(Nodes.StatementsNode node) {
         RubyNode[] rubyNodes = translate(node.body);
-        return sequence(node, Arrays.asList(rubyNodes));
+        return sequence(node, rubyNodes);
     }
 
     @Override
@@ -3189,7 +3188,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         } else {
             // unless (condition)
             // end
-            rubyNode = sequence(node, Arrays.asList(conditionNode, new NilLiteralNode()));
+            rubyNode = sequence(node, conditionNode, new NilLiteralNode());
             return rubyNode;
         }
     }
@@ -3425,11 +3424,11 @@ public class YARPTranslator extends YARPBaseTranslator {
         assignPositionOnly(moduleNode, body); // source location is needed to trigger :class TracePoint event
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(Arrays.asList(initFlipFlopStates(environment), body));
+            body = sequence(initFlipFlopStates(environment), body);
         }
 
         final RubyNode writeSelfNode = loadSelf(language);
-        body = sequence(Arrays.asList(writeSelfNode, body));
+        body = sequence(writeSelfNode, body);
 
         final RubyRootNode rootNode = new RubyRootNode(
                 language,
@@ -3487,7 +3486,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             initNodes[n] = new InitFlipFlopSlotNode(environment.getFlipFlopStates().get(n));
         }
 
-        return sequence(Arrays.asList(initNodes));
+        return sequence(initNodes);
     }
 
     public static RubyNode loadSelf(RubyLanguage language) {

@@ -10,7 +10,6 @@
 package org.truffleruby.parser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -194,7 +193,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    protected static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
+    protected static RubyNode sequence(Nodes.Node yarpNode, RubyNode... sequence) {
         assert !yarpNode.hasNewLineFlag() : "Expected node passed to sequence() to not have a newline flag";
 
         RubyNode sequenceNode = sequence(sequence);
@@ -206,7 +205,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         return sequenceNode;
     }
 
-    protected static RubyNode sequence(List<RubyNode> sequence) {
+    protected static RubyNode sequence(RubyNode... sequence) {
         final List<RubyNode> flattened = flatten(sequence);
 
         if (flattened.isEmpty()) {
@@ -219,23 +218,23 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    private static List<RubyNode> flatten(List<RubyNode> sequence) {
+    private static List<RubyNode> flatten(RubyNode[] sequence) {
         return flattenFromN(sequence, 0);
     }
 
-    private static List<RubyNode> flattenFromN(List<RubyNode> sequence, int n) {
+    private static List<RubyNode> flattenFromN(RubyNode[] sequence, int n) {
         final List<RubyNode> flattened = new ArrayList<>();
 
-        for (; n < sequence.size(); n++) {
-            final boolean lastNode = n == sequence.size() - 1;
-            final RubyNode node = sequence.get(n);
+        for (; n < sequence.length; n++) {
+            final boolean lastNode = n == sequence.length - 1;
+            final RubyNode node = sequence[n];
 
             if (node == null) {
                 continue;
             }
 
             if (node instanceof SequenceNode) {
-                flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence())));
+                flattened.addAll(flatten(((SequenceNode) node).getSequence()));
             } else if (node.canSubsumeFollowing() && !lastNode) {
                 List<RubyNode> rest = flattenFromN(sequence, n + 1);
                 if (rest.size() == 1) {

@@ -121,7 +121,7 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
             sequence.add(parameters.block.accept(this));
         }
 
-        return sequence(sequence);
+        return sequence(sequence.toArray(RubyNode.EMPTY_ARRAY));
     }
 
     @Override

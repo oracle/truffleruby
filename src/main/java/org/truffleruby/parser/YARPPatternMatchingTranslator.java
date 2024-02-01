@@ -9,8 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import java.util.Arrays;
-
 import org.prism.Nodes;
 import org.truffleruby.core.array.ArrayDeconstructNodeGen;
 import org.truffleruby.core.array.ArrayIndexNodes;
@@ -114,9 +112,9 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
         RubyNode outerPrev = currentValueToMatch;
         currentValueToMatch = readTemp;
         try {
-            RubyNode check = YARPTranslator.sequence(Arrays.asList(
+            RubyNode check = YARPTranslator.sequence(
                     assignTemp,
-                    ArrayPatternLengthCheckNodeGen.create(preSize + postSize, restNode != null, readTemp)));
+                    ArrayPatternLengthCheckNodeGen.create(preSize + postSize, restNode != null, readTemp));
             if (condition == null) {
                 condition = check;
             } else {
@@ -213,9 +211,9 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
         RubyNode outerPrev = currentValueToMatch;
         currentValueToMatch = readTemp;
         try {
-            RubyNode check = YARPTranslator.sequence(Arrays.asList(
+            RubyNode check = YARPTranslator.sequence(
                     assignTemp,
-                    HashPatternLengthCheckNodeGen.create(node.elements.length, readTemp)));
+                    HashPatternLengthCheckNodeGen.create(node.elements.length, readTemp));
             if (condition == null) {
                 condition = check;
             } else {
@@ -235,9 +233,9 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 RubyNode prev = currentValueToMatch;
                 currentValueToMatch = readValue;
                 try {
-                    RubyNode valueCondition = YARPTranslator.sequence(assocNode, Arrays.asList(
+                    RubyNode valueCondition = YARPTranslator.sequence(assocNode,
                             writeValue,
-                            AndNodeGen.create(new IsNotUndefinedNode(readValue), assocNode.value.accept(this))));
+                            AndNodeGen.create(new IsNotUndefinedNode(readValue), assocNode.value.accept(this)));
                     condition = AndNodeGen.create(condition, valueCondition);
                 } finally {
                     currentValueToMatch = prev;
