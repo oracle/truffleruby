@@ -486,6 +486,8 @@ module Truffle
 
       if Primitive.is_a? offset, String
         offset = Truffle::Type.coerce_string_to_utc_offset(offset)
+      elsif Primitive.respond_to?(offset, :utc_to_local, false)
+        offset = offset.utc_to_local(Time.now).utc_offset
       else
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end
