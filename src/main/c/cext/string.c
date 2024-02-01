@@ -442,3 +442,7 @@ VALUE rb_enc_interned_str_cstr(const char *ptr, rb_encoding *enc) {
   VALUE str = rb_enc_str_new_cstr(ptr, enc);
   return rb_fstring(str);
 }
+
+VALUE rb_str_to_interned_str(VALUE str) {
+  return rb_fstring(str);
+}

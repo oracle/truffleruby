@@ -48,6 +48,7 @@ Compatibility:
 * Support `connect_timeout` keyword argument to `TCPSocket.{new,open}` (#3421, @manefz, @patricklinpl, @nirvdrum, @rwstauner).
 * Add `File.lutime` and `Pathname#lutime` methods (#3039, @andrykonchin).
 * Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
+* Add `rb_str_to_interned_str` function (#3408, @thomasmarshall).
 
 Performance:
 
