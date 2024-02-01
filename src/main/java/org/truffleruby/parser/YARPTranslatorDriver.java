@@ -262,7 +262,7 @@ public final class YARPTranslatorDriver {
 
             for (int n = 0; n < argumentNames.length; n++) {
                 final String name = argumentNames[n];
-                final RubyNode readNode = Translator
+                final RubyNode readNode = YARPTranslator
                         .profileArgument(
                                 language,
                                 new ReadPreArgumentNode(n, false, MissingArgumentBehavior.NIL));
@@ -271,33 +271,26 @@ public final class YARPTranslatorDriver {
             }
 
             sequence.add(truffleNode);
-            truffleNode = Translator.sequence(sourceIndexLength, sequence);
+            truffleNode = YARPTranslator.sequence(sequence);
         }
 
         // Load flip-flop states
 
         if (environment.getFlipFlopStates().size() > 0) {
-            truffleNode = Translator.sequence(
-                    sourceIndexLength,
-                    Arrays.asList(BodyTranslator.initFlipFlopStates(environment, sourceIndexLength), truffleNode));
+            truffleNode = YARPTranslator.sequence(
+                    Arrays.asList(YARPTranslator.initFlipFlopStates(environment), truffleNode));
         }
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {
             if (context.getOptions().PRINT_LOOP) {
-                truffleNode = Translator.sequence(
-                        sourceIndexLength,
-                        Arrays.asList(truffleNode, new KernelPrintLastLineNode()));
+                truffleNode = YARPTranslator.sequence(Arrays.asList(truffleNode, new KernelPrintLastLineNode()));
             }
             if (context.getOptions().SPLIT_LOOP) {
-                truffleNode = Translator.sequence(
-                        sourceIndexLength,
-                        Arrays.asList(new AutoSplitNode(), truffleNode));
+                truffleNode = YARPTranslator.sequence(Arrays.asList(new AutoSplitNode(), truffleNode));
             }
 
             if (context.getOptions().CHOMP_LOOP) {
-                truffleNode = Translator.sequence(
-                        sourceIndexLength,
-                        Arrays.asList(new ChompLoopNode(), truffleNode));
+                truffleNode = YARPTranslator.sequence(Arrays.asList(new ChompLoopNode(), truffleNode));
             }
             truffleNode = new WhileNode(
                     WhileNodeFactory.WhileRepeatingNodeGen.create(new KernelGetsNode(), truffleNode));
@@ -309,25 +302,20 @@ public final class YARPTranslatorDriver {
         if (!beginBlocks.isEmpty()) {
             ArrayList<RubyNode> sequence = new ArrayList<>(beginBlocks);
             sequence.add(truffleNode);
-            truffleNode = Translator.sequence(sourceIndexLength, sequence);
+            truffleNode = YARPTranslator.sequence(sequence);
         }
 
-        final RubyNode writeSelfNode = Translator.loadSelf(language);
-        truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
+        final RubyNode writeSelfNode = YARPTranslator.loadSelf(language);
+        truffleNode = YARPTranslator.sequence(Arrays.asList(writeSelfNode, truffleNode));
 
         if (!rubyWarnings.warnings.isEmpty()) {
-            truffleNode = Translator.sequence(
-                    sourceIndexLength,
-                    Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
+            truffleNode = YARPTranslator.sequence(Arrays.asList(new EmitWarningsNode(rubyWarnings), truffleNode));
         }
 
         // Top-level exception handling
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST) {
-            truffleNode = Translator
-                    .sequence(sourceIndexLength, Arrays.asList(
-                            new SetTopLevelBindingNode(),
-                            truffleNode));
+            truffleNode = YARPTranslator.sequence(Arrays.asList(new SetTopLevelBindingNode(), truffleNode));
 
             if (parseResult.dataLocation != null) {
                 // startOffset - location of beginning of __END__, not ending
@@ -340,9 +328,7 @@ public final class YARPTranslatorDriver {
                     offset += 1;
                 }
 
-                truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
-                        new DataNode(offset),
-                        truffleNode));
+                truffleNode = YARPTranslator.sequence(Arrays.asList(new DataNode(offset), truffleNode));
             }
         }
 

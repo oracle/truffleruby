@@ -9,6 +9,8 @@
  */
 package org.truffleruby.parser;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -213,7 +215,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected static RubyNode sequence(List<RubyNode> sequence) {
-        final List<RubyNode> flattened = Translator.flatten(sequence, true);
+        final List<RubyNode> flattened = flatten(sequence);
 
         if (flattened.isEmpty()) {
             return new NilLiteralNode();
@@ -223,6 +225,39 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
             final RubyNode[] flatSequence = flattened.toArray(RubyNode.EMPTY_ARRAY);
             return new SequenceNode(flatSequence);
         }
+    }
+
+    private static List<RubyNode> flatten(List<RubyNode> sequence) {
+        return flattenFromN(sequence, 0);
+    }
+
+    private static List<RubyNode> flattenFromN(List<RubyNode> sequence, int n) {
+        final List<RubyNode> flattened = new ArrayList<>();
+
+        for (; n < sequence.size(); n++) {
+            final boolean lastNode = n == sequence.size() - 1;
+            final RubyNode node = sequence.get(n);
+
+            if (node == null) {
+                continue;
+            }
+
+            if (node instanceof SequenceNode) {
+                flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence())));
+            } else if (node.canSubsumeFollowing() && !lastNode) {
+                List<RubyNode> rest = flattenFromN(sequence, n + 1);
+                if (rest.size() == 1) {
+                    flattened.add(node.subsumeFollowing(rest.get(0)));
+                } else {
+                    flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(RubyNode.EMPTY_ARRAY))));
+                }
+                return flattened;
+            } else {
+                flattened.add(node);
+            }
+        }
+
+        return flattened;
     }
 
     protected final RubyNode[] translate(Nodes.Node[] nodes) {

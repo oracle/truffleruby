@@ -47,7 +47,7 @@ import org.truffleruby.parser.parser.ParserSupport;
 
 public final class Helpers {
 
-    public static final Map<String, String> map(String... keyValues) {
+    public static Map<String, String> map(String... keyValues) {
         HashMap<String, String> map = new HashMap<>(keyValues.length / 2);
         for (int i = 0; i < keyValues.length;) {
             map.put(keyValues[i++], keyValues[i++]);

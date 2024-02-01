@@ -90,7 +90,6 @@ import org.truffleruby.language.control.OrNodeGen;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
-import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.UnlessNodeGen;
 import org.truffleruby.language.control.BreakID;
@@ -152,7 +151,6 @@ import org.truffleruby.language.supercall.ReadZSuperArgumentsNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
-import org.truffleruby.parser.Translator.ArgumentsAndBlockTranslation;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -175,7 +173,7 @@ import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_REST_NAME;
 /** Translate (or convert) AST provided by a parser (YARP parser) to Truffle AST */
 public class YARPTranslator extends YARPBaseTranslator {
 
-    public static final int NO_FRAME_ON_STACK_MARKER = Translator.NO_FRAME_ON_STACK_MARKER;
+    public static final int NO_FRAME_ON_STACK_MARKER = -1;
 
     public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
 
@@ -621,7 +619,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         var receiver = node.receiver == null ? new SelfNode() : node.receiver.accept(this);
 
         var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, node.block, methodName);
-        var translatedArguments = argumentsAndBlock.arguments();
+        var translatedArguments = argumentsAndBlock.arguments;
 
         if (parseEnvironment.inCore() && node.isVariableCall() && methodName.equals("undefined")) {
             // translate undefined
@@ -655,10 +653,10 @@ public class YARPTranslator extends YARPBaseTranslator {
         final var callNodeParameters = new RubyCallNodeParameters(
                 receiver,
                 methodName,
-                argumentsAndBlock.block(),
-                argumentsAndBlock.argumentsDescriptor(),
+                argumentsAndBlock.block,
+                argumentsAndBlock.argumentsDescriptor,
                 translatedArguments,
-                argumentsAndBlock.isSplatted(),
+                argumentsAndBlock.isSplatted,
                 node.isIgnoreVisibility(),
                 node.isVariableCall(),
                 node.isSafeNavigation(),
@@ -669,12 +667,16 @@ public class YARPTranslator extends YARPBaseTranslator {
         return assignPositionAndFlags(node, rubyNode);
     }
 
+    record ArgumentsAndBlockTranslation(RubyNode block, RubyNode[] arguments, boolean isSplatted,
+            ArgumentsDescriptor argumentsDescriptor, int frameOnStackMarkerSlot) {
+    }
+
     private static RubyNode wrapCallWithLiteralBlock(ArgumentsAndBlockTranslation argumentsAndBlock,
             RubyNode callNode) {
         // wrap call node with literal block
-        if (argumentsAndBlock.block() instanceof BlockDefinitionNode blockDef) {
+        if (argumentsAndBlock.block instanceof BlockDefinitionNode blockDef) {
             // if we have a literal block, `break` breaks out of this call site
-            final var frameOnStackNode = new FrameOnStackNode(callNode, argumentsAndBlock.frameOnStackMarkerSlot());
+            final var frameOnStackNode = new FrameOnStackNode(callNode, argumentsAndBlock.frameOnStackMarkerSlot);
             return new CatchBreakNode(blockDef.getBreakID(), frameOnStackNode, false);
         } else {
             return callNode;
@@ -1784,7 +1786,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 : NoKeywordArgumentsDescriptor.INSTANCE;
         final int restParamIndex = reloadTranslator.getRestParameterIndex();
         final RubyNode arguments = new ReadZSuperArgumentsNode(restParamIndex, reloadSequence);
-        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.block());
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.block);
         final boolean isSplatted = reloadTranslator.getRestParameterIndex() != -1;
 
         RubyNode callNode = new SuperCallNode(isSplatted, arguments, block, descriptor);
@@ -3111,12 +3113,12 @@ public class YARPTranslator extends YARPBaseTranslator {
         var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, node.block, environment.getMethodName());
 
         final RubyNode arguments = new ReadSuperArgumentsNode(
-                argumentsAndBlock.arguments(),
-                argumentsAndBlock.isSplatted());
-        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.block());
+                argumentsAndBlock.arguments,
+                argumentsAndBlock.isSplatted);
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.block);
 
-        RubyNode callNode = new SuperCallNode(argumentsAndBlock.isSplatted(), arguments, block,
-                argumentsAndBlock.argumentsDescriptor());
+        RubyNode callNode = new SuperCallNode(argumentsAndBlock.isSplatted, arguments, block,
+                argumentsAndBlock.argumentsDescriptor);
         callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
 
         return assignPositionAndFlags(node, callNode);
@@ -3245,9 +3247,9 @@ public class YARPTranslator extends YARPBaseTranslator {
         RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
 
         var rubyNode = new YieldExpressionNode(
-                argumentsAndBlock.isSplatted(),
-                argumentsAndBlock.argumentsDescriptor(),
-                argumentsAndBlock.arguments(),
+                argumentsAndBlock.isSplatted,
+                argumentsAndBlock.argumentsDescriptor,
+                argumentsAndBlock.arguments,
                 readBlock);
 
         return assignPositionAndFlags(node, rubyNode);
@@ -3627,21 +3629,6 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         return sequenceNode;
-    }
-
-    protected static RubyNode sequence(List<RubyNode> sequence) {
-        final List<RubyNode> flattened = Translator.flatten(sequence, true);
-
-        if (flattened.isEmpty()) {
-            final RubyNode nilNode = new NilLiteralNode();
-            return nilNode;
-        } else if (flattened.size() == 1) {
-            return flattened.get(0);
-        } else {
-            final RubyNode[] flatSequence = flattened.toArray(RubyNode.EMPTY_ARRAY);
-            var sequenceNode = new SequenceNode(flatSequence);
-            return sequenceNode;
-        }
     }
 
     protected static Nodes.CallNode callNode(Nodes.Node location, Nodes.Node receiver, String methodName,

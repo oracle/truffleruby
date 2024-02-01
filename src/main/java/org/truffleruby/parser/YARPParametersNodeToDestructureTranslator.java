@@ -68,7 +68,7 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
     public RubyNode translate() {
         final List<RubyNode> sequence = new ArrayList<>();
 
-        sequence.add(Translator.loadSelf(language));
+        sequence.add(YARPTranslator.loadSelf(language));
 
         if (parameters.requireds.length > 0) {
             state = State.PRE;

@@ -143,7 +143,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
 
         // as opposed to lambdas and methods, procs may destructure a single Array argument
         if (shouldConsiderDestructuringArrayArg(arity)) {
-            final RubyNode readFirstArgumentNode = Translator.profileArgument(
+            final RubyNode readFirstArgumentNode = YARPTranslator.profileArgument(
                     language,
                     new ReadPreArgumentNode(0, arity.acceptsKeywords(), MissingArgumentBehavior.RUNTIME_ERROR));
             final SplatCastNode castArrayNode = SplatCastNodeGen

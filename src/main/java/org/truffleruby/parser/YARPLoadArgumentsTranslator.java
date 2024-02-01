@@ -72,7 +72,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
     public RubyNode translate() {
         final List<RubyNode> sequence = new ArrayList<>();
 
-        sequence.add(Translator.loadSelf(language));
+        sequence.add(YARPTranslator.loadSelf(language));
 
         if (parameters.requireds.length > 0) {
             state = State.PRE;
@@ -147,7 +147,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         final RubyNode readNode;
 
         if (state == YARPLoadArgumentsTranslator.State.PRE) {
-            readNode = Translator.profileArgument(
+            readNode = YARPTranslator.profileArgument(
                     language,
                     new ReadPreArgumentNode(
                             index,
@@ -180,7 +180,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         final RubyNode readNode;
 
         if (state == YARPLoadArgumentsTranslator.State.PRE) {
-            readNode = Translator.profileArgument(
+            readNode = YARPTranslator.profileArgument(
                     language,
                     new ReadPreArgumentNode(
                             index,
