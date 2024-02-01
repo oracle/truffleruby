@@ -4,7 +4,6 @@ notes: >
   Primitive is replaced with a node implementing this method.
   
   Focus on the top node instead of a particular Primitive method implementation.
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
   # truffleruby_primitives: true
   

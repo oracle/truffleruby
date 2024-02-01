@@ -17,7 +17,7 @@ require_relative '../../ruby/spec_helper'
 #   description: "long description"
 #   notes: >
 #     "some additional details to explain what this case actually tests (optional)"
-#   focused_on_node: "a node class name"
+#   focused_on_node: "a node class name" (optional)
 #   main_script: true
 #   index: "integer, position of a node to focus on in AST when there are several such nodes and we need not the first one (optional)"
 #   ruby: |
@@ -69,7 +69,9 @@ describe "Parsing" do
   filenames.each do |filename|
     yaml = YAML.safe_load_file(filename)
     subject, description, focused_on_node, index, main_script, source_code, expected_ast = yaml.values_at("subject", "description", "focused_on_node", "index", "main_script", "ruby", "ast")
+
     description&.strip!
+    focused_on_node ||= "org.truffleruby.language.RubyTopLevelRootNode"
     source_code.strip!
     expected_ast.strip!
     index = index.to_i

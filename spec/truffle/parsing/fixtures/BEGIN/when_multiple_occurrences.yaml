@@ -9,7 +9,6 @@ notes: >
   b
   c
   ```
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
   BEGIN {
     a

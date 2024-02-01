@@ -2,7 +2,6 @@ subject: "__END__"
 description: Presence of __END__ in main Ruby script means a DATA constant should be defined
 notes: >
   DATA is defined by DataNode node
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 main_script: true
 ruby: |
   a = 1

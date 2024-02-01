@@ -2,7 +2,6 @@ subject: "TOPLEVEL_BINDING"
 description: TOPLEVEL_BINDING constant is defined in main Ruby script
 notes: >
   TOPLEVEL_BINDING is defined by SetTopLevelBindingNode node
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 main_script: true
 ruby: |
   a = 1

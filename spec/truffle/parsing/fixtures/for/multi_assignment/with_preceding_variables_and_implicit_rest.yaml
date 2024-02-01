@@ -1,6 +1,7 @@
 subject: "For operator"
 description: "multi-assignment / with preceding variables and implicit rest (for a, in [])"
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode" # to dump local variable declarations in outer scope
+notes: >
+  Focus on RubyTopLevelRootNode (default behaviour) to dump local variable declarations in outer scope
 ruby: |
   for a, in [42, 100500]
     b = a

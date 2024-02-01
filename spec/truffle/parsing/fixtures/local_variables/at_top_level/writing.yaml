@@ -3,7 +3,6 @@ description: "at top level / assigning local variable leads to its declaration"
 notes: >
   Declaration is represented by a RubyTopLevelRootNode's attribute frameDescriptor:
     frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:foo}
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
   foo = 42
 ast: |
