@@ -37,7 +37,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
-import org.truffleruby.parser.parser.ParserSupport;
 
 public final class TranslatorEnvironment {
 
@@ -51,16 +50,21 @@ public final class TranslatorEnvironment {
 
     /** local variable to access a block argument */
     public static final String METHOD_BLOCK_NAME = Layouts.TEMP_PREFIX + "method_block_arg";
+
     /** local variable name for * parameter */
-    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR;
+    static final String DEFAULT_REST_NAME = Layouts.TEMP_PREFIX + "unnamed_rest";
     /** local variable name for ** parameter */
-    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR;
+    static final String DEFAULT_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "kwrest";
     /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_REST_NAME = ParserSupport.FORWARD_ARGS_REST_VAR;
+
+    static final String FORWARDED_REST_NAME = Layouts.TEMP_PREFIX + "forward_rest";
     /** local variable name for ** parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_KEYWORD_REST_NAME = ParserSupport.FORWARD_ARGS_KWREST_VAR;
+    static final String FORWARDED_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "forward_kwrest";
     /** local variable name for & parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_BLOCK_NAME = ParserSupport.FORWARD_ARGS_BLOCK_VAR;
+    static final String FORWARDED_BLOCK_NAME = Layouts.TEMP_PREFIX + "forward_block";
+
+    /** A prefix for duplicated '_' local variables to build unique names */
+    public static final String UNDERSCORE_PREFIX = "_$";
 
     private final ParseEnvironment parseEnvironment;
 
