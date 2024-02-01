@@ -44,6 +44,7 @@ Compatibility:
 * Do not autosplat a proc that accepts a single positional argument and keywords (#3039, @andrykonchin).
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
+* Support `lambda` keyword argument in `Proc#parameters` (#3039, @thomasmarshall, @goyox86).
 
 Performance:
 

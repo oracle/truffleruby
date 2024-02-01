@@ -128,4 +128,8 @@ class Proc
       end
     end
   end
+
+  def parameters(lambda: nil)
+    Primitive.proc_parameters(self, lambda)
+  end
 end

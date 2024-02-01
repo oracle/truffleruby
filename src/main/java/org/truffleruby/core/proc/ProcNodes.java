@@ -203,14 +203,16 @@ public abstract class ProcNodes {
 
     }
 
-    @CoreMethod(names = "parameters")
-    public abstract static class ParametersNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "proc_parameters")
+    public abstract static class ParametersNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        RubyArray parameters(RubyProc proc) {
+        RubyArray parameters(RubyProc proc, Object lambdaObject) {
             final ArgumentDescriptor[] argsDesc = proc.getArgumentDescriptors();
-            final boolean isLambda = proc.type == ProcType.LAMBDA;
+            final boolean isLambda = (lambdaObject == nil)
+                    ? proc.type == ProcType.LAMBDA
+                    : !Boolean.FALSE.equals(lambdaObject);
             return ArgumentDescriptorUtils
                     .argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, isLambda);
         }
