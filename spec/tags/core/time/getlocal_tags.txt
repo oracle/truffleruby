@@ -3,6 +3,5 @@ fails:Time#getlocal with an argument that responds to #to_r coerces using #to_r
 fails:Time#getlocal raises ArgumentError if the argument represents a value less than or equal to -86400 seconds
 fails:Time#getlocal raises ArgumentError if the argument represents a value greater than or equal to 86400 seconds
 fails:Time#getlocal with a timezone argument returns a Time in the timezone
-fails:Time#getlocal with a timezone argument raises TypeError if timezone does not implement #utc_to_local method
 fails:Time#getlocal with a timezone argument subject's class implements .find_timezone method calls .find_timezone to build a time object if passed zone name as a timezone argument
 fails:Time#getlocal with a timezone argument subject's class implements .find_timezone method does not call .find_timezone if passed any not string/numeric/timezone timezone argument
