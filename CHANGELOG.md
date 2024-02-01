@@ -22,6 +22,7 @@ Bug fixes:
 * Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
 * Fix `Integer#div` returning the wrong object type when the divisor is a `Rational` (@simonlevasseur, @nirvdrum).
 
+
 Compatibility:
 
 * Add `Exception#detailed_message` method (#3257, @andrykonchin).
@@ -44,6 +45,7 @@ Compatibility:
 * Do not autosplat a proc that accepts a single positional argument and keywords (#3039, @andrykonchin).
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
+* Remove `Bignum` and `Fixnum` constants (#3039, @patricklinpl, @manefz, @nirvdrum).
 
 Performance:
 
