@@ -83,7 +83,6 @@ import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.parser.parser.ParserConfiguration;
 import org.truffleruby.shared.Metrics;
 import org.prism.Nodes;
 import org.prism.ParseResult;
@@ -159,19 +158,6 @@ public final class YARPTranslatorDriver {
             // TODO: add these variables and treat it more like an eval case
         }
 
-        String sourcePath = rubySource.getSourcePath(language);
-        boolean isInlineSource = sourcePath.equals("-e");
-        boolean isEvalParse = parserContext.isEval();
-        final ParserConfiguration parserConfiguration = new ParserConfiguration(
-                context,
-                isInlineSource,
-                !isEvalParse,
-                false);
-
-        if (language.options.FROZEN_STRING_LITERALS) {
-            parserConfiguration.setFrozenStringLiteral(true);
-        }
-
         // Parse to the YARP AST
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
 
@@ -192,12 +178,9 @@ public final class YARPTranslatorDriver {
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
-        handleWarningsErrorsPrimitives(context, language, parseResult, rubySource, parserConfiguration, rubyWarnings);
+        handleWarningsErrorsPrimitives(context, language, parseResult, rubySource, parseEnvironment, rubyWarnings);
 
         var node = parseResult.value;
-
-        // Needs the magic comment to be parsed
-        parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
 
         final SourceSection sourceSection = source.createSection(0, rubySource.getBytes().length);
         final SourceIndexLength sourceIndexLength = SourceIndexLength.fromSourceSection(sourceSection);
@@ -431,7 +414,7 @@ public final class YARPTranslatorDriver {
     }
 
     public static void handleWarningsErrorsPrimitives(RubyContext context, RubyLanguage language,
-            ParseResult parseResult, RubySource rubySource, ParserConfiguration configuration,
+            ParseResult parseResult, RubySource rubySource, ParseEnvironment parseEnvironment,
             RubyDeferredWarnings rubyWarnings) {
 
         // intern() to improve footprint
@@ -473,6 +456,7 @@ public final class YARPTranslatorDriver {
                     context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(message, null, section));
         }
 
+        boolean allowTruffleRubyPrimitives = false;
         for (var magicComment : parseResult.magicComments) {
             String name = rubySource.getTStringWithEncoding()
                     .substring(magicComment.keyLocation.startOffset, magicComment.keyLocation.length).toJavaString();
@@ -483,9 +467,10 @@ public final class YARPTranslatorDriver {
 
             // check the `primitive` TruffleRuby specific magic comment
             if (MagicCommentParser.isMagicTruffleRubyPrimitivesComment(name)) {
-                configuration.allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
+                allowTruffleRubyPrimitives = value.equalsIgnoreCase("true");
             }
         }
+        parseEnvironment.allowTruffleRubyPrimitives = allowTruffleRubyPrimitives;
     }
 
     public static void handleWarningsErrorsNoContext(RubyLanguage language, ParseResult parseResult,
