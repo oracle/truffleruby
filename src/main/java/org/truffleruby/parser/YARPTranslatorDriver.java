@@ -90,7 +90,6 @@ import java.util.List;
 
 public final class YARPTranslatorDriver {
 
-    /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;
     private final RubyLanguage language;
     private ParseEnvironment parseEnvironment;
