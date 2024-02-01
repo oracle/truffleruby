@@ -38,7 +38,7 @@ $ bin/parse -e '1&.itself'
 We can also see what the AST as Java nodes and without extra location fields looks like on TruffleRuby with:
 ```bash
 $ cd truffleruby
-$ t -q ruby tool/parse_ast.rb '1&.itself'
+$ jt -q ruby tool/parse_ast.rb '1&.itself'
 Source:
 1&.itself
 
@@ -71,4 +71,11 @@ RootNode line: 0
   CallNode*[lazy]:itself line: 0
     FixnumNode line: 0, long: 1
 , null, null
+```
+
+## Print the Truffle AST
+
+```bash
+$ cd truffleruby
+$ jt -q ruby tool/truffle_ast.rb '1&.itself'
 ```
