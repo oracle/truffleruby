@@ -185,7 +185,6 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
         final int slot = environment.findFrameSlot(node.name);
         int minimum = index + 1 + parameters.posts.length;
 
-        // TODO CS 10-Jan-16 we should really hoist this check, or see if Graal does it for us
         readNode = new ReadBlockOptionalArgumentFromArrayNode(readArrayNode, index, minimum, defaultValue);
 
         return new WriteLocalVariableNode(slot, readNode);

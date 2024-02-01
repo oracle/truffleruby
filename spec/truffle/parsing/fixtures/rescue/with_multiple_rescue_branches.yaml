@@ -26,12 +26,12 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
       children:
           rescueParts = [
               RescueClassesNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
                   children:
                       handlingClassNodes = [
@@ -56,6 +56,7 @@ ast: |
                                   value = 42
               RescueClassesNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
                   children:
                       handlingClassNodes = [

@@ -64,12 +64,12 @@ ast: |
                                           slot = 2
                                   TryNodeGen
                                       attributes:
-                                          canOmitBacktrace = true
                                           flags = 0
                                       children:
                                           rescueParts = [
                                               RescueStandardErrorNode
                                                   attributes:
+                                                      canOmitBacktrace = true
                                                       flags = 0
                                                   children:
                                                       rescueBody =

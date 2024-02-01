@@ -13,12 +13,12 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
                   children:
                       rescueBody =

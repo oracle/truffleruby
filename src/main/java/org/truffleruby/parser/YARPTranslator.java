@@ -312,6 +312,11 @@ public class YARPTranslator extends YARPBaseTranslator {
             // rescue clauses are organized into a linked list
             // traverse this linked list to translate and accumulate rescue nodes
             while (rescueClause != null) { // each rescue clause
+                boolean canOmitBacktrace = language.options.BACKTRACES_OMIT_UNUSED &&
+                        rescueClause.reference == null &&
+                        (rescueClause.statements == null || (rescueClause.statements.body.length == 1 &&
+                                isSideEffectFreeRescueExpression(rescueClause.statements.body[0])));
+
                 if (rescueClause.exceptions.length != 0) {
                     // TODO: this duplicate rescue body 3 times for e.g. `rescue A, *b, C`, but we should avoid duplicating code
                     final ArrayList<Nodes.Node> exceptionNodes = new ArrayList<>();
@@ -321,7 +326,8 @@ public class YARPTranslator extends YARPBaseTranslator {
                         if (exceptionNode instanceof Nodes.SplatNode splatNode) {
                             if (!exceptionNodes.isEmpty()) {
                                 // dump all the accumulated so far exception classes and clear the list
-                                final RescueNode rescueNode = translateExceptionNodes(exceptionNodes, rescueClause);
+                                final RescueNode rescueNode = translateExceptionNodes(exceptionNodes, rescueClause,
+                                        canOmitBacktrace);
                                 rescueNodes.add(rescueNode);
                                 exceptionNodes.clear();
                             }
@@ -342,7 +348,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                             }
 
                             final RescueNode rescueNode = new RescueSplatNode(language, splatTranslated,
-                                    translatedBody);
+                                    translatedBody, canOmitBacktrace);
                             assignPositionAndFlags(splatNode, rescueNode);
 
                             rescueNodes.add(rescueNode);
@@ -355,7 +361,8 @@ public class YARPTranslator extends YARPBaseTranslator {
                     // process exception classes after the last splat operator
                     // or all the exception classes in a list if there is no splat operator
                     if (!exceptionNodes.isEmpty()) {
-                        final RescueNode rescueNode = translateExceptionNodes(exceptionNodes, rescueClause);
+                        final RescueNode rescueNode = translateExceptionNodes(exceptionNodes, rescueClause,
+                                canOmitBacktrace);
                         rescueNodes.add(rescueNode);
                     }
                 } else {
@@ -373,7 +380,8 @@ public class YARPTranslator extends YARPBaseTranslator {
                         translatedBody = translateNodeOrNil(rescueClause.statements);
                     }
 
-                    final RescueStandardErrorNode rescueNode = new RescueStandardErrorNode(translatedBody);
+                    final RescueStandardErrorNode rescueNode = new RescueStandardErrorNode(translatedBody,
+                            canOmitBacktrace);
                     assignPositionAndFlags(rescueClause, rescueNode);
 
                     rescueNodes.add(rescueNode);
@@ -390,20 +398,10 @@ public class YARPTranslator extends YARPBaseTranslator {
                 elsePart = node.else_clause.accept(this);
             }
 
-            rescueClause = node.rescue_clause;
-
-            // TODO: this flag should be per RescueNode, not per TryNode
-            boolean canOmitBacktrace = language.options.BACKTRACES_OMIT_UNUSED &&
-                    rescueClause.reference == null &&
-                    rescueClause.consequent == null &&
-                    (rescueClause.statements == null || rescueClause.statements.body.length == 1 &&
-                            isSideEffectFreeRescueExpression(rescueClause.statements.body[0]));
-
             rubyNode = TryNodeGen.create(
                     rubyNode,
                     rescueNodes.toArray(EMPTY_RESCUE_NODE_ARRAY),
-                    elsePart,
-                    canOmitBacktrace);
+                    elsePart);
             assignPositionAndFlags(node, rubyNode);
         }
 
@@ -417,7 +415,8 @@ public class YARPTranslator extends YARPBaseTranslator {
         return rubyNode;
     }
 
-    private RescueNode translateExceptionNodes(ArrayList<Nodes.Node> exceptionNodes, Nodes.RescueNode rescueClause) {
+    private RescueNode translateExceptionNodes(ArrayList<Nodes.Node> exceptionNodes, Nodes.RescueNode rescueClause,
+            boolean canOmitBacktrace) {
 
         final Nodes.Node[] exceptionNodesArray = exceptionNodes.toArray(EMPTY_NODE_ARRAY);
         final RubyNode[] handlingClasses = translate(exceptionNodesArray);
@@ -434,7 +433,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             translatedBody = translateNodeOrNil(rescueClause.statements);
         }
 
-        final RescueNode rescueNode = new RescueClassesNode(handlingClasses, translatedBody);
+        final RescueNode rescueNode = new RescueClassesNode(handlingClasses, translatedBody, canOmitBacktrace);
         assignPositionOnly(exceptionNodesArray, rescueNode);
         return rescueNode;
     }
@@ -2930,20 +2929,18 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitRescueModifierNode(Nodes.RescueModifierNode node) {
-        RubyNode tryNode = node.expression.accept(this);
-
         // use Ruby StandardError class as far as exception class cannot be specified
-        final RubyNode rescueExpressionNode = node.rescue_expression.accept(this);
-        final RescueStandardErrorNode rescueNode = new RescueStandardErrorNode(rescueExpressionNode);
 
+        RubyNode tryNode = node.expression.accept(this);
+        final RubyNode rescueExpressionNode = node.rescue_expression.accept(this);
         boolean canOmitBacktrace = language.options.BACKTRACES_OMIT_UNUSED &&
                 isSideEffectFreeRescueExpression(node.rescue_expression);
+        final RescueStandardErrorNode rescueNode = new RescueStandardErrorNode(rescueExpressionNode, canOmitBacktrace);
 
         final RubyNode rubyNode = TryNodeGen.create(
                 tryNode,
                 new RescueNode[]{ rescueNode },
-                null,
-                canOmitBacktrace);
+                null);
 
         return assignPositionAndFlags(node, rubyNode);
     }
