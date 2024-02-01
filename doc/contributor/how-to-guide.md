@@ -1139,24 +1139,6 @@ jt -q ruby -e 'puts Truffle::Debug.java_class_of([])'
 RubyArray
 ```
 
-### Truffle::Debug.yarp_serialize
-
-```
-jt -q ruby -e 'puts Truffle::Debug.yarp_serialize("1").dump'
-"YARP\x00\x04\x00@7\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00L\f\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00S\x19\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00&\b\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00"
-```
-
-### Truffle::Debug.yarp_parse
-
-```
-jt -q ruby -e 'puts Truffle::Debug.yarp_parse("[].to_ary")'
-ProgramNode
-  Scope
-  StatementsNode
-    CallNode
-      ArrayNode
-```
-
 ### Truffle::Debug.ast
 
 ```
