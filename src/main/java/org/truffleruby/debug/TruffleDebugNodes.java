@@ -107,14 +107,11 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
+import org.truffleruby.parser.ParseEnvironment;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.parser.RubyDeferredWarnings;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.YARPTranslatorDriver;
-import org.truffleruby.parser.parser.ParserConfiguration;
-import org.truffleruby.parser.scope.StaticScope;
 import org.prism.Loader;
 import org.prism.Parser;
 
@@ -343,13 +340,14 @@ public abstract class TruffleDebugNodes {
             var source = Source.newBuilder("ruby", new ByteBasedCharSequence(codeString), name).build();
             var rubySource = new RubySource(source, name);
 
-            var staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
-            var parserConfiguration = new ParserConfiguration(null, false, true, false);
-            var rubyWarnings = new RubyDeferredWarnings();
-            var rootParseNode = TranslatorDriver
-                    .parseToJRubyAST(getContext(), rubySource, staticScope, parserConfiguration, rubyWarnings);
+            var yarpSource = YARPTranslatorDriver.createYARPSource(rubySource.getBytes());
+            var parseEnvironment = new ParseEnvironment(getLanguage(), rubySource, yarpSource, ParserContext.TOP_LEVEL,
+                    this);
 
-            return createString(fromJavaStringNode, rootParseNode.toString(), Encodings.UTF_8);
+            var parseResult = YARPTranslatorDriver.parseToYARPAST(getLanguage(), rubySource, Collections.emptyList(),
+                    parseEnvironment);
+
+            return createString(fromJavaStringNode, parseResult.value.toString(), Encodings.UTF_8);
         }
     }
 

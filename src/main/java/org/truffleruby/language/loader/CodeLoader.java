@@ -26,7 +26,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -77,7 +76,7 @@ public final class CodeLoader {
             MaterializedFrame parentFrame,
             LexicalScope lexicalScope,
             Node currentNode) {
-        final TranslatorDriver translator = new TranslatorDriver(context);
+        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context);
         return translator.parse(source, parserContext, null, parentFrame, lexicalScope, currentNode);
     }
 

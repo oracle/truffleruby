@@ -78,7 +78,7 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.options.Options;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Signals;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -335,10 +335,10 @@ public final class RubyContext {
                     .getSharedMethodInfo()
                     .getSourceSection()
                     .getSource();
-            TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
+            YARPTranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
             ProcOperations.rootCall((RubyProc) proc, NoKeywordArgumentsDescriptor.INSTANCE,
                     RubyBaseNode.EMPTY_ARGUMENTS);
-            TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
+            YARPTranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
         Metrics.printTime("after-run-delayed-initialization");
 
