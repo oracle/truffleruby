@@ -21,6 +21,7 @@ Bug fixes:
 * Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
 * Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
 * Fix `Integer#div` returning the wrong object type when the divisor is a `Rational` (@simonlevasseur, @nirvdrum).
+* Remove constant `Random::DEFAULT` (#3039, @patricklinpl)
 
 Compatibility:
 
