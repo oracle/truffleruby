@@ -98,14 +98,6 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    protected final RubyNode translateNodeOrDeadNode(Nodes.Node node, String label) {
-        if (node != null) {
-            return node.accept(this);
-        } else {
-            return new DeadNode(label);
-        }
-    }
-
     protected final RubyContextSourceNode createCallNode(RubyNode receiver, String method, RubyNode... arguments) {
         return createCallNode(true, receiver, method, arguments);
     }
