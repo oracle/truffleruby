@@ -89,8 +89,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         assert !hasSource();
 
         if (sourceIndexLength != null) {
-            setSourceCharIndex(sourceIndexLength.getCharIndex());
-            setSourceLength(sourceIndexLength.getLength());
+            unsafeSetSourceSection(sourceIndexLength.getCharIndex(), sourceIndexLength.getLength());
         }
     }
 
@@ -98,11 +97,9 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         assert !hasSource();
 
         if (sourceSection.isAvailable()) {
-            setSourceCharIndex(sourceSection.getCharIndex());
-            setSourceLength(sourceSection.getCharLength());
+            unsafeSetSourceSection(sourceSection.getCharIndex(), sourceSection.getCharLength());
         } else {
-            setSourceCharIndex(0);
-            setSourceLength(SourceIndexLength.UNAVAILABLE);
+            unsafeSetSourceSection(0, SourceIndexLength.UNAVAILABLE);
         }
     }
 
@@ -115,8 +112,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     public RubyNode copySourceSection(RubyNode from) {
         if (from.hasSource()) {
-            setSourceCharIndex(from.getSourceCharIndex());
-            setSourceLength(from.getSourceLength());
+            unsafeSetSourceSection(from.getSourceCharIndex(), from.getSourceLength());
         }
         return this;
     }
