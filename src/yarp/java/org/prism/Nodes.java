@@ -1686,16 +1686,14 @@ public abstract class Nodes {
      */
     public static final class BlockNode extends Node {
         public final String[] locals;
-        public final int locals_body_index;
         @Nullable
         public final Node parameters;
         @Nullable
         public final Node body;
 
-        public BlockNode(String[] locals, int locals_body_index, Node parameters, Node body, int startOffset, int length) {
+        public BlockNode(String[] locals, Node parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
-            this.locals_body_index = locals_body_index;
             this.parameters = parameters;
             this.body = body;
         }
@@ -1733,10 +1731,6 @@ public abstract class Nodes {
             for (String constant : this.locals) {
                 builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
             }
-            builder.append(nextIndent);
-            builder.append("locals_body_index: ");
-            builder.append(this.locals_body_index);
-            builder.append('\n');
             builder.append(nextIndent);
             builder.append("parameters: ");
             builder.append(this.parameters == null ? "null\n" : this.parameters.toString(nextIndent));
@@ -3541,9 +3535,8 @@ public abstract class Nodes {
         @Nullable
         public final Node body;
         public final String[] locals;
-        public final int locals_body_index;
 
-        public DefNode(int serializedLength, String name, Node receiver, ParametersNode parameters, Node body, String[] locals, int locals_body_index, int startOffset, int length) {
+        public DefNode(int serializedLength, String name, Node receiver, ParametersNode parameters, Node body, String[] locals, int startOffset, int length) {
             super(startOffset, length);
             this.serializedLength = serializedLength;
             this.name = name;
@@ -3551,7 +3544,6 @@ public abstract class Nodes {
             this.parameters = parameters;
             this.body = body;
             this.locals = locals;
-            this.locals_body_index = locals_body_index;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3603,10 +3595,6 @@ public abstract class Nodes {
             for (String constant : this.locals) {
                 builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
             }
-            builder.append(nextIndent);
-            builder.append("locals_body_index: ");
-            builder.append(this.locals_body_index);
-            builder.append('\n');
             return builder.toString();
         }
     }
@@ -6122,16 +6110,14 @@ public abstract class Nodes {
      */
     public static final class LambdaNode extends Node {
         public final String[] locals;
-        public final int locals_body_index;
         @Nullable
         public final Node parameters;
         @Nullable
         public final Node body;
 
-        public LambdaNode(String[] locals, int locals_body_index, Node parameters, Node body, int startOffset, int length) {
+        public LambdaNode(String[] locals, Node parameters, Node body, int startOffset, int length) {
             super(startOffset, length);
             this.locals = locals;
-            this.locals_body_index = locals_body_index;
             this.parameters = parameters;
             this.body = body;
         }
@@ -6169,10 +6155,6 @@ public abstract class Nodes {
             for (String constant : this.locals) {
                 builder.append(nextNextIndent).append('"').append(constant).append('"').append('\n');
             }
-            builder.append(nextIndent);
-            builder.append("locals_body_index: ");
-            builder.append(this.locals_body_index);
-            builder.append('\n');
             builder.append(nextIndent);
             builder.append("parameters: ");
             builder.append(this.parameters == null ? "null\n" : this.parameters.toString(nextIndent));
