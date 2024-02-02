@@ -28,5 +28,7 @@ Truffle::Boot.delay do
       # Defined by RbConfig
       autoload :CROSS_COMPILING, 'rbconfig'
     end
+
+    autoload :Set, 'set'
   end
 end
