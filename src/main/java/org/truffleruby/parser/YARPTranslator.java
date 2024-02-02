@@ -178,7 +178,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
     private boolean translatingWhile = false;
-    private boolean translatingNextExpression = false;
     private boolean translatingForStatement = false;
 
     private static final String[] numberedParameterNames = {
@@ -2697,16 +2696,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                             getSourceSection(node)));
         }
 
-        final RubyNode argumentsNode;
-
-        final boolean t = translatingNextExpression;
-        translatingNextExpression = true;
-        try {
-            argumentsNode = translateControlFlowArguments(node.arguments);
-        } finally {
-            translatingNextExpression = t;
-        }
-
+        final RubyNode argumentsNode = translateControlFlowArguments(node.arguments);
         final RubyNode rubyNode = new NextNode(argumentsNode);
         return assignPositionAndFlags(node, rubyNode);
     }
