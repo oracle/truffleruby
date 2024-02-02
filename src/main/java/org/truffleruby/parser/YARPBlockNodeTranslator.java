@@ -50,8 +50,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
     }
 
     public RubyNode compileBlockNode(Nodes.Node body, Nodes.ParametersNode parameters, String[] locals,
-            boolean isStabbyLambda,
-            SourceSection sourceSection) {
+            boolean isStabbyLambda, SourceSection sourceSection) {
         declareLocalVariables(locals);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(

@@ -90,7 +90,7 @@ ast: |
                                                                           attributes:
                                                                               flags = 12
                                                                               sourceCharIndex = 0
-                                                                              sourceLength = 0
+                                                                              sourceLength = -1
                                                                           children:
                                                                               body = [
                                                                                   WriteLocalVariableNode

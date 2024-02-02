@@ -147,7 +147,11 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected final SourceSection getSourceSection(Nodes.Node yarpNode) {
-        return source.createSection(yarpNode.startOffset, yarpNode.length);
+        if (yarpNode.length == 0 && yarpNode.startOffset == 0) {
+            return source.createUnavailableSection();
+        } else {
+            return source.createSection(yarpNode.startOffset, yarpNode.length);
+        }
     }
 
     public final RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
