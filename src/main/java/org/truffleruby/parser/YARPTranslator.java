@@ -1729,7 +1729,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         // in the block environment declare local variable only for parameter
         // and skip declaration all the local variables defined in the block
         String[] locals = new String[]{ parameterName };
-        final var block = new Nodes.BlockNode(locals, 0, blockParameters, body, bodyStartOffset, bodyLength);
+        final var block = new Nodes.BlockNode(locals, blockParameters, body, bodyStartOffset, bodyLength);
         final var eachCall = new Nodes.CallNode(NO_FLAGS, node.collection, "each", null, block, node.startOffset,
                 node.length);
 
@@ -2727,7 +2727,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 new Nodes.ConstantReadNode("Truffle", 0, 0),
                 new Nodes.ConstantReadNode("KernelOperations", 0, 0), 0, 0);
         final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ new Nodes.FalseNode(0, 0) }, 0, 0);
-        final var block = new Nodes.BlockNode(StringUtils.EMPTY_STRING_ARRAY, 0, null, node.statements, 0, 0);
+        final var block = new Nodes.BlockNode(StringUtils.EMPTY_STRING_ARRAY, null, node.statements, 0, 0);
 
         final var callNode = new Nodes.CallNode(NO_FLAGS, receiver, "at_exit", arguments, block, 0, 0).accept(this);
         final RubyNode rubyNode = new OnceNode(callNode);

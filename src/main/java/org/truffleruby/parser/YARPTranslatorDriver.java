@@ -365,7 +365,6 @@ public final class YARPTranslatorDriver {
         int line = rubySource.getLineOffset() + 1;
         byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
         boolean frozenStringLiteral = language.options.FROZEN_STRING_LITERALS;
-        boolean verbose = true;
         var version = ParsingOptions.SyntaxVersion.V3_3_0;
         byte[][][] scopes;
 
@@ -402,8 +401,8 @@ public final class YARPTranslatorDriver {
             scopes = new byte[0][][];
         }
 
-        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, verbose,
-                version, scopes);
+        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, version,
+                scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         Nodes.Source yarpSource = parseEnvironment.yarpSource;
