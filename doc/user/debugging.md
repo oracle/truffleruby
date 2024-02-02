@@ -14,6 +14,41 @@ Also see [Tools](tools.md) for more tools besides just debuggers.
 
 ## VSCode
 
+### Simple and Fast
+
+1. Open VSCode in the project you want to debug:
+    ```bash
+    $ cd /path/to/project
+    $ code .
+    ```
+
+1. Create a file `.vscode/launch.json` with this contents:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach",
+            "type": "node",
+            "request": "attach",
+            "debugServer": 4711
+        }
+    ]
+}
+```
+
+3. Run TruffleRuby on the command line and pass `--dap`, e.g.
+    ```bash
+    $ ruby --dap test.rb
+    $ ruby --dap -Ilib test/some_test.rb
+    $ TRUFFLERUBYOPT=--dap bundle exec rspec some_spec.rb
+    ```
+
+4. In VSCode click on `Run` -> `Start Debugging`.
+
+### With the GraalVM VSCode extension
+
 First install [the GraalVM VSCode extension](https://marketplace.visualstudio.com/items?itemName=oracle-labs-graalvm.graalvm).
 
 Then follow [this documentation](https://www.graalvm.org/latest/tools/vscode/graalvm-extension/polyglot-runtime/#debugging-ruby) to debug TruffleRuby with VSCode.
