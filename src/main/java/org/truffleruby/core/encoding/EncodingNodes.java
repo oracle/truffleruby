@@ -705,6 +705,12 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         private static RubyEncoding replicate(Node node, String name, RubyEncoding encoding) {
+            if (getContext(node).getEncodingManager().getNumberOfEncodings() >= Encodings.MAX_NUMBER_OF_ENCODINGS) {
+                throw new RaiseException(
+                        getContext(node),
+                        coreExceptions(node).encodingErrorTooManyEncodings(Encodings.MAX_NUMBER_OF_ENCODINGS, node));
+            }
+
             return getContext(node).getEncodingManager().replicateEncoding(encoding, name);
         }
 
@@ -726,6 +732,12 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         private static RubyEncoding createDummy(Node node, String name) {
+            if (getContext(node).getEncodingManager().getNumberOfEncodings() >= Encodings.MAX_NUMBER_OF_ENCODINGS) {
+                throw new RaiseException(
+                        getContext(node),
+                        coreExceptions(node).encodingErrorTooManyEncodings(Encodings.MAX_NUMBER_OF_ENCODINGS, node));
+            }
+
             return getContext(node).getEncodingManager().createDummyEncoding(name);
         }
 
