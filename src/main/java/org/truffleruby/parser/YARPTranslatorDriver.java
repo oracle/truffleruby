@@ -123,7 +123,7 @@ public final class YARPTranslatorDriver {
          * we look them up ourselves after being told they're in some parent scope. */
 
         final TranslatorEnvironment parentEnvironment;
-        final List<List<String>> localVariableNames = new ArrayList<>();
+        final List<List<String>> localsInScopes = new ArrayList<>();
 
         int blockDepth = 0;
         if (parentFrame != null) {
@@ -139,7 +139,7 @@ public final class YARPTranslatorDriver {
                     }
                 }
 
-                localVariableNames.add(names);
+                localsInScopes.add(names);
                 frame = RubyArguments.getDeclarationFrame(frame);
                 blockDepth++;
             }
@@ -150,7 +150,7 @@ public final class YARPTranslatorDriver {
         }
 
         if (argumentNames != null) {
-            // TODO: add these variables and treat it more like an eval case
+            localsInScopes.add(Arrays.asList(argumentNames));
         }
 
         // Parse to the YARP AST
@@ -168,7 +168,7 @@ public final class YARPTranslatorDriver {
             parseResult = context.getMetricsProfiler().callWithMetrics(
                     "parsing",
                     source.getName(),
-                    () -> parseToYARPAST(language, rubySource, localVariableNames,
+                    () -> parseToYARPAST(language, rubySource, localsInScopes,
                             parseEnvironment));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
@@ -356,25 +356,23 @@ public final class YARPTranslatorDriver {
     }
 
     public static ParseResult parseToYARPAST(RubyLanguage language, RubySource rubySource,
-            List<List<String>> localVariableNames, ParseEnvironment parseEnvironment) {
+            List<List<String>> localsInScopes, ParseEnvironment parseEnvironment) {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
-
-        byte[] sourceBytes = rubySource.getBytes();
-
-        byte[] filepath;
-        int line = rubySource.getLineOffset() + 1;
-        byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
-        boolean frozenStringLiteral = language.options.FROZEN_STRING_LITERALS;
-        var version = ParsingOptions.SyntaxVersion.V3_3_0;
-        byte[][][] scopes;
 
         // intern() to improve footprint
         String sourcePath = rubySource.getSourcePath(language).intern();
 
-        if (rubySource.isEval()) {
-            filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
+        byte[] sourceBytes = rubySource.getBytes();
+        final byte[] filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
+        int line = rubySource.getLineOffset() + 1;
+        byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
+        boolean frozenStringLiteral = language.options.FROZEN_STRING_LITERALS;
+        var version = ParsingOptions.SyntaxVersion.V3_3_0;
 
-            int scopesCount = localVariableNames.size();
+        byte[][][] scopes;
+
+        if (!localsInScopes.isEmpty()) {
+            int scopesCount = localsInScopes.size();
             // Add one empty extra scope at the end to have local variables treated by Prism
             // as declared in the outer scope.
             // See https://github.com/ruby/prism/issues/2327 and https://github.com/ruby/prism/issues/2192
@@ -383,7 +381,7 @@ public final class YARPTranslatorDriver {
             for (int i = 0; i < scopesCount; i++) {
                 // Local variables are in order from inner scope to outer one, but Prism expects order from outer to inner.
                 // So we need to reverse the order
-                var namesList = localVariableNames.get(scopesCount - 1 - i);
+                var namesList = localsInScopes.get(scopesCount - 1 - i);
                 byte[][] namesBytes = new byte[namesList.size()][];
                 int j = 0;
                 for (var name : namesList) {
@@ -395,9 +393,6 @@ public final class YARPTranslatorDriver {
 
             scopes[scopes.length - 1] = new byte[][]{};
         } else {
-            assert localVariableNames.isEmpty(); // parsing of the whole source file cannot have outer scopes
-
-            filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
             scopes = new byte[0][][];
         }
 

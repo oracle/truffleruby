@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
@@ -110,6 +111,7 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.parser.YARPTranslatorDriver;
+import org.truffleruby.shared.TruffleRuby;
 
 @CoreModule("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -1366,6 +1368,39 @@ public abstract class TruffleDebugNodes {
                     null);
 
             return RubyRootNode.of(callTarget);
+        }
+    }
+
+    @CoreMethod(names = "parse_public", onSingleton = true, required = 3)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class ParsePublicNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(limit = "storageStrategyLimit()")
+        Object parsePublic(Object sourceCode, RubyArray parameters, RubyArray arguments,
+                @Bind("parameters.getStore()") Object parametersStore,
+                @Bind("arguments.getStore()") Object argumentsStore,
+                @CachedLibrary("parametersStore") ArrayStoreLibrary parametersStores,
+                @CachedLibrary("argumentsStore") ArrayStoreLibrary argumentsStores) {
+            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
+
+            String[] names = new String[parameters.size];
+            Object[] values = new Object[arguments.size];
+
+            for (int i = 0; i < names.length; i++) {
+                Object name = parametersStores.read(parametersStore, i);
+                names[i] = RubyGuards.getJavaString(name);
+            }
+
+            for (int i = 0; i < values.length; i++) {
+                values[i] = argumentsStores.read(argumentsStore, i);
+            }
+
+            Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceCodeString, "parse_public.rb").build();
+            var env = getContext().getEnv();
+
+            CallTarget method = env.parsePublic(source, names);
+            return method.call(values);
         }
     }
 
