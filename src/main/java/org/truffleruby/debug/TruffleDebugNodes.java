@@ -254,7 +254,7 @@ public abstract class TruffleDebugNodes {
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
-                    RubyStringLibrary.create().getEncoding(code));
+                    RubyStringLibrary.getUncached().getEncoding(code));
             String name = "<parse_ast>";
             var source = Source.newBuilder("ruby", new ByteBasedCharSequence(codeString), name).build();
             var rubySource = new RubySource(source, name);
@@ -1345,7 +1345,7 @@ public abstract class TruffleDebugNodes {
             String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
 
             var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(sourceCode),
-                    RubyStringLibrary.create().getEncoding(sourceCode));
+                    RubyStringLibrary.getUncached().getEncoding(sourceCode));
 
             RubyRootNode rootNode = parse(code, mainScript);
             String output = TruffleASTPrinter.dump(rootNode, nodeClassNameString, index);
