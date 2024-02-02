@@ -2889,6 +2889,19 @@ module Commands
       end
     end
 
+    # This is a good way to be notified when new node types are added in Prism,
+    # and helps to ensure we handle all nodes.
+    def all_visit_methods_in_yarp_translator
+      visit_methods = File.read('src/yarp/java/org/prism/AbstractNodeVisitor.java').scan(/\bpublic T (visit\w+)\(/).map(&:first)
+      overridden_methods = File.read('src/main/java/org/truffleruby/parser/YARPTranslator.java').scan(/\bpublic \w*Node (visit\w+)\(/).map(&:first)
+      missing = visit_methods - overridden_methods
+      if missing.empty?
+        false
+      else
+        STDERR.puts "Missing methods in YARPTranslator: #{missing}"
+      end
+    end
+
     private
 
     def split_arguments(line)
@@ -3016,6 +3029,10 @@ module Commands
     Formatting.final_classes
   end
 
+  def all_visit_methods_in_yarp_translator
+    Formatting.all_visit_methods_in_yarp_translator
+  end
+
   def format_specializations_check
     any_failed = false
     [
@@ -3023,6 +3040,7 @@ module Commands
       [format_specializations_arguments, 'Some Specializations were not properly formatted.'],
       [Formatting.format_imports, 'There were extra blank lines around imports.'],
       [final_classes, 'There were classes which should be marked as final but were not.'],
+      [all_visit_methods_in_yarp_translator, 'YARPTranslator should override all visit* methods from AbstractNodeVisitor.']
     ].each do |changed, error_message|
       any_failed ||= changed
       $stderr.puts error_message if changed

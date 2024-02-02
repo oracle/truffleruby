@@ -235,7 +235,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitAlternationPatternNode(Nodes.AlternationPatternNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
@@ -276,7 +276,17 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitArrayPatternNode(Nodes.ArrayPatternNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
+    }
+
+    @Override
+    public RubyNode visitAssocNode(Nodes.AssocNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in visitHashNode/getKeywordArgumentsDescriptor");
+    }
+
+    @Override
+    public RubyNode visitAssocSplatNode(Nodes.AssocSplatNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in visitHashNode/getKeywordArgumentsDescriptor");
     }
 
     @Override
@@ -440,7 +450,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitBlockLocalVariableNode(Nodes.BlockLocalVariableNode node) {
-        return super.visitBlockLocalVariableNode(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in translateBlockAndLambda");
     }
 
     @Override
@@ -467,6 +477,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final Nodes.ParametersNode parameters;
         if (parametersNode instanceof Nodes.BlockParametersNode blockParameters) {
+            // NOTE: we ignore BlockParametersNode#locals, it is fully redundant with BlockNode#locals/LambdaNode#locals
             parameters = blockParameters.parameters != null ? blockParameters.parameters : ZERO_PARAMETERS_NODE;
         } else if (parametersNode instanceof Nodes.NumberedParametersNode numberedParameters) {
             // build Nodes.BlockParametersNode with required parameters _1, _2, etc
@@ -551,6 +562,16 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         rubyNode = ToProcNodeGen.create(valueNode);
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    @Override
+    public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
+    }
+
+    @Override
+    public RubyNode visitBlockParametersNode(Nodes.BlockParametersNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in translateBlockAndLambda");
     }
 
     @Override
@@ -898,7 +919,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitCapturePatternNode(Nodes.CapturePatternNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
@@ -1574,7 +1595,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitFindPatternNode(Nodes.FindPatternNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
@@ -1750,6 +1771,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitForwardingArgumentsNode(Nodes.ForwardingArgumentsNode node) {
         throw CompilerDirectives.shouldNotReachHere("handled in visitCallNode");
+    }
+
+    @Override
+    public RubyNode visitForwardingParameterNode(Nodes.ForwardingParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
     }
 
     @Override
@@ -1945,7 +1971,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitHashPatternNode(Nodes.HashPatternNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
@@ -1992,12 +2018,12 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
-        return super.visitImplicitRestNode(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
     }
 
     @Override
     public RubyNode visitInNode(Nodes.InNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
@@ -2427,6 +2453,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
+    }
+
+    @Override
     public RubyNode visitLambdaNode(Nodes.LambdaNode node) {
         return translateBlockAndLambda(node, node.parameters, node.body, node.locals, null);
     }
@@ -2615,7 +2646,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitMissingNode(Nodes.MissingNode node) {
-        return defaultVisit(node);
+        throw fail(node);
     }
 
     @Override
@@ -2644,6 +2675,11 @@ public class YARPTranslator extends YARPBaseTranslator {
         rubyNode = translator.translate();
 
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    @Override
+    public RubyNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in visitForNode and other places");
     }
 
     @Override
@@ -2682,11 +2718,31 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitNoKeywordsParameterNode(Nodes.NoKeywordsParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
+    }
+
+    @Override
+    public RubyNode visitNumberedParametersNode(Nodes.NumberedParametersNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in translateBlockAndLambda");
+    }
+
+    @Override
     public RubyNode visitNumberedReferenceReadNode(Nodes.NumberedReferenceReadNode node) {
         final RubyNode lastMatchNode = ReadGlobalVariableNodeGen.create("$~");
         final RubyNode rubyNode = new ReadMatchReferenceNodes.ReadNthMatchNode(lastMatchNode, node.number);
 
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    @Override
+    public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
+    }
+
+    @Override
+    public RubyNode visitOptionalParameterNode(Nodes.OptionalParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
     }
 
     @Override
@@ -2696,6 +2752,11 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final RubyNode rubyNode = OrNodeGen.create(left, right);
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    @Override
+    public RubyNode visitParametersNode(Nodes.ParametersNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
     }
 
     @Override
@@ -2709,12 +2770,12 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitPinnedExpressionNode(Nodes.PinnedExpressionNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
     public RubyNode visitPinnedVariableNode(Nodes.PinnedVariableNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPPatternMatchingTranslator");
     }
 
     @Override
@@ -2922,6 +2983,16 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
+    }
+
+    @Override
+    public RubyNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
+    }
+
+    @Override
     public RubyNode visitRescueModifierNode(Nodes.RescueModifierNode node) {
         // use Ruby StandardError class as far as exception class cannot be specified
 
@@ -2941,7 +3012,12 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitRescueNode(Nodes.RescueNode node) {
-        return defaultVisit(node);
+        throw CompilerDirectives.shouldNotReachHere("handled in visitBeginNode");
+    }
+
+    @Override
+    public RubyNode visitRestParameterNode(Nodes.RestParameterNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in YARPLoadArgumentsTranslator");
     }
 
     @Override
@@ -3188,6 +3264,11 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode rubyNode = translateWhileNode(node, node.predicate, node.statements, true,
                 !node.isBeginModifier());
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    @Override
+    public RubyNode visitWhenNode(Nodes.WhenNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in visitCaseNode");
     }
 
     @Override
