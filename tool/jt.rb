@@ -2696,7 +2696,7 @@ module Commands
   def check_documentation
     status = true
     allowed = -> str {
-      str.ascii_only? or str.chars.all? { |c| c.ascii_only? or %w[± – → ⌥ ⌘ ⇧].include?(c) }
+      str.ascii_only? or str.chars.all? { |c| c.ascii_only? or %w[± – → ⌥ ⌘ ⇧ ├ └ ─ │ ∅].include?(c) }
     }
 
     `git -C #{TRUFFLERUBY_DIR} ls-files '**/*.md'`.lines.map(&:chomp).each do |file|
