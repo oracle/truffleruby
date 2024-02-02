@@ -17,8 +17,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
+import org.truffleruby.parser.MagicCommentParser;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
@@ -66,7 +66,7 @@ public final class MainLoader {
             sourceBytes = embeddedScript.transformForExecution(currentNode, sourceBytes, path);
         }
 
-        return RubyLexer.createSourceTStringBasedOnMagicEncodingComment(sourceBytes, Encodings.UTF_8);
+        return MagicCommentParser.createSourceTStringBasedOnMagicEncodingComment(sourceBytes, Encodings.UTF_8);
     }
 
     private byte[] readAllOfStandardIn() throws IOException {

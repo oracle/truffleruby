@@ -8,8 +8,12 @@ ast: |
       attributes:
           flags = 1
           name = "Foo"
+          sourceCharIndex = 0
+          sourceLength = 5
       children:
           moduleNode =
               ObjectClassLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

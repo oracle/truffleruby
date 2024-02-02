@@ -29,6 +29,7 @@ public abstract class RubyIntOrLongRange extends ImmutableRubyObjectCopyable {
         this.excludedEnd = excludedEnd;
     }
 
+    // region Iterator messages
     @ExportMessage
     public boolean hasIterator() {
         return true;
@@ -41,5 +42,6 @@ public abstract class RubyIntOrLongRange extends ImmutableRubyObjectCopyable {
         final RubyContext context = RubyContext.get(node);
         return dispatchNode.call(context.getCoreLibrary().truffleInteropOperationsModule, "get_iterator", this);
     }
+    // endregion
 
 }

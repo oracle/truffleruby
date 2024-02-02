@@ -15,13 +15,17 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 30
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 12
                   children:
                       rescueBody =
                           ReadConstantWithLexicalScopeNode
@@ -29,6 +33,8 @@ ast: |
                                   flags = 1
                                   lexicalScope =  :: Object
                                   name = "BAR"
+                                  sourceCharIndex = 23
+                                  sourceLength = 3
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -43,4 +49,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

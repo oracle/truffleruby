@@ -1,6 +1,5 @@
 subject: "Rescue keyword"
 description: "capturing / with a constant with fully qualified lexical parent (::A::B)"
-yarp_specific: true # an AssignRescueVariableNode node is introduced
 notes: >
   A constant capturing is represented with the following simplified AST:
   
@@ -25,13 +24,17 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 58
       children:
           rescueParts = [
               RescueClassesNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 12
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
@@ -39,6 +42,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
+                                  sourceCharIndex = 21
+                                  sourceLength = 12
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -52,31 +57,43 @@ ast: |
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 14
+                                  sourceLength = 40
                               children:
                                   body = [
                                       AssignRescueVariableNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               rescueVariableNode =
                                                   WriteConstantNode
                                                       attributes:
                                                           flags = 0
                                                           name = "ERROR"
+                                                          sourceCharIndex = 37
+                                                          sourceLength = 12
                                                       children:
                                                           moduleNode =
                                                               ReadConstantNode
                                                                   attributes:
                                                                       flags = 0
                                                                       name = "Foo"
+                                                                      sourceCharIndex = 37
+                                                                      sourceLength = 5
                                                                   children:
                                                                       moduleNode =
                                                                           ObjectClassLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  sourceCharIndex = -1
+                                                                                  sourceLength = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
+                                              sourceCharIndex = 52
+                                              sourceLength = 2
                                               value = 42
                                   ]
           ]
@@ -85,4 +102,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

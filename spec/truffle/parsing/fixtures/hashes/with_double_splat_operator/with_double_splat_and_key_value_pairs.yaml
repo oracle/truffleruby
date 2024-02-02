@@ -11,11 +11,15 @@ ast: |
   ConcatHashLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 15
       children:
           children = [
               HashCastNodeGen$HashCastASTNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       childNode_ =
                           RubyCallNode
@@ -32,23 +36,33 @@ ast: |
                                   methodName = "foo"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 3
+                                  sourceLength = 3
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       keyValues = [
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :bar
+                                  sourceCharIndex = 8
+                                  sourceLength = 4
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 13
+                                  sourceLength = 1
                                   value = 1
                       ]
           ]

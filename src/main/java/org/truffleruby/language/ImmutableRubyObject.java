@@ -39,6 +39,9 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RE
  * have no instance variables, so the logic is simpler. We cannot easily reuse RubyDynamicObject messages since the
  * superclass differs.
  * <p>
+ * Remember to implement toDisplayString, hasMetaObject and getMetaObject for each leaf class. And also add an object of
+ * that class to {@code spec/truffle/interop/matrix_spec.rb}'s subjects.
+ * <p>
  * Should not be subclassed directly, instead subclass {@link ImmutableRubyObjectCopyable} and
  * {@link ImmutableRubyObjectNotCopyable}. */
 @ExportLibrary(InteropLibrary.class)
@@ -78,7 +81,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @TruffleBoundary
     @ExportMessage
     public String toDisplayString(boolean allowSideEffects) {
-        throw new AbstractMethodError();
+        throw new AbstractMethodError(); // Must be implemented by subclasses
     }
 
     // region Identity

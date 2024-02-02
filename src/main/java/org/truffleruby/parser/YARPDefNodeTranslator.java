@@ -9,8 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import java.util.Arrays;
-
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.language.RubyMethodRootNode;
@@ -50,10 +48,10 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
                 this).translate();
 
         RubyNode body = translateNodeOrNil(node.body).simplifyAsTailExpression();
-        body = sequence(Arrays.asList(loadArguments, body));
+        body = sequence(loadArguments, body);
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = sequence(Arrays.asList(initFlipFlopStates(environment), body));
+            body = sequence(initFlipFlopStates(environment), body);
         }
 
         return body;
@@ -85,21 +83,9 @@ public final class YARPDefNodeTranslator extends YARPTranslator {
     }
 
     private void declareLocalVariables(Nodes.DefNode node) {
-        // YARP adds hidden local variables when there are anonymous rest, keyrest,
-        // and block parameters or ... declared
-
         for (String name : node.locals) {
-            switch (name) {
-                case "*" -> environment.declareVar(TranslatorEnvironment.DEFAULT_REST_NAME);
-                case "**" -> environment.declareVar(TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME);
-                case "&" -> environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
-                case "..." -> {
-                    environment.declareVar(TranslatorEnvironment.FORWARDED_REST_NAME);
-                    environment.declareVar(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME);
-                    environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
-                }
-                default -> environment.declareVar(name);
-            }
+            assert !(name.equals("*") || name.equals("**") || name.equals("&") || name.equals("...")) : name;
+            environment.declareVar(name);
         }
     }
 

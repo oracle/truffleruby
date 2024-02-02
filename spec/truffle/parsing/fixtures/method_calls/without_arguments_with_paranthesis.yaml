@@ -18,8 +18,12 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 5
       children:
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

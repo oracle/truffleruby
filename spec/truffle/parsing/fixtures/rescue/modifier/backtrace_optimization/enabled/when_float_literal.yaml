@@ -11,18 +11,24 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = true
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 17
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       rescueBody =
                           FloatLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 13
+                                  sourceLength = 4
                                   value = 3.14
           ]
           tryPart =
@@ -30,4 +36,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 5
                       tstring = foo

@@ -7,14 +7,20 @@ ast: |
   IfNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           condition =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 6
+                      sourceLength = 4
                       value = true
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 2
                       value = 42

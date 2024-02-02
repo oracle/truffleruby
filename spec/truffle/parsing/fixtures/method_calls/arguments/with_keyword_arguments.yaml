@@ -22,24 +22,34 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 14
       children:
           arguments = [
               PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 4
+                      sourceLength = 9
                   children:
                       keyValues = [
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :bar
+                                  sourceCharIndex = 4
+                                  sourceLength = 4
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :baz
+                                  sourceCharIndex = 9
+                                  sourceLength = 4
                       ]
           ]
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

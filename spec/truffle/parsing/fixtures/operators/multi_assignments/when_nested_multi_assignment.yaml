@@ -9,6 +9,8 @@ ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 44
       children:
           preNodes = [
               WriteFrameSlotNodeGen
@@ -17,6 +19,8 @@ ast: |
               MultipleAssignmentNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       preNodes = [
                           WriteFrameSlotNodeGen
@@ -33,6 +37,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = ARRAY_WITH_NIL
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 5 # d
@@ -42,27 +48,37 @@ ast: |
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 15
+                      sourceLength = 29
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 15
+                                  sourceLength = 5
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 22
+                                  sourceLength = 5
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 29
+                                  sourceLength = 5
                                   tstring = baz
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 36
+                                  sourceLength = 8
                                   tstring = foobar
                       ]
           splatCastNode =
@@ -72,3 +88,5 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = ARRAY_WITH_NIL
+                      sourceCharIndex = -1
+                      sourceLength = 0

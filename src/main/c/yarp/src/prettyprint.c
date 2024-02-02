@@ -793,13 +793,6 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "]\n", 2);
             }
 
-            // locals_body_index
-            {
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals_body_index:", 28);
-                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->locals_body_index);
-            }
-
             // parameters
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -2929,13 +2922,6 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
                 }
                 pm_buffer_append_string(output_buffer, "]\n", 2);
-            }
-
-            // locals_body_index
-            {
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals_body_index:", 28);
-                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->locals_body_index);
             }
 
             // def_keyword_loc
@@ -5673,13 +5659,6 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     prettyprint_constant(output_buffer, parser, cast->locals.ids[index]);
                 }
                 pm_buffer_append_string(output_buffer, "]\n", 2);
-            }
-
-            // locals_body_index
-            {
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals_body_index:", 28);
-                pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->locals_body_index);
             }
 
             // operator_loc

@@ -8,6 +8,8 @@ ast: |
       attributes:
           flags = 1
           name = "$`"
+          sourceCharIndex = 0
+          sourceLength = 2
       children:
           lookupGlobalVariableStorageNode =
               LookupGlobalVariableStorageNodeGen

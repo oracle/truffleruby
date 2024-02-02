@@ -12,6 +12,8 @@ ast: |
       attributes:
           flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <module:Bar>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Bar>, blockDepth = 0, parseName = <module:Bar>, notes = null, argumentDescriptors = null), callTarget = <module:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          sourceCharIndex = 0
+          sourceLength = 21
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -20,17 +22,23 @@ ast: |
                   attributes:
                       flags = 0
                       name = "Bar"
+                      sourceCharIndex = 0
+                      sourceLength = 21
                   children:
                       lexicalParentModuleNode_ =
                           ReadConstantNode
                               attributes:
                                   flags = 0
                                   name = "Foo"
+                                  sourceCharIndex = 7
+                                  sourceLength = 5
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
       call targets:
           RubyRootNode
               attributes:
@@ -41,34 +49,47 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Bar>, blockDepth = 0, parseName = <module:Bar>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 2:3], index=0, length=21, characters=module ::Foo::Bar\nend)
                   split = NEVER
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 21
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   InsideModuleDefinitionNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 0
+                                          sourceLength = 21
                                       children:
                                           body =
                                               NilLiteralNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                               ]

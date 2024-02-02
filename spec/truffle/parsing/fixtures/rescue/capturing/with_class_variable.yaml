@@ -1,6 +1,5 @@
 subject: "Rescue keyword"
 description: "capturing / with a class variable"
-yarp_specific: true # an AssignRescueVariableNode node is introduced
 notes: >
   A class variable capturing is represented with the following simplified AST:
   
@@ -24,13 +23,17 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 53
       children:
           rescueParts = [
               RescueClassesNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 12
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
@@ -38,6 +41,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
+                                  sourceCharIndex = 21
+                                  sourceLength = 12
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -51,23 +56,31 @@ ast: |
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 14
+                                  sourceLength = 35
                               children:
                                   body = [
                                       AssignRescueVariableNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               rescueVariableNode =
                                                   WriteClassVariableNode
                                                       attributes:
                                                           flags = 0
                                                           name = "@@error"
+                                                          sourceCharIndex = 37
+                                                          sourceLength = 7
                                                       children:
                                                           lexicalScopeNode =
                                                               ObjectLiteralNode
                                                                   attributes:
                                                                       flags = 0
                                                                       object =  :: Object
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                                           resolveTargetModuleNode =
                                                               ResolveTargetModuleForClassVariablesNodeGen
                                                           setClassVariableNode =
@@ -75,6 +88,8 @@ ast: |
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
+                                              sourceCharIndex = 47
+                                              sourceLength = 2
                                               value = 42
                                   ]
           ]
@@ -83,4 +98,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

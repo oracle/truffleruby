@@ -15,19 +15,25 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 31
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 13
                   children:
                       rescueBody =
                           ReadGlobalVariableNodeGen
                               attributes:
                                   flags = 1
                                   name = "$bar"
+                                  sourceCharIndex = 23
+                                  sourceLength = 4
                               children:
                                   lookupGlobalVariableStorageNode =
                                       LookupGlobalVariableStorageNodeGen
@@ -40,4 +46,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

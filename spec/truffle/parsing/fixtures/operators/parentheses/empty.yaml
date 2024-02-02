@@ -2,8 +2,6 @@ subject: "Parentheses operator"
 description: "empty"
 notes: >
   is represented with NilLiteralNode
-yarp_specific: yes # No EmitWarningsNode node as far as YARP still doesn't return
-  # the 'Useless use of a literal in void context.' warning
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   ()
@@ -11,23 +9,33 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 2
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               NilLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 2
           ]

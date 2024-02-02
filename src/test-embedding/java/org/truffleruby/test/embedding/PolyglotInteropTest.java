@@ -41,6 +41,13 @@ public class PolyglotInteropTest {
     }
 
     @Test
+    public void testExecutingWithParameters() {
+        try (Context polyglot = Context.create()) {
+            assertEquals(3, polyglot.eval("ruby", "Truffle::Debug.parse_public 'a + b', ['a', 'b'], [1, 2]").asInt());
+        }
+    }
+
+    @Test
     public void testCallingMethods() {
         try (Context polyglot = Context.create()) {
             assertEquals(0.909, polyglot.eval("ruby", "Math").getMember("sin").execute(2).asDouble(), 0.01);

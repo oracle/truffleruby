@@ -16,8 +16,8 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.MagicCommentParser;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -30,7 +30,7 @@ public abstract class EvalLoader {
             RubyEncoding encoding, String method, String file, int line, Node currentNode) {
         var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
 
-        var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(code, code.encoding);
+        var sourceTString = MagicCommentParser.createSourceTStringBasedOnMagicEncodingComment(code, code.encoding);
         var sourceEncoding = sourceTString.encoding;
 
         if (!sourceEncoding.isAsciiCompatible) {

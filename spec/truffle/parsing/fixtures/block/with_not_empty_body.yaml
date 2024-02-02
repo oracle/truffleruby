@@ -14,6 +14,8 @@ ast: |
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sourceCharIndex = 5
+          sourceLength = 20
           type = PROC
       call targets:
           RubyProcRootNode
@@ -28,34 +30,47 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1:6 - 4:3], index=5, length=20, characters=do\n  42\n  100500\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 5
+                              sourceLength = 20
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   IntegerFixnumLiteralNode
                                       attributes:
                                           flags = 1
+                                          sourceCharIndex = 10
+                                          sourceLength = 2
                                           value = 42
                                   IntegerFixnumLiteralNode
                                       attributes:
                                           flags = 1
+                                          sourceCharIndex = 15
+                                          sourceLength = 6
                                           value = 100500
                               ]

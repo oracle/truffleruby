@@ -2,7 +2,6 @@ subject: "case expression"
 description: "without expression to match / and splat operator (case when *a ... end)"
 notes: >
   Splat operator is handled with `Array#any?` method to check that there is at least one truthy `when`'s operand
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.IfElseNode"
 ruby: |
   case
@@ -13,6 +12,8 @@ ast: |
   IfElseNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 37
       children:
           condition =
               RubyCallNode
@@ -29,22 +30,30 @@ ast: |
                       methodName = "any?"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       receiver =
                           ArrayConcatNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   children = [
                                       ArrayLiteralNode$UninitialisedArrayLiteralNode
                                           attributes:
                                               flags = 0
                                               language = org.truffleruby.RubyLanguage@...
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               values = [
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 10
+                                                          sourceLength = 2
                                                           value = 42
                                               ]
                                       SplatCastNodeGen
@@ -53,6 +62,8 @@ ast: |
                                               copy = true
                                               flags = 0
                                               nilBehavior = CONVERT
+                                              sourceCharIndex = 14
+                                              sourceLength = 4
                                           children:
                                               childNode_ =
                                                   RubyCallNode
@@ -69,20 +80,28 @@ ast: |
                                                           methodName = "foo"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 15
+                                                          sourceLength = 3
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       ArrayLiteralNode$UninitialisedArrayLiteralNode
                                           attributes:
                                               flags = 0
                                               language = org.truffleruby.RubyLanguage@...
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               values = [
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 20
+                                                          sourceLength = 6
                                                           value = 100500
                                               ]
                                   ]
@@ -90,8 +109,12 @@ ast: |
               NilLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
           thenBody =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 29
+                      sourceLength = 4
                       value = true

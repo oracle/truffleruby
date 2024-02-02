@@ -89,8 +89,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         assert !hasSource();
 
         if (sourceIndexLength != null) {
-            setSourceCharIndex(sourceIndexLength.getCharIndex());
-            setSourceLength(sourceIndexLength.getLength());
+            unsafeSetSourceSection(sourceIndexLength.getCharIndex(), sourceIndexLength.getLength());
         }
     }
 
@@ -98,16 +97,18 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         assert !hasSource();
 
         if (sourceSection.isAvailable()) {
-            setSourceCharIndex(sourceSection.getCharIndex());
-            setSourceLength(sourceSection.getCharLength());
+            unsafeSetSourceSection(sourceSection.getCharIndex(), sourceSection.getCharLength());
         } else {
-            setSourceCharIndex(0);
-            setSourceLength(SourceIndexLength.UNAVAILABLE);
+            unsafeSetSourceSection(0, SourceIndexLength.UNAVAILABLE);
         }
     }
 
     public void unsafeSetSourceSection(int charIndex, int sourceLength) {
         assert !hasSource();
+
+        // The only valid case for a (0,0) SourceSection is the RootNode SourceSection of eval("").
+        // We handle that case specially by using an unavailable SourceSection, so then every (0,0) is a bug.
+        assert !(sourceLength == 0 && charIndex == 0);
 
         setSourceCharIndex(charIndex);
         setSourceLength(sourceLength);
@@ -115,8 +116,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
 
     public RubyNode copySourceSection(RubyNode from) {
         if (from.hasSource()) {
-            setSourceCharIndex(from.getSourceCharIndex());
-            setSourceLength(from.getSourceLength());
+            unsafeSetSourceSection(from.getSourceCharIndex(), from.getSourceLength());
         }
         return this;
     }

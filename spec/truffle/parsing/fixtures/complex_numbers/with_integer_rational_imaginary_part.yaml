@@ -20,11 +20,15 @@ ast: |
           methodName = "convert"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 4
       children:
           arguments = [
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                       value = 0
               RubyCallNode
                   attributes:
@@ -40,15 +44,21 @@ ast: |
                       methodName = "convert"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 0
+                      sourceLength = 3
                   children:
                       arguments = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 0
+                                  sourceLength = 2
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                                   value = 1
                       ]
                       receiver =
@@ -56,19 +66,27 @@ ast: |
                               attributes:
                                   flags = 0
                                   name = "Rational"
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
           ]
           receiver =
               ReadConstantNode
                   attributes:
                       flags = 0
                       name = "Complex"
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       moduleNode =
                           ObjectClassLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0

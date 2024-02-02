@@ -20,11 +20,15 @@ ast: |
           methodName = "foobar="
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 13
       children:
           arguments = [
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 11
+                      sourceLength = 2
                       value = 42
           ]
           receiver =
@@ -42,8 +46,12 @@ ast: |
                       methodName = "a"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 0
+                      sourceLength = 1
                   children:
                       receiver =
                           SelfNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0

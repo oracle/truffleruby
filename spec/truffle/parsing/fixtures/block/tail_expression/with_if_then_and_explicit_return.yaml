@@ -17,6 +17,8 @@ ast: |
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sourceCharIndex = 5
+          sourceLength = 36
           type = PROC
       call targets:
           RubyProcRootNode
@@ -31,46 +33,63 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1:6 - 5:3], index=5, length=36, characters=do\n  if true\n    return 42\n  end\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 5
+                              sourceLength = 36
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   IfNodeGen
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 10
+                                          sourceLength = 27
                                       children:
                                           condition =
                                               BooleanLiteralNode
                                                   attributes:
                                                       flags = 1
+                                                      sourceCharIndex = 13
+                                                      sourceLength = 4
                                                       value = true
                                           thenBody =
                                               DynamicReturnNode
                                                   attributes:
                                                       flags = 1
                                                       returnID = org.truffleruby.language.control.ReturnID@...
+                                                      sourceCharIndex = 22
+                                                      sourceLength = 9
                                                   children:
                                                       value =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 29
+                                                                  sourceLength = 2
                                                                   value = 42
                               ]

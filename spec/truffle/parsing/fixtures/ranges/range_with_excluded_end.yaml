@@ -7,16 +7,22 @@ ast: |
   RangeNodesFactory$RangeLiteralNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 9
       children:
           beginNode_ =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 3
                       tstring = a
           endNode_ =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = 6
+                      sourceLength = 3
                       tstring = z

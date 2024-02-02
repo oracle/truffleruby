@@ -5,7 +5,6 @@ notes: |
   - ArrayAppendOneNodeGen,
   - KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
   - SplatCastNodeGen
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   foo(*bar, baz)
@@ -24,11 +23,15 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 14
       children:
           arguments = [
               ArrayConcatNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       children = [
                           SplatCastNodeGen
@@ -37,6 +40,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = CONVERT
+                                  sourceCharIndex = 4
+                                  sourceLength = 4
                               children:
                                   childNode_ =
                                       RubyCallNode
@@ -53,15 +58,21 @@ ast: |
                                               methodName = "bar"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 5
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   values = [
                                       RubyCallNode
@@ -78,11 +89,15 @@ ast: |
                                               methodName = "baz"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 10
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                   ]
                       ]
           ]
@@ -90,3 +105,5 @@ ast: |
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

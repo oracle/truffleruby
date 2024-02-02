@@ -13,18 +13,24 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = true
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 34
       children:
           rescueParts = [
               RescueSplatNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 4
                   children:
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 28
+                                  sourceLength = 2
                                   value = 42
                       splatCastNode =
                           SplatCastNodeGen
@@ -33,11 +39,15 @@ ast: |
                                   copy = false
                                   flags = 0
                                   nilBehavior = EMPTY_ARRAY
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       NilLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 22
+                                              sourceLength = 3
                       stores =
                           ArrayStoreLibraryGen$CachedDispatchFirst
                               attributes:
@@ -48,4 +58,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

@@ -187,7 +187,6 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             for (uint32_t index = 0; index < locals_size; index++) {
                 pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_block_node_t *)node)->locals.ids[index]));
             }
-            pm_buffer_append_varuint(buffer, ((pm_block_node_t *)node)->locals_body_index);
             if (((pm_block_node_t *)node)->parameters == NULL) {
                 pm_buffer_append_byte(buffer, 0);
             } else {
@@ -473,7 +472,6 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             for (uint32_t index = 0; index < locals_size; index++) {
                 pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_def_node_t *)node)->locals.ids[index]));
             }
-            pm_buffer_append_varuint(buffer, ((pm_def_node_t *)node)->locals_body_index);
             // serialize length
             uint32_t length = pm_sizet_to_u32(buffer->length - offset - sizeof(uint32_t));
             memcpy(buffer->value + length_offset, &length, sizeof(uint32_t));
@@ -830,7 +828,6 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             for (uint32_t index = 0; index < locals_size; index++) {
                 pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_lambda_node_t *)node)->locals.ids[index]));
             }
-            pm_buffer_append_varuint(buffer, ((pm_lambda_node_t *)node)->locals_body_index);
             if (((pm_lambda_node_t *)node)->parameters == NULL) {
                 pm_buffer_append_byte(buffer, 0);
             } else {

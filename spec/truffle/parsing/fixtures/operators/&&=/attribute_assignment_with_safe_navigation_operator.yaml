@@ -25,17 +25,23 @@ ast: |
       attributes:
           definition = assignment
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 13
       children:
           child =
               SequenceNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 2 # %value_0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   valueNode =
                                       RubyCallNode
@@ -52,30 +58,42 @@ ast: |
                                               methodName = "a"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 0
+                                              sourceLength = 1
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           UnlessNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   condition =
                                       IsNilNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               child =
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %value_0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                           type = FRAME_LOCAL
                                   thenBody =
                                       AndNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               left =
                                                   RubyCallNode
@@ -92,12 +110,16 @@ ast: |
                                                           methodName = "foo"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 13
                                                       children:
                                                           receiver =
                                                               ReadLocalVariableNode
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 2 # %value_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 1
                                                                       type = FRAME_LOCAL
                                               right =
                                                   RubyCallNode
@@ -114,11 +136,15 @@ ast: |
                                                           methodName = "foo="
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 13
                                                       children:
                                                           arguments = [
                                                               IntegerFixnumLiteralNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = 11
+                                                                      sourceLength = 2
                                                                       value = 42
                                                           ]
                                                           receiver =
@@ -126,5 +152,7 @@ ast: |
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 2 # %value_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 1
                                                                       type = FRAME_LOCAL
                       ]

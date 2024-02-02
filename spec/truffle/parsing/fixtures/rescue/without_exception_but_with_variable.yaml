@@ -3,7 +3,6 @@ description: "without exception but with a variable"
 notes: >
   The rescue branch is represented as a RescueStandardErrorNode node
   and assigning a local variable with `$!` global variable.
-yarp_specific: true # an AssignRescueVariableNode node is introduced
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
   begin
@@ -14,38 +13,52 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 38
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 20
                   children:
                       rescueBody =
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 14
+                                  sourceLength = 20
                               children:
                                   body = [
                                       AssignRescueVariableNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               rescueVariableNode =
                                                   WriteLocalVariableNode
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # error
+                                                          sourceCharIndex = 24
+                                                          sourceLength = 5
                                                       children:
                                                           valueNode =
                                                               DeadNode
                                                                   attributes:
                                                                       flags = 0
-                                                                      reason = "YARPTranslator#visitLocalVariableWriteNode"
+                                                                      reason = "YARPTranslator#visitLocalVariableTargetNode"
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
+                                              sourceCharIndex = 32
+                                              sourceLength = 2
                                               value = 42
                                   ]
           ]
@@ -54,4 +67,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

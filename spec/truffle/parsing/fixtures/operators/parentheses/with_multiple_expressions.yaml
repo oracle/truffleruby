@@ -9,22 +9,30 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               RubyCallNode
                   attributes:
                       descriptor = NoKeywordArgumentsDescriptor
@@ -39,11 +47,15 @@ ast: |
                       methodName = "foo"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 1
+                      sourceLength = 3
                   children:
                       receiver =
                           SelfNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
               RubyCallNode
                   attributes:
                       descriptor = NoKeywordArgumentsDescriptor
@@ -58,9 +70,13 @@ ast: |
                       methodName = "bar"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 6
+                      sourceLength = 3
                   children:
                       receiver =
                           SelfNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
           ]

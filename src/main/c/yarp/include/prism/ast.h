@@ -1503,11 +1503,6 @@ typedef struct pm_block_node {
     pm_constant_id_list_t locals;
 
     /**
-     * BlockNode#locals_body_index
-     */
-    uint32_t locals_body_index;
-
-    /**
      * BlockNode#parameters
      */
     struct pm_node *parameters;
@@ -2583,11 +2578,6 @@ typedef struct pm_def_node {
      * DefNode#locals
      */
     pm_constant_id_list_t locals;
-
-    /**
-     * DefNode#locals_body_index
-     */
-    uint32_t locals_body_index;
 
     /**
      * DefNode#def_keyword_loc
@@ -3943,11 +3933,6 @@ typedef struct pm_lambda_node {
      * LambdaNode#locals
      */
     pm_constant_id_list_t locals;
-
-    /**
-     * LambdaNode#locals_body_index
-     */
-    uint32_t locals_body_index;
 
     /**
      * LambdaNode#operator_loc

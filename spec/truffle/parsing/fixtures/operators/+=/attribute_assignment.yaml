@@ -14,37 +14,51 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               DefinedWrapperNode
                   attributes:
                       definition = assignment
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
                       child =
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   body = [
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 2 # %value_0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               valueNode =
                                                   RubyCallNode
@@ -61,11 +75,15 @@ ast: |
                                                           methodName = "a"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 1
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       RubyCallNode
                                           attributes:
                                               descriptor = NoKeywordArgumentsDescriptor
@@ -80,6 +98,8 @@ ast: |
                                               methodName = "foo="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 0
+                                              sourceLength = 11
                                           children:
                                               arguments = [
                                                   InlinedAddNodeGen
@@ -87,6 +107,8 @@ ast: |
                                                           assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
                                                           flags = 0
                                                           parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 11
                                                       children:
                                                           leftNode_ =
                                                               RubyCallNode
@@ -103,17 +125,23 @@ ast: |
                                                                       methodName = "foo"
                                                                       notEmptyKeywordsProfile = false
                                                                       notRuby2KeywordsHashProfile = false
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 11
                                                                   children:
                                                                       receiver =
                                                                           ReadLocalVariableNode
                                                                               attributes:
                                                                                   flags = 0
                                                                                   frameSlot = 2 # %value_0
+                                                                                  sourceCharIndex = 0
+                                                                                  sourceLength = 1
                                                                                   type = FRAME_LOCAL
                                                           rightNode_ =
                                                               IntegerFixnumLiteralNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = 9
+                                                                      sourceLength = 2
                                                                       value = 42
                                               ]
                                               receiver =
@@ -121,6 +149,8 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 1
                                                           type = FRAME_LOCAL
                                   ]
           ]

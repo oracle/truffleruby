@@ -175,7 +175,7 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
-        return Translator.profileArgument(language,
+        return YARPTranslator.profileArgument(language,
                 new ReadPreArgumentNode(index, hasKeywordArguments, MissingArgumentBehavior.NIL));
     }
 

@@ -8,3 +8,5 @@ ast: |
       attributes:
           flags = 1
           object = :foobar
+          sourceCharIndex = 0
+          sourceLength = 9

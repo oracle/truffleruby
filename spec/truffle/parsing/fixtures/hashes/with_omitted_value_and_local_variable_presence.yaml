@@ -10,23 +10,33 @@ ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 11
+          sourceLength = 11
       children:
           keyValues = [
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :a
+                      sourceCharIndex = 12
+                      sourceLength = 2
               ReadLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # a
+                      sourceCharIndex = 12
+                      sourceLength = 2
                       type = FRAME_LOCAL
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :b
+                      sourceCharIndex = 16
+                      sourceLength = 2
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 19
+                      sourceLength = 2
                       value = 42
           ]

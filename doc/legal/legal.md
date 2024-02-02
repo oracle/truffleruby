@@ -208,14 +208,6 @@ Engine Yard and are released under an MIT licence (see `mit.txt`).
 We do not distribute the FFI Specs, but they are copyright 2008-2014
 Ruby-FFI contributors and are released under an MIT licence (see `mit.txt`).
 
-## Jay
-
-TruffleRuby uses the Jay parser generator, modified from
-https://github.com/jruby/jay revision `9ffc59a`. Jay is copyright 1989 The
-Regents of the University of California, ported by Axel T. Schreiner, and is
-covered by the three-clause BSD licence (see `jay.txt`). We only distribute Jay
-in the source repository - it isn't part of releases.
-
 ## Written offer for source code
 
 For any software that you receive from Oracle in binary form which is licensed

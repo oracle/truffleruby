@@ -15,23 +15,31 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = true
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 33
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 15
                   children:
                       rescueBody =
                           ObjectLiteralNode
                               attributes:
                                   flags = 1
                                   object = :bar
+                                  sourceCharIndex = 23
+                                  sourceLength = 6
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

@@ -12,24 +12,34 @@ ast: |
   UnlessNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 29
       children:
           condition =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 7
+                      sourceLength = 4
                       value = true
           thenBody =
               SequenceNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 11
                   children:
                       body = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 14
+                                  sourceLength = 2
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 19
+                                  sourceLength = 6
                                   value = 100500
                       ]

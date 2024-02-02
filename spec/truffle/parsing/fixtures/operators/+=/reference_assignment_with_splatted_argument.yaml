@@ -10,7 +10,6 @@ notes: >
   
   receiver.[](*argument0) && receiver.[]=(*argument0, 100500)
   ```
-yarp_specific: true # Simplified AST of `foo.[]=(*a, 100500)` and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   foo[*a] += 100500
@@ -18,37 +17,51 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 17
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               DefinedWrapperNode
                   attributes:
                       definition = assignment
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 17
                   children:
                       child =
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   body = [
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 3 # %value_1
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               valueNode =
                                                   RubyCallNode
@@ -65,15 +78,21 @@ ast: |
                                                           methodName = "a"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 5
+                                                          sourceLength = 1
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 2 # %opelementassign_0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               valueNode =
                                                   RubyCallNode
@@ -90,11 +109,15 @@ ast: |
                                                           methodName = "foo"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       RubyCallNode
                                           attributes:
                                               descriptor = NoKeywordArgumentsDescriptor
@@ -109,11 +132,15 @@ ast: |
                                               methodName = "[]="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               arguments = [
                                                   ArrayConcatNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                       children:
                                                           children = [
                                                               SplatCastNodeGen
@@ -122,17 +149,23 @@ ast: |
                                                                       copy = true
                                                                       flags = 0
                                                                       nilBehavior = CONVERT
+                                                                      sourceCharIndex = 4
+                                                                      sourceLength = 2
                                                                   children:
                                                                       childNode_ =
                                                                           ReadLocalVariableNode
                                                                               attributes:
                                                                                   flags = 0
                                                                                   frameSlot = 3 # %value_1
+                                                                                  sourceCharIndex = -1
+                                                                                  sourceLength = 0
                                                                                   type = FRAME_LOCAL
                                                               ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                                   attributes:
                                                                       flags = 0
                                                                       language = org.truffleruby.RubyLanguage@...
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                                                   children:
                                                                       values = [
                                                                           InlinedAddNodeGen
@@ -140,6 +173,8 @@ ast: |
                                                                                   assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
                                                                                   flags = 0
                                                                                   parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                                                  sourceCharIndex = 0
+                                                                                  sourceLength = 17
                                                                               children:
                                                                                   leftNode_ =
                                                                                       RubyCallNode
@@ -156,6 +191,8 @@ ast: |
                                                                                               methodName = "[]"
                                                                                               notEmptyKeywordsProfile = false
                                                                                               notRuby2KeywordsHashProfile = false
+                                                                                              sourceCharIndex = -1
+                                                                                              sourceLength = 0
                                                                                           children:
                                                                                               arguments = [
                                                                                                   SplatCastNodeGen
@@ -164,12 +201,16 @@ ast: |
                                                                                                           copy = false
                                                                                                           flags = 0
                                                                                                           nilBehavior = CONVERT
+                                                                                                          sourceCharIndex = 4
+                                                                                                          sourceLength = 2
                                                                                                       children:
                                                                                                           childNode_ =
                                                                                                               ReadLocalVariableNode
                                                                                                                   attributes:
                                                                                                                       flags = 0
                                                                                                                       frameSlot = 3 # %value_1
+                                                                                                                      sourceCharIndex = -1
+                                                                                                                      sourceLength = 0
                                                                                                                       type = FRAME_LOCAL
                                                                                               ]
                                                                                               receiver =
@@ -177,11 +218,15 @@ ast: |
                                                                                                       attributes:
                                                                                                           flags = 0
                                                                                                           frameSlot = 2 # %opelementassign_0
+                                                                                                          sourceCharIndex = 0
+                                                                                                          sourceLength = 3
                                                                                                           type = FRAME_LOCAL
                                                                                   rightNode_ =
                                                                                       IntegerFixnumLiteralNode
                                                                                           attributes:
                                                                                               flags = 0
+                                                                                              sourceCharIndex = 11
+                                                                                              sourceLength = 6
                                                                                               value = 100500
                                                                       ]
                                                           ]
@@ -191,6 +236,8 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %opelementassign_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
                                                           type = FRAME_LOCAL
                                   ]
           ]
