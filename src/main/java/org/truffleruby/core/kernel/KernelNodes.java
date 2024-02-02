@@ -334,6 +334,12 @@ public abstract class KernelNodes {
                 @Cached(
                         value = "getAdoptedNode(this).getEncapsulatingSourceSection()",
                         allowUncached = true, neverDefault = false) SourceSection sourceSection) {
+            final InternalMethod method = RubyArguments.tryGetMethod(callerFrame);
+            if (method == null || method.getDeclaringModule().toString().equals("Truffle::CExt")) {
+                throw new RaiseException(getContext(),
+                        coreExceptions().runtimeError("You cannot call Kernel#Binding from a non-ruby frame", this));
+
+            }
             needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);
         }
