@@ -177,7 +177,9 @@ public final class YARPTranslatorDriver {
 
         var node = parseResult.value;
 
-        final SourceSection sourceSection = source.createSection(0, rubySource.getBytes().length);
+        final SourceSection sourceSection = rubySource.getBytes().length == 0
+                ? source.createUnavailableSection()
+                : source.createSection(0, rubySource.getBytes().length);
         final SourceIndexLength sourceIndexLength = SourceIndexLength.fromSourceSection(sourceSection);
 
         final String modulePath = staticLexicalScope == null || staticLexicalScope == context.getRootLexicalScope()

@@ -106,6 +106,10 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
     public void unsafeSetSourceSection(int charIndex, int sourceLength) {
         assert !hasSource();
 
+        // The only valid case for a (0,0) SourceSection is the RootNode SourceSection of eval("").
+        // We handle that case specially by using an unavailable SourceSection, so then every (0,0) is a bug.
+        assert !(sourceLength == 0 && charIndex == 0);
+
         setSourceCharIndex(charIndex);
         setSourceLength(sourceLength);
     }
