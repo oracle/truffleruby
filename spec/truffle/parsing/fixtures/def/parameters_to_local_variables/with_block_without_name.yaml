@@ -25,7 +25,7 @@ ast: |
                   arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%forward_block, #3:%method_block_arg}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:%forward_block}
                   instrumentationBits = 0
                   keywordArguments = false
                   localReturnProfile = false
@@ -69,13 +69,13 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 3
+                                          slot = 2
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 2
+                                          slot = 3
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                   NilLiteralNode

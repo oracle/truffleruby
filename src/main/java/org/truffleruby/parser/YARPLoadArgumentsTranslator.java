@@ -247,7 +247,6 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         readNode = new ReadRestArgumentNode(from, -to, hasKeywordArguments());
 
         final int slot;
-
         if (node.name != null) {
             if (node.isRepeatedParameter()) {
                 String name = createNameForRepeatedParameter(node.name);
@@ -255,12 +254,8 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
             } else {
                 slot = environment.findFrameSlot(node.name);
             }
-        } else {
-            // When a rest parameter in a block is nameless then YARP doesn't add '*' to block's locals
-            // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't
-            // declare this hidden variable beforehand. So declare it here right before usage.
-            String name = TranslatorEnvironment.DEFAULT_REST_NAME;
-            slot = environment.declareVar(name);
+        } else { // def a(*)
+            slot = environment.declareVar(TranslatorEnvironment.DEFAULT_REST_NAME);
         }
 
         return new WriteLocalVariableNode(slot, readNode);
@@ -274,16 +269,12 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final RubyNode readNode = new ReadKeywordRestArgumentNode(language, arity);
-        final int slot;
 
+        final int slot;
         if (node.name != null) {
             slot = environment.findFrameSlot(node.name);
-        } else {
-            // When a keyword rest parameter in a block is nameless then YARP doesn't add '**' to block's locals
-            // (what is expected as far as arguments forwarding doesn't work in blocks), and we don't declare this
-            // hidden variable beforehand. So declare it here right before usage.
-            final String name = TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
-            slot = environment.declareVar(name);
+        } else { // def a(**)
+            slot = environment.declareVar(TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME);
         }
 
         return new WriteLocalVariableNode(slot, readNode);
@@ -296,16 +287,13 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitBlockParameterNode(Nodes.BlockParameterNode node) {
-        final String name;
-
-        if (node.name == null) {
-            // def a(&)
-            name = TranslatorEnvironment.FORWARDED_BLOCK_NAME;
-        } else {
-            name = node.name;
+        final int slot;
+        if (node.name != null) {
+            slot = environment.findFrameSlot(node.name);
+        } else { // def a(&)
+            slot = environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
         }
 
-        final int slot = environment.findFrameSlot(name);
         return new SaveMethodBlockNode(slot);
     }
 
@@ -314,6 +302,10 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         // is allowed in method parameters only
 
         // desugar ... to *, **, and & parameters
+        environment.declareVar(TranslatorEnvironment.FORWARDED_REST_NAME);
+        environment.declareVar(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME);
+        environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
+
         final var rest = new Nodes.RestParameterNode(NO_FLAGS, TranslatorEnvironment.FORWARDED_REST_NAME, 0, 0);
         final var keyrest = new Nodes.KeywordRestParameterNode(NO_FLAGS,
                 TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, 0, 0);

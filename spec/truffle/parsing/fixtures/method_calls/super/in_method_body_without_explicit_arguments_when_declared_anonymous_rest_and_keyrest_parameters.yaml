@@ -24,7 +24,7 @@ ast: |
                   arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = true}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%unnamed_rest, #3:%kwrest, #4:%method_block_arg}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:%unnamed_rest, #4:%kwrest}
                   instrumentationBits = 0
                   keywordArguments = true
                   localReturnProfile = false
@@ -68,13 +68,13 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 4
+                                          slot = 2
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 2 # %unnamed_rest
+                                          frameSlot = 3 # %unnamed_rest
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:
@@ -91,7 +91,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3 # %kwrest
+                                          frameSlot = 4 # %kwrest
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:
@@ -133,14 +133,14 @@ ast: |
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 2 # %unnamed_rest
+                                                                  frameSlot = 3 # %unnamed_rest
                                                                   sourceCharIndex = -1
                                                                   sourceLength = 0
                                                                   type = FRAME_LOCAL
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3 # %kwrest
+                                                                  frameSlot = 4 # %kwrest
                                                                   sourceCharIndex = -1
                                                                   sourceLength = 0
                                                                   type = FRAME_LOCAL
@@ -149,7 +149,7 @@ ast: |
                                               ReadLocalVariableNode
                                                   attributes:
                                                       flags = 0
-                                                      frameSlot = 4 # %method_block_arg
+                                                      frameSlot = 2 # %method_block_arg
                                                       sourceCharIndex = -1
                                                       sourceLength = 0
                                                       type = FRAME_LOCAL

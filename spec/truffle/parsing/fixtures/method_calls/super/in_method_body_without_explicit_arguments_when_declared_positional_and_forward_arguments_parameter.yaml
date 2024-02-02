@@ -23,7 +23,7 @@ ast: |
                   arityForCheck = Arity{preRequired = 1, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = true}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:%forward_rest, #4:%forward_kwrest, #5:%forward_block, #6:%method_block_arg}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:%method_block_arg, #4:%forward_rest, #5:%forward_kwrest, #6:%forward_block}
                   instrumentationBits = 0
                   keywordArguments = true
                   localReturnProfile = false
@@ -90,13 +90,13 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 6
+                                          slot = 3
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 3 # %forward_rest
+                                          frameSlot = 4 # %forward_rest
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:
@@ -113,7 +113,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4 # %forward_kwrest
+                                          frameSlot = 5 # %forward_kwrest
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:
@@ -134,7 +134,7 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 5
+                                          slot = 6
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                   SuperCallNode
@@ -168,14 +168,14 @@ ast: |
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 3 # %forward_rest
+                                                                  frameSlot = 4 # %forward_rest
                                                                   sourceCharIndex = -1
                                                                   sourceLength = 0
                                                                   type = FRAME_LOCAL
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
-                                                                  frameSlot = 4 # %forward_kwrest
+                                                                  frameSlot = 5 # %forward_kwrest
                                                                   sourceCharIndex = -1
                                                                   sourceLength = 0
                                                                   type = FRAME_LOCAL
@@ -184,7 +184,7 @@ ast: |
                                               ReadLocalVariableNode
                                                   attributes:
                                                       flags = 0
-                                                      frameSlot = 6 # %method_block_arg
+                                                      frameSlot = 3 # %method_block_arg
                                                       sourceCharIndex = -1
                                                       sourceLength = 0
                                                       type = FRAME_LOCAL

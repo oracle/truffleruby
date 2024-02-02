@@ -29,7 +29,7 @@ ast: |
                   arityForCheck = Arity{preRequired = 2, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
-                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:%unnamed_rest, #5:d, #6:f, #7:%method_block_arg}
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:d, #5:f, #6:%method_block_arg, #7:%unnamed_rest}
                   instrumentationBits = 0
                   keywordArguments = false
                   localReturnProfile = false
@@ -119,13 +119,13 @@ ast: |
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
-                                          slot = 7
+                                          slot = 6
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 4 # %unnamed_rest
+                                          frameSlot = 7 # %unnamed_rest
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:
@@ -142,7 +142,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 6 # f
+                                          frameSlot = 5 # f
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:
@@ -160,7 +160,7 @@ ast: |
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
-                                          frameSlot = 5 # d
+                                          frameSlot = 4 # d
                                           sourceCharIndex = -1
                                           sourceLength = 0
                                       children:

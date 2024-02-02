@@ -55,8 +55,8 @@ public final class TranslatorEnvironment {
     static final String DEFAULT_REST_NAME = Layouts.TEMP_PREFIX + "unnamed_rest";
     /** local variable name for ** parameter */
     static final String DEFAULT_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "kwrest";
-    /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
 
+    /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
     static final String FORWARDED_REST_NAME = Layouts.TEMP_PREFIX + "forward_rest";
     /** local variable name for ** parameter caused by desugaring ... parameter (forward-everything) */
     static final String FORWARDED_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "forward_kwrest";
