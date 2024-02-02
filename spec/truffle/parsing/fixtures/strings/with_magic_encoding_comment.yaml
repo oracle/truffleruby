@@ -11,4 +11,6 @@ ast: |
       attributes:
           encoding = Big5
           flags = 1
+          sourceCharIndex = 17
+          sourceLength = 8
           tstring = foobar

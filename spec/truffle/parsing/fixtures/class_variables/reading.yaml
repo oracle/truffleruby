@@ -8,12 +8,16 @@ ast: |
       attributes:
           flags = 1
           name = "@@foo"
+          sourceCharIndex = 0
+          sourceLength = 5
       children:
           lexicalScopeNode =
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object =  :: Object
+                      sourceCharIndex = -1
+                      sourceLength = 0
           lookupClassVariableNode =
               LookupClassVariableNodeGen
           resolveTargetModuleNode =

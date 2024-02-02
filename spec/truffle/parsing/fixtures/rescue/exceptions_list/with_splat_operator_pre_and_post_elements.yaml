@@ -47,12 +47,16 @@ ast: |
   TryNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 57
       children:
           rescueParts = [
               RescueClassesNode
                   attributes:
                       canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 3
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
@@ -60,6 +64,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "FOO"
+                                  sourceCharIndex = 21
+                                  sourceLength = 3
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -73,16 +79,22 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 51
+                                  sourceLength = 2
                                   value = 42
               RescueSplatNode
                   attributes:
                       canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 26
+                      sourceLength = 17
                   children:
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 51
+                                  sourceLength = 2
                                   value = 42
                       splatCastNode =
                           SplatCastNodeGen
@@ -91,6 +103,8 @@ ast: |
                                   copy = false
                                   flags = 0
                                   nilBehavior = EMPTY_ARRAY
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadConstantWithLexicalScopeNode
@@ -98,6 +112,8 @@ ast: |
                                               flags = 0
                                               lexicalScope =  :: Object
                                               name = "EXCEPTIONS_ARRAY"
+                                              sourceCharIndex = 27
+                                              sourceLength = 16
                                           children:
                                               getConstantNode =
                                                   GetConstantNodeGen
@@ -114,6 +130,8 @@ ast: |
                   attributes:
                       canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 45
+                      sourceLength = 3
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
@@ -121,6 +139,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "BAR"
+                                  sourceCharIndex = 45
+                                  sourceLength = 3
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -134,6 +154,8 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 51
+                                  sourceLength = 2
                                   value = 42
           ]
           tryPart =
@@ -141,4 +163,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

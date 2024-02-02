@@ -9,14 +9,20 @@ ast: |
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
           flags = 1
           parameters = RubyCallNodeParameters{methodName='at', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+          sourceCharIndex = 0
+          sourceLength = 9
       children:
           leftNode_ =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 0
+                      sourceLength = 2
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 6
+                      sourceLength = 2
                       value = 42

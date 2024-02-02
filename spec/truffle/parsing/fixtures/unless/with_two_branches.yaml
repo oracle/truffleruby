@@ -13,19 +13,27 @@ ast: |
   IfElseNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 34
       children:
           condition =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 7
+                      sourceLength = 4
                       value = true
           elseBody =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 14
+                      sourceLength = 6
                       value = 100500
           thenBody =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 28
+                      sourceLength = 2
                       value = 42

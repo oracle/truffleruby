@@ -9,37 +9,51 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 15
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               DefinedWrapperNode
                   attributes:
                       definition = assignment
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 15
                   children:
                       child =
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   body = [
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 2 # %value_0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               valueNode =
                                                   ReadConstantWithLexicalScopeNode
@@ -47,6 +61,8 @@ ast: |
                                                           flags = 0
                                                           lexicalScope =  :: Object
                                                           name = "FOO"
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
                                                       children:
                                                           getConstantNode =
                                                               GetConstantNodeGen
@@ -59,57 +75,77 @@ ast: |
                                           attributes:
                                               flags = 0
                                               rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               left =
                                                   AndNodeGen
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                       children:
                                                           left =
                                                               DefinedNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                                                   children:
                                                                       child =
                                                                           ReadConstantNode
                                                                               attributes:
                                                                                   flags = 0
                                                                                   name = "BAR"
+                                                                                  sourceCharIndex = 0
+                                                                                  sourceLength = 8
                                                                               children:
                                                                                   moduleNode =
                                                                                       ReadLocalVariableNode
                                                                                           attributes:
                                                                                               flags = 0
                                                                                               frameSlot = 2 # %value_0
+                                                                                              sourceCharIndex = 0
+                                                                                              sourceLength = 3
                                                                                               type = FRAME_LOCAL
                                                           right =
                                                               ReadConstantNode
                                                                   attributes:
                                                                       flags = 0
                                                                       name = "BAR"
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 8
                                                                   children:
                                                                       moduleNode =
                                                                           ReadLocalVariableNode
                                                                               attributes:
                                                                                   flags = 0
                                                                                   frameSlot = 2 # %value_0
+                                                                                  sourceCharIndex = 0
+                                                                                  sourceLength = 3
                                                                                   type = FRAME_LOCAL
                                               right =
                                                   WriteConstantNode
                                                       attributes:
                                                           flags = 0
                                                           name = "BAR"
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                       children:
                                                           moduleNode =
                                                               ReadLocalVariableNode
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 2 # %value_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 3
                                                                       type = FRAME_LOCAL
                                                           valueNode =
                                                               IntegerFixnumLiteralNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = 13
+                                                                      sourceLength = 2
                                                                       value = 42
                                   ]
           ]

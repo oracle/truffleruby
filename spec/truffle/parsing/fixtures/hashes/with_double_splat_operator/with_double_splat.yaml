@@ -9,6 +9,8 @@ ast: |
   HashCastNodeGen$HashCastASTNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 7
       children:
           childNode_ =
               RubyCallNode
@@ -25,8 +27,12 @@ ast: |
                       methodName = "foo"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 3
+                      sourceLength = 3
                   children:
                       receiver =
                           SelfNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0

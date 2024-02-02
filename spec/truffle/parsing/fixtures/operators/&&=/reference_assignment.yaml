@@ -16,47 +16,65 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 18
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               DefinedWrapperNode
                   attributes:
                       definition = assignment
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 18
                   children:
                       child =
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   body = [
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 3 # %value_1
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               valueNode =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 4
+                                                          sourceLength = 2
                                                           value = 42
                                       WriteLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 2 # %opelementassign_0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               valueNode =
                                                   RubyCallNode
@@ -73,14 +91,20 @@ ast: |
                                                           methodName = "foo"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       AndNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               left =
                                                   InlinedIndexGetNodeGen
@@ -88,18 +112,24 @@ ast: |
                                                           assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                           flags = 0
                                                           parameters = RubyCallNodeParameters{methodName='[]', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 0
                                                       children:
                                                           leftNode_ =
                                                               ReadLocalVariableNode
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 2 # %opelementassign_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 3
                                                                       type = FRAME_LOCAL
                                                           rightNode_ =
                                                               ReadLocalVariableNode
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 3 # %value_1
+                                                                      sourceCharIndex = 4
+                                                                      sourceLength = 2
                                                                       type = FRAME_LOCAL
                                               right =
                                                   InlinedIndexSetNodeGen
@@ -107,23 +137,31 @@ ast: |
                                                           assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                           flags = 0
                                                           parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 0
                                                       children:
                                                           operand1Node_ =
                                                               ReadLocalVariableNode
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 3 # %value_1
+                                                                      sourceCharIndex = 4
+                                                                      sourceLength = 2
                                                                       type = FRAME_LOCAL
                                                           operand2Node_ =
                                                               IntegerFixnumLiteralNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = 12
+                                                                      sourceLength = 6
                                                                       value = 100500
                                                           receiver_ =
                                                               ReadLocalVariableNode
                                                                   attributes:
                                                                       flags = 0
                                                                       frameSlot = 2 # %opelementassign_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 3
                                                                       type = FRAME_LOCAL
                                   ]
           ]

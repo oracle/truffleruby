@@ -13,6 +13,8 @@ ast: |
       attributes:
           flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          sourceCharIndex = 0
+          sourceLength = 41
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -21,12 +23,16 @@ ast: |
                   attributes:
                       flags = 0
                       name = "Foo"
+                      sourceCharIndex = 0
+                      sourceLength = 41
                   children:
                       lexicalParentModuleNode_ =
                           LexicalScopeNode
                               attributes:
                                   flags = 0
                                   lexicalScope =  :: Object
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
       call targets:
           RubyRootNode
               attributes:
@@ -43,49 +49,69 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 41
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   InitFlipFlopSlotNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 3
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   InsideModuleDefinitionNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 0
+                                          sourceLength = 41
                                       children:
                                           body =
                                               SequenceNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = 13
+                                                      sourceLength = 24
                                                   children:
                                                       body = [
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 1
                                                                   frameSlot = 2 # x
+                                                                  sourceCharIndex = 13
+                                                                  sourceLength = 6
                                                               children:
                                                                   valueNode =
                                                                       IntegerFixnumLiteralNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = 17
+                                                                              sourceLength = 2
                                                                               value = 42
                                                           IfNodeGen
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 22
+                                                                  sourceLength = 15
                                                               children:
                                                                   condition =
                                                                       FlipFlopNodeGen
@@ -94,23 +120,31 @@ ast: |
                                                                               flags = 1
                                                                               frameLevel = 0
                                                                               frameSlot = 3
+                                                                              sourceCharIndex = 27
+                                                                              sourceLength = 10
                                                                           children:
                                                                               begin =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 2 # x
+                                                                                          sourceCharIndex = 28
+                                                                                          sourceLength = 1
                                                                                           type = FRAME_LOCAL
                                                                               end =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 2 # x
+                                                                                          sourceCharIndex = 35
+                                                                                          sourceLength = 1
                                                                                           type = FRAME_LOCAL
                                                                   thenBody =
                                                                       IntegerFixnumLiteralNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = 22
+                                                                              sourceLength = 1
                                                                               value = 1
                                                       ]
                               ]

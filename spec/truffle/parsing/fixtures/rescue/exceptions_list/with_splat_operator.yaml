@@ -13,17 +13,23 @@ ast: |
   TryNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 47
       children:
           rescueParts = [
               RescueSplatNode
                   attributes:
                       canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 17
                   children:
                       rescueBody =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 41
+                                  sourceLength = 2
                                   value = 42
                       splatCastNode =
                           SplatCastNodeGen
@@ -32,6 +38,8 @@ ast: |
                                   copy = false
                                   flags = 0
                                   nilBehavior = EMPTY_ARRAY
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadConstantWithLexicalScopeNode
@@ -39,6 +47,8 @@ ast: |
                                               flags = 0
                                               lexicalScope =  :: Object
                                               name = "EXCEPTIONS_ARRAY"
+                                              sourceCharIndex = 22
+                                              sourceLength = 16
                                           children:
                                               getConstantNode =
                                                   GetConstantNodeGen
@@ -57,4 +67,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

@@ -13,6 +13,8 @@ ast: |
           flags = 1
           frameOnStackMarkerSlot = -1
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sourceCharIndex = 0
+          sourceLength = 16
           type = LAMBDA
       call targets:
           RubyLambdaRootNode
@@ -42,22 +44,30 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 16
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SuperCallNode
                                       attributes:
                                           descriptor = NoKeywordArgumentsDescriptor
@@ -67,21 +77,29 @@ ast: |
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false
                                           notRuby2KeywordsHashProfile = false
+                                          sourceCharIndex = 5
+                                          sourceLength = 9
                                       children:
                                           arguments =
                                               ReadSuperArgumentsNode
                                                   attributes:
                                                       flags = 0
                                                       isSplatted = false
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       arguments = [
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 11
+                                                                  sourceLength = 2
                                                                   value = 42
                                                       ]
                                           block =
                                               NilLiteralNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                               ]

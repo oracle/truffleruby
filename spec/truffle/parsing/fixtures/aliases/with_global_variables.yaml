@@ -9,3 +9,5 @@ ast: |
           flags = 1
           newName = "$a"
           oldName = "$b"
+          sourceCharIndex = 0
+          sourceLength = 11

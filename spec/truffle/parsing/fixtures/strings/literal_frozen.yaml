@@ -13,3 +13,5 @@ ast: |
           definition = expression
           flags = 1
           frozenString = foobar
+          sourceCharIndex = 30
+          sourceLength = 8

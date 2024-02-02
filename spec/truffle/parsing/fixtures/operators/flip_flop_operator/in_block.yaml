@@ -19,6 +19,8 @@ ast: |
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+          sourceCharIndex = 0
+          sourceLength = 58
       call targets:
           RubyMethodRootNode
               attributes:
@@ -42,41 +44,57 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 58
                           children:
                               body = [
                                   InitFlipFlopSlotNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 4
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
                                           slot = 2
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   CatchBreakNode
                                       attributes:
                                           breakID = org.truffleruby.language.control.BreakID@...
                                           flags = 1
                                           isWhile = false
+                                          sourceCharIndex = 10
+                                          sourceLength = 44
                                       children:
                                           body =
                                               FrameOnStackNode
                                                   attributes:
                                                       flags = 0
                                                       frameOnStackMarkerSlot = 3
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       child =
                                                           RubyCallNode
@@ -93,6 +111,8 @@ ast: |
                                                                   methodName = "each"
                                                                   notEmptyKeywordsProfile = false
                                                                   notRuby2KeywordsHashProfile = false
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   block =
                                                                       BlockDefinitionNodeGen
@@ -102,6 +122,8 @@ ast: |
                                                                               flags = 0
                                                                               frameOnStackMarkerSlot = 3
                                                                               sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in foo, blockDepth = 1, parseName = block in Object#foo, notes = foo, argumentDescriptors = [])
+                                                                              sourceCharIndex = 15
+                                                                              sourceLength = 39
                                                                               type = PROC
                                                                           call targets:
                                                                               RubyProcRootNode
@@ -122,35 +144,49 @@ ast: |
                                                                                           SequenceNode
                                                                                               attributes:
                                                                                                   flags = 12
+                                                                                                  sourceCharIndex = 15
+                                                                                                  sourceLength = 39
                                                                                               children:
                                                                                                   body = [
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 0
                                                                                                               frameSlot = 0 # (self)
+                                                                                                              sourceCharIndex = -1
+                                                                                                              sourceLength = 0
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   ProfileArgumentNodeGen
                                                                                                                       attributes:
                                                                                                                           flags = 0
+                                                                                                                          sourceCharIndex = -1
+                                                                                                                          sourceLength = 0
                                                                                                                       children:
                                                                                                                           childNode_ =
                                                                                                                               ReadSelfNode
                                                                                                                                   attributes:
                                                                                                                                       flags = 0
+                                                                                                                                      sourceCharIndex = -1
+                                                                                                                                      sourceLength = 0
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 1
                                                                                                               frameSlot = 1 # x
+                                                                                                              sourceCharIndex = 22
+                                                                                                              sourceLength = 6
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   IntegerFixnumLiteralNode
                                                                                                                       attributes:
                                                                                                                           flags = 0
+                                                                                                                          sourceCharIndex = 26
+                                                                                                                          sourceLength = 2
                                                                                                                           value = 42
                                                                                                       IfNodeGen
                                                                                                           attributes:
                                                                                                               flags = 0
+                                                                                                              sourceCharIndex = 33
+                                                                                                              sourceLength = 15
                                                                                                           children:
                                                                                                               condition =
                                                                                                                   FlipFlopNodeGen
@@ -159,27 +195,37 @@ ast: |
                                                                                                                           flags = 1
                                                                                                                           frameLevel = 1
                                                                                                                           frameSlot = 4
+                                                                                                                          sourceCharIndex = 38
+                                                                                                                          sourceLength = 10
                                                                                                                       children:
                                                                                                                           begin =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
                                                                                                                                       flags = 0
                                                                                                                                       frameSlot = 1 # x
+                                                                                                                                      sourceCharIndex = 39
+                                                                                                                                      sourceLength = 1
                                                                                                                                       type = FRAME_LOCAL
                                                                                                                           end =
                                                                                                                               ReadLocalVariableNode
                                                                                                                                   attributes:
                                                                                                                                       flags = 0
                                                                                                                                       frameSlot = 1 # x
+                                                                                                                                      sourceCharIndex = 46
+                                                                                                                                      sourceLength = 1
                                                                                                                                       type = FRAME_LOCAL
                                                                                                               thenBody =
                                                                                                                   IntegerFixnumLiteralNode
                                                                                                                       attributes:
                                                                                                                           flags = 0
+                                                                                                                          sourceCharIndex = 33
+                                                                                                                          sourceLength = 1
                                                                                                                           value = 1
                                                                                                   ]
                                                                   receiver =
                                                                       SelfNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                               ]

@@ -18,18 +18,24 @@ ast: |
   TryNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 9
+          sourceLength = 30
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
                       canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 23
+                      sourceLength = 12
                   children:
                       rescueBody =
                           ReadLocalVariableNode
                               attributes:
                                   flags = 1
                                   frameSlot = 2 # bar
+                                  sourceCharIndex = 32
+                                  sourceLength = 3
                                   type = FRAME_LOCAL
           ]
           tryPart =
@@ -37,4 +43,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 17
+                      sourceLength = 5
                       tstring = foo

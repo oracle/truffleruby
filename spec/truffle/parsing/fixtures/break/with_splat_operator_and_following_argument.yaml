@@ -17,11 +17,15 @@ ast: |
           breakID = org.truffleruby.language.control.BreakID@...
           flags = 1
           ignoreMarker = true
+          sourceCharIndex = 13
+          sourceLength = 14
       children:
           child =
               ArrayConcatNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 19
+                      sourceLength = 8
                   children:
                       children = [
                           SplatCastNodeGen
@@ -30,6 +34,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = CONVERT
+                                  sourceCharIndex = 19
+                                  sourceLength = 4
                               children:
                                   childNode_ =
                                       RubyCallNode
@@ -46,20 +52,28 @@ ast: |
                                               methodName = "foo"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 20
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   values = [
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 25
+                                              sourceLength = 2
                                               value = 42
                                   ]
                       ]

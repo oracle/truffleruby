@@ -8,11 +8,15 @@ ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 20
       children:
           preNodes = [
               MultipleAssignmentNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       preNodes = [
                           InlinedIndexSetNodeGen
@@ -20,16 +24,22 @@ ast: |
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                   flags = 0
                                   parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
+                                  sourceCharIndex = 1
+                                  sourceLength = 7
                               children:
                                   operand1Node_ =
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object = :key
+                                              sourceCharIndex = 3
+                                              sourceLength = 4
                                   operand2Node_ =
                                       NilLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 0
+                                              sourceLength = 0
                                   receiver_ =
                                       RubyCallNode
                                           attributes:
@@ -45,11 +55,15 @@ ast: |
                                               methodName = "a"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 1
+                                              sourceLength = 1
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           WriteFrameSlotNodeGen
                               attributes:
                                   frameSlot = 2 # b
@@ -61,6 +75,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = ARRAY_WITH_NIL
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 3 # c
@@ -70,6 +86,8 @@ ast: |
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 18
+                      sourceLength = 2
           splatCastNode =
               SplatCastNodeGen
                   attributes:
@@ -77,3 +95,5 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = ARRAY_WITH_NIL
+                      sourceCharIndex = -1
+                      sourceLength = 0

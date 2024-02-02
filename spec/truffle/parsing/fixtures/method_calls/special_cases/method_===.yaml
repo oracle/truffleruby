@@ -10,14 +10,20 @@ ast: |
           flags = 1
           integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
           parameters = RubyCallNodeParameters{methodName='===', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+          sourceCharIndex = 0
+          sourceLength = 7
       children:
           leftNode_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 1
                       value = 1
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 6
+                      sourceLength = 1
                       value = 2

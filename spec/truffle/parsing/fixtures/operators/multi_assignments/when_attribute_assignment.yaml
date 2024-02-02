@@ -9,6 +9,8 @@ ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 36
       children:
           preNodes = [
               RubyCallNode
@@ -25,11 +27,15 @@ ast: |
                       methodName = "attribute="
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
                       arguments = [
                           NilLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 0
+                                  sourceLength = 0
                       ]
                       receiver =
                           RubyCallNode
@@ -46,11 +52,15 @@ ast: |
                                   methodName = "a"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 0
+                                  sourceLength = 1
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 2 # b
@@ -60,22 +70,30 @@ ast: |
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 17
+                      sourceLength = 19
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 17
+                                  sourceLength = 5
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 24
+                                  sourceLength = 5
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 31
+                                  sourceLength = 5
                                   tstring = baz
                       ]
           splatCastNode =
@@ -85,3 +103,5 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = ARRAY_WITH_NIL
+                      sourceCharIndex = -1
+                      sourceLength = 0

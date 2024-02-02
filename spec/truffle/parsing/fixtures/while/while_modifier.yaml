@@ -14,11 +14,15 @@ ast: |
           breakID = org.truffleruby.language.control.BreakID@...
           flags = 0
           isWhile = true
+          sourceCharIndex = 0
+          sourceLength = 25
       children:
           body =
               WhileNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       loopNode =
                           DefaultLoopNode
@@ -30,9 +34,13 @@ ast: |
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 1
+                                                          sourceCharIndex = 8
+                                                          sourceLength = 2
                                                           value = 42
                                               condition =
                                                   BooleanLiteralNode
                                                       attributes:
                                                           flags = 1
+                                                          sourceCharIndex = 21
+                                                          sourceLength = 4
                                                           value = true

@@ -15,6 +15,8 @@ ast: |
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = x, type = req)])
+          sourceCharIndex = 0
+          sourceLength = 32
       call targets:
           RubyMethodRootNode
               attributes:
@@ -38,35 +40,49 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 32
                           children:
                               body = [
                                   InitFlipFlopSlotNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 4
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 2 # x
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadPreArgumentNode
@@ -75,13 +91,19 @@ ast: |
                                                                   index = 0
                                                                   keywordArguments = false
                                                                   missingArgumentBehavior = RUNTIME_ERROR
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
                                           slot = 3
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   IfNodeGen
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 13
+                                          sourceLength = 15
                                       children:
                                           condition =
                                               FlipFlopNodeGen
@@ -90,22 +112,30 @@ ast: |
                                                       flags = 1
                                                       frameLevel = 0
                                                       frameSlot = 4
+                                                      sourceCharIndex = 18
+                                                      sourceLength = 10
                                                   children:
                                                       begin =
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 2 # x
+                                                                  sourceCharIndex = 19
+                                                                  sourceLength = 1
                                                                   type = FRAME_LOCAL
                                                       end =
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 2 # x
+                                                                  sourceCharIndex = 26
+                                                                  sourceLength = 1
                                                                   type = FRAME_LOCAL
                                           thenBody =
                                               IntegerFixnumLiteralNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = 13
+                                                      sourceLength = 1
                                                       value = 1
                               ]

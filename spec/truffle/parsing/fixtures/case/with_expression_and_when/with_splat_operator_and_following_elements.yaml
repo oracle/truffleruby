@@ -12,6 +12,8 @@ ast: |
   IfElseNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = -1
+          sourceLength = 0
       children:
           condition =
               RubyCallNode
@@ -28,11 +30,15 @@ ast: |
                       methodName = "when_splat"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       arguments = [
                           ArrayConcatNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   children = [
                                       SplatCastNodeGen
@@ -41,6 +47,8 @@ ast: |
                                               copy = true
                                               flags = 0
                                               nilBehavior = CONVERT
+                                              sourceCharIndex = 13
+                                              sourceLength = 4
                                           children:
                                               childNode_ =
                                                   RubyCallNode
@@ -57,24 +65,34 @@ ast: |
                                                           methodName = "foo"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 14
+                                                          sourceLength = 3
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       ArrayLiteralNode$UninitialisedArrayLiteralNode
                                           attributes:
                                               flags = 0
                                               language = org.truffleruby.RubyLanguage@...
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               values = [
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 19
+                                                          sourceLength = 2
                                                           value = 42
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 23
+                                                          sourceLength = 6
                                                           value = 100500
                                               ]
                                   ]
@@ -82,18 +100,26 @@ ast: |
                               attributes:
                                   flags = 0
                                   frameSlot = 2 # %case_0
+                                  sourceCharIndex = 0
+                                  sourceLength = 40
                                   type = FRAME_LOCAL
                       ]
                       receiver =
                           TruffleInternalModuleLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
           elseBody =
               NilLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
           thenBody =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 32
+                      sourceLength = 4
                       value = true

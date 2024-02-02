@@ -9,4 +9,6 @@ ast: |
   IntegerFixnumLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 1
           value = 0

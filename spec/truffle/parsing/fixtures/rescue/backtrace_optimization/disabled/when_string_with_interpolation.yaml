@@ -16,12 +16,16 @@ ast: |
   TryNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 44
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
                       canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 26
                   children:
                       rescueBody =
                           InterpolatedStringNode
@@ -29,6 +33,8 @@ ast: |
                                   emptyTString = ""
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 23
+                                  sourceLength = 17
                               children:
                                   children = [
                                       ToSNodeGen
@@ -38,6 +44,8 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 1
+                                                          sourceCharIndex = 24
+                                                          sourceLength = 4
                                                           tstring = abc 
                                       ToSNodeGen
                                           children:
@@ -45,6 +53,8 @@ ast: |
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 31
+                                                          sourceLength = 2
                                                           value = 42
                                       ToSNodeGen
                                           children:
@@ -53,6 +63,8 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 0
+                                                          sourceCharIndex = 35
+                                                          sourceLength = 4
                                                           tstring =  def
                                   ]
           ]
@@ -61,4 +73,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

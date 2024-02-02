@@ -17,6 +17,8 @@ ast: |
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sourceCharIndex = 5
+          sourceLength = 16
           type = PROC
       call targets:
           RubyProcRootNode
@@ -37,33 +39,45 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 5
+                              sourceLength = 16
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   CatchBreakNode
                                       attributes:
                                           breakID = org.truffleruby.language.control.BreakID@...
                                           flags = 1
                                           isWhile = false
+                                          sourceCharIndex = 10
+                                          sourceLength = 7
                                       children:
                                           body =
                                               FrameOnStackNode
                                                   attributes:
                                                       flags = 0
                                                       frameOnStackMarkerSlot = 1
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       child =
                                                           RubyCallNode
@@ -80,6 +94,8 @@ ast: |
                                                                   methodName = "proc"
                                                                   notEmptyKeywordsProfile = false
                                                                   notRuby2KeywordsHashProfile = false
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   block =
                                                                       BlockDefinitionNodeGen
@@ -89,6 +105,8 @@ ast: |
                                                                               flags = 0
                                                                               frameOnStackMarkerSlot = 1
                                                                               sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block (2 levels) in <top (required)>, blockDepth = 2, parseName = block (2 levels) in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                                              sourceCharIndex = 15
+                                                                              sourceLength = 2
                                                                               type = PROC
                                                                           call targets:
                                                                               RubyProcRootNode
@@ -109,28 +127,40 @@ ast: |
                                                                                           SequenceNode
                                                                                               attributes:
                                                                                                   flags = 12
+                                                                                                  sourceCharIndex = 15
+                                                                                                  sourceLength = 2
                                                                                               children:
                                                                                                   body = [
                                                                                                       WriteLocalVariableNode
                                                                                                           attributes:
                                                                                                               flags = 0
                                                                                                               frameSlot = 0 # (self)
+                                                                                                              sourceCharIndex = -1
+                                                                                                              sourceLength = 0
                                                                                                           children:
                                                                                                               valueNode =
                                                                                                                   ProfileArgumentNodeGen
                                                                                                                       attributes:
                                                                                                                           flags = 0
+                                                                                                                          sourceCharIndex = -1
+                                                                                                                          sourceLength = 0
                                                                                                                       children:
                                                                                                                           childNode_ =
                                                                                                                               ReadSelfNode
                                                                                                                                   attributes:
                                                                                                                                       flags = 0
+                                                                                                                                      sourceCharIndex = -1
+                                                                                                                                      sourceLength = 0
                                                                                                       NilLiteralNode
                                                                                                           attributes:
                                                                                                               flags = 0
+                                                                                                              sourceCharIndex = -1
+                                                                                                              sourceLength = 0
                                                                                                   ]
                                                                   receiver =
                                                                       SelfNode
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                               ]

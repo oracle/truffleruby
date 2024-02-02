@@ -11,13 +11,19 @@ ast: |
   UnlessNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 16
       children:
           condition =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 3
+                      sourceLength = 4
                       value = true
           thenBody =
               NilLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 8
+                      sourceLength = 8

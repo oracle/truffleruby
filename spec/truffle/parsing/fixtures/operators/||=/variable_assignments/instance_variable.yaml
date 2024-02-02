@@ -10,12 +10,16 @@ ast: |
       attributes:
           flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           left =
               ReadInstanceVariableNode
                   attributes:
                       flags = 0
                       name = "@foo"
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
                       readSelfSlotNode =
                           ReadFrameSlotNodeGen
@@ -27,6 +31,8 @@ ast: |
                       flags = 0
                       frozenProfile = false
                       name = "@foo"
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
                       readSelfSlotNode =
                           ReadFrameSlotNodeGen
@@ -36,4 +42,6 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 9
+                                  sourceLength = 2
                                   value = 42

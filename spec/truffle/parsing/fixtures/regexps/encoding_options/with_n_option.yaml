@@ -11,3 +11,5 @@ ast: |
       attributes:
           flags = 1
           object = RubyRegexp(source = abc, options = RegexpOptions(kcode: NONE, encodingNone, literal), encoding = US-ASCII)
+          sourceCharIndex = 0
+          sourceLength = 6

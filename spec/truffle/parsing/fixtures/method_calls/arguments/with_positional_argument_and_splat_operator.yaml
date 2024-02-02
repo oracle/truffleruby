@@ -20,17 +20,23 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 14
       children:
           arguments = [
               ArrayConcatNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       children = [
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   values = [
                                       RubyCallNode
@@ -47,11 +53,15 @@ ast: |
                                               methodName = "bar"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 4
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                   ]
                           SplatCastNodeGen
                               attributes:
@@ -59,6 +69,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = CONVERT
+                                  sourceCharIndex = 9
+                                  sourceLength = 4
                               children:
                                   childNode_ =
                                       RubyCallNode
@@ -75,14 +87,20 @@ ast: |
                                               methodName = "baz"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 10
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                       ]
           ]
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

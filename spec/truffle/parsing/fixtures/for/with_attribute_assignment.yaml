@@ -30,33 +30,45 @@ ast: |
               SequenceNode
                   attributes:
                       flags = 12
+                      sourceCharIndex = 0
+                      sourceLength = 41
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 0 # (self)
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   valueNode =
                                       ProfileArgumentNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               childNode_ =
                                                   ReadSelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           CatchBreakNode
                               attributes:
                                   breakID = org.truffleruby.language.control.BreakID@...
                                   flags = 1
                                   isWhile = false
+                                  sourceCharIndex = 0
+                                  sourceLength = 41
                               children:
                                   body =
                                       FrameOnStackNode
                                           attributes:
                                               flags = 0
                                               frameOnStackMarkerSlot = 3
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               child =
                                                   RubyCallNode
@@ -73,6 +85,8 @@ ast: |
                                                           methodName = "each"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                       children:
                                                           block =
                                                               BlockDefinitionNodeGen
@@ -82,6 +96,8 @@ ast: |
                                                                       flags = 0
                                                                       frameOnStackMarkerSlot = 3
                                                                       sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 0
                                                                       type = PROC
                                                                   call targets:
                                                                       RubyProcRootNode
@@ -102,31 +118,43 @@ ast: |
                                                                                   SequenceNode
                                                                                       attributes:
                                                                                           flags = 12
+                                                                                          sourceCharIndex = 0
+                                                                                          sourceLength = 0
                                                                                       children:
                                                                                           body = [
                                                                                               WriteLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
                                                                                                       frameSlot = 0 # (self)
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ProfileArgumentNodeGen
                                                                                                               attributes:
                                                                                                                   flags = 0
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                                               children:
                                                                                                                   childNode_ =
                                                                                                                       ReadSelfNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
+                                                                                                                              sourceCharIndex = -1
+                                                                                                                              sourceLength = 0
                                                                                               WriteLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
                                                                                                       frameSlot = 1 # %for_0
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ProfileArgumentNodeGen
                                                                                                               attributes:
                                                                                                                   flags = 0
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                                               children:
                                                                                                                   childNode_ =
                                                                                                                       ReadPreArgumentNode
@@ -135,6 +163,8 @@ ast: |
                                                                                                                               index = 0
                                                                                                                               keywordArguments = false
                                                                                                                               missingArgumentBehavior = NIL
+                                                                                                                              sourceCharIndex = -1
+                                                                                                                              sourceLength = 0
                                                                                               RubyCallNode
                                                                                                   attributes:
                                                                                                       descriptor = NoKeywordArgumentsDescriptor
@@ -149,12 +179,16 @@ ast: |
                                                                                                       methodName = "foo="
                                                                                                       notEmptyKeywordsProfile = false
                                                                                                       notRuby2KeywordsHashProfile = false
+                                                                                                      sourceCharIndex = 0
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       arguments = [
                                                                                                           ReadLocalVariableNode
                                                                                                               attributes:
                                                                                                                   flags = 0
                                                                                                                   frameSlot = 1 # %for_0
+                                                                                                                  sourceCharIndex = 0
+                                                                                                                  sourceLength = 0
                                                                                                                   type = FRAME_LOCAL
                                                                                                       ]
                                                                                                       receiver =
@@ -172,16 +206,22 @@ ast: |
                                                                                                                   methodName = "a"
                                                                                                                   notEmptyKeywordsProfile = false
                                                                                                                   notRuby2KeywordsHashProfile = false
+                                                                                                                  sourceCharIndex = 4
+                                                                                                                  sourceLength = 1
                                                                                                               children:
                                                                                                                   receiver =
                                                                                                                       SelfNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
+                                                                                                                              sourceCharIndex = -1
+                                                                                                                              sourceLength = 0
                                                                                               WriteDeclarationVariableNode
                                                                                                   attributes:
                                                                                                       flags = 1
                                                                                                       frameDepth = 1
                                                                                                       frameSlot = 2 # b
+                                                                                                      sourceCharIndex = 28
+                                                                                                      sourceLength = 9
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           RubyCallNode
@@ -198,6 +238,8 @@ ast: |
                                                                                                                   methodName = "foo"
                                                                                                                   notEmptyKeywordsProfile = false
                                                                                                                   notRuby2KeywordsHashProfile = false
+                                                                                                                  sourceCharIndex = 32
+                                                                                                                  sourceLength = 5
                                                                                                               children:
                                                                                                                   receiver =
                                                                                                                       RubyCallNode
@@ -214,26 +256,36 @@ ast: |
                                                                                                                               methodName = "a"
                                                                                                                               notEmptyKeywordsProfile = false
                                                                                                                               notRuby2KeywordsHashProfile = false
+                                                                                                                              sourceCharIndex = 32
+                                                                                                                              sourceLength = 1
                                                                                                                           children:
                                                                                                                               receiver =
                                                                                                                                   SelfNode
                                                                                                                                       attributes:
                                                                                                                                           flags = 0
+                                                                                                                                          sourceCharIndex = -1
+                                                                                                                                          sourceLength = 0
                                                                                           ]
                                                           receiver =
                                                               ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                                   attributes:
                                                                       flags = 0
                                                                       language = org.truffleruby.RubyLanguage@...
+                                                                      sourceCharIndex = 13
+                                                                      sourceLength = 12
                                                                   children:
                                                                       values = [
                                                                           IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  sourceCharIndex = 14
+                                                                                  sourceLength = 2
                                                                                   value = 42
                                                                           IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  sourceCharIndex = 18
+                                                                                  sourceLength = 6
                                                                                   value = 100500
                                                                       ]
                       ]

@@ -7,4 +7,6 @@ ast: |
   FloatLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 7
           value = 3.14

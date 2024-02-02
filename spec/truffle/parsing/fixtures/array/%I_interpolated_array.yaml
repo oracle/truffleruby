@@ -8,14 +8,20 @@ ast: |
       attributes:
           flags = 1
           language = org.truffleruby.RubyLanguage@...
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           values = [
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :foo
+                      sourceCharIndex = 3
+                      sourceLength = 3
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :bar
+                      sourceCharIndex = 7
+                      sourceLength = 3
           ]

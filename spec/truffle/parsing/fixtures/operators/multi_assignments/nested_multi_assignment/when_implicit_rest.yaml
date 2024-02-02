@@ -9,11 +9,15 @@ ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           preNodes = [
               MultipleAssignmentNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       preNodes = [
                           WriteFrameSlotNodeGen
@@ -27,6 +31,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = ARRAY_WITH_NIL
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 3 # b
@@ -36,6 +42,8 @@ ast: |
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 10
+                      sourceLength = 2
           splatCastNode =
               SplatCastNodeGen
                   attributes:
@@ -43,3 +51,5 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = ARRAY_WITH_NIL
+                      sourceCharIndex = -1
+                      sourceLength = 0

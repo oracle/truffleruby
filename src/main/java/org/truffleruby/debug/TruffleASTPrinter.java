@@ -47,9 +47,8 @@ import org.truffleruby.parser.BlockDescriptorInfo;
 public abstract class TruffleASTPrinter {
 
     // Skip the following node attributes:
-    // - "sourceCharIndex", "sourceLength" - are incorrect and will have correct values in YARP
     // - "RubyRootNode.bodyCopy" - is set if clone-uninitialized is forced
-    private static final Set<String> attributesToIgnore = Set.of("sourceCharIndex", "sourceLength", "bodyCopy");
+    private static final Set<String> attributesToIgnore = Set.of("bodyCopy");
 
     public static String dump(RubyRootNode rootNode, String focusedNodeClassName, int index) {
         final Node node;

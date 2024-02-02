@@ -11,4 +11,6 @@ ast: |
       attributes:
           encoding = ASCII-8BIT
           flags = 1
+          sourceCharIndex = 21
+          sourceLength = 6
           tstring = \xFF

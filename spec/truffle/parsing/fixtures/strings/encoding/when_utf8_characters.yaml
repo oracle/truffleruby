@@ -11,4 +11,6 @@ ast: |
       attributes:
           encoding = UTF-8
           flags = 1
+          sourceCharIndex = 21
+          sourceLength = 8
           tstring = £

@@ -7,6 +7,8 @@ ast: |
   StringToSymbolNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 13
       children:
           stringNode_ =
               InterpolatedStringNode
@@ -14,6 +16,8 @@ ast: |
                       emptyTString = ""
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       children = [
                           ToSNodeGen
@@ -23,6 +27,8 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 1
+                                              sourceCharIndex = 2
+                                              sourceLength = 4
                                               tstring = foo 
                           ToSNodeGen
                               children:
@@ -31,12 +37,16 @@ ast: |
                                           attributes:
                                               flags = 0
                                               name = "@@bar"
+                                              sourceCharIndex = 7
+                                              sourceLength = 5
                                           children:
                                               lexicalScopeNode =
                                                   ObjectLiteralNode
                                                       attributes:
                                                           flags = 0
                                                           object =  :: Object
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                               lookupClassVariableNode =
                                                   LookupClassVariableNodeGen
                                               resolveTargetModuleNode =

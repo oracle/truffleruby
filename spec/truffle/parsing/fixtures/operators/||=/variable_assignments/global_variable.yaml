@@ -11,22 +11,30 @@ ast: |
       attributes:
           flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           left =
               AndNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       left =
                           DefinedNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   child =
                                       ReadGlobalVariableNodeGen
                                           attributes:
                                               flags = 0
                                               name = "$foo"
+                                              sourceCharIndex = 0
+                                              sourceLength = 11
                                           children:
                                               lookupGlobalVariableStorageNode =
                                                   LookupGlobalVariableStorageNodeGen
@@ -38,6 +46,8 @@ ast: |
                               attributes:
                                   flags = 0
                                   name = "$foo"
+                                  sourceCharIndex = 0
+                                  sourceLength = 11
                               children:
                                   lookupGlobalVariableStorageNode =
                                       LookupGlobalVariableStorageNodeGen
@@ -49,6 +59,8 @@ ast: |
                   attributes:
                       flags = 0
                       name = "$foo"
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
                       lookupGlobalVariableStorageNode =
                           LookupGlobalVariableStorageNodeGen
@@ -59,4 +71,6 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 9
+                                  sourceLength = 2
                                   value = 42

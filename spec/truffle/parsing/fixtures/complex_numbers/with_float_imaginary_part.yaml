@@ -20,15 +20,21 @@ ast: |
           methodName = "convert"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 5
       children:
           arguments = [
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                       value = 0
               FloatLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 4
                       value = 3.14
           ]
           receiver =
@@ -36,8 +42,12 @@ ast: |
                   attributes:
                       flags = 0
                       name = "Complex"
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       moduleNode =
                           ObjectClassLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0

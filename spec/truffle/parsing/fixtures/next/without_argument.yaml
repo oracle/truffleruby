@@ -12,8 +12,12 @@ ast: |
   NextNode
       attributes:
           flags = 1
+          sourceCharIndex = 15
+          sourceLength = 4
       children:
           child =
               NilLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

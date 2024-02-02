@@ -30,33 +30,45 @@ ast: |
               SequenceNode
                   attributes:
                       flags = 12
+                      sourceCharIndex = 0
+                      sourceLength = 53
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 0 # (self)
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   valueNode =
                                       ProfileArgumentNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               childNode_ =
                                                   ReadSelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           CatchBreakNode
                               attributes:
                                   breakID = org.truffleruby.language.control.BreakID@...
                                   flags = 1
                                   isWhile = false
+                                  sourceCharIndex = 0
+                                  sourceLength = 53
                               children:
                                   body =
                                       FrameOnStackNode
                                           attributes:
                                               flags = 0
                                               frameOnStackMarkerSlot = 6
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               child =
                                                   RubyCallNode
@@ -73,6 +85,8 @@ ast: |
                                                           methodName = "each"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                       children:
                                                           block =
                                                               BlockDefinitionNodeGen
@@ -82,6 +96,8 @@ ast: |
                                                                       flags = 0
                                                                       frameOnStackMarkerSlot = 6
                                                                       sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 0
                                                                       type = PROC
                                                                   call targets:
                                                                       RubyProcRootNode
@@ -102,31 +118,43 @@ ast: |
                                                                                   SequenceNode
                                                                                       attributes:
                                                                                           flags = 12
+                                                                                          sourceCharIndex = 0
+                                                                                          sourceLength = 0
                                                                                       children:
                                                                                           body = [
                                                                                               WriteLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
                                                                                                       frameSlot = 0 # (self)
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ProfileArgumentNodeGen
                                                                                                               attributes:
                                                                                                                   flags = 0
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                                               children:
                                                                                                                   childNode_ =
                                                                                                                       ReadSelfNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
+                                                                                                                              sourceCharIndex = -1
+                                                                                                                              sourceLength = 0
                                                                                               WriteLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
                                                                                                       frameSlot = 1 # %for_0
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ProfileArgumentNodeGen
                                                                                                               attributes:
                                                                                                                   flags = 0
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                                               children:
                                                                                                                   childNode_ =
                                                                                                                       ReadPreArgumentNode
@@ -135,9 +163,13 @@ ast: |
                                                                                                                               index = 0
                                                                                                                               keywordArguments = false
                                                                                                                               missingArgumentBehavior = NIL
+                                                                                                                              sourceCharIndex = -1
+                                                                                                                              sourceLength = 0
                                                                                               MultipleAssignmentNode
                                                                                                   attributes:
                                                                                                       flags = 0
+                                                                                                      sourceCharIndex = 0
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       preNodes = [
                                                                                                           WriteDeclarationVariableNode
@@ -145,9 +177,13 @@ ast: |
                                                                                                                   flags = 0
                                                                                                                   frameDepth = 1
                                                                                                                   frameSlot = 2 # a
+                                                                                                                  sourceCharIndex = 4
+                                                                                                                  sourceLength = 1
                                                                                                           MultipleAssignmentNode
                                                                                                               attributes:
                                                                                                                   flags = 0
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                                               children:
                                                                                                                   preNodes = [
                                                                                                                       WriteDeclarationVariableNode
@@ -155,11 +191,15 @@ ast: |
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
                                                                                                                               frameSlot = 3 # b
+                                                                                                                              sourceCharIndex = 8
+                                                                                                                              sourceLength = 1
                                                                                                                       WriteDeclarationVariableNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
                                                                                                                               frameSlot = 4 # c
+                                                                                                                              sourceCharIndex = 11
+                                                                                                                              sourceLength = 1
                                                                                                                   ]
                                                                                                                   splatCastNode =
                                                                                                                       SplatCastNodeGen
@@ -168,12 +208,16 @@ ast: |
                                                                                                                               copy = true
                                                                                                                               flags = 0
                                                                                                                               nilBehavior = ARRAY_WITH_NIL
+                                                                                                                              sourceCharIndex = -1
+                                                                                                                              sourceLength = 0
                                                                                                       ]
                                                                                                       rhsNode =
                                                                                                           ReadLocalVariableNode
                                                                                                               attributes:
                                                                                                                   flags = 0
                                                                                                                   frameSlot = 1 # %for_0
+                                                                                                                  sourceCharIndex = 0
+                                                                                                                  sourceLength = 0
                                                                                                                   type = FRAME_LOCAL
                                                                                                       splatCastNode =
                                                                                                           SplatCastNodeGen
@@ -182,17 +226,23 @@ ast: |
                                                                                                                   copy = true
                                                                                                                   flags = 0
                                                                                                                   nilBehavior = ARRAY_WITH_NIL
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                               WriteDeclarationVariableNode
                                                                                                   attributes:
                                                                                                       flags = 1
                                                                                                       frameDepth = 1
                                                                                                       frameSlot = 5 # array
+                                                                                                      sourceCharIndex = 32
+                                                                                                      sourceLength = 17
                                                                                                   children:
                                                                                                       valueNode =
                                                                                                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                                                                               attributes:
                                                                                                                   flags = 0
                                                                                                                   language = org.truffleruby.RubyLanguage@...
+                                                                                                                  sourceCharIndex = 40
+                                                                                                                  sourceLength = 9
                                                                                                               children:
                                                                                                                   values = [
                                                                                                                       ReadDeclarationVariableNode
@@ -200,18 +250,24 @@ ast: |
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
                                                                                                                               frameSlot = 2 # a
+                                                                                                                              sourceCharIndex = 41
+                                                                                                                              sourceLength = 1
                                                                                                                               type = FRAME_LOCAL
                                                                                                                       ReadDeclarationVariableNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
                                                                                                                               frameSlot = 3 # b
+                                                                                                                              sourceCharIndex = 44
+                                                                                                                              sourceLength = 1
                                                                                                                               type = FRAME_LOCAL
                                                                                                                       ReadDeclarationVariableNode
                                                                                                                           attributes:
                                                                                                                               flags = 0
                                                                                                                               frameDepth = 1
                                                                                                                               frameSlot = 4 # c
+                                                                                                                              sourceCharIndex = 47
+                                                                                                                              sourceLength = 1
                                                                                                                               type = FRAME_LOCAL
                                                                                                                   ]
                                                                                           ]
@@ -220,15 +276,21 @@ ast: |
                                                                   attributes:
                                                                       flags = 0
                                                                       language = org.truffleruby.RubyLanguage@...
+                                                                      sourceCharIndex = 17
+                                                                      sourceLength = 12
                                                                   children:
                                                                       values = [
                                                                           IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  sourceCharIndex = 18
+                                                                                  sourceLength = 2
                                                                                   value = 42
                                                                           IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  sourceCharIndex = 22
+                                                                                  sourceLength = 6
                                                                                   value = 100500
                                                                       ]
                       ]

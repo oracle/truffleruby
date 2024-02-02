@@ -9,26 +9,36 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 8
       children:
           body = [
               EmitWarningsNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                       warnings = RubyDeferredWarnings(WarningMessage(message = 'ambiguous `*` has been interpreted as an argument prefix', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1))
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               RubyCallNode
                   attributes:
                       descriptor = NoKeywordArgumentsDescriptor
@@ -43,6 +53,8 @@ ast: |
                       methodName = "puts"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 0
+                      sourceLength = 8
                   children:
                       arguments = [
                           SplatCastNodeGen
@@ -51,15 +63,21 @@ ast: |
                                   copy = false
                                   flags = 0
                                   nilBehavior = CONVERT
+                                  sourceCharIndex = 5
+                                  sourceLength = 3
                               children:
                                   childNode_ =
                                       ArrayLiteralNode$UninitialisedArrayLiteralNode
                                           attributes:
                                               flags = 0
                                               language = org.truffleruby.RubyLanguage@...
+                                              sourceCharIndex = 6
+                                              sourceLength = 2
                       ]
                       receiver =
                           SelfNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
           ]

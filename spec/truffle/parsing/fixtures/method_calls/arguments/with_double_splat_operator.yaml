@@ -20,11 +20,15 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           arguments = [
               HashCastNodeGen$HashCastASTNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 4
+                      sourceLength = 5
                   children:
                       childNode_ =
                           RubyCallNode
@@ -41,13 +45,19 @@ ast: |
                                   methodName = "bar"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 6
+                                  sourceLength = 3
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
           ]
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

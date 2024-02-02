@@ -29,35 +29,49 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 89
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # %case_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 5
+                                  sourceLength = 2
                                   value = 42
               IfElseNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       condition =
                           InlinedCaseEqualNodeGen
@@ -66,22 +80,30 @@ ast: |
                                   flags = 0
                                   integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
                                   parameters = RubyCallNodeParameters{methodName='===', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   leftNode_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 13
+                                              sourceLength = 2
                                               value = 42
                                   rightNode_ =
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
                                               frameSlot = 2 # %case_0
+                                              sourceCharIndex = 0
+                                              sourceLength = 89
                                               type = FRAME_LOCAL
                       elseBody =
                           IfElseNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   condition =
                                       InlinedCaseEqualNodeGen
@@ -90,34 +112,46 @@ ast: |
                                               flags = 0
                                               integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
                                               parameters = RubyCallNodeParameters{methodName='===', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               leftNode_ =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 35
+                                                          sourceLength = 6
                                                           value = 100500
                                               rightNode_ =
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %case_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 89
                                                           type = FRAME_LOCAL
                                   elseBody =
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
                                               flags = 1
+                                              sourceCharIndex = 78
+                                              sourceLength = 7
                                               tstring = other
                                   thenBody =
                                       StringLiteralNode
                                           attributes:
                                               encoding = UTF-8
                                               flags = 1
+                                              sourceCharIndex = 44
+                                              sourceLength = 26
                                               tstring = one hundred five hundred
                       thenBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 18
+                                  sourceLength = 11
                                   tstring = forty two
           ]

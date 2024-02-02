@@ -8,3 +8,5 @@ ast: |
       attributes:
           flags = 1
           object = 18446744073709551617
+          sourceCharIndex = 0
+          sourceLength = 20

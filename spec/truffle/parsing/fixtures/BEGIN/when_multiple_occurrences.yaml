@@ -45,22 +45,30 @@ ast: |
               SequenceNode
                   attributes:
                       flags = 12
+                      sourceCharIndex = 0
+                      sourceLength = 43
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 0 # (self)
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   valueNode =
                                       ProfileArgumentNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               childNode_ =
                                                   ReadSelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           RubyCallNode
                               attributes:
                                   descriptor = NoKeywordArgumentsDescriptor
@@ -75,11 +83,15 @@ ast: |
                                   methodName = "a"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 10
+                                  sourceLength = 1
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                           RubyCallNode
                               attributes:
                                   descriptor = NoKeywordArgumentsDescriptor
@@ -94,11 +106,15 @@ ast: |
                                   methodName = "b"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 25
+                                  sourceLength = 1
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                           RubyCallNode
                               attributes:
                                   descriptor = NoKeywordArgumentsDescriptor
@@ -113,12 +129,18 @@ ast: |
                                   methodName = "c"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 40
+                                  sourceLength = 1
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                           NilLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 0
+                                  sourceLength = 43
                       ]

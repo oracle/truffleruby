@@ -9,6 +9,8 @@ ast: |
           emptyTString = ""
           encoding = UTF-8
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 21
       children:
           children = [
               ToSNodeGen
@@ -18,6 +20,8 @@ ast: |
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 1
+                                  sourceLength = 2
                                   tstring = ab
               ToSNodeGen
                   children:
@@ -25,15 +29,21 @@ ast: |
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 6
+                                  sourceLength = 10
                               children:
                                   body = [
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 6
+                                              sourceLength = 2
                                               value = 42
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 10
+                                              sourceLength = 6
                                               value = 100500
                                   ]
               ToSNodeGen
@@ -43,5 +53,7 @@ ast: |
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 18
+                                  sourceLength = 2
                                   tstring = cd
           ]

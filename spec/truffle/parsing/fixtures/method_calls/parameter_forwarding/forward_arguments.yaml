@@ -15,6 +15,8 @@ ast: |
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = %forward_rest, type = rest), ArgumentDescriptor(name = %forward_kwrest, type = keyrest), ArgumentDescriptor(name = %forward_block, type = block)])
+          sourceCharIndex = 0
+          sourceLength = 27
       call targets:
           RubyMethodRootNode
               attributes:
@@ -38,30 +40,42 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 27
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
                                           slot = 5
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 2 # %forward_rest
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadRestArgumentNode
@@ -70,17 +84,23 @@ ast: |
                                                       keywordArguments = true
                                                       markKeywordHashWithFlag = false
                                                       postArgumentsCount = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                       startIndex = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 3 # %forward_kwrest
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadKeywordRestArgumentNode
                                                   attributes:
                                                       excludedKeywords = []
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       hashes =
                                                           HashStoreLibraryGen$CachedDispatchFirst
@@ -92,6 +112,8 @@ ast: |
                                       attributes:
                                           flags = 0
                                           slot = 4
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   RubyCallNode
                                       attributes:
                                           descriptor = KeywordArgumentsDescriptor(keywords = [])
@@ -106,11 +128,15 @@ ast: |
                                           methodName = "bar"
                                           notEmptyKeywordsProfile = false
                                           notRuby2KeywordsHashProfile = false
+                                          sourceCharIndex = 15
+                                          sourceLength = 8
                                       children:
                                           arguments = [
                                               ArrayConcatNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       children = [
                                                           SplatCastNodeGen
@@ -119,28 +145,38 @@ ast: |
                                                                   copy = true
                                                                   flags = 0
                                                                   nilBehavior = CONVERT
+                                                                  sourceCharIndex = 0
+                                                                  sourceLength = 0
                                                               children:
                                                                   childNode_ =
                                                                       ReadLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
                                                                               frameSlot = 2 # %forward_rest
+                                                                              sourceCharIndex = 0
+                                                                              sourceLength = 0
                                                                               type = FRAME_LOCAL
                                                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                               attributes:
                                                                   flags = 0
                                                                   language = org.truffleruby.RubyLanguage@...
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   values = [
                                                                       HashCastNodeGen$HashCastASTNodeGen
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = 0
+                                                                              sourceLength = 0
                                                                           children:
                                                                               childNode_ =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 3 # %forward_kwrest
+                                                                                          sourceCharIndex = 0
+                                                                                          sourceLength = 0
                                                                                           type = FRAME_LOCAL
                                                                   ]
                                                       ]
@@ -149,15 +185,21 @@ ast: |
                                               ToProcNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 4 # %forward_block
+                                                                  sourceCharIndex = 0
+                                                                  sourceLength = 0
                                                                   type = FRAME_LOCAL
                                           receiver =
                                               SelfNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                               ]

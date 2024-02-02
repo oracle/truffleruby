@@ -10,10 +10,14 @@ ast: |
           assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Nil#nil?)]
           flags = 1
           parameters = RubyCallNodeParameters{methodName='nil?', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+          sourceCharIndex = 14
+          sourceLength = 6
       children:
           selfNode_ =
               ReadLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # a
+                      sourceCharIndex = 14
+                      sourceLength = 1
                       type = FRAME_LOCAL

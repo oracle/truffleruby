@@ -12,12 +12,16 @@ ast: |
   TryNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 16
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
                       canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       rescueBody =
                           ReadConstantWithLexicalScopeNode
@@ -25,6 +29,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "BAR"
+                                  sourceCharIndex = 13
+                                  sourceLength = 3
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -39,4 +45,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 5
                       tstring = foo

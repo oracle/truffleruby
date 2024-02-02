@@ -54,6 +54,8 @@ ast: |
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = other, type = rest), ArgumentDescriptor(name = foo, type = req), ArgumentDescriptor(name = bar, type = req)])
+          sourceCharIndex = 5
+          sourceLength = 25
           type = PROC
       call targets:
           RubyProcRootNode
@@ -74,32 +76,44 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 5
+                              sourceLength = 25
                           children:
                               body = [
                                   IfElseNodeGen
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           condition =
                                               AndNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       left =
                                                           ShouldDestructureNode
                                                               attributes:
                                                                   flags = 0
                                                                   keywordArguments = false
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                       right =
                                                           SequenceNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   body = [
                                                                       WriteLocalVariableNode
                                                                           attributes:
                                                                               flags = 0
                                                                               frameSlot = 4 # %destructure_1
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               valueNode =
                                                                                   SplatCastNodeGen
@@ -108,11 +122,15 @@ ast: |
                                                                                           copy = false
                                                                                           flags = 0
                                                                                           nilBehavior = NIL
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                                                       children:
                                                                                           childNode_ =
                                                                                               ProfileArgumentNodeGen
                                                                                                   attributes:
                                                                                                       flags = 0
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       childNode_ =
                                                                                                           ReadPreArgumentNode
@@ -121,46 +139,64 @@ ast: |
                                                                                                                   index = 0
                                                                                                                   keywordArguments = false
                                                                                                                   missingArgumentBehavior = RUNTIME_ERROR
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                       NotNodeGen
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               child =
                                                                                   IsNilNode
                                                                                       attributes:
                                                                                           flags = 0
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                                                       children:
                                                                                           child =
                                                                                               ReadLocalVariableNode
                                                                                                   attributes:
                                                                                                       flags = 0
                                                                                                       frameSlot = 4 # %destructure_1
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                       type = FRAME_LOCAL
                                                                   ]
                                           elseBody =
                                               SequenceNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       body = [
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 0 # (self)
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               childNode_ =
                                                                                   ReadSelfNode
                                                                                       attributes:
                                                                                           flags = 0
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 1 # other
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ReadRestArgumentNode
@@ -169,11 +205,15 @@ ast: |
                                                                               keywordArguments = false
                                                                               markKeywordHashWithFlag = false
                                                                               postArgumentsCount = 2
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                               startIndex = 0
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 3 # bar
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ReadPostArgumentNode
@@ -184,10 +224,14 @@ ast: |
                                                                               keywordArguments = false
                                                                               optional = 0
                                                                               required = 2
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 2 # foo
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ReadPostArgumentNode
@@ -198,37 +242,51 @@ ast: |
                                                                               keywordArguments = false
                                                                               optional = 0
                                                                               required = 2
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                       ]
                                           thenBody =
                                               SequenceNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       body = [
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 0 # (self)
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               childNode_ =
                                                                                   ReadSelfNode
                                                                                       attributes:
                                                                                           flags = 0
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 1 # other
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ArraySliceNodeGen
                                                                           attributes:
                                                                               flags = 0
                                                                               from = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                               to = -2
                                                                           children:
                                                                               arrayNode_ =
@@ -236,11 +294,15 @@ ast: |
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 4 # %destructure_1
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 3 # bar
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ReadBlockPostArgumentFromArrayNode
@@ -250,17 +312,23 @@ ast: |
                                                                               indexFromCount = 1
                                                                               optional = 0
                                                                               required = 2
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 4 # %destructure_1
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                                                           type = FRAME_LOCAL
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 2 # foo
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ReadBlockPostArgumentFromArrayNode
@@ -270,15 +338,21 @@ ast: |
                                                                               indexFromCount = 2
                                                                               optional = 0
                                                                               required = 2
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               readArrayNode =
                                                                                   ReadLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 4 # %destructure_1
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                                                           type = FRAME_LOCAL
                                                       ]
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                               ]

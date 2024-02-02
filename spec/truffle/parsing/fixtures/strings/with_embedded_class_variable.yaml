@@ -9,6 +9,8 @@ ast: |
           emptyTString = ""
           encoding = UTF-8
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           children = [
               ToSNodeGen
@@ -18,6 +20,8 @@ ast: |
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 1
+                                  sourceLength = 4
                                   tstring = foo 
               ToSNodeGen
                   children:
@@ -26,12 +30,16 @@ ast: |
                               attributes:
                                   flags = 0
                                   name = "@@bar"
+                                  sourceCharIndex = 6
+                                  sourceLength = 5
                               children:
                                   lexicalScopeNode =
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object =  :: Object
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   lookupClassVariableNode =
                                       LookupClassVariableNodeGen
                                   resolveTargetModuleNode =

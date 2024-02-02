@@ -15,6 +15,8 @@ ast: |
           isDefSingleton = false
           name = "foo"
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [])
+          sourceCharIndex = 0
+          sourceLength = 23
       call targets:
           RubyMethodRootNode
               attributes:
@@ -38,26 +40,36 @@ ast: |
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 23
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
                                           slot = 2
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   SuperCallNode
                                       attributes:
                                           descriptor = NoKeywordArgumentsDescriptor
@@ -67,17 +79,23 @@ ast: |
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false
                                           notRuby2KeywordsHashProfile = false
+                                          sourceCharIndex = 10
+                                          sourceLength = 9
                                       children:
                                           arguments =
                                               ReadSuperArgumentsNode
                                                   attributes:
                                                       flags = 0
                                                       isSplatted = false
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       arguments = [
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 16
+                                                                  sourceLength = 2
                                                                   value = 42
                                                       ]
                                           block =
@@ -85,5 +103,7 @@ ast: |
                                                   attributes:
                                                       flags = 0
                                                       frameSlot = 2 # %method_block_arg
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                       type = FRAME_LOCAL
                               ]

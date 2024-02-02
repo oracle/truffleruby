@@ -7,27 +7,37 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 18
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               InterpolatedStringNode
                   attributes:
                       emptyTString = ""
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 18
                   children:
                       children = [
                           ToSNodeGen
@@ -37,6 +47,8 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 1
+                                              sourceCharIndex = 1
+                                              sourceLength = 2
                                               tstring = ab
                           ToSNodeGen
                               children:
@@ -45,6 +57,8 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 0
+                                              sourceCharIndex = 6
+                                              sourceLength = 7
                                               tstring = 123
                           ToSNodeGen
                               children:
@@ -53,6 +67,8 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 0
+                                              sourceCharIndex = 15
+                                              sourceLength = 2
                                               tstring = cd
                       ]
           ]

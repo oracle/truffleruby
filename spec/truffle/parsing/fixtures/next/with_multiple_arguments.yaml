@@ -12,20 +12,28 @@ ast: |
   NextNode
       attributes:
           flags = 1
+          sourceCharIndex = 15
+          sourceLength = 15
       children:
           child =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 20
+                      sourceLength = 10
                   children:
                       values = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 20
+                                  sourceLength = 2
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 24
+                                  sourceLength = 6
                                   value = 100500
                       ]

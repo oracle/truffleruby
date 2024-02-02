@@ -16,26 +16,36 @@ ast: |
   TryNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 38
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
                       canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 20
                   children:
                       rescueBody =
                           PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 23
+                                  sourceLength = 11
                               children:
                                   keyValues = [
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object = :bar
+                                              sourceCharIndex = 25
+                                              sourceLength = 4
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 30
+                                              sourceLength = 2
                                               value = 42
                                   ]
           ]
@@ -44,4 +54,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo
