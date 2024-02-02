@@ -1711,23 +1711,25 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         final Nodes.Node body;
+        final int bodyStartOffset = node.collection.endOffset();
+        final int bodyLength = node.endOffset() - bodyStartOffset;
 
         if (node.statements != null) {
             Nodes.Node[] statements = new Nodes.Node[1 + node.statements.body.length];
             statements[0] = writeIndex;
             System.arraycopy(node.statements.body, 0, statements, 1, node.statements.body.length);
 
-            body = new Nodes.StatementsNode(statements, node.statements.startOffset, node.statements.length);
+            body = new Nodes.StatementsNode(statements, bodyStartOffset, bodyLength);
         } else {
             // for loop with empty body
             var statements = new Nodes.Node[]{ writeIndex };
-            body = new Nodes.StatementsNode(statements, 0, 0);
+            body = new Nodes.StatementsNode(statements, bodyStartOffset, bodyLength);
         }
 
         // in the block environment declare local variable only for parameter
         // and skip declaration all the local variables defined in the block
         String[] locals = new String[]{ parameterName };
-        final var block = new Nodes.BlockNode(locals, 0, blockParameters, body, 0, 0);
+        final var block = new Nodes.BlockNode(locals, 0, blockParameters, body, bodyStartOffset, bodyLength);
         final var eachCall = new Nodes.CallNode(NO_FLAGS, node.collection, "each", null, block, node.startOffset,
                 node.length);
 
