@@ -544,7 +544,6 @@ public class YARPTranslator extends YARPBaseTranslator {
         if (node.expression == null) {
             // def foo(&) a(&) end
             valueNode = environment.findLocalVarNode(FORWARDED_BLOCK_NAME, null);
-            assert valueNode != null : "block forwarding local variable should be declared";
         } else {
             // a(&:b)
             valueNode = node.expression.accept(this);
@@ -1888,7 +1887,6 @@ public class YARPTranslator extends YARPBaseTranslator {
                     //     bar(**)
                     //   end
                     valueNode = environment.findLocalVarNode(DEFAULT_KEYWORD_REST_NAME, null);
-                    assert valueNode != null : "keyrest forwarding local variable should be declared";
                 }
 
                 hashConcats.add(HashCastNodeGen.HashCastASTNodeGen.create(valueNode));
@@ -2435,7 +2433,6 @@ public class YARPTranslator extends YARPBaseTranslator {
         final String name = node.name;
 
         final RubyNode rubyNode = environment.findLocalVarNode(name, null);
-        assert rubyNode != null : name;
 
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -2492,9 +2489,6 @@ public class YARPTranslator extends YARPBaseTranslator {
     public WriteLocalNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
         final String name = node.name;
         final ReadLocalNode lhs = environment.findLocalVarNode(name, null);
-
-        assert lhs != null;
-
         final RubyNode rhs = node.value.accept(this);
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
@@ -2506,9 +2500,6 @@ public class YARPTranslator extends YARPBaseTranslator {
     public WriteLocalNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
         final String name = node.name;
         final ReadLocalNode lhs = environment.findLocalVarNode(name, null);
-
-        assert lhs != null;
-
         final RubyNode rhs = new DeadNode("YARPTranslator#visitLocalVariableTargetNode");
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
@@ -3066,7 +3057,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
             // no need for SplatCastNodeGen for * because it's always an Array and cannot be reassigned
             rubyNode = environment.findLocalVarNode(DEFAULT_REST_NAME, null);
-            assert rubyNode != null : "rest forwarding local variable should be declared";
         }
 
         return assignPositionAndFlags(node, rubyNode);

@@ -264,7 +264,7 @@ public final class TranslatorEnvironment {
     }
 
     public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, SourceIndexLength sourceSection) {
-        ReadLocalNode localVar = findLocalVarNode(name, sourceSection);
+        ReadLocalNode localVar = findLocalVarNodeOrNull(name, sourceSection);
 
         if (localVar == null) {
             declareVar(name);
@@ -287,7 +287,7 @@ public final class TranslatorEnvironment {
     }
 
     public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
-        RubyNode node = findLocalVarNode(name, sourceSection);
+        RubyNode node = findLocalVarNodeOrNull(name, sourceSection);
         if (node == null) {
             node = new NilLiteralNode();
             node.unsafeSetSourceSection(sourceSection);
@@ -296,6 +296,16 @@ public final class TranslatorEnvironment {
     }
 
     public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {
+        final ReadLocalNode node = findLocalVarNodeOrNull(name, sourceSection);
+
+        if (node == null) {
+            throw CompilerDirectives.shouldNotReachHere(name + " local variable should be declared");
+        }
+
+        return node;
+    }
+
+    public ReadLocalNode findLocalVarNodeOrNull(String name, SourceIndexLength sourceSection) {
         assert name != null;
         TranslatorEnvironment current = this;
         int level = 0;
