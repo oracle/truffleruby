@@ -39,6 +39,7 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = true}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = %forward_rest, type = rest), ArgumentDescriptor(name = %forward_kwrest, type = keyrest), ArgumentDescriptor(name = %forward_block, type = block)])
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 2:3], index=0, length=16, characters=def foo(...)\nend)
                   split = HEURISTIC
               children:
                   body =

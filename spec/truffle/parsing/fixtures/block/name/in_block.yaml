@@ -33,6 +33,7 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1:6 - 3:3], index=5, length=16, characters=do\n  proc {}\nend)
                   split = HEURISTIC
               children:
                   body =
@@ -121,6 +122,7 @@ ast: |
                                                                                       retryProfile = false
                                                                                       returnID = org.truffleruby.language.control.ReturnID@...
                                                                                       sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block (2 levels) in <top (required)>, blockDepth = 2, parseName = block (2 levels) in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                                                      sourceSection = SourceSection(source=<parse_ast> [2:8 - 2:9], index=15, length=2, characters={})
                                                                                       split = HEURISTIC
                                                                                   children:
                                                                                       body =

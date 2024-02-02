@@ -57,6 +57,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Foo>, blockDepth = 0, parseName = <class:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 2:3], index=0, length=19, characters=class Foo < Bar\nend)
                   split = NEVER
               children:
                   body =

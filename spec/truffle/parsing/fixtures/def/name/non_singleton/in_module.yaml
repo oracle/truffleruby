@@ -45,6 +45,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:A>, blockDepth = 0, parseName = <module:A>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 4:3], index=0, length=28, characters=module A\n  def foo\n  end\nend)
                   split = NEVER
               children:
                   body =
@@ -108,6 +109,7 @@ ast: |
                                                               retryProfile = false
                                                               returnID = org.truffleruby.language.control.ReturnID@...
                                                               sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = A#foo, notes = null, argumentDescriptors = [])
+                                                              sourceSection = SourceSection(source=<parse_ast> [2:3 - 3:5], index=11, length=13, characters=def foo\n  end)
                                                               split = HEURISTIC
                                                           children:
                                                               body =

@@ -21,7 +21,6 @@ import java.util.regex.Matcher;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.profiles.Profile;
-import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.collections.Pair;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.string.StringUtils;
@@ -144,8 +143,7 @@ public abstract class TruffleASTPrinter {
             if (value != null &&                           // hide numerous attributes that aren't initialized yet
                     !attributesToIgnore.contains(name) &&  // ignore some noisy attributes
                     !generatedFieldNames.contains(name) && // ignore attributes of generated -Gen classes
-                    !(value instanceof Profile) &&         // ignore ...Profile as far as they might be disabled/enabled that affects string representation
-                    !(value instanceof SourceSection)) {   // ignore SourceSection as far as it contains not accurate location details (index and length) and Ruby source code provided by JRuby parser
+                    !(value instanceof Profile)) {         // ignore ...Profile as far as they might be disabled/enabled and that affects string representation
                 attributes.add(Pair.create(name, value));
             }
         }

@@ -24,6 +24,7 @@ ast: |
           retryProfile = false
           returnID = org.truffleruby.language.control.ReturnID@...
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <top (required)>, blockDepth = 0, parseName = <top (required)>, notes = null, argumentDescriptors = null)
+          sourceSection = SourceSection(source=<parse_ast> [1:1 - 3:3], index=0, length=57, characters=for a[:foo, :bar] in [42, 100500]\n  b = a[:foo, :bar]\nend)
           split = HEURISTIC
       children:
           body =
@@ -112,6 +113,7 @@ ast: |
                                                                               retryProfile = false
                                                                               returnID = org.truffleruby.language.control.ReturnID@...
                                                                               sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 1, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = %for_0, type = req)])
+                                                                              sourceSection = SourceSection(source=<parse_ast> [1:34 - 3:3], index=33, length=24, characters=\n  b = a[:foo, :bar]\nend)
                                                                               split = HEURISTIC
                                                                           children:
                                                                               body =

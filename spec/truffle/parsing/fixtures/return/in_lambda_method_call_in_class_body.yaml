@@ -44,6 +44,7 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Foo>, blockDepth = 0, parseName = <class:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 5:3], index=0, length=42, characters=class Foo\n  lambda {\n    return 42\n  }\nend)
                   split = NEVER
               children:
                   body =
@@ -139,6 +140,7 @@ ast: |
                                                                                                   retryProfile = false
                                                                                                   returnID = MODULE_BODY
                                                                                                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <class:Foo>, blockDepth = 1, parseName = block in <class:Foo>, notes = <class:Foo>, argumentDescriptors = [])
+                                                                                                  sourceSection = SourceSection(source=<parse_ast> [2:10 - 4:3], index=19, length=19, characters={\n    return 42\n  })
                                                                                                   split = HEURISTIC
                                                                                               children:
                                                                                                   body =
