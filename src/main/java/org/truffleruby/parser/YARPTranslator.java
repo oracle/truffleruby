@@ -1741,6 +1741,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             this.translatingForStatement = translatingForStatement;
         }
 
+        copyNewlineFlag(node, rubyNode);
         return rubyNode;
     }
 
