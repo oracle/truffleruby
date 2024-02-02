@@ -32,7 +32,7 @@ ast: |
                           NilLiteralNode
                               attributes:
                                   flags = 0
-                                  sourceCharIndex = 0
+                                  sourceCharIndex = -1
                                   sourceLength = 0
                       receiver_ =
                           InlinedIndexGetNodeGen

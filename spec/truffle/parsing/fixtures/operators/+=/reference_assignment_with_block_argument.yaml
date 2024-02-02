@@ -146,7 +146,7 @@ ast: |
                                               methodName = "[]="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
-                                              sourceCharIndex = 0
+                                              sourceCharIndex = -1
                                               sourceLength = 0
                                           children:
                                               arguments = [
@@ -180,7 +180,7 @@ ast: |
                                                                       methodName = "[]"
                                                                       notEmptyKeywordsProfile = false
                                                                       notRuby2KeywordsHashProfile = false
-                                                                      sourceCharIndex = 0
+                                                                      sourceCharIndex = -1
                                                                       sourceLength = 0
                                                                   children:
                                                                       arguments = [
@@ -196,7 +196,7 @@ ast: |
                                                                           ToProcNodeGen
                                                                               attributes:
                                                                                   flags = 0
-                                                                                  sourceCharIndex = 0
+                                                                                  sourceCharIndex = -1
                                                                                   sourceLength = 0
                                                                               children:
                                                                                   childNode_ =
@@ -227,7 +227,7 @@ ast: |
                                                   ToProcNodeGen
                                                       attributes:
                                                           flags = 0
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           childNode_ =

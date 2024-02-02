@@ -143,7 +143,7 @@ ast: |
                                                           methodName = "[]"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           arguments = [
@@ -192,7 +192,7 @@ ast: |
                                                           methodName = "[]="
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           arguments = [

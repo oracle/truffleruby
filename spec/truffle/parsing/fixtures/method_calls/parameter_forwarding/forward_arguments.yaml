@@ -145,7 +145,7 @@ ast: |
                                                                   copy = true
                                                                   flags = 0
                                                                   nilBehavior = CONVERT
-                                                                  sourceCharIndex = 0
+                                                                  sourceCharIndex = -1
                                                                   sourceLength = 0
                                                               children:
                                                                   childNode_ =
@@ -153,7 +153,7 @@ ast: |
                                                                           attributes:
                                                                               flags = 0
                                                                               frameSlot = 2 # %forward_rest
-                                                                              sourceCharIndex = 0
+                                                                              sourceCharIndex = -1
                                                                               sourceLength = 0
                                                                               type = FRAME_LOCAL
                                                           ArrayLiteralNode$UninitialisedArrayLiteralNode
@@ -167,7 +167,7 @@ ast: |
                                                                       HashCastNodeGen$HashCastASTNodeGen
                                                                           attributes:
                                                                               flags = 0
-                                                                              sourceCharIndex = 0
+                                                                              sourceCharIndex = -1
                                                                               sourceLength = 0
                                                                           children:
                                                                               childNode_ =
@@ -175,7 +175,7 @@ ast: |
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 3 # %forward_kwrest
-                                                                                          sourceCharIndex = 0
+                                                                                          sourceCharIndex = -1
                                                                                           sourceLength = 0
                                                                                           type = FRAME_LOCAL
                                                                   ]
@@ -193,7 +193,7 @@ ast: |
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 4 # %forward_block
-                                                                  sourceCharIndex = 0
+                                                                  sourceCharIndex = -1
                                                                   sourceLength = 0
                                                                   type = FRAME_LOCAL
                                           receiver =

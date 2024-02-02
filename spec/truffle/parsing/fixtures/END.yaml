@@ -22,7 +22,7 @@ ast: |
                       breakID = org.truffleruby.language.control.BreakID@...
                       flags = 0
                       isWhile = false
-                      sourceCharIndex = 0
+                      sourceCharIndex = -1
                       sourceLength = 0
                   children:
                       body =
@@ -55,7 +55,7 @@ ast: |
                                                   BooleanLiteralNode
                                                       attributes:
                                                           flags = 0
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                           value = false
                                               ]
@@ -67,7 +67,7 @@ ast: |
                                                           flags = 0
                                                           frameOnStackMarkerSlot = 2
                                                           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                           type = PROC
                                                       call targets:
@@ -131,7 +131,7 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           name = "KernelOperations"
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           moduleNode =
@@ -140,7 +140,7 @@ ast: |
                                                                       flags = 0
                                                                       lexicalScope =  :: Object
                                                                       name = "Truffle"
-                                                                      sourceCharIndex = 0
+                                                                      sourceCharIndex = -1
                                                                       sourceLength = 0
                                                                   children:
                                                                       getConstantNode =

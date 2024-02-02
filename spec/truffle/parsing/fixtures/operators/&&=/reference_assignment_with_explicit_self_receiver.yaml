@@ -76,7 +76,7 @@ ast: |
                                                           assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                           flags = 0
                                                           parameters = RubyCallNodeParameters{methodName='[]', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           leftNode_ =
@@ -99,7 +99,7 @@ ast: |
                                                           assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                           flags = 0
                                                           parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           operand1Node_ =

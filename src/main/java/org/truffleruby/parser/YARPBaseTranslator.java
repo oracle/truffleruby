@@ -167,7 +167,11 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected static void assignPositionOnly(Nodes.Node yarpNode, RubyNode rubyNode) {
-        rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        if (yarpNode.length == 0 && yarpNode.startOffset == 0) {
+            // (0, 0) means unknown location, so do not set the source section and keep the node as !hasSource()
+        } else {
+            rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        }
     }
 
     // assign position based on a list of nodes (arguments list, exception classes list in a rescue section, etc)
@@ -176,6 +180,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         final Nodes.Node last = ArrayUtils.getLast(nodes);
 
         final int length = last.endOffset() - first.startOffset;
+        assert length > 0 : length;
         rubyNode.unsafeSetSourceSection(first.startOffset, length);
     }
 

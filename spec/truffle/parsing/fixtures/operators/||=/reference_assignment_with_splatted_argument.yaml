@@ -140,7 +140,7 @@ ast: |
                                                           methodName = "[]"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           arguments = [
@@ -158,7 +158,7 @@ ast: |
                                                                               attributes:
                                                                                   flags = 0
                                                                                   frameSlot = 3 # %value_1
-                                                                                  sourceCharIndex = 0
+                                                                                  sourceCharIndex = -1
                                                                                   sourceLength = 0
                                                                                   type = FRAME_LOCAL
                                                           ]
@@ -185,7 +185,7 @@ ast: |
                                                           methodName = "[]="
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
-                                                          sourceCharIndex = 0
+                                                          sourceCharIndex = -1
                                                           sourceLength = 0
                                                       children:
                                                           arguments = [
@@ -210,7 +210,7 @@ ast: |
                                                                                           attributes:
                                                                                               flags = 0
                                                                                               frameSlot = 3 # %value_1
-                                                                                              sourceCharIndex = 0
+                                                                                              sourceCharIndex = -1
                                                                                               sourceLength = 0
                                                                                               type = FRAME_LOCAL
                                                                           ArrayLiteralNode$UninitialisedArrayLiteralNode
