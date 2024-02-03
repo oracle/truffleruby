@@ -13,13 +13,17 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = true
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 42
       children:
           rescueParts = [
               RescueClassesNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 12
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
@@ -27,6 +31,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
+                                  sourceCharIndex = 21
+                                  sourceLength = 12
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -40,6 +46,8 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 36
+                                  sourceLength = 2
                                   value = 42
           ]
           tryPart =
@@ -47,4 +55,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

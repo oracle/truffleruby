@@ -17,7 +17,6 @@ import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.source.Source;
@@ -60,7 +59,8 @@ public final class PrimitiveNodeConstructor {
         }
 
         final RubyNode primitiveNode = (RubyNode) CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
-        return Translator.withSourceSection(sourceSection, primitiveNode);
+        primitiveNode.unsafeSetSourceSection(sourceSection);
+        return primitiveNode;
     }
 
 }

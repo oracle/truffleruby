@@ -25,7 +25,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
-import org.truffleruby.parser.lexer.RubyLexer;
 
 public final class RubySource {
 
@@ -77,7 +76,7 @@ public final class RubySource {
     }
 
     private static boolean checkMagicEncoding(TStringWithEncoding code) {
-        var magicEncoding = RubyLexer.parseMagicEncodingComment(code);
+        var magicEncoding = MagicCommentParser.parseMagicEncodingComment(code);
         assert magicEncoding == null || magicEncoding == code.encoding;
         return true;
     }

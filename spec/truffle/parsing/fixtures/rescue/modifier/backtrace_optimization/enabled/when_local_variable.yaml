@@ -12,19 +12,25 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = true
           flags = 0
+          sourceCharIndex = 8
+          sourceLength = 16
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       rescueBody =
                           ReadLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 2 # bar
+                                  sourceCharIndex = 21
+                                  sourceLength = 3
                                   type = FRAME_LOCAL
           ]
           tryPart =
@@ -32,4 +38,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

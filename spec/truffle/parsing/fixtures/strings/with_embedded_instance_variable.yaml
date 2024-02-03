@@ -9,6 +9,8 @@ ast: |
           emptyTString = ""
           encoding = UTF-8
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           children = [
               ToSNodeGen
@@ -18,6 +20,8 @@ ast: |
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 1
+                                  sourceLength = 4
                                   tstring = foo 
               ToSNodeGen
                   children:
@@ -26,6 +30,8 @@ ast: |
                               attributes:
                                   flags = 0
                                   name = "@bar"
+                                  sourceCharIndex = 6
+                                  sourceLength = 4
                               children:
                                   readSelfSlotNode =
                                       ReadFrameSlotNodeGen

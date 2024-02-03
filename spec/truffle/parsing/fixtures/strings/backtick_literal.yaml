@@ -21,6 +21,8 @@ ast: |
           methodName = "`"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 8
       children:
           arguments = [
               FrozenStringLiteralNode
@@ -28,8 +30,12 @@ ast: |
                       definition = expression
                       flags = 0
                       frozenString = echo 1
+                      sourceCharIndex = 0
+                      sourceLength = 8
           ]
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

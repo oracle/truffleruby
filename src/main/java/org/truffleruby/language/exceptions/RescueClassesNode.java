@@ -21,8 +21,8 @@ public final class RescueClassesNode extends RescueNode {
 
     @Children final RubyNode[] handlingClassNodes;
 
-    public RescueClassesNode(RubyNode[] handlingClassNodes, RubyNode rescueBody) {
-        super(rescueBody);
+    public RescueClassesNode(RubyNode[] handlingClassNodes, RubyNode rescueBody, boolean canOmitBacktrace) {
+        super(rescueBody, canOmitBacktrace);
         this.handlingClassNodes = handlingClassNodes;
     }
 
@@ -48,7 +48,8 @@ public final class RescueClassesNode extends RescueNode {
     public RubyNode cloneUninitialized() {
         var copy = new RescueClassesNode(
                 cloneUninitialized(handlingClassNodes),
-                getRescueBody().cloneUninitialized());
+                getRescueBody().cloneUninitialized(),
+                canOmitBacktrace);
         return copy.copyFlags(this);
     }
 

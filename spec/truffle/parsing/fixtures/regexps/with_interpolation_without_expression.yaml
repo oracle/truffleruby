@@ -3,7 +3,6 @@ description: "a literal with interpolation but without expression (#{})"
 notes: >
   An empty expression is represented as a frozen empty string with
   (ObjectLiteralNode object = '') node.
-yarp_specific: true # RegexpOptions didn't have a 'literal' property
 focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /a#{}c/
@@ -13,6 +12,8 @@ ast: |
           encoding = ASCII-8BIT
           flags = 0
           rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
+          sourceCharIndex = 0
+          sourceLength = 7
       children:
           asTruffleStringNode =
               TruffleStringFactory$AsTruffleStringNodeGen
@@ -32,6 +33,8 @@ ast: |
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 1
+                                  sourceLength = 1
                                   tstring = a
               ToSNodeGen
                   children:
@@ -40,6 +43,8 @@ ast: |
                               attributes:
                                   flags = 0
                                   object = ""
+                                  sourceCharIndex = 2
+                                  sourceLength = 3
               ToSNodeGen
                   children:
                       valueNode_ =
@@ -47,5 +52,7 @@ ast: |
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 5
+                                  sourceLength = 1
                                   tstring = c
           ]

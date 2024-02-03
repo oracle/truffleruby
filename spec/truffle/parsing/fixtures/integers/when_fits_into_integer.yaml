@@ -7,4 +7,6 @@ ast: |
   IntegerFixnumLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 2
           value = 42

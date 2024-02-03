@@ -20,7 +20,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
-import org.truffleruby.parser.lexer.RubyLexer;
+import org.truffleruby.parser.MagicCommentParser;
 
 import com.oracle.truffle.api.TruffleFile;
 
@@ -95,7 +95,7 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
                 if (encodingCommentLine != null) {
                     var encodingComment = new TStringWithEncoding(
                             TStringUtils.fromJavaString(encodingCommentLine, Encodings.BINARY), Encodings.BINARY);
-                    var encoding = RubyLexer.parseMagicEncodingComment(encodingComment);
+                    var encoding = MagicCommentParser.parseMagicEncodingComment(encodingComment);
                     if (encoding != null) {
                         return encoding;
                     }

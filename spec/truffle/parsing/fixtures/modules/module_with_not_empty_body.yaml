@@ -13,6 +13,8 @@ ast: |
       attributes:
           flags = 1
           moduleBodyDefinition = ModuleBodyDefinition(name = <module:Foo>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null), callTarget = <module:Foo>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          sourceCharIndex = 0
+          sourceLength = 22
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -21,12 +23,16 @@ ast: |
                   attributes:
                       flags = 0
                       name = "Foo"
+                      sourceCharIndex = 0
+                      sourceLength = 22
                   children:
                       lexicalParentModuleNode_ =
                           LexicalScopeNode
                               attributes:
                                   flags = 0
                                   lexicalScope =  :: Object
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
       call targets:
           RubyRootNode
               attributes:
@@ -37,45 +43,62 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <module:Foo>, blockDepth = 0, parseName = <module:Foo>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 4:3], index=0, length=22, characters=module Foo\n  1\n  2\nend)
                   split = NEVER
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 22
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   InsideModuleDefinitionNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 0
+                                          sourceLength = 22
                                       children:
                                           body =
                                               SequenceNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = 13
+                                                      sourceLength = 5
                                                   children:
                                                       body = [
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 1
+                                                                  sourceCharIndex = 13
+                                                                  sourceLength = 1
                                                                   value = 1
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 1
+                                                                  sourceCharIndex = 17
+                                                                  sourceLength = 1
                                                                   value = 2
                                                       ]
                               ]

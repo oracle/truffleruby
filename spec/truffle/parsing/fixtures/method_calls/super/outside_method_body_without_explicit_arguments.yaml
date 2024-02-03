@@ -13,6 +13,8 @@ ast: |
           flags = 1
           frameOnStackMarkerSlot = -1
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sourceCharIndex = 0
+          sourceLength = 12
           type = LAMBDA
       call targets:
           RubyLambdaRootNode
@@ -36,32 +38,43 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 1:12], index=0, length=12, characters=-> { super })
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 12
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   ZSuperOutsideMethodNode
                                       attributes:
                                           flags = 1
                                           insideDefineMethod = false
+                                          sourceCharIndex = 5
+                                          sourceLength = 5
                                       children:
                                           lookupSuperMethodNode =
                                               LookupSuperMethodNodeGen

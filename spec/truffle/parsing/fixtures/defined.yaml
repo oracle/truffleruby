@@ -7,9 +7,13 @@ ast: |
   DefinedNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 16
       children:
           child =
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :foobar
+                      sourceCharIndex = 9
+                      sourceLength = 7

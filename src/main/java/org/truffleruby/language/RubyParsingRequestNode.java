@@ -21,7 +21,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -42,7 +42,7 @@ public final class RubyParsingRequestNode extends RubyBaseRootNode implements In
 
         final RubySource rubySource = new RubySource(source, language.getSourcePath(source));
 
-        final TranslatorDriver translator = new TranslatorDriver(context);
+        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context);
         callTarget = translator.parse(
                 rubySource,
                 ParserContext.TOP_LEVEL,

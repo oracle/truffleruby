@@ -11,3 +11,5 @@ ast: |
   RedoNode
       attributes:
           flags = 1
+          sourceCharIndex = 15
+          sourceLength = 4

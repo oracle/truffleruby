@@ -10,21 +10,29 @@ ast: |
       attributes:
           flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           left =
               ReadLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # foo
+                      sourceCharIndex = 0
+                      sourceLength = 10
                       type = FRAME_LOCAL
           right =
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # foo
+                      sourceCharIndex = 0
+                      sourceLength = 10
                   children:
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 8
+                                  sourceLength = 2
                                   value = 42

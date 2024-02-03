@@ -15,25 +15,33 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = true
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 32
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = true
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 14
                   children:
                       rescueBody =
                           ReadClassVariableNode
                               attributes:
                                   flags = 1
                                   name = "@@bar"
+                                  sourceCharIndex = 23
+                                  sourceLength = 5
                               children:
                                   lexicalScopeNode =
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object =  :: Object
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   lookupClassVariableNode =
                                       LookupClassVariableNodeGen
                                   resolveTargetModuleNode =
@@ -44,4 +52,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

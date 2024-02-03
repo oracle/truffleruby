@@ -21,18 +21,26 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           block =
               ToProcNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 4
+                      sourceLength = 8
                   children:
                       childNode_ =
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :symbol
+                                  sourceCharIndex = 5
+                                  sourceLength = 7
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

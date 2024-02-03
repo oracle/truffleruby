@@ -8,3 +8,5 @@ ast: |
       attributes:
           flags = 1
           object = UTF-8
+          sourceCharIndex = 0
+          sourceLength = 12

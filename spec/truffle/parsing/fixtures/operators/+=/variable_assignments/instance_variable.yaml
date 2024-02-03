@@ -11,6 +11,8 @@ ast: |
           flags = 0
           frozenProfile = false
           name = "@foo"
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           readSelfSlotNode =
               ReadFrameSlotNodeGen
@@ -22,12 +24,16 @@ ast: |
                       assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
                       flags = 0
                       parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                      sourceCharIndex = 0
+                      sourceLength = 10
                   children:
                       leftNode_ =
                           ReadInstanceVariableNode
                               attributes:
                                   flags = 0
                                   name = "@foo"
+                                  sourceCharIndex = 0
+                                  sourceLength = 10
                               children:
                                   readSelfSlotNode =
                                       ReadFrameSlotNodeGen
@@ -37,4 +43,6 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 8
+                                  sourceLength = 2
                                   value = 42

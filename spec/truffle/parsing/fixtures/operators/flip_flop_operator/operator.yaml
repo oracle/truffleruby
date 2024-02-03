@@ -15,16 +15,22 @@ ast: |
           flags = 1
           frameLevel = 0
           frameSlot = 3
+          sourceCharIndex = 12
+          sourceLength = 10
       children:
           begin =
               ReadLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # x
+                      sourceCharIndex = 13
+                      sourceLength = 1
                       type = FRAME_LOCAL
           end =
               ReadLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # x
+                      sourceCharIndex = 20
+                      sourceLength = 1
                       type = FRAME_LOCAL

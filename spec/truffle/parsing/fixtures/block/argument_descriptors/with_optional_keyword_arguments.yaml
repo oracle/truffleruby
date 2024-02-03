@@ -20,6 +20,8 @@ ast: |
           flags = 0
           frameOnStackMarkerSlot = 2
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+          sourceCharIndex = 5
+          sourceLength = 33
           type = PROC
       call targets:
           RubyProcRootNode
@@ -34,38 +36,51 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [a, c, b, d], requiredKeywordArgumentsCount = 2, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = a, type = keyreq), ArgumentDescriptor(name = b, type = key), ArgumentDescriptor(name = c, type = keyreq), ArgumentDescriptor(name = d, type = key)])
+                  sourceSection = SourceSection(source=<parse_ast> [1:6 - 2:3], index=5, length=33, characters=do |a:, b: 42, c:, d: 100500|\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 5
+                              sourceLength = 33
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 1 # a
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
                                                       flags = 0
                                                       name = :a
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
@@ -73,17 +88,23 @@ ast: |
                                       attributes:
                                           flags = 0
                                           frameSlot = 2 # b
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
                                                       flags = 0
                                                       name = :b
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       defaultValue =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 16
+                                                                  sourceLength = 2
                                                                   value = 42
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
@@ -91,12 +112,16 @@ ast: |
                                       attributes:
                                           flags = 0
                                           frameSlot = 3 # c
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
                                                       flags = 0
                                                       name = :c
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
@@ -104,23 +129,31 @@ ast: |
                                       attributes:
                                           flags = 0
                                           frameSlot = 4 # d
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadKeywordArgumentNodeGen
                                                   attributes:
                                                       flags = 0
                                                       name = :d
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       defaultValue =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 27
+                                                                  sourceLength = 6
                                                                   value = 100500
                                                       readUserKeywordsHashNode =
                                                           ReadUserKeywordsHashNode
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                               ]
                   checkKeywordArityNode =
                       CheckKeywordArityNode

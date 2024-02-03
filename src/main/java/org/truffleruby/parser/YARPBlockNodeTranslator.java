@@ -38,7 +38,6 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNodeGen;
 
-import java.util.Arrays;
 import java.util.function.Supplier;
 
 public final class YARPBlockNodeTranslator extends YARPTranslator {
@@ -51,8 +50,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
     }
 
     public RubyNode compileBlockNode(Nodes.Node body, Nodes.ParametersNode parameters, String[] locals,
-            boolean isStabbyLambda,
-            SourceSection sourceSection) {
+            boolean isStabbyLambda, SourceSection sourceSection) {
         declareLocalVariables(locals);
 
         final RubyNode loadArguments = new YARPLoadArgumentsTranslator(
@@ -143,7 +141,7 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
 
         // as opposed to lambdas and methods, procs may destructure a single Array argument
         if (shouldConsiderDestructuringArrayArg(arity)) {
-            final RubyNode readFirstArgumentNode = Translator.profileArgument(
+            final RubyNode readFirstArgumentNode = YARPTranslator.profileArgument(
                     language,
                     new ReadPreArgumentNode(0, arity.acceptsKeywords(), MissingArgumentBehavior.RUNTIME_ERROR));
             final SplatCastNode castArrayNode = SplatCastNodeGen
@@ -162,10 +160,8 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
             final RubyNode newDestructureArguments = translator.translate();
 
             final RubyNode arrayWasNotNil = YARPTranslator.sequence(
-                    Arrays.asList(
-                            writeArrayNode,
-                            NotNodeGen.create(
-                                    new IsNilNode(readArrayNode))));
+                    writeArrayNode,
+                    NotNodeGen.create(new IsNilNode(readArrayNode)));
 
             final RubyNode shouldDestructureAndArrayWasNotNil = AndNodeGen.create(
                     new ShouldDestructureNode(arity.acceptsKeywords()),
@@ -292,10 +288,10 @@ public final class YARPBlockNodeTranslator extends YARPTranslator {
     }
 
     private static RubyNode composeBody(TranslatorEnvironment environment, RubyNode prelude, RubyNode body) {
-        body = YARPTranslator.sequence(Arrays.asList(prelude, body));
+        body = YARPTranslator.sequence(prelude, body);
 
         if (environment.getFlipFlopStates().size() > 0) {
-            body = YARPTranslator.sequence(Arrays.asList(YARPTranslator.initFlipFlopStates(environment), body));
+            body = YARPTranslator.sequence(YARPTranslator.initFlipFlopStates(environment), body);
         }
 
         return body;

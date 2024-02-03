@@ -20,6 +20,8 @@ ast: |
           flags = 0
           frameOnStackMarkerSlot = 3
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+          sourceCharIndex = 15
+          sourceLength = 25
           type = PROC
       call targets:
           RubyProcRootNode
@@ -34,37 +36,50 @@ ast: |
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [3:6 - 5:3], index=15, length=25, characters=do\n  "foo" rescue bar\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 15
+                              sourceLength = 25
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   TryNodeGen
                                       attributes:
-                                          canOmitBacktrace = true
                                           flags = 0
+                                          sourceCharIndex = 20
+                                          sourceLength = 16
                                       children:
                                           rescueParts = [
                                               RescueStandardErrorNode
                                                   attributes:
+                                                      canOmitBacktrace = true
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       rescueBody =
                                                           ReadDeclarationVariableNode
@@ -72,6 +87,8 @@ ast: |
                                                                   flags = 0
                                                                   frameDepth = 1
                                                                   frameSlot = 2 # bar
+                                                                  sourceCharIndex = 33
+                                                                  sourceLength = 3
                                                                   type = FRAME_LOCAL
                                           ]
                                           tryPart =
@@ -79,5 +96,7 @@ ast: |
                                                   attributes:
                                                       encoding = UTF-8
                                                       flags = 1
+                                                      sourceCharIndex = 20
+                                                      sourceLength = 5
                                                       tstring = foo
                               ]

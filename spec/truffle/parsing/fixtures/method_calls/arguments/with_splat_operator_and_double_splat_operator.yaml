@@ -1,6 +1,5 @@
 subject: "Method call"
 description: "Arguments / with splat operator and double splat operator (*args, **keys)"
-yarp_specific: true # Use ArrayConcatNode instead of ArrayAppendOneNodeGen
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   foo(*bar, **baz)
@@ -19,11 +18,15 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 16
       children:
           arguments = [
               ArrayConcatNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       children = [
                           SplatCastNodeGen
@@ -32,6 +35,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = CONVERT
+                                  sourceCharIndex = 4
+                                  sourceLength = 4
                               children:
                                   childNode_ =
                                       RubyCallNode
@@ -48,20 +53,28 @@ ast: |
                                               methodName = "bar"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 5
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   values = [
                                       HashCastNodeGen$HashCastASTNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 10
+                                              sourceLength = 5
                                           children:
                                               childNode_ =
                                                   RubyCallNode
@@ -78,11 +91,15 @@ ast: |
                                                           methodName = "baz"
                                                           notEmptyKeywordsProfile = false
                                                           notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 12
+                                                          sourceLength = 3
                                                       children:
                                                           receiver =
                                                               SelfNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                   ]
                       ]
           ]
@@ -90,3 +107,5 @@ ast: |
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

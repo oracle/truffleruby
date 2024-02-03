@@ -7,4 +7,6 @@ ast: |
   BooleanLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 4
           value = true

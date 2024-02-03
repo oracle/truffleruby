@@ -29,6 +29,16 @@ describe "Truffle::Interop.meta_object" do
     Truffle::Interop.meta_object([1, 2, 3]).should == Array
   end
 
+  it "returns Range class for a range" do
+    Truffle::Interop.should.has_meta_object?(1..)
+    Truffle::Interop.should.has_meta_object?(1..2)
+    Truffle::Interop.should.has_meta_object?((1<<60)..(1<<61))
+
+    Truffle::Interop.meta_object(1..).should == Range
+    Truffle::Interop.meta_object(1..2).should == Range
+    Truffle::Interop.meta_object((1<<60)..(1<<61)).should == Range
+  end
+
   it "returns a Ruby class implementing all meta objects methods" do
     meta = Truffle::Interop.meta_object("string")
     Truffle::Interop.meta_simple_name(meta).should == 'String'

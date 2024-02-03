@@ -20,6 +20,8 @@ import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.literal.NilLiteralNode;
+import org.truffleruby.language.locals.ReadLocalNode;
+import org.truffleruby.language.locals.WriteLocalNode;
 
 // Could be used in ordinal multi-assignment and for destructuring array argument in method/proc parameters:
 // - a, (b, c) = 1, [2, 3]
@@ -164,11 +166,12 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     @Override
     // RequiredParameterNode is handled during destructuring method/proc arguments
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
-        // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
-        // NOTE: depth is not supposed to be used anyway so pass 0 value.
-        final RubyNode rubyNode = yarpTranslator.visitLocalVariableWriteNode(
-                new Nodes.LocalVariableWriteNode(node.name, 0, null, node.startOffset, node.length));
-        return ((AssignableNode) rubyNode).toAssignableNode();
+        final String name = node.name;
+        final ReadLocalNode lhs = yarpTranslator.getEnvironment().findLocalVarNode(name, null);
+        final RubyNode rhs = new DeadNode("YARPMultiTargetNodeTranslator#visitRequiredParameterNode");
+        final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
+
+        return rubyNode.toAssignableNode();
     }
 
     @Override

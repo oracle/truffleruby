@@ -28,8 +28,12 @@ public final class RescueSplatNode extends RescueNode {
     @Child private ArrayStoreLibrary stores;
     private final LoopConditionProfile loopProfile = LoopConditionProfile.create();
 
-    public RescueSplatNode(RubyLanguage language, RubyNode handlingClassesArray, RubyNode rescueBody) {
-        super(rescueBody);
+    public RescueSplatNode(
+            RubyLanguage language,
+            RubyNode handlingClassesArray,
+            RubyNode rescueBody,
+            boolean canOmitBacktrace) {
+        super(rescueBody, canOmitBacktrace);
         this.splatCastNode = SplatCastNodeGen.create(
                 language,
                 SplatCastNode.NilBehavior.EMPTY_ARRAY,
@@ -68,7 +72,8 @@ public final class RescueSplatNode extends RescueNode {
         var copy = new RescueSplatNode(
                 getLanguage(),
                 splatCastNode.getChildNode().cloneUninitialized(),
-                getRescueBody().cloneUninitialized());
+                getRescueBody().cloneUninitialized(),
+                canOmitBacktrace);
         return copy.copyFlags(this);
     }
 

@@ -11,16 +11,22 @@ ast: |
       attributes:
           flags = 1
           rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           left =
               AndNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       left =
                           DefinedNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   child =
                                       ReadConstantWithLexicalScopeNode
@@ -28,6 +34,8 @@ ast: |
                                               flags = 0
                                               lexicalScope =  :: Object
                                               name = "FOO"
+                                              sourceCharIndex = 0
+                                              sourceLength = 10
                                           children:
                                               getConstantNode =
                                                   GetConstantNodeGen
@@ -42,6 +50,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "FOO"
+                                  sourceCharIndex = 0
+                                  sourceLength = 10
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -55,14 +65,20 @@ ast: |
                   attributes:
                       flags = 0
                       name = "FOO"
+                      sourceCharIndex = 0
+                      sourceLength = 10
                   children:
                       moduleNode =
                           LexicalScopeNode
                               attributes:
                                   flags = 0
                                   lexicalScope =  :: Object
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                       valueNode =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 8
+                                  sourceLength = 2
                                   value = 42

@@ -9,12 +9,16 @@ ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           keyValues = [
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :a
+                      sourceCharIndex = 1
+                      sourceLength = 2
               RubyCallNode
                   attributes:
                       descriptor = NoKeywordArgumentsDescriptor
@@ -29,17 +33,25 @@ ast: |
                       methodName = "a"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 1
+                      sourceLength = 2
                   children:
                       receiver =
                           SelfNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :b
+                      sourceCharIndex = 5
+                      sourceLength = 2
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 8
+                      sourceLength = 2
                       value = 42
           ]

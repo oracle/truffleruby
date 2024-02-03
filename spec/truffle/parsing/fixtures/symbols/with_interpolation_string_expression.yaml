@@ -1,6 +1,5 @@
 subject: "Symbol"
 description: "Literal with interpolation when expressions are Strings"
-yarp_specific: String was represented with a single Symbol literal with joined sections into one
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   :"ab#{ "123" }cd"
@@ -8,25 +7,35 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 17
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               StringToSymbolNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 17
                   children:
                       stringNode_ =
                           InterpolatedStringNode
@@ -34,6 +43,8 @@ ast: |
                                   emptyTString = ""
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   children = [
                                       ToSNodeGen
@@ -43,6 +54,8 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 1
+                                                          sourceCharIndex = 2
+                                                          sourceLength = 2
                                                           tstring = ab
                                       ToSNodeGen
                                           children:
@@ -51,6 +64,8 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 0
+                                                          sourceCharIndex = 7
+                                                          sourceLength = 5
                                                           tstring = 123
                                       ToSNodeGen
                                           children:
@@ -59,6 +74,8 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 0
+                                                          sourceCharIndex = 14
+                                                          sourceLength = 2
                                                           tstring = cd
                                   ]
           ]

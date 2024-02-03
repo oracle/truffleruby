@@ -2,8 +2,6 @@ subject: "Return"
 description: "return operator at the top level in ensure block"
 notes: >
   Is represented by LocalReturnNode node
-yarp_specific: true # don't handle this case and don't simplify AST to a single `return ...` operator
-focused_on_node: "org.truffleruby.language.RubyTopLevelRootNode"
 ruby: |
   begin
   ensure
@@ -27,44 +25,61 @@ ast: |
           retryProfile = false
           returnID = org.truffleruby.language.control.ReturnID@...
           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <top (required)>, blockDepth = 0, parseName = <top (required)>, notes = null, argumentDescriptors = null)
+          sourceSection = SourceSection(source=<parse_ast> [1:1 - 4:3], index=0, length=28, characters=begin\nensure\n  return 42\nend)
           split = HEURISTIC
       children:
           body =
               SequenceNode
                   attributes:
                       flags = 12
+                      sourceCharIndex = 0
+                      sourceLength = 28
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 0 # (self)
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   valueNode =
                                       ProfileArgumentNodeGen
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               childNode_ =
                                                   ReadSelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           EnsureNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 0
+                                  sourceLength = 28
                               children:
                                   ensurePart =
                                       LocalReturnNode
                                           attributes:
                                               flags = 1
+                                              sourceCharIndex = 15
+                                              sourceLength = 9
                                           children:
                                               value =
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 22
+                                                          sourceLength = 2
                                                           value = 42
                                   tryPart =
                                       NilLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                       ]

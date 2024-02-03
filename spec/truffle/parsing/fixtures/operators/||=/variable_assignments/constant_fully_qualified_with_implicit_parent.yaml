@@ -10,13 +10,19 @@ ast: |
       attributes:
           flags = 0
           name = "FOO"
+          sourceCharIndex = -1
+          sourceLength = 0
       children:
           moduleNode =
               ObjectClassLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
           valueNode =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 10
+                      sourceLength = 2
                       value = 42

@@ -12,6 +12,8 @@ ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 30
       children:
           postNodes = [
               WriteFrameSlotNodeGen
@@ -32,22 +34,30 @@ ast: |
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 11
+                      sourceLength = 19
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 11
+                                  sourceLength = 5
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 18
+                                  sourceLength = 5
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 25
+                                  sourceLength = 5
                                   tstring = baz
                       ]
           splatCastNode =
@@ -57,3 +67,5 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = ARRAY_WITH_NIL
+                      sourceCharIndex = -1
+                      sourceLength = 0

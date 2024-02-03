@@ -2,8 +2,6 @@ subject: "END block"
 description: "END { ... }"
 notes: >
   Is translated into a `Truffle::KernelOperations.at_exit(false) { ... }` call.
-yarp_specific: true # don't optimize reading KernelOperations constant
-                    # with TruffleKernelOperationsModuleLiteralNode
 focused_on_node: "org.truffleruby.language.control.OnceNode"
 ruby: |
   END {
@@ -15,6 +13,8 @@ ast: |
       attributes:
           flags = 1
           holder = org.truffleruby.language.control.OnceNode$Holder@...
+          sourceCharIndex = 0
+          sourceLength = 15
       children:
           child =
               CatchBreakNode
@@ -22,12 +22,16 @@ ast: |
                       breakID = org.truffleruby.language.control.BreakID@...
                       flags = 0
                       isWhile = false
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       body =
                           FrameOnStackNode
                               attributes:
                                   flags = 0
                                   frameOnStackMarkerSlot = 2
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   child =
                                       RubyCallNode
@@ -44,11 +48,15 @@ ast: |
                                               methodName = "at_exit"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               arguments = [
                                                   BooleanLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                           value = false
                                               ]
                                               block =
@@ -59,6 +67,8 @@ ast: |
                                                           flags = 0
                                                           frameOnStackMarkerSlot = 2
                                                           sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                           type = PROC
                                                       call targets:
                                                           RubyProcRootNode
@@ -73,35 +83,48 @@ ast: |
                                                                   retryProfile = false
                                                                   returnID = org.truffleruby.language.control.ReturnID@...
                                                                   sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                                                  sourceSection = SourceSection(source=<parse_ast> available=false)
                                                                   split = HEURISTIC
                                                               children:
                                                                   body =
                                                                       SequenceNode
                                                                           attributes:
                                                                               flags = 12
+                                                                              sourceCharIndex = 0
+                                                                              sourceLength = -1
                                                                           children:
                                                                               body = [
                                                                                   WriteLocalVariableNode
                                                                                       attributes:
                                                                                           flags = 0
                                                                                           frameSlot = 0 # (self)
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                                                       children:
                                                                                           valueNode =
                                                                                               ProfileArgumentNodeGen
                                                                                                   attributes:
                                                                                                       flags = 0
+                                                                                                      sourceCharIndex = -1
+                                                                                                      sourceLength = 0
                                                                                                   children:
                                                                                                       childNode_ =
                                                                                                           ReadSelfNode
                                                                                                               attributes:
                                                                                                                   flags = 0
+                                                                                                                  sourceCharIndex = -1
+                                                                                                                  sourceLength = 0
                                                                                   IntegerFixnumLiteralNode
                                                                                       attributes:
                                                                                           flags = 1
+                                                                                          sourceCharIndex = 8
+                                                                                          sourceLength = 1
                                                                                           value = 1
                                                                                   IntegerFixnumLiteralNode
                                                                                       attributes:
                                                                                           flags = 1
+                                                                                          sourceCharIndex = 12
+                                                                                          sourceLength = 1
                                                                                           value = 2
                                                                               ]
                                               receiver =
@@ -109,6 +132,8 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           name = "KernelOperations"
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                       children:
                                                           moduleNode =
                                                               ReadConstantWithLexicalScopeNode
@@ -116,6 +141,8 @@ ast: |
                                                                       flags = 0
                                                                       lexicalScope =  :: Object
                                                                       name = "Truffle"
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                                                   children:
                                                                       getConstantNode =
                                                                           GetConstantNodeGen

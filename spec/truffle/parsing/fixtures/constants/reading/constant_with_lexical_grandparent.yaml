@@ -8,12 +8,16 @@ ast: |
       attributes:
           flags = 1
           name = "Baz"
+          sourceCharIndex = 0
+          sourceLength = 13
       children:
           moduleNode =
               ReadConstantNode
                   attributes:
                       flags = 0
                       name = "Bar"
+                      sourceCharIndex = 0
+                      sourceLength = 8
                   children:
                       moduleNode =
                           ReadConstantWithLexicalScopeNode
@@ -21,6 +25,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "Foo"
+                                  sourceCharIndex = 0
+                                  sourceLength = 3
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen

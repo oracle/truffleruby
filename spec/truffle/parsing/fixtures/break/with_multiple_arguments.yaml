@@ -11,20 +11,28 @@ ast: |
           breakID = org.truffleruby.language.control.BreakID@...
           flags = 1
           ignoreMarker = true
+          sourceCharIndex = 13
+          sourceLength = 16
       children:
           child =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 19
+                      sourceLength = 10
                   children:
                       values = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 19
+                                  sourceLength = 2
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 23
+                                  sourceLength = 6
                                   value = 100500
                       ]

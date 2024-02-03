@@ -18,8 +18,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.MagicCommentParser;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
@@ -70,7 +70,8 @@ public final class FileLoader {
 
         final byte[] sourceBytes = file.readAllBytes();
 
-        var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(sourceBytes, Encodings.UTF_8);
+        var sourceTString = MagicCommentParser.createSourceTStringBasedOnMagicEncodingComment(sourceBytes,
+                Encodings.UTF_8);
 
         final Source source = buildSource(file, path, sourceTString, isInternal(path), false);
         return new RubySource(source, path, sourceTString);

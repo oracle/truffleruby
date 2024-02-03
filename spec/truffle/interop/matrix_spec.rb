@@ -231,12 +231,22 @@ describe 'Interop:' do
       strange_symbol: Subject.(:"strange -=@\0x2397"),
       empty_string:   Subject.() { "" },
       string:         Subject.(name: AN_INSTANCE, doc: true) { "string" },
+      frozen_string:  Subject.() { "frozen".freeze },
 
       zero:          Subject.(0),
       small_integer: Subject.(1, name: AN_INSTANCE, doc: true),
+      long_integer:  Subject.(1 << 60),
+      big_integer:   Subject.(1 << 80),
       zero_float:    Subject.(0.0),
       small_float:   Subject.(1.0, name: AN_INSTANCE, doc: true),
       big_decimal:   Subject.(BigDecimal('1e99'), name: AN_INSTANCE, doc: true),
+
+      # Other immutables
+      range:         Subject.(1..),
+      int_range:     Subject.(1..2),
+      long_range:    Subject.((1 << 60)..(1 << 61)),
+      encoding:      Subject.(Encoding::UTF_8),
+      regexp:        Subject.(/regexp/),
 
       object:        Subject.(name: AN_INSTANCE, doc: true) { Object.new },
       frozen_object: Subject.(name: "a frozen `Object`", doc: true) { Object.new.freeze },
@@ -312,9 +322,9 @@ describe 'Interop:' do
           interop_library_reference) { TruffleInteropSpecs::PolyglotHash.new }
   }.each { |key, subject| subject.key = key }
 
-  immediate_subjects     = [:false, :true, :zero, :small_integer, :zero_float, :small_float]
+  immediate_subjects     = [:false, :true, :zero, :small_integer, :long_integer, :zero_float, :small_float]
   non_immediate_subjects = SUBJECTS.keys - immediate_subjects
-  frozen_subjects        = [:big_decimal, :nil, :symbol, :strange_symbol, :frozen_object]
+  frozen_subjects        = SUBJECTS.each_pair.select { |key, subject| key != :raise_exception && subject.value.frozen? }.map(&:first)
   exception_subjects     = [:exception, :exception_with_cause, :raise_exception]
 
   # not part of the standard matrix, not considered in last rest case
@@ -352,6 +362,28 @@ describe 'Interop:' do
   end
 
   MESSAGES = [
+      Delimiter["toDisplayString()"],
+      Message[:toDisplayString,
+              Test.new("returns a String representing the object", :strange_symbol, :raise_exception) do |subject|
+                Truffle::Interop.should.string? Truffle::Interop.to_display_string(subject)
+              end,
+              Test.new("returns the same as `subject.inspect`") do |subject|
+                Truffle::Interop.to_display_string(subject).should == subject.inspect
+              end],
+
+      Delimiter["MetaObject related messages"],
+      Message[:hasMetaObject,
+              Test.new("returns true", *non_immediate_subjects, &predicate(:has_meta_object?, true)),
+              Test.new("returns false", &predicate(:has_meta_object?, false))],
+      Message[:getMetaObject,
+              Test.new("returns the Ruby exception's class", :raise_exception) do |subject|
+                Truffle::Interop.meta_object(subject).should == RuntimeError
+              end,
+              Test.new("returns the same Ruby class as `subject.class`") do |subject|
+                # It works for immediate_subjects too because of Truffle::Interop.meta_object handling that
+                Truffle::Interop.meta_object(subject).should == subject.class
+              end],
+
       Delimiter["`null` related messages"],
       Message[:isNull,
               Test.new("returns true", :nil, &predicate(:null?, true)),

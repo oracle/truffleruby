@@ -8,4 +8,6 @@ ast: |
       attributes:
           encoding = UTF-8
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 8
           tstring = <parse_ast>

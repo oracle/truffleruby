@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,14 +97,6 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    protected final RubyNode translateNodeOrDeadNode(Nodes.Node node, String label) {
-        if (node != null) {
-            return node.accept(this);
-        } else {
-            return new DeadNode(label);
-        }
-    }
-
     protected final RubyContextSourceNode createCallNode(RubyNode receiver, String method, RubyNode... arguments) {
         return createCallNode(true, receiver, method, arguments);
     }
@@ -154,7 +147,11 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected final SourceSection getSourceSection(Nodes.Node yarpNode) {
-        return source.createSection(yarpNode.startOffset, yarpNode.length);
+        if (yarpNode.length == 0 && yarpNode.startOffset == 0) {
+            return source.createUnavailableSection();
+        } else {
+            return source.createSection(yarpNode.startOffset, yarpNode.length);
+        }
     }
 
     public final RubyNode assignPositionAndFlags(Nodes.Node yarpNode, RubyNode rubyNode) {
@@ -174,7 +171,11 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     }
 
     protected static void assignPositionOnly(Nodes.Node yarpNode, RubyNode rubyNode) {
-        rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        if (yarpNode.length == 0 && yarpNode.startOffset == 0) {
+            // (0, 0) means unknown location, so do not set the source section and keep the node as !hasSource()
+        } else {
+            rubyNode.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        }
     }
 
     // assign position based on a list of nodes (arguments list, exception classes list in a rescue section, etc)
@@ -183,6 +184,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         final Nodes.Node last = ArrayUtils.getLast(nodes);
 
         final int length = last.endOffset() - first.startOffset;
+        assert length > 0 : length;
         rubyNode.unsafeSetSourceSection(first.startOffset, length);
     }
 
@@ -200,7 +202,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
-    protected static RubyNode sequence(Nodes.Node yarpNode, List<RubyNode> sequence) {
+    protected static RubyNode sequence(Nodes.Node yarpNode, RubyNode... sequence) {
         assert !yarpNode.hasNewLineFlag() : "Expected node passed to sequence() to not have a newline flag";
 
         RubyNode sequenceNode = sequence(sequence);
@@ -212,8 +214,8 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         return sequenceNode;
     }
 
-    protected static RubyNode sequence(List<RubyNode> sequence) {
-        final List<RubyNode> flattened = Translator.flatten(sequence, true);
+    protected static RubyNode sequence(RubyNode... sequence) {
+        final List<RubyNode> flattened = flatten(sequence);
 
         if (flattened.isEmpty()) {
             return new NilLiteralNode();
@@ -223,6 +225,39 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
             final RubyNode[] flatSequence = flattened.toArray(RubyNode.EMPTY_ARRAY);
             return new SequenceNode(flatSequence);
         }
+    }
+
+    private static List<RubyNode> flatten(RubyNode[] sequence) {
+        return flattenFromN(sequence, 0);
+    }
+
+    private static List<RubyNode> flattenFromN(RubyNode[] sequence, int n) {
+        final List<RubyNode> flattened = new ArrayList<>();
+
+        for (; n < sequence.length; n++) {
+            final boolean lastNode = n == sequence.length - 1;
+            final RubyNode node = sequence[n];
+
+            if (node == null) {
+                continue;
+            }
+
+            if (node instanceof SequenceNode) {
+                flattened.addAll(flatten(((SequenceNode) node).getSequence()));
+            } else if (node.canSubsumeFollowing() && !lastNode) {
+                List<RubyNode> rest = flattenFromN(sequence, n + 1);
+                if (rest.size() == 1) {
+                    flattened.add(node.subsumeFollowing(rest.get(0)));
+                } else {
+                    flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(RubyNode.EMPTY_ARRAY))));
+                }
+                return flattened;
+            } else {
+                flattened.add(node);
+            }
+        }
+
+        return flattened;
     }
 
     protected final RubyNode[] translate(Nodes.Node[] nodes) {

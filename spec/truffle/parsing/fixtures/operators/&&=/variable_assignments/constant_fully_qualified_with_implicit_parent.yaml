@@ -10,34 +10,48 @@ ast: |
       attributes:
           definition = assignment
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           child =
               AndNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       left =
                           ReadConstantNode
                               attributes:
                                   flags = 0
                                   name = "FOO"
+                                  sourceCharIndex = 0
+                                  sourceLength = 5
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                       right =
                           WriteConstantNode
                               attributes:
                                   flags = 0
                                   name = "FOO"
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   valueNode =
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 10
+                                              sourceLength = 2
                                               value = 42

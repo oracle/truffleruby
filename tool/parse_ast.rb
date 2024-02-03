@@ -44,11 +44,12 @@ puts "Source:"
 puts code
 puts
 
-print "AST:"
 if RUBY_ENGINE == "jruby"
+  print "AST:"
   require 'jruby'
   ast_to_string = JRuby.parse(code).to_string
 else
+  puts "AST:"
   ast_to_string = Truffle::Debug.parse_ast(code)
 end
 puts indent(ast_to_string)

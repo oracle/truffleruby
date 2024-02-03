@@ -8,3 +8,5 @@ ast: |
       attributes:
           flags = 1
           object = RubyRegexp(source = abc, options = RegexpOptions(kcode: NONE, extended, ignorecase, kcodeDefault, literal, multiline), encoding = US-ASCII)
+          sourceCharIndex = 0
+          sourceLength = 8

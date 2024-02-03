@@ -22,6 +22,8 @@ ast: |
           methodName = "foo"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 9
       children:
           arguments = [
               SplatCastNodeGen
@@ -30,6 +32,8 @@ ast: |
                       copy = false
                       flags = 0
                       nilBehavior = CONVERT
+                      sourceCharIndex = 4
+                      sourceLength = 4
                   children:
                       childNode_ =
                           RubyCallNode
@@ -46,13 +50,19 @@ ast: |
                                   methodName = "bar"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 5
+                                  sourceLength = 3
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
           ]
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
