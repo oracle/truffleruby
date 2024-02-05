@@ -796,6 +796,8 @@ public abstract class CExtNodes {
 
     }
 
+    /** Alternative to rb_str_new*() which does not copy the bytes from native memory, to use when the copy is
+     * unnecessary. */
     @CoreMethod(names = "rb_tr_temporary_native_string", onSingleton = true, required = 3, lowerFixnum = 2)
     public abstract static class TemporaryNativeStringNode extends CoreMethodArrayArgumentsNode {
 
