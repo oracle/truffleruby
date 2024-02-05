@@ -21,8 +21,6 @@ import org.prism.ParseResult;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.loader.ResourceLoader;
-import org.truffleruby.parser.ParseEnvironment;
-import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -39,7 +37,7 @@ public final class ParserCache {
             final Map<String, Pair<ParseResult, Source>> cache = new HashMap<>();
 
             for (String coreFile : CoreLibrary.CORE_FILES) {
-                //intern() to improve footprint
+                // intern() to improve footprint
                 final String path = (defaultCoreLibraryPath + coreFile).intern();
                 final RubySource source = loadSource(path);
                 cache.put(path, parse(source));
@@ -62,14 +60,13 @@ public final class ParserCache {
     }
 
     private static Pair<ParseResult, Source> parse(RubySource source) {
-        var language = RubyLanguage.getCurrentLanguage();
         var yarpSource = YARPTranslatorDriver.createYARPSource(source.getBytes());
-        var parseEnvironment = new ParseEnvironment(language, source, yarpSource, ParserContext.TOP_LEVEL, null);
+        var sourcePath = RubyLanguage.getCorePath(source.getSource()).intern();
 
-        var parseResult = YARPTranslatorDriver.parseToYARPAST(language, source, Collections.emptyList(),
-                parseEnvironment);
+        var parseResult = YARPTranslatorDriver.parseToYARPAST(source, sourcePath, yarpSource, Collections.emptyList(),
+                false);
 
-        YARPTranslatorDriver.handleWarningsErrorsNoContext(language, parseResult, source, yarpSource);
+        YARPTranslatorDriver.handleWarningsErrorsNoContext(parseResult, sourcePath, yarpSource);
 
         return Pair.create(parseResult, source.getSource());
     }
