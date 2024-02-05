@@ -1,5 +1,2 @@
-fails:Optional constant assignment with &&= causes side-effects of the module part to be applied only once (when assigns)
-fails:Optional variable assignments using ||= using a #[] ignores method visibility when receiver is self
-fails:Optional variable assignments using &&= using a #[] ignores method visibility when receiver is self
 fails:Optional variable assignments using ||= using a #[] splatted argument calls #to_a only once
 fails:Optional variable assignments using &&= using a #[] splatted argument calls #to_a only once
