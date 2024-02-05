@@ -1251,6 +1251,10 @@ end
       result2 = @s.rb_enc_interned_str_cstr(str, Encoding::UTF_8)
       result1.should_not.equal?(result2)
     end
+
+    it "returns the same string as String#-@" do
+      @s.rb_enc_interned_str_cstr("hello", Encoding::UTF_8).should.equal?(-"hello")
+    end
   end
 
   describe "rb_str_to_interned_str" do
@@ -1266,6 +1270,16 @@ end
       result1 = @s.rb_str_to_interned_str(str)
       result2 = @s.rb_str_to_interned_str(str)
       result1.should.equal?(result2)
+    end
+
+    it "returns different frozen strings for different encodings" do
+      result1 = @s.rb_str_to_interned_str("hello".force_encoding(Encoding::US_ASCII))
+      result2 = @s.rb_str_to_interned_str("hello".force_encoding(Encoding::UTF_8))
+      result1.should_not.equal?(result2)
+    end
+
+    it "returns the same string as String#-@" do
+      @s.rb_str_to_interned_str("hello").should.equal?(-"hello")
     end
   end
 end
