@@ -156,6 +156,8 @@ public final class YARPTranslatorDriver {
         // Parse to the YARP AST
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
 
+        final String sourcePath = rubySource.getSourcePath(language).intern();
+
         // Only use the cache while loading top-level core library files, as eval() later could use
         // the same Source name but should not use the cache. For instance,
         // TOPLEVEL_BINDING.eval("self") would use the cache which is wrong.
@@ -168,12 +170,12 @@ public final class YARPTranslatorDriver {
             parseResult = context.getMetricsProfiler().callWithMetrics(
                     "parsing",
                     source.getName(),
-                    () -> parseToYARPAST(language, rubySource, localsInScopes,
-                            parseEnvironment));
+                    () -> parseToYARPAST(rubySource, sourcePath, yarpSource, localsInScopes,
+                            language.options.FROZEN_STRING_LITERALS));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
-        handleWarningsErrorsPrimitives(context, language, parseResult, rubySource, parseEnvironment, rubyWarnings);
+        handleWarningsErrorsPrimitives(context, parseResult, rubySource, sourcePath, parseEnvironment, rubyWarnings);
 
         var node = parseResult.value;
 
@@ -355,18 +357,14 @@ public final class YARPTranslatorDriver {
         }
     }
 
-    public static ParseResult parseToYARPAST(RubyLanguage language, RubySource rubySource,
-            List<List<String>> localsInScopes, ParseEnvironment parseEnvironment) {
+    public static ParseResult parseToYARPAST(RubySource rubySource, String sourcePath, Nodes.Source yarpSource,
+            List<List<String>> localsInScopes, boolean frozenStringLiteral) {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
-
-        // intern() to improve footprint
-        String sourcePath = rubySource.getSourcePath(language).intern();
 
         byte[] sourceBytes = rubySource.getBytes();
         final byte[] filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
         int line = rubySource.getLineOffset() + 1;
         byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
-        boolean frozenStringLiteral = language.options.FROZEN_STRING_LITERALS;
         var version = ParsingOptions.SyntaxVersion.V3_3_0;
 
         byte[][][] scopes;
@@ -400,16 +398,12 @@ public final class YARPTranslatorDriver {
                 scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
-        Nodes.Source yarpSource = parseEnvironment.yarpSource;
         return YARPLoader.load(serializedBytes, yarpSource, rubySource);
     }
 
-    public static void handleWarningsErrorsPrimitives(RubyContext context, RubyLanguage language,
-            ParseResult parseResult, RubySource rubySource, ParseEnvironment parseEnvironment,
+    public static void handleWarningsErrorsPrimitives(RubyContext context, ParseResult parseResult,
+            RubySource rubySource, String sourcePath, ParseEnvironment parseEnvironment,
             RubyDeferredWarnings rubyWarnings) {
-
-        // intern() to improve footprint
-        String sourcePath = rubySource.getSourcePath(language).intern();
 
         final ParseResult.Error[] errors = parseResult.errors;
 
@@ -464,23 +458,18 @@ public final class YARPTranslatorDriver {
         parseEnvironment.allowTruffleRubyPrimitives = allowTruffleRubyPrimitives;
     }
 
-    public static void handleWarningsErrorsNoContext(RubyLanguage language, ParseResult parseResult,
-            RubySource rubySource, Nodes.Source yarpSource) {
+    public static void handleWarningsErrorsNoContext(ParseResult parseResult, String sourcePath,
+            Nodes.Source yarpSource) {
         if (parseResult.errors.length > 0) {
             var error = parseResult.errors[0];
             throw CompilerDirectives.shouldNotReachHere("Parse error in " +
-                    fileLineYARPSource(error.location, language, rubySource, yarpSource) + ": " + error.message);
+                    sourcePath + ":" + yarpSource.line(error.location.startOffset) + ": " + error.message);
         }
 
         for (var warning : parseResult.warnings) {
             throw CompilerDirectives.shouldNotReachHere("Warning in " +
-                    fileLineYARPSource(warning.location, language, rubySource, yarpSource) + ": " + warning.message);
+                    sourcePath + ":" + yarpSource.line(warning.location.startOffset) + ": " + warning.message);
         }
-    }
-
-    private static String fileLineYARPSource(Nodes.Location location, RubyLanguage language, RubySource rubySource,
-            Nodes.Source yarpSource) {
-        return rubySource.getSourcePath(language) + ":" + yarpSource.line(location.startOffset);
     }
 
     public static Nodes.Source createYARPSource(byte[] sourceBytes) {
