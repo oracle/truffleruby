@@ -15,6 +15,7 @@ import shutil
 import sys
 
 import mx
+import mx_util
 import mx_gate
 import mx_sdk
 import mx_sdk_vm
@@ -98,7 +99,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         return False, 'up to date'
 
     def build(self):
-        mx.ensure_dir_exists(self.subject.get_output_root())
+        mx_util.ensure_dir_exists(self.subject.get_output_root())
         for result, _, _ in self.subject.launchers():
             with open(result, "w") as f:
                 f.write(self.contents(result))
