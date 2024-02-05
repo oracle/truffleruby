@@ -9,17 +9,14 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen.FixnumLowerASTNodeGen;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SourceIndexLength;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.source.Source;
 
 public final class PrimitiveNodeConstructor {
 
@@ -39,13 +36,7 @@ public final class PrimitiveNodeConstructor {
         return factory;
     }
 
-    public RubyNode createInvokePrimitiveNode(Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
-        if (arguments.length != getPrimitiveArity()) {
-            throw new Error(
-                    "Incorrect number of arguments (expected " + getPrimitiveArity() + ") at " +
-                            RubyLanguage.getCurrentContext().fileLine(sourceSection.toSourceSection(source)));
-        }
-
+    public RubyNode createInvokePrimitiveNode(RubyNode[] arguments) {
         for (int n = 0; n < arguments.length; n++) {
             if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
                 arguments[n] = FixnumLowerASTNodeGen.create(arguments[n]);
@@ -58,9 +49,7 @@ public final class PrimitiveNodeConstructor {
             }
         }
 
-        final RubyNode primitiveNode = (RubyNode) CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
-        primitiveNode.unsafeSetSourceSection(sourceSection);
-        return primitiveNode;
+        return (RubyNode) CoreMethodNodeManager.createNodeFromFactory(factory, arguments);
     }
 
 }

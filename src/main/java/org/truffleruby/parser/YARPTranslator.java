@@ -61,7 +61,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
@@ -553,7 +552,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         if (node.expression == null) {
             // def foo(&) a(&) end
-            valueNode = environment.findLocalVarNode(FORWARDED_BLOCK_NAME, null);
+            valueNode = environment.findLocalVarNode(FORWARDED_BLOCK_NAME);
         } else {
             // a(&:b)
             valueNode = node.expression.accept(this);
@@ -653,18 +652,24 @@ public class YARPTranslator extends YARPBaseTranslator {
             return assignPositionAndFlags(node, rubyNode);
         }
 
-        // Translates something that looks like
-        //   Primitive.foo arg1, arg2, argN
-        // into
-        //   FooPrimitiveNode(arg1, arg2, ..., argN)
+        // A Primitive call.
+        // `Primitive.foo arg1, arg2, argN` is translated into `FooPrimitiveNode(arg1, arg2, ..., argN)`.
         if (parseEnvironment.canUsePrimitives() &&
                 node.receiver instanceof Nodes.ConstantReadNode constantReadNode &&
                 constantReadNode.name.equals("Primitive")) {
 
             final PrimitiveNodeConstructor constructor = language.primitiveManager.getPrimitive(methodName);
-            // TODO: avoid SourceIndexLength
-            final SourceIndexLength sourceSection = new SourceIndexLength(node.startOffset, node.length);
-            return constructor.createInvokePrimitiveNode(source, sourceSection, translatedArguments);
+
+            if (translatedArguments.length != constructor.getPrimitiveArity()) {
+                throw new Error(
+                        "Incorrect number of arguments (expected " + constructor.getPrimitiveArity() + ") at " +
+                                RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+            }
+
+            final RubyNode invokePrimitiveNode = constructor.createInvokePrimitiveNode(translatedArguments);
+
+            assignPositionAndFlags(node, invokePrimitiveNode);
+            return invokePrimitiveNode;
         }
 
         final var callNodeParameters = new RubyCallNodeParameters(
@@ -1914,7 +1919,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                     //   def foo(**)
                     //     bar(**)
                     //   end
-                    valueNode = environment.findLocalVarNode(DEFAULT_KEYWORD_REST_NAME, null);
+                    valueNode = environment.findLocalVarNode(DEFAULT_KEYWORD_REST_NAME);
                 }
 
                 hashConcats.add(HashCastNodeGen.HashCastASTNodeGen.create(valueNode));
@@ -2465,7 +2470,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitLocalVariableReadNode(Nodes.LocalVariableReadNode node) {
         final String name = node.name;
 
-        final RubyNode rubyNode = environment.findLocalVarNode(name, null);
+        final RubyNode rubyNode = environment.findLocalVarNode(name);
 
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -2521,7 +2526,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public WriteLocalNode visitLocalVariableWriteNode(Nodes.LocalVariableWriteNode node) {
         final String name = node.name;
-        final ReadLocalNode lhs = environment.findLocalVarNode(name, null);
+        final ReadLocalNode lhs = environment.findLocalVarNode(name);
         final RubyNode rhs = node.value.accept(this);
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
@@ -2532,7 +2537,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public WriteLocalNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
         final String name = node.name;
-        final ReadLocalNode lhs = environment.findLocalVarNode(name, null);
+        final ReadLocalNode lhs = environment.findLocalVarNode(name);
         final RubyNode rhs = new DeadNode("YARPTranslator#visitLocalVariableTargetNode");
         final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
 
@@ -2606,7 +2611,6 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode[] setters = new RubyNode[numberOfNames];
         final RubyNode[] nilSetters = new RubyNode[numberOfNames];
         final int tempSlot = environment.declareLocalTemp("match_data");
-        final var sourceSection = new SourceIndexLength(node.startOffset, node.length);
 
         for (int i = 0; i < numberOfNames; i++) {
             final String name = names[i];
@@ -2618,12 +2622,12 @@ public class YARPTranslator extends YARPBaseTranslator {
                 environmentToDeclareIn = environmentToDeclareIn.getParent();
             }
             environmentToDeclareIn.declareVar(name);
-            nilSetters[i] = match2NilSetter(name, sourceSection);
-            setters[i] = match2NonNilSetter(name, tempSlot, sourceSection);
+            nilSetters[i] = match2NilSetter(name);
+            setters[i] = match2NonNilSetter(name, tempSlot);
         }
 
         final RubyNode readNode = ReadGlobalVariableNodeGen.create("$~");
-        final ReadLocalNode tempVarReadNode = environment.readNode(tempSlot, sourceSection);
+        final ReadLocalNode tempVarReadNode = environment.readNode(tempSlot);
         final RubyNode readMatchDataNode = tempVarReadNode.makeWriteNode(readNode);
         final RubyNode rubyNode = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(matchNode, readMatchDataNode,
                 setters, nilSetters);
@@ -2631,13 +2635,13 @@ public class YARPTranslator extends YARPBaseTranslator {
         return assignPositionAndFlags(node, rubyNode);
     }
 
-    private RubyNode match2NilSetter(String name, SourceIndexLength position) {
-        return environment.findLocalVarNode(name, position).makeWriteNode(new NilLiteralNode());
+    private RubyNode match2NilSetter(String name) {
+        return environment.findLocalVarNode(name).makeWriteNode(new NilLiteralNode());
     }
 
-    private RubyNode match2NonNilSetter(String name, int tempSlot, SourceIndexLength position) {
-        ReadLocalNode varNode = environment.findLocalVarNode(name, position);
-        ReadLocalNode tempVarNode = environment.readNode(tempSlot, position);
+    private RubyNode match2NonNilSetter(String name, int tempSlot) {
+        ReadLocalNode varNode = environment.findLocalVarNode(name);
+        ReadLocalNode tempVarNode = environment.readNode(tempSlot);
         MatchDataNodes.GetFixedNameMatchNode getIndexNode = new MatchDataNodes.GetFixedNameMatchNode(tempVarNode,
                 language.getSymbol(name));
         return varNode.makeWriteNode(getIndexNode);
@@ -3125,7 +3129,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             //   end
 
             // no need for SplatCastNodeGen for * because it's always an Array and cannot be reassigned
-            rubyNode = environment.findLocalVarNode(DEFAULT_REST_NAME, null);
+            rubyNode = environment.findLocalVarNode(DEFAULT_REST_NAME);
         }
 
         return assignPositionAndFlags(node, rubyNode);
@@ -3183,7 +3187,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         if (blockNode != null) {
             return blockNode;
         } else {
-            return environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
+            return environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME);
         }
     }
 
@@ -3304,7 +3308,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var argumentsAndBlock = translateArgumentsAndBlock(node.arguments, null, "<yield>");
 
-        RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
+        RubyNode readBlock = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME);
 
         var rubyNode = new YieldExpressionNode(
                 argumentsAndBlock.isSplatted,
