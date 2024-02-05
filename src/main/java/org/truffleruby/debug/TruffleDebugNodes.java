@@ -106,7 +106,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
-import org.truffleruby.parser.ParseEnvironment;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
@@ -261,12 +260,12 @@ public abstract class TruffleDebugNodes {
             var source = Source.newBuilder("ruby", new ByteBasedCharSequence(codeString), name).build();
             var rubySource = new RubySource(source, name);
 
+            var language = getLanguage();
             var yarpSource = YARPTranslatorDriver.createYARPSource(rubySource.getBytes());
-            var parseEnvironment = new ParseEnvironment(getLanguage(), rubySource, yarpSource, ParserContext.TOP_LEVEL,
-                    this);
+            String sourcePath = rubySource.getSourcePath(language).intern();
 
-            var parseResult = YARPTranslatorDriver.parseToYARPAST(getLanguage(), rubySource, Collections.emptyList(),
-                    parseEnvironment);
+            var parseResult = YARPTranslatorDriver.parseToYARPAST(rubySource, sourcePath, yarpSource,
+                    Collections.emptyList(), language.options.FROZEN_STRING_LITERALS);
             var ast = parseResult.value;
 
             return createString(fromJavaStringNode, ast.toString(), Encodings.UTF_8);

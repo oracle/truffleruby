@@ -913,6 +913,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
+    @TruffleBoundary
+    public static String getCorePath(Source source) {
+        final String path = getPath(source);
+        String coreLoadPath = OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue();
+        if (path.startsWith(coreLoadPath)) {
+            return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(path + " is not a core path starting with " + coreLoadPath);
+        }
+    }
+
     /** Only use when no language/context is available (e.g. Node#toString). Prefer
      * {@link RubyContext#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
     @TruffleBoundary
