@@ -6,3 +6,4 @@ fails(https://github.com/ruby/prism/issues/2115):Hash literal expands an '**{}' 
 fails(https://github.com/ruby/prism/issues/2115):Hash literal merges multiple nested '**obj' in Hash literals
 fails(https://github.com/ruby/prism/issues/2129):Hash literal raises an EncodingError at parse time when Symbol key with invalid bytes
 fails(https://github.com/ruby/prism/issues/2129):Hash literal raises an EncodingError at parse time when Symbol key with invalid bytes and 'key: value' syntax used
+fails:The ** operator makes a copy when calling a method taking a positional Hash
