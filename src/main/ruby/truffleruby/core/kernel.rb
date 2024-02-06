@@ -182,7 +182,7 @@ module Kernel
   module_function :` # `
 
   def !~(other)
-    r = self.respond_to?(:=~) ? !(self =~ other) : true
+    r = self =~ other ? false : true
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     r
   end
