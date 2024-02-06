@@ -655,6 +655,11 @@ class Truffle::VersionedArray < Array
     copy.to_s(*args, &block)
   end
 
+  def to_set(*args, &block)
+    copy = TruffleRuby.synchronized(@lock) { Array.new self }
+    copy.to_set(*args, &block)
+  end
+
   def transpose(*args, &block)
     copy = TruffleRuby.synchronized(@lock) { Array.new self }
     copy.transpose(*args, &block)
