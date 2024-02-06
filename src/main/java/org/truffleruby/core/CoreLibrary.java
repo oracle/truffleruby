@@ -783,7 +783,7 @@ public final class CoreLibrary {
 
     public RubySource loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            return new RubySource(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), path);
+            return ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL);
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);
             return fileLoader.loadFile(path);
