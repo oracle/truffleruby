@@ -208,11 +208,8 @@ public abstract class ProcNodes {
 
         @TruffleBoundary
         @Specialization
-        RubyArray parameters(RubyProc proc, Object lambdaObject) {
+        RubyArray parameters(RubyProc proc, boolean isLambda) {
             final ArgumentDescriptor[] argsDesc = proc.getArgumentDescriptors();
-            final boolean isLambda = (lambdaObject == nil)
-                    ? proc.type == ProcType.LAMBDA
-                    : !Boolean.FALSE.equals(lambdaObject);
             return ArgumentDescriptorUtils
                     .argumentDescriptorsToParameters(getLanguage(), getContext(), argsDesc, isLambda);
         }
