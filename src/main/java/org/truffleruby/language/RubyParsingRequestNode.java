@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -21,7 +21,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -42,7 +42,7 @@ public final class RubyParsingRequestNode extends RubyBaseRootNode implements In
 
         final RubySource rubySource = new RubySource(source, language.getSourcePath(source));
 
-        final TranslatorDriver translator = new TranslatorDriver(context, rubySource);
+        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context);
         callTarget = translator.parse(
                 rubySource,
                 ParserContext.TOP_LEVEL,

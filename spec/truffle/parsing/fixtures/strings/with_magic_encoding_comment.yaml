@@ -1,0 +1,16 @@
+subject: "String"
+description: "with magic encoding comment (# encoding: ...)"
+notes: >
+  It assigns a String literal specified encoding as `encoding = Big5`
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  # encoding: BIG5
+  "foobar"
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = Big5
+          flags = 1
+          sourceCharIndex = 17
+          sourceLength = 8
+          tstring = foobar

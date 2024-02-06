@@ -1,11 +1,11 @@
 subject: "||="
-description: "Assign an attribute of a local variable (a.b ||= c)"
+description: "Assign attribute (a.b ||= c)"
 notes: >
   `a.b ||= c` is translated into `a.b || a.b = c` in the following way:
   
   ```ruby
-  temp_receiver = a
-  temp_receiver.b || temp_receiver.b=(c)
+  value_0 = a
+  value_0.b || value_0.b=(c)
   ```
 focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
 ruby: |
@@ -15,17 +15,23 @@ ast: |
       attributes:
           definition = assignment
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           child =
               SequenceNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       body = [
                           WriteLocalVariableNode
                               attributes:
                                   flags = 0
                                   frameSlot = 2 # %value_0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   valueNode =
                                       RubyCallNode
@@ -42,14 +48,21 @@ ast: |
                                               methodName = "a"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 0
+                                              sourceLength = 1
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
-                          OrNodeGen
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
+                          OrLazyValueDefinedNodeGen
                               attributes:
                                   flags = 0
+                                  rightTwiceProfile = org.truffleruby.utils.RunTwiceBranchProfile@...
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   left =
                                       RubyCallNode
@@ -66,12 +79,16 @@ ast: |
                                               methodName = "foo"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 0
+                                              sourceLength = 12
                                           children:
                                               receiver =
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 1
                                                           type = FRAME_LOCAL
                                   right =
                                       RubyCallNode
@@ -88,11 +105,15 @@ ast: |
                                               methodName = "foo="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 0
+                                              sourceLength = 12
                                           children:
                                               arguments = [
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 10
+                                                          sourceLength = 2
                                                           value = 42
                                               ]
                                               receiver =
@@ -100,5 +121,7 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 1
                                                           type = FRAME_LOCAL
                       ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -206,11 +206,15 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
     }
 
     public Object callWithFrame(Frame frame, Object receiver, String method) {
+        return callWithFrame(PRIVATE, frame, receiver, method);
+    }
+
+    public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method) {
         final Object[] rubyArgs = RubyArguments.allocate(0);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
         RubyArguments.setDescriptor(rubyArgs, NoKeywordArgumentsDescriptor.INSTANCE);
-        return execute(frame, receiver, method, rubyArgs, PRIVATE);
+        return execute(frame, receiver, method, rubyArgs, config);
     }
 
     public Object callWithFrame(DispatchConfiguration config, Frame frame, Object receiver, String method,

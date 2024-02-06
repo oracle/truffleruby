@@ -1,4 +1,4 @@
-# Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -85,7 +85,7 @@ class JavaHandler
 
     @file = File.open(java_file, 'wb')
     @file.puts contents[0...from+METHOD_START.length]
-    @file.puts "#{INDENT}// Generated from #{SCRIPT} on #{RUBY_PLATFORM}"
+    @file.puts "#{INDENT}// Generated from #{SCRIPT} on #{RUBY_PLATFORM.sub(/darwin\d+/, 'darwin')}"
     at_exit do
       @file.puts contents[to..-1]
       @file.close

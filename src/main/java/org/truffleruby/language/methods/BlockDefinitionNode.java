@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -23,7 +23,7 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.FrameOnStackMarker;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.parser.Translator;
+import org.truffleruby.parser.YARPTranslator;
 
 /** Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
  * SharedMethodInfo. This is executed at the call site just before dispatch. */
@@ -41,7 +41,7 @@ public abstract class BlockDefinitionNode extends RubyContextSourceNode {
             ProcCallTargets callTargets,
             BreakID breakID,
             int frameOnStackMarkerSlot) {
-        assert (type == ProcType.PROC) == (frameOnStackMarkerSlot != Translator.NO_FRAME_ON_STACK_MARKER);
+        assert (type == ProcType.PROC) == (frameOnStackMarkerSlot != YARPTranslator.NO_FRAME_ON_STACK_MARKER);
         this.type = type;
         this.sharedMethodInfo = sharedMethodInfo;
         this.callTargets = callTargets;
@@ -54,6 +54,7 @@ public abstract class BlockDefinitionNode extends RubyContextSourceNode {
         return breakID;
     }
 
+    @Override
     public abstract RubyProc execute(VirtualFrame virtualFrame);
 
     @Specialization
@@ -61,7 +62,7 @@ public abstract class BlockDefinitionNode extends RubyContextSourceNode {
             @Cached GetSpecialVariableStorage readSpecialVariableStorageNode,
             @Cached WithoutVisibilityNode withoutVisibilityNode) {
         final FrameOnStackMarker frameOnStackMarker;
-        if (frameOnStackMarkerSlot != Translator.NO_FRAME_ON_STACK_MARKER) {
+        if (frameOnStackMarkerSlot != YARPTranslator.NO_FRAME_ON_STACK_MARKER) {
             frameOnStackMarker = (FrameOnStackMarker) frame.getObject(frameOnStackMarkerSlot);
             assert frameOnStackMarker != null;
         } else {

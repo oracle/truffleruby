@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -37,7 +37,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
-import org.truffleruby.parser.parser.ParserSupport;
 
 public final class TranslatorEnvironment {
 
@@ -51,16 +50,21 @@ public final class TranslatorEnvironment {
 
     /** local variable to access a block argument */
     public static final String METHOD_BLOCK_NAME = Layouts.TEMP_PREFIX + "method_block_arg";
+
     /** local variable name for * parameter */
-    static final String DEFAULT_REST_NAME = ParserSupport.REST_VAR;
+    static final String DEFAULT_REST_NAME = Layouts.TEMP_PREFIX + "unnamed_rest";
     /** local variable name for ** parameter */
-    static final String DEFAULT_KEYWORD_REST_NAME = ParserSupport.KWREST_VAR;
+    static final String DEFAULT_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "kwrest";
+
     /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_REST_NAME = ParserSupport.FORWARD_ARGS_REST_VAR;
+    static final String FORWARDED_REST_NAME = Layouts.TEMP_PREFIX + "forward_rest";
     /** local variable name for ** parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_KEYWORD_REST_NAME = ParserSupport.FORWARD_ARGS_KWREST_VAR;
+    static final String FORWARDED_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "forward_kwrest";
     /** local variable name for & parameter caused by desugaring ... parameter (forward-everything) */
-    static final String FORWARDED_BLOCK_NAME = ParserSupport.FORWARD_ARGS_BLOCK_VAR;
+    static final String FORWARDED_BLOCK_NAME = Layouts.TEMP_PREFIX + "forward_block";
+
+    /** A prefix for duplicated '_' local variables to build unique names */
+    public static final String UNDERSCORE_PREFIX = "_$";
 
     private final ParseEnvironment parseEnvironment;
 
@@ -260,7 +264,7 @@ public final class TranslatorEnvironment {
     }
 
     public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, SourceIndexLength sourceSection) {
-        ReadLocalNode localVar = findLocalVarNode(name, sourceSection);
+        ReadLocalNode localVar = findLocalVarNodeOrNull(name, sourceSection);
 
         if (localVar == null) {
             declareVar(name);
@@ -276,8 +280,14 @@ public final class TranslatorEnvironment {
         return node;
     }
 
+    public ReadLocalVariableNode readNode(int slot, Nodes.Node yarpNode) {
+        var node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
+        node.unsafeSetSourceSection(yarpNode.startOffset, yarpNode.length);
+        return node;
+    }
+
     public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
-        RubyNode node = findLocalVarNode(name, sourceSection);
+        RubyNode node = findLocalVarNodeOrNull(name, sourceSection);
         if (node == null) {
             node = new NilLiteralNode();
             node.unsafeSetSourceSection(sourceSection);
@@ -286,6 +296,16 @@ public final class TranslatorEnvironment {
     }
 
     public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {
+        final ReadLocalNode node = findLocalVarNodeOrNull(name, sourceSection);
+
+        if (node == null) {
+            throw CompilerDirectives.shouldNotReachHere(name + " local variable should be declared");
+        }
+
+        return node;
+    }
+
+    public ReadLocalNode findLocalVarNodeOrNull(String name, SourceIndexLength sourceSection) {
         assert name != null;
         TranslatorEnvironment current = this;
         int level = 0;
@@ -347,6 +367,7 @@ public final class TranslatorEnvironment {
         return !isBlock();
     }
 
+    /** A way to check current scope is a module/class. If in a block, isModuleBody is always false. */
     public boolean isModuleBody() {
         return isModuleBody;
     }
@@ -387,8 +408,21 @@ public final class TranslatorEnvironment {
         return methodParent;
     }
 
-    /** Used only in tests to make temporary variable names stable and not changed every time they are run. It shouldn't
-     * be used for anything except that purpose. */
+    /** Return either outer method/module/top level environment or in case of eval("...") the outermost environment of
+     * the parsed (by eval) code */
+    public TranslatorEnvironment getSurroundingMethodOrEvalEnvironment() {
+        TranslatorEnvironment environment = this;
+
+        // eval's parsing environment still has frameDescriptor not initialized,
+        // but all the outer scopes are related to already parsed code and have frameDescriptor != null.
+        while (environment.isBlock() && environment.getParent().frameDescriptor == null) {
+            environment = environment.getParent();
+        }
+        return environment;
+    }
+
+    /** Used only in tests to make temporary variable names stable and not changed every time tests are run. It
+     * shouldn't be used for anything except that purpose. */
     public static void resetTemporaryVariablesIndex() {
         tempIndex.set(0);
     }

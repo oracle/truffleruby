@@ -11,3 +11,5 @@ ast: |
       attributes:
           flags = 0
           object = ""
+          sourceCharIndex = 4
+          sourceLength = 4

@@ -1,3 +1,1 @@
-fails:An instance method raises FrozenError with the correct class name
 fails:A singleton method definition raises FrozenError with the correct class name
-fails:An instance method with a default argument raises a SyntaxError when there is an existing method with the same name as the local variable

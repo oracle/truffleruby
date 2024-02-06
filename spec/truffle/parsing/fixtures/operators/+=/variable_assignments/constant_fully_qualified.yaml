@@ -1,49 +1,106 @@
 subject: "+="
-description: "Variable assignment/fully qualified constant (::A += b)"
+description: "Variable assignment/fully qualified constant (A::B += c)"
 notes: >
-  `::A += b` is translated into `::A = ::A + b`
-focused_on_node: "org.truffleruby.language.constants.WriteConstantNode"
+  `A::B += c` is translated into `A::B = A::B + c`
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  ::FOO += 42
+  FOO::BAR += 42
 ast: |
-  WriteConstantNode
+  SequenceNode
       attributes:
-          flags = 1
-          name = "FOO"
+          flags = 12
+          sourceCharIndex = 0
+          sourceLength = 14
       children:
-          moduleNode =
-              ObjectClassLiteralNode
+          body = [
+              WriteLocalVariableNode
                   attributes:
                       flags = 0
-          valueNode =
-              InlinedAddNodeGen
-                  attributes:
-                      assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
-                      flags = 0
-                      parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=true, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                      frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
-                      leftNode_ =
-                          ReadConstantNode
+                      valueNode =
+                          ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
-                                  name = "FOO"
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
-                                  moduleNode =
-                                      ObjectClassLiteralNode
+                                  childNode_ =
+                                      ReadSelfNode
                                           attributes:
                                               flags = 0
-                      rightNode_ =
-                          WriteConstantNode
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 2 # %value_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ReadConstantWithLexicalScopeNode
                               attributes:
                                   flags = 0
+                                  lexicalScope =  :: Object
                                   name = "FOO"
+                                  sourceCharIndex = 0
+                                  sourceLength = 3
                               children:
-                                  moduleNode =
-                                      ObjectClassLiteralNode
+                                  getConstantNode =
+                                      GetConstantNodeGen
+                                  lookupConstantNode =
+                                      LookupConstantWithLexicalScopeNodeGen
+                                          attributes:
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+              WriteConstantNode
+                  attributes:
+                      flags = 0
+                      name = "BAR"
+                      sourceCharIndex = 0
+                      sourceLength = 14
+                  children:
+                      moduleNode =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 2 # %value_0
+                                  sourceCharIndex = 0
+                                  sourceLength = 3
+                                  type = FRAME_LOCAL
+                      valueNode =
+                          InlinedAddNodeGen
+                              attributes:
+                                  assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                                  flags = 0
+                                  parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                  sourceCharIndex = 0
+                                  sourceLength = 14
+                              children:
+                                  leftNode_ =
+                                      ReadConstantNode
                                           attributes:
                                               flags = 0
-                                  valueNode =
+                                              name = "BAR"
+                                              sourceCharIndex = 0
+                                              sourceLength = 8
+                                          children:
+                                              moduleNode =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
+                                                          type = FRAME_LOCAL
+                                  rightNode_ =
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 12
+                                              sourceLength = 2
                                               value = 42
+          ]

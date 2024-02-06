@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -67,8 +67,6 @@ public final class Options {
     public final boolean HOST_INTEROP;
     /** --trace-calls=true */
     public final boolean TRACE_CALLS;
-    /** --pattern-matching=false */
-    public final boolean PATTERN_MATCHING;
     /** --patching=true */
     public final boolean PATCHING;
     /** --hashing-deterministic=false */
@@ -155,8 +153,6 @@ public final class Options {
     public final String[] ARGV_GLOBAL_VALUES;
     /** --argv-global-flags=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] ARGV_GLOBAL_FLAGS;
-    /** --building-core-cexts=false */
-    public final boolean BUILDING_CORE_CEXTS;
     /** --log-pending-interrupts=false */
     public final boolean LOG_PENDING_INTERRUPTS;
     /** --print-interned-tstring-stats=false */
@@ -232,7 +228,6 @@ public final class Options {
         POLYGLOT_STDIO = options.hasBeenSet(OptionsCatalog.POLYGLOT_STDIO_KEY) ? options.get(OptionsCatalog.POLYGLOT_STDIO_KEY) : EMBEDDED || !NATIVE_PLATFORM;
         HOST_INTEROP = env.isHostLookupAllowed() && (options.get(OptionsCatalog.HOST_INTEROP_KEY));
         TRACE_CALLS = options.get(OptionsCatalog.TRACE_CALLS_KEY);
-        PATTERN_MATCHING = options.get(OptionsCatalog.PATTERN_MATCHING_KEY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
         VIRTUAL_THREAD_FIBERS = options.get(OptionsCatalog.VIRTUAL_THREAD_FIBERS_KEY);
@@ -276,7 +271,6 @@ public final class Options {
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
         ARGV_GLOBAL_FLAGS = options.get(OptionsCatalog.ARGV_GLOBAL_FLAGS_KEY);
-        BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         LOG_PENDING_INTERRUPTS = options.get(OptionsCatalog.LOG_PENDING_INTERRUPTS_KEY);
         PRINT_INTERNED_TSTRING_STATS = options.get(OptionsCatalog.PRINT_INTERNED_TSTRING_STATS_KEY);
         CEXTS_TO_NATIVE_STATS = options.get(OptionsCatalog.CEXTS_TO_NATIVE_STATS_KEY);
@@ -349,8 +343,6 @@ public final class Options {
                 return HOST_INTEROP;
             case "ruby.trace-calls":
                 return TRACE_CALLS;
-            case "ruby.pattern-matching":
-                return PATTERN_MATCHING;
             case "ruby.patching":
                 return PATCHING;
             case "ruby.hashing-deterministic":
@@ -437,8 +429,6 @@ public final class Options {
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv-global-flags":
                 return ARGV_GLOBAL_FLAGS;
-            case "ruby.building-core-cexts":
-                return BUILDING_CORE_CEXTS;
             case "ruby.log-pending-interrupts":
                 return LOG_PENDING_INTERRUPTS;
             case "ruby.print-interned-tstring-stats":

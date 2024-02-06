@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2017, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,15 +29,19 @@ import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.truffleruby.shared.ProcessStatus;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
+import org.truffleruby.signal.LibRubySignal;
 
 public class RubyLauncher extends AbstractLanguageLauncher {
 
     private CommandLineOptions config;
     private String implementationName = null;
     private boolean helpOptionUsed = false; // Any --help* option
+    private String rubyHome = null;
 
     /** NOTE: not actually used by thin launchers. The first method called with the arguments is
      * {@link #preprocessArguments}. */
@@ -292,18 +296,28 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
         contextBuilder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
 
-        int result = runContext(contextBuilder, config);
+        int processStatus = runContext(contextBuilder, config);
 
         final boolean runTwice = config.getUnknownArguments().contains("--run-twice") ||
                 config.getUnknownArguments().contains("--run-twice=true");
         if (runTwice) {
             final int secondResult = runContext(contextBuilder, config);
-            if (secondResult != 0 && result == 0) {
-                result = secondResult;
+            if (secondResult != 0 && processStatus == 0) {
+                processStatus = secondResult;
             }
         }
 
-        return result;
+        // SignalExeption exit, we need to raise(3) the native signal to set the correct process waitpid(3) status
+        if (ProcessStatus.isSignal(processStatus)) {
+            int signalNumber = ProcessStatus.toSignal(processStatus);
+
+            LibRubySignal.loadLibrary(rubyHome, Platform.LIB_SUFFIX);
+            LibRubySignal.restoreSystemHandlerAndRaise(signalNumber);
+            // Some signals are ignored by default, such as SIGWINCH and SIGCHLD, in that exit with 1 like CRuby
+            return 1;
+        }
+
+        return processStatus;
     }
 
     private int runContext(Context.Builder builder, CommandLineOptions config) {
@@ -311,11 +325,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             Metrics.printTime("before-run");
 
             if (config.executionAction == ExecutionAction.PATH) {
-                final Source source = Source.newBuilder(
-                        TruffleRuby.LANGUAGE_ID,
-                        // language=ruby
-                        "-> name { Truffle::Boot.find_s_file(name) }",
-                        TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
+                final Source source = source(// language=ruby
+                        "-> name { Truffle::Boot.find_s_file(name) }");
 
                 config.executionAction = ExecutionAction.FILE;
                 final Value file = context.eval(source).execute(config.toExecute);
@@ -324,37 +335,47 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 } else {
                     getError()
                             .println("truffleruby: No such file or directory -- " + config.toExecute + " (LoadError)");
-                    return 1;
+                    return ProcessStatus.exitCode(1);
                 }
             }
 
             if (config.logProcessArguments) {
-                Value logInfo = context.eval(
-                        "ruby",
+                Value logInfo = context.eval(source(
                         // language=ruby
-                        "-> message { Truffle::Debug.log_info(message) }");
+                        "-> message { Truffle::Debug.log_info(message) }"));
                 String message = "new process: truffleruby " + String.join(" ", config.initialArguments);
                 logInfo.executeVoid(message);
             }
 
-            final Source source = Source.newBuilder(
-                    TruffleRuby.LANGUAGE_ID,
-                    // language=ruby
-                    "-> argc, argv, kind, to_execute { Truffle::Boot.main(argc, argv, kind, to_execute) }",
-                    TruffleRuby.BOOT_SOURCE_NAME).internal(true).buildLiteral();
+            final Source source = source(// language=ruby
+                    "-> argc, argv, kind, to_execute { Truffle::Boot.main(argc, argv, kind, to_execute) }");
 
             final int argc = getNativeArgc();
             final long argv = getNativeArgv();
             final String kind = config.executionAction.name();
-            final int exitCode = context.eval(source).execute(argc, argv, kind, config.toExecute).asInt();
+            final int processStatus = context.eval(source).execute(argc, argv, kind, config.toExecute).asInt();
+
+            if (ProcessStatus.isSignal(processStatus)) {
+                // Only fetch the ruby home when necessary, because chromeinspector tests
+                // currently only work with a single Context#eval.
+                Value rubyHome = context.eval(source(// language=ruby
+                        "Truffle::Boot.ruby_home"));
+                this.rubyHome = rubyHome.asString();
+            }
+
             Metrics.printTime("after-run");
-            return exitCode;
+            return processStatus;
         } catch (PolyglotException e) {
             getError().println(
                     "truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
-            e.printStackTrace();
-            return 1;
+            e.printStackTrace(System.err);
+            return ProcessStatus.exitCode(1);
         }
+    }
+
+    private static Source source(String code) {
+        return Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, TruffleRuby.BOOT_SOURCE_NAME).internal(true)
+                .buildLiteral();
     }
 
     private static List<String> getArgsFromEnvVariable(String name) {

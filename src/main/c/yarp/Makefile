@@ -25,6 +25,7 @@ all: shared static
 shared: build/libprism.$(SOEXT)
 static: build/libprism.a
 wasm: javascript/src/prism.wasm
+java-wasm: java-wasm/src/test/resources/prism.wasm
 
 build/libprism.$(SOEXT): $(SHARED_OBJECTS)
 	$(ECHO) "linking $@"
@@ -37,6 +38,10 @@ build/libprism.a: $(STATIC_OBJECTS)
 javascript/src/prism.wasm: Makefile $(SOURCES) $(HEADERS)
 	$(ECHO) "building $@"
 	$(Q) $(WASI_SDK_PATH)/bin/clang --sysroot=$(WASI_SDK_PATH)/share/wasi-sysroot/ $(DEBUG_FLAGS) -DPRISM_EXPORT_SYMBOLS -D_WASI_EMULATED_MMAN -lwasi-emulated-mman $(CPPFLAGS) $(CFLAGS) -Wl,--export-all -Wl,--no-entry -mexec-model=reactor -o $@ $(SOURCES)
+
+java-wasm/src/test/resources/prism.wasm: Makefile $(SOURCES) $(HEADERS)
+	$(ECHO) "building $@"
+	$(Q) $(WASI_SDK_PATH)/bin/clang $(DEBUG_FLAGS) -DPRISM_EXPORT_SYMBOLS -D_WASI_EMULATED_MMAN -lwasi-emulated-mman $(CPPFLAGS) $(CFLAGS) -Wl,--export-all -Wl,--no-entry -mexec-model=reactor -lc++ -lc++abi -o $@ $(SOURCES)
 
 build/shared/%.o: src/%.c Makefile $(HEADERS)
 	$(ECHO) "compiling $@"

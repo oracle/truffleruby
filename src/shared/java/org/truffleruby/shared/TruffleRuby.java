@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2018, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -42,8 +42,8 @@ public final class TruffleRuby {
                 LANGUAGE_VERSION,
                 implementationName,
                 ImageInfo.inImageCode() ? "Native" : "JVM",
-                BasicPlatform.getArchName(),
-                BasicPlatform.getOSName());
+                Platform.getArchName(),
+                Platform.getOSName());
     }
 
     public static String getEngineVersion() {

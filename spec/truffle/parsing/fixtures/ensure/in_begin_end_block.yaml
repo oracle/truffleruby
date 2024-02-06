@@ -15,25 +15,35 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 30
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
               EnsureNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 30
                   children:
                       ensurePart =
                           RubyCallNode
@@ -50,15 +60,21 @@ ast: |
                                   methodName = "bar"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 23
+                                  sourceLength = 3
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                       tryPart =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 8
+                                  sourceLength = 5
                                   tstring = foo
           ]

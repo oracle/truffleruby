@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2021, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -16,18 +16,19 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.BlockDefinitionNode;
-import org.truffleruby.parser.MethodTranslator;
+import org.truffleruby.parser.YARPBlockNodeTranslator;
 
 /** Wraps a {@link BlockDefinitionNode} to convert the returned block (which should be a {@link ProcType#LAMBDA}) to be
  * a proc.
  *
  * <p>
  * When we encounter a function named {@code lambda} which is called with a block, we speculatively create a lambda call
- * target for that block in {@link MethodTranslator}. But if that method does not refer to {@code Kernel#lambda}, then a
- * proc call target is needed instead. This node is thus needed to "deoptimize" such cases. */
+ * target for that block in {@link YARPBlockNodeTranslator}. But if that method does not refer to {@code Kernel#lambda},
+ * then a proc call target is needed instead. This node is thus needed to "deoptimize" such cases. */
 public final class LambdaToProcNode extends RubyContextSourceNode {
 
-    @Child private BlockDefinitionNode blockNode;
+    /** A {@link BlockDefinitionNode}, possibly wrapped in a RubyNodeWrapper by instrumentation */
+    @Child private RubyNode blockNode;
 
     public LambdaToProcNode(BlockDefinitionNode blockNode) {
         this.blockNode = blockNode;
@@ -35,7 +36,7 @@ public final class LambdaToProcNode extends RubyContextSourceNode {
 
     @Override
     public RubyProc execute(VirtualFrame frame) {
-        final RubyProc block = blockNode.execute(frame);
+        final RubyProc block = (RubyProc) blockNode.execute(frame);
         assert block.type == ProcType.LAMBDA;
         return ProcOperations.createProcFromBlock(getContext(), getLanguage(), block);
     }

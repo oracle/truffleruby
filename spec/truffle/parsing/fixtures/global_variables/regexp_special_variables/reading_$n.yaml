@@ -8,12 +8,16 @@ ast: |
       attributes:
           flags = 1
           index = 42
+          sourceCharIndex = 0
+          sourceLength = 3
       children:
           readMatchNode =
               ReadGlobalVariableNodeGen
                   attributes:
                       flags = 0
                       name = "$~"
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       lookupGlobalVariableStorageNode =
                           LookupGlobalVariableStorageNodeGen

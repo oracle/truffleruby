@@ -1,43 +1,92 @@
 subject: "&&="
-description: "Variable assignment/fully qualified constant (::A &&= b)"
+description: "Variable assignment/fully qualified constant (A::B &&= c)"
 notes: >
-  `::A &&= b` is translated into `::A && ::A = b`
+  `A::B &&= c` is translated into `A::B && A::B = c`
 focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
 ruby: |
-  ::FOO &&= 42
+  FOO::BAR &&= 42
 ast: |
   DefinedWrapperNode
       attributes:
           definition = assignment
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 15
       children:
           child =
-              AndNodeGen
+              SequenceNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
-                      left =
-                          ReadConstantNode
+                      body = [
+                          WriteLocalVariableNode
                               attributes:
                                   flags = 0
-                                  name = "FOO"
+                                  frameSlot = 2 # %value_0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
-                                  moduleNode =
-                                      ObjectClassLiteralNode
-                                          attributes:
-                                              flags = 0
-                      right =
-                          WriteConstantNode
-                              attributes:
-                                  flags = 0
-                                  name = "FOO"
-                              children:
-                                  moduleNode =
-                                      ObjectClassLiteralNode
-                                          attributes:
-                                              flags = 0
                                   valueNode =
-                                      IntegerFixnumLiteralNode
+                                      ReadConstantWithLexicalScopeNode
                                           attributes:
                                               flags = 0
-                                              value = 42
+                                              lexicalScope =  :: Object
+                                              name = "FOO"
+                                              sourceCharIndex = 0
+                                              sourceLength = 3
+                                          children:
+                                              getConstantNode =
+                                                  GetConstantNodeGen
+                                              lookupConstantNode =
+                                                  LookupConstantWithLexicalScopeNodeGen
+                                                      attributes:
+                                                          lexicalScope =  :: Object
+                                                          name = "FOO"
+                          AndNodeGen
+                              attributes:
+                                  flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
+                              children:
+                                  left =
+                                      ReadConstantNode
+                                          attributes:
+                                              flags = 0
+                                              name = "BAR"
+                                              sourceCharIndex = 0
+                                              sourceLength = 8
+                                          children:
+                                              moduleNode =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
+                                                          type = FRAME_LOCAL
+                                  right =
+                                      WriteConstantNode
+                                          attributes:
+                                              flags = 0
+                                              name = "BAR"
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+                                          children:
+                                              moduleNode =
+                                                  ReadLocalVariableNode
+                                                      attributes:
+                                                          flags = 0
+                                                          frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
+                                                          type = FRAME_LOCAL
+                                              valueNode =
+                                                  IntegerFixnumLiteralNode
+                                                      attributes:
+                                                          flags = 0
+                                                          sourceCharIndex = 13
+                                                          sourceLength = 2
+                                                          value = 42
+                      ]

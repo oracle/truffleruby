@@ -10,6 +10,8 @@ ast: |
   WhileNode
       attributes:
           flags = 0
+          sourceCharIndex = -1
+          sourceLength = 0
       children:
           loopNode =
               DefaultLoopNode
@@ -21,8 +23,12 @@ ast: |
                                       NilLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   condition =
                                       BooleanLiteralNode
                                           attributes:
                                               flags = 1
+                                              sourceCharIndex = 6
+                                              sourceLength = 4
                                               value = true

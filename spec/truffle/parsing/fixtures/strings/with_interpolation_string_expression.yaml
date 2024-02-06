@@ -1,11 +1,74 @@
 subject: "String"
 description: "Literal with interpolation when expressions are Strings"
-focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
   "ab#{ "123" }cd"
 ast: |
-  StringLiteralNode
+  SequenceNode
       attributes:
-          encoding = UTF-8
-          flags = 1
-          tstring = ab123cd
+          flags = 12
+          sourceCharIndex = 0
+          sourceLength = 16
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 16
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 1
+                                              sourceCharIndex = 1
+                                              sourceLength = 2
+                                              tstring = ab
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              sourceCharIndex = 6
+                                              sourceLength = 5
+                                              tstring = 123
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 0
+                                              sourceCharIndex = 13
+                                              sourceLength = 2
+                                              tstring = cd
+                      ]
+          ]

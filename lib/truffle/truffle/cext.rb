@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 # truffleruby_primitives: true
 
-# Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -107,6 +107,7 @@ module Truffle::CExt
   RUBY_FIXNUM_MAX = (1 << 62) - 1
 
   # This list of types is derived from MRI's error.c builtin_types array.
+  # It has the same indices as the ruby_value_type enum.
   BUILTIN_TYPES = [
     '',
     'Object',
@@ -206,8 +207,12 @@ module Truffle::CExt
   end
 
   def init_extension(library, library_path)
-    name = File.basename(library_path, '.*')
+    name = File.basename(library_path)
+    # We need the substring before the first dot, for "cool.io_ext.so" -> "Init_cool"
+    i = name.index('.')
+    name = name[0...i] if i
     function_name = "Init_#{name}"
+
     init_function = library[function_name]
     begin
       Primitive.call_with_c_mutex_and_frame(VOID_TO_VOID_WRAPPER, [init_function], nil, nil)
@@ -337,8 +342,6 @@ module Truffle::CExt
       # See #rb_tr_cached_type, the final type must be calculated for each number.
       T_FIXNUM
     when Time
-      T_DATA
-    when Data
       T_DATA
     when BasicObject
       # See #rb_tr_cached_type, the final type must be calculated for each object.
@@ -1057,6 +1060,10 @@ module Truffle::CExt
     Primitive.send_argv_without_cext_lock(recv, meth, argv, nil)
   end
 
+  def rb_check_funcall(recv, meth, args)
+    Primitive.send_without_cext_lock(Truffle::Type, :check_funcall, [recv, meth, args], nil)
+  end
+
   def rb_funcallv_keywords(recv, meth, argv)
     Primitive.send_argv_keywords_without_cext_lock(recv, meth, argv, nil)
   end
@@ -1724,6 +1731,10 @@ module Truffle::CExt
     object
   end
 
+  def run_data_finalizer(function, data)
+    Primitive.call_with_c_mutex_and_frame POINTER_TO_VOID_WRAPPER, [function, data], nil, nil
+  end
+
   def run_marker(obj)
     Primitive.array_mark_store(obj) if Primitive.array_store_native?(obj)
 
@@ -1929,9 +1940,14 @@ module Truffle::CExt
   end
 
   private def rb_thread_call_without_gvl_inner(function, data1, unblock, data2)
+    if SULONG
+      Truffle::Interop.to_native(unblock)
+      Truffle::Interop.to_native(data2)
+    end
+
     Primitive.call_with_unblocking_function(Thread.current,
       POINTER_TO_POINTER_WRAPPER, function, data1,
-      POINTER_TO_VOID_WRAPPER, unblock, data2)
+      Truffle::Interop.as_pointer(unblock), Truffle::Interop.as_pointer(data2))
   end
 
   def rb_iterate(iteration, iterated_object, callback, callback_arg)
@@ -1973,25 +1989,15 @@ module Truffle::CExt
   end
 
   def rb_wait_for_single_fd(fd, events, tv_secs, tv_usecs)
-    io = IO.for_fd(fd)
-    io.autoclose = false
-    read = (events & RB_WAITFD_IN) != 0 ? [io] : nil
-    write = (events & RB_WAITFD_OUT) != 0 ? [io] : nil
-    error = (events & RB_WAITFD_PRI) != 0 ? [io] : nil
     timeout = nil
     if tv_secs >= 0 || tv_usecs >= 0
       timeout = tv_secs + tv_usecs/1.0e6
     end
-    r, w, e = Primitive.send_without_cext_lock(IO, :select, [read, write, error, *timeout], nil)
-    if Primitive.nil?(r) # timeout
-      0
-    else
-      result = 0
-      result |= RB_WAITFD_IN unless r.empty?
-      result |= RB_WAITFD_OUT unless w.empty?
-      result |= RB_WAITFD_PRI unless e.empty?
-      result
-    end
+
+    io = IO.for_fd(fd)
+    io.autoclose = false
+    returned_events = Primitive.send_without_cext_lock(Truffle::IOOperations, :poll, [io, events, timeout], nil)
+    returned_events & (RB_WAITFD_IN | RB_WAITFD_OUT | RB_WAITFD_PRI)
   end
 
   def rb_call_super(args)

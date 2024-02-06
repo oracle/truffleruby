@@ -8,16 +8,22 @@ ast: |
       attributes:
           flags = 1
           language = org.truffleruby.RubyLanguage@...
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           values = [
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = 3
+                      sourceLength = 3
                       tstring = foo
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = 7
+                      sourceLength = 3
                       tstring = bar
           ]

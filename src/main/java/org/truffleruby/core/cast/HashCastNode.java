@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -14,8 +14,9 @@ import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -64,7 +65,7 @@ public abstract class HashCastNode extends RubyBaseNode {
 
     /** Must be a RubyNode because it's used for ** in the translator. */
     @NodeChild(value = "childNode", type = RubyNode.class)
-    public abstract static class HashCastASTNode extends RubyContextSourceNode {
+    public abstract static class HashCastASTNode extends RubyContextSourceNodeCustomExecuteVoid {
 
         protected abstract RubyNode getChildNode();
 
@@ -76,8 +77,8 @@ public abstract class HashCastNode extends RubyBaseNode {
         }
 
         @Override
-        public void doExecuteVoid(VirtualFrame frame) {
-            getChildNode().doExecuteVoid(frame);
+        public final Nil executeVoid(VirtualFrame frame) {
+            return getChildNode().executeVoid(frame);
         }
 
         @Override

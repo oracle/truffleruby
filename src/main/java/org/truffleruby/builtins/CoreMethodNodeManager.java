@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -48,11 +48,11 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
+import org.truffleruby.parser.YARPTranslator;
 
 public final class CoreMethodNodeManager {
 
@@ -369,7 +369,7 @@ public final class CoreMethodNodeManager {
         final boolean needsSelf = needsSelf(method);
 
         if (needsSelf) {
-            RubyNode readSelfNode = Translator.profileArgument(language, new ReadSelfNode());
+            RubyNode readSelfNode = YARPTranslator.profileArgument(language, new ReadSelfNode());
             argumentsNodes[i++] = transformArgument(method, readSelfNode, 0);
         }
 
@@ -378,7 +378,7 @@ public final class CoreMethodNodeManager {
         final int nArgs = required + optional;
 
         for (int n = 0; n < nArgs; n++) {
-            RubyNode readArgumentNode = Translator
+            RubyNode readArgumentNode = YARPTranslator
                     .profileArgument(language, new ReadPreArgumentNode(n, false, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }

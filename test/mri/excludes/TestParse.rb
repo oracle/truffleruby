@@ -50,3 +50,5 @@ exclude :test_unexpected_eof, "/home/eregon/code/truffleruby-ws/truffleruby/test
 exclude :test_magic_comment, "<#<Encoding:US-ASCII>> expected but was"
 exclude :test_if_after_class, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_parse.rb:1365:in `test_if_after_class'."
 exclude :test_escaped_space, "/home/eregon/code/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_parse.rb:1370:in `test_escaped_space'."
+exclude :test_dynamic_constant_assignment, "prism"
+exclude :test_serial_comparison, "prism"

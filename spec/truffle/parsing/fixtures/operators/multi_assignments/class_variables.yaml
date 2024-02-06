@@ -9,18 +9,24 @@ ast: |
   MultipleAssignmentNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 35
       children:
           preNodes = [
               WriteClassVariableNode
                   attributes:
                       flags = 0
                       name = "@@a"
+                      sourceCharIndex = 0
+                      sourceLength = 3
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object =  :: Object
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
                       setClassVariableNode =
@@ -29,12 +35,16 @@ ast: |
                   attributes:
                       flags = 0
                       name = "@@b"
+                      sourceCharIndex = 5
+                      sourceLength = 3
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object =  :: Object
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
                       setClassVariableNode =
@@ -43,12 +53,16 @@ ast: |
                   attributes:
                       flags = 0
                       name = "@@c"
+                      sourceCharIndex = 10
+                      sourceLength = 3
                   children:
                       lexicalScopeNode =
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object =  :: Object
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                       resolveTargetModuleNode =
                           ResolveTargetModuleForClassVariablesNodeGen
                       setClassVariableNode =
@@ -59,22 +73,30 @@ ast: |
                   attributes:
                       flags = 0
                       language = org.truffleruby.RubyLanguage@...
+                      sourceCharIndex = 16
+                      sourceLength = 19
                   children:
                       values = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 16
+                                  sourceLength = 5
                                   tstring = foo
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 23
+                                  sourceLength = 5
                                   tstring = bar
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 30
+                                  sourceLength = 5
                                   tstring = baz
                       ]
           splatCastNode =
@@ -84,3 +106,5 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = ARRAY_WITH_NIL
+                      sourceCharIndex = -1
+                      sourceLength = 0

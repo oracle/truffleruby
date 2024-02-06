@@ -1,5 +1,5 @@
 subject: "+="
-description: "Assign an attribute local variable (a.b += c)"
+description: "Assign attribute (a.b += c)"
 notes: >
   `a.b += c` is translated into `a.b = a.b + c` in the following way:
 
@@ -14,101 +14,143 @@ ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           body = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              WriteLocalVariableNode
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              DefinedWrapperNode
                   attributes:
-                      flags = 0
-                      frameSlot = 2 # %value_0
+                      definition = assignment
+                      flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
-                      valueNode =
-                          RubyCallNode
+                      child =
+                          SequenceNode
                               attributes:
-                                  descriptor = NoKeywordArgumentsDescriptor
-                                  dispatchConfig = PRIVATE
-                                  emptyKeywordsProfile = false
                                   flags = 0
-                                  isAttrAssign = false
-                                  isSafeNavigation = false
-                                  isSplatted = false
-                                  isVCall = true
-                                  lastArgIsNotHashProfile = false
-                                  methodName = "a"
-                                  notEmptyKeywordsProfile = false
-                                  notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
-                                  receiver =
-                                      SelfNode
+                                  body = [
+                                      WriteLocalVariableNode
                                           attributes:
                                               flags = 0
-              RubyCallNode
-                  attributes:
-                      descriptor = NoKeywordArgumentsDescriptor
-                      dispatchConfig = PROTECTED
-                      emptyKeywordsProfile = false
-                      flags = 0
-                      isAttrAssign = false
-                      isSafeNavigation = false
-                      isSplatted = false
-                      isVCall = false
-                      lastArgIsNotHashProfile = false
-                      methodName = "foo="
-                      notEmptyKeywordsProfile = false
-                      notRuby2KeywordsHashProfile = false
-                  children:
-                      arguments = [
-                          InlinedAddNodeGen
-                              attributes:
-                                  assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
-                                  flags = 0
-                                  parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
-                              children:
-                                  leftNode_ =
+                                              frameSlot = 2 # %value_0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+                                          children:
+                                              valueNode =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "a"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 1
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                       RubyCallNode
                                           attributes:
                                               descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PROTECTED
                                               emptyKeywordsProfile = false
                                               flags = 0
-                                              isAttrAssign = false
+                                              isAttrAssign = true
                                               isSafeNavigation = false
                                               isSplatted = false
                                               isVCall = false
                                               lastArgIsNotHashProfile = false
-                                              methodName = "foo"
+                                              methodName = "foo="
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 0
+                                              sourceLength = 11
                                           children:
+                                              arguments = [
+                                                  InlinedAddNodeGen
+                                                      attributes:
+                                                          assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
+                                                          flags = 0
+                                                          parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 11
+                                                      children:
+                                                          leftNode_ =
+                                                              RubyCallNode
+                                                                  attributes:
+                                                                      descriptor = NoKeywordArgumentsDescriptor
+                                                                      dispatchConfig = PROTECTED
+                                                                      emptyKeywordsProfile = false
+                                                                      flags = 0
+                                                                      isAttrAssign = false
+                                                                      isSafeNavigation = false
+                                                                      isSplatted = false
+                                                                      isVCall = false
+                                                                      lastArgIsNotHashProfile = false
+                                                                      methodName = "foo"
+                                                                      notEmptyKeywordsProfile = false
+                                                                      notRuby2KeywordsHashProfile = false
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 11
+                                                                  children:
+                                                                      receiver =
+                                                                          ReadLocalVariableNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  frameSlot = 2 # %value_0
+                                                                                  sourceCharIndex = 0
+                                                                                  sourceLength = 1
+                                                                                  type = FRAME_LOCAL
+                                                          rightNode_ =
+                                                              IntegerFixnumLiteralNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      sourceCharIndex = 9
+                                                                      sourceLength = 2
+                                                                      value = 42
+                                              ]
                                               receiver =
                                                   ReadLocalVariableNode
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %value_0
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 1
                                                           type = FRAME_LOCAL
-                                  rightNode_ =
-                                      IntegerFixnumLiteralNode
-                                          attributes:
-                                              flags = 0
-                                              value = 42
-                      ]
-                      receiver =
-                          ReadLocalVariableNode
-                              attributes:
-                                  flags = 0
-                                  frameSlot = 2 # %value_0
-                                  type = FRAME_LOCAL
+                                  ]
           ]

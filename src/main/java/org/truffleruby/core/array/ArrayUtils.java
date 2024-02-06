@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -242,7 +242,7 @@ public abstract class ArrayUtils {
         return newArray;
     }
 
-    public static Object getLast(Object[] array) {
+    public static <T> T getLast(T[] array) {
         assert array.length >= 1;
         return array[array.length - 1];
     }

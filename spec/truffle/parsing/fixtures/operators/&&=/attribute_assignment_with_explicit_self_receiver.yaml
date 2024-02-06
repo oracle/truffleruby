@@ -1,0 +1,81 @@
+subject: "&&="
+description: "Assign attribute with explicit self receiver (self.b &&= c)"
+notes: >
+  Method call when receiver is `self` means a private or protected method could be successfully called.
+  
+  In AST it's represented with RubyCallNode's field dispatchConfig.
+  `dispatchConfig = PRIVATE` means a method visibility is ignored.
+focused_on_node: "org.truffleruby.language.defined.DefinedWrapperNode"
+ruby: |
+  self.foo &&= 42
+ast: |
+  DefinedWrapperNode
+      attributes:
+          definition = assignment
+          flags = 1
+          sourceCharIndex = 0
+          sourceLength = 15
+      children:
+          child =
+              AndNodeGen
+                  attributes:
+                      flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      left =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = false
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "foo"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 0
+                                  sourceLength = 15
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = 0
+                                              sourceLength = 4
+                      right =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = true
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = false
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "foo="
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 0
+                                  sourceLength = 15
+                              children:
+                                  arguments = [
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = 13
+                                              sourceLength = 2
+                                              value = 42
+                                  ]
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = 0
+                                              sourceLength = 4

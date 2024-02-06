@@ -26,17 +26,23 @@ ast: |
           methodName = "lambda"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = -1
+          sourceLength = 0
       children:
           arguments = [
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 7
+                      sourceLength = 1
                       value = 1
           ]
           block =
               LambdaToProcNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       blockNode =
                           BlockDefinitionNodeGen
@@ -45,12 +51,14 @@ ast: |
                                   callTargets = ProcCallTargets(callTargetForProc = null, callTargetForLambda = block in <top (required)>, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
                                   flags = 0
                                   frameOnStackMarkerSlot = -1
-                                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                  sourceCharIndex = 10
+                                  sourceLength = 3
                                   type = LAMBDA
                               call targets:
                                   RubyLambdaRootNode
                                       attributes:
-                                          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                                          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                                           breakID = org.truffleruby.language.control.BreakID@...
                                           callTarget = block in <top (required)>
                                           checkArityProfile = false
@@ -68,34 +76,47 @@ ast: |
                                           redoProfile = false
                                           retryProfile = false
                                           returnID = org.truffleruby.language.control.ReturnID@...
-                                          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [])
+                                          sourceSection = SourceSection(source=<parse_ast> [1:11 - 1:13], index=10, length=3, characters={ })
                                           split = HEURISTIC
                                       children:
                                           body =
                                               SequenceNode
                                                   attributes:
                                                       flags = 12
+                                                      sourceCharIndex = 10
+                                                      sourceLength = 3
                                                   children:
                                                       body = [
                                                           WriteLocalVariableNode
                                                               attributes:
                                                                   flags = 0
                                                                   frameSlot = 0 # (self)
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
                                                                   valueNode =
                                                                       ProfileArgumentNodeGen
                                                                           attributes:
                                                                               flags = 0
+                                                                              sourceCharIndex = -1
+                                                                              sourceLength = 0
                                                                           children:
                                                                               childNode_ =
                                                                                   ReadSelfNode
                                                                                       attributes:
                                                                                           flags = 0
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
                                                           NilLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                       ]
           receiver =
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

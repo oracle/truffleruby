@@ -1,0 +1,67 @@
+subject: "Array"
+description: "Array with splat operator ([*b])"
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  [*foo]
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+          sourceCharIndex = 0
+          sourceLength = 6
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              SplatCastNodeGen
+                  attributes:
+                      conversionMethod = :to_a
+                      copy = true
+                      flags = 0
+                      nilBehavior = CONVERT
+                      sourceCharIndex = 1
+                      sourceLength = 4
+                  children:
+                      childNode_ =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "foo"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 2
+                                  sourceLength = 3
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+          ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -28,6 +28,7 @@ package org.truffleruby.core.time;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -41,7 +42,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
-import org.truffleruby.parser.Helpers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -97,7 +97,7 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
         }
     }
 
-    private static final Map<String, String> LONG_TZNAME = Helpers.map(
+    private static final Map<String, String> LONG_TZNAME = map(
             "MET",
             "CET", // JRUBY-2759
             "ROC",
@@ -105,6 +105,14 @@ public abstract class GetTimeZoneNode extends RubyBaseNode {
             "WET",
             "Europe/Lisbon" // Western European Time
     );
+
+    private static Map<String, String> map(String... keyValues) {
+        HashMap<String, String> map = new HashMap<>(keyValues.length / 2);
+        for (int i = 0; i < keyValues.length;) {
+            map.put(keyValues[i++], keyValues[i++]);
+        }
+        return map;
+    }
 
     private static final Pattern TZ_PATTERN = Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 

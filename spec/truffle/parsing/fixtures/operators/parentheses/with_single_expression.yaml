@@ -4,33 +4,56 @@ notes: >
   () are just ignored
 focused_on_node: "org.truffleruby.language.control.SequenceNode"
 ruby: |
-  (42)
+  (foo)
 ast: |
   SequenceNode
       attributes:
           flags = 12
+          sourceCharIndex = 0
+          sourceLength = 5
       children:
           body = [
-              EmitWarningsNode
-                  attributes:
-                      flags = 0
-                      warnings = org.truffleruby.parser.RubyDeferredWarnings@...
               WriteLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ProfileArgumentNodeGen
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   childNode_ =
                                       ReadSelfNode
                                           attributes:
                                               flags = 0
-              IntegerFixnumLiteralNode
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              RubyCallNode
                   attributes:
+                      descriptor = NoKeywordArgumentsDescriptor
+                      dispatchConfig = PRIVATE
+                      emptyKeywordsProfile = false
                       flags = 1
-                      value = 42
+                      isAttrAssign = false
+                      isSafeNavigation = false
+                      isSplatted = false
+                      isVCall = true
+                      lastArgIsNotHashProfile = false
+                      methodName = "foo"
+                      notEmptyKeywordsProfile = false
+                      notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 1
+                      sourceLength = 3
+                  children:
+                      receiver =
+                          SelfNode
+                              attributes:
+                                  flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
           ]

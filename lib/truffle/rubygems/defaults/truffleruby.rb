@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2019, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2019, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -14,7 +14,7 @@
 module Gem
   # The path to the gems shipped with TruffleRuby
   def self.default_dir
-    @default_dir ||= "#{Truffle::Boot.ruby_home or raise 'TruffleRuby home not found'}/lib/gems"
+    @default_dir ||= "#{Truffle::Boot.ruby_home}/lib/gems"
   end
 
   # Only report the RUBY platform as supported to make sure gems precompiled for MRI are not used.

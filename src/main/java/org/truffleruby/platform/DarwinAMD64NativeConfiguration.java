@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -42,7 +42,7 @@ import org.truffleruby.RubyContext;
 public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on x86_64-darwin18
+        // Generated from tool/generate-native-config.rb on x86_64-darwin
         configuration.config("platform.sigaction.sizeof", 16);
         configuration.config("platform.sigaction.sa_handler.offset", 0);
         configuration.config("platform.sigaction.sa_handler.size", 8);
@@ -425,8 +425,8 @@ public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfigura
         configuration.config("platform.socket.PF_ISDN", 28);
         configuration.config("platform.socket.AF_LOCAL", 1);
         configuration.config("platform.socket.PF_LOCAL", 1);
-        configuration.config("platform.socket.AF_MAX", 40);
-        configuration.config("platform.socket.PF_MAX", 40);
+        configuration.config("platform.socket.AF_MAX", 41);
+        configuration.config("platform.socket.PF_MAX", 41);
         configuration.config("platform.socket.AF_ROUTE", 17);
         configuration.config("platform.socket.PF_ROUTE", 17);
         configuration.config("platform.socket.AF_SNA", 11);
@@ -544,6 +544,7 @@ public final class DarwinAMD64NativeConfiguration extends DefaultNativeConfigura
         configuration.config("platform.socket.MSG_DONTROUTE", 4);
         configuration.config("platform.socket.MSG_DONTWAIT", 128);
         configuration.config("platform.socket.MSG_EOR", 8);
+        configuration.config("platform.socket.MSG_NOSIGNAL", 524288);
         configuration.config("platform.socket.MSG_OOB", 1);
         configuration.config("platform.socket.MSG_PEEK", 2);
         configuration.config("platform.socket.MSG_TRUNC", 16);

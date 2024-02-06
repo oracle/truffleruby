@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2023, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -19,10 +20,13 @@ import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.literal.NilLiteralNode;
+import org.truffleruby.language.locals.ReadLocalNode;
+import org.truffleruby.language.locals.WriteLocalNode;
 
 // Could be used in ordinal multi-assignment and for destructuring array argument in method/proc parameters:
 // - a, (b, c) = 1, [2, 3]
 // - def foo(a, (b, c)) end
+// NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode.
 public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiTargetNode node;
@@ -63,7 +67,14 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
         final AssignableNode restNode;
         if (node.rest != null) {
-            restNode = node.rest.accept(this);
+            // implicit rest in nested target is allowed only for multi-assignment and isn't allowed in block parameters
+            if (node.rest instanceof Nodes.ImplicitRestNode) {
+                // a, = []
+                // do nothing
+                restNode = null;
+            } else {
+                restNode = node.rest.accept(this);
+            }
         } else {
             restNode = null;
         }
@@ -89,8 +100,8 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     }
 
     @Override
-    public AssignableNode visitCallNode(Nodes.CallNode node) {
-        final RubyNode rubyNode = yarpTranslator.translateCallTargetNode(node);
+    public AssignableNode visitCallTargetNode(Nodes.CallTargetNode node) {
+        final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
@@ -108,6 +119,17 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     @Override
     public AssignableNode visitGlobalVariableTargetNode(Nodes.GlobalVariableTargetNode node) {
+        final RubyNode rubyNode = node.accept(yarpTranslator);
+        return ((AssignableNode) rubyNode).toAssignableNode();
+    }
+
+    @Override
+    public AssignableNode visitImplicitRestNode(Nodes.ImplicitRestNode node) {
+        throw CompilerDirectives.shouldNotReachHere("handled in #translate");
+    }
+
+    @Override
+    public AssignableNode visitIndexTargetNode(Nodes.IndexTargetNode node) {
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
@@ -142,12 +164,14 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     }
 
     @Override
+    // RequiredParameterNode is handled during destructuring method/proc arguments
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
-        // TODO: this could be done more directly but the logic of visitLocalVariableWriteNode() needs to be simpler first
-        // NOTE: depth is not supposed to be used anyway so pass 0 value.
-        final RubyNode rubyNode = yarpTranslator.visitLocalVariableWriteNode(
-                new Nodes.LocalVariableWriteNode(node.name, 0, null, node.startOffset, node.length));
-        return ((AssignableNode) rubyNode).toAssignableNode();
+        final String name = node.name;
+        final ReadLocalNode lhs = yarpTranslator.getEnvironment().findLocalVarNode(name, null);
+        final RubyNode rhs = new DeadNode("YARPMultiTargetNodeTranslator#visitRequiredParameterNode");
+        final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
+
+        return rubyNode.toAssignableNode();
     }
 
     @Override

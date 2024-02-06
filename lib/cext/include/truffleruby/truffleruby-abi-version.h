@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2024 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
+
 #ifndef TRUFFLERUBY_ABI_VERSION_H
 #define TRUFFLERUBY_ABI_VERSION_H
 
@@ -10,6 +20,6 @@
 // $RUBY_VERSION must be the same as TruffleRuby.LANGUAGE_VERSION.
 // $ABI_NUMBER starts at 1 and is incremented for every ABI-incompatible change.
 
-#define TRUFFLERUBY_ABI_VERSION "3.2.2.24.0.0.1"
+#define TRUFFLERUBY_ABI_VERSION "3.2.2.24.0.0.2"
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -13,7 +13,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -21,7 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import org.truffleruby.language.objects.AllocationTracing;
 
-public abstract class ArrayLiteralNode extends RubyContextSourceNode {
+public abstract class ArrayLiteralNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     public static ArrayLiteralNode create(RubyLanguage language, RubyNode[] values) {
         return new UninitialisedArrayLiteralNode(language, values);
@@ -33,6 +34,10 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     public ArrayLiteralNode(RubyLanguage language, RubyNode[] values) {
         this.language = language;
         this.values = values;
+    }
+
+    public RubyNode[] getValues() {
+        return values;
     }
 
     protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
@@ -74,10 +79,11 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     @ExplodeLoop
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public final Nil executeVoid(VirtualFrame frame) {
         for (RubyNode value : values) {
-            value.doExecuteVoid(frame);
+            value.executeVoid(frame);
         }
+        return nil;
     }
 
     @ExplodeLoop

@@ -1,0 +1,71 @@
+subject: "Local variable"
+description: "at top level / assigning local variable leads to its declaration"
+notes: >
+  Declaration is represented by a RubyTopLevelRootNode's attribute frameDescriptor:
+    frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:foo}
+ruby: |
+  foo = 42
+ast: |
+  RubyTopLevelRootNode
+      attributes:
+          arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+          callTarget = <top (required)>
+          checkArityProfile = false
+          frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:foo}
+          instrumentationBits = 0
+          keywordArguments = false
+          localReturnProfile = false
+          lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+          matchingReturnProfile = false
+          nextProfile = false
+          nonMatchingReturnProfile = false
+          polyglotRef = org.truffleruby.RubyLanguage@...
+          retryProfile = false
+          returnID = org.truffleruby.language.control.ReturnID@...
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <top (required)>, blockDepth = 0, parseName = <top (required)>, notes = null, argumentDescriptors = null)
+          sourceSection = SourceSection(source=<parse_ast> [1:1 - 1:8], index=0, length=8, characters=foo = 42)
+          split = HEURISTIC
+      children:
+          body =
+              SequenceNode
+                  attributes:
+                      flags = 12
+                      sourceCharIndex = 0
+                      sourceLength = 8
+                  children:
+                      body = [
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 0 # (self)
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
+                              children:
+                                  valueNode =
+                                      ProfileArgumentNodeGen
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+                                          children:
+                                              childNode_ =
+                                                  ReadSelfNode
+                                                      attributes:
+                                                          flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
+                          WriteLocalVariableNode
+                              attributes:
+                                  flags = 1
+                                  frameSlot = 2 # foo
+                                  sourceCharIndex = 0
+                                  sourceLength = 8
+                              children:
+                                  valueNode =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = 6
+                                              sourceLength = 2
+                                              value = 42
+                      ]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -132,9 +132,6 @@ import org.truffleruby.core.range.RangeNodes;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.StringHelperNodes.DeleteBangStringsNode;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
-import org.truffleruby.core.string.StringNodesFactory.StringAppendPrimitiveNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
-import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
@@ -688,7 +685,7 @@ public abstract class StringNodes {
         private Object substring(Object string, int start, int length) {
             if (substringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                substringNode = insert(StringSubstringPrimitiveNodeFactory.create(null));
+                substringNode = insert(StringNodesFactory.StringSubstringPrimitiveNodeFactory.create(null));
             }
 
             return substringNode.execute(string, start, length);
@@ -2443,7 +2440,7 @@ public abstract class StringNodes {
 
         @NeverDefault
         public static SumNode create() {
-            return SumNodeFactory.create(null);
+            return StringNodesFactory.SumNodeFactory.create(null);
         }
 
         public abstract Object executeSum(Object string, Object bits);
@@ -3106,7 +3103,7 @@ public abstract class StringNodes {
 
         @NeverDefault
         public static StringAppendPrimitiveNode create() {
-            return StringAppendPrimitiveNodeFactory.create(null);
+            return StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null);
         }
 
         public abstract RubyString executeStringAppend(RubyString string, Object other);

@@ -6,7 +6,6 @@ notes: >
   - SplatCastNodeGen
   - ArrayLiteralNode$UninitialisedArrayLiteralNode
   nodes
-yarp_specific: true # Simplified AST and replaced ArrayAppendOneNodeGen by concatenating with array of one element
 focused_on_node: "org.truffleruby.language.control.NextNode"
 ruby: |
   while (true)
@@ -16,11 +15,15 @@ ast: |
   NextNode
       attributes:
           flags = 1
+          sourceCharIndex = 15
+          sourceLength = 13
       children:
           child =
               ArrayConcatNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 20
+                      sourceLength = 8
                   children:
                       children = [
                           SplatCastNodeGen
@@ -29,6 +32,8 @@ ast: |
                                   copy = true
                                   flags = 0
                                   nilBehavior = CONVERT
+                                  sourceCharIndex = 20
+                                  sourceLength = 4
                               children:
                                   childNode_ =
                                       RubyCallNode
@@ -45,20 +50,28 @@ ast: |
                                               methodName = "foo"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 21
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   values = [
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 26
+                                              sourceLength = 2
                                               value = 42
                                   ]
                       ]

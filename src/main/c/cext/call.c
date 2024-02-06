@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -47,6 +47,13 @@ VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *arg
     rb_tr_unwrap(object),
     rb_tr_unwrap(ID2SYM(name)),
     polyglot_from_VALUE_array(args, args_count)));
+}
+
+VALUE rb_check_funcall(VALUE object, ID name, int args_count, const VALUE *args) {
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_check_funcall",
+    rb_tr_unwrap(object),
+    rb_tr_unwrap(ID2SYM(name)),
+    rb_tr_unwrap(rb_ary_new_from_values(args_count, args))));
 }
 
 VALUE rb_apply(VALUE object, ID name, VALUE args) {
@@ -146,7 +153,7 @@ void *rb_thread_call_with_gvl(gvl_call *function, void *data1) {
 
 void* rb_thread_call_without_gvl(gvl_call *function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   if (unblock_function == RUBY_UBF_IO) {
-    unblock_function = (rb_unblock_function_t*) rb_tr_unwrap(Qnil);
+    unblock_function = (rb_unblock_function_t*) NULL;
   }
 
   return polyglot_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);

@@ -266,9 +266,13 @@ module Truffle
             # to succeed on some platforms (most notably, Solaris).
             Integer(port)
             type = ::Socket::SOCK_DGRAM
-          rescue ArgumentError
+          rescue ArgumentError, TypeError
             # Ignored.
           end
+        end
+
+        if Primitive.nil?(port)
+          port = 0
         end
 
         hints = Addrinfo.new
@@ -277,7 +281,7 @@ module Truffle
         hints[:ai_socktype] = type
         hints[:ai_flags]    = flags
 
-        if host and host.empty?
+        if host == ::Socket::INADDR_ANY or (host and host.empty?)
           host = '0.0.0.0'
         end
 

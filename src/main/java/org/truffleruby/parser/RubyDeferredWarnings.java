@@ -71,6 +71,16 @@ public final class RubyDeferredWarnings implements WarnCallback {
             return buffer.toString();
         }
 
+        @Override
+        public String toString() {
+            return "WarningMessage(" +
+                    "message = '" + message + "'" +
+                    ", verbosity = " + verbosity +
+                    ", fileName = '" + fileName + "'" +
+                    ", lineNumber = " + lineNumber +
+                    ")";
+        }
+
     }
 
     @Override
@@ -106,6 +116,18 @@ public final class RubyDeferredWarnings implements WarnCallback {
                         fileName,
                         lineNumber,
                         message));
+    }
+
+    @Override
+    public String toString() {
+        var strings = new ArrayList<String>();
+
+        for (var warning : warnings) {
+            strings.add(warning.toString());
+        }
+
+        String messages = String.join(", ", strings);
+        return "RubyDeferredWarnings(" + messages + ")";
     }
 
 }

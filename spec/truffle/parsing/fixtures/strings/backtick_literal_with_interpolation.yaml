@@ -21,6 +21,8 @@ ast: |
           methodName = "`"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 13
       children:
           arguments = [
               InterpolatedStringNode
@@ -28,6 +30,8 @@ ast: |
                       emptyTString = ""
                       encoding = UTF-8
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 13
                   children:
                       children = [
                           ToSNodeGen
@@ -37,6 +41,8 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 1
+                                              sourceCharIndex = 1
+                                              sourceLength = 5
                                               tstring = echo 
                           ToSNodeGen
                               children:
@@ -44,6 +50,8 @@ ast: |
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 9
+                                              sourceLength = 1
                                               value = 1
                       ]
           ]
@@ -51,3 +59,5 @@ ast: |
               SelfNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0

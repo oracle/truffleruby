@@ -11,3 +11,5 @@ ast: |
           definition = method
           flags = 1
           frozenString = foobar
+          sourceCharIndex = 0
+          sourceLength = 9

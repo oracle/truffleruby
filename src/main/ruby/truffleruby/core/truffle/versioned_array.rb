@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2021, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2021, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -653,6 +653,11 @@ class Truffle::VersionedArray < Array
   def to_s(*args, &block)
     copy = TruffleRuby.synchronized(@lock) { Array.new self }
     copy.to_s(*args, &block)
+  end
+
+  def to_set(*args, &block)
+    copy = TruffleRuby.synchronized(@lock) { Array.new self }
+    copy.to_set(*args, &block)
   end
 
   def transpose(*args, &block)

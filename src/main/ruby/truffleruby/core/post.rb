@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -93,18 +93,17 @@ end
 
 yield_self do # Avoid capturing ruby_home in the at_exit and delay blocks
   ruby_home = Truffle::Boot.ruby_home
-  if ruby_home
-    # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
-    # paths supplied by -I will stay before gem lib directories. See Gem.load_path_insert_index in rubygems.rb.
-    # Must be kept in sync with the value of RbConfig::CONFIG['sitelibdir'].
-    $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/#{Truffle::GemUtil::ABI_VERSION}"
 
-    $LOAD_PATH.push "#{ruby_home}/lib/truffle"
-    $LOAD_PATH.push "#{ruby_home}/lib/mri"
-    $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
+  # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
+  # paths supplied by -I will stay before gem lib directories. See Gem.load_path_insert_index in rubygems.rb.
+  # Must be kept in sync with the value of RbConfig::CONFIG['sitelibdir'].
+  $LOAD_PATH.push "#{ruby_home}/lib/ruby/site_ruby/#{Truffle::GemUtil::ABI_VERSION}"
 
-    $LOAD_PATH.each { |p| p.instance_variable_set(:@gem_prelude_index, p) }
-  end
+  $LOAD_PATH.push "#{ruby_home}/lib/truffle"
+  $LOAD_PATH.push "#{ruby_home}/lib/mri"
+  $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
+
+  $LOAD_PATH.each { |p| p.instance_variable_set(:@gem_prelude_index, p) }
 end
 
 Truffle::Boot.delay do
@@ -113,3 +112,8 @@ Truffle::Boot.delay do
     $LOAD_PATH.unshift(*extra_load_paths.map { |path| File.expand_path(path) })
   end
 end
+
+# Set class is in the core library but it's still possible to require it as a standard
+# library with `require`. So it doesn't make sense to have two copies of the same code
+# and it's easier just to autoload CRuby's provided source file here.
+autoload :Set, 'set'

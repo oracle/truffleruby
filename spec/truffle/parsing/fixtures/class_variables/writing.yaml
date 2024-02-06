@@ -8,18 +8,24 @@ ast: |
       attributes:
           flags = 1
           name = "@@foo"
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           lexicalScopeNode =
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object =  :: Object
+                      sourceCharIndex = -1
+                      sourceLength = 0
           resolveTargetModuleNode =
               ResolveTargetModuleForClassVariablesNodeGen
           rhs =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 8
+                      sourceLength = 2
                       value = 42
           setClassVariableNode =
               SetClassVariableNodeGen

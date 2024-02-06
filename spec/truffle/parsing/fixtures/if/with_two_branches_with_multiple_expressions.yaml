@@ -15,39 +15,55 @@ ast: |
   IfElseNodeGen
       attributes:
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 45
       children:
           condition =
               BooleanLiteralNode
                   attributes:
                       flags = 1
+                      sourceCharIndex = 3
+                      sourceLength = 4
                       value = true
           elseBody =
               SequenceNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 29
+                      sourceLength = 12
                   children:
                       body = [
                           BooleanLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 29
+                                  sourceLength = 4
                                   value = true
                           BooleanLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 36
+                                  sourceLength = 5
                                   value = false
                       ]
           thenBody =
               SequenceNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 10
+                      sourceLength = 11
                   children:
                       body = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 10
+                                  sourceLength = 2
                                   value = 42
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 1
+                                  sourceCharIndex = 15
+                                  sourceLength = 6
                                   value = 100500
                       ]

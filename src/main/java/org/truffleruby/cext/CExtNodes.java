@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -1184,6 +1184,16 @@ public abstract class CExtNodes {
         int sourceLine() {
             final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
             return RubySource.getStartLineAdjusted(getContext(), sourceSection);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_is_local_id", onSingleton = true, required = 1)
+    public abstract static class IsLocalIdNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        boolean isLocalId(RubySymbol symbol) {
+            return symbol.getType() == IdentifierType.LOCAL;
         }
 
     }

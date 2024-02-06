@@ -1,6 +1,6 @@
 # truffleruby_primitives: true
 
-# Copyright (c) 2019, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2019, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -291,6 +291,35 @@ describe "Sharing is correctly propagated for" do
     new_hash = {}
     hsh.replace(new_hash)
     shared?(new_hash).should == true
+  end
+
+  describe "Thread.new's" do
+    it "block" do
+      obj = Object.new
+      t = Thread.new { sleep }
+      begin
+        shared?(obj).should == true
+      ensure
+        t.kill
+        t.join
+      end
+    end
+
+    # avoid capturing local variables in the spec example below
+    thread_body = proc { sleep }
+
+    it "arguments" do
+      obj1 = Object.new
+      obj2 = Object.new
+      t = Thread.new(obj1, obj2, &thread_body)
+      begin
+        shared?(obj1).should == true
+        shared?(obj2).should == true
+      ensure
+        t.kill
+        t.join
+      end
+    end
   end
 
   it "Fiber local variables which share the value (since they can be accessed from other threads)" do

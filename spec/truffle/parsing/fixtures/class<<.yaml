@@ -11,7 +11,9 @@ ast: |
   RunModuleDefinitionNode
       attributes:
           flags = 1
-          moduleBodyDefinition = ModuleBodyDefinition(name = <singleton class>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <singleton class>, blockDepth = 0, parseName = <singleton class>, notes = null, argumentDescriptors = null), callTarget = <singleton class>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          moduleBodyDefinition = ModuleBodyDefinition(name = <singleton class>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <singleton class>, blockDepth = 0, parseName = <singleton class>, notes = null, argumentDescriptors = null), callTarget = <singleton class>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          sourceCharIndex = 0
+          sourceLength = 23
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -19,12 +21,16 @@ ast: |
               SingletonClassNodeGen$SingletonClassASTNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 23
                   children:
                       valueNode_ =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 9
+                                  sourceLength = 5
                                   tstring = foo
       call targets:
           RubyRootNode
@@ -35,36 +41,49 @@ ast: |
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <singleton class>, blockDepth = 0, parseName = <singleton class>, notes = null, argumentDescriptors = null)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <singleton class>, blockDepth = 0, parseName = <singleton class>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 3:3], index=0, length=23, characters=class << "foo"\n  42\nend)
                   split = NEVER
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 23
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   InsideModuleDefinitionNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 0
+                                          sourceLength = 23
                                       children:
                                           body =
                                               IntegerFixnumLiteralNode
                                                   attributes:
                                                       flags = 1
+                                                      sourceCharIndex = 17
+                                                      sourceLength = 2
                                                       value = 42
                               ]

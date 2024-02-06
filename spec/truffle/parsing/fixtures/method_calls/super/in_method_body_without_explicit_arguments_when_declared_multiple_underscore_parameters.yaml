@@ -1,0 +1,302 @@
+subject: "Method call"
+description: super / in a method body without explicit arguments when declared multiple underscore parameters
+notes: >
+  Is represented by SuperCallNode and ReadZSuperArgumentsNode nodes.
+  
+  All the "_" but the first one are stored in temporary local variables %_2, %_3, etc.
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo(_, _, _=0, _=1, *_, _, _)
+    super
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 2, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _, type = opt), ArgumentDescriptor(name = _, type = opt), ArgumentDescriptor(name = _, type = rest), ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _, type = req)])
+          sourceCharIndex = 0
+          sourceLength = 45
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 2, optional = 2, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:_, #3:%_2, #4:%method_block_arg, #5:%_3, #6:%_4, #7:%_5, #8:%_6, #9:%_7}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 2, optional = 2, hasRest = true, isImplicitRest = false, postRequired = 2, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _, type = opt), ArgumentDescriptor(name = _, type = opt), ArgumentDescriptor(name = _, type = rest), ArgumentDescriptor(name = _, type = req), ArgumentDescriptor(name = _, type = req)])
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 3:3], index=0, length=45, characters=def foo(_, _, _=0, _=1, *_, _, _)\n  super\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 45
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 2 # _
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 0
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 3 # %_2
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadPreArgumentNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  index = 1
+                                                                  keywordArguments = false
+                                                                  missingArgumentBehavior = RUNTIME_ERROR
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 4
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 5 # %_3
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ReadOptionalArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      index = 2
+                                                      keywordArguments = false
+                                                      minimum = 5
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      defaultValue =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  sourceCharIndex = 16
+                                                                  sourceLength = 1
+                                                                  value = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 6 # %_4
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ReadOptionalArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      index = 3
+                                                      keywordArguments = false
+                                                      minimum = 6
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      defaultValue =
+                                                          IntegerFixnumLiteralNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  sourceCharIndex = 21
+                                                                  sourceLength = 1
+                                                                  value = 1
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 7 # %_5
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ReadRestArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      keywordArguments = false
+                                                      markKeywordHashWithFlag = false
+                                                      postArgumentsCount = 2
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                      startIndex = 4
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 8 # %_6
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ReadPostArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      hasRest = true
+                                                      indexFromCount = 1
+                                                      keywordArguments = false
+                                                      optional = 2
+                                                      required = 4
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 9 # %_7
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ReadPostArgumentNode
+                                                  attributes:
+                                                      flags = 0
+                                                      hasRest = true
+                                                      indexFromCount = 2
+                                                      keywordArguments = false
+                                                      optional = 2
+                                                      required = 4
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                  SuperCallNode
+                                      attributes:
+                                          descriptor = NoKeywordArgumentsDescriptor
+                                          emptyKeywordsProfile = false
+                                          flags = 1
+                                          isSplatted = true
+                                          lastArgIsNotHashProfile = false
+                                          notEmptyKeywordsProfile = false
+                                          notRuby2KeywordsHashProfile = false
+                                          sourceCharIndex = 36
+                                          sourceLength = 5
+                                      children:
+                                          arguments =
+                                              ReadZSuperArgumentsNode
+                                                  attributes:
+                                                      flags = 0
+                                                      restArgIndex = 4
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      reloadNodes = [
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 2 # _
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 3 # %_2
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 5 # %_3
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 6 # %_4
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 7 # %_5
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 9 # %_7
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                          ReadLocalVariableNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  frameSlot = 8 # %_6
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                                                  type = FRAME_LOCAL
+                                                      ]
+                                          block =
+                                              ReadLocalVariableNode
+                                                  attributes:
+                                                      flags = 0
+                                                      frameSlot = 4 # %method_block_arg
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                      type = FRAME_LOCAL
+                              ]

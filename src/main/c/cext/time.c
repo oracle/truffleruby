@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -41,6 +41,20 @@ void rb_tr_time_timespec(VALUE time_val, struct timespec *result) {
   VALUE time = rb_time_num_new(time_val, Qnil);
   result->tv_sec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_sec"));
   result->tv_nsec = polyglot_as_i64(RUBY_INVOKE_NO_WRAP(time, "tv_nsec"));
+}
+
+// Only used with --cexts-sulong
+struct timeval rb_time_timeval(VALUE time) {
+  struct timeval result;
+  rb_tr_time_timeval(time, &result);
+  return result;
+}
+
+// Only used with --cexts-sulong
+struct timespec rb_time_timespec(VALUE time) {
+  struct timespec result;
+  rb_tr_time_timespec(time, &result);
+  return result;
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {

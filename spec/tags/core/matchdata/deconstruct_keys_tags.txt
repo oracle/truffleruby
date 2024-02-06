@@ -1,9 +1,0 @@
-fails:MatchData#deconstruct_keys returns whole hash for nil as an argument
-fails:MatchData#deconstruct_keys returns only specified keys
-fails:MatchData#deconstruct_keys requires one argument
-fails:MatchData#deconstruct_keys it raises error when argument is neither nil nor array
-fails:MatchData#deconstruct_keys returns {} when passed []
-fails:MatchData#deconstruct_keys does not accept non-Symbol keys
-fails:MatchData#deconstruct_keys process keys till the first non-existing one
-fails:MatchData#deconstruct_keys returns {} when there are no named captured groups at all
-fails:MatchData#deconstruct_keys returns {} when passed more keys than named captured groups

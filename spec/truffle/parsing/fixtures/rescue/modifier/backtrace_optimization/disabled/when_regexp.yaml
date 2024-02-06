@@ -11,23 +11,31 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
-          flags = 1
+          flags = 0
+          sourceCharIndex = 0
+          sourceLength = 18
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       rescueBody =
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = RubyRegexp(source = bar, options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
+                                  sourceCharIndex = 13
+                                  sourceLength = 5
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
-                      flags = 0
+                      flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 5
                       tstring = foo

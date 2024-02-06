@@ -78,6 +78,28 @@
 
 # Behavior of interop messages for Ruby objects
 
+## toDisplayString()
+
+When interop message `toDisplayString` is sent
+- to 
+  it returns a String representing the object.
+- otherwise
+  it returns the same as `subject.inspect`.
+
+## MetaObject related messages
+
+When interop message `hasMetaObject` is sent
+- to **`nil`**, **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **an `Exception`**, **an `Exception` with a cause**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer**, **polyglot members**, **polyglot array** or **polyglot hash**
+  it returns true.
+- otherwise
+  it returns false.
+
+When interop message `getMetaObject` is sent
+- to 
+  it returns the Ruby exception's class.
+- otherwise
+  it returns the same Ruby class as `subject.class`.
+
 ## `null` related messages
 
 When interop message `isNull` is sent
@@ -329,7 +351,7 @@ When interop message `writeMember` is sent
   it writes the given value under the given name.
 - to **a `StructWithValue`**
   it writes the value to the given struct member.
-- to **a `BigDecimal`**, **`nil`**, **`:symbol`** or **a frozen `Object`**
+- to **`nil`**, **`false`**, **`true`**, **`:symbol`**, **an `Integer`**, **a `Float`**, **a `BigDecimal`** or **a frozen `Object`**
   it fails with `UnsupportedMessageError` when the receiver is frozen.
 - otherwise
   it fails with `UnsupportedMessageError`.

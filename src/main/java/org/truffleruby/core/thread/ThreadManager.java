@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -65,6 +65,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.signal.LibRubySignal;
 
 public final class ThreadManager {
@@ -98,11 +99,10 @@ public final class ThreadManager {
     }
 
     public void initialize() {
-        useLibRubySignal = context.getOptions().NATIVE_PLATFORM && !context.getOptions().BUILDING_CORE_CEXTS &&
-                language.getRubyHome() != null;
+        useLibRubySignal = context.getOptions().NATIVE_PLATFORM && !language.options.BUILDING_CORE_CEXTS;
         nativeInterrupt = context.getOptions().NATIVE_INTERRUPT && useLibRubySignal;
         if (useLibRubySignal) {
-            LibRubySignal.loadLibrary(language.getRubyHome());
+            LibRubySignal.loadLibrary(language.getRubyHome(), Platform.LIB_SUFFIX);
         }
         if (nativeInterrupt) {
             LibRubySignal.setupSIGVTALRMEmptySignalHandler();
@@ -385,7 +385,7 @@ public final class ThreadManager {
     private void setException(RubyThread thread, RubyException exception, Node currentNode) {
         // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
         // to capture the backtrace from this thread.
-        final RaiseException truffleException = exception.backtrace.getRaiseException();
+        RaiseException truffleException = exception.backtrace == null ? null : exception.backtrace.getRaiseException();
         if (truffleException != null) {
             TruffleStackTrace.fillIn(truffleException);
         }

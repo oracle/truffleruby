@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -29,11 +29,10 @@ module Truffle::Boot
   def self.find_s_file(name)
     # Nonstandard lookup
 
-    if ruby_home = Truffle::Boot.ruby_home
-      # added to look up truffleruby own files first when it's not on PATH
-      name_in_ruby_home_bin = "#{ruby_home}/bin/#{name}"
-      return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
-    end
+    ruby_home = Truffle::Boot.ruby_home
+    # added to look up truffleruby own files first when it's not on PATH
+    name_in_ruby_home_bin = "#{ruby_home}/bin/#{name}"
+    return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
 
     # Standard lookups
 

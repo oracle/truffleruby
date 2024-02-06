@@ -5,7 +5,7 @@ which are the only supported ways to use TruffleRuby.
 
 ## TruffleRuby
 
-TruffleRuby is copyright (c) 2013-2023 Oracle and/or its
+TruffleRuby is copyright (c) 2013-2024 Oracle and/or its
 affiliates, and is made available to you under the terms of any one of the
 following three licenses:
 
@@ -165,9 +165,14 @@ files.
 
 #### FFI
 
-TruffleRuby includes parts of the FFI gem 1.14.2. The FFI gem is copyright
-2008-2016, Ruby FFI project contributors, and covered by the three-clause BSD
-licence (see `ffi.txt`).
+TruffleRuby includes parts of the FFI gem (version as described in [lib/truffle/ffi/version.rb](../../lib/truffle/ffi/version.rb)).
+The FFI gem is copyright  2008-2016, Ruby FFI project contributors, and covered by the three-clause BSD licence (see `ffi.txt`).
+
+#### Prism
+
+TruffleRuby uses the [Prism](https://github.com/ruby/prism) Ruby parser
+(version as described in [src/main/c/yarp/include/prism/version.h](../../src/main/c/yarp/include/prism/version.h)),
+copyright Shopify Inc. and is available under an MIT licence (see `src/main/c/yarp/LICENSE.md`).
 
 # Java dependencies
 
@@ -202,14 +207,6 @@ Engine Yard and are released under an MIT licence (see `mit.txt`).
 
 We do not distribute the FFI Specs, but they are copyright 2008-2014
 Ruby-FFI contributors and are released under an MIT licence (see `mit.txt`).
-
-## Jay
-
-TruffleRuby uses the Jay parser generator, modified from
-https://github.com/jruby/jay revision `9ffc59a`. Jay is copyright 1989 The
-Regents of the University of California, ported by Axel T. Schreiner, and is
-covered by the three-clause BSD licence (see `jay.txt`). We only distribute Jay
-in the source repository - it isn't part of releases.
 
 ## Written offer for source code
 

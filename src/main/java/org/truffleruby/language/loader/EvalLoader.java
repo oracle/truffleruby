@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2018, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -16,8 +16,8 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.MagicCommentParser;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -30,7 +30,7 @@ public abstract class EvalLoader {
             RubyEncoding encoding, String method, String file, int line, Node currentNode) {
         var code = new TStringWithEncoding(codeTString.asTruffleStringUncached(encoding.tencoding), encoding);
 
-        var sourceTString = RubyLexer.createSourceTStringBasedOnMagicEncodingComment(code, code.encoding);
+        var sourceTString = MagicCommentParser.createSourceTStringBasedOnMagicEncodingComment(code, code.encoding);
         var sourceEncoding = sourceTString.encoding;
 
         if (!sourceEncoding.isAsciiCompatible) {
@@ -38,9 +38,8 @@ public abstract class EvalLoader {
                     .argumentError(sourceEncoding + " is not ASCII compatible", currentNode));
         }
 
-        final String sourceString;
         try {
-            sourceString = sourceTString.toJavaStringOrThrow();
+            sourceTString.toJavaStringOrThrow();
         } catch (CannotConvertBinaryRubyStringToJavaString e) {
             // In such a case, we have no way to build a Java String for the Truffle Source that
             // could accurately represent the source string, so we throw an error.
@@ -55,7 +54,8 @@ public abstract class EvalLoader {
                             currentNode.getEncapsulatingSourceSection()));
         }
 
-        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
+        final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, new ByteBasedCharSequence(sourceTString), file)
+                .build();
 
         final RubySource rubySource = new RubySource(source, file, sourceTString, true, line - 1);
 

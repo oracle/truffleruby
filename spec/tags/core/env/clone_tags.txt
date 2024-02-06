@@ -1,1 +1,0 @@
-fails:ENV#clone raises TypeError

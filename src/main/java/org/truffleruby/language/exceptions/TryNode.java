@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -39,17 +39,14 @@ public abstract class TryNode extends RubyContextSourceNode {
     @Children private final RescueNode[] rescueParts;
     @Child private RubyNode elsePart;
     @Child private TranslateExceptionNode translateExceptionNode;
-    private final boolean canOmitBacktrace;
 
     public TryNode(
             RubyNode tryPart,
             RescueNode[] rescueParts,
-            RubyNode elsePart,
-            boolean canOmitBacktrace) {
+            RubyNode elsePart) {
         this.tryPart = tryPart;
         this.rescueParts = rescueParts;
         this.elsePart = elsePart;
-        this.canOmitBacktrace = canOmitBacktrace;
     }
 
     /** Based on {@link InteropLibrary#throwException(Object)}'s {@code TryCatchNode} */
@@ -106,7 +103,7 @@ public abstract class TryNode extends RubyContextSourceNode {
                     printBacktraceOnRescue(rescue, exception);
                 }
 
-                if (canOmitBacktrace) {
+                if (rescue.canOmitBacktrace) {
                     /* If we're in this branch, we've already determined that the rescue body doesn't access `$!`. Thus,
                      * we can safely skip writing that value. Writing to `$!` is quite expensive, so we want to avoid it
                      * wherever we can. */
@@ -149,8 +146,7 @@ public abstract class TryNode extends RubyContextSourceNode {
         var copy = TryNodeGen.create(
                 tryPart.cloneUninitialized(),
                 cloneUninitialized(rescueParts),
-                cloneUninitialized(elsePart),
-                canOmitBacktrace);
+                cloneUninitialized(elsePart));
         return copy.copyFlags(this);
     }
 

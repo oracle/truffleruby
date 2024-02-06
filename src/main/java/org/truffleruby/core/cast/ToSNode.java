@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -31,7 +31,7 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
         return ToSNodeGen.create(value);
     }
 
-    abstract RubyBaseNodeWithExecute getValueNode();
+    public abstract RubyBaseNodeWithExecute getValueNode();
 
     @Specialization
     RubyString toS(RubyString string) {

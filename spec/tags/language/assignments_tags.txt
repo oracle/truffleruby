@@ -1,0 +1,1 @@
+fails:Assignments using += using a #[] splatted argument calls #to_a only once

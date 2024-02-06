@@ -7,14 +7,20 @@ ast: |
   OrNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 6
       children:
           left =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 1
                       value = 1
           right =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 5
+                      sourceLength = 1
                       value = 2

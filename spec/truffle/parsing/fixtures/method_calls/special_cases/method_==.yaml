@@ -11,14 +11,20 @@ ast: |
           floatEqualAssumption = Assumption(valid, name=inlined Float#==)
           integerEqualAssumption = Assumption(valid, name=inlined Integer#==)
           parameters = RubyCallNodeParameters{methodName='==', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+          sourceCharIndex = 0
+          sourceLength = 6
       children:
           leftNode_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 1
                       value = 1
           rightNode_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 5
+                      sourceLength = 1
                       value = 2

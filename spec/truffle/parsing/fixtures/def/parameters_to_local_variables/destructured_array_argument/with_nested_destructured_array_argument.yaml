@@ -1,7 +1,6 @@
 subject: "Def"
 description: "Parameters to local variables / with destructured Array argument / nested Array argument"
 notes: >
-yarp_specific: true # destructuring was optimized and generating a sequence of AST nodes is replaced by MultipleAssignmentNode
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def foo(a, (b, *c, d, (e, *f, g)), h)
@@ -13,11 +12,13 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "foo"
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = null, type = anonreq), ArgumentDescriptor(name = h, type = req)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = null, type = anonreq), ArgumentDescriptor(name = h, type = req)])
+          sourceCharIndex = 0
+          sourceLength = 41
       call targets:
           RubyMethodRootNode
               attributes:
-                  arityForCheck = Arity{preRequired = 3, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  arityForCheck = Arity{preRequired = 3, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#foo
                   checkArityProfile = false
                   frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:a, #3:b, #4:c, #5:d, #6:e, #7:f, #8:g, #9:h, #10:%method_block_arg}
@@ -30,38 +31,51 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = null, type = anonreq), ArgumentDescriptor(name = h, type = req)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 3, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = a, type = req), ArgumentDescriptor(name = null, type = anonreq), ArgumentDescriptor(name = h, type = req)])
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 2:3], index=0, length=41, characters=def foo(a, (b, *c, d, (e, *f, g)), h)\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 41
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 2 # a
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadPreArgumentNode
@@ -70,9 +84,13 @@ ast: |
                                                                   index = 0
                                                                   keywordArguments = false
                                                                   missingArgumentBehavior = RUNTIME_ERROR
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   MultipleAssignmentNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           postNodes = [
                                               WriteFrameSlotNodeGen
@@ -81,6 +99,8 @@ ast: |
                                               MultipleAssignmentNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       postNodes = [
                                                           WriteFrameSlotNodeGen
@@ -103,6 +123,8 @@ ast: |
                                                                   copy = true
                                                                   flags = 0
                                                                   nilBehavior = ARRAY_WITH_NIL
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                           ]
                                           preNodes = [
                                               WriteFrameSlotNodeGen
@@ -117,6 +139,8 @@ ast: |
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadPreArgumentNode
@@ -125,6 +149,8 @@ ast: |
                                                                   index = 1
                                                                   keywordArguments = false
                                                                   missingArgumentBehavior = RUNTIME_ERROR
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                           splatCastNode =
                                               SplatCastNodeGen
                                                   attributes:
@@ -132,15 +158,21 @@ ast: |
                                                       copy = true
                                                       flags = 0
                                                       nilBehavior = ARRAY_WITH_NIL
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 9 # h
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadPreArgumentNode
@@ -149,11 +181,17 @@ ast: |
                                                                   index = 2
                                                                   keywordArguments = false
                                                                   missingArgumentBehavior = RUNTIME_ERROR
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
                                           slot = 10
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                               ]

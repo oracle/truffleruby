@@ -11,11 +11,15 @@ ast: |
           assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
           flags = 1
           parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           leftNode_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 2
                       value = 42
           rightNode_ =
               RubyCallNode
@@ -32,15 +36,21 @@ ast: |
                       methodName = "convert"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 5
+                      sourceLength = 7
                   children:
                       arguments = [
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                                   value = 0
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 5
+                                  sourceLength = 6
                                   value = 100500
                       ]
                       receiver =
@@ -48,8 +58,12 @@ ast: |
                               attributes:
                                   flags = 0
                                   name = "Complex"
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   moduleNode =
                                       ObjectClassLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0

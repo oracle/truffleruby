@@ -1,7 +1,5 @@
 subject: "Rescue keyword"
 description: "capturing / with nested element reference"
-yarp_specific: true # an AssignRescueVariableNode node is introduced,
-                    # generate explicit NilLiteralNode (isImplicit = false)
 notes: >
 focused_on_node: "org.truffleruby.language.exceptions.TryNode"
 ruby: |
@@ -13,13 +11,17 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 56
       children:
           rescueParts = [
               RescueClassesNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 21
+                      sourceLength = 12
                   children:
                       handlingClassNodes = [
                           ReadConstantWithLexicalScopeNode
@@ -27,6 +29,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "RuntimeError"
+                                  sourceCharIndex = 21
+                                  sourceLength = 12
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -40,11 +44,15 @@ ast: |
                           SequenceNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 14
+                                  sourceLength = 38
                               children:
                                   body = [
                                       AssignRescueVariableNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                           children:
                                               rescueVariableNode =
                                                   InlinedIndexSetNodeGen
@@ -52,22 +60,30 @@ ast: |
                                                           assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                           flags = 0
                                                           parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
+                                                          sourceCharIndex = 37
+                                                          sourceLength = 10
                                                       children:
                                                           operand1Node_ =
                                                               ObjectLiteralNode
                                                                   attributes:
                                                                       flags = 0
                                                                       object = :foo
+                                                                      sourceCharIndex = 42
+                                                                      sourceLength = 4
                                                           operand2Node_ =
                                                               NilLiteralNode
                                                                   attributes:
                                                                       flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
                                                           receiver_ =
                                                               InlinedIndexGetNodeGen
                                                                   attributes:
                                                                       assumptions = [Assumption(valid, name=set_trace_func is not used)]
                                                                       flags = 0
                                                                       parameters = RubyCallNodeParameters{methodName='[]', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                                                      sourceCharIndex = 37
+                                                                      sourceLength = 4
                                                                   children:
                                                                       leftNode_ =
                                                                           RubyCallNode
@@ -84,19 +100,27 @@ ast: |
                                                                                   methodName = "a"
                                                                                   notEmptyKeywordsProfile = false
                                                                                   notRuby2KeywordsHashProfile = false
+                                                                                  sourceCharIndex = 37
+                                                                                  sourceLength = 1
                                                                               children:
                                                                                   receiver =
                                                                                       SelfNode
                                                                                           attributes:
                                                                                               flags = 0
+                                                                                              sourceCharIndex = -1
+                                                                                              sourceLength = 0
                                                                       rightNode_ =
                                                                           IntegerFixnumLiteralNode
                                                                               attributes:
                                                                                   flags = 0
+                                                                                  sourceCharIndex = 39
+                                                                                  sourceLength = 1
                                                                                   value = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
+                                              sourceCharIndex = 50
+                                              sourceLength = 2
                                               value = 42
                                   ]
           ]
@@ -105,4 +129,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

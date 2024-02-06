@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -316,7 +316,7 @@ public abstract class RequireNode extends RubyBaseNode {
             final String linkError = linkerException.getMessage();
             final String message;
             final String home = getLanguage().getRubyHome();
-            final String postInstallHook = (home != null ? home + "/" : "") + "lib/truffle/post_install_hook.sh";
+            final String postInstallHook = home + "/lib/truffle/post_install_hook.sh";
 
             // Mismatches between the libssl compiled against and the libssl used at runtime (typically on a different machine)
             if (feature.contains("openssl")) {

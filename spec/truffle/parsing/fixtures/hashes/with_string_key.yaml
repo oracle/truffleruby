@@ -9,6 +9,8 @@ ast: |
   PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 13
       children:
           keyValues = [
               FrozenStringLiteralNode
@@ -16,8 +18,12 @@ ast: |
                       definition = expression
                       flags = 0
                       frozenString = foo
+                      sourceCharIndex = 1
+                      sourceLength = 5
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 10
+                      sourceLength = 2
                       value = 42
           ]

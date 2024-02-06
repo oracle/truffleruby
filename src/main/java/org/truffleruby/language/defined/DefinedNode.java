@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,12 +9,13 @@
  */
 package org.truffleruby.language.defined;
 
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public final class DefinedNode extends RubyContextSourceNode {
+public final class DefinedNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Child private RubyNode child;
 
@@ -28,8 +29,9 @@ public final class DefinedNode extends RubyContextSourceNode {
     }
 
     @Override
-    public void doExecuteVoid(VirtualFrame frame) {
+    public Nil executeVoid(VirtualFrame frame) {
         // do nothing
+        return nil;
     }
 
     @Override

@@ -11,7 +11,9 @@ ast: |
   RunModuleDefinitionNode
       attributes:
           flags = 1
-          moduleBodyDefinition = ModuleBodyDefinition(name = <class:Bar>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null), callTarget = <class:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          moduleBodyDefinition = ModuleBodyDefinition(name = <class:Bar>, sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null), callTarget = <class:Bar>, staticLexicalScope =  :: null :: Object, dynamicLexicalScopes = null)
+          sourceCharIndex = 0
+          sourceLength = 18
       children:
           callModuleDefinitionNode =
               DefaultIndirectCallNode
@@ -20,6 +22,8 @@ ast: |
                   attributes:
                       flags = 0
                       name = "Bar"
+                      sourceCharIndex = 0
+                      sourceLength = 18
                   children:
                       lexicalParentModule =
                           ReadConstantWithLexicalScopeNode
@@ -27,6 +31,8 @@ ast: |
                                   flags = 0
                                   lexicalScope =  :: Object
                                   name = "Foo"
+                                  sourceCharIndex = 6
+                                  sourceLength = 3
                               children:
                                   getConstantNode =
                                       GetConstantNodeGen
@@ -44,35 +50,48 @@ ast: |
                   lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   returnID = MODULE_BODY
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null)
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: null :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = <class:Bar>, blockDepth = 0, parseName = <class:Bar>, notes = null, argumentDescriptors = null)
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 2:3], index=0, length=18, characters=class Foo::Bar\nend)
                   split = NEVER
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 18
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   InsideModuleDefinitionNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = 0
+                                          sourceLength = 18
                                       children:
                                           body =
                                               NilLiteralNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                               ]

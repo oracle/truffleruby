@@ -9,6 +9,8 @@ ast: |
           flags = 1
           lexicalScope =  :: Object
           name = "Foo"
+          sourceCharIndex = 0
+          sourceLength = 3
       children:
           getConstantNode =
               GetConstantNodeGen

@@ -9,3 +9,5 @@ ast: |
   EmptyHashStore$EmptyHashLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 2

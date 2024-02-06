@@ -10,12 +10,16 @@ ast: |
       attributes:
           flags = 0
           name = "@@foo"
+          sourceCharIndex = 0
+          sourceLength = 11
       children:
           lexicalScopeNode =
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object =  :: Object
+                      sourceCharIndex = -1
+                      sourceLength = 0
           resolveTargetModuleNode =
               ResolveTargetModuleForClassVariablesNodeGen
           rhs =
@@ -24,18 +28,24 @@ ast: |
                       assumptions = [Assumption(valid, name=set_trace_func is not used), Assumption(valid, name=inlined Integer#+), Assumption(valid, name=inlined Float#+)]
                       flags = 0
                       parameters = RubyCallNodeParameters{methodName='+', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                      sourceCharIndex = 0
+                      sourceLength = 11
                   children:
                       leftNode_ =
                           ReadClassVariableNode
                               attributes:
                                   flags = 0
                                   name = "@@foo"
+                                  sourceCharIndex = 0
+                                  sourceLength = 11
                               children:
                                   lexicalScopeNode =
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object =  :: Object
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   lookupClassVariableNode =
                                       LookupClassVariableNodeGen
                                   resolveTargetModuleNode =
@@ -44,6 +54,8 @@ ast: |
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 9
+                                  sourceLength = 2
                                   value = 42
           setClassVariableNode =
               SetClassVariableNodeGen

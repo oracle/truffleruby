@@ -1,0 +1,16 @@
+subject: "String"
+description: "encoding / when there are ASCII and non-ASCII characters in a literal"
+notes: >
+  String may be forced to the BINARY (ASCII-8BIT) encoding sometimes
+focused_on_node: "org.truffleruby.language.literal.StringLiteralNode"
+ruby: |
+  # encoding: us-ascii
+  "\xFF"
+ast: |
+  StringLiteralNode
+      attributes:
+          encoding = ASCII-8BIT
+          flags = 1
+          sourceCharIndex = 21
+          sourceLength = 6
+          tstring = \xFF

@@ -1,0 +1,241 @@
+subject: "&&="
+description: "Assign an element referenced with splatted argument (a[*b] &&= c)"
+notes: >
+  Splatting should be specified explicitly for `[]` and `[]=` method calls.
+  
+  So `foo[*a] &&= 100500` is desugared into:
+  ```ruby
+  receiver = foo
+  argument0 = a
+  
+  receiver.[](*argument0) && receiver.[]=(*argument0, 100500)
+  ```
+focused_on_node: "org.truffleruby.language.control.SequenceNode"
+ruby: |
+  foo[*a] &&= 100500
+ast: |
+  SequenceNode
+      attributes:
+          flags = 12
+          sourceCharIndex = 0
+          sourceLength = 18
+      children:
+          body = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 0 # (self)
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ProfileArgumentNodeGen
+                              attributes:
+                                  flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
+                              children:
+                                  childNode_ =
+                                      ReadSelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              DefinedWrapperNode
+                  attributes:
+                      definition = assignment
+                      flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 18
+                  children:
+                      child =
+                          SequenceNode
+                              attributes:
+                                  flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
+                              children:
+                                  body = [
+                                      WriteLocalVariableNode
+                                          attributes:
+                                              flags = 0
+                                              frameSlot = 3 # %value_1
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+                                          children:
+                                              valueNode =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "a"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 5
+                                                          sourceLength = 1
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
+                                      WriteLocalVariableNode
+                                          attributes:
+                                              flags = 0
+                                              frameSlot = 2 # %opelementassign_0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+                                          children:
+                                              valueNode =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PRIVATE
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = false
+                                                          isVCall = true
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "foo"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = 0
+                                                          sourceLength = 3
+                                                      children:
+                                                          receiver =
+                                                              SelfNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
+                                      AndNodeGen
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+                                          children:
+                                              left =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = false
+                                                          isSafeNavigation = false
+                                                          isSplatted = true
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "[]"
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
+                                                      children:
+                                                          arguments = [
+                                                              SplatCastNodeGen
+                                                                  attributes:
+                                                                      conversionMethod = :to_a
+                                                                      copy = false
+                                                                      flags = 0
+                                                                      nilBehavior = CONVERT
+                                                                      sourceCharIndex = 4
+                                                                      sourceLength = 2
+                                                                  children:
+                                                                      childNode_ =
+                                                                          ReadLocalVariableNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  frameSlot = 3 # %value_1
+                                                                                  sourceCharIndex = -1
+                                                                                  sourceLength = 0
+                                                                                  type = FRAME_LOCAL
+                                                          ]
+                                                          receiver =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2 # %opelementassign_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 3
+                                                                      type = FRAME_LOCAL
+                                              right =
+                                                  RubyCallNode
+                                                      attributes:
+                                                          descriptor = NoKeywordArgumentsDescriptor
+                                                          dispatchConfig = PROTECTED
+                                                          emptyKeywordsProfile = false
+                                                          flags = 0
+                                                          isAttrAssign = true
+                                                          isSafeNavigation = false
+                                                          isSplatted = true
+                                                          isVCall = false
+                                                          lastArgIsNotHashProfile = false
+                                                          methodName = "[]="
+                                                          notEmptyKeywordsProfile = false
+                                                          notRuby2KeywordsHashProfile = false
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
+                                                      children:
+                                                          arguments = [
+                                                              ArrayConcatNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      sourceCharIndex = -1
+                                                                      sourceLength = 0
+                                                                  children:
+                                                                      children = [
+                                                                          SplatCastNodeGen
+                                                                              attributes:
+                                                                                  conversionMethod = :to_a
+                                                                                  copy = true
+                                                                                  flags = 0
+                                                                                  nilBehavior = CONVERT
+                                                                                  sourceCharIndex = 4
+                                                                                  sourceLength = 2
+                                                                              children:
+                                                                                  childNode_ =
+                                                                                      ReadLocalVariableNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                                                              frameSlot = 3 # %value_1
+                                                                                              sourceCharIndex = -1
+                                                                                              sourceLength = 0
+                                                                                              type = FRAME_LOCAL
+                                                                          ArrayLiteralNode$UninitialisedArrayLiteralNode
+                                                                              attributes:
+                                                                                  flags = 0
+                                                                                  language = org.truffleruby.RubyLanguage@...
+                                                                                  sourceCharIndex = -1
+                                                                                  sourceLength = 0
+                                                                              children:
+                                                                                  values = [
+                                                                                      IntegerFixnumLiteralNode
+                                                                                          attributes:
+                                                                                              flags = 0
+                                                                                              sourceCharIndex = 12
+                                                                                              sourceLength = 6
+                                                                                              value = 100500
+                                                                                  ]
+                                                                      ]
+                                                          ]
+                                                          receiver =
+                                                              ReadLocalVariableNode
+                                                                  attributes:
+                                                                      flags = 0
+                                                                      frameSlot = 2 # %opelementassign_0
+                                                                      sourceCharIndex = 0
+                                                                      sourceLength = 3
+                                                                      type = FRAME_LOCAL
+                                  ]
+          ]

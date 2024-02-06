@@ -4,18 +4,18 @@ notes: >
   It's represented with YieldExpressionNode.
   
   Mixing of a splat operator and positional arguments is represented with
-  ArrayAppendOneNodeGen.
+  ArrayConcatNode.
   
   In a simplified form arguments AST looks like the following:
   
-      ArrayAppendOneNodeGen
-          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
-              SplatCastNodeGen
-                  RubyCallNode(methodName = foo)
-            RubyCallNode(methodName = bar)
+      ArrayConcatNode
+          SplatCastNodeGen
+              RubyCallNode (methodName = "foo")
+          ArrayLiteralNode$UninitialisedArrayLiteralNode
+              RubyCallNode (methodName = "bar")
 
   That is equivalent to a Ruby expression:
-      *foo << bar
+      *foo + [bar]
 focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
 ruby: |
   def a
@@ -28,11 +28,13 @@ ast: |
           flags = 1
           isDefSingleton = false
           name = "a"
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
+          sourceCharIndex = 0
+          sourceLength = 27
       call targets:
           RubyMethodRootNode
               attributes:
-                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
                   callTarget = Object#a
                   checkArityProfile = false
                   frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg}
@@ -45,33 +47,44 @@ ast: |
                   polyglotRef = org.truffleruby.RubyLanguage@...
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = a, blockDepth = 0, parseName = Object#a, notes = null, argumentDescriptors = [])
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 3:3], index=0, length=27, characters=def a\n  yield *foo, bar\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 27
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   SaveMethodBlockNode
                                       attributes:
                                           flags = 0
                                           slot = 2
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                   YieldExpressionNode
                                       attributes:
                                           descriptor = NoKeywordArgumentsDescriptor
@@ -81,70 +94,90 @@ ast: |
                                           lastArgIsNotHashProfile = false
                                           notEmptyKeywordsProfile = false
                                           notRuby2KeywordsHashProfile = false
+                                          sourceCharIndex = 8
+                                          sourceLength = 15
                                       children:
                                           arguments = [
-                                              ArrayAppendOneNodeGen
+                                              ArrayConcatNode
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
-                                                      arrayNode_ =
-                                                          KernelNodesFactory$DupASTNodeFactory$DupASTNodeGen
+                                                      children = [
+                                                          SplatCastNodeGen
                                                               attributes:
+                                                                  conversionMethod = :to_a
+                                                                  copy = true
                                                                   flags = 0
+                                                                  nilBehavior = CONVERT
+                                                                  sourceCharIndex = 14
+                                                                  sourceLength = 4
                                                               children:
-                                                                  selfNode_ =
-                                                                      SplatCastNodeGen
+                                                                  childNode_ =
+                                                                      RubyCallNode
                                                                           attributes:
-                                                                              conversionMethod = :to_a
-                                                                              copy = true
+                                                                              descriptor = NoKeywordArgumentsDescriptor
+                                                                              dispatchConfig = PRIVATE
+                                                                              emptyKeywordsProfile = false
                                                                               flags = 0
-                                                                              nilBehavior = CONVERT
+                                                                              isAttrAssign = false
+                                                                              isSafeNavigation = false
+                                                                              isSplatted = false
+                                                                              isVCall = true
+                                                                              lastArgIsNotHashProfile = false
+                                                                              methodName = "foo"
+                                                                              notEmptyKeywordsProfile = false
+                                                                              notRuby2KeywordsHashProfile = false
+                                                                              sourceCharIndex = 15
+                                                                              sourceLength = 3
                                                                           children:
-                                                                              childNode_ =
-                                                                                  RubyCallNode
+                                                                              receiver =
+                                                                                  SelfNode
                                                                                       attributes:
-                                                                                          descriptor = NoKeywordArgumentsDescriptor
-                                                                                          dispatchConfig = PRIVATE
-                                                                                          emptyKeywordsProfile = false
                                                                                           flags = 0
-                                                                                          isAttrAssign = false
-                                                                                          isSafeNavigation = false
-                                                                                          isSplatted = false
-                                                                                          isVCall = true
-                                                                                          lastArgIsNotHashProfile = false
-                                                                                          methodName = "foo"
-                                                                                          notEmptyKeywordsProfile = false
-                                                                                          notRuby2KeywordsHashProfile = false
-                                                                                      children:
-                                                                                          receiver =
-                                                                                              SelfNode
-                                                                                                  attributes:
-                                                                                                      flags = 0
-                                                      valueNode_ =
-                                                          RubyCallNode
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
+                                                          ArrayLiteralNode$UninitialisedArrayLiteralNode
                                                               attributes:
-                                                                  descriptor = NoKeywordArgumentsDescriptor
-                                                                  dispatchConfig = PRIVATE
-                                                                  emptyKeywordsProfile = false
                                                                   flags = 0
-                                                                  isAttrAssign = false
-                                                                  isSafeNavigation = false
-                                                                  isSplatted = false
-                                                                  isVCall = true
-                                                                  lastArgIsNotHashProfile = false
-                                                                  methodName = "bar"
-                                                                  notEmptyKeywordsProfile = false
-                                                                  notRuby2KeywordsHashProfile = false
+                                                                  language = org.truffleruby.RubyLanguage@...
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                                               children:
-                                                                  receiver =
-                                                                      SelfNode
+                                                                  values = [
+                                                                      RubyCallNode
                                                                           attributes:
+                                                                              descriptor = NoKeywordArgumentsDescriptor
+                                                                              dispatchConfig = PRIVATE
+                                                                              emptyKeywordsProfile = false
                                                                               flags = 0
+                                                                              isAttrAssign = false
+                                                                              isSafeNavigation = false
+                                                                              isSplatted = false
+                                                                              isVCall = true
+                                                                              lastArgIsNotHashProfile = false
+                                                                              methodName = "bar"
+                                                                              notEmptyKeywordsProfile = false
+                                                                              notRuby2KeywordsHashProfile = false
+                                                                              sourceCharIndex = 20
+                                                                              sourceLength = 3
+                                                                          children:
+                                                                              receiver =
+                                                                                  SelfNode
+                                                                                      attributes:
+                                                                                          flags = 0
+                                                                                          sourceCharIndex = -1
+                                                                                          sourceLength = 0
+                                                                  ]
+                                                      ]
                                           ]
                                           readBlockNode =
                                               ReadLocalVariableNode
                                                   attributes:
                                                       flags = 0
                                                       frameSlot = 2 # %method_block_arg
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                       type = FRAME_LOCAL
                               ]

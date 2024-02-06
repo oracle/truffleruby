@@ -11,7 +11,9 @@ ast: |
           callTargets = ProcCallTargets(callTargetForProc = block in <top (required)>, callTargetForLambda = null, altCallTargetCompiler = ...$$Lambda$.../0x...@...)
           flags = 0
           frameOnStackMarkerSlot = 2
-          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 2, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt), ArgumentDescriptor(name = bar, type = opt), ArgumentDescriptor(name = args, type = rest)])
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 2, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt), ArgumentDescriptor(name = bar, type = opt), ArgumentDescriptor(name = args, type = rest)])
+          sourceCharIndex = 5
+          sourceLength = 38
           type = PROC
       call targets:
           RubyProcRootNode
@@ -25,33 +27,44 @@ ast: |
                   redoProfile = false
                   retryProfile = false
                   returnID = org.truffleruby.language.control.ReturnID@...
-                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 2, hasRest = true, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt), ArgumentDescriptor(name = bar, type = opt), ArgumentDescriptor(name = args, type = rest)])
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 2, hasRest = true, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = block in <top (required)>, blockDepth = 1, parseName = block in <top (required)>, notes = <top (required)>, argumentDescriptors = [ArgumentDescriptor(name = foo, type = opt), ArgumentDescriptor(name = bar, type = opt), ArgumentDescriptor(name = args, type = rest)])
+                  sourceSection = SourceSection(source=<parse_ast> [1:6 - 2:3], index=5, length=38, characters=do |foo = 42, bar = 100500, *args|\nend)
                   split = HEURISTIC
               children:
                   body =
                       SequenceNode
                           attributes:
                               flags = 12
+                              sourceCharIndex = 5
+                              sourceLength = 38
                           children:
                               body = [
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ProfileArgumentNodeGen
                                                   attributes:
                                                       flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       childNode_ =
                                                           ReadSelfNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 1 # foo
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadOptionalArgumentNode
@@ -60,16 +73,22 @@ ast: |
                                                       index = 0
                                                       keywordArguments = false
                                                       minimum = 1
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       defaultValue =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 15
+                                                                  sourceLength = 2
                                                                   value = 42
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 2 # bar
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadOptionalArgumentNode
@@ -78,16 +97,22 @@ ast: |
                                                       index = 1
                                                       keywordArguments = false
                                                       minimum = 2
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                   children:
                                                       defaultValue =
                                                           IntegerFixnumLiteralNode
                                                               attributes:
                                                                   flags = 0
+                                                                  sourceCharIndex = 25
+                                                                  sourceLength = 6
                                                                   value = 100500
                                   WriteLocalVariableNode
                                       attributes:
                                           flags = 0
                                           frameSlot = 3 # args
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                                       children:
                                           valueNode =
                                               ReadRestArgumentNode
@@ -96,8 +121,12 @@ ast: |
                                                       keywordArguments = false
                                                       markKeywordHashWithFlag = false
                                                       postArgumentsCount = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
                                                       startIndex = 2
                                   NilLiteralNode
                                       attributes:
                                           flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
                               ]

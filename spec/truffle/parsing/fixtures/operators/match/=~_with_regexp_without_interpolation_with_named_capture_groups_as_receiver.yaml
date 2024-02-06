@@ -9,7 +9,9 @@ ruby: |
 ast: |
   ReadMatchReferenceNodes$SetNamedVariablesMatchNode
       attributes:
-          flags = 0
+          flags = 1
+          sourceCharIndex = 0
+          sourceLength = 24
       children:
           matchDataNode =
               RubyCallNode
@@ -17,7 +19,7 @@ ast: |
                       descriptor = NoKeywordArgumentsDescriptor
                       dispatchConfig = PROTECTED
                       emptyKeywordsProfile = false
-                      flags = 1
+                      flags = 0
                       isAttrAssign = false
                       isSafeNavigation = false
                       isSplatted = false
@@ -26,12 +28,16 @@ ast: |
                       methodName = "=~"
                       notEmptyKeywordsProfile = false
                       notRuby2KeywordsHashProfile = false
+                      sourceCharIndex = 0
+                      sourceLength = 24
                   children:
                       arguments = [
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = 19
+                                  sourceLength = 5
                                   tstring = baz
                       ]
                       receiver =
@@ -39,28 +45,38 @@ ast: |
                               attributes:
                                   flags = 0
                                   object = RubyRegexp(source = foo(?<bar>.+), options = RegexpOptions(kcode: NONE, kcodeDefault, literal), encoding = US-ASCII)
+                                  sourceCharIndex = 0
+                                  sourceLength = 15
           nilSetters = [
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3 # bar
+                      frameSlot = 2 # bar
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           NilLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
           ]
           readMatchNode =
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 2 # %match_data_0
+                      frameSlot = 3 # %match_data_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           ReadGlobalVariableNodeGen
                               attributes:
                                   flags = 0
                                   name = "$~"
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   lookupGlobalVariableStorageNode =
                                       LookupGlobalVariableStorageNodeGen
@@ -71,12 +87,16 @@ ast: |
               WriteLocalVariableNode
                   attributes:
                       flags = 0
-                      frameSlot = 3 # bar
+                      frameSlot = 2 # bar
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       valueNode =
                           MatchDataNodes$GetFixedNameMatchNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                                   symbol = :bar
                               children:
                                   getIndexNode =
@@ -88,6 +108,8 @@ ast: |
                                       ReadLocalVariableNode
                                           attributes:
                                               flags = 0
-                                              frameSlot = 2 # %match_data_0
+                                              frameSlot = 3 # %match_data_0
+                                              sourceCharIndex = 0
+                                              sourceLength = 24
                                               type = FRAME_LOCAL
           ]

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 # truffleruby_primitives: true
 
-# Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -10,14 +10,62 @@
 # GNU Lesser General Public License version 2.1.
 
 module Coverage
-
-  def self.start
-    Truffle::Coverage.enable
+  def self.supported?(mode)
+    Truffle::Type.rb_check_type(mode, Symbol)
+    mode == :lines
   end
 
-  def self.result
+  def self.start(modes = Truffle::UNDEFINED)
+    if Truffle::Coverage.enabled?
+      raise 'coverage measurement is already setup'
+    end
+
+    if modes == :all || Primitive.undefined?(modes)
+      options = {}
+    else
+      options = Truffle::Type.rb_convert_type(modes, Hash, :to_hash)
+    end
+
+    if options[:lines] && options[:oneshot_lines]
+      raise 'cannot enable lines and oneshot_lines simultaneously'
+    end
+
+    @default_mode = Primitive.undefined?(modes)
+    Truffle::Coverage.enable
+
+    nil
+  end
+
+  def self.result(**options)
+    if options.empty?
+      stop = true
+      clear = true
+    else
+      stop = options[:stop]
+      clear = options[:clear]
+    end
+
+    if stop && !clear
+      warn 'stop implies clear', uplevel: 1
+    end
+
     result = peek_result
-    Truffle::Coverage.disable
+
+    # TODO: There should be a difference between :stop and :clear in a way they affect counters.
+    #       :stop means to remove all the counters at all, :clear - to set 0 values only.
+    #       Now we remove counters in both cases.
+    Truffle::Coverage.disable if stop || clear
+    Truffle::Coverage.enable if !stop && clear
+
+    # By default provides only lines coverage measurement.
+    # If some mode was specified explicitly then return counters per mode separately (e.g. for :lines, :branches, etc).
+    # Support only :lines for now.
+    if !@default_mode
+      result.transform_values! do |lines|
+        { lines: lines }
+      end
+    end
+
     result
   end
 

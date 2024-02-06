@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -23,8 +23,6 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 // Checkstyle: stop
 public final class LanguageOptions {
 
-    /** --no-home-provided=false */
-    public final boolean NO_HOME_PROVIDED;
     /** --core-load-path="resource:/truffleruby" */
     public final String CORE_LOAD_PATH;
     /** --frozen-string-literals=false */
@@ -45,6 +43,8 @@ public final class LanguageOptions {
     public final boolean BACKTRACES_OMIT_UNUSED;
     /** --buckets-big-hash=false */
     public final boolean BIG_HASH_STRATEGY_IS_BUCKETS;
+    /** --building-core-cexts=false */
+    public final boolean BUILDING_CORE_CEXTS;
     /** --lazy-translation-log=false */
     public final boolean LAZY_TRANSLATION_LOG;
     /** --constant-dynamic-lookup-log=false */
@@ -55,6 +55,8 @@ public final class LanguageOptions {
     public final boolean LAZY_TRANSLATION_CORE;
     /** --chaos-data=false */
     public final boolean CHAOS_DATA;
+    /** --instrument-all-nodes=false */
+    public final boolean INSTRUMENT_ALL_NODES;
     /** --basic-ops-inline=true */
     public final boolean BASICOPS_INLINE;
     /** --profile-arguments=true */
@@ -129,11 +131,8 @@ public final class LanguageOptions {
     public final boolean RUN_TWICE;
     /** --experimental-engine-caching=RUN_TWICE */
     public final boolean EXPERIMENTAL_ENGINE_CACHING;
-    /** --prism=false */
-    public final boolean PRISM;
 
     public LanguageOptions(Env env, OptionValues options, boolean singleContext) {
-        NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
@@ -144,11 +143,13 @@ public final class LanguageOptions {
         LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : LAZY_CALLTARGETS;
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
         BIG_HASH_STRATEGY_IS_BUCKETS = options.get(OptionsCatalog.BIG_HASH_STRATEGY_IS_BUCKETS_KEY);
+        BUILDING_CORE_CEXTS = options.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY);
         LAZY_TRANSLATION_LOG = options.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY);
         LOG_DYNAMIC_CONSTANT_LOOKUP = options.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY);
         LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : LAZY_CALLTARGETS;
         LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : LAZY_CALLTARGETS;
         CHAOS_DATA = options.get(OptionsCatalog.CHAOS_DATA_KEY);
+        INSTRUMENT_ALL_NODES = options.get(OptionsCatalog.INSTRUMENT_ALL_NODES_KEY);
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
@@ -186,13 +187,10 @@ public final class LanguageOptions {
         SHARED_OBJECTS_FORCE = options.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY);
         RUN_TWICE = options.get(OptionsCatalog.RUN_TWICE_KEY);
         EXPERIMENTAL_ENGINE_CACHING = options.hasBeenSet(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) ? options.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY) : RUN_TWICE;
-        PRISM = options.get(OptionsCatalog.PRISM_KEY);
     }
 
     public Object fromDescriptor(OptionDescriptor descriptor) {
         switch (descriptor.getName()) {
-            case "ruby.no-home-provided":
-                return NO_HOME_PROVIDED;
             case "ruby.core-load-path":
                 return CORE_LOAD_PATH;
             case "ruby.frozen-string-literals":
@@ -213,6 +211,8 @@ public final class LanguageOptions {
                 return BACKTRACES_OMIT_UNUSED;
             case "ruby.buckets-big-hash":
                 return BIG_HASH_STRATEGY_IS_BUCKETS;
+            case "ruby.building-core-cexts":
+                return BUILDING_CORE_CEXTS;
             case "ruby.lazy-translation-log":
                 return LAZY_TRANSLATION_LOG;
             case "ruby.constant-dynamic-lookup-log":
@@ -223,6 +223,8 @@ public final class LanguageOptions {
                 return LAZY_TRANSLATION_CORE;
             case "ruby.chaos-data":
                 return CHAOS_DATA;
+            case "ruby.instrument-all-nodes":
+                return INSTRUMENT_ALL_NODES;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
             case "ruby.profile-arguments":
@@ -297,16 +299,13 @@ public final class LanguageOptions {
                 return RUN_TWICE;
             case "ruby.experimental-engine-caching":
                 return EXPERIMENTAL_ENGINE_CACHING;
-            case "ruby.prism":
-                return PRISM;
             default:
                 return null;
         }
     }
 
     public static boolean areOptionsCompatible(OptionValues one, OptionValues two) {
-        return one.get(OptionsCatalog.NO_HOME_PROVIDED_KEY).equals(two.get(OptionsCatalog.NO_HOME_PROVIDED_KEY)) &&
-               one.get(OptionsCatalog.CORE_LOAD_PATH_KEY).equals(two.get(OptionsCatalog.CORE_LOAD_PATH_KEY)) &&
+        return one.get(OptionsCatalog.CORE_LOAD_PATH_KEY).equals(two.get(OptionsCatalog.CORE_LOAD_PATH_KEY)) &&
                one.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY).equals(two.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_LAZY_KEY).equals(two.get(OptionsCatalog.DEFAULT_LAZY_KEY)) &&
                one.get(OptionsCatalog.LAZY_CALLTARGETS_KEY).equals(two.get(OptionsCatalog.LAZY_CALLTARGETS_KEY)) &&
@@ -316,11 +315,13 @@ public final class LanguageOptions {
                one.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY)) &&
                one.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY).equals(two.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY)) &&
                one.get(OptionsCatalog.BIG_HASH_STRATEGY_IS_BUCKETS_KEY).equals(two.get(OptionsCatalog.BIG_HASH_STRATEGY_IS_BUCKETS_KEY)) &&
+               one.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY).equals(two.get(OptionsCatalog.BUILDING_CORE_CEXTS_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_LOG_KEY)) &&
                one.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY).equals(two.get(OptionsCatalog.LOG_DYNAMIC_CONSTANT_LOOKUP_KEY)) &&
                one.get(OptionsCatalog.LAZY_BUILTINS_KEY).equals(two.get(OptionsCatalog.LAZY_BUILTINS_KEY)) &&
                one.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY).equals(two.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY)) &&
                one.get(OptionsCatalog.CHAOS_DATA_KEY).equals(two.get(OptionsCatalog.CHAOS_DATA_KEY)) &&
+               one.get(OptionsCatalog.INSTRUMENT_ALL_NODES_KEY).equals(two.get(OptionsCatalog.INSTRUMENT_ALL_NODES_KEY)) &&
                one.get(OptionsCatalog.BASICOPS_INLINE_KEY).equals(two.get(OptionsCatalog.BASICOPS_INLINE_KEY)) &&
                one.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY).equals(two.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY)) &&
                one.get(OptionsCatalog.DEFAULT_CACHE_KEY).equals(two.get(OptionsCatalog.DEFAULT_CACHE_KEY)) &&
@@ -357,20 +358,12 @@ public final class LanguageOptions {
                one.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_DEBUG_KEY)) &&
                one.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY).equals(two.get(OptionsCatalog.SHARED_OBJECTS_FORCE_KEY)) &&
                one.get(OptionsCatalog.RUN_TWICE_KEY).equals(two.get(OptionsCatalog.RUN_TWICE_KEY)) &&
-               one.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY).equals(two.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY)) &&
-               one.get(OptionsCatalog.PRISM_KEY).equals(two.get(OptionsCatalog.PRISM_KEY));
+               one.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY).equals(two.get(OptionsCatalog.EXPERIMENTAL_ENGINE_CACHING_KEY));
     }
 
     public static boolean areOptionsCompatibleOrLog(TruffleLogger logger, LanguageOptions oldOptions, LanguageOptions newOptions) {
         Object oldValue;
         Object newValue;
-
-        oldValue = oldOptions.NO_HOME_PROVIDED;
-        newValue = newOptions.NO_HOME_PROVIDED;
-        if (!newValue.equals(oldValue)) {
-            logger.fine("not reusing pre-initialized context: --no-home-provided differs, was: " + oldValue + " and is now: " + newValue);
-            return false;
-        }
 
         oldValue = oldOptions.CORE_LOAD_PATH;
         newValue = newOptions.CORE_LOAD_PATH;
@@ -442,6 +435,13 @@ public final class LanguageOptions {
             return false;
         }
 
+        oldValue = oldOptions.BUILDING_CORE_CEXTS;
+        newValue = newOptions.BUILDING_CORE_CEXTS;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --building-core-cexts differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
         oldValue = oldOptions.LAZY_TRANSLATION_LOG;
         newValue = newOptions.LAZY_TRANSLATION_LOG;
         if (!newValue.equals(oldValue)) {
@@ -474,6 +474,13 @@ public final class LanguageOptions {
         newValue = newOptions.CHAOS_DATA;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --chaos-data differs, was: " + oldValue + " and is now: " + newValue);
+            return false;
+        }
+
+        oldValue = oldOptions.INSTRUMENT_ALL_NODES;
+        newValue = newOptions.INSTRUMENT_ALL_NODES;
+        if (!newValue.equals(oldValue)) {
+            logger.fine("not reusing pre-initialized context: --instrument-all-nodes differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 
@@ -733,13 +740,6 @@ public final class LanguageOptions {
         newValue = newOptions.EXPERIMENTAL_ENGINE_CACHING;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --experimental-engine-caching differs, was: " + oldValue + " and is now: " + newValue);
-            return false;
-        }
-
-        oldValue = oldOptions.PRISM;
-        newValue = newOptions.PRISM;
-        if (!newValue.equals(oldValue)) {
-            logger.fine("not reusing pre-initialized context: --prism differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 

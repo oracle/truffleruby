@@ -8,3 +8,5 @@ ast: |
       attributes:
           flags = 1
           language = org.truffleruby.RubyLanguage@...
+          sourceCharIndex = 0
+          sourceLength = 2

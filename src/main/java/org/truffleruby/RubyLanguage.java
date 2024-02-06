@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -26,8 +26,12 @@ import com.oracle.truffle.api.ContextThreadLocal;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.instrumentation.ExecutionEventListener;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
@@ -36,6 +40,7 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.options.OptionDescriptors;
+import org.prism.Parser;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -116,7 +121,7 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
-import org.truffleruby.platform.Platform;
+import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -454,12 +459,18 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
                 setRubyHome(findRubyHome(env));
+                loadLibYARPBindings();
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
-                this.coverageManager = new CoverageManager(options, env.lookup(Instrumenter.class));
+                Instrumenter instrumenter = Objects.requireNonNull(env.lookup(Instrumenter.class));
+                this.coverageManager = new CoverageManager(options, instrumenter);
+                if (options.INSTRUMENT_ALL_NODES) {
+                    instrumentAllNodes(instrumenter);
+                }
                 primitiveManager.loadCoreMethodNodes(this.options);
             }
         }
+
 
         // Set rubyHomeTruffleFile every time, as pre-initialized contexts use a different FileSystem
         if (!firstContext) {
@@ -494,7 +505,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
             if (context.isPreInitializing()) {
                 synchronized (this) {
-                    setRubyHome(null);
+                    resetRubyHome();
                     resetCleaner();
                 }
             }
@@ -529,6 +540,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         synchronized (this) {
             setRubyHome(findRubyHome(newEnv));
+            loadLibYARPBindings();
             setupCleaner();
         }
 
@@ -696,6 +708,22 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return context.getTopScopeObject();
     }
 
+    private static void instrumentAllNodes(Instrumenter instrumenter) {
+        instrumenter.attachExecutionEventListener(SourceSectionFilter.ANY, new ExecutionEventListener() {
+            @Override
+            public void onEnter(EventContext context, VirtualFrame frame) {
+            }
+
+            @Override
+            public void onReturnValue(EventContext context, VirtualFrame frame, Object result) {
+            }
+
+            @Override
+            public void onReturnExceptional(EventContext context, VirtualFrame frame, Throwable exception) {
+            }
+        });
+    }
+
     private void setupCleaner() {
         assert Thread.holdsLock(this);
         if (cleaner == null) {
@@ -718,9 +746,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public String getPathRelativeToHome(String path) {
-        final String home = rubyHome;
-        if (home != null && path.startsWith(home) && path.length() > home.length()) {
-            return path.substring(home.length() + 1);
+        if (path.startsWith(rubyHome) && path.length() > rubyHome.length()) {
+            return path.substring(rubyHome.length() + 1);
         } else {
             return path;
         }
@@ -729,8 +756,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     private void setRubyHome(TruffleFile home) {
         assert Thread.holdsLock(this);
         rubyHomeTruffleFile = home;
-        rubyHome = home == null ? null : home.getPath();
-        cextPath = home == null ? null : rubyHome + "/lib/truffle/truffle/cext_ruby.rb";
+        rubyHome = home.getPath();
+        cextPath = rubyHome + "/lib/truffle/truffle/cext_ruby.rb";
+    }
+
+    private void resetRubyHome() {
+        assert Thread.holdsLock(this);
+        rubyHomeTruffleFile = null;
+        rubyHome = null;
+        cextPath = null;
     }
 
     private TruffleFile findRubyHome(Env env) {
@@ -743,11 +777,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     // Returns a canonical path to the home
     private TruffleFile searchRubyHome(Env env) {
-        if (options.NO_HOME_PROVIDED) {
-            LOGGER.config("--ruby.no-home-provided set");
-            return null;
-        }
-
         final String truffleReported = getLanguageHome();
         if (truffleReported != null) {
             var truffleReportedFile = env.getInternalTruffleFile(truffleReported);
@@ -779,11 +808,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
         }
 
-        LOGGER.warning(
-                String.format("Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home",
-                        truffleReported, homeResource));
-        LOGGER.warning("could not determine TruffleRuby's home - the standard library will not be available");
-        return null;
+        throw new Error("Could not find TruffleRuby's home - not possible to parse Ruby code" + String.format(
+                " (Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home).",
+                truffleReported, homeResource));
     }
 
     private boolean isRubyHome(TruffleFile path) {
@@ -791,6 +818,16 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return lib.resolve("truffle").isDirectory() &&
                 lib.resolve("gems").isDirectory() &&
                 lib.resolve("patches").isDirectory();
+    }
+
+    private void loadLibYARPBindings() {
+        String libyarpbindings;
+        if (options.BUILDING_CORE_CEXTS) {
+            libyarpbindings = System.getProperty("truffleruby.libyarpbindings");
+        } else {
+            libyarpbindings = getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX;
+        }
+        Parser.loadLibrary(libyarpbindings);
     }
 
     @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
@@ -873,6 +910,17 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
         } else {
             return path;
+        }
+    }
+
+    @TruffleBoundary
+    public static String getCorePath(Source source) {
+        final String path = getPath(source);
+        String coreLoadPath = OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue();
+        if (path.startsWith(coreLoadPath)) {
+            return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(path + " is not a core path starting with " + coreLoadPath);
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,6 +9,7 @@
  */
 package org.truffleruby.parser;
 
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
@@ -21,17 +22,34 @@ import org.truffleruby.language.control.ReturnID;
  * then multiple threads might lazy translate methods of the same file in parallel. */
 public final class ParseEnvironment {
 
+    public final RubyLanguage language;
+    public final RubySource rubySource;
     public final Source source;
+    /** Used to compute line numbers */
+    public final Nodes.Source yarpSource;
+    public final ParserContext parserContext;
+    public final Node currentNode;
+
     private final boolean inCore;
     private final boolean coverageEnabled;
 
-    public Nodes.Source yarpSource = null;
 
     // Set once after parsing and before translating
     public Boolean allowTruffleRubyPrimitives = null;
 
-    public ParseEnvironment(RubyLanguage language, RubySource rubySource) {
+    public ParseEnvironment(
+            RubyLanguage language,
+            RubySource rubySource,
+            Nodes.Source yarpSource,
+            ParserContext parserContext,
+            Node currentNode) {
+        this.language = language;
+        this.rubySource = rubySource;
         this.source = rubySource.getSource();
+        this.yarpSource = yarpSource;
+        this.parserContext = parserContext;
+        this.currentNode = currentNode;
+
         this.inCore = RubyLanguage.getPath(source).startsWith(language.corePath);
         this.coverageEnabled = RubyLanguage.MIME_TYPE_COVERAGE.equals(rubySource.getSource().getMimeType());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -82,13 +82,14 @@ public final class SharedObjects {
         }
     }
 
-    public static void shareDeclarationFrame(RubyLanguage language, RubyProc block, String info) {
+    public static void shareBlockAndArguments(RubyLanguage language, RubyProc block, Object[] args, String info) {
         if (language.options.SHARED_OBJECTS_DEBUG) {
-            RubyLanguage.LOGGER.info("sharing decl frame of " + info);
+            RubyLanguage.LOGGER.info("sharing block and arguments of " + info);
         }
 
         final Set<Object> objects = ObjectGraph.newObjectSet();
         ObjectGraph.getObjectsInFrame(block.declarationFrame, objects);
+        ObjectGraph.addProperty(objects, args);
 
         final Deque<Object> stack = new ArrayDeque<>(objects);
         shareObjects(stack);

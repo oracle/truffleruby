@@ -15,7 +15,7 @@ ast: |
           descriptor = NoKeywordArgumentsDescriptor
           dispatchConfig = PROTECTED
           emptyKeywordsProfile = false
-          flags = 1
+          flags = 0
           isAttrAssign = false
           isSafeNavigation = false
           isSplatted = false
@@ -24,12 +24,16 @@ ast: |
           methodName = "=~"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 0
+          sourceLength = 16
       children:
           arguments = [
               ReadGlobalVariableNodeGen
                   attributes:
                       flags = 0
                       name = "$_"
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       lookupGlobalVariableStorageNode =
                           LookupGlobalVariableStorageNodeGen
@@ -40,15 +44,19 @@ ast: |
           receiver =
               InterpolatedRegexpNode
                   attributes:
+                      encoding = ASCII-8BIT
                       flags = 0
                       rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
+                      sourceCharIndex = 0
+                      sourceLength = 16
                   children:
                       asTruffleStringNode =
                           TruffleStringFactory$AsTruffleStringNodeGen
                       builderNode =
                           InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
                               attributes:
-                                  options = RegexpOptions(kcode: NONE, kcodeDefault)
+                                  encoding = ASCII-8BIT
+                                  options = RegexpOptions(kcode: NONE, kcodeDefault, literal)
                               children:
                                   equalNode =
                                       TruffleStringFactory$EqualNodeGen
@@ -58,16 +66,10 @@ ast: |
                                   valueNode_ =
                                       StringLiteralNode
                                           attributes:
-                                              encoding = ASCII-8BIT
-                                              flags = 0
-                                              tstring = ""
-                          ToSNodeGen
-                              children:
-                                  valueNode_ =
-                                      StringLiteralNode
-                                          attributes:
                                               encoding = UTF-8
-                                              flags = 0
+                                              flags = 1
+                                              sourceCharIndex = 1
+                                              sourceLength = 4
                                               tstring = foo 
                           ToSNodeGen
                               children:
@@ -77,7 +79,7 @@ ast: |
                                               descriptor = NoKeywordArgumentsDescriptor
                                               dispatchConfig = PRIVATE
                                               emptyKeywordsProfile = false
-                                              flags = 1
+                                              flags = 0
                                               isAttrAssign = false
                                               isSafeNavigation = false
                                               isSplatted = false
@@ -86,11 +88,15 @@ ast: |
                                               methodName = "bar"
                                               notEmptyKeywordsProfile = false
                                               notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 7
+                                              sourceLength = 3
                                           children:
                                               receiver =
                                                   SelfNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                           ToSNodeGen
                               children:
                                   valueNode_ =
@@ -98,5 +104,7 @@ ast: |
                                           attributes:
                                               encoding = UTF-8
                                               flags = 0
+                                              sourceCharIndex = 11
+                                              sourceLength = 4
                                               tstring =  baz
                       ]

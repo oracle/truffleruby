@@ -9,6 +9,8 @@ ast: |
           flags = 1
           frozenProfile = false
           name = "@foo"
+          sourceCharIndex = 0
+          sourceLength = 9
       children:
           readSelfSlotNode =
               ReadFrameSlotNodeGen
@@ -18,4 +20,6 @@ ast: |
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 7
+                      sourceLength = 2
                       value = 42

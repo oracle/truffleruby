@@ -7,4 +7,6 @@ ast: |
   ObjectLiteralNode
       attributes:
           flags = 1
-          object = org.truffleruby.core.range.RubyIntRange@...(begin = 1, end = 2, excludedEnd = false)
+          object = 1..2
+          sourceCharIndex = 0
+          sourceLength = 4

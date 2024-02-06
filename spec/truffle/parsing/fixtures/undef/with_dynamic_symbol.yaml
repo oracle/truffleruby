@@ -7,10 +7,14 @@ ast: |
   ModuleNodes$UndefNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 10
       children:
           names = [
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :a
+                      sourceCharIndex = 6
+                      sourceLength = 4
           ]

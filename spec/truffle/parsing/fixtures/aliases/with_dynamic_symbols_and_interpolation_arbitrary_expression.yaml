@@ -7,16 +7,22 @@ ast: |
   ModuleNodes$AliasKeywordNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 25
       children:
           newName =
               ObjectLiteralNode
                   attributes:
                       flags = 0
                       object = :a
+                      sourceCharIndex = 6
+                      sourceLength = 4
           oldName =
               StringToSymbolNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = 11
+                      sourceLength = 14
                   children:
                       stringNode_ =
                           InterpolatedStringNode
@@ -24,6 +30,8 @@ ast: |
                                   emptyTString = ""
                                   encoding = UTF-8
                                   flags = 0
+                                  sourceCharIndex = -1
+                                  sourceLength = 0
                               children:
                                   children = [
                                       ToSNodeGen
@@ -33,6 +41,8 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 0
+                                                          sourceCharIndex = 13
+                                                          sourceLength = 2
                                                           tstring = ab
                                       ToSNodeGen
                                           children:
@@ -40,6 +50,8 @@ ast: |
                                                   IntegerFixnumLiteralNode
                                                       attributes:
                                                           flags = 0
+                                                          sourceCharIndex = 18
+                                                          sourceLength = 2
                                                           value = 42
                                       ToSNodeGen
                                           children:
@@ -48,5 +60,7 @@ ast: |
                                                       attributes:
                                                           encoding = UTF-8
                                                           flags = 0
+                                                          sourceCharIndex = 22
+                                                          sourceLength = 2
                                                           tstring = cd
                                   ]

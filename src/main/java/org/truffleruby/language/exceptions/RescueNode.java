@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -32,16 +32,19 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
     @Child private DispatchNode callTripleEqualsNode;
     @Child private InteropLibrary interopLibrary;
+    public final boolean canOmitBacktrace;
 
     private final BranchProfile errorProfile = BranchProfile.create();
 
-    public RescueNode(RubyNode rescueBody) {
+    public RescueNode(RubyNode rescueBody, boolean canOmitBacktrace) {
         this.rescueBody = rescueBody;
+        this.canOmitBacktrace = canOmitBacktrace;
     }
 
     // Constructor for instrumentation
     protected RescueNode() {
         this.rescueBody = null;
+        this.canOmitBacktrace = false;
     }
 
     public abstract boolean canHandle(VirtualFrame frame, Object exceptionObject, BooleanCastNode booleanCastNode);

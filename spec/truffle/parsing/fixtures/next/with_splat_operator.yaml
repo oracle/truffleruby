@@ -11,6 +11,8 @@ ast: |
   NextNode
       attributes:
           flags = 1
+          sourceCharIndex = 15
+          sourceLength = 10
       children:
           child =
               SplatCastNodeGen
@@ -19,16 +21,22 @@ ast: |
                       copy = true
                       flags = 0
                       nilBehavior = CONVERT
+                      sourceCharIndex = 20
+                      sourceLength = 5
                   children:
                       childNode_ =
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = 21
+                                  sourceLength = 4
                               children:
                                   values = [
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 22
+                                              sourceLength = 2
                                               value = 42
                                   ]

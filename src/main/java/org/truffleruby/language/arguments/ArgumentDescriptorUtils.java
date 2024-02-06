@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -19,7 +19,7 @@ import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.parser.parser.ParserSupport;
+import org.truffleruby.parser.TranslatorEnvironment;
 
 public final class ArgumentDescriptorUtils {
 
@@ -49,7 +49,7 @@ public final class ArgumentDescriptorUtils {
             store = new Object[]{ language.getSymbol(argType.symbolicName) };
         } else {
             // make sure to normalize parameter names to "_" if they start with "_$"
-            if (name.startsWith(ParserSupport.UNDERSCORE_PREFIX)) {
+            if (name.startsWith(TranslatorEnvironment.UNDERSCORE_PREFIX)) {
                 name = "_";
             }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,7 +29,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.SuppressFBWarnings;
-import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.core.array.RubyArray;
@@ -63,8 +62,7 @@ import org.truffleruby.language.objects.ForeignClassNode;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
-import org.truffleruby.parser.ast.RootParseNode;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.shared.BuildInformationImpl;
@@ -74,7 +72,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -389,7 +386,6 @@ public final class CoreLibrary {
         arrayClass = defineClass("Array");
         bindingClass = defineClass("Binding");
         defineClass("ConditionVariable");
-        defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
         enumeratorClass = defineClass("Enumerator");
@@ -564,7 +560,7 @@ public final class CoreLibrary {
         final ConcurrentMap<String, Boolean> patchFiles = new ConcurrentHashMap<>();
 
         final String rubyHome = language.getRubyHome();
-        if (context.getOptions().PATCHING && rubyHome != null) {
+        if (context.getOptions().PATCHING) {
             try {
                 final Path patchesDirectory = Paths.get(rubyHome, "lib", "patches");
                 Files.walkFileTree(
@@ -772,9 +768,9 @@ public final class CoreLibrary {
                         context.getCoreLibrary().mainObject,
                         context.getRootLexicalScope());
 
-                TranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
+                YARPTranslatorDriver.printParseTranslateExecuteMetric("before-execute", context, source);
                 deferredCall.callWithoutCallNode();
-                TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source);
+                YARPTranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source);
             }
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
@@ -787,12 +783,7 @@ public final class CoreLibrary {
 
     public RubySource loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
-                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
-                return new RubySource(rootParseNode.getSource(), path);
-            } else {
-                return new RubySource(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), path);
-            }
+            return ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL);
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);
             return fileLoader.loadFile(path);
@@ -1048,9 +1039,10 @@ public final class CoreLibrary {
             "/core/truffle/polyglot.rb",
             "/core/truffle/polyglot_methods.rb",
             "/core/posix.rb",
+            "/core/data.rb",
+            "/core/truffle/queue_operations.rb",
             "/core/main.rb",
             "/core/post.rb",
-            "/core/truffle/queue_operations.rb",
             POST_BOOT_FILE
     };
 

@@ -10,23 +10,31 @@ ast: |
       attributes:
           definition = assignment
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 12
       children:
           child =
               AndNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       left =
                           ReadClassVariableNode
                               attributes:
                                   flags = 0
                                   name = "@@foo"
+                                  sourceCharIndex = 0
+                                  sourceLength = 12
                               children:
                                   lexicalScopeNode =
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object =  :: Object
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   lookupClassVariableNode =
                                       LookupClassVariableNodeGen
                                   resolveTargetModuleNode =
@@ -36,18 +44,24 @@ ast: |
                               attributes:
                                   flags = 0
                                   name = "@@foo"
+                                  sourceCharIndex = 0
+                                  sourceLength = 12
                               children:
                                   lexicalScopeNode =
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object =  :: Object
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                   resolveTargetModuleNode =
                                       ResolveTargetModuleForClassVariablesNodeGen
                                   rhs =
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = 10
+                                              sourceLength = 2
                                               value = 42
                                   setClassVariableNode =
                                       SetClassVariableNodeGen

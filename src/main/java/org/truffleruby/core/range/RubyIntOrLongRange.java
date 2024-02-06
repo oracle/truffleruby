@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2022, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -29,6 +29,7 @@ public abstract class RubyIntOrLongRange extends ImmutableRubyObjectCopyable {
         this.excludedEnd = excludedEnd;
     }
 
+    // region Iterator messages
     @ExportMessage
     public boolean hasIterator() {
         return true;
@@ -41,5 +42,6 @@ public abstract class RubyIntOrLongRange extends ImmutableRubyObjectCopyable {
         final RubyContext context = RubyContext.get(node);
         return dispatchNode.call(context.getCoreLibrary().truffleInteropOperationsModule, "get_iterator", this);
     }
+    // endregion
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -19,8 +19,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.profiles.Profile;
-import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.collections.Pair;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.string.StringUtils;
@@ -28,8 +28,10 @@ import org.truffleruby.core.support.DetailedInspectingSupport;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.locals.ReadDeclarationVariableNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
+import org.truffleruby.language.locals.WriteDeclarationVariableNode;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
@@ -39,13 +41,13 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.RootNode;
+import org.truffleruby.parser.BlockDescriptorInfo;
 
 public abstract class TruffleASTPrinter {
 
     // Skip the following node attributes:
-    // - "sourceCharIndex", "sourceLength" - are incorrect and will have correct values in YARP
     // - "RubyRootNode.bodyCopy" - is set if clone-uninitialized is forced
-    private static final Set<String> attributesToIgnore = Set.of("sourceCharIndex", "sourceLength", "bodyCopy");
+    private static final Set<String> attributesToIgnore = Set.of("bodyCopy");
 
     public static String dump(RubyRootNode rootNode, String focusedNodeClassName, int index) {
         final Node node;
@@ -141,8 +143,7 @@ public abstract class TruffleASTPrinter {
             if (value != null &&                           // hide numerous attributes that aren't initialized yet
                     !attributesToIgnore.contains(name) &&  // ignore some noisy attributes
                     !generatedFieldNames.contains(name) && // ignore attributes of generated -Gen classes
-                    !(value instanceof Profile) &&         // ignore ...Profile as far as they might be disabled/enabled that affects string representation
-                    !(value instanceof SourceSection)) {   // ignore SourceSection as far as it contains not accurate location details (index and length) and Ruby source code provided by JRuby parser
+                    !(value instanceof Profile)) {         // ignore ...Profile as far as they might be disabled/enabled and that affects string representation
                 attributes.add(Pair.create(name, value));
             }
         }
@@ -153,27 +154,49 @@ public abstract class TruffleASTPrinter {
     // map frame slots to local variable names
     private static Map<String, String> getNodeAttributeAnnotations(Node node) {
         final int frameSlot;
+        final int frameDepth;
 
         // ignore WriteDeclarationVariableNode and ReadDeclarationVariableNode
         // because they access local variable declared in an outer scope, and
         // it cannot be accessed using the parents chain
         if (node instanceof WriteLocalVariableNode writeLocalVariableNodeNode) {
             frameSlot = writeLocalVariableNodeNode.getFrameSlot();
+            frameDepth = 0;
         } else if (node instanceof WriteFrameSlotNode writeFrameSlotNode) {
             frameSlot = writeFrameSlotNode.getFrameSlot();
+            frameDepth = 0; // actually we don't know the depth, but usually it's 0
+        } else if (node instanceof WriteDeclarationVariableNode writeDeclarationVariableNode) {
+            frameSlot = writeDeclarationVariableNode.getFrameSlot();
+            frameDepth = writeDeclarationVariableNode.getFrameDepth();
         } else if (node instanceof ReadLocalVariableNode readLocalVariableNode) {
             frameSlot = readLocalVariableNode.getFrameSlot();
+            frameDepth = 0;
         } else if (node instanceof ReadFrameSlotNode readFrameSlotNode) {
             frameSlot = readFrameSlotNode.getFrameSlot();
+            frameDepth = 0; // actually we don't know the depth, but usually it's 0
+        } else if (node instanceof ReadDeclarationVariableNode readDeclarationVariableNode) {
+            frameSlot = readDeclarationVariableNode.getFrameSlot();
+            frameDepth = readDeclarationVariableNode.getFrameDepth();
         } else {
             return Collections.emptyMap();
         }
 
-        final var rootNode = node.getRootNode();
-        final var frameDescriptor = rootNode.getFrameDescriptor();
-        final String variableName = frameDescriptor.getSlotName(frameSlot).toString();
+        FrameDescriptor declarationFrameDescriptor;
+        RootNode rootNode = node.getRootNode();
+        FrameDescriptor frameDescriptor = rootNode.getFrameDescriptor();
+
+        if (frameDepth > 0) {
+            // local variable might be declared in some outer scope
+            declarationFrameDescriptor = BlockDescriptorInfo.getDeclarationFrameDescriptor(frameDescriptor, frameDepth);
+        } else {
+            declarationFrameDescriptor = frameDescriptor;
+        }
+
+        Object slotName = declarationFrameDescriptor.getSlotName(frameSlot);
+        assert slotName != null;
 
         // all the mentioned above classes use the same field name - "frameSlot", so just hardcode it
+        final String variableName = slotName.toString();
         return Collections.singletonMap("frameSlot", variableName);
     }
 

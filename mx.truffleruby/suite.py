@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "8a010c6c2d3886237cceaf12d3f9966503a0e5a6",
+                "version": "f59d0da8b63a8ffb1a3fc0b9c7d25a4fcdebdfb7",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "8a010c6c2d3886237cceaf12d3f9966503a0e5a6",
+                "version": "f59d0da8b63a8ffb1a3fc0b9c7d25a4fcdebdfb7",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -207,12 +207,22 @@ suite = {
             "license": ["EPL-2.0"],
         },
 
-        "org.truffleruby.rubysignal": {
+        "org.truffleruby.signal": {
+            "dir": "src/signal",
+            "sourceDirs": ["java"],
+            "jniHeaders": True,
+            "javaCompliance": "17+",
+            "checkstyle": "org.truffleruby",
+            "workingSets": "TruffleRuby",
+            "license": ["EPL-2.0"],
+        },
+
+        "org.truffleruby.librubysignal": {
             "dir": "src/main/c/rubysignal",
             "native": "shared_lib",
             "deliverable": "rubysignal",
             "buildDependencies": [
-                "org.truffleruby", # for the generated JNI header file
+                "org.truffleruby.signal", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
             "cflags": ["-g", "-Wall", "-Werror", "-pthread"],
@@ -245,7 +255,6 @@ suite = {
         "org.truffleruby": {
             "dir": "src/main",
             "sourceDirs": ["java"],
-            "jniHeaders": True,
             "requires": [
                 "java.logging",
                 "java.management",
@@ -367,10 +376,11 @@ suite = {
 
         "org.truffleruby.bootstrap.launcher": {
             "class": "TruffleRubyBootstrapLauncherProject",
-            "buildDependencies": [
+            "buildDependencies": [ # These are used to build the module path
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "sulong:SULONG_NATIVE", # We need this jar to find the toolchain with Toolchain#getToolPath
+                "org.truffleruby.yarp.bindings", # libyarpbindings.so
             ],
             "license": ["EPL-2.0"],
         },
@@ -449,11 +459,13 @@ suite = {
                 "exports": [
                     "org.truffleruby.shared to org.graalvm.ruby, org.graalvm.ruby.launcher",
                     "org.truffleruby.shared.options to org.graalvm.ruby, org.graalvm.ruby.launcher",
+                    "org.truffleruby.signal to org.graalvm.ruby, org.graalvm.ruby.launcher",
                 ],
             },
             "useModulePath": True,
             "dependencies": [
-                "org.truffleruby.shared"
+                "org.truffleruby.shared",
+                "org.truffleruby.signal",
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
@@ -700,7 +712,7 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
-                    "dependency:org.truffleruby.rubysignal",
+                    "dependency:org.truffleruby.librubysignal",
                 ],
                 # The platform-specific files from debug and rbs, see comment above
                 "lib/gems/": "file:lib/gems/extensions",
@@ -835,8 +847,9 @@ suite = {
             "dependencies": ["org.truffleruby.tck"],
             "distDependencies": [
                 "truffle:TRUFFLE_TCK",
-               # runtime-only dependencies
+                # runtime-only dependencies
                 "TRUFFLERUBY",
+                "TRUFFLERUBY-RESOURCES",
             ],
             "description" : "Truffle TCK provider for Ruby language.",
             "license": ["EPL-2.0"],

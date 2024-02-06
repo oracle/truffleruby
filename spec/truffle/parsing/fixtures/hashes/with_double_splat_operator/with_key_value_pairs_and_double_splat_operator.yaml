@@ -11,25 +11,35 @@ ast: |
   ConcatHashLiteralNode
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 15
       children:
           children = [
               PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       keyValues = [
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
                                   object = :foo
+                                  sourceCharIndex = 1
+                                  sourceLength = 4
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 6
+                                  sourceLength = 1
                                   value = 1
                       ]
               HashCastNodeGen$HashCastASTNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       childNode_ =
                           RubyCallNode
@@ -46,9 +56,13 @@ ast: |
                                   methodName = "bar"
                                   notEmptyKeywordsProfile = false
                                   notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 11
+                                  sourceLength = 3
                               children:
                                   receiver =
                                       SelfNode
                                           attributes:
                                               flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
           ]

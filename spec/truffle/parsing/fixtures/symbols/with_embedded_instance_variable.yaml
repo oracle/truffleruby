@@ -1,0 +1,47 @@
+subject: "Symbol"
+description: "with embedded instance variable (#@a)"
+focused_on_node: "org.truffleruby.core.cast.StringToSymbolNodeGen"
+ruby: |
+  :"foo #@bar"
+ast: |
+  StringToSymbolNodeGen
+      attributes:
+          flags = 0
+          sourceCharIndex = 0
+          sourceLength = 12
+      children:
+          stringNode_ =
+              InterpolatedStringNode
+                  attributes:
+                      emptyTString = ""
+                      encoding = UTF-8
+                      flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      children = [
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      StringLiteralNode
+                                          attributes:
+                                              encoding = UTF-8
+                                              flags = 1
+                                              sourceCharIndex = 2
+                                              sourceLength = 4
+                                              tstring = foo 
+                          ToSNodeGen
+                              children:
+                                  valueNode_ =
+                                      ReadInstanceVariableNode
+                                          attributes:
+                                              flags = 0
+                                              name = "@bar"
+                                              sourceCharIndex = 7
+                                              sourceLength = 4
+                                          children:
+                                              readSelfSlotNode =
+                                                  ReadFrameSlotNodeGen
+                                                      attributes:
+                                                          frameSlot = 0 # (self)
+                      ]

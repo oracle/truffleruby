@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -42,7 +42,7 @@ public final class RBSprintfCompiler {
             Object stringReader) {
         var byteArray = formatTString.getInternalByteArrayUncached(formatEncoding.tencoding);
 
-        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
+        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray));
         final List<RBSprintfConfig> configs = parser.parse();
         final RBSprintfSimpleTreeBuilder builder = new RBSprintfSimpleTreeBuilder(configs, stringReader,
                 formatEncoding);
@@ -60,7 +60,7 @@ public final class RBSprintfCompiler {
             TruffleString.GetInternalByteArrayNode byteArrayNode, RubyContext context, RubyLanguage language) {
         var byteArray = byteArrayNode.execute(formatTString, formatEncoding.tencoding);
 
-        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray), false);
+        final RBSprintfSimpleParser parser = new RBSprintfSimpleParser(StringSupport.bytesToChars(byteArray));
         final List<RBSprintfConfig> configs = parser.parse();
         final int[] types = new int[3 * configs.size()]; // Ensure there is enough space for the argument types that might be in the format string.
 

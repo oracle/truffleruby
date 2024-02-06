@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -10,12 +10,10 @@
 package org.truffleruby.core;
 
 import java.lang.ref.ReferenceQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.interop.InteropException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.MarkingService.ExtensionCallStack;
-import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
@@ -23,11 +21,7 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** C-ext data finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby
@@ -40,10 +34,8 @@ public final class DataObjectFinalizationService
     public static final class DataObjectFinalizerRootNode extends RubyBaseRootNode implements InternalRootNode {
 
         @Child private InteropLibrary callNode;
-        private final ConditionProfile ownedProfile = ConditionProfile.create();
 
-        public DataObjectFinalizerRootNode(
-                RubyLanguage language) {
+        public DataObjectFinalizerRootNode(RubyLanguage language) {
             super(language, RubyLanguage.EMPTY_FRAME_DESCRIPTOR, null);
 
             callNode = InteropLibrary.getFactory().createDispatched(1);
@@ -55,41 +47,17 @@ public final class DataObjectFinalizationService
         }
 
         public Object execute(DataObjectFinalizerReference ref) {
-            if (getContext().getOptions().CEXT_LOCK) {
-                final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
-
-                if (!owned) {
-                    MutexOperations.lockInternal(getContext(), lock, this);
-                }
+            if (!getContext().isFinalizing()) {
                 try {
-                    runFinalizer(ref);
-                } finally {
-                    if (!owned) {
-                        MutexOperations.unlockInternal(lock);
-                    }
+                    callNode.invokeMember(getContext().getCoreLibrary().truffleCExtModule, "run_data_finalizer",
+                            ref.finalizerCFunction, ref.dataStruct);
+                } catch (InteropException e) {
+                    throw CompilerDirectives.shouldNotReachHere(e);
                 }
-            } else {
-                runFinalizer(ref);
             }
             return Nil.INSTANCE;
         }
 
-        private void runFinalizer(DataObjectFinalizerReference ref) throws Error {
-            try {
-                if (!getContext().isFinalizing()) {
-                    final ExtensionCallStack stack = getLanguage().getCurrentFiber().extensionCallStack;
-                    stack.push(false, stack.getSpecialVariables(), stack.getBlock());
-                    try {
-                        callNode.execute(ref.finalizerCFunction, ref.dataStruct);
-                    } finally {
-                        stack.pop();
-                    }
-                }
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw CompilerDirectives.shouldNotReachHere("Data holder finalization on invalid object");
-            }
-        }
     }
 
     private final CallTarget callTarget;
@@ -127,8 +95,7 @@ public final class DataObjectFinalizationService
     }
 
     @TruffleBoundary
-    protected void processReferenceInternal(RubyContext context, RubyLanguage language,
-            DataObjectFinalizerReference ref) {
-        callTarget.call(new Object[]{ ref });
+    void processReferenceInternal(RubyContext context, RubyLanguage language, DataObjectFinalizerReference ref) {
+        callTarget.call(ref);
     }
 }

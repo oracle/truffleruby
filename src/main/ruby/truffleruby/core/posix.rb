@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2017, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -39,16 +39,13 @@ module Truffle::POSIX
   end
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
-    if home = Truffle::Boot.ruby_home
-      if Truffle::Boot.get_option 'building-core-cexts'
-        libtruffleposix = "#{home}/src/main/c/truffleposix/libtruffleposix.#{Truffle::Platform::SOEXT}"
-      else
-        libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::SOEXT}"
-      end
-      Primitive.interop_eval_nfi "load '#{libtruffleposix}'"
+    home = Truffle::Boot.ruby_home
+    if Truffle::Boot.get_option 'building-core-cexts'
+      libtruffleposix = "#{home}/src/main/c/truffleposix/libtruffleposix.#{Truffle::Platform::SOEXT}"
     else
-      LIBC.resolve
+      libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::SOEXT}"
     end
+    Primitive.interop_eval_nfi "load '#{libtruffleposix}'"
   end
 
   LIBCRYPT = LazyLibrary.new do
@@ -264,7 +261,6 @@ module Truffle::POSIX
   attach_function :getpid, [], :pid_t
   attach_function :getppid, [], :pid_t
   attach_function :kill, [:pid_t, :int], :int
-  attach_function :raise, [:int], :int, LIBC, false, :raise_signal
   attach_function :getpgrp, [], :pid_t
   attach_function :getpgid, [:pid_t], :pid_t
   attach_function :setpgid, [:pid_t, :pid_t], :int

@@ -7,14 +7,20 @@ ast: |
   AndNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 7
       children:
           left =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 0
+                      sourceLength = 1
                       value = 1
           right =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 6
+                      sourceLength = 1
                       value = 2

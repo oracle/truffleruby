@@ -1,0 +1,87 @@
+subject: "Def"
+description: "Argument descriptors / with block without name (def a(&))"
+notes: >
+  Method parameters are described (as ArgumentDescriptor[]) in the following way:
+    - ArgumentDescriptor(name = %forward_block, type = block)
+  
+  So the & operator without variable name is described as `block` variable with surrogate name `%forward_block`.
+focused_on_node: "org.truffleruby.language.methods.LiteralMethodDefinitionNode"
+ruby: |
+  def foo(&)
+  end
+ast: |
+  LiteralMethodDefinitionNode
+      attributes:
+          callTargetSupplier = org.truffleruby.language.methods.CachedLazyCallTargetSupplier@...
+          flags = 1
+          isDefSingleton = false
+          name = "foo"
+          sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = %forward_block, type = block)])
+          sourceCharIndex = 0
+          sourceLength = 14
+      call targets:
+          RubyMethodRootNode
+              attributes:
+                  arityForCheck = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}
+                  callTarget = Object#foo
+                  checkArityProfile = false
+                  frameDescriptor = FrameDescriptor@...{#0:(self), #1:%$~_, #2:%method_block_arg, #3:%forward_block}
+                  instrumentationBits = 0
+                  keywordArguments = false
+                  localReturnProfile = false
+                  lock = java.util.concurrent.locks.ReentrantLock@...[Unlocked]
+                  matchingReturnProfile = false
+                  nonMatchingReturnProfile = false
+                  polyglotRef = org.truffleruby.RubyLanguage@...
+                  retryProfile = false
+                  returnID = org.truffleruby.language.control.ReturnID@...
+                  sharedMethodInfo = SharedMethodInfo(staticLexicalScope =  :: Object, arity = Arity{preRequired = 0, optional = 0, hasRest = false, isImplicitRest = false, postRequired = 0, keywordArguments = [], requiredKeywordArgumentsCount = 0, hasKeywordsRest = false}, originName = foo, blockDepth = 0, parseName = Object#foo, notes = null, argumentDescriptors = [ArgumentDescriptor(name = %forward_block, type = block)])
+                  sourceSection = SourceSection(source=<parse_ast> [1:1 - 2:3], index=0, length=14, characters=def foo(&)\nend)
+                  split = HEURISTIC
+              children:
+                  body =
+                      SequenceNode
+                          attributes:
+                              flags = 12
+                              sourceCharIndex = 0
+                              sourceLength = 14
+                          children:
+                              body = [
+                                  WriteLocalVariableNode
+                                      attributes:
+                                          flags = 0
+                                          frameSlot = 0 # (self)
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                      children:
+                                          valueNode =
+                                              ProfileArgumentNodeGen
+                                                  attributes:
+                                                      flags = 0
+                                                      sourceCharIndex = -1
+                                                      sourceLength = 0
+                                                  children:
+                                                      childNode_ =
+                                                          ReadSelfNode
+                                                              attributes:
+                                                                  flags = 0
+                                                                  sourceCharIndex = -1
+                                                                  sourceLength = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 2
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                  SaveMethodBlockNode
+                                      attributes:
+                                          flags = 0
+                                          slot = 3
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                                  NilLiteralNode
+                                      attributes:
+                                          flags = 0
+                                          sourceCharIndex = -1
+                                          sourceLength = 0
+                              ]

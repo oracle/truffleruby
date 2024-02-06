@@ -1,0 +1,2 @@
+fails:Optional variable assignments using ||= using a #[] splatted argument calls #to_a only once
+fails:Optional variable assignments using &&= using a #[] splatted argument calls #to_a only once

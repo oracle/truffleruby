@@ -11,25 +11,33 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
           flags = 0
+          sourceCharIndex = 0
+          sourceLength = 19
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       rescueBody =
                           ArrayLiteralNode$UninitialisedArrayLiteralNode
                               attributes:
                                   flags = 0
                                   language = org.truffleruby.RubyLanguage@...
+                                  sourceCharIndex = 13
+                                  sourceLength = 6
                               children:
                                   values = [
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
                                               object = :bar
+                                              sourceCharIndex = 14
+                                              sourceLength = 4
                                   ]
           ]
           tryPart =
@@ -37,4 +45,6 @@ ast: |
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 0
+                      sourceLength = 5
                       tstring = foo

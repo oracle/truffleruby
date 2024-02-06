@@ -10,20 +10,28 @@ ast: |
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
           flags = 1
           parameters = RubyCallNodeParameters{methodName='[]=', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=true}
+          sourceCharIndex = 7
+          sourceLength = 14
       children:
           operand1Node_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 9
+                      sourceLength = 2
                       value = 42
           operand2Node_ =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 15
+                      sourceLength = 6
                       value = 100500
           receiver_ =
               ReadLocalVariableNode
                   attributes:
                       flags = 0
                       frameSlot = 2 # a
+                      sourceCharIndex = 7
+                      sourceLength = 1
                       type = FRAME_LOCAL

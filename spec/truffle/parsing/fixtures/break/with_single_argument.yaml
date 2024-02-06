@@ -11,9 +11,13 @@ ast: |
           breakID = org.truffleruby.language.control.BreakID@...
           flags = 1
           ignoreMarker = true
+          sourceCharIndex = 13
+          sourceLength = 8
       children:
           child =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 19
+                      sourceLength = 2
                       value = 42

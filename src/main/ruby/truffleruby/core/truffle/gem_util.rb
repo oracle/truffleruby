@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -81,7 +81,7 @@ module Truffle::GemUtil
 
   MARKER_NAME = 'truffleruby_gem_dir_marker.txt'
 
-  ABI_VERSION = -Truffle::Boot.read_abi_version if Truffle::Boot.ruby_home
+  ABI_VERSION = -Truffle::Boot.read_abi_version
 
   def self.upgraded_default_gem?(feature)
     if i = feature.index('/')

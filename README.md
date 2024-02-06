@@ -90,7 +90,7 @@ TruffleRuby is actively tested on the following systems:
 * Ubuntu 16.04, 18.04, 20.04, 22.04 (all LTS)
 * Fedora 37, 38
 * Debian 10, 11, 12
-* macOS 10.14 (Mojave) for amd64, 11 (Big Sur) for aarch64
+* macOS 11 (Big Sur)
 
 Architectures:
 
@@ -182,7 +182,7 @@ For known vulnerabilities in Ruby, please refer to the [known-cves](doc/user/kno
 
 ## Licence
 
-TruffleRuby is copyright (c) 2013-2023 Oracle and/or its affiliates, and is made
+TruffleRuby is copyright (c) 2013-2024 Oracle and/or its affiliates, and is made
 available to you under the terms of any one of the following three licenses:
 
 * Eclipse Public License version 2.0, or

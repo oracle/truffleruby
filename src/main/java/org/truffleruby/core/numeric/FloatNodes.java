@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -35,7 +35,6 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.RubyThread;
@@ -230,7 +229,7 @@ public abstract class FloatNodes {
 
         @NeverDefault
         public static ModNode create() {
-            return ModNodeFactory.create(null);
+            return FloatNodesFactory.ModNodeFactory.create(null);
         }
 
         public abstract Object executeMod(double a, double b);

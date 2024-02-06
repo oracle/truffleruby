@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -78,7 +78,7 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.options.Options;
-import org.truffleruby.parser.TranslatorDriver;
+import org.truffleruby.parser.YARPTranslatorDriver;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Signals;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -107,7 +107,6 @@ public final class RubyContext {
 
     @CompilationFinal public TruffleLogger logger;
     @CompilationFinal private Options options;
-    @CompilationFinal private boolean hadHome;
 
     private final SafepointManager safepointManager;
     private final CodeLoader codeLoader;
@@ -278,7 +277,6 @@ public final class RubyContext {
             // Cannot save the file descriptor in this SecureRandom in the image
             random = null;
             // Do not save image generator paths in the image heap
-            hadHome = language.getRubyHome() != null;
             featureLoader.setWorkingDirectory(null);
         } else {
             initialized = true;
@@ -296,8 +294,7 @@ public final class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv, language.options);
-        final String newHome = language.getRubyHome();
-        if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
+        if (!compatibleOptions(oldOptions, newOptions)) {
             return false;
         }
         this.options = newOptions;
@@ -338,10 +335,10 @@ public final class RubyContext {
                     .getSharedMethodInfo()
                     .getSourceSection()
                     .getSource();
-            TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
+            YARPTranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
             ProcOperations.rootCall((RubyProc) proc, NoKeywordArgumentsDescriptor.INSTANCE,
                     RubyBaseNode.EMPTY_ARGUMENTS);
-            TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
+            YARPTranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
         Metrics.printTime("after-run-delayed-initialization");
 
@@ -363,13 +360,8 @@ public final class RubyContext {
         }
     }
 
-    private boolean compatibleOptions(Options oldOptions, Options newOptions, boolean hadHome, boolean hasHome) {
+    private boolean compatibleOptions(Options oldOptions, Options newOptions) {
         final String notReusingContext = "not reusing pre-initialized context: ";
-
-        if (hadHome != hasHome) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "Ruby home is " + (hasHome ? "set" : "unset"));
-            return false;
-        }
 
         // Libraries loaded during pre-initialization
 

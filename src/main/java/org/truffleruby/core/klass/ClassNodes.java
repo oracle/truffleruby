@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -30,10 +30,8 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.objects.InitializeClassNode;
-import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -216,11 +214,11 @@ public abstract class ClassNodes {
     @Primitive(name = "class_new")
     public abstract static class NewClassNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private InitializeClassNode initializeClassNode;
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization
-        RubyClass newClass(RubyClass superclass, boolean callInherited, Object maybeBlock) {
+        RubyClass newClass(RubyClass superclass, boolean callInherited, Object maybeBlock,
+                @Cached InitializeClassNode initializeClassNode) {
             if (superclass.isSingleton) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
@@ -239,11 +237,6 @@ public abstract class ClassNodes {
                     false,
                     null,
                     superclass);
-
-            if (initializeClassNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                initializeClassNode = insert(InitializeClassNodeGen.create());
-            }
 
             initializeClassNode.executeInitialize(newRubyClass, superclass, callInherited, maybeBlock);
 
@@ -273,6 +266,22 @@ public abstract class ClassNodes {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
+        }
+    }
+
+    @CoreMethod(names = "attached_object")
+    public abstract static class AttachedObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "rubyClass.isSingleton")
+        Object attachedObject(RubyClass rubyClass) {
+            return rubyClass.attached;
+        }
+
+        @Specialization(guards = "!rubyClass.isSingleton")
+        Object attachedObjectOfNonSingletonClass(RubyClass rubyClass) {
+            throw new RaiseException(
+                    getContext(),
+                    getContext().getCoreExceptions().typeErrorNotASingletonClass(this, rubyClass));
         }
     }
 

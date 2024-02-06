@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -39,6 +39,8 @@ public final class ReadOptionalArgumentNode extends RubyContextSourceNode {
         final int positionalArgumentsCount = RubyArguments.getPositionalArgumentsCount(frame, keywordArguments);
 
         if (positionalArgumentsCount >= minimum) {
+            // it's enough arguments to fulfill pre and post parameters and optional parameters till the current one:
+            //   proc { |a, b=:b, c=:c, d| [a, b, c, d] }.call(1, 2, 3) # => [1, 2, :c, 3]
             return RubyArguments.getArgument(frame, index);
         } else {
             defaultValueProfile.enter();

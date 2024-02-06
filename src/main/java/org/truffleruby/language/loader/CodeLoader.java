@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2023 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -26,7 +26,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
 import org.truffleruby.parser.RubySource;
-import org.truffleruby.parser.TranslatorDriver;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -77,20 +76,8 @@ public final class CodeLoader {
             MaterializedFrame parentFrame,
             LexicalScope lexicalScope,
             Node currentNode) {
-        final TranslatorDriver translator = new TranslatorDriver(context, source);
-        return translator
-                .parse(source, parserContext, null, parentFrame, lexicalScope, currentNode);
-    }
-
-    @TruffleBoundary
-    public RootCallTarget parseWithYARP(Object code,
-            ParserContext parserContext,
-            MaterializedFrame parentFrame,
-            LexicalScope lexicalScope,
-            Node currentNode) {
-        RubySource rubySource = YARPTranslatorDriver.createRubySource(code);
-        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context, rubySource);
-        return translator.parse(rubySource, parserContext, null, parentFrame, lexicalScope, currentNode);
+        final YARPTranslatorDriver translator = new YARPTranslatorDriver(context);
+        return translator.parse(source, parserContext, null, parentFrame, lexicalScope, currentNode);
     }
 
     @TruffleBoundary

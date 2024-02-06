@@ -15,23 +15,31 @@ ruby: |
 ast: |
   TryNodeGen
       attributes:
-          canOmitBacktrace = false
-          flags = 1
+          flags = 0
+          sourceCharIndex = 0
+          sourceLength = 32
       children:
           rescueParts = [
               RescueStandardErrorNode
                   attributes:
+                      canOmitBacktrace = false
                       flags = 0
+                      sourceCharIndex = 14
+                      sourceLength = 14
                   children:
                       rescueBody =
                           ObjectLiteralNode
                               attributes:
                                   flags = 1
-                                  object = org.truffleruby.core.range.RubyIntRange@...(begin = 0, end = 42, excludedEnd = false)
+                                  object = 0..42
+                                  sourceCharIndex = 23
+                                  sourceLength = 5
           ]
           tryPart =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 8
+                      sourceLength = 5
                       tstring = foo

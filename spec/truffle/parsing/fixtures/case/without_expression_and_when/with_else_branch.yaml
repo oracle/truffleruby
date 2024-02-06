@@ -28,37 +28,51 @@ ast: |
   IfElseNodeGen
       attributes:
           flags = 1
+          sourceCharIndex = 0
+          sourceLength = 86
       children:
           condition =
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
+                      sourceCharIndex = 10
+                      sourceLength = 2
                       value = 42
           elseBody =
               IfElseNodeGen
                   attributes:
                       flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       condition =
                           IntegerFixnumLiteralNode
                               attributes:
                                   flags = 0
+                                  sourceCharIndex = 32
+                                  sourceLength = 6
                                   value = 100500
                       elseBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 75
+                                  sourceLength = 7
                                   tstring = other
                       thenBody =
                           StringLiteralNode
                               attributes:
                                   encoding = UTF-8
                                   flags = 1
+                                  sourceCharIndex = 41
+                                  sourceLength = 26
                                   tstring = one hundred five hundred
           thenBody =
               StringLiteralNode
                   attributes:
                       encoding = UTF-8
                       flags = 1
+                      sourceCharIndex = 15
+                      sourceLength = 11
                       tstring = forty two
