@@ -91,7 +91,7 @@ public final class SharedMethodInfo implements DetailedInspectingSupport {
                 blockDepth,
                 moduleAndMethodName(declaringModule, methodName),
                 notes,
-                ArgumentDescriptor.ANY);
+                ArgumentDescriptor.ANY_UNNAMED);
     }
 
     public SourceSection getSourceSection() {
