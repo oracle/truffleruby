@@ -14,13 +14,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.source.Source;
@@ -38,12 +35,11 @@ public abstract class ResourceLoader {
         }
 
         final Class<?> relativeClass = RubyContext.class;
-        final Path relativePath = Paths.get(path.substring(RubyLanguage.RESOURCE_SCHEME.length()));
-        final String normalizedPath = StringUtils.replace(relativePath.normalize().toString(), '\\', '/');
-        final InputStream stream = relativeClass.getResourceAsStream(normalizedPath);
+        final String resourcePath = path.substring(RubyLanguage.RESOURCE_SCHEME.length());
+        final InputStream stream = relativeClass.getResourceAsStream(resourcePath);
 
         if (stream == null) {
-            throw new FileNotFoundException(path);
+            throw new FileNotFoundException(resourcePath);
         }
 
         final Source source;

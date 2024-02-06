@@ -48,7 +48,6 @@ import org.prism.ParsingOptions;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
-import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.binding.BindingNodes;
@@ -158,22 +157,13 @@ public final class YARPTranslatorDriver {
 
         final String sourcePath = rubySource.getSourcePath(language).intern();
 
-        // Only use the cache while loading top-level core library files, as eval() later could use
-        // the same Source name but should not use the cache. For instance,
-        // TOPLEVEL_BINDING.eval("self") would use the cache which is wrong.
-        final ParseResult parseResult;
-        if (ParserCache.INSTANCE != null && parserContext == ParserContext.TOP_LEVEL &&
-                ParserCache.INSTANCE.containsKey(source.getName())) {
-            parseResult = ParserCache.INSTANCE.get(source.getName()).getLeft();
-        } else {
-            printParseTranslateExecuteMetric("before-parsing", context, source);
-            parseResult = context.getMetricsProfiler().callWithMetrics(
-                    "parsing",
-                    source.getName(),
-                    () -> parseToYARPAST(rubySource, sourcePath, yarpSource, localsInScopes,
-                            language.options.FROZEN_STRING_LITERALS));
-            printParseTranslateExecuteMetric("after-parsing", context, source);
-        }
+        printParseTranslateExecuteMetric("before-parsing", context, source);
+        final ParseResult parseResult = context.getMetricsProfiler().callWithMetrics(
+                "parsing",
+                source.getName(),
+                () -> parseToYARPAST(rubySource, sourcePath, yarpSource, localsInScopes,
+                        language.options.FROZEN_STRING_LITERALS));
+        printParseTranslateExecuteMetric("after-parsing", context, source);
 
         handleWarningsErrorsPrimitives(context, parseResult, rubySource, sourcePath, parseEnvironment, rubyWarnings);
 
@@ -456,20 +446,6 @@ public final class YARPTranslatorDriver {
             }
         }
         parseEnvironment.allowTruffleRubyPrimitives = allowTruffleRubyPrimitives;
-    }
-
-    public static void handleWarningsErrorsNoContext(ParseResult parseResult, String sourcePath,
-            Nodes.Source yarpSource) {
-        if (parseResult.errors.length > 0) {
-            var error = parseResult.errors[0];
-            throw CompilerDirectives.shouldNotReachHere("Parse error in " +
-                    sourcePath + ":" + yarpSource.line(error.location.startOffset) + ": " + error.message);
-        }
-
-        for (var warning : parseResult.warnings) {
-            throw CompilerDirectives.shouldNotReachHere("Warning in " +
-                    sourcePath + ":" + yarpSource.line(warning.location.startOffset) + ": " + warning.message);
-        }
     }
 
     public static Nodes.Source createYARPSource(byte[] sourceBytes) {

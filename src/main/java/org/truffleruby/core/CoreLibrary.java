@@ -29,7 +29,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.SuppressFBWarnings;
-import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.core.array.RubyArray;
@@ -73,7 +72,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -785,12 +783,7 @@ public final class CoreLibrary {
 
     public RubySource loadCoreFileSource(String path) throws IOException {
         if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
-                Source source = ParserCache.INSTANCE.get(path).getRight();
-                return new RubySource(source, path);
-            } else {
-                return new RubySource(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), path);
-            }
+            return new RubySource(ResourceLoader.loadResource(path, language.options.CORE_AS_INTERNAL), path);
         } else {
             final FileLoader fileLoader = new FileLoader(context, language);
             return fileLoader.loadFile(path);
