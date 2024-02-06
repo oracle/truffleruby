@@ -97,7 +97,7 @@ describe "Proc#parameters" do
 
   it "ignores implicit rest arguments" do
     proc { |x, | }.parameters.should == [[:opt, :x]]
-    lambda { |x, | }.parameters.should == [[:req, :x]]
+    -> x { }.parameters.should == [[:req, :x]]
   end
 
   ruby_version_is '3.2' do

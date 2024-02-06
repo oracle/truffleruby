@@ -332,6 +332,10 @@ module Enumerable
     h
   end
 
+  def to_set(klass = Set, ...)
+    klass.new(self, ...)
+  end
+
   # Synchronize with Enumerator#zip and Array#zip
   def zip(*enums)
     enums.map! do |enum|

@@ -1,1 +1,0 @@
-fails:A number literal can be a float literal with trailing 'r' to represent a Rational

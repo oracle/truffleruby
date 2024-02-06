@@ -112,3 +112,8 @@ Truffle::Boot.delay do
     $LOAD_PATH.unshift(*extra_load_paths.map { |path| File.expand_path(path) })
   end
 end
+
+# Set class is in the core library but it's still possible to require it as a standard
+# library with `require`. So it doesn't make sense to have two copies of the same code
+# and it's easier just to autoload CRuby's provided source file here.
+autoload :Set, 'set'
