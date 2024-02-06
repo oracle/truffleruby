@@ -45,6 +45,7 @@ Compatibility:
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
 * Promote `Set` class to core library (#3039, @andrykonchin).
+* Support `connect_timeout` keyword argument to `TCPSocket.{new,open}` (#3421, @manefz, @patricklinpl, @nirvdrum, @rwstauner).
 
 Performance:
 
