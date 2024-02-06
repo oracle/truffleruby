@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+/** Defines a new class or returns an existing one found by name in a parent lexical scope. */
 public final class DefineClassNode extends RubyContextSourceNode {
 
     private final String name;

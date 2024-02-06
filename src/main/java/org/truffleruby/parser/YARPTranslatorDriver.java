@@ -116,14 +116,12 @@ public final class YARPTranslatorDriver {
         }
 
         final Source source = rubySource.getSource();
-
-        // TODO: check if we still need this for YARP
-        /* Note that jruby-parser will be mistaken about how deep the existing variables are, but that doesn't matter as
-         * we look them up ourselves after being told they're in some parent scope. */
-
         final TranslatorEnvironment parentEnvironment;
+
+        // local variables in each lexical scope
         final List<List<String>> localsInScopes = new ArrayList<>();
 
+        // prepare locals in scopes
         int blockDepth = 0;
         if (parentFrame != null) {
             MaterializedFrame frame = parentFrame;
@@ -148,13 +146,14 @@ public final class YARPTranslatorDriver {
             parentEnvironment = null;
         }
 
+        // there could be an outer lexical scope that may have its own local variables -
+        // so they should be passed to parser as well
         if (argumentNames != null) {
             localsInScopes.add(Arrays.asList(argumentNames));
         }
 
         // Parse to the YARP AST
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
-
         final String sourcePath = rubySource.getSourcePath(language).intern();
 
         printParseTranslateExecuteMetric("before-parsing", context, source);
@@ -204,7 +203,6 @@ public final class YARPTranslatorDriver {
                 modulePath);
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
-
         if (argumentNames != null) {
             for (String name : argumentNames) {
                 environment.declareVar(name);

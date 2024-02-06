@@ -30,15 +30,17 @@ import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.prism.Nodes;
 
-/** Translates method/block parameters and assign local variables.
+/** Translate method or block parameters and assign local variables.
  *
  * Parameters should be iterated in the same order {@link org.truffleruby.parser.YARPReloadArgumentsTranslator} iterates
  * to handle multiple "_" parameters (and parameters with "_" prefix) correctly. */
 public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
     private final Arity arity;
-    private final boolean isProc; // block or lambda/method
-    private final boolean isMethod; // method or proc
+    /** block or lambda/method */
+    private final boolean isProc;
+    /** method or proc */
+    private final boolean isMethod;
     private final YARPTranslator yarpTranslator;
 
     private enum State {
@@ -52,6 +54,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
     private int index = 0;
     /** to distinguish pre and post Nodes.RequiredParameterNode parameters */
     private State state;
+    /** number of duplicated parameters with "_" prefix */
     private int repeatedParameterCounter = 2;
 
     public YARPLoadArgumentsTranslator(
@@ -153,7 +156,6 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
                             index,
                             hasKeywordArguments(),
                             isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
-
         } else if (state == YARPLoadArgumentsTranslator.State.POST) {
             readNode = new ReadPostArgumentNode(-index, getRequiredCount(), getOptionalCount(), hasRest(),
                     hasKeywordArguments());
@@ -196,6 +198,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
         final int slot;
         if (node.isRepeatedParameter()) {
+            // when there are multiple "_" parameters
             String name = createNameForRepeatedParameter(node.name);
             slot = environment.declareVar(name);
         } else {
@@ -229,6 +232,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
         final int slot;
         if (node.isRepeatedParameter()) {
+            // when there are multiple "_" parameters
             String name = createNameForRepeatedParameter(node.name);
             slot = environment.declareVar(name);
         } else {
@@ -249,6 +253,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         final int slot;
         if (node.name != null) {
             if (node.isRepeatedParameter()) {
+                // when there are multiple "_" parameters
                 String name = createNameForRepeatedParameter(node.name);
                 slot = environment.declareVar(name);
             } else {
@@ -339,6 +344,17 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         return parameters.rest != null;
     }
 
+    /** Generate a name for subsequent local variable, that look like %_1, %_2, etc.
+     *
+     * Parameters that start with "_" (e.g. _, _options, etc.) can be used repeatedly in a method parameters list, e.g.
+     *
+     * <pre>
+     *     def foo(_, _)
+     *     end
+     * </pre>
+     *
+     * They should be forwarded properly but there are no local variables declared for such duplicated parameters.
+     * That's why such local variables should be declared now. */
     private String createNameForRepeatedParameter(String name) {
         int count = repeatedParameterCounter++;
         return Layouts.TEMP_PREFIX + name + count;

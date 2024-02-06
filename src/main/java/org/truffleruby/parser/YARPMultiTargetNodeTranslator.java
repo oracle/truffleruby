@@ -23,15 +23,24 @@ import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 
-// Could be used in ordinal multi-assignment and for destructuring array argument in method/proc parameters:
-// - a, (b, c) = 1, [2, 3]
-// - def foo(a, (b, c)) end
-// NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode.
+/** Translate Nodes.MultiTargetNode.
+ *
+ * Used in the following cases: descturturing in multi-assignment and destructuring in method or block parameters:
+ *
+ * <pre>
+ *     a, (b, c) = 1, [2, 3]
+ *
+ *     def foo(a, (b, c))
+ *     end
+ * </pre>
+ *
+ * NOTE: cannot inherit from YARPBaseTranslator because it returns AssignableNode instead of RubyNode. */
 public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<AssignableNode> {
 
     private final Nodes.MultiTargetNode node;
     private final RubyLanguage language;
     private final YARPTranslator yarpTranslator;
+    /** a node that will be destructured */
     private final RubyNode readNode;
 
     public YARPMultiTargetNodeTranslator(
@@ -159,12 +168,12 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         if (node.expression != null) {
             return node.expression.accept(this);
         } else {
+            // do nothing for single "*"
             return new NoopAssignableNode();
         }
     }
 
     @Override
-    // RequiredParameterNode is handled during destructuring method/proc arguments
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         final String name = node.name;
         final ReadLocalNode lhs = yarpTranslator.getEnvironment().findLocalVarNode(name);

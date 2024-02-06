@@ -27,6 +27,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
+/** Get a Ruby object's singleton class */
 // Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 public abstract class SingletonClassNode extends RubyBaseNode {
