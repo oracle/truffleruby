@@ -179,7 +179,7 @@ describe 'Coverage.result' do
 
     -> {
       Coverage.result(stop: true)
-    }.should complain /warning: stop implies clear/
+    }.should complain(/warning: stop implies clear/)
 
     Coverage.running?.should == false
   end
@@ -222,7 +222,7 @@ describe 'Coverage.result' do
 
     -> {
       Coverage.result(stop: true, clear: false)
-    }.should complain /warning: stop implies clear/
+    }.should complain(/warning: stop implies clear/)
 
     Coverage.running?.should == false
   end
@@ -249,7 +249,7 @@ describe 'Coverage.result' do
 
     -> {
       Coverage.result(stop: true) # clears counters
-    }.should complain /warning: stop implies clear/
+    }.should complain(/warning: stop implies clear/)
 
     Coverage.start
     Coverage.peek_result.should == {}
@@ -271,7 +271,7 @@ describe 'Coverage.result' do
 
     -> {
       Coverage.result(stop: true, clear: false) # clears counters
-    }.should complain /warning: stop implies clear/
+    }.should complain(/warning: stop implies clear/)
 
     Coverage.start
     Coverage.peek_result.should == {}

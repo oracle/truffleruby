@@ -115,10 +115,12 @@ describe 'TCPServer#accept' do
         @socket.should be_an_instance_of(TCPSocket)
       end
 
-      it "returns a TCPSocket which is set to nonblocking" do
-        require 'io/nonblock'
-        @socket = @server.accept
-        @socket.should.nonblock?
+      platform_is_not :windows do
+        it "returns a TCPSocket which is set to nonblocking" do
+          require 'io/nonblock'
+          @socket = @server.accept
+          @socket.should.nonblock?
+        end
       end
 
       it "returns a TCPSocket which is set to close on exec" do

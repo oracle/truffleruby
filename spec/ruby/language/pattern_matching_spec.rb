@@ -1424,7 +1424,7 @@ describe "Pattern matching" do
         Module.new do
           result = module_eval(<<~RUBY)
             @@a = 0..10
-  
+
             case 2
             in ^@@a
               true

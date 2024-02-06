@@ -268,7 +268,7 @@ describe "Proc#arity" do
         @a.arity.should == 3
         @b.arity.should == 3
       end
-      
+
       # implicit rest
       evaluate <<-ruby do
           @a = lambda { |a, | }

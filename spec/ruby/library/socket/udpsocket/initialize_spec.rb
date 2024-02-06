@@ -30,10 +30,12 @@ describe 'UDPSocket#initialize' do
     @socket.binmode?.should be_true
   end
 
-  it 'sets the socket to nonblock' do
-    require 'io/nonblock'
-    @socket = UDPSocket.new(:INET)
-    @socket.should.nonblock?
+  platform_is_not :windows do
+    it 'sets the socket to nonblock' do
+      require 'io/nonblock'
+      @socket = UDPSocket.new(:INET)
+      @socket.should.nonblock?
+    end
   end
 
   it 'sets the socket to close on exec' do
