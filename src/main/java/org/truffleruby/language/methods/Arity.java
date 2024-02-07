@@ -164,6 +164,8 @@ public final class Arity {
         return requiredKeywords;
     }
 
+    /** Generate argument descriptors for a method/proc that doesn't provide parameter names, e.g a core method
+     * implemented in Java. */
     public ArgumentDescriptor[] toUnnamedArgumentDescriptors() {
         List<ArgumentDescriptor> descs = new ArrayList<>();
 
