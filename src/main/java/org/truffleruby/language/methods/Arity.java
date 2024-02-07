@@ -164,23 +164,23 @@ public final class Arity {
         return requiredKeywords;
     }
 
-    public ArgumentDescriptor[] toAnonymousArgumentDescriptors() {
+    public ArgumentDescriptor[] toUnnamedArgumentDescriptors() {
         List<ArgumentDescriptor> descs = new ArrayList<>();
 
         for (int i = 0; i < preRequired; i++) {
-            descs.add(new ArgumentDescriptor(ArgumentType.anonreq));
+            descs.add(new ArgumentDescriptor(ArgumentType.unnamedreq));
         }
 
         for (int i = 0; i < optional; i++) {
-            descs.add(new ArgumentDescriptor(ArgumentType.anonopt));
+            descs.add(new ArgumentDescriptor(ArgumentType.unnamedopt));
         }
 
         if (hasRest) {
-            descs.add(new ArgumentDescriptor(ArgumentType.anonrest));
+            descs.add(new ArgumentDescriptor(ArgumentType.unnamedrest));
         }
 
         for (int i = 0; i < postRequired; i++) {
-            descs.add(new ArgumentDescriptor(ArgumentType.anonreq));
+            descs.add(new ArgumentDescriptor(ArgumentType.unnamedreq));
         }
 
         for (String keyword : keywordArguments) {
@@ -188,7 +188,7 @@ public final class Arity {
         }
 
         if (hasKeywordsRest) {
-            descs.add(new ArgumentDescriptor(ArgumentType.anonkeyrest));
+            descs.add(new ArgumentDescriptor(ArgumentType.unnamedkeyrest));
         }
 
         return descs.toArray(ArgumentDescriptor.EMPTY_ARRAY);

@@ -36,12 +36,14 @@ public enum ArgumentType {
     rest("rest", false),
     req("req", false),
     anonreq("req", true),
-    anonopt("opt", true),
     anonrest("rest", true),
     anonkeyrest("keyrest", true),
-    anonblock("block", true),
+    unnamedreq("req", true),
+    unnamedopt("opt", true),
     unnamedrest("rest", true),
-    nokey("nokey", true); // **nil
+    unnamedkeyrest("keyrest", true),
+
+    nokey("nokey", true);
 
     ArgumentType(String symbolicName, boolean anonymous) {
         this.symbolicName = symbolicName;
