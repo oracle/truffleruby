@@ -37,9 +37,9 @@ public final class ArgumentDescriptor {
     public final String name;
 
     public static final ArgumentDescriptor[] ANY_UNNAMED = { new ArgumentDescriptor(ArgumentType.unnamedrest) };
-    public static final ArgumentDescriptor[] AT_LEAST_ONE = {
-            new ArgumentDescriptor(ArgumentType.anonreq),
-            new ArgumentDescriptor(ArgumentType.anonrest) };
+    public static final ArgumentDescriptor[] AT_LEAST_ONE_UNNAMED = {
+            new ArgumentDescriptor(ArgumentType.unnamedreq),
+            new ArgumentDescriptor(ArgumentType.unnamedrest) };
     public static final ArgumentDescriptor[] EMPTY_ARRAY = new ArgumentDescriptor[0];
 
     public ArgumentDescriptor(ArgumentType type, String name) {

@@ -123,6 +123,7 @@ public final class RubyProc extends RubyDynamicObject implements ObjectGraphNode
     }
 
     public ArgumentDescriptor[] getArgumentDescriptors() {
+        // parameters can be unnamed in a Proc created using Symbol#to_proc
         return argumentDescriptors == null ? arity.toUnnamedArgumentDescriptors() : argumentDescriptors;
     }
 
