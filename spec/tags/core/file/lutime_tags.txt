@@ -1,2 +1,0 @@
-fails:File.lutime sets the access and modification time for a regular file
-fails:File.lutime sets the access and modification time for a symlink

@@ -204,6 +204,7 @@ module Truffle::POSIX
   attach_function :lseek, [:int, :off_t, :int], :off_t
   attach_function :truffleposix_lstat, [:string, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_lstat_mode, [:string], :mode_t, LIBTRUFFLEPOSIX
+  attach_function :truffleposix_lutimes, [:string, :long, :int, :long, :int], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_major, [:dev_t], :uint, LIBTRUFFLEPOSIX
   attach_function :truffleposix_minor, [:dev_t], :uint, LIBTRUFFLEPOSIX
   attach_function :mkdir, [:string, :mode_t], :int
