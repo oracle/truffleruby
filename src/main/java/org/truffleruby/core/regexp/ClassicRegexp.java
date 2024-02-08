@@ -36,21 +36,16 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.regexp;
 
-import static org.truffleruby.core.string.StringUtils.EMPTY_STRING_ARRAY;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Iterator;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.SJISEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.joni.NameEntry;
 import org.joni.Option;
 import org.joni.Regex;
 import org.joni.Syntax;
@@ -60,7 +55,6 @@ import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
-import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -69,21 +63,12 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.parser.ReOptions;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.parser.RubyDeferredWarnings;
 
-public final class ClassicRegexp implements ReOptions {
-
-    private final Regex pattern;
-    private final TStringWithEncoding str;
-    private final RegexpOptions options;
-
-    public Encoding getEncoding() {
-        return pattern.getEncoding();
-    }
+public final class ClassicRegexp {
 
     public static Regex makeRegexp(RubyDeferredWarnings rubyDeferredWarnings,
             TStringBuilder processedSource, RegexpOptions options,
@@ -107,23 +92,6 @@ public final class ClassicRegexp implements ReOptions {
 
     public static String getRegexErrorMessage(AbstractTruffleString source, Exception e, RegexpOptions options) {
         return BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" + source + "/" + options.toOptionsString();
-    }
-
-    public ClassicRegexp(TStringWithEncoding strEnc, RegexpOptions originalOptions)
-            throws DeferredRaiseException {
-        if (strEnc.encoding.isDummy) {
-            throw new UnsupportedOperationException("can't make regexp with dummy encoding");
-        }
-
-        RegexpOptions[] optionsArray = new RegexpOptions[]{ originalOptions };
-        RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
-        TStringBuilder unescaped = preprocess(strEnc, strEnc.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        final RubyEncoding computedEnc = computeRegexpEncoding(optionsArray, strEnc.encoding, fixedEnc);
-        final RegexpOptions options = optionsArray[0];
-        final TruffleString source = strEnc.forceEncoding(computedEnc).tstring;
-        this.pattern = makeRegexp(null, unescaped, options, computedEnc, source, null);
-        this.options = options;
-        this.str = strEnc;
     }
 
     @TruffleBoundary
@@ -835,9 +803,9 @@ public final class ClassicRegexp implements ReOptions {
     }
 
     @SuppressWarnings("unused")
-    public ByteArrayBuilder toByteArrayBuilder() {
+    public static TStringWithEncoding toS(TStringWithEncoding source, RegexpOptions options) {
         RegexpOptions newOptions = (RegexpOptions) options.clone();
-        var byteArray = str.getInternalByteArray();
+        var byteArray = source.getInternalByteArray();
         int p = 0;
         int len = byteArray.getLength();
 
@@ -845,24 +813,23 @@ public final class ClassicRegexp implements ReOptions {
         result.append((byte) '(');
         result.append((byte) '?');
 
-        again: do {
+        do {
             if (len >= 4 && byteArray.get(p) == '(' && byteArray.get(p + 1) == '?') {
-                boolean err = true;
                 p += 2;
-                if ((len -= 2) > 0) {
-                    do {
-                        if (byteArray.get(p) == 'm') {
-                            newOptions = newOptions.setMultiline(true);
-                        } else if (byteArray.get(p) == 'i') {
-                            newOptions = newOptions.setIgnorecase(true);
-                        } else if (byteArray.get(p) == 'x') {
-                            newOptions = newOptions.setExtended(true);
-                        } else {
-                            break;
-                        }
-                        p++;
-                    } while (--len > 0);
-                }
+                len -= 2;
+                do {
+                    if (byteArray.get(p) == 'm') {
+                        newOptions = newOptions.setMultiline(true);
+                    } else if (byteArray.get(p) == 'i') {
+                        newOptions = newOptions.setIgnorecase(true);
+                    } else if (byteArray.get(p) == 'x') {
+                        newOptions = newOptions.setExtended(true);
+                    } else {
+                        break;
+                    }
+                    p++;
+                } while (--len > 0);
+
                 if (len > 1 && byteArray.get(p) == '-') {
                     ++p;
                     --len;
@@ -883,9 +850,10 @@ public final class ClassicRegexp implements ReOptions {
                 if (byteArray.get(p) == ')') {
                     --len;
                     ++p;
-                    continue again;
+                    continue;
                 }
 
+                boolean err = true;
                 if (byteArray.get(p) == ':' && byteArray.get(p + len - 1) == ')') {
                     p++;
                     try {
@@ -894,7 +862,7 @@ public final class ClassicRegexp implements ReOptions {
                                 p + byteArray.getOffset(),
                                 p + byteArray.getOffset() + (len -= 2),
                                 Option.DEFAULT,
-                                str.encoding.jcoding,
+                                source.encoding.jcoding,
                                 Syntax.DEFAULT,
                                 new RegexWarnCallback());
                         err = false;
@@ -906,7 +874,7 @@ public final class ClassicRegexp implements ReOptions {
                 if (err) {
                     newOptions = options;
                     p = 0;
-                    len = str.byteLength();
+                    len = source.byteLength();
                 }
             }
 
@@ -925,17 +893,16 @@ public final class ClassicRegexp implements ReOptions {
                 }
             }
             result.append((byte) ':');
-            appendRegexpString(result, str, p, len);
+            appendRegexpString(result, source, p, len);
 
             result.append((byte) ')');
-            result.setEncoding(Encodings.getBuiltInEncoding(getEncoding()));
-            return result;
-            //return RubyString.newString(getRuntime(), result, getEncoding()).infectBy(this);
+            result.setEncoding(source.encoding);
+            return result.toTStringWithEnc();
         } while (true);
     }
 
     @TruffleBoundary
-    public void appendRegexpString(TStringBuilder to, TStringWithEncoding fullStr, int start, int len) {
+    public static void appendRegexpString(TStringBuilder to, TStringWithEncoding fullStr, int start, int len) {
         var str = fullStr.substring(start, len);
 
         final var enc = str.encoding.jcoding;
@@ -979,24 +946,6 @@ public final class ClassicRegexp implements ReOptions {
                 }
             }
         }
-    }
-
-    public String[] getNames() {
-        int nameLength = pattern.numberOfNames();
-        if (nameLength == 0) {
-            return EMPTY_STRING_ARRAY;
-        }
-
-        RubyEncoding encoding = Encodings.getBuiltInEncoding(pattern.getEncoding());
-        String[] names = new String[nameLength];
-        int j = 0;
-        for (Iterator<NameEntry> i = pattern.namedBackrefIterator(); i.hasNext();) {
-            NameEntry e = i.next();
-            // intern() to improve footprint
-            names[j++] = TStringUtils.bytesToJavaStringOrThrow(e.name, e.nameP, e.nameEnd - e.nameP, encoding).intern();
-        }
-
-        return names;
     }
 
     // Code that used to be in ParserSupport but copied here as ParserSupport is coupled with the JRuby lexer & parser.
