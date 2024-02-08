@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
+import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 import org.jcodings.Encoding;
 import org.jcodings.specific.EUCJPEncoding;
@@ -108,11 +109,6 @@ public final class ClassicRegexp implements ReOptions {
         return BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" + source + "/" + options.toOptionsString();
     }
 
-    private static Regex getRegexpFromCache(TStringBuilder bytes, RubyEncoding encoding, RegexpOptions options,
-            AbstractTruffleString source) throws DeferredRaiseException {
-        return makeRegexp(null, bytes, options, encoding, source, null);
-    }
-
     public ClassicRegexp(TStringWithEncoding strEnc, RegexpOptions originalOptions)
             throws DeferredRaiseException {
         if (strEnc.encoding.isDummy) {
@@ -124,11 +120,8 @@ public final class ClassicRegexp implements ReOptions {
         TStringBuilder unescaped = preprocess(strEnc, strEnc.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RubyEncoding computedEnc = computeRegexpEncoding(optionsArray, strEnc.encoding, fixedEnc);
         final RegexpOptions options = optionsArray[0];
-        this.pattern = getRegexpFromCache(
-                unescaped,
-                computedEnc,
-                options,
-                strEnc.forceEncoding(computedEnc).tstring);
+        final TruffleString source = strEnc.forceEncoding(computedEnc).tstring;
+        this.pattern = makeRegexp(null, unescaped, options, computedEnc, source, null);
         this.options = options;
         this.str = strEnc;
     }
@@ -1062,7 +1055,6 @@ public final class ClassicRegexp implements ReOptions {
 
     private static ClassicRegexp checkRegexpSyntax(TStringWithEncoding value, RegexpOptions options)
             throws DeferredRaiseException {
-        // This is only for syntax checking but this will as a side effect create an entry in the regexp cache.
         return new ClassicRegexp(value, options);
     }
 
