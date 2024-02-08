@@ -15,7 +15,10 @@ public final class ParseResult {
 
     public enum ErrorLevel {
         /** For errors that cannot be recovered from. */
-        ERROR_FATAL
+        ERROR_FATAL,
+
+        /** For errors that should raise ArgumentError. */
+        ERROR_ARGUMENT,
     }
 
     public static ErrorLevel[] ERROR_LEVELS = ErrorLevel.values();
@@ -35,6 +38,7 @@ public final class ParseResult {
     public enum WarningLevel {
         /** For warnings which should be emitted if $VERBOSE != nil. */
         WARNING_DEFAULT,
+
         /** For warnings which should be emitted if $VERBOSE == true. */
         WARNING_VERBOSE
     }
@@ -58,13 +62,15 @@ public final class ParseResult {
     public final Nodes.Location dataLocation;
     public final Error[] errors;
     public final Warning[] warnings;
+    public final Nodes.Source source;
 
-    public ParseResult(Nodes.Node value, MagicComment[] magicComments, Nodes.Location dataLocation, Error[] errors, Warning[] warnings) {
+    public ParseResult(Nodes.Node value, MagicComment[] magicComments, Nodes.Location dataLocation, Error[] errors, Warning[] warnings, Nodes.Source source) {
         this.value = value;
         this.magicComments = magicComments;
         this.dataLocation = dataLocation;
         this.errors = errors;
         this.warnings = warnings;
+        this.source = source;
     }
 }
 // @formatter:on

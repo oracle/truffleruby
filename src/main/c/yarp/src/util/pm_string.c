@@ -65,7 +65,6 @@ pm_string_mapped_init(pm_string_t *string, const char *filepath) {
     HANDLE file = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
     if (file == INVALID_HANDLE_VALUE) {
-        perror("CreateFile failed");
         return false;
     }
 
@@ -73,7 +72,6 @@ pm_string_mapped_init(pm_string_t *string, const char *filepath) {
     DWORD file_size = GetFileSize(file, NULL);
     if (file_size == INVALID_FILE_SIZE) {
         CloseHandle(file);
-        perror("GetFileSize failed");
         return false;
     }
 
@@ -90,7 +88,6 @@ pm_string_mapped_init(pm_string_t *string, const char *filepath) {
     HANDLE mapping = CreateFileMapping(file, NULL, PAGE_READONLY, 0, 0, NULL);
     if (mapping == NULL) {
         CloseHandle(file);
-        perror("CreateFileMapping failed");
         return false;
     }
 
@@ -100,17 +97,15 @@ pm_string_mapped_init(pm_string_t *string, const char *filepath) {
     CloseHandle(file);
 
     if (source == NULL) {
-        perror("MapViewOfFile failed");
         return false;
     }
 
     *string = (pm_string_t) { .type = PM_STRING_MAPPED, .source = source, .length = (size_t) file_size };
     return true;
-#else
+#elif defined(_POSIX_MAPPED_FILES)
     // Open the file for reading
     int fd = open(filepath, O_RDONLY);
     if (fd == -1) {
-        perror("open");
         return false;
     }
 
@@ -118,7 +113,6 @@ pm_string_mapped_init(pm_string_t *string, const char *filepath) {
     struct stat sb;
     if (fstat(fd, &sb) == -1) {
         close(fd);
-        perror("fstat");
         return false;
     }
 
@@ -135,13 +129,17 @@ pm_string_mapped_init(pm_string_t *string, const char *filepath) {
 
     source = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (source == MAP_FAILED) {
-        perror("Map failed");
         return false;
     }
 
     close(fd);
     *string = (pm_string_t) { .type = PM_STRING_MAPPED, .source = source, .length = size };
     return true;
+#else
+    (void) string;
+    (void) filepath;
+    perror("pm_string_mapped_init is not implemented for this platform");
+    return false;
 #endif
 }
 
@@ -176,6 +174,26 @@ pm_string_ensure_owned(pm_string_t *string) {
 }
 
 /**
+ * Compare the underlying lengths and bytes of two strings. Returns 0 if the
+ * strings are equal, a negative number if the left string is less than the
+ * right string, and a positive number if the left string is greater than the
+ * right string.
+ */
+int
+pm_string_compare(const pm_string_t *left, const pm_string_t *right) {
+    size_t left_length = pm_string_length(left);
+    size_t right_length = pm_string_length(right);
+
+    if (left_length < right_length) {
+        return -1;
+    } else if (left_length > right_length) {
+        return 1;
+    }
+
+    return memcmp(pm_string_source(left), pm_string_source(right), left_length);
+}
+
+/**
  * Returns the length associated with the string.
  */
 PRISM_EXPORTED_FUNCTION size_t
@@ -200,11 +218,13 @@ pm_string_free(pm_string_t *string) {
 
     if (string->type == PM_STRING_OWNED) {
         free(memory);
+#ifdef PRISM_HAS_MMAP
     } else if (string->type == PM_STRING_MAPPED && string->length) {
 #if defined(_WIN32)
         UnmapViewOfFile(memory);
-#else
+#elif defined(_POSIX_MAPPED_FILES)
         munmap(memory, string->length);
 #endif
+#endif /* PRISM_HAS_MMAP */
     }
 }
