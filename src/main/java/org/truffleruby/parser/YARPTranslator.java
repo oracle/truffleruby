@@ -3152,13 +3152,13 @@ public class YARPTranslator extends YARPBaseTranslator {
             encoding = sourceEncoding;
         }
 
-        final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
+        byte[] bytes = node.unescaped;
 
         if (!node.isFrozen()) {
-            final TruffleString cachedTString = language.tstringCache.getTString(tstring, encoding);
+            final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
-            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, encoding);
+            ImmutableRubyString frozenString = language.frozenStringLiterals.getFrozenStringLiteral(bytes, encoding);
             rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         }
 
