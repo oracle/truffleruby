@@ -273,9 +273,9 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
-                # Libraries, keep in sync with TRUFFLERUBY.exclude and truffle_jars (in mx_truffleruby.py)
-                "truffleruby:JCODINGS",
-                "truffleruby:JONI",
+                # Library distributions, keep in sync with truffle_jars in mx_truffleruby.py
+                "truffle:TRUFFLE_JCODINGS",
+                "truffleruby:TRUFFLERUBY_JONI",
             ],
             "annotationProcessors": [
                 "truffle:TRUFFLE_DSL_PROCESSOR",
@@ -543,13 +543,12 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
+                # Library distributions, keep in sync with truffle_jars in mx_truffleruby.py
+                "truffle:TRUFFLE_JCODINGS",
+                "truffleruby:TRUFFLERUBY_JONI",
                 # runtime-only dependencies
                 "truffle:TRUFFLE_NFI_LIBFFI",
                 "sulong:SULONG_NATIVE",
-            ],
-            "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
-                "truffleruby:JCODINGS",
-                "truffleruby:JONI",
             ],
             "description": "Core module of Ruby on Truffle",
             "license": [

@@ -292,9 +292,9 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY-SHARED',
         'truffleruby:TRUFFLERUBY-ANNOTATIONS',
         'sdk:JLINE3',
-        # Libraries
-        'truffleruby:JCODINGS',
-        'truffleruby:JONI',
+        # Library distributions
+        'truffle:TRUFFLE_JCODINGS',
+        'truffleruby:TRUFFLERUBY_JONI',
     ],
     support_distributions=[
         'truffleruby:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC',
