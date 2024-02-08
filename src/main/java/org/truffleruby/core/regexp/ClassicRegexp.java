@@ -1005,9 +1005,7 @@ public final class ClassicRegexp implements ReOptions {
     // From ParserSupport#newRegexpNode
     public static TStringWithEncoding findEncodingForRegexpLiteral(TStringWithEncoding regexp, RegexpOptions options,
             RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
-        TStringWithEncoding meat = regexpFragmentCheck(regexp, options, lexerEncoding, currentNode);
-        checkRegexpSyntax(meat, options.withoutOnce());
-        return meat;
+        return regexpFragmentCheck(regexp, options, lexerEncoding, currentNode);
     }
 
     // MRI: reg_fragment_check
@@ -1051,11 +1049,6 @@ public final class ClassicRegexp implements ReOptions {
             }
         }
         return value;
-    }
-
-    private static ClassicRegexp checkRegexpSyntax(TStringWithEncoding value, RegexpOptions options)
-            throws DeferredRaiseException {
-        return new ClassicRegexp(value, options);
     }
 
     private static char optionsEncodingChar(Encoding optionEncoding) {
