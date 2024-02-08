@@ -951,22 +951,8 @@ public final class ClassicRegexp {
     // Code that used to be in ParserSupport but copied here as ParserSupport is coupled with the JRuby lexer & parser.
     // Needed until https://github.com/ruby/prism/issues/1997 is fixed.
 
-    // From ParserSupport#newRegexpNode
-    public static TStringWithEncoding findEncodingForRegexpLiteral(TStringWithEncoding regexp, RegexpOptions options,
-            RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
-        return regexpFragmentCheck(regexp, options, lexerEncoding, currentNode);
-    }
-
-    // MRI: reg_fragment_check
-    public static TStringWithEncoding regexpFragmentCheck(TStringWithEncoding value, RegexpOptions options,
-            RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
-        final TStringWithEncoding strEnc = setRegexpEncoding(value, options, lexerEncoding, currentNode);
-        ClassicRegexp.preprocessCheck(strEnc);
-        return strEnc;
-    }
-
     // MRI: reg_fragment_setenc_gen
-    private static TStringWithEncoding setRegexpEncoding(TStringWithEncoding value, RegexpOptions options,
+    public static TStringWithEncoding setRegexpEncoding(TStringWithEncoding value, RegexpOptions options,
             RubyEncoding lexerEncoding, Node currentNode) throws DeferredRaiseException {
         options = options.setup();
         final RubyEncoding optionsEncoding = options.getEncoding() == null
