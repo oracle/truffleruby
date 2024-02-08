@@ -26,7 +26,7 @@ public final class ParseEnvironment {
     public final RubySource rubySource;
     public final Source source;
     /** Used to compute line numbers */
-    public final Nodes.Source yarpSource;
+    public Nodes.Source yarpSource;
     public final ParserContext parserContext;
     public final Node currentNode;
 
@@ -40,13 +40,11 @@ public final class ParseEnvironment {
     public ParseEnvironment(
             RubyLanguage language,
             RubySource rubySource,
-            Nodes.Source yarpSource,
             ParserContext parserContext,
             Node currentNode) {
         this.language = language;
         this.rubySource = rubySource;
         this.source = rubySource.getSource();
-        this.yarpSource = yarpSource;
         this.parserContext = parserContext;
         this.currentNode = currentNode;
 

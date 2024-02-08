@@ -78,8 +78,8 @@ ast: |
                                   EnsureNodeGen
                                       attributes:
                                           flags = 0
-                                          sourceCharIndex = 10
-                                          sourceLength = 22
+                                          sourceCharIndex = 0
+                                          sourceLength = 32
                                       children:
                                           ensurePart =
                                               RubyCallNode

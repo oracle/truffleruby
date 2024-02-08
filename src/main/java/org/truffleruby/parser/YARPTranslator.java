@@ -2506,6 +2506,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitItParametersNode(Nodes.ItParametersNode node) {
+        throw CompilerDirectives.shouldNotReachHere("ItParametersNode is only from Ruby 3.4");
+    }
+
+    @Override
     public RubyNode visitKeywordHashNode(Nodes.KeywordHashNode node) {
         // translate it like a HashNode, whether it is keywords or not is checked in getKeywordArgumentsDescriptor()
         final var hash = new Nodes.HashNode(node.elements, node.startOffset, node.length);

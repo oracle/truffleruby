@@ -37,7 +37,6 @@
 package org.truffleruby.parser;
 
 import org.prism.Loader;
-import org.prism.Nodes;
 import org.prism.ParseResult;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -47,14 +46,14 @@ import java.nio.charset.Charset;
 
 public final class YARPLoader extends Loader {
 
-    public static ParseResult load(byte[] serialized, Nodes.Source source, RubySource rubySource) {
-        return new YARPLoader(serialized, source, rubySource).load();
+    public static ParseResult load(byte[] serialized, byte[] sourceBytes, RubySource rubySource) {
+        return new YARPLoader(serialized, sourceBytes, rubySource).load();
     }
 
     private final RubyEncoding encoding;
 
-    public YARPLoader(byte[] serialized, Nodes.Source source, RubySource rubySource) {
-        super(serialized, source);
+    public YARPLoader(byte[] serialized, byte[] sourceBytes, RubySource rubySource) {
+        super(serialized, sourceBytes);
         this.encoding = rubySource.getEncoding();
     }
 

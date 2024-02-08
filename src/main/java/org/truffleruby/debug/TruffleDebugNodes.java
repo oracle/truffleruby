@@ -272,10 +272,9 @@ public abstract class TruffleDebugNodes {
         }
 
         private static ParseResult getParseResult(RubyLanguage language, RubySource rubySource) {
-            var yarpSource = YARPTranslatorDriver.createYARPSource(rubySource.getBytes());
             String sourcePath = rubySource.getSourcePath(language).intern();
 
-            return YARPTranslatorDriver.parseToYARPAST(rubySource, sourcePath, yarpSource,
+            return YARPTranslatorDriver.parseToYARPAST(rubySource, sourcePath, rubySource.getBytes(),
                     Collections.emptyList(), language.options.FROZEN_STRING_LITERALS);
         }
     }
