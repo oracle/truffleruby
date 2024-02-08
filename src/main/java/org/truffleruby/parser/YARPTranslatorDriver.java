@@ -100,6 +100,11 @@ public final class YARPTranslatorDriver {
 
     public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
             MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode) {
+        return parse(rubySource, parserContext, argumentNames, parentFrame, staticLexicalScope, currentNode, null);
+    }
+
+    public RootCallTarget parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
+            MaterializedFrame parentFrame, LexicalScope staticLexicalScope, Node currentNode, ParseResult parseResult) {
         Nodes.Source yarpSource = createYARPSource(rubySource.getBytes());
         this.parseEnvironment = new ParseEnvironment(language, rubySource, yarpSource, parserContext, currentNode);
 
@@ -157,13 +162,15 @@ public final class YARPTranslatorDriver {
 
         final String sourcePath = rubySource.getSourcePath(language).intern();
 
-        printParseTranslateExecuteMetric("before-parsing", context, source);
-        final ParseResult parseResult = context.getMetricsProfiler().callWithMetrics(
-                "parsing",
-                source.getName(),
-                () -> parseToYARPAST(rubySource, sourcePath, yarpSource, localsInScopes,
-                        language.options.FROZEN_STRING_LITERALS));
-        printParseTranslateExecuteMetric("after-parsing", context, source);
+        if (parseResult == null) {
+            printParseTranslateExecuteMetric("before-parsing", context, source);
+            parseResult = context.getMetricsProfiler().callWithMetrics(
+                    "parsing",
+                    source.getName(),
+                    () -> parseToYARPAST(rubySource, sourcePath, yarpSource, localsInScopes,
+                            language.options.FROZEN_STRING_LITERALS));
+            printParseTranslateExecuteMetric("after-parsing", context, source);
+        }
 
         handleWarningsErrorsPrimitives(context, parseResult, rubySource, sourcePath, parseEnvironment, rubyWarnings);
 
