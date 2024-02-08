@@ -21,6 +21,9 @@ import mx_sdk_vm
 import mx_subst
 import mx_spotbugs
 
+# re-export custom mx project classes, so they can be used from suite.py
+from mx_sdk_shaded import ShadedLibraryProject # pylint: disable=unused-import
+
 # Fail early and clearly when trying to build with a too old JDK
 jdk = mx.get_jdk(mx.JavaCompliance('11+'), 'building TruffleRuby which requires JDK 11 or newer')
 if mx_sdk_vm.base_jdk_version() < 11:

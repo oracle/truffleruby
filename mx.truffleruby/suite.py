@@ -424,6 +424,38 @@ suite = {
                 "BSD-simplified",   # MRI
             ],
         },
+
+        "org.graalvm.shadowed.org.joni": {
+            # Shadowed JONI library (org.jruby.joni:joni)
+            "dir": "src/shadowed/joni",
+            "sourceDirs": ["java"],
+            "javaCompliance": "17+",
+            "spotbugsIgnoresGenerated": True,
+            "dependencies": [
+                "truffle:TRUFFLE_JCODINGS",
+            ],
+            "shadedDependencies": [
+                "truffleruby:JONI",
+            ],
+            "class": "ShadedLibraryProject",
+            "shade": {
+                "packages": {
+                    "org.joni": "org.graalvm.shadowed.org.joni",
+                    "org.jcodings": "org.graalvm.shadowed.org.jcodings",
+                },
+                "exclude": [
+                    "META-INF/MANIFEST.MF",
+                    "META-INF/maven/org.jruby.joni/joni/*", # pom.xml, pom.properties
+                    "module-info.java",
+                    "org/joni/bench/*.java",
+                ],
+            },
+            "description": "JOni library shadowed for TruffleRuby.",
+            # We need to force javac because the generated sources in this project produce warnings in JDT.
+            "forceJavac": "true",
+            "javac.lint.overrides": "none",
+            "jacoco": "exclude",
+        },
     },
 
     "distributions": {
@@ -858,6 +890,38 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+        },
+
+        "TRUFFLERUBY_JONI": {
+            # JONI library shadowed for TruffleRuby.
+            "moduleInfo": {
+                "name": "org.graalvm.shadowed.joni",
+                "requires": [
+                    "org.graalvm.shadowed.jcodings",
+                ],
+                "exports": [
+                    # Unqualified exports
+                    "org.graalvm.shadowed.org.joni",
+                    "org.graalvm.shadowed.org.joni.constants",
+                    "org.graalvm.shadowed.org.joni.exception",
+                ],
+            },
+            "javaCompliance": "17+",
+            "dependencies": [
+                "org.graalvm.shadowed.org.joni",
+            ],
+            "distDependencies": [
+                "truffle:TRUFFLE_JCODINGS",
+            ],
+            "description": "JOni module shadowed for TruffleRuby.",
+            "license": ["MIT"],
+            "maven": {
+                "groupId": "org.graalvm.shadowed",
+                "artifactId": "joni",
+                "tag": ["default", "public"],
+            },
+            "allowsJavadocWarnings": True,
+            "compress": True,
         },
     },
 }
