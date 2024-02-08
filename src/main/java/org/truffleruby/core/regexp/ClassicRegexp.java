@@ -78,11 +78,7 @@ public final class ClassicRegexp implements ReOptions {
 
     private final Regex pattern;
     private final TStringWithEncoding str;
-    private RegexpOptions options;
-
-    public void setLiteral() {
-        options = options.setLiteral(true);
-    }
+    private final RegexpOptions options;
 
     public Encoding getEncoding() {
         return pattern.getEncoding();
@@ -121,8 +117,6 @@ public final class ClassicRegexp implements ReOptions {
 
     public ClassicRegexp(TStringWithEncoding strEnc, RegexpOptions originalOptions)
             throws DeferredRaiseException {
-        this.options = originalOptions;
-
         if (strEnc.encoding.isDummy) {
             throw new UnsupportedOperationException("can't make regexp with dummy encoding");
         }
@@ -131,12 +125,13 @@ public final class ClassicRegexp implements ReOptions {
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         TStringBuilder unescaped = preprocess(strEnc, strEnc.encoding, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RubyEncoding computedEnc = computeRegexpEncoding(optionsArray, strEnc.encoding, fixedEnc);
+        final RegexpOptions options = optionsArray[0];
         this.pattern = getRegexpFromCache(
                 unescaped,
                 computedEnc,
                 options,
                 strEnc.forceEncoding(computedEnc).tstring);
-        this.options = optionsArray[0];
+        this.options = options;
         this.str = strEnc;
     }
 
