@@ -110,9 +110,7 @@ public final class ClassicRegexp implements ReOptions {
 
     private static Regex getRegexpFromCache(TStringBuilder bytes, RubyEncoding encoding, RegexpOptions options,
             AbstractTruffleString source) throws DeferredRaiseException {
-        final Regex newRegex = makeRegexp(null, bytes, options, encoding, source, null);
-        newRegex.setUserObject(bytes);
-        return newRegex;
+        return makeRegexp(null, bytes, options, encoding, source, null);
     }
 
     public ClassicRegexp(TStringWithEncoding strEnc, RegexpOptions originalOptions)
