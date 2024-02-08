@@ -33,7 +33,7 @@ package org.truffleruby.parser;
 
 import java.util.ArrayList;
 
-import org.joni.WarnCallback;
+import org.graalvm.shadowed.org.joni.WarnCallback;
 
 public final class RubyDeferredWarnings implements WarnCallback {
 

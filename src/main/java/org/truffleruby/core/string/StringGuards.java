@@ -14,7 +14,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Config;
+import org.graalvm.shadowed.org.jcodings.Config;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.StringHelperNodes.SingleByteOptimizableNode;
 

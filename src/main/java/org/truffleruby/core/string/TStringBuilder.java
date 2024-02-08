@@ -11,7 +11,7 @@ package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.Encoding;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;

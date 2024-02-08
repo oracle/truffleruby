@@ -10,7 +10,7 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.object.Shape;
-import org.jcodings.transcode.EConv;
+import org.graalvm.shadowed.org.jcodings.transcode.EConv;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyDynamicObject;
 

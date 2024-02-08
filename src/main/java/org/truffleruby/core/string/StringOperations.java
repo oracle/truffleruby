@@ -25,7 +25,7 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;

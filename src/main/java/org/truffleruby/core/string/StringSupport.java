@@ -41,14 +41,14 @@ import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleString.FromByteArrayNode;
 import org.graalvm.collections.Pair;
-import org.jcodings.Config;
-import org.jcodings.Encoding;
-import org.jcodings.IntHolder;
-import org.jcodings.ascii.AsciiTables;
-import org.jcodings.constants.CharacterType;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
-import org.jcodings.util.IntHash;
+import org.graalvm.shadowed.org.jcodings.Config;
+import org.graalvm.shadowed.org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.IntHolder;
+import org.graalvm.shadowed.org.jcodings.ascii.AsciiTables;
+import org.graalvm.shadowed.org.jcodings.constants.CharacterType;
+import org.graalvm.shadowed.org.jcodings.specific.ASCIIEncoding;
+import org.graalvm.shadowed.org.jcodings.specific.UTF8Encoding;
+import org.graalvm.shadowed.org.jcodings.util.IntHash;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.collections.IntHashMap;
@@ -650,7 +650,7 @@ public final class StringSupport {
     // MRI: str_succ
     @TruffleBoundary
     public static TStringBuilder succCommon(RubyString original, Node node) {
-        byte carry[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
+        byte carry[] = new byte[org.graalvm.shadowed.org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
         carry[0] = 1;
         int carryLen = 1;
@@ -794,7 +794,7 @@ public final class StringSupport {
     private static NeighborChar succAlnumChar(RubyEncoding encoding, byte[] bytes, int p, int len, byte[] carry,
             int carryP, Node node) {
         Encoding enc = encoding.jcoding;
-        byte save[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
+        byte save[] = new byte[org.graalvm.shadowed.org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int c = enc.mbcToCode(bytes, p, p + len);
 
         final int cType;
