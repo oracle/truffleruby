@@ -1,1 +1,0 @@
-fails:UnboundMethod#to_s returns a String including all details
