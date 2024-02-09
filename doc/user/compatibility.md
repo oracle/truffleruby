@@ -121,6 +121,10 @@ The JVM enforces a maximum array size of 2<sup>31</sup>-1 (by storing the size i
 That is, Strings must be smaller than 2GB. This is the same restriction as JRuby.
 A possible workaround could be to use natively-allocated strings, but it would be a large effort to support every Ruby String operation on native strings.
 
+### Strings in UTF-16 and UTF-32 encoding
+
+TruffleRuby does not support UTF-16 strings with an odd number of bytes (in native endianness). Similarly, with UTF-32 it needs to be a multiple of 4.
+
 ### Threads detect interrupts at different points
 
 TruffleRuby threads may detect that they have been interrupted at different points in the program compared to where they would on MRI.
