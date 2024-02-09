@@ -16,10 +16,10 @@
 
 double testClosureVrDva(double d, ...) {
     va_list args;
-    double (*closure)(void);
+    typedef double (*closure_fun)(void);
 
     va_start(args, d);
-    closure = va_arg(args, double (*)(void));
+    closure_fun closure = va_arg(args, closure_fun);
     va_end(args);
 
     return d + closure();
@@ -27,12 +27,12 @@ double testClosureVrDva(double d, ...) {
 
 long testClosureVrILva(int i, long l, ...) {
     va_list args;
-    int (*cl1)(int);
-    long (*cl2)(long);
+    typedef int (*cl1_fun)(int);
+    typedef long (*cl2_fun)(long);
 
     va_start(args, l);
-    cl1 = va_arg(args, int (*)(int));
-    cl2 = va_arg(args, long (*)(long));
+    cl1_fun cl1 = va_arg(args, cl1_fun);
+    cl2_fun cl2 = va_arg(args, cl2_fun);
     va_end(args);
 
     return cl1(i) + cl2(l);

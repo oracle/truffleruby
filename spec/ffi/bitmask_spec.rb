@@ -58,6 +58,40 @@ module TestBitmask4
   attach_function :test_tagged_nonint_bitmask6, :test_tagged_nonint_bitmask3,  [:bitmask_type6], :bitmask_type6
 end
 
+module TestBitmask5
+  extend FFI::Library
+  ffi_lib TestLibrary::PATH
+
+  bitmask FFI::Type::INT8, :bitmask_type1, [:c1, :c2, :c3, 7]
+  bitmask FFI::Type::INT16, :bitmask_type2, [:c4, :c5, :c6, 15]
+  bitmask FFI::Type::INT32, :bitmask_type3, [:c7, :c8, :c9, 31]
+  bitmask FFI::Type::INT64, :bitmask_type4, [:c10, :c11, :c12, 63]
+  bitmask FFI::Type::INT, :bitmask_type5, [:c13, :c14, :c15, FFI::Type::INT.size * 8 - 1]
+
+  attach_function :test_tagged_nonint_signed_bitmask1, [:bitmask_type1], :bitmask_type1
+  attach_function :test_tagged_nonint_signed_bitmask2, [:bitmask_type2], :bitmask_type2
+  attach_function :test_tagged_nonint_signed_bitmask3, [:bitmask_type3], :bitmask_type3
+  attach_function :test_tagged_nonint_signed_bitmask4, [:bitmask_type4], :bitmask_type4
+  attach_function :test_tagged_nonint_signed_bitmask5, :test_untagged_bitmask, [:bitmask_type5], :bitmask_type5
+end
+
+module TestBitmask6
+  extend FFI::Library
+  ffi_lib TestLibrary::PATH
+
+  bitmask FFI::Type::UINT8, :bitmask_type1, [:c1, :c2, :c3, 7]
+  bitmask FFI::Type::UINT16, :bitmask_type2, [:c4, :c5, :c6, 15]
+  bitmask FFI::Type::UINT32, :bitmask_type3, [:c7, :c8, :c9, 31]
+  bitmask FFI::Type::UINT64, :bitmask_type4, [:c10, :c11, :c12, 63]
+  bitmask FFI::Type::UINT, :bitmask_type5, [:c13, :c14, :c15, FFI::Type::UINT.size * 8 - 1]
+
+  attach_function :test_tagged_nonint_unsigned_bitmask1, :test_untagged_nonint_bitmask, [:bitmask_type1], :bitmask_type1
+  attach_function :test_tagged_nonint_unsigned_bitmask2, :test_tagged_nonint_bitmask1, [:bitmask_type2], :bitmask_type2
+  attach_function :test_tagged_nonint_unsigned_bitmask3, :test_tagged_nonint_bitmask2, [:bitmask_type3], :bitmask_type3
+  attach_function :test_tagged_nonint_unsigned_bitmask4, :test_tagged_nonint_bitmask3, [:bitmask_type4], :bitmask_type4
+  attach_function :test_tagged_nonint_unsigned_bitmask5, :test_tagged_uint_bitmask, [:bitmask_type5], :bitmask_type5
+end
+
 describe "A library with no bitmask or enum defined" do
   it "returns nil when asked for an enum" do
     expect(TestBitmask0.enum_type(:foo)).to be_nil
@@ -246,6 +280,23 @@ describe "A tagged typedef bitmask" do
     expect(TestBitmask4.test_tagged_nonint_bitmask5([1<<7,1<<15,1<<16])).to eq([:c22,:c24,1<<16])
     expect(TestBitmask4.test_tagged_nonint_bitmask6(1<<14|1<<42|1<<43)).to eq([:c26,:c28,1<<43])
     expect(TestBitmask4.test_tagged_nonint_bitmask6([1<<14,1<<42,1<<43])).to eq([:c26,:c28,1<<43])
+  end
+
+  it "only remainder is given if only undefined mask are returned" do
+    expect(TestBitmask3.test_tagged_typedef_bitmask1(1<<4)).to eq([1<<4])
+    expect(TestBitmask3.test_tagged_typedef_bitmask1([1<<4])).to eq([1<<4])
+    expect(TestBitmask3.test_tagged_typedef_bitmask2(1<<6)).to eq([1<<6])
+    expect(TestBitmask3.test_tagged_typedef_bitmask2([1<<6])).to eq([1<<6])
+    expect(TestBitmask3.test_tagged_typedef_bitmask3(1<<7)).to eq([1<<7])
+    expect(TestBitmask3.test_tagged_typedef_bitmask3([1<<7])).to eq([1<<7])
+    expect(TestBitmask3.test_tagged_typedef_bitmask4(1<<9)).to eq([1<<9])
+    expect(TestBitmask3.test_tagged_typedef_bitmask4([1<<9])).to eq([1<<9])
+    expect(TestBitmask4.test_tagged_nonint_bitmask4(1<<10)).to eq([1<<10])
+    expect(TestBitmask4.test_tagged_nonint_bitmask4([1<<10])).to eq([1<<10])
+    expect(TestBitmask4.test_tagged_nonint_bitmask5(1<<16)).to eq([1<<16])
+    expect(TestBitmask4.test_tagged_nonint_bitmask5([1<<16])).to eq([1<<16])
+    expect(TestBitmask4.test_tagged_nonint_bitmask6(1<<43)).to eq([1<<43])
+    expect(TestBitmask4.test_tagged_nonint_bitmask6([1<<43])).to eq([1<<43])
   end
 
   it "wrong constants rejected" do
@@ -581,5 +632,25 @@ describe "All bitmasks" do
         bitmask FFI::Type::UINT64, [ :a, 2, :b, 5, :a, 0 ]
       end
     end.to raise_error(ArgumentError, /duplicate/)
+  end
+end
+
+describe "Signed bitmasks" do
+  it "do not return a remainder when used with their most significant bit set" do
+    expect(TestBitmask5.test_tagged_nonint_signed_bitmask1([:c1, :c2, :c3])).to eq([:c1, :c2, :c3])
+    expect(TestBitmask5.test_tagged_nonint_signed_bitmask2([:c4, :c5, :c6])).to eq([:c4, :c5, :c6])
+    expect(TestBitmask5.test_tagged_nonint_signed_bitmask3([:c7, :c8, :c9])).to eq([:c7, :c8, :c9])
+    expect(TestBitmask5.test_tagged_nonint_signed_bitmask4([:c10, :c11, :c12])).to eq([:c10, :c11, :c12])
+    expect(TestBitmask5.test_tagged_nonint_signed_bitmask5([:c13, :c14, :c15])).to eq([:c13, :c14, :c15])
+  end
+end
+
+describe "Unsigned bitmasks" do
+  it "do not return a remainder when used with their most significant bit set" do
+    expect(TestBitmask6.test_tagged_nonint_unsigned_bitmask1([:c1, :c2, :c3])).to eq([:c1, :c2, :c3])
+    expect(TestBitmask6.test_tagged_nonint_unsigned_bitmask2([:c4, :c5, :c6])).to eq([:c4, :c5, :c6])
+    expect(TestBitmask6.test_tagged_nonint_unsigned_bitmask3([:c7, :c8, :c9])).to eq([:c7, :c8, :c9])
+    expect(TestBitmask6.test_tagged_nonint_unsigned_bitmask4([:c10, :c11, :c12])).to eq([:c10, :c11, :c12]) unless RUBY_ENGINE == 'truffleruby'
+    expect(TestBitmask6.test_tagged_nonint_unsigned_bitmask5([:c13, :c14, :c15])).to eq([:c13, :c14, :c15])
   end
 end

@@ -23,6 +23,8 @@ describe "Function with variadic arguments" do
     attach_function :testBlockingClose, [ :pointer ], :void
     attach_function :testCallbackVrDva, :testClosureVrDva, [ :double, :varargs ], :double
     attach_function :testCallbackVrILva, :testClosureVrILva, [ :int, :long, :varargs ], :long
+
+    freeze
   end
 
   it "takes enum arguments" do
@@ -35,6 +37,15 @@ describe "Function with variadic arguments" do
   it "returns symbols for enums" do
     buf = FFI::Buffer.new :long_long, 2
     expect(LibTest.pack_varargs2(buf, :c1, "ii", :int, :c3, :int, :c4)).to eq(:c2)
+  end
+
+  it "can reveal its return and parameters" do
+    skip 'this is not yet implemented on JRuby' if RUBY_ENGINE == 'jruby'
+    skip 'this is not yet implemented on Truffleruby' if RUBY_ENGINE == 'truffleruby'
+
+    fun = LibTest.attached_functions[:testBlockingWRva]
+    expect(fun.param_types).to eq([FFI::Type::POINTER, FFI::Type::CHAR, FFI::Type::VARARGS])
+    expect(fun.return_type).to eq(FFI::Type::INT8)
   end
 
   it 'can wrap a blocking function with varargs' do
@@ -87,11 +98,32 @@ describe "Function with variadic arguments" do
     expect(LibTest.testCallbackVrDva(3.0, :cbVrD, pr)).to be_within(0.0000001).of(45.0)
   end
 
+  it "can be called as instance method" do
+    kl = Class.new do
+      include LibTest
+      def call
+        pr = proc { 42.0 }
+        testCallbackVrDva(3.0, :cbVrD, pr)
+      end
+    end
+    expect(kl.new.call).to be_within(0.0000001).of(45.0)
+  end
+
   it "call variadic with several callback arguments" do
     pr1 = proc { |i| i + 1 }
     pr2 = proc { |l| l + 2 }
     expect(LibTest.testCallbackVrILva(5, 6, :cbVrI, pr1, :cbVrL, pr2)).to eq(14)
   end
+
+  it "should be usable with Ractor", :ractor do
+    res = Ractor.new do
+      pr = proc { 42.0 }
+      LibTest.testCallbackVrDva(3.0, :cbVrD, pr)
+    end.take
+
+    expect(res).to be_within(0.0000001).of(45.0)
+  end
+
 
   module Varargs
     PACK_VALUES = {

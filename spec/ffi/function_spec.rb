@@ -48,6 +48,30 @@ describe FFI::Function do
     expect(LibTest.testFunctionAdd(10, 10, function_add)).to eq(20)
   end
 
+  def adder(a, b)
+    a + b
+  end
+
+  it "can be made shareable for Ractor", :ractor do
+    add = FFI::Function.new(:int, [:int, :int], &method(:adder))
+    Ractor.make_shareable(add)
+
+    res = Ractor.new(add) do |add2|
+      LibTest.testFunctionAdd(10, 10, add2)
+    end.take
+
+    expect( res ).to eq(20)
+  end
+
+  it "should be usable with Ractor", :ractor do
+    res = Ractor.new do
+      function_add = FFI::Function.new(:int, [:int, :int]) { |a, b| a + b }
+      LibTest.testFunctionAdd(10, 10, function_add)
+    end.take
+
+    expect( res ).to eq(20)
+  end
+
   it 'can be used to wrap an existing function pointer' do
     expect(FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd')).call(10, 10)).to eq(20)
   end
@@ -57,6 +81,16 @@ describe FFI::Function do
     fp = FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd'))
     fp.attach(Foo, 'add')
     expect(Foo.add(10, 10)).to eq(20)
+  end
+
+  it 'can be attached to two modules' do
+    module Foo1; end
+    module Foo2; end
+    fp = FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd'))
+    fp.attach(Foo1, 'add')
+    fp.attach(Foo2, 'add')
+    expect(Foo1.add(11, 11)).to eq(22)
+    expect(Foo2.add(12, 12)).to eq(24)
   end
 
   it 'can be used to extend an object' do
@@ -102,5 +136,13 @@ describe FFI::Function do
   it 'can\'t explicity free itself if not previously allocated' do
     fp = FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd'))
     expect { fp.free }.to raise_error RuntimeError
+  end
+
+  it 'has a memsize function', skip: RUBY_ENGINE != "ruby" do
+    base_size = ObjectSpace.memsize_of(Object.new)
+
+    function = FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd'))
+    size = ObjectSpace.memsize_of(function)
+    expect(size).to be > base_size
   end
 end

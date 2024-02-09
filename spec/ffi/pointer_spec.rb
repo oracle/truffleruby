@@ -90,6 +90,13 @@ describe "Pointer" do
       expect(PointerTestLib.ptr_ret_pointer(memory, 0).address).to eq(0xdeadbeef)
     end
 
+    it "#write_pointer frozen object" do
+      skip "not yet supported on TruffleRuby" if RUBY_ENGINE == "truffleruby"
+      skip "not yet supported on JRuby" if RUBY_ENGINE == "jruby"
+      memory = FFI::MemoryPointer.new(:pointer).freeze
+      expect{ memory.write_pointer(PointerTestLib.ptr_from_address(0xdeadbeef)) }.to raise_error(RuntimeError, /memory write/)
+    end
+
     it "#read_array_of_pointer" do
       values = [0x12345678, 0xfeedf00d, 0xdeadbeef]
       memory = FFI::MemoryPointer.new :pointer, values.size
@@ -237,6 +244,28 @@ describe "Pointer" do
       expect(FFI::Pointer.new(0).slice(0, 10).size_limit?).to be true
     end
   end
+
+  describe "#initialize" do
+    it 'can use addresses with high bit set' do
+      max_address = 2**FFI::Platform::ADDRESS_SIZE - 1
+      pointer = FFI::Pointer.new(:uint8, max_address)
+      expect(pointer.address).to eq(max_address)
+    end
+  end if (RUBY_ENGINE != "truffleruby" && RUBY_ENGINE != "jruby")
+
+  describe "#inspect" do
+    it "should include the address" do
+      FFI::Pointer.new(1234).inspect.should =~ /address=0x0*4d2/
+    end
+
+    it "should not include the size if the pointer is unsized" do
+      FFI::Pointer.new(1234).inspect.should_not =~ /size=/
+    end
+
+    it "should include the size if there is one" do
+      FFI::MemoryPointer.new(:char, 16).inspect.should =~ /size=16/
+    end
+  end
 end
 
 describe "AutoPointer" do
@@ -249,6 +278,7 @@ describe "AutoPointer" do
     def self.release
       @@count += 1 if @@count > 0
     end
+    private_class_method(:release)
     def self.reset
       @@count = 0
     end
@@ -267,10 +297,11 @@ describe "AutoPointer" do
   end
   class AutoPointerSubclass < FFI::AutoPointer
     def self.release(ptr); end
+    private_class_method(:release)
   end
 
   # see #427
-  it "cleanup via default release method", :broken => true do
+  it "cleanup via default release method", gc_dependent: true do
     expect(AutoPointerSubclass).to receive(:release).at_least(loop_count-wiggle_room).times
     AutoPointerTestHelper.reset
     loop_count.times do
@@ -283,7 +314,7 @@ describe "AutoPointer" do
   end
 
   # see #427
-  it "cleanup when passed a proc", :broken => true do
+  it "cleanup when passed a proc", gc_dependent: true do
     #  NOTE: passing a proc is touchy, because it's so easy to create a memory leak.
     #
     #  specifically, if we made an inline call to
@@ -302,7 +333,7 @@ describe "AutoPointer" do
   end
 
   # see #427
-  it "cleanup when passed a method", :broken => true do
+  it "cleanup when passed a method", gc_dependent: true do
     expect(AutoPointerTestHelper).to receive(:release).at_least(loop_count-wiggle_room).times
     AutoPointerTestHelper.reset
     loop_count.times do
@@ -319,6 +350,7 @@ describe "AutoPointer" do
         ffi_lib TestLibrary::PATH
         class CustomAutoPointer < FFI::AutoPointer
           def self.release(ptr); end
+          private_class_method(:release)
         end
         attach_function :ptr_from_address, [ FFI::Platform::ADDRESS_SIZE == 32 ? :uint : :ulong_long ], CustomAutoPointer
       end
@@ -341,6 +373,7 @@ describe "AutoPointer" do
   describe "#autorelease?" do
     ptr_class = Class.new(FFI::AutoPointer) do
       def self.release(ptr); end
+      private_class_method(:release)
     end
 
     it "should be true by default" do
@@ -352,11 +385,17 @@ describe "AutoPointer" do
       ptr.autorelease = false
       expect(ptr.autorelease?).to be false
     end
+
+    it "should deny changes when frozen" do
+      ptr = ptr_class.new(FFI::Pointer.new(0xdeadbeef)).freeze
+      expect{ ptr.autorelease = false }.to raise_error(FrozenError)
+    end
   end
 
   describe "#type_size" do
     ptr_class = Class.new(FFI::AutoPointer) do
       def self.release(ptr); end
+      private_class_method(:release)
     end
 
     it "type_size of AutoPointer should match wrapped Pointer" do
@@ -372,6 +411,14 @@ describe "AutoPointer" do
       expect(mptr[0].read_uint).to eq(0xfee1dead)
       expect(mptr[1].read_uint).to eq(0xcafebabe)
     end
+  end
+
+  it "has a memsize function", skip: RUBY_ENGINE != "ruby" do
+    base_size = ObjectSpace.memsize_of(Object.new)
+
+    pointer = FFI::Pointer.new(:int, 0xdeadbeef)
+    size = ObjectSpace.memsize_of(pointer)
+    expect(size).to be > base_size
   end
 end
 

@@ -285,3 +285,13 @@ describe "Buffer#initialize" do
     expect(block_executed).to be true
   end
 end
+
+describe "Buffer#memsize_of" do
+  it "has a memsize function", skip: RUBY_ENGINE != "ruby" do
+    base_size = ObjectSpace.memsize_of(Object.new)
+
+    buf = FFI::Buffer.new 14
+    size = ObjectSpace.memsize_of(buf)
+    expect(size).to be > base_size
+  end
+end

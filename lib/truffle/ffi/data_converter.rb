@@ -31,7 +31,7 @@
 module FFI
   # This module is used to extend somes classes and give then a common API.
   #
-  # Most of methods defined here must be overriden.
+  # Most of methods defined here must be overridden.
   module DataConverter
     # Get native type.
     #
@@ -41,7 +41,7 @@ module FFI
     #  Get native type from +type+.
     #
     # @overload native_type
-    #  @raise {NotImplementedError} This method must be overriden.
+    #  @raise {NotImplementedError} This method must be overridden.
     def native_type(type = nil)
       if type
         @native_type = FFI.find_type(type)

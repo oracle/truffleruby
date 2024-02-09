@@ -33,17 +33,37 @@
 # see {file:README}
 module FFI
 
+  unless defined?(self.custom_typedefs)
+    # Truffleruby and JRuby don't support Ractor so far.
+    # So they don't need separation between builtin and custom types.
+    def self.custom_typedefs
+      TypeDefs
+    end
+    writable_typemap = true
+  end
+
   # @param [Type, DataConverter, Symbol] old type definition used by {FFI.find_type}
   # @param [Symbol] add new type definition's name to add
   # @return [Type]
   # Add a definition type to type definitions.
+  #
+  # The type definition is local per Ractor.
   def self.typedef(old, add)
-    TypeDefs[add] = self.find_type(old)
+    tm = custom_typedefs
+    tm[add] = self.find_type(old)
   end
 
   # (see FFI.typedef)
   def self.add_typedef(old, add)
     typedef old, add
+  end
+
+  class << self
+    private def __typedef(old, add)
+      TypeDefs[add] = self.find_type(old)
+    end
+
+    private :custom_typedefs
   end
 
 
@@ -57,14 +77,18 @@ module FFI
     if name.is_a?(Type)
       name
 
-    elsif type_map && type_map.has_key?(name)
+    elsif type_map&.has_key?(name)
       type_map[name]
+
+    elsif (tm=custom_typedefs).has_key?(name)
+      tm[name]
 
     elsif TypeDefs.has_key?(name)
       TypeDefs[name]
 
     elsif name.is_a?(DataConverter)
-      (type_map || TypeDefs)[name] = Type::Mapped.new(name)
+      tm = (type_map || custom_typedefs)
+      tm[name] = Type::Mapped.new(name)
     else
       raise TypeError, "unable to resolve type '#{name}'"
     end
@@ -168,7 +192,7 @@ module FFI
     end
   end
 
-  typedef(StrPtrConverter, :strptr)
+  __typedef(StrPtrConverter, :strptr)
 
   # @param type +type+ is an instance of class accepted by {FFI.find_type}
   # @return [Numeric]
@@ -184,11 +208,13 @@ module FFI
       f.each_line { |line|
         if line.index(prefix) == 0
           new_type, orig_type = line.chomp.slice(prefix.length..-1).split(/\s*=\s*/)
-          typedef(orig_type.to_sym, new_type.to_sym)
+          __typedef(orig_type.to_sym, new_type.to_sym)
         end
       }
     end
-    typedef :pointer, :caddr_t
+    __typedef :pointer, :caddr_t
   rescue Errno::ENOENT
   end
+
+  FFI.make_shareable(TypeDefs) unless writable_typemap
 end

@@ -21,7 +21,7 @@ describe "Managed Struct" do
   it "should be the right class" do
     class WhatClassAmI < FFI::ManagedStruct
       layout :i, :int
-      def self.release
+      def self.release(_ptr)
       end
     end
 
@@ -31,7 +31,7 @@ describe "Managed Struct" do
   it "should build with self reference" do
     class ClassWithSelfRef < FFI::ManagedStruct
       layout :data, self.ptr
-      def self.release
+      def self.release(_ptr)
       end
     end
 
@@ -39,13 +39,15 @@ describe "Managed Struct" do
   end
 
   # see #427
-  it "should release memory properly", :broken => true do
+  it "should release memory properly" do
     class PleaseReleaseMe < FFI::ManagedStruct
       layout :i, :int
       @@count = 0
-      def self.release
+      def self.release(_ptr)
         @@count += 1
       end
+      private_class_method :release
+
       def self.wait_gc(count)
         loop = 5
         while loop > 0 && @@count < count
@@ -53,16 +55,17 @@ describe "Managed Struct" do
           TestLibrary.force_gc
           sleep 0.05 if @@count < count
         end
+        @@count
       end
     end
 
     loop_count = 30
     wiggle_room = 5
 
-    expect(PleaseReleaseMe).to receive(:release).at_least(loop_count-wiggle_room).times
     loop_count.times do
       PleaseReleaseMe.new(ManagedStructTestLib.ptr_from_address(0x12345678))
     end
-    PleaseReleaseMe.wait_gc loop_count
+    calls = PleaseReleaseMe.wait_gc(loop_count)
+    expect(calls).to be >= loop_count-wiggle_room
   end
 end
