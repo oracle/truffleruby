@@ -51,6 +51,7 @@ Compatibility:
 * Add a deprecation warning for `Encoding#replicate` (#3039, @patricklinpl, @manefz, @nirvdrum).
 * Change `UnboundMethod#{==,inspect}` to use the owner module rather than the origin (#3039, @rwstauner, @manefz, @patricklinpl)
 * Support `lambda` keyword argument in `Proc#parameters` (#3039, @thomasmarshall, @goyox86).
+* Limit maximum encoding set size by 256 (#3039, @thomasmarshall, @goyox86).
 
 Performance:
 

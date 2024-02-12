@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 public final class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
+    public static final int MAX_NUMBER_OF_ENCODINGS = 256;
     public static final RubyEncoding US_ASCII = initializeUsAscii();
     private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
 

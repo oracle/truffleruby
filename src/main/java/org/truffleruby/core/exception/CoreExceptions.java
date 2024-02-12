@@ -1139,6 +1139,15 @@ public final class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException encodingErrorTooManyEncodings(int maxSize, Node currentNode) {
+        RubyClass exceptionClass = context.getCoreLibrary().encodingErrorClass;
+        String message = StringUtils.format("too many encoding (> %d)", maxSize);
+        RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
+
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    @TruffleBoundary
     public RubyException encodingCompatibilityErrorIncompatible(RubyEncoding a, RubyEncoding b, Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible character encodings: %s and %s", a, b),
