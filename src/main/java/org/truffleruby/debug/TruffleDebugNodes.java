@@ -34,6 +34,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.collections.Pair;
+import org.prism.ParseResult;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
@@ -256,19 +257,48 @@ public abstract class TruffleDebugNodes {
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
                     RubyStringLibrary.getUncached().getEncoding(code));
-            String name = "<parse_ast>";
-            var source = Source.newBuilder("ruby", new ByteBasedCharSequence(codeString), name).build();
-            var rubySource = new RubySource(source, name);
 
-            var language = getLanguage();
-            var yarpSource = YARPTranslatorDriver.createYARPSource(rubySource.getBytes());
-            String sourcePath = rubySource.getSourcePath(language).intern();
-
-            var parseResult = YARPTranslatorDriver.parseToYARPAST(rubySource, sourcePath, yarpSource,
-                    Collections.emptyList(), language.options.FROZEN_STRING_LITERALS);
+            var rubySource = createRubySource(codeString);
+            var parseResult = getParseResult(getLanguage(), rubySource);
             var ast = parseResult.value;
 
             return createString(fromJavaStringNode, ast.toString(), Encodings.UTF_8);
+        }
+
+        private static RubySource createRubySource(TStringWithEncoding code) {
+            String name = "<parse_ast>";
+            var source = Source.newBuilder("ruby", new ByteBasedCharSequence(code), name).build();
+            return new RubySource(source, name);
+        }
+
+        private static ParseResult getParseResult(RubyLanguage language, RubySource rubySource) {
+            var yarpSource = YARPTranslatorDriver.createYARPSource(rubySource.getBytes());
+            String sourcePath = rubySource.getSourcePath(language).intern();
+
+            return YARPTranslatorDriver.parseToYARPAST(rubySource, sourcePath, yarpSource,
+                    Collections.emptyList(), language.options.FROZEN_STRING_LITERALS);
+        }
+    }
+
+    @CoreMethod(names = "profile_translator", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class ProfileTranslatorNode extends CoreMethodArrayArgumentsNode {
+        @TruffleBoundary
+        @Specialization
+        Object profileTranslator(Object code, int repeat) {
+            var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
+                    RubyStringLibrary.getUncached().getEncoding(code));
+
+            var rubySource = ParseASTNode.createRubySource(codeString);
+            var parseResult = ParseASTNode.getParseResult(getLanguage(), rubySource);
+
+            var translator = new YARPTranslatorDriver(getContext());
+
+            for (int i = 0; i < repeat; i++) {
+                translator.parse(rubySource, ParserContext.TOP_LEVEL, null, null, getContext().getRootLexicalScope(),
+                        this, parseResult);
+            }
+
+            return nil;
         }
     }
 

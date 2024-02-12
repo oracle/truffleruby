@@ -2325,10 +2325,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     @Override
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
         var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
+        var options = encodingAndOptions.options;
         final ToSNode[] children = translateInterpolatedParts(node.parts);
 
         final RubyEncoding encoding;
-        if (!encodingAndOptions.options.isKcodeDefault()) { // explicit encoding
+        if (!options.isKcodeDefault()) { // explicit encoding
             encoding = encodingAndOptions.encoding;
         } else {
             // use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
@@ -2341,15 +2342,16 @@ public class YARPTranslator extends YARPBaseTranslator {
             if (child.getValueNode() instanceof StringLiteralNode stringLiteralNode) {
                 var fragment = new TStringWithEncoding(stringLiteralNode.getTString(), stringLiteralNode.getEncoding());
                 try {
-                    ClassicRegexp.regexpFragmentCheck(fragment, encodingAndOptions.options, sourceEncoding,
-                            currentNode);
+                    // MRI: reg_fragment_check
+                    var strEnc = ClassicRegexp.setRegexpEncoding(fragment, options, sourceEncoding, currentNode);
+                    ClassicRegexp.preprocessCheck(strEnc);
                 } catch (DeferredRaiseException dre) {
                     throw regexpErrorToSyntaxError(dre, node);
                 }
             }
         }
 
-        RubyNode rubyNode = new InterpolatedRegexpNode(children, encoding, encodingAndOptions.options);
+        RubyNode rubyNode = new InterpolatedRegexpNode(children, encoding, options);
 
         if (node.isOnce()) {
             rubyNode = new OnceNode(rubyNode);
@@ -2892,17 +2894,17 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitRegularExpressionNode(Nodes.RegularExpressionNode node) {
         var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
         var encoding = encodingAndOptions.encoding;
+        var options = encodingAndOptions.options;
         var source = TruffleString.fromByteArrayUncached(node.unescaped, encoding.tencoding, false);
         var sourceWithEnc = new TStringWithEncoding(source, encoding);
 
         final RubyRegexp regexp;
         try {
             // Needed until https://github.com/ruby/prism/issues/1997 is fixed
-            sourceWithEnc = ClassicRegexp.findEncodingForRegexpLiteral(sourceWithEnc, encodingAndOptions.options,
-                    sourceEncoding, currentNode);
+            sourceWithEnc = ClassicRegexp.setRegexpEncoding(sourceWithEnc, options, sourceEncoding, currentNode);
 
             regexp = RubyRegexp.create(language, sourceWithEnc.tstring, sourceWithEnc.encoding,
-                    encodingAndOptions.options, currentNode);
+                    options, currentNode);
         } catch (DeferredRaiseException dre) {
             throw regexpErrorToSyntaxError(dre, node);
         }
@@ -3150,13 +3152,13 @@ public class YARPTranslator extends YARPBaseTranslator {
             encoding = sourceEncoding;
         }
 
-        final TruffleString tstring = TStringUtils.fromByteArray(node.unescaped, encoding);
+        byte[] bytes = node.unescaped;
 
         if (!node.isFrozen()) {
-            final TruffleString cachedTString = language.tstringCache.getTString(tstring, encoding);
+            final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
-            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, encoding);
+            ImmutableRubyString frozenString = language.frozenStringLiterals.getFrozenStringLiteral(bytes, encoding);
             rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         }
 
