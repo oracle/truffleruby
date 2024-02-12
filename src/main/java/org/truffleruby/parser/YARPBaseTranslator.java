@@ -27,6 +27,7 @@ import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.NilLiteralNode;
 
 import com.oracle.truffle.api.TruffleSafepoint;
@@ -91,6 +92,16 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         final RubyNode rubyNode;
         if (node == null) {
             rubyNode = new NilLiteralNode();
+        } else {
+            rubyNode = node.accept(this);
+        }
+        return rubyNode;
+    }
+
+    protected final RubyNode translateNodeOrTrue(Nodes.Node node) {
+        final RubyNode rubyNode;
+        if (node == null) {
+            rubyNode = new BooleanLiteralNode(true);
         } else {
             rubyNode = node.accept(this);
         }

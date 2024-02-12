@@ -1,10 +1,5 @@
 fails:Pattern matching alternative pattern does not support variable binding
 fails:Pattern matching Array pattern calls #deconstruct once for multiple patterns, caching the result
-fails:Pattern matching find pattern captures both preceding and following elements to the pattern
 fails:Pattern matching warning when one-line form warns about pattern matching is experimental feature
-fails:Pattern matching find pattern can be nested
-fails:Pattern matching find pattern can be nested with an array pattern
-fails:Pattern matching find pattern can be nested within a hash pattern
-fails:Pattern matching find pattern can nest hash and array patterns
 fails:Pattern matching variable pattern does not support using variable name (except _) several times
 fails:Pattern matching Hash pattern raise SyntaxError when keys duplicate in pattern
