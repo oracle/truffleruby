@@ -1088,10 +1088,6 @@ class Pathname    # * mixed *
   alias delete unlink
 end
 
-class Pathname
-  undef =~
-end
-
 module Kernel
   # create a pathname object.
   #

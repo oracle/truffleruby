@@ -1174,7 +1174,6 @@ class File < IO
   class << self
     alias_method :delete,   :unlink
     alias_method :empty?,   :zero?
-    alias_method :exists?,  :exist?
     alias_method :fnmatch?, :fnmatch
   end
 

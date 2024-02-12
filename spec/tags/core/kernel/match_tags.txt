@@ -1,1 +1,0 @@
-fails:Kernel#=~ is no longer defined

@@ -52,6 +52,8 @@ Compatibility:
 * Change `UnboundMethod#{==,inspect}` to use the owner module rather than the origin (#3039, @rwstauner, @manefz, @patricklinpl)
 * Support `lambda` keyword argument in `Proc#parameters` (#3039, @thomasmarshall, @goyox86).
 * Limit maximum encoding set size by 256 (#3039, @thomasmarshall, @goyox86).
+* Remove deprecated methods `Dir.exists?`, `File.exists?`, and `Kernel#=~` (#3039, @patricklinpl, @nirvdrum).
+* Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
 
 Performance:
 
