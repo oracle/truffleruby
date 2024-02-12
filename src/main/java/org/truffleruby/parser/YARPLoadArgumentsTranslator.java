@@ -353,8 +353,8 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
      *     end
      * </pre>
      *
-     * They should be forwarded properly but there are no local variables declared for such duplicated parameters.
-     * That's why such local variables should be declared now. */
+     * They should be forwarded properly but there are no local variables declared in Prism for such duplicated
+     * parameters. That's why such local variables should be declared now. */
     private String createNameForRepeatedParameter(String name) {
         int count = repeatedParameterCounter++;
         return Layouts.TEMP_PREFIX + name + count;

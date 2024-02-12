@@ -123,7 +123,7 @@ A possible workaround could be to use natively-allocated strings, but it would b
 
 ### Strings in UTF-16 and UTF-32 encoding
 
-TruffleRuby does not support UTF-16 strings with an odd number of bytes (in native endianness). Similarly, with UTF-32 it needs to be a multiple of 4.
+TruffleRuby does not support UTF-16 strings with an odd number of bytes (in native endianness). Similarly, with UTF-32 it needs to be a multiple of 4. This is necessary for optimizations, compression, invariants, etc.
 
 ### Threads detect interrupts at different points
 

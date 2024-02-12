@@ -177,7 +177,8 @@ public class YARPTranslator extends YARPBaseTranslator {
     public Deque<Integer> frameOnStackMarkerSlotStack = new ArrayDeque<>();
     /** whether a while-loop body is translated; needed to check correctness of operators like break/next/etc */
     private boolean translatingWhile = false;
-    /** whether a for-loop body is translated; needed to prevent creating a new lexical scope for body */
+    /** whether a for-loop body is translated; needed to enforce variables in the for-loop body to be declared outside
+     * the for-loop */
     private boolean translatingForStatement = false;
 
     /** names of numbered parameters in procs */
@@ -1623,7 +1624,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitEnsureNode(Nodes.EnsureNode node) {
-        // EnsureNode without statements should be handles in #visitBeginNode
+        // EnsureNode without statements should be handled in #visitBeginNode
         assert node.statements != null;
 
         return node.statements.accept(this);
@@ -2972,7 +2973,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     /** Return Regexp modifiers (e.g. m, i, x, ...) and encoding. Encoding is based on encoding modifiers (n, u, e, s)
      * and could be inferred (forced) from Regexp source characters. If there are no encoding modifiers and encoding is
-     * not forced - a source file encoding is returned. */
+     * not forced - the source file encoding is returned. */
     private RegexpEncodingAndOptions getRegexpEncodingAndOptions(Nodes.RegularExpressionFlags flags) {
         RubyEncoding regexpEncoding;
 
@@ -3723,7 +3724,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         return rubyNode;
     }
 
-    /** A node is side-effect-free if cannot connot access $! */
+    /** A node is side-effect-free if it cannot access $! */
     protected boolean isSideEffectFreeRescueExpression(Nodes.Node node) {
         return node instanceof Nodes.InstanceVariableReadNode ||
                 node instanceof Nodes.LocalVariableReadNode ||
