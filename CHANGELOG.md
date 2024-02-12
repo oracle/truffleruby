@@ -49,6 +49,7 @@ Compatibility:
 * Add `File.lutime` and `Pathname#lutime` methods (#3039, @andrykonchin).
 * Add a deprecation warning for `Encoding#replicate` (#3039, @patricklinpl, @manefz, @nirvdrum).
 * Change `UnboundMethod#{==,inspect}` to use the owner module rather than the origin (#3039, @rwstauner, @manefz, @patricklinpl)
+* Support `lambda` keyword argument in `Proc#parameters` (#3039, @thomasmarshall, @goyox86).
 
 Performance:
 
