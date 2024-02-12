@@ -802,6 +802,8 @@ module Commands
                                               by default it is the name of the mx env file,
                                               the named build stays until it is rebuilt or deleted manually
               --new-hash                      update the git commit hash in RUBY_DESCRIPTION
+              --install PATH                  move the build to the specified directory
+                                              by default, builds will remain localized to the source tree
             mx options:                       options passed directly to mx
               -d                              start the Java debugger and enables assertions when running truffleruby to configure C extensions
             mx build options                  options passed to the 'build' command of mx
@@ -2511,6 +2513,12 @@ module Commands
                    env
                  end
 
+    install_path = if (i = options.index('--install') || options.index('-i'))
+                     options.delete_at i
+                     options.delete_at i
+                   end
+    raise 'Installation path already exists' if File.exist?(install_path.to_s)
+
     name = "truffleruby-#{@ruby_name}"
     mx_base_args = ['--env', env]
 
@@ -2549,26 +2557,30 @@ module Commands
       File.symlink(build_dir, dest)
     end
 
-    # Symlink builds into version manager
-    rbenv_root = ENV['RBENV_ROOT']
-    rubies_dir = File.join(rbenv_root, 'versions') if rbenv_root && File.directory?(rbenv_root)
+    if install_path
+      File.rename build_dir, install_path
+    else
+      # Symlink builds into version manager
+      rbenv_root = ENV['RBENV_ROOT']
+      rubies_dir = File.join(rbenv_root, 'versions') if rbenv_root && File.directory?(rbenv_root)
 
-    chruby_versions = File.expand_path('~/.rubies')
-    rubies_dir = chruby_versions if File.directory?(chruby_versions)
+      chruby_versions = File.expand_path('~/.rubies')
+      rubies_dir = chruby_versions if File.directory?(chruby_versions)
 
-    if rubies_dir
-      Dir.glob(rubies_dir + '/truffleruby-*').each do |link|
-        next unless File.symlink?(link)
-        next if File.exist?(link)
-        target = File.readlink(link)
-        next unless target.start_with?("#{TRUFFLERUBY_DIR}/mxbuild")
-        File.delete link
-        puts "Deleted broken link: #{link} -> #{target}"
+      if rubies_dir
+        Dir.glob(rubies_dir + '/truffleruby-*').each do |link|
+          next unless File.symlink?(link)
+          next if File.exist?(link)
+          target = File.readlink(link)
+          next unless target.start_with?("#{TRUFFLERUBY_DIR}/mxbuild")
+          File.delete link
+          puts "Deleted broken link: #{link} -> #{target}"
+        end
+
+        link_path = "#{rubies_dir}/#{name}"
+        File.delete link_path if File.symlink? link_path or File.exist? link_path
+        File.symlink dest_ruby, link_path
       end
-
-      link_path = "#{rubies_dir}/#{name}"
-      File.delete link_path if File.symlink? link_path or File.exist? link_path
-      File.symlink dest_ruby, link_path
     end
   end
 
