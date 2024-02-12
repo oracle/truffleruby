@@ -57,6 +57,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
     private static final byte FLAG_ROOT = 3;          // 1<<3 = 8
 
     protected static final int NO_SOURCE = -1;
+    private static final int UNAVAILABLE_SOURCE_SECTION_LENGTH = -1;
 
     // Used when the return value of a node is ignored syntactically.
     // Returns Nil instead of void to force RubyNodeWrapper to call `delegateNode.executeVoid(frame)`, otherwise
@@ -85,21 +86,13 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         return isAdoptable() && getSourceCharIndex() != NO_SOURCE;
     }
 
-    public void unsafeSetSourceSection(SourceIndexLength sourceIndexLength) {
-        assert !hasSource();
-
-        if (sourceIndexLength != null) {
-            unsafeSetSourceSection(sourceIndexLength.getCharIndex(), sourceIndexLength.getLength());
-        }
-    }
-
     public void unsafeSetSourceSection(SourceSection sourceSection) {
         assert !hasSource();
 
         if (sourceSection.isAvailable()) {
             unsafeSetSourceSection(sourceSection.getCharIndex(), sourceSection.getCharLength());
         } else {
-            unsafeSetSourceSection(0, SourceIndexLength.UNAVAILABLE);
+            unsafeSetSourceSection(0, UNAVAILABLE_SOURCE_SECTION_LENGTH);
         }
     }
 
@@ -121,14 +114,6 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         return this;
     }
 
-    public SourceIndexLength getSourceIndexLength() {
-        if (!hasSource()) {
-            return null;
-        } else {
-            return new SourceIndexLength(getSourceCharIndex(), getSourceLength());
-        }
-    }
-
     @Override
     @TruffleBoundary
     public SourceSection getSourceSection() {
@@ -141,7 +126,7 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
             }
 
             int sourceLength = getSourceLength();
-            if (sourceLength == SourceIndexLength.UNAVAILABLE) {
+            if (sourceLength == UNAVAILABLE_SOURCE_SECTION_LENGTH) {
                 return source.createUnavailableSection();
             } else {
                 return source.createSection(getSourceCharIndex(), sourceLength);
@@ -164,23 +149,6 @@ public abstract class RubyNode extends RubyBaseNodeWithExecute implements Instru
         }
 
         return sourceSection.getSource();
-    }
-
-    public SourceIndexLength getEncapsulatingSourceIndexLength() {
-        Node node = this;
-        while (node != null) {
-            if (node instanceof RubyNode && ((RubyNode) node).hasSource()) {
-                return ((RubyNode) node).getSourceIndexLength();
-            }
-
-            if (node instanceof RootNode) {
-                return SourceIndexLength.fromSourceSection(node.getSourceSection());
-            }
-
-            node = node.getParent();
-        }
-
-        return null;
     }
 
     @Override

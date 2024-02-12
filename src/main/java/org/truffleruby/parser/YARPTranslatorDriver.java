@@ -67,7 +67,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
 import org.truffleruby.language.SetTopLevelBindingNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -171,7 +170,6 @@ public final class YARPTranslatorDriver {
         final SourceSection sourceSection = rubySource.getBytes().length == 0
                 ? source.createUnavailableSection()
                 : source.createSection(0, rubySource.getBytes().length);
-        final SourceIndexLength sourceIndexLength = SourceIndexLength.fromSourceSection(sourceSection);
 
         final String modulePath = staticLexicalScope == null || staticLexicalScope == context.getRootLexicalScope()
                 ? null
@@ -311,7 +309,7 @@ public final class YARPTranslatorDriver {
         if (parserContext.isTopLevel()) {
             rootNode = new RubyTopLevelRootNode(
                     language,
-                    sourceIndexLength.toSourceSection(source),
+                    sourceSection,
                     frameDescriptor,
                     sharedMethodInfo,
                     truffleNode,
@@ -321,7 +319,7 @@ public final class YARPTranslatorDriver {
         } else {
             rootNode = new RubyEvalRootNode(
                     language,
-                    sourceIndexLength.toSourceSection(source),
+                    sourceSection,
                     frameDescriptor,
                     sharedMethodInfo,
                     truffleNode,

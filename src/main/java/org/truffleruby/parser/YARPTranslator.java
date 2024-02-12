@@ -163,11 +163,6 @@ import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_REST_NAME;
 
-// NOTE: we should avoid SourceIndexLength in YARPTranslator, instead pass a Nodes.Node as location, because
-// * it does not copy the newline flag properly,
-// * it is inefficient,
-// * there is typically no need for such an object since YARP location info is correct.
-
 /** Translate (or convert) AST provided by a parser (YARP parser) to Truffle AST.
  *
  * The main translator that delegates handling of some nodes (e.g. method or block definition) to helper translators.
