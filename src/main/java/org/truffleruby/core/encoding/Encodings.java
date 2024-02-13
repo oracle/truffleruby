@@ -124,16 +124,19 @@ public final class Encodings {
         return rubyEncoding;
     }
 
-    /** Should only be used when there is no other way, because this will ignore replicated and dummy encodings */
-    public static RubyEncoding getBuiltInEncoding(String encodingName) {
-        byte[] encodingNameBytes = encodingName.getBytes(StandardCharsets.ISO_8859_1);
-        var entry = EncodingDB.getEncodings().get(encodingNameBytes);
-        if (entry != null) {
-            var jcoding = entry.getEncoding();
-            return getBuiltInEncoding(jcoding);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere("Unknown encoding: " + encodingName);
-        }
-    }
+    @TruffleBoundary
+    public static RubyEncoding getBuiltInEncoding(String name) {
+        byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
+        EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
 
+        if (entry == null) {
+            entry = EncodingDB.getAliases().get(nameBytes);
+        }
+
+        if (entry != null) {
+            return getBuiltInEncoding(entry.getEncoding());
+        }
+
+        return null;
+    }
 }

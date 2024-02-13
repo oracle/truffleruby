@@ -182,22 +182,6 @@ public final class EncodingManager {
         localeEncoding = rubyEncoding;
     }
 
-    @TruffleBoundary
-    public static Encoding getEncoding(String name) {
-        byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
-        EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
-
-        if (entry == null) {
-            entry = EncodingDB.getAliases().get(nameBytes);
-        }
-
-        if (entry != null) {
-            return entry.getEncoding();
-        }
-
-        return null;
-    }
-
     public synchronized Object[] getEncodingList() {
         return ArrayUtils.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, ENCODING_LIST_BY_ENCODING_INDEX.length);
     }
