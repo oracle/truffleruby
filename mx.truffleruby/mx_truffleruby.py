@@ -18,6 +18,7 @@ import mx
 import mx_gate
 import mx_sdk
 import mx_sdk_vm
+import mx_sdk_vm_impl
 import mx_subst
 import mx_spotbugs
 
@@ -190,9 +191,9 @@ def ruby_check_heap_dump(input_args, out=None):
         raise Exception("heap dump check failed")
 
 def ruby_run_ruby(args):
-    """run TruffleRuby in $(mx graalvm-home), use bin/jt for more control and shortcuts"""
-    graalvm_home = mx_sdk_vm.graalvm_home(fatalIfMissing=True)
-    ruby = join(graalvm_home, 'languages/ruby/bin/ruby')
+    """run TruffleRuby in $(mx standalone-home --type=jvm ruby), needs an env including a ruby standalone. Use bin/jt for more control and shortcuts"""
+    standalone_home = mx_sdk_vm_impl.standalone_home('ruby', is_jvm=True)
+    ruby = join(standalone_home, 'bin/ruby')
     os.execlp(ruby, ruby, *args)
 
 def ruby_run_specs(ruby, args):

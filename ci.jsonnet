@@ -541,7 +541,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-gems-darwin-amd64":    $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-gems-darwin-aarch64":  $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_gems,
       "ruby-test-ecosystem-linux-amd64":  $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
-      "ruby-test-standalone-linux-amd64": $.platform.linux  + $.jdk.stable+ gate_no_build + $.run.test_make_standalone_distribution,
 
       "ruby-test-compiler-ce-stable": $.platform.linux + $.jdk.stable + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-ce-latest": $.platform.linux + $.jdk.latest + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,

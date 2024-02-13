@@ -256,7 +256,7 @@ module Utilities
                       File.directory?(@ruby_name) ? "#{@ruby_name}/bin/ruby" : @ruby_name
                     else
                       graalvm = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}"
-                      "#{graalvm}/languages/ruby/bin/ruby"
+                      "#{graalvm}/bin/ruby"
                     end
 
     raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
@@ -268,7 +268,6 @@ module Utilities
     unless @silent
       shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '')
       shortened_path = shortened_path.sub(%r[/bin/(ruby|truffleruby)$], '')
-      shortened_path = shortened_path.sub(%r[/languages/ruby$], '') if graalvm_home
       tags = [*('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
               *('with Native' if truffleruby_native_built?),
@@ -287,18 +286,7 @@ module Utilities
     require_ruby_launcher!
     File.expand_path('../..', @ruby_launcher_realpath)
   end
-
-  def graalvm_home
-    up = if ruby_home.end_with?('jre/languages/ruby')
-           3
-         elsif ruby_home.end_with?('languages/ruby')
-           2
-         else
-           nil # standalone
-         end
-    return nil unless up
-    File.expand_path((['..'] * up).join('/'), ruby_home)
-  end
+  alias_method :'ruby-home', :ruby_home
 
   def truffleruby!
     raise 'This command requires TruffleRuby.' unless truffleruby?
@@ -350,8 +338,8 @@ module Utilities
     return @truffleruby_compiler = false unless truffleruby?
     return @truffleruby_compiler = true if truffleruby_native_built?
 
-    # Detect if the compiler is present by reading the $graalvm_home/release file
-    @truffleruby_compiler = File.readlines("#{graalvm_home || ruby_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
+    # Detect if the compiler is present by reading the $ruby_home/release file
+    @truffleruby_compiler = File.readlines("#{ruby_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
   end
@@ -898,7 +886,7 @@ module Commands
       jt sync                                        continuously synchronize changes from the Ruby source files to the GraalVM build
       jt idea                                        generates IntelliJ projects
       jt format                                      run eclipse code formatter
-      jt graalvm-home                                prints the GraalVM home of the RUBY_SELECTOR
+      jt ruby-home                                   prints the Ruby home of the RUBY_SELECTOR
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
 
@@ -927,10 +915,6 @@ module Commands
 
   def launcher
     puts ruby_launcher
-  end
-
-  define_method(:'graalvm-home') do
-    puts graalvm_home
   end
 
   def build(*options)
@@ -2540,11 +2524,11 @@ module Commands
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options
 
+    standalone_type = env.include?('native') ? 'native' : 'jvm'
     mx(*mx_args, 'build', *mx_build_options, primary_suite: TRUFFLERUBY_DIR)
-    build_dir = mx(*mx_args, 'graalvm-home', primary_suite: TRUFFLERUBY_DIR, capture: :out).lines.last.chomp
+    build_dir = mx(*mx_args, 'standalone-home', "--type=#{standalone_type}", 'ruby', primary_suite: TRUFFLERUBY_DIR, capture: :out).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
-    dest_ruby = "#{dest}/languages/ruby"
     FileUtils.rm_rf dest
     if @ruby_name != @mx_env
       # if `--name NAME` is passed, we want to copy so we don't end up with two symlinks
@@ -2573,7 +2557,7 @@ module Commands
 
       link_path = "#{rubies_dir}/#{name}"
       File.delete link_path if File.symlink? link_path or File.exist? link_path
-      File.symlink dest_ruby, link_path
+      File.symlink dest, link_path
     end
   end
 
@@ -3170,10 +3154,6 @@ module Commands
     raise 'Ruby 3+ needed for "jt docker"' unless RUBY_VERSION.start_with?('3.')
     require_relative 'docker'
     JT::Docker.new.docker(*args)
-  end
-
-  def visualvm
-    sh "#{graalvm_home}/bin/jvisualvm"
   end
 end
 
