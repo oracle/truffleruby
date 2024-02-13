@@ -170,4 +170,8 @@ describe "Proc#parameters" do
       [:block, :_]
     ]
   end
+
+  it "returns :nokey for **nil parameter" do
+    proc { |**nil| }.parameters.should == [[:nokey]]
+  end
 end

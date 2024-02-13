@@ -91,7 +91,7 @@ public final class SharedMethodInfo implements DetailedInspectingSupport {
                 blockDepth,
                 moduleAndMethodName(declaringModule, methodName),
                 notes,
-                ArgumentDescriptor.ANY);
+                ArgumentDescriptor.ANY_UNNAMED);
     }
 
     public SourceSection getSourceSection() {
@@ -116,7 +116,7 @@ public final class SharedMethodInfo implements DetailedInspectingSupport {
     }
 
     public ArgumentDescriptor[] getArgumentDescriptors() {
-        return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
+        return argumentDescriptors == null ? arity.toUnnamedArgumentDescriptors() : argumentDescriptors;
     }
 
     public boolean isBlock() {

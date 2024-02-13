@@ -1,3 +1,0 @@
-fails:Proc#parameters adds rest arg with name * for "star" argument
-fails:Proc#parameters adds keyrest arg with ** as a name for "double star" argument
-fails:Proc#parameters adds block arg with name & for anonymous block argument
