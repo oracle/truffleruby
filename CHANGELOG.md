@@ -55,6 +55,7 @@ Compatibility:
 * Remove deprecated methods `Dir.exists?`, `File.exists?`, and `Kernel#=~` (#3039, @patricklinpl, @nirvdrum).
 * Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
 * Fix {Method,Proc}#parameters and return `*`, `**` and `&` names for anonymous parameters (@andrykonchin).
+* Remove deprecated `Fixnum` and `Bignum` constants (#3039, @andrykonchin).
 
 Performance:
 

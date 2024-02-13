@@ -34,9 +34,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Fixnum = Bignum = Integer
-Object.deprecate_constant :Fixnum, :Bignum
-
 class Integer < Numeric
 
   # Have a copy in Integer of the Numeric version, as MRI does

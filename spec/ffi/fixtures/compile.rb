@@ -11,7 +11,7 @@ module TestLibrary
   CPU = case RbConfig::CONFIG['host_cpu'].downcase
     when /i[3456]86/
       # Darwin always reports i686, even when running in 64bit mode
-      if RbConfig::CONFIG['host_os'] =~ /darwin/ && 0xfee1deadbeef.is_a?(Fixnum)
+      if RbConfig::CONFIG['host_os'] =~ /darwin/ && [1].pack("J").bytesize == 8
         "x86_64"
       else
         "i386"
