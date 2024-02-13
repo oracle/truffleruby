@@ -1727,6 +1727,8 @@ class IO
       end
     end
 
+    # TODO: seems it doesn't take into account timeout.
+    #       So if there are several iterations - they use timeout independently
     while (tmp_str = Truffle::POSIX.read_string_at_least_one_byte(self, InternalBuffer::DEFAULT_READ_SIZE))
       str << tmp_str
     end
@@ -2303,6 +2305,8 @@ class IO
   def write(*objects)
     bytes_written = 0
 
+    # TODO: timout is applied to writing all the objects as a single operation
+    #       or individially to writing every object?
     objects.each do |object|
       string = Truffle::Type.rb_obj_as_string(object)
       next if string.empty?

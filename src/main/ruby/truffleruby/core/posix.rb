@@ -460,7 +460,10 @@ module Truffle::POSIX
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond) + timeout_milliseconds
 
     while true
+      nonblock_old = io.nonblock?
+      io.nonblock = true
       bytes_written = Truffle::POSIX.write(fd, buffer, length)
+      io.nonblock = nonblock_old
       return bytes_written if bytes_written >= 0
       return bytes_written unless Errno.errno == Errno::EAGAIN::Errno
 
