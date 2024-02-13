@@ -51,15 +51,15 @@ public final class ArgumentDescriptorUtils {
         final RubySymbol typeSymbol = language.getSymbol(argType.symbolicName);
 
         if (argType == ArgumentType.anonrest) {
-            store = new Object[]{ typeSymbol, language.getSymbol("*") };
+            store = new Object[]{ typeSymbol, language.coreSymbols.MULTIPLY };
         } else if (argType == ArgumentType.anonkeyrest) {
-            store = new Object[]{ typeSymbol, language.getSymbol("**") };
+            store = new Object[]{ typeSymbol, language.coreSymbols.POW };
         } else if (argType == ArgumentType.rest && name.equals(FORWARDED_REST_NAME)) {
-            store = new Object[]{ typeSymbol, language.getSymbol("*") };
+            store = new Object[]{ typeSymbol, language.coreSymbols.MULTIPLY };
         } else if (argType == ArgumentType.keyrest && name.equals(FORWARDED_KEYWORD_REST_NAME)) {
-            store = new Object[]{ typeSymbol, language.getSymbol("**") };
+            store = new Object[]{ typeSymbol, language.coreSymbols.POW };
         } else if (argType == ArgumentType.block && name.equals(FORWARDED_BLOCK_NAME)) {
-            store = new Object[]{ typeSymbol, language.getSymbol("&") };
+            store = new Object[]{ typeSymbol, language.coreSymbols.AMPERSAND };
         } else if (argType.anonymous || name == null) {
             store = new Object[]{ typeSymbol };
         } else {
