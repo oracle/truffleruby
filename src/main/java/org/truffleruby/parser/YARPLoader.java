@@ -51,18 +51,17 @@ public final class YARPLoader extends Loader {
         return new YARPLoader(serialized, source, rubySource).load();
     }
 
-    private final RubySource rubySource;
-    private RubyEncoding encoding = null;
+    private final RubyEncoding encoding;
 
     public YARPLoader(byte[] serialized, Nodes.Source source, RubySource rubySource) {
         super(serialized, source);
-        this.rubySource = rubySource;
+        this.encoding = rubySource.getEncoding();
     }
 
     @Override
     public Charset getEncodingCharset(String encodingName) {
-        encoding = Encodings.getBuiltInEncoding(encodingName);
-        assert encoding == rubySource.getEncoding();
+        var rubyEncoding = Encodings.getBuiltInEncoding(encodingName);
+        assert rubyEncoding == encoding : rubyEncoding + " (" + encodingName + ") vs " + encoding;
         return null; // encodingCharset is not used
     }
 
