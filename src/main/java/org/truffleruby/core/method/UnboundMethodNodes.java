@@ -52,8 +52,7 @@ public abstract class UnboundMethodNodes {
 
         @Specialization
         boolean equal(RubyUnboundMethod self, RubyUnboundMethod other) {
-            return self.origin == other.origin &&
-                    MethodNodes.areInternalMethodEqual(self.method, other.method);
+            return MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
@@ -130,16 +129,6 @@ public abstract class UnboundMethodNodes {
         @Specialization
         RubySymbol name(RubyUnboundMethod unboundMethod) {
             return getSymbol(unboundMethod.method.getName());
-        }
-
-    }
-
-    @Primitive(name = "unbound_method_origin")
-    public abstract static class OriginNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        RubyModule origin(RubyUnboundMethod unboundMethod) {
-            return unboundMethod.origin;
         }
 
     }

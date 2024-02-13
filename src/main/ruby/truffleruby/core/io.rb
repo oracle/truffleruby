@@ -38,6 +38,8 @@ class IO
 
   include Enumerable
 
+  class TimeoutError < IOError; end
+
   module WaitReadable; end
   module WaitWritable; end
 

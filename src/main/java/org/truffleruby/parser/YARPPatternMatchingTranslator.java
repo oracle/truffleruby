@@ -11,6 +11,7 @@ package org.truffleruby.parser;
 
 import org.prism.Nodes;
 import org.truffleruby.core.array.ArrayDeconstructNodeGen;
+import org.truffleruby.core.array.ArrayFindPatternNodeGen;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayPatternLengthCheckNodeGen;
 import org.truffleruby.core.array.ArraySliceNodeGen;
@@ -169,6 +170,91 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
         } finally {
             currentValueToMatch = outerPrev;
         }
+    }
+
+    // See the Ruby logic in https://github.com/ruby/ruby/commit/ddded1157a90d21cb54b9f07de35ab9b4cc472e1
+    @Override
+    public RubyNode visitFindPatternNode(Nodes.FindPatternNode node) {
+        RubyNode condition;
+        if (node.constant != null) { // Constant[*, a, *]
+            condition = matchValue(node.constant);
+        } else {
+            condition = null;
+        }
+
+        var middle = node.requireds;
+        var middleSize = middle.length;
+
+        var deconstructed = ArrayDeconstructNodeGen.create(currentValueToMatch);
+
+        final int deconstructedSlot = environment.declareLocalTemp("pattern_deconstruct_find");
+        final ReadLocalNode readTemp = environment.readNode(deconstructedSlot, node);
+        final RubyNode assignTemp = readTemp.makeWriteNode(deconstructed);
+
+        RubyNode outerPrev = currentValueToMatch;
+        currentValueToMatch = readTemp;
+        try {
+            RubyNode check = YARPTranslator.sequence(
+                    assignTemp,
+                    ArrayPatternLengthCheckNodeGen.create(middleSize, true, readTemp));
+            if (condition == null) {
+                condition = check;
+            } else {
+                condition = AndNodeGen.create(condition, check);
+            }
+
+            var writeSlots = new WriteLocalNode[middleSize];
+            var conditions = new RubyNode[middleSize];
+            for (int i = 0; i < middleSize; i++) {
+                int slot = environment.declareLocalTemp("pattern_find_middle");
+                var readSlot = environment.readNode(slot, node);
+                writeSlots[i] = readSlot.makeWriteNode(null);
+
+                RubyNode prev = currentValueToMatch;
+                currentValueToMatch = readSlot;
+                try {
+                    conditions[i] = middle[i].accept(this);
+                } finally {
+                    currentValueToMatch = prev;
+                }
+            }
+
+            Nodes.SplatNode leftSplat = (Nodes.SplatNode) node.left;
+            int leftSlot = environment.declareLocalTemp("pattern_find_left");
+            var readLeftSlot = environment.readNode(leftSlot, node);
+            var writeLeftSlot = readLeftSlot.makeWriteNode(null);
+            RubyNode leftCondition;
+
+            RubyNode prev = currentValueToMatch;
+            currentValueToMatch = readLeftSlot;
+            try {
+                leftCondition = translateNodeOrTrue(leftSplat.expression);
+            } finally {
+                currentValueToMatch = prev;
+            }
+
+            Nodes.SplatNode rightSplat = (Nodes.SplatNode) node.right;
+            int rightSlot = environment.declareLocalTemp("pattern_find_right");
+            var readRightSlot = environment.readNode(rightSlot, node);
+            var writeRightSlot = readRightSlot.makeWriteNode(null);
+            RubyNode rightCondition;
+
+            prev = currentValueToMatch;
+            currentValueToMatch = readRightSlot;
+            try {
+                rightCondition = translateNodeOrTrue(rightSplat.expression);
+            } finally {
+                currentValueToMatch = prev;
+            }
+
+            var findPatternNode = ArrayFindPatternNodeGen.create(writeSlots, conditions, writeLeftSlot, leftCondition,
+                    writeRightSlot, rightCondition, currentValueToMatch);
+            condition = AndNodeGen.create(condition, findPatternNode);
+        } finally {
+            currentValueToMatch = outerPrev;
+        }
+
+        return assignPositionAndFlags(node, condition);
     }
 
     @Override

@@ -791,6 +791,31 @@ class File < IO
   end
 
   ##
+  # Sets the access and modification times of each named file to the first
+  # two arguments. If a file is a symlink, this method acts upon the link
+  # itself as opposed to its referent; for the inverse behavior, see
+  # File.utime. Returns the number of file names in the argument list.
+  def self.lutime(atime, mtime, *paths)
+    if !atime || !mtime
+      now = Time.now
+      atime ||= now
+      mtime ||= now
+    end
+
+    atime = Time.at(atime) unless Primitive.is_a?(atime, Time)
+    mtime = Time.at(mtime) unless Primitive.is_a?(mtime, Time)
+
+    paths.each do |path|
+      path = Truffle::Type.coerce_to_path(path)
+      n = POSIX.truffleposix_lutimes(path, atime.to_i, atime.nsec,
+                                    mtime.to_i, mtime.nsec)
+      Errno.handle unless n == 0
+    end
+
+    paths.size
+  end
+
+  ##
   # Returns the modification time for the named file as a Time object.
   #
   #  File.mtime("testfile")   #=> Tue Apr 08 12:58:04 CDT 2003
@@ -1062,10 +1087,10 @@ class File < IO
   end
 
   ##
-  # Sets the access and modification times of each named
-  # file to the first two arguments. Returns the number
-  # of file names in the argument list.
-  #  #=> Integer
+  # Sets the access and modification times of each named file to the first
+  # two arguments. If a file is a symlink, this method acts upon its
+  # referent rather than the link itself; for the inverse behavior see
+  # File.lutime. Returns the number of file names in the argument list.
   def self.utime(atime, mtime, *paths)
     if !atime || !mtime
       now = Time.now
@@ -1149,7 +1174,6 @@ class File < IO
   class << self
     alias_method :delete,   :unlink
     alias_method :empty?,   :zero?
-    alias_method :exists?,  :exist?
     alias_method :fnmatch?, :fnmatch
   end
 

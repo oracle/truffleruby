@@ -44,7 +44,7 @@ class TCPSocket < IPSocket
     [hostname, alternatives, family, *addresses]
   end
 
-  def initialize(host, service, local_host = nil, local_service = nil)
+  def initialize(host, service, local_host = nil, local_service = nil, connect_timeout: nil)
     @no_reverse_lookup = Primitive.class(self).do_not_reverse_lookup
 
     if host
@@ -108,7 +108,7 @@ class TCPSocket < IPSocket
       end
 
       connect_status = Truffle::Socket::Foreign
-        .connect(descriptor, Socket.sockaddr_in(port, address))
+        .connect(descriptor, Socket.sockaddr_in(port, address), connect_timeout)
 
       break if connect_status >= 0
     end

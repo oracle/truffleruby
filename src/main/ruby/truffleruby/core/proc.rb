@@ -128,4 +128,14 @@ class Proc
       end
     end
   end
+
+  def parameters(lambda: nil)
+    if Primitive.nil?(lambda)
+      lambda = lambda?
+    else
+      lambda = Primitive.as_boolean(lambda)
+    end
+
+    Primitive.proc_parameters(self, lambda)
+  end
 end

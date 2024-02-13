@@ -181,11 +181,6 @@ module Kernel
   end
   module_function :` # `
 
-  def =~(other)
-    warn "deprecated Object#=~ is called on #{Primitive.class(self)}; it always returns nil", uplevel: 1 if $VERBOSE
-    nil
-  end
-
   def !~(other)
     r = self =~ other ? false : true
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)

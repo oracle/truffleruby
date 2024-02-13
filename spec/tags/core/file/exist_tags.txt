@@ -1,1 +1,0 @@
-fails:File.exists? has been removed

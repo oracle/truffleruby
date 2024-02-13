@@ -1,1 +1,0 @@
-fails:Dir.exists? has been removed

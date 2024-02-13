@@ -1,2 +1,0 @@
-slow:Random::DEFAULT changes seed on reboot
-fails:Random::DEFAULT is no longer defined

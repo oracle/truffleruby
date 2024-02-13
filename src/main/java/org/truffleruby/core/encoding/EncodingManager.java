@@ -206,6 +206,10 @@ public final class EncodingManager {
         return ArrayUtils.copyOf(ENCODING_LIST_BY_ENCODING_INDEX, ENCODING_LIST_BY_ENCODING_INDEX.length);
     }
 
+    public int getNumberOfEncodings() {
+        return ENCODING_LIST_BY_ENCODING_INDEX.length;
+    }
+
     @TruffleBoundary
     public RubyEncoding getRubyEncoding(String name) {
         final String normalizedName = name.toLowerCase(Locale.ENGLISH);

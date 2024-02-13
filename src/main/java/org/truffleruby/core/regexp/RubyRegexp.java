@@ -81,6 +81,7 @@ public final class RubyRegexp extends ImmutableRubyObjectNotCopyable
         final TStringWithEncoding tstringWithEncoding = (TStringWithEncoding) regex.getUserObject();
         this.source = tstringWithEncoding.tstring;
         this.encoding = tstringWithEncoding.getEncoding();
+        assert encoding.jcoding == regex.getEncoding();
         this.options = options;
         this.cachedEncodings = new EncodingCache();
         this.tregexCache = new TRegexCache();
