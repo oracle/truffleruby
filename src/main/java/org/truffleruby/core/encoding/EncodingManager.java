@@ -67,15 +67,11 @@ public final class EncodingManager {
     }
 
     private void initializeEncodings(RubyClass encodingClass) {
-        var iterator = EncodingDB.getEncodings().entryIterator();
-        while (iterator.hasNext()) {
-            var entry = iterator.next();
-            if (entry.value.getEncoding() == Encodings.DUMMY_ENCODING_BASE) {
-                continue;
-            }
-            final RubyEncoding rubyEncoding = defineBuiltInEncoding(entry.value);
-            for (String constName : EncodingUtils.encodingNames(entry.bytes, entry.p, entry.end)) {
-                encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
+        for (RubyEncoding encoding : Encodings.BUILT_IN_ENCODINGS) {
+            defineBuiltInEncoding(encoding);
+            byte[] name = encoding.jcoding.getName();
+            for (String constName : EncodingUtils.encodingNames(name, 0, name.length)) {
+                encodingClass.fields.setConstant(context, null, constName, encoding);
             }
         }
     }
@@ -238,16 +234,13 @@ public final class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry) {
-        final int encodingIndex = encodingEntry.getEncoding().getIndex();
-        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingEntry.getEncoding());
+    public void defineBuiltInEncoding(RubyEncoding rubyEncoding) {
+        final int encodingIndex = rubyEncoding.index;
 
         assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
 
         addToLookup(rubyEncoding.toString(), rubyEncoding);
-        return rubyEncoding;
-
     }
 
     @TruffleBoundary
