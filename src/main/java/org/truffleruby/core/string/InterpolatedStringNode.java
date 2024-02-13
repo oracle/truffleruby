@@ -10,9 +10,7 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Encoding;
 import org.truffleruby.core.cast.ToSNode;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.RubyContextSourceNode;
 
@@ -31,11 +29,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     private final RubyEncoding encoding;
     private final TruffleString emptyTString;
 
-    public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
-        this(children, Encodings.getBuiltInEncoding(encoding));
-    }
-
-    private InterpolatedStringNode(ToSNode[] children, RubyEncoding encoding) {
+    public InterpolatedStringNode(ToSNode[] children, RubyEncoding encoding) {
         assert children.length > 0;
         this.children = children;
         this.encoding = encoding;
