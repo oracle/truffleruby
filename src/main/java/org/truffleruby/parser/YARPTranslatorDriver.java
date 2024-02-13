@@ -67,7 +67,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
 import org.truffleruby.language.SetTopLevelBindingNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -121,14 +120,12 @@ public final class YARPTranslatorDriver {
         }
 
         final Source source = rubySource.getSource();
-
-        // TODO: check if we still need this for YARP
-        /* Note that jruby-parser will be mistaken about how deep the existing variables are, but that doesn't matter as
-         * we look them up ourselves after being told they're in some parent scope. */
-
         final TranslatorEnvironment parentEnvironment;
+
+        // local variables in each lexical scope
         final List<List<String>> localsInScopes = new ArrayList<>();
 
+        // prepare locals in scopes
         int blockDepth = 0;
         if (parentFrame != null) {
             MaterializedFrame frame = parentFrame;
@@ -153,13 +150,14 @@ public final class YARPTranslatorDriver {
             parentEnvironment = null;
         }
 
+        // there could be an outer lexical scope that may have its own local variables -
+        // so they should be passed to parser as well
         if (argumentNames != null) {
             localsInScopes.add(Arrays.asList(argumentNames));
         }
 
         // Parse to the YARP AST
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
-
         final String sourcePath = rubySource.getSourcePath(language).intern();
 
         if (parseResult == null) {
@@ -179,7 +177,6 @@ public final class YARPTranslatorDriver {
         final SourceSection sourceSection = rubySource.getBytes().length == 0
                 ? source.createUnavailableSection()
                 : source.createSection(0, rubySource.getBytes().length);
-        final SourceIndexLength sourceIndexLength = SourceIndexLength.fromSourceSection(sourceSection);
 
         final String modulePath = staticLexicalScope == null || staticLexicalScope == context.getRootLexicalScope()
                 ? null
@@ -211,7 +208,6 @@ public final class YARPTranslatorDriver {
                 modulePath);
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
-
         if (argumentNames != null) {
             for (String name : argumentNames) {
                 environment.declareVar(name);
@@ -320,7 +316,7 @@ public final class YARPTranslatorDriver {
         if (parserContext.isTopLevel()) {
             rootNode = new RubyTopLevelRootNode(
                     language,
-                    sourceIndexLength.toSourceSection(source),
+                    sourceSection,
                     frameDescriptor,
                     sharedMethodInfo,
                     truffleNode,
@@ -330,7 +326,7 @@ public final class YARPTranslatorDriver {
         } else {
             rootNode = new RubyEvalRootNode(
                     language,
-                    sourceIndexLength.toSourceSection(source),
+                    sourceSection,
                     frameDescriptor,
                     sharedMethodInfo,
                     truffleNode,

@@ -94,8 +94,8 @@ ast: |
                                           attributes:
                                               flags = 0
                                               frameSlot = 2 # %case_0
-                                              sourceCharIndex = 0
-                                              sourceLength = 74
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
                                               type = FRAME_LOCAL
                       elseBody =
                           IfElseNodeGen
@@ -126,8 +126,8 @@ ast: |
                                                       attributes:
                                                           flags = 0
                                                           frameSlot = 2 # %case_0
-                                                          sourceCharIndex = 0
-                                                          sourceLength = 74
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
                                                           type = FRAME_LOCAL
                                   elseBody =
                                       NilLiteralNode
