@@ -1,4 +1,9 @@
 require_relative '../../spec_helper'
+require_relative 'shared/update_time'
+
+describe "File.lutime" do
+  it_behaves_like :update_time, :lutime
+end
 
 describe "File.lutime" do
   platform_is_not :windows do

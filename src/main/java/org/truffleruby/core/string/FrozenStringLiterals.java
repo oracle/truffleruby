@@ -38,7 +38,8 @@ public final class FrozenStringLiterals {
 
     @TruffleBoundary
     public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
-        return getFrozenStringLiteral(tstring.getInternalByteArrayUncached(encoding.tencoding),
+        return getFrozenStringLiteral(
+                tstring.getInternalByteArrayUncached(encoding.tencoding),
                 TStringUtils.hasImmutableInternalByteArray(tstring),
                 encoding);
     }
@@ -48,6 +49,20 @@ public final class FrozenStringLiterals {
             RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
         var cachedTString = tstringCache.getTString(byteArray, isImmutable, encoding);
+        var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
+
+        final ImmutableRubyString string = values.get(tstringWithEncoding);
+        if (string != null) {
+            return string;
+        } else {
+            return values.addInCacheIfAbsent(tstringWithEncoding, new ImmutableRubyString(cachedTString, encoding));
+        }
+    }
+
+    @TruffleBoundary
+    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
+        // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
+        var cachedTString = tstringCache.getTString(bytes, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
 
         final ImmutableRubyString string = values.get(tstringWithEncoding);

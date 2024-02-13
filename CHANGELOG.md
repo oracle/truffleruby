@@ -3,8 +3,8 @@
 New features:
 
 * C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility, smaller distribution and faster installation for C/C++ extensions (#3118, @eregon).
-* Full suport for the Ruby 3.2 and Ruby 3.3 syntax by adopting the [Prism](https://github.com/ruby/prism) parser, which is about twice as fast as the old parser (#3117, #3038, #3039, @andrykonchin, @eregon).
-* Pattern matching is now fully supported, with the exception of Find pattern (`in [*, a, *]`) (#3332, #2683, @eregon, @razetime).
+* Full support for the Ruby 3.2 and Ruby 3.3 syntax by adopting the [Prism](https://github.com/ruby/prism) parser, which is about twice as fast as the old parser (#3117, #3038, #3039, @andrykonchin, @eregon).
+* Pattern matching is now fully supported (#3332, #2683, @eregon, @razetime).
 
 Bug fixes:
 
@@ -21,6 +21,7 @@ Bug fixes:
 * Fix using the `--cpusampler` profiler when there are custom unblock functions for `rb_thread_call_without_gvl()` (#3013, @eregon).
 * Fix recursive raising `FrozenError` exception when redefined `#inspect` modifies an object (#3388, @andrykonchin).
 * Fix `Integer#div` returning the wrong object type when the divisor is a `Rational` (@simonlevasseur, @nirvdrum).
+* Remove constant `Random::DEFAULT` (#3039, @patricklinpl)
 
 Compatibility:
 
@@ -45,6 +46,14 @@ Compatibility:
 * Support passing anonymous * and ** parameters as method call arguments (#3039, @andrykonchin).
 * Handle either positional or keywords arguments by default in `Struct.new` (#3039, @rwstauner).
 * Promote `Set` class to core library (#3039, @andrykonchin).
+* Support `connect_timeout` keyword argument to `TCPSocket.{new,open}` (#3421, @manefz, @patricklinpl, @nirvdrum, @rwstauner).
+* Add `File.lutime` and `Pathname#lutime` methods (#3039, @andrykonchin).
+* Add a deprecation warning for `Encoding#replicate` (#3039, @patricklinpl, @manefz, @nirvdrum).
+* Change `UnboundMethod#{==,inspect}` to use the owner module rather than the origin (#3039, @rwstauner, @manefz, @patricklinpl)
+* Support `lambda` keyword argument in `Proc#parameters` (#3039, @thomasmarshall, @goyox86).
+* Limit maximum encoding set size by 256 (#3039, @thomasmarshall, @goyox86).
+* Remove deprecated methods `Dir.exists?`, `File.exists?`, and `Kernel#=~` (#3039, @patricklinpl, @nirvdrum).
+* Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
 
 Performance:
 

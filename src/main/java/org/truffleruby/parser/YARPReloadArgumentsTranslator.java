@@ -25,8 +25,8 @@ import org.truffleruby.language.literal.ObjectLiteralNode;
 
 
 /** Produces code to reload arguments from local variables back into the arguments array. Only works for simple cases.
- * Used for zsuper calls which pass the same arguments, but will pick up modifications made to them in the method so
- * far.
+ * Used for zsuper (a super call without explicit arguments) calls which pass the same arguments, but will pick up
+ * modifications made to them in the method so far.
  *
  * Parameters should be iterated in the same order {@link org.truffleruby.parser.YARPLoadArgumentsTranslator} iterates
  * to handle multiple "_" parameters (and parameters with "_" prefix) correctly. */
@@ -122,8 +122,7 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
             } else if (parameters.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
                 // do nothing
             } else if (parameters.keyword_rest instanceof Nodes.ForwardingParameterNode) {
-                // do nothing - it's already handled in the #reload method
-                // NOTE: don't handle '&' for now as far as anonymous & isn't supported yet
+                // do nothing - it will be handled separately
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
@@ -134,14 +133,16 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
         }
 
         if (parameters.keyword_rest instanceof Nodes.ForwardingParameterNode) {
-            // ... parameter (so-called "forward arguments") means there is implicit * parameter
+            // ... parameter means there is implicit * parameter
             restParameterIndex = parameters.requireds.length + parameters.optionals.length;
-            var readRestNode = environment.findLocalVarNode(TranslatorEnvironment.FORWARDED_REST_NAME, null);
+            var readRestNode = environment.findLocalVarNode(TranslatorEnvironment.FORWARDED_REST_NAME);
             sequence.add(readRestNode);
 
-            // ... parameter (so-called "forward arguments") means there is implicit ** parameter
-            var readKeyRestNode = environment.findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME, null);
+            // ... parameter means there is implicit ** parameter
+            var readKeyRestNode = environment.findLocalVarNode(TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME);
             sequence.add(readKeyRestNode);
+
+            // implicit block parameter is handled separately in YARPTranslator#visitForwardingSuperNode
         }
 
         return sequence.toArray(RubyNode.EMPTY_ARRAY);
@@ -152,12 +153,13 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
         final String name;
 
         if (node.isRepeatedParameter()) {
+            // when there are multiple "_" parameters
             name = createNameForRepeatedParameter(node.name);
         } else {
             name = node.name;
         }
 
-        return environment.findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name);
     }
 
     @Override
@@ -165,12 +167,13 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
         final String name;
 
         if (node.isRepeatedParameter()) {
+            // when there are multiple "_" parameters
             name = createNameForRepeatedParameter(node.name);
         } else {
             name = node.name;
         }
 
-        return environment.findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name);
     }
 
     @Override
@@ -185,6 +188,7 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
 
         if (node.name != null) {
             if (node.isRepeatedParameter()) {
+                // when there are multiple "_" parameters
                 name = createNameForRepeatedParameter(node.name);
             } else {
                 name = node.name;
@@ -193,23 +197,23 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
             name = TranslatorEnvironment.DEFAULT_REST_NAME;
         }
 
-        return environment.findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name);
     }
 
     @Override
     public RubyNode visitRequiredKeywordParameterNode(Nodes.RequiredKeywordParameterNode node) {
-        return environment.findLocalVarNode(node.name, null);
+        return environment.findLocalVarNode(node.name);
     }
 
     @Override
     public RubyNode visitOptionalKeywordParameterNode(Nodes.OptionalKeywordParameterNode node) {
-        return environment.findLocalVarNode(node.name, null);
+        return environment.findLocalVarNode(node.name);
     }
 
     @Override
     public RubyNode visitKeywordRestParameterNode(Nodes.KeywordRestParameterNode node) {
         final String name = node.name != null ? node.name : TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
-        return environment.findLocalVarNode(name, null);
+        return environment.findLocalVarNode(name);
     }
 
     @Override
@@ -228,6 +232,17 @@ public final class YARPReloadArgumentsTranslator extends YARPBaseTranslator {
         return yarpTranslator.defaultVisit(node);
     }
 
+    /** Generate a name for subsequent local variable, that look like %_1, %_2, etc.
+     *
+     * Parameters that start with "_" (e.g. _, _options, etc.) can be used repeatedly in a method parameters list, e.g.
+     *
+     * <pre>
+     *     def foo(_, _)
+     *     end
+     * </pre>
+     *
+     * They should be forwarded properly but there are no local variables declared in Prism for such duplicated
+     * parameters. That's why such local variables should be declared now. */
     private String createNameForRepeatedParameter(String name) {
         int count = repeatedParameterCounter++;
         return Layouts.TEMP_PREFIX + name + count;

@@ -122,17 +122,8 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         protected TStringWithEncoding createTString(RubyRegexp regexp) {
-            final ClassicRegexp classicRegexp;
-
-            try {
-                classicRegexp = new ClassicRegexp(
-                        new TStringWithEncoding(regexp.source, regexp.encoding),
-                        RegexpOptions.fromEmbeddedOptions(regexp.regex.getOptions()));
-            } catch (DeferredRaiseException dre) {
-                throw dre.getException(getContext());
-            }
-
-            return classicRegexp.toByteArrayBuilder().toTStringWithEnc(regexp.encoding);
+            var sourceEnc = new TStringWithEncoding(regexp.source, regexp.encoding);
+            return ClassicRegexp.toS(sourceEnc, regexp.options);
         }
     }
 

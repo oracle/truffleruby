@@ -206,7 +206,6 @@ class Dir
     def exist?(path)
       PrivateFile.directory?(path)
     end
-    alias_method :exists?, :exist?
 
     def home(user = nil)
       user = StringValue(user) unless Primitive.nil?(user)

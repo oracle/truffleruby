@@ -21,6 +21,7 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 
+/** Defines a new class or module (or gets an existing one) and executes its body. */
 public final class RunModuleDefinitionNode extends RubyContextSourceNode {
 
     @Child private RubyNode definingModule;

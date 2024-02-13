@@ -99,6 +99,18 @@ int truffleposix_poll_single_fd(int fd, int events, int timeout_ms) {
   return poll(&fds, 1, timeout_ms) >= 0 ? fds.revents : -1;
 }
 
+int truffleposix_lutimes(const char *filename, long atime_sec, int atime_nsec,
+                        long mtime_sec, int mtime_nsec) {
+  struct timespec timespecs[2];
+
+  timespecs[0].tv_sec = atime_sec;
+  timespecs[0].tv_nsec = atime_nsec;
+  timespecs[1].tv_sec = mtime_sec;
+  timespecs[1].tv_nsec = mtime_nsec;
+
+  return utimensat(AT_FDCWD, filename, timespecs, AT_SYMLINK_NOFOLLOW);
+}
+
 int truffleposix_utimes(const char *filename, long atime_sec, int atime_nsec,
                         long mtime_sec, int mtime_nsec) {
   struct timespec timespecs[2];

@@ -24,7 +24,6 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -263,21 +262,8 @@ public final class TranslatorEnvironment {
         return index;
     }
 
-    public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, SourceIndexLength sourceSection) {
-        ReadLocalNode localVar = findLocalVarNodeOrNull(name, sourceSection);
-
-        if (localVar == null) {
-            declareVar(name);
-            localVar = findLocalVarNode(name, sourceSection);
-        }
-
-        return localVar;
-    }
-
-    public ReadLocalVariableNode readNode(int slot, SourceIndexLength sourceSection) {
-        var node = new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
-        node.unsafeSetSourceSection(sourceSection);
-        return node;
+    public ReadLocalVariableNode readNode(int slot) {
+        return new ReadLocalVariableNode(LocalVariableType.FRAME_LOCAL, slot);
     }
 
     public ReadLocalVariableNode readNode(int slot, Nodes.Node yarpNode) {
@@ -286,17 +272,16 @@ public final class TranslatorEnvironment {
         return node;
     }
 
-    public RubyNode findLocalVarOrNilNode(String name, SourceIndexLength sourceSection) {
-        RubyNode node = findLocalVarNodeOrNull(name, sourceSection);
+    public RubyNode findLocalVarOrNilNode(String name) {
+        RubyNode node = findLocalVarNodeOrNull(name);
         if (node == null) {
             node = new NilLiteralNode();
-            node.unsafeSetSourceSection(sourceSection);
         }
         return node;
     }
 
-    public ReadLocalNode findLocalVarNode(String name, SourceIndexLength sourceSection) {
-        final ReadLocalNode node = findLocalVarNodeOrNull(name, sourceSection);
+    public ReadLocalNode findLocalVarNode(String name) {
+        final ReadLocalNode node = findLocalVarNodeOrNull(name);
 
         if (node == null) {
             throw CompilerDirectives.shouldNotReachHere(name + " local variable should be declared");
@@ -305,7 +290,7 @@ public final class TranslatorEnvironment {
         return node;
     }
 
-    public ReadLocalNode findLocalVarNodeOrNull(String name, SourceIndexLength sourceSection) {
+    public ReadLocalNode findLocalVarNodeOrNull(String name) {
         assert name != null;
         TranslatorEnvironment current = this;
         int level = 0;
@@ -321,7 +306,6 @@ public final class TranslatorEnvironment {
                     node = new ReadDeclarationVariableNode(LocalVariableType.FRAME_LOCAL, level, slot);
                 }
 
-                node.unsafeSetSourceSection(sourceSection);
                 return node;
             }
 

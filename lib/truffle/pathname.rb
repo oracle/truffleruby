@@ -896,6 +896,10 @@ class Pathname    # * File *
   # See <tt>File.utime</tt>.  Update the access and modification times.
   def utime(atime, mtime) File.utime(atime, mtime, @path) end
 
+  # See <tt>File.lutime</tt>. Update the access and modification times.
+  # Same as Pathname#utime, but does not follow symbolic links.
+  def lutime(atime, mtime) File.lutime(atime, mtime, @path) end
+
   # See <tt>File.basename</tt>.  Returns the last component of the path.
   def basename(*args) self.class.new(File.basename(@path, *args)) end
 
@@ -1082,10 +1086,6 @@ class Pathname    # * mixed *
     end
   end
   alias delete unlink
-end
-
-class Pathname
-  undef =~
 end
 
 module Kernel

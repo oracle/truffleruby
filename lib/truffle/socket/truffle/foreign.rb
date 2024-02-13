@@ -27,6 +27,8 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+require 'timeout'
+
 module Truffle
   module Socket
     module Foreign
@@ -107,14 +109,23 @@ module Truffle
         end
       end
 
-      def self.connect(descriptor, sockaddr)
+      def self.connect(descriptor, sockaddr, connect_timeout = nil)
         sockaddr = Socket.coerce_to_string(sockaddr)
 
         sockaddr_p = Primitive.io_thread_buffer_allocate(sockaddr.bytesize)
         begin
           sockaddr_p.write_bytes(sockaddr)
 
-          _connect(descriptor, sockaddr_p, sockaddr.bytesize)
+          if Primitive.nil?(connect_timeout)
+            _connect(descriptor, sockaddr_p, sockaddr.bytesize)
+          else
+            # In CRuby a connect_timeout of 0 fires immediately whereas a 0 for
+            # Timeout.timeout means "no timeout", so we change 0 to 1ns
+            # (the smallest time interval for clock_gettime).
+            Timeout.timeout(connect_timeout == 0 ? 0.000000001 : connect_timeout, IO::TimeoutError) do
+              _connect(descriptor, sockaddr_p, sockaddr.bytesize)
+            end
+          end
         ensure
           Primitive.io_thread_buffer_free(sockaddr_p)
         end

@@ -53,9 +53,6 @@ class Truffle::CustomRandomizer < Truffle::Randomizer
 end
 
 class Random
-  DEFAULT = self
-  deprecate_constant :DEFAULT
-
   def self.new_seed
     Primitive.thread_randomizer.generate_seed
   end
