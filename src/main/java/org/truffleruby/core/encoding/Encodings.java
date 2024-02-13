@@ -38,8 +38,8 @@ public final class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
     public static final int MAX_NUMBER_OF_ENCODINGS = 256;
-    public static final int US_ASCII_INDEX = 0;
-    public static final RubyEncoding US_ASCII = initializeUsAscii();
+    public static final int US_ASCII_INDEX = getUsAsciiIndex();
+    public static final RubyEncoding US_ASCII = new RubyEncoding(US_ASCII_INDEX);
     static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
     private static final RubyEncoding[] BUILT_IN_ENCODINGS_BY_JCODING_INDEX = initializeBuiltinEncodingsByJCodingIndex();
 
@@ -64,29 +64,39 @@ public final class Encodings {
     public Encodings() {
     }
 
-    private static RubyEncoding initializeUsAscii() {
-        return new RubyEncoding(US_ASCII_INDEX);
+    private static int getUsAsciiIndex() {
+        int index = 0;
+        for (var entry : EncodingDB.getEncodings()) {
+            if (entry.getEncoding() == USASCIIEncoding.INSTANCE) {
+                return index;
+            }
+            index++;
+        }
+        throw CompilerDirectives.shouldNotReachHere("No US-ASCII");
     }
 
     private static RubyEncoding[] initializeRubyEncodings() {
         final RubyEncoding[] encodings = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
 
-        int index = US_ASCII_INDEX + 1;
+        int index = 0;
         for (var entry : EncodingDB.getEncodings()) {
             final Encoding encoding = entry.getEncoding();
 
+            final RubyEncoding rubyEncoding;
             if (encoding == USASCIIEncoding.INSTANCE) {
-                encodings[US_ASCII_INDEX] = US_ASCII;
+                assert index == US_ASCII_INDEX;
+                rubyEncoding = US_ASCII;
             } else {
                 TruffleString tstring = TStringConstants.TSTRING_CONSTANTS.get(encoding.toString());
                 if (tstring == null) {
                     throw CompilerDirectives.shouldNotReachHere("no TStringConstants for " + encoding);
                 }
                 final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(tstring, US_ASCII);
-                var rubyEncoding = new RubyEncoding(encoding, name, index);
-                encodings[index] = rubyEncoding;
-                index++;
+                rubyEncoding = new RubyEncoding(encoding, name, index);
             }
+            encodings[index] = rubyEncoding;
+
+            index++;
         }
 
         assert index == EncodingDB.getEncodings().size();
