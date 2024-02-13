@@ -56,6 +56,8 @@ Compatibility:
 * Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
 * Fix {Method,Proc}#parameters and return `*`, `**` and `&` names for anonymous parameters (@andrykonchin).
 * Remove deprecated `Fixnum` and `Bignum` constants (#3039, @andrykonchin).
+* Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
+* Add `rb_str_to_interned_str` function (#3408, @thomasmarshall).
 
 Performance:
 

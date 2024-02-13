@@ -160,7 +160,7 @@ VALUE rb_str_to_str(VALUE string) {
 }
 
 VALUE rb_fstring(VALUE str) {
-  return RUBY_INVOKE(str, "-@");
+  return rb_str_to_interned_str(str);
 }
 
 VALUE rb_str_buf_new(long capacity) {
@@ -436,4 +436,13 @@ long rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding
   }
   *cr = ENC_CODERANGE_VALID;
   return e - s;
+}
+
+VALUE rb_enc_interned_str_cstr(const char *ptr, rb_encoding *enc) {
+  VALUE str = rb_enc_str_new_cstr(ptr, enc);
+  return rb_str_to_interned_str(str);
+}
+
+VALUE rb_str_to_interned_str(VALUE str) {
+  return RUBY_INVOKE(str, "-@");
 }
