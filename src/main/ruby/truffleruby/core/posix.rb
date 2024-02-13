@@ -433,7 +433,10 @@ module Truffle::POSIX
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond) + timeout_milliseconds
 
     while true
+      nonblock_old = io.nonblock?
+      io.nonblock = true
       bytes_read = Truffle::POSIX.read(fd, buffer, length)
+      io.nonblock = nonblock_old
       return bytes_read if bytes_read >= 0
       return bytes_read unless Errno.errno == Errno::EAGAIN::Errno
 
