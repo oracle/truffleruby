@@ -1668,12 +1668,8 @@ class IO
   end
 
   def timeout=(new_timeout)
-    if Primitive.nil?(new_timeout)
-      self.nonblock = false
-    else
-      self.nonblock = true
-
-      # For validation.
+    unless Primitive.nil?(new_timeout)
+      # validation
       Truffle::KernelOperations.convert_duration_to_milliseconds(new_timeout)
     end
 
