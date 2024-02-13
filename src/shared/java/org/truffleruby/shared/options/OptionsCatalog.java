@@ -62,7 +62,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACES_INTERLEAVE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACES_OMIT_UNUSED_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> BIG_HASH_STRATEGY_IS_BUCKETS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> BIG_HASH_STRATEGY_IS_BUCKETS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACE_ON_INTERRUPT_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> BACKTRACE_ON_SIGALRM_KEY = new OptionKey<>(!EMBEDDED_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BACKTRACE_ON_RAISE_KEY = new OptionKey<>(false);
