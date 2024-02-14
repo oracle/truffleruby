@@ -22,6 +22,8 @@ module TestLibrary
       "powerpc64"
     when /ppc|powerpc/
       "powerpc"
+    when /sparcv9|sparc64/
+      "sparcv9"
     when /^arm/
       if RbConfig::CONFIG['host_os'] =~ /darwin/
         "aarch64"
@@ -67,5 +69,5 @@ module TestLibrary
     lib
   end
 
-  PATH = compile_library(".", "libtest.#{FFI::Platform::LIBSUFFIX}")
+  PATH = FFI.make_shareable(compile_library(".", "libtest.#{FFI::Platform::LIBSUFFIX}"))
 end

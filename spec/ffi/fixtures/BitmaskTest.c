@@ -29,6 +29,26 @@ uint64_t test_tagged_nonint_bitmask3(uint64_t val) {
     return val;
 }
 
+unsigned int test_tagged_uint_bitmask(unsigned int val) {
+    return val;
+}
+
+int8_t test_tagged_nonint_signed_bitmask1(int8_t val) {
+    return val;
+}
+
+int16_t test_tagged_nonint_signed_bitmask2(int16_t val) {
+    return val;
+}
+
+int32_t test_tagged_nonint_signed_bitmask3(int32_t val) {
+    return val;
+}
+
+int64_t test_tagged_nonint_signed_bitmask4(int64_t val) {
+    return val;
+}
+
 typedef enum {c1 = (1<<0), c2 = (1<<1), c3 = (1<<2), c4 = (1<<3)} bitmask_type1;
 int test_tagged_typedef_bitmask1(int val) {
     return val;

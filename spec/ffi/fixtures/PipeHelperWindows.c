@@ -16,7 +16,7 @@ int pipeHelperCreatePipe(FD_TYPE pipefd[2])
     sprintf( name, "\\\\.\\Pipe\\pipeHelper-%u-%i",
              (unsigned int)GetCurrentProcessId(), pipe_idx++ );
 
-    pipefd[0] = CreateNamedPipe( name, PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+    pipefd[0] = CreateNamedPipeA( name, PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
                          PIPE_TYPE_BYTE | PIPE_WAIT,
                          1,             // Number of pipes
                          5,         // Out buffer size
@@ -26,7 +26,7 @@ int pipeHelperCreatePipe(FD_TYPE pipefd[2])
     if(pipefd[0] == INVALID_HANDLE_VALUE)
         return -1;
 
-    pipefd[1] = CreateFile( name, GENERIC_WRITE, 0, NULL,
+    pipefd[1] = CreateFileA( name, GENERIC_WRITE, 0, NULL,
                         OPEN_EXISTING,
                         FILE_ATTRIBUTE_NORMAL,
                         NULL);

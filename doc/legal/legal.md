@@ -58,7 +58,7 @@ MIT licence, see `mit.txt`.
 
 ## JRuby
 
-TruffleRuby contains code from JRuby 9.2.19.0, including Java implementation
+TruffleRuby contains code from JRuby 9.4.4.0, including Java implementation
 code, build system, shell script launchers, standard library modified from MRI,
 and so on.
 

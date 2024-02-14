@@ -29,13 +29,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.#
 
 require 'rbconfig'
+require_relative 'compat'
+
 module FFI
   class PlatformError < LoadError; end
 
   # This module defines different constants and class methods to play with
   # various platforms.
   module Platform
-    OS = case RbConfig::CONFIG['host_os'].downcase
+    OS = FFI.make_shareable(case RbConfig::CONFIG['host_os'].downcase
     when /linux/
       "linux"
     when /darwin/
@@ -54,13 +56,13 @@ module FFI
       "windows"
     else
       RbConfig::CONFIG['host_os'].downcase
-    end
+    end)
 
     OSVERSION = RbConfig::CONFIG['host_os'].gsub(/[^\d]/, '').to_i
 
-    CPU = RbConfig::CONFIG['host_cpu']
+    CPU = FFI.make_shareable(RbConfig::CONFIG['host_cpu'])
 
-    ARCH = case CPU.downcase
+    ARCH = FFI.make_shareable(case CPU.downcase
     when /amd64|x86_64|x64/
       "x86_64"
     when /i\d86|x86|i86pc/
@@ -81,7 +83,7 @@ module FFI
       end
     else
       RbConfig::CONFIG['host_cpu']
-    end
+    end)
 
     private
     # @param [String) os
@@ -105,21 +107,21 @@ module FFI
     # Add the version for known ABI breaks
     name_version = "12" if IS_FREEBSD && OSVERSION >= 12 # 64-bit inodes
 
-    NAME = "#{ARCH}-#{OS}#{name_version}"
-    CONF_DIR = File.join(File.dirname(__FILE__), 'platform', NAME)
+    NAME = FFI.make_shareable("#{ARCH}-#{OS}#{name_version}")
+    CONF_DIR = FFI.make_shareable(File.join(File.dirname(__FILE__), 'platform', NAME))
 
     public
 
-    LIBPREFIX = case OS
+    LIBPREFIX = FFI.make_shareable(case OS
     when /windows|msys/
       ''
     when /cygwin/
       'cyg'
     else
       'lib'
-    end
+    end)
 
-    LIBSUFFIX = case OS
+    LIBSUFFIX = FFI.make_shareable(case OS
     when /darwin/
       'dylib'
     when /linux|bsd|solaris/
@@ -129,9 +131,9 @@ module FFI
     else
       # Punt and just assume a sane unix (i.e. anything but AIX)
       'so'
-    end
+    end)
 
-    LIBC = if IS_WINDOWS
+    LIBC = FFI.make_shareable(if IS_WINDOWS
       crtname = RbConfig::CONFIG["RUBY_SO_NAME"][/msvc\w+/] || 'ucrtbase'
       "#{crtname}.dll"
     elsif IS_GNU
@@ -143,7 +145,7 @@ module FFI
       "msys-2.0.dll"
     else
       "#{LIBPREFIX}c.#{LIBSUFFIX}"
-    end
+    end)
 
     LITTLE_ENDIAN = 1234 unless defined?(LITTLE_ENDIAN)
     BIG_ENDIAN = 4321 unless defined?(BIG_ENDIAN)

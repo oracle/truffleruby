@@ -134,4 +134,17 @@ describe "FFI::Platform.unix?" do
       expect(FFI::Platform::BYTE_ORDER).to eq(order)
     end
   end
+
+  it "should have shareable constants for Ractor", :ractor do
+    res = Ractor.new do
+      [
+        FFI::Platform::OS,
+        FFI::Platform::CPU,
+        FFI::Platform::ARCH,
+        FFI::Platform::OS,
+      ]
+    end.take
+
+    expect( res.size ).to be > 0
+  end
 end

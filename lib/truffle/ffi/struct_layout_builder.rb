@@ -112,7 +112,7 @@ module FFI
       Type::FLOAT64,
       Type::LONGDOUBLE,
       Type::BOOL,
-    ]
+    ].freeze
 
     # @param [String, Symbol] name name of the field
     # @param [Array, DataConverter, Struct, StructLayout::Field, Symbol, Type] type type of the field
