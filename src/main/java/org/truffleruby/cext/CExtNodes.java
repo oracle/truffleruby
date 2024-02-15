@@ -157,23 +157,25 @@ public abstract class CExtNodes {
     public static final int RUBY_TAG_THROW = 0x7;
     public static final int RUBY_TAG_FATAL = 0x8;
 
+    /** We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
+     * Corresponds to TERM_LEN() in MRI. */
+    public static final int NATIVE_STRING_TERMINATOR_LENGTH = 4;
+
     public static Pointer newNativeStringPointer(RubyLanguage language, RubyContext context, int capacity) {
-        // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
-        Pointer pointer = Pointer.mallocAutoRelease(language, context, capacity + 4);
+        Pointer pointer = Pointer.mallocAutoRelease(language, context, capacity + NATIVE_STRING_TERMINATOR_LENGTH);
         pointer.writeInt(capacity, 0);
         return pointer;
     }
 
     public static Pointer newZeroedNativeStringPointer(RubyLanguage language, RubyContext context, int capacity) {
-        // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
-        return Pointer.callocAutoRelease(language, context, capacity + 4);
+        return Pointer.callocAutoRelease(language, context, capacity + NATIVE_STRING_TERMINATOR_LENGTH);
     }
 
     private static long getNativeStringCapacity(Pointer pointer) {
         final long nativeBufferSize = pointer.getSize();
         assert nativeBufferSize > 0;
-        // Do not count the extra byte for \0, like MRI.
-        return nativeBufferSize - 1;
+        // Do not count the extra terminator bytes, like MRI.
+        return nativeBufferSize - NATIVE_STRING_TERMINATOR_LENGTH;
     }
 
     @Primitive(name = "call_with_c_mutex_and_frame")
