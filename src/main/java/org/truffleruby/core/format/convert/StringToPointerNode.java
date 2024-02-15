@@ -42,7 +42,7 @@ public abstract class StringToPointerNode extends FormatNode {
             @Cached RubyStringLibrary strings,
             @Bind("this") Node node) {
 
-        final Pointer pointer = stringToNativeNode.executeToNative(node, string);
+        final Pointer pointer = stringToNativeNode.executeToNative(node, string, true);
 
         List<Pointer> associated = (List<Pointer>) frame.getObject(FormatFrameDescriptor.ASSOCIATED_SLOT);
 

@@ -154,8 +154,12 @@ module FFI
       elsif FFI::Type::POINTER == type
         get_pointer_value(value)
       elsif FFI::Type::STRING == type
-        Truffle::Type.check_null_safe(value) unless Primitive.nil?(value)
-        get_pointer_value(value)
+        if Primitive.nil?(value)
+          Truffle::FFI::Pointer::NULL
+        else
+          Truffle::Type.check_null_safe(value)
+          Truffle::CExt.string_to_ffi_pointer_copy(value)
+        end
       elsif Primitive.is_a?(type, FFI::FunctionType) and Primitive.is_a?(value, Proc)
         callback(value, type)
       else
@@ -198,7 +202,7 @@ module FFI
       elsif Primitive.nil?(value)
         Truffle::FFI::Pointer::NULL
       elsif Primitive.is_a?(value, String)
-        Truffle::CExt.string_to_ffi_pointer(value)
+        Truffle::CExt.string_to_ffi_pointer_inplace(value)
       elsif value.respond_to?(:to_ptr)
         Truffle::Type.coerce_to value, Truffle::FFI::Pointer, :to_ptr
       else

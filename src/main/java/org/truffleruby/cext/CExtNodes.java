@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateCached;
@@ -157,23 +158,25 @@ public abstract class CExtNodes {
     public static final int RUBY_TAG_THROW = 0x7;
     public static final int RUBY_TAG_FATAL = 0x8;
 
+    /** We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
+     * Corresponds to TERM_LEN() in MRI. */
+    public static final int NATIVE_STRING_TERMINATOR_LENGTH = 4;
+
     public static Pointer newNativeStringPointer(RubyLanguage language, RubyContext context, int capacity) {
-        // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
-        Pointer pointer = Pointer.mallocAutoRelease(language, context, capacity + 4);
+        Pointer pointer = Pointer.mallocAutoRelease(language, context, capacity + NATIVE_STRING_TERMINATOR_LENGTH);
         pointer.writeInt(capacity, 0);
         return pointer;
     }
 
     public static Pointer newZeroedNativeStringPointer(RubyLanguage language, RubyContext context, int capacity) {
-        // We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
-        return Pointer.callocAutoRelease(language, context, capacity + 4);
+        return Pointer.callocAutoRelease(language, context, capacity + NATIVE_STRING_TERMINATOR_LENGTH);
     }
 
     private static long getNativeStringCapacity(Pointer pointer) {
         final long nativeBufferSize = pointer.getSize();
         assert nativeBufferSize > 0;
-        // Do not count the extra byte for \0, like MRI.
-        return nativeBufferSize - 1;
+        // Do not count the extra terminator bytes, like MRI.
+        return nativeBufferSize - NATIVE_STRING_TERMINATOR_LENGTH;
     }
 
     @Primitive(name = "call_with_c_mutex_and_frame")
@@ -712,7 +715,7 @@ public abstract class CExtNodes {
         @Specialization
         RubyString clearCodeRange(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            stringToNativeNode.executeToNative(this, string);
+            stringToNativeNode.executeToNative(this, string, true);
             string.clearCodeRange();
 
             return string;
@@ -815,7 +818,7 @@ public abstract class CExtNodes {
         @Specialization
         long capacity(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            return getNativeStringCapacity(stringToNativeNode.executeToNative(this, string));
+            return getNativeStringCapacity(stringToNativeNode.executeToNative(this, string, true));
         }
     }
 
@@ -828,7 +831,7 @@ public abstract class CExtNodes {
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Cached InlinedConditionProfile minLengthOneProfile) {
-            var pointer = stringToNativeNode.executeToNative(this, string);
+            var pointer = stringToNativeNode.executeToNative(this, string, true);
 
             var encoding = libString.getEncoding(string);
             int minLength = encoding.jcoding.minLength();
@@ -858,7 +861,7 @@ public abstract class CExtNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
-            var pointer = stringToNativeNode.executeToNative(this, string);
+            var pointer = stringToNativeNode.executeToNative(this, string, true);
             var tencoding = libString.getTEncoding(string);
             int byteLength = string.tstring.byteLength(tencoding);
 
@@ -887,7 +890,7 @@ public abstract class CExtNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
-            var pointer = stringToNativeNode.executeToNative(this, string);
+            var pointer = stringToNativeNode.executeToNative(this, string, true);
             var tencoding = libString.getTEncoding(string);
 
             if (getNativeStringCapacity(pointer) == newCapacity) {
@@ -1325,24 +1328,29 @@ public abstract class CExtNodes {
         }
     }
 
+    /** If inplace is true, this node mutates the RubyString to use native memory. It should be avoided unless there is
+     * no other way because e.g. Regexp matching later on that String would then copy to managed byte[] back, and
+     * copying back-and-forth is quite expensive. OTOH if the String will need to be used as native memory again soon
+     * after and without needing to go to managed in between then it is valuable to avoid extra copies. */
     @GenerateInline
     @GenerateCached(false)
     public abstract static class StringToNativeNode extends RubyBaseNode {
 
-        public abstract Pointer executeToNative(Node node, Object string);
+        public abstract Pointer executeToNative(Node node, Object string, boolean inplace);
 
         @Specialization
-        static Pointer toNative(Node node, RubyString string,
+        static Pointer toNative(Node node, RubyString string, boolean inplace,
                 @Cached RubyStringLibrary libString,
                 @Cached InlinedConditionProfile convertProfile,
                 @Cached(inline = false) TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @Cached(inline = false) MutableTruffleString.FromNativePointerNode fromNativePointerNode,
                 @Cached(inline = false) TruffleString.GetInternalNativePointerNode getInternalNativePointerNode) {
+            CompilerAsserts.partialEvaluationConstant(inplace);
+
             var tstring = string.tstring;
             var tencoding = libString.getTEncoding(string);
 
             final Pointer pointer;
-
             if (convertProfile.profile(node, tstring.isNative())) {
                 assert tstring.isMutable();
                 pointer = (Pointer) getInternalNativePointerNode.execute(tstring, tencoding);
@@ -1351,16 +1359,18 @@ public abstract class CExtNodes {
                 pointer = allocateAndCopyToNative(getLanguage(node), getContext(node), tstring, tencoding, byteLength,
                         copyToNativeMemoryNode);
 
-                var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, tencoding, false);
-                string.setTString(nativeTString);
+                if (inplace) {
+                    var nativeTString = fromNativePointerNode.execute(pointer, 0, byteLength, tencoding, false);
+                    string.setTString(nativeTString);
+                }
             }
 
             return pointer;
         }
 
         @Specialization
-        static Pointer toNativeImmutable(Node node, ImmutableRubyString string) {
-            return string.getNativeString(getLanguage(node));
+        static Pointer toNativeImmutable(Node node, ImmutableRubyString string, boolean inplace) {
+            return string.getNativeString(getLanguage(node), getContext(node));
         }
 
         public static Pointer allocateAndCopyToNative(RubyLanguage language, RubyContext context,
@@ -1379,17 +1389,34 @@ public abstract class CExtNodes {
         @Specialization
         long toNative(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            return stringToNativeNode.executeToNative(this, string).getAddress();
+            return stringToNativeNode.executeToNative(this, string, true).getAddress();
         }
     }
 
-    @CoreMethod(names = "string_to_ffi_pointer", onSingleton = true, required = 1)
-    public abstract static class StringToFFIPointerNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "string_to_ffi_pointer_inplace", onSingleton = true, required = 1)
+    public abstract static class StringToFFIPointerInplaceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyPointer toNative(Object string,
+        RubyPointer toFFIPointerInplace(Object string,
                 @Cached StringToNativeNode stringToNativeNode) {
-            var pointer = stringToNativeNode.executeToNative(this, string);
+            var pointer = stringToNativeNode.executeToNative(this, string, true);
+
+            final RubyPointer instance = new RubyPointer(
+                    coreLibrary().truffleFFIPointerClass,
+                    getLanguage().truffleFFIPointerShape,
+                    pointer);
+            AllocationTracing.trace(instance, this);
+            return instance;
+        }
+    }
+
+    @CoreMethod(names = "string_to_ffi_pointer_copy", onSingleton = true, required = 1)
+    public abstract static class StringToFFIPointerCopyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        RubyPointer toFFIPointerCopy(Object string,
+                @Cached StringToNativeNode stringToNativeNode) {
+            var pointer = stringToNativeNode.executeToNative(this, string, false);
 
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerClass,
