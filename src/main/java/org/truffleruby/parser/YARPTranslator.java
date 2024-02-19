@@ -2424,14 +2424,14 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final ToSNode[] children = translateInterpolatedParts(node.parts);
 
-        final RubyNode rubyNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
+        final RubyNode rubyNode = new InterpolatedStringNode(children, sourceEncoding);
         return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
     public RubyNode visitInterpolatedSymbolNode(Nodes.InterpolatedSymbolNode node) {
         final ToSNode[] children = translateInterpolatedParts(node.parts);
-        final RubyNode stringNode = new InterpolatedStringNode(children, sourceEncoding.jcoding);
+        final RubyNode stringNode = new InterpolatedStringNode(children, sourceEncoding);
 
         final RubyNode rubyNode = StringToSymbolNodeGen.create(stringNode);
         return assignPositionAndFlags(node, rubyNode);

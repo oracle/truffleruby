@@ -54,12 +54,17 @@ Compatibility:
 * Limit maximum encoding set size by 256 (#3039, @thomasmarshall, @goyox86).
 * Remove deprecated methods `Dir.exists?`, `File.exists?`, and `Kernel#=~` (#3039, @patricklinpl, @nirvdrum).
 * Remove deprecated `FileTest.exists?` method (#3039, @andrykonchin).
+* Fix {Method,Proc}#parameters and return `*`, `**` and `&` names for anonymous parameters (@andrykonchin).
+* Remove deprecated `Fixnum` and `Bignum` constants (#3039, @andrykonchin).
+* Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
+* Add `rb_str_to_interned_str` function (#3408, @thomasmarshall).
 
 Performance:
 
 * Change the `Hash` representation from traditional buckets to a "compact hash table" for improved locality, performance and memory footprint (#3172, @moste00).
 * Optimize calls with `ruby2_keywords` forwarding by deciding it per call site instead of per callee thanks to [my fix in CRuby 3.2](https://bugs.ruby-lang.org/issues/18625) (@eregon).
 * Optimize feature loading when require is called with an absolute path to a .rb file (@rwstauner).
+* Avoid extra copies for Strings passed as `:string` arguments to a FFI call and used later for Regexp matching (#3293, @eregon).
 
 Changes:
 

@@ -80,8 +80,8 @@ module FFI
 
     class Mapped < Field
       def initialize(name, offset, type, orig_field)
-        super(name, offset, type)
         @orig_field = orig_field
+        super(name, offset, type)
       end
 
       def get(ptr)

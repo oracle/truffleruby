@@ -41,7 +41,7 @@ public final class LanguageOptions {
     public final boolean LAZY_TRANSLATION_USER;
     /** --backtraces-omit-unused=true */
     public final boolean BACKTRACES_OMIT_UNUSED;
-    /** --buckets-big-hash=false */
+    /** --buckets-big-hash=true */
     public final boolean BIG_HASH_STRATEGY_IS_BUCKETS;
     /** --building-core-cexts=false */
     public final boolean BUILDING_CORE_CEXTS;

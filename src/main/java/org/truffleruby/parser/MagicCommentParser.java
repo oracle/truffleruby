@@ -14,9 +14,7 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
-import org.jcodings.Encoding;
 import org.truffleruby.collections.Memo;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -95,9 +93,9 @@ public abstract class MagicCommentParser {
             parser_magic_comment(magicLine, 0, magicLineLength,
                     (name, value) -> {
                         if (isMagicEncodingComment(name)) {
-                            Encoding jcoding = EncodingManager.getEncoding(value.toJavaStringUncached());
-                            if (jcoding != null) {
-                                encoding.set(Encodings.getBuiltInEncoding(jcoding));
+                            RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(value.toJavaStringUncached());
+                            if (rubyEncoding != null) {
+                                encoding.set(rubyEncoding);
                                 return true;
                             }
                         }
@@ -107,9 +105,9 @@ public abstract class MagicCommentParser {
             if (encoding.get() == null) {
                 TruffleString encodingName = get_file_encoding(magicLine);
                 if (encodingName != null) {
-                    Encoding jcoding = EncodingManager.getEncoding(encodingName.toJavaStringUncached());
-                    if (jcoding != null) {
-                        encoding.set(Encodings.getBuiltInEncoding(jcoding));
+                    RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingName.toJavaStringUncached());
+                    if (rubyEncoding != null) {
+                        encoding.set(rubyEncoding);
                     }
                 }
             }

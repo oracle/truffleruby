@@ -559,19 +559,19 @@ describe "C-API Encoding function" do
 
   describe "rb_ascii8bit_encindex" do
     it "returns an index for the ASCII-8BIT encoding" do
-      @s.rb_ascii8bit_encindex().should >= 0
+      @s.rb_ascii8bit_encindex().should == 0
     end
   end
 
   describe "rb_utf8_encindex" do
     it "returns an index for the UTF-8 encoding" do
-      @s.rb_utf8_encindex().should >= 0
+      @s.rb_utf8_encindex().should == 1
     end
   end
 
   describe "rb_usascii_encindex" do
     it "returns an index for the US-ASCII encoding" do
-      @s.rb_usascii_encindex().should >= 0
+      @s.rb_usascii_encindex().should == 2
     end
   end
 

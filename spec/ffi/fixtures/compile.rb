@@ -11,7 +11,7 @@ module TestLibrary
   CPU = case RbConfig::CONFIG['host_cpu'].downcase
     when /i[3456]86/
       # Darwin always reports i686, even when running in 64bit mode
-      if RbConfig::CONFIG['host_os'] =~ /darwin/ && 0xfee1deadbeef.is_a?(Fixnum)
+      if RbConfig::CONFIG['host_os'] =~ /darwin/ && [1].pack("J").bytesize == 8
         "x86_64"
       else
         "i386"
@@ -22,6 +22,8 @@ module TestLibrary
       "powerpc64"
     when /ppc|powerpc/
       "powerpc"
+    when /sparcv9|sparc64/
+      "sparcv9"
     when /^arm/
       if RbConfig::CONFIG['host_os'] =~ /darwin/
         "aarch64"
@@ -67,5 +69,5 @@ module TestLibrary
     lib
   end
 
-  PATH = compile_library(".", "libtest.#{FFI::Platform::LIBSUFFIX}")
+  PATH = FFI.make_shareable(compile_library(".", "libtest.#{FFI::Platform::LIBSUFFIX}"))
 end

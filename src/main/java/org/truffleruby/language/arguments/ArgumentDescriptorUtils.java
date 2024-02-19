@@ -15,11 +15,15 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.parser.TranslatorEnvironment;
+
+import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
+import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME;
+import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_REST_NAME;
 
 public final class ArgumentDescriptorUtils {
 
@@ -44,16 +48,22 @@ public final class ArgumentDescriptorUtils {
 
     private static RubyArray toArray(RubyLanguage language, RubyContext context, ArgumentType argType, String name) {
         final Object[] store;
+        final RubySymbol typeSymbol = language.getSymbol(argType.symbolicName);
 
-        if (argType.anonymous || name == null) {
-            store = new Object[]{ language.getSymbol(argType.symbolicName) };
+        if (argType == ArgumentType.anonrest) {
+            store = new Object[]{ typeSymbol, language.coreSymbols.MULTIPLY };
+        } else if (argType == ArgumentType.anonkeyrest) {
+            store = new Object[]{ typeSymbol, language.coreSymbols.POW };
+        } else if (argType == ArgumentType.rest && name.equals(FORWARDED_REST_NAME)) {
+            store = new Object[]{ typeSymbol, language.coreSymbols.MULTIPLY };
+        } else if (argType == ArgumentType.keyrest && name.equals(FORWARDED_KEYWORD_REST_NAME)) {
+            store = new Object[]{ typeSymbol, language.coreSymbols.POW };
+        } else if (argType == ArgumentType.block && name.equals(FORWARDED_BLOCK_NAME)) {
+            store = new Object[]{ typeSymbol, language.coreSymbols.AMPERSAND };
+        } else if (argType.anonymous || name == null) {
+            store = new Object[]{ typeSymbol };
         } else {
-            // make sure to normalize parameter names to "_" if they start with "_$"
-            if (name.startsWith(TranslatorEnvironment.UNDERSCORE_PREFIX)) {
-                name = "_";
-            }
-
-            store = new Object[]{ language.getSymbol(argType.symbolicName), language.getSymbol(name) };
+            store = new Object[]{ typeSymbol, language.getSymbol(name) };
         }
 
         return ArrayHelpers.createArray(context, language, store);

@@ -1,3 +1,0 @@
-fails:Method#parameters adds rest arg with name * for "star" argument
-fails:Method#parameters adds keyrest arg with ** as a name for "double star" argument
-fails:Method#parameters adds block arg with name & for anonymous block argument

@@ -5,7 +5,9 @@
  */
 
 #include <sys/types.h>
+#ifndef _MSC_VER
 #include <sys/param.h>
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
