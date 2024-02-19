@@ -193,7 +193,12 @@ module Utilities
       sforceimports unless File.directory?(GRAAL_DIR)
       common_json = File.read(graal_common_json)
       edition = ee_jdk? ? 'ee' : 'ce'
-      regex = /"labsjdk-#{edition}-#{@jdk_version}":\s*\{\s*"name":\s*"labsjdk"\s*,\s*"version":\s*"[^"]+-(jvmci-[^"]+)"\s*,/
+      if @jdk_version == 'latest'
+        # The version after "-jvmci-" is not enough for latest, we also need the JDK version
+        regex = /"labsjdk-#{edition}-#{@jdk_version}":\s*\{\s*"name":\s*"labsjdk"\s*,\s*"version":\s*"(?:ce|ee)-([^"]+-jvmci-[^"]+)"\s*,/
+      else
+        regex = /"labsjdk-#{edition}-#{@jdk_version}":\s*\{\s*"name":\s*"labsjdk"\s*,\s*"version":\s*"[^"]+-(jvmci-[^"]+)"\s*,/
+      end
       raise "JVMCI version not found for labsjdk-#{edition}-#{@jdk_version} in #{graal_common_json}" unless regex =~ common_json
       $1
     end
@@ -2355,7 +2360,7 @@ module Commands
 
     ee = ee_jdk?
     jdk_name = ee ? "labsjdk-ee-#{jdk_version}" : "labsjdk-ce-#{jdk_version}"
-
+    # We try to match the default directory name that mx fetch-jdk uses here to avoid extra symlinks
     java_home = "#{JDKS_CACHE_DIR}/#{jdk_name}-#{jvmci_version}"
     unless File.directory?(java_home)
       STDERR.puts "#{download_message} (#{jdk_name})"
