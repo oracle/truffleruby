@@ -5,6 +5,12 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), "spec_helper"))
 
+module TestEnumValueRactor
+  extend FFI::Library
+  enum :something, [:one, :two]
+  freeze
+end
+
 describe "Library" do
   describe ".enum_value" do
     m = Module.new do
@@ -19,6 +25,14 @@ describe "Library" do
 
     it "should return nil for an invalid key" do
       expect(m.enum_value(:three)).to be nil
+    end
+
+    it "should be queryable in Ractor", :ractor do
+      res = Ractor.new do
+        TestEnumValueRactor.enum_value(:one)
+      end.take
+
+      expect( res ).to eq(0)
     end
   end
 
@@ -88,7 +102,7 @@ describe "Library" do
       }.to raise_error(LoadError)
     end
 
-    it "interprets INPUT() in loader scripts", unless: FFI::Platform.windows? do
+    it "interprets INPUT() in linker scripts", unless: FFI::Platform.windows? || FFI::Platform.mac? do
       path = File.dirname(TestLibrary::PATH)
       file = File.basename(TestLibrary::PATH)
       script = File.join(path, "ldscript.so")
@@ -184,15 +198,49 @@ describe "Library" do
         end.getpid).to eq(Process.pid)
       }.to raise_error(LoadError)
     end
+  end
 
-    it "attach_function :bool_return_true from [ File.expand_path(#{TestLibrary::PATH.inspect}) ]" do
-      mod = Module.new do |m|
-        m.extend FFI::Library
-        ffi_lib File.expand_path(TestLibrary::PATH)
-        attach_function :bool_return_true, [ ], :bool
-      end
-      expect(mod.bool_return_true).to be true
+  it "attach_function :bool_return_true from [ File.expand_path(#{TestLibrary::PATH.inspect}) ]" do
+    mod = Module.new do |m|
+      m.extend FFI::Library
+      ffi_lib File.expand_path(TestLibrary::PATH)
+      attach_function :bool_return_true, [ ], :bool
     end
+    expect(mod.bool_return_true).to be true
+  end
+
+  it "can define a foo! function" do
+    mod = Module.new do |m|
+      m.extend FFI::Library
+      ffi_lib File.expand_path(TestLibrary::PATH)
+      attach_function :foo!, :bool_return_true, [], :bool
+    end
+    expect(mod.foo!).to be true
+  end
+
+  it "can define a foo? function" do
+    mod = Module.new do |m|
+      m.extend FFI::Library
+      ffi_lib File.expand_path(TestLibrary::PATH)
+      attach_function :foo?, :bool_return_true, [], :bool
+    end
+    expect(mod.foo?).to be true
+  end
+
+  it "can reveal the function type" do
+    skip 'this is not yet implemented on JRuby' if RUBY_ENGINE == 'jruby'
+    skip 'this is not yet implemented on Truffleruby' if RUBY_ENGINE == 'truffleruby'
+
+    mod = Module.new do |m|
+      m.extend FFI::Library
+      ffi_lib File.expand_path(TestLibrary::PATH)
+      attach_function :bool_return_true, [ :string ], :bool
+    end
+
+    fun = mod.attached_functions
+    expect(fun.keys).to eq([:bool_return_true])
+    expect(fun[:bool_return_true].param_types).to eq([FFI::Type::STRING])
+    expect(fun[:bool_return_true].return_type).to eq(FFI::Type::BOOL)
   end
 
   def gvar_lib(name, type)
@@ -321,5 +369,36 @@ describe "Library" do
       val = GlobalStruct.new(lib.get)
       expect(val[:data]).to eq(i)
     end
+  end
+
+  it "can reveal its attached global struct based variables" do
+    lib = Module.new do |m|
+      m.extend FFI::Library
+      ffi_lib TestLibrary::PATH
+      attach_variable :gvari, "gvar_gstruct", GlobalStruct
+    end
+    expect(lib.attached_variables).to eq({ gvari: GlobalStruct })
+  end
+
+  it "can reveal its attached global variables" do
+    lib = Module.new do |m|
+      m.extend FFI::Library
+      ffi_lib TestLibrary::PATH
+      attach_variable "gvaro", "gvar_u32", :uint32
+    end
+    expect(lib.attached_variables).to eq({ gvaro: FFI::Type::UINT32 })
+  end
+
+  it "should have shareable constants for Ractor", :ractor do
+    res = Ractor.new do
+      [
+        FFI::Library::LIBC,
+        FFI::Library::CURRENT_PROCESS,
+        FFI::CURRENT_PROCESS,
+        FFI::USE_THIS_PROCESS_AS_LIBRARY,
+      ]
+    end.take
+
+    expect( res.size ).to be > 0
   end
 end

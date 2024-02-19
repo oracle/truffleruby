@@ -93,7 +93,8 @@ module Truffle::FiddleBackend
 
   def self.get_pointer_value(val)
     if Primitive.is_a?(val, String)
-      Truffle::CExt.string_to_ffi_pointer(val)
+      # NOTE: Fiddle::TYPE_CONST_STRING wouldn't need inplace, but not defined yet by this file
+      Truffle::CExt.string_to_ffi_pointer_inplace(val)
     elsif Primitive.is_a?(val, Fiddle::Pointer)
       val.to_i
     elsif val.respond_to?(:to_ptr)

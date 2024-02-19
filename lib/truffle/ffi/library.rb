@@ -28,10 +28,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.#
 
-module FFI
-  CURRENT_PROCESS = USE_THIS_PROCESS_AS_LIBRARY = Object.new
+require 'ffi/dynamic_library'
 
-  # @param [#to_s] lib library name
+module FFI
+  CURRENT_PROCESS = USE_THIS_PROCESS_AS_LIBRARY = FFI.make_shareable(Object.new)
+
+  # @param [String, FFI::LibraryPath] lib library name or LibraryPath object
   # @return [String] library name formatted for current platform
   # Transform a generic library name to a platform library name
   # @example
@@ -43,15 +45,7 @@ module FFI
   #  FFI.map_library_name 'jpeg'  # -> "jpeg.dll"
   def self.map_library_name(lib)
     # Mangle the library name to reflect the native library naming conventions
-    lib = Library::LIBC if lib == 'c'
-
-    if lib && File.basename(lib) == lib
-      lib = Platform::LIBPREFIX + lib unless lib =~ /^#{Platform::LIBPREFIX}/
-      r = Platform::IS_WINDOWS || Platform::IS_MAC ? "\\.#{Platform::LIBSUFFIX}$" : "\\.so($|\\.[1234567890]+)"
-      lib += ".#{Platform::LIBSUFFIX}" unless lib =~ /#{r}/
-    end
-
-    lib
+    LibraryPath.wrap(lib).to_s
   end
 
   # Exception raised when a function is not found in libraries
@@ -95,62 +89,11 @@ module FFI
     def ffi_lib(*names)
       raise LoadError.new("library names list must not be empty") if names.empty?
 
-      lib_flags = defined?(@ffi_lib_flags) ? @ffi_lib_flags : FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_LOCAL
-      ffi_libs = names.map do |name|
+      lib_flags = defined?(@ffi_lib_flags) && @ffi_lib_flags
 
-        if name == FFI::CURRENT_PROCESS
-          FFI::DynamicLibrary.open(nil, FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_LOCAL)
-
-        else
-          libnames = (name.is_a?(::Array) ? name : [ name ]).map(&:to_s).map { |n| [ n, FFI.map_library_name(n) ].uniq }.flatten.compact
-          lib = nil
-          errors = {}
-
-          libnames.each do |libname|
-            begin
-              orig = libname
-              lib = FFI::DynamicLibrary.open(libname, lib_flags)
-              break if lib
-
-            rescue Exception => ex
-              ldscript = false
-              if ex.message =~ /(([^ \t()])+\.so([^ \t:()])*):([ \t])*(invalid ELF header|file too short|invalid file format)/
-                if File.binread($1) =~ /(?:GROUP|INPUT) *\( *([^ \)]+)/
-                  libname = $1
-                  ldscript = true
-                end
-              end
-
-              if ldscript
-                retry
-              else
-                # TODO better library lookup logic
-                unless libname.start_with?("/") || FFI::Platform.windows?
-                  path = ['/usr/lib/','/usr/local/lib/','/opt/local/lib/', '/opt/homebrew/lib/'].find do |pth|
-                    File.exist?(pth + libname)
-                  end
-                  if path
-                    libname = path + libname
-                    retry
-                  end
-                end
-
-                libr = (orig == libname ? orig : "#{orig} #{libname}")
-                errors[libr] = ex
-              end
-            end
-          end
-
-          if lib.nil?
-            raise LoadError.new(errors.values.join(".\n"))
-          end
-
-          # return the found lib
-          lib
-        end
+      @ffi_libs = names.map do |name|
+        FFI::DynamicLibrary.send(:load_library, name, lib_flags)
       end
-
-      @ffi_libs = ffi_libs
     end
 
     # Set the calling convention for {#attach_function} and {#callback}
@@ -258,7 +201,7 @@ module FFI
             end
             raise LoadError unless function
 
-            invokers << if arg_types.length > 0 && arg_types[arg_types.length - 1] == FFI::NativeType::VARARGS
+            invokers << if arg_types[-1] == FFI::NativeType::VARARGS
               VariadicInvoker.new(function, arg_types, find_type(ret_type), options)
 
             else
@@ -330,6 +273,7 @@ module FFI
     # Attach C variable +cname+ to this module.
     def attach_variable(mname, a1, a2 = nil)
       cname, type = a2 ? [ a1, a2 ] : [ mname.to_s, a1 ]
+      mname = mname.to_sym
       address = nil
       ffi_libraries.each do |lib|
         begin
@@ -344,9 +288,10 @@ module FFI
         # If it is a global struct, just attach directly to the pointer
         s = s = type.new(address) # Assigning twice to suppress unused variable warning
         self.module_eval <<-code, __FILE__, __LINE__
-          @@ffi_gvar_#{mname} = s
+          @ffi_gsvars = {} unless defined?(@ffi_gsvars)
+          @ffi_gsvars[#{mname.inspect}] = s
           def self.#{mname}
-            @@ffi_gvar_#{mname}
+            @ffi_gsvars[#{mname.inspect}]
           end
         code
 
@@ -358,12 +303,13 @@ module FFI
         # Attach to this module as mname/mname=
         #
         self.module_eval <<-code, __FILE__, __LINE__
-          @@ffi_gvar_#{mname} = s
+          @ffi_gvars = {} unless defined?(@ffi_gvars)
+          @ffi_gvars[#{mname.inspect}] = s
           def self.#{mname}
-            @@ffi_gvar_#{mname}[:gvar]
+            @ffi_gvars[#{mname.inspect}][:gvar]
           end
           def self.#{mname}=(value)
-            @@ffi_gvar_#{mname}[:gvar] = value
+            @ffi_gvars[#{mname.inspect}][:gvar] = value
           end
         code
 
@@ -587,6 +533,44 @@ module FFI
         typedef Type::Mapped.new(t), t
 
       end || FFI.find_type(t)
+    end
+
+    # Retrieve all attached functions and their function signature
+    #
+    # This method returns a Hash of method names of attached functions connected by #attach_function and the corresponding function type.
+    # The function type responds to #return_type and #param_types which return the FFI types of the function signature.
+    #
+    # @return [Hash< Symbol => [FFI::Function, FFI::VariadicInvoker] >]
+    def attached_functions
+      @ffi_functions || {}
+    end
+
+    # Retrieve all attached variables and their type
+    #
+    # This method returns a Hash of variable names and the corresponding type or variables connected by #attach_variable .
+    #
+    # @return [Hash< Symbol => ffi_type >]
+    def attached_variables
+      (
+        (@ffi_gsvars || {}).map do |name, gvar|
+          [name, gvar.class]
+        end +
+        (@ffi_gvars || {}).map do |name, gvar|
+          [name, gvar.layout[:gvar].type]
+        end
+      ).to_h
+    end
+
+    # Freeze all definitions of the module
+    #
+    # This freezes the module's definitions, so that it can be used in a Ractor.
+    # No further methods or variables can be attached and no further enums or typedefs can be created in this module afterwards.
+    def freeze
+      instance_variables.each do |name|
+        var = instance_variable_get(name)
+        FFI.make_shareable(var)
+      end
+      nil
     end
   end
 end

@@ -225,7 +225,7 @@ class Document < AbstractBlock
       # safely resolve the safe mode from const, int or string
       if !(safe_mode = options[:safe])
         @safe = SafeMode::SECURE
-      elsif ::Fixnum === safe_mode
+      elsif ::Integer === safe_mode  # this is fixed in upstream in v1.5.5 (https://github.com/asciidoctor/asciidoctor/blob/main/CHANGELOG.adoc#155-2016-10-05---mojavelinux)
         # be permissive in case API user wants to define new levels
         @safe = safe_mode
       else

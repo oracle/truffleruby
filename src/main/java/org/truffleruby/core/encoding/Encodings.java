@@ -38,26 +38,22 @@ public final class Encodings {
 
     public static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
     public static final int MAX_NUMBER_OF_ENCODINGS = 256;
-    public static final RubyEncoding US_ASCII = initializeUsAscii();
-    private static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
+    public static final int US_ASCII_INDEX = getUsAsciiIndex();
+    public static final RubyEncoding US_ASCII = new RubyEncoding(US_ASCII_INDEX);
+    static final RubyEncoding[] BUILT_IN_ENCODINGS = initializeRubyEncodings();
+    private static final RubyEncoding[] BUILT_IN_ENCODINGS_BY_JCODING_INDEX = initializeBuiltinEncodingsByJCodingIndex();
 
-    public static final RubyEncoding BINARY = BUILT_IN_ENCODINGS[ASCIIEncoding.INSTANCE.getIndex()];
-    public static final RubyEncoding UTF_8 = BUILT_IN_ENCODINGS[UTF8Encoding.INSTANCE.getIndex()];
-    public static final RubyEncoding UTF16LE = BUILT_IN_ENCODINGS[UTF16LEEncoding.INSTANCE.getIndex()];
-    public static final RubyEncoding UTF16BE = BUILT_IN_ENCODINGS[UTF16BEEncoding.INSTANCE.getIndex()];
-    public static final RubyEncoding UTF32LE = BUILT_IN_ENCODINGS[UTF32LEEncoding.INSTANCE.getIndex()];
-    public static final RubyEncoding UTF32BE = BUILT_IN_ENCODINGS[UTF32BEEncoding.INSTANCE.getIndex()];
-    public static final RubyEncoding ISO_8859_1 = BUILT_IN_ENCODINGS[ISO8859_1Encoding.INSTANCE.getIndex()];
-    public static final RubyEncoding UTF16_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
-            .getEncodings()
-            .get(StringOperations.encodeAsciiBytes("UTF-16"))
-            .getEncoding()
-            .getIndex()];
-    public static final RubyEncoding UTF32_DUMMY = BUILT_IN_ENCODINGS[EncodingDB
-            .getEncodings()
-            .get(StringOperations.encodeAsciiBytes("UTF-32"))
-            .getEncoding()
-            .getIndex()];
+    public static final RubyEncoding BINARY = getBuiltInEncoding(ASCIIEncoding.INSTANCE);
+    public static final RubyEncoding UTF_8 = getBuiltInEncoding(UTF8Encoding.INSTANCE);
+    public static final RubyEncoding UTF16LE = getBuiltInEncoding(UTF16LEEncoding.INSTANCE);
+    public static final RubyEncoding UTF16BE = getBuiltInEncoding(UTF16BEEncoding.INSTANCE);
+    public static final RubyEncoding UTF32LE = getBuiltInEncoding(UTF32LEEncoding.INSTANCE);
+    public static final RubyEncoding UTF32BE = getBuiltInEncoding(UTF32BEEncoding.INSTANCE);
+    public static final RubyEncoding ISO_8859_1 = getBuiltInEncoding(ISO8859_1Encoding.INSTANCE);
+    public static final RubyEncoding UTF16_DUMMY = getBuiltInEncoding(
+            EncodingDB.getEncodings().get(StringOperations.encodeAsciiBytes("UTF-16")).getEncoding());
+    public static final RubyEncoding UTF32_DUMMY = getBuiltInEncoding(
+            EncodingDB.getEncodings().get(StringOperations.encodeAsciiBytes("UTF-32")).getEncoding());
 
     /** On Linux and macOS the filesystem encoding is always UTF-8 */
     public static final RubyEncoding FILESYSTEM = UTF_8;
@@ -68,18 +64,27 @@ public final class Encodings {
     public Encodings() {
     }
 
-    private static RubyEncoding initializeUsAscii() {
-        final Encoding encoding = USASCIIEncoding.INSTANCE;
-        return new RubyEncoding(encoding.getIndex());
+    private static int getUsAsciiIndex() {
+        int index = 0;
+        for (var entry : EncodingDB.getEncodings()) {
+            if (entry.getEncoding() == USASCIIEncoding.INSTANCE) {
+                return index;
+            }
+            index++;
+        }
+        throw CompilerDirectives.shouldNotReachHere("No US-ASCII");
     }
 
     private static RubyEncoding[] initializeRubyEncodings() {
         final RubyEncoding[] encodings = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
+
+        int index = 0;
         for (var entry : EncodingDB.getEncodings()) {
             final Encoding encoding = entry.getEncoding();
 
             final RubyEncoding rubyEncoding;
             if (encoding == USASCIIEncoding.INSTANCE) {
+                assert index == US_ASCII_INDEX;
                 rubyEncoding = US_ASCII;
             } else {
                 TruffleString tstring = TStringConstants.TSTRING_CONSTANTS.get(encoding.toString());
@@ -87,10 +92,14 @@ public final class Encodings {
                     throw CompilerDirectives.shouldNotReachHere("no TStringConstants for " + encoding);
                 }
                 final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(tstring, US_ASCII);
-                rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());
+                rubyEncoding = new RubyEncoding(encoding, name, index);
             }
-            encodings[encoding.getIndex()] = rubyEncoding;
+            encodings[index] = rubyEncoding;
+
+            index++;
         }
+
+        assert index == EncodingDB.getEncodings().size();
         return encodings;
     }
 
@@ -108,23 +117,36 @@ public final class Encodings {
         return new RubyEncoding(encoding, string, index);
     }
 
+    public static RubyEncoding[] initializeBuiltinEncodingsByJCodingIndex() {
+        final RubyEncoding[] encodings = new RubyEncoding[INITIAL_NUMBER_OF_ENCODINGS];
+        for (RubyEncoding encoding : BUILT_IN_ENCODINGS) {
+            // This and the usage in getBuiltInEncoding() below should be the only usages of org.jcodings.Encoding#getIndex().
+            // That index is not deterministic and depends on classloading, so use it as little as possible.
+            encodings[encoding.jcoding.getIndex()] = encoding;
+        }
+        return encodings;
+    }
+
     /** Should only be used when there is no other way, because this will ignore replicated and dummy encodings */
     public static RubyEncoding getBuiltInEncoding(Encoding jcoding) {
-        var rubyEncoding = BUILT_IN_ENCODINGS[jcoding.getIndex()];
+        var rubyEncoding = BUILT_IN_ENCODINGS_BY_JCODING_INDEX[jcoding.getIndex()];
         assert rubyEncoding.jcoding == jcoding;
         return rubyEncoding;
     }
 
-    /** Should only be used when there is no other way, because this will ignore replicated and dummy encodings */
-    public static RubyEncoding getBuiltInEncoding(String encodingName) {
-        byte[] encodingNameBytes = encodingName.getBytes(StandardCharsets.ISO_8859_1);
-        var entry = EncodingDB.getEncodings().get(encodingNameBytes);
-        if (entry != null) {
-            var jcoding = entry.getEncoding();
-            return getBuiltInEncoding(jcoding);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere("Unknown encoding: " + encodingName);
-        }
-    }
+    @TruffleBoundary
+    public static RubyEncoding getBuiltInEncoding(String name) {
+        byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
+        EncodingDB.Entry entry = EncodingDB.getEncodings().get(nameBytes);
 
+        if (entry == null) {
+            entry = EncodingDB.getAliases().get(nameBytes);
+        }
+
+        if (entry != null) {
+            return getBuiltInEncoding(entry.getEncoding());
+        }
+
+        return null;
+    }
 }

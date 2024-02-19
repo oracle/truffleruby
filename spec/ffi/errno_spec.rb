@@ -34,4 +34,12 @@ describe "FFI.errno" do
         expect(FFI.errno).to eq(0x12345678)
     end
   end
+
+  it "works in Ractor", :ractor do
+    res = Ractor.new do
+      LibTest.setLastError(0x12345678)
+      FFI.errno
+    end.take
+    expect(res).to eq(0x12345678)
+  end
 end

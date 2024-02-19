@@ -62,5 +62,14 @@ if Process.respond_to?(:fork)
 
       expect(Process.wait2[1].exitstatus).to eq(44)
     end
+
+    it "GC doesn't crash when the dispatcher thread was stopped. #1050" do
+      FFI::Function.new(:int, [], proc{})
+      fork do
+        GC.start
+        Process.exit 45
+      end
+      expect(Process.wait2[1].exitstatus).to eq(45)
+    end
   end
 end

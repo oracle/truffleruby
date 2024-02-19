@@ -50,4 +50,27 @@ describe "async callback" do
 
     expect(callback_runner_thread.name).to eq("FFI Callback Runner")
   end
+
+  it "works in Ractor", :ractor do
+    skip "not yet supported on TruffleRuby" if RUBY_ENGINE == "truffleruby"
+
+    res = Ractor.new do
+      v = 0xdeadbeef
+      correct_ractor = false
+      correct_thread = false
+      thread = Thread.current
+      rac = Ractor.current
+      cb = Proc.new do |i|
+        v = i
+        correct_ractor = rac == Ractor.current
+        correct_thread = thread != Thread.current
+      end
+      LibTest.testAsyncCallback(cb, 0x7fffffff)
+
+      [v, correct_ractor, correct_thread]
+    end.take
+
+    expect(res).to eq([0x7fffffff, true, true])
+  end
+
 end

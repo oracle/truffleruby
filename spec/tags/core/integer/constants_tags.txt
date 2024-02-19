@@ -1,2 +1,0 @@
-fails:Fixnum is no longer defined
-fails:Bignum is no longer defined

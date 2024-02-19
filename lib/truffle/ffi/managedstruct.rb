@@ -75,7 +75,7 @@ module FFI
     # @overload initialize
     # A new instance of FFI::ManagedStruct.
     def initialize(pointer=nil)
-      raise NoMethodError, "release() not implemented for class #{self}" unless self.class.respond_to? :release
+      raise NoMethodError, "release() not implemented for class #{self}" unless self.class.respond_to?(:release, true)
       raise ArgumentError, "Must supply a pointer to memory for the Struct" unless pointer
       super AutoPointer.new(pointer, self.class.method(:release))
     end

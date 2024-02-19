@@ -54,16 +54,27 @@ module FFI
       invoker = self
       params = "*args"
       call = "call"
-      mod.module_eval <<-code
-      @@#{mname} = invoker
-      def self.#{mname}(#{params})
-        @@#{mname}.#{call}(#{params})
-      end
-      def #{mname}(#{params})
-        @@#{mname}.#{call}(#{params})
-      end
+      mname = mname.to_sym
+      mod.module_eval <<-code, __FILE__, __LINE__
+        @ffi_functions = {} unless defined?(@ffi_functions)
+        @ffi_functions[#{mname.inspect}] = invoker
+
+        def self.#{mname}(#{params})
+          @ffi_functions[#{mname.inspect}].#{call}(#{params})
+        end
+
+        define_method(#{mname.inspect}, &method(#{mname.inspect}))
       code
       invoker
+    end
+
+    # Retrieve Array of parameter types
+    #
+    # This method returns an Array of FFI types accepted as function parameters.
+    #
+    # @return [Array<FFI::Type>]
+    def param_types
+      [*@fixed, Type::Builtin::VARARGS]
     end
   end
 end

@@ -28,7 +28,7 @@ describe FFI::ManagedStruct, ' with an initialize function' do
         super FFI::MemoryPointer.new(:pointer).put_int(0, 0x1234).get_pointer(0)
         self.magic = 42
       end
-      def self.release;end
+      def self.release(_ptr);end
     end
     expect(ManagedStructWithInitialize.new.magic).to eq(42)
   end

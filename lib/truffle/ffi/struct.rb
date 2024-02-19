@@ -203,8 +203,9 @@ module FFI
       #             :field3, :string
       #    end
       def layout(*spec)
-        warn "[DEPRECATION] Struct layout is already defined for class #{self.inspect}. Redefinition as in #{caller[0]} will be disallowed in ffi-2.0." if defined?(@layout)
         return @layout if spec.size == 0
+
+        warn "[DEPRECATION] Struct layout is already defined for class #{self.inspect}. Redefinition as in #{caller[0]} will be disallowed in ffi-2.0." if defined?(@layout)
 
         builder = StructLayoutBuilder.new
         builder.union = self < Union

@@ -26,20 +26,44 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
+/** Reflects semantic of different method/proc declared parameters types.
+ *
+ * Symbolic names match type names returned by the {Method, Proc}#parameters methods. */
 public enum ArgumentType {
 
+    /** optional keyword argument */
     key("key", false),
+    /** required keyword argument */
     keyreq("keyreq", false),
+    /** keyword rest parameter */
     keyrest("keyrest", false),
+    /** block parameter */
     block("block", false),
+    /** optional positional parameter */
     opt("opt", false),
+    /** rest parameter */
     rest("rest", false),
+    /** required positional parameter */
     req("req", false),
+
+    /* Parameters declared in a method/proc explicitly without name, e.g. anonymous *, ** , and &. Required parameter
+     * can be anonymous only in case of parameters nesting (e.g. `def foo(a, (b, c)) end`) */
     anonreq("req", true),
-    anonopt("opt", true),
     anonrest("rest", true),
     anonkeyrest("keyrest", true),
-    nokey("nokey", true); // **nil
+
+    /* Parameters in a method that doesn't provide parameter names, e.g. implemented using #method_missing or a core
+     * method implemented in Java.
+     * 
+     * A tiny difference between unnamed and anonymous parameters is that anonymous are reported by the #parameters
+     * method with names (*, ** or &). But unnamed are reported without names. */
+    unnamedreq("req", true),
+    unnamedopt("opt", true),
+    unnamedrest("rest", true),
+    unnamedkeyrest("keyrest", true),
+
+    /** no-keyword-arguments parameter (**nil) */
+    nokey("nokey", true);
 
     ArgumentType(String symbolicName, boolean anonymous) {
         this.symbolicName = symbolicName;

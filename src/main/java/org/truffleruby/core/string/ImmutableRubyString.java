@@ -80,21 +80,20 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     }
 
     @SuppressFBWarnings("IS2_INCONSISTENT_SYNC")
-    public Pointer getNativeString(RubyLanguage language) {
+    public Pointer getNativeString(RubyLanguage language, RubyContext context) {
         if (nativeString == null) {
-            return createNativeString(language);
+            return createNativeString(language, context);
         }
         return nativeString;
     }
 
     @TruffleBoundary
-    private synchronized Pointer createNativeString(RubyLanguage language) {
+    private synchronized Pointer createNativeString(RubyLanguage language, RubyContext context) {
         if (nativeString == null) {
             var tencoding = getEncodingUncached().tencoding;
             int byteLength = tstring.byteLength(tencoding);
-            nativeString = CExtNodes.StringToNativeNode.allocateAndCopyToNative(language,
-                    RubyLanguage.getCurrentContext(), tstring, tencoding, byteLength,
-                    TruffleString.CopyToNativeMemoryNode.getUncached());
+            nativeString = CExtNodes.StringToNativeNode.allocateAndCopyToNative(language, context, tstring, tencoding,
+                    byteLength, TruffleString.CopyToNativeMemoryNode.getUncached());
         }
         return nativeString;
     }

@@ -192,6 +192,7 @@ module FFI
     #   @param [nil, Symbol] tag name of new Bitmask
     def initialize(*args)
       @native_type = args.first.kind_of?(FFI::Type) ? args.shift : Type::INT
+      @signed = [Type::INT8, Type::INT16, Type::INT32, Type::INT64].include?(@native_type)
       info, @tag = *args
       @kv_map = Hash.new
       unless info.nil?
@@ -220,7 +221,7 @@ module FFI
     #  @param [Symbol] query
     #  @return [Integer]
     # @overload [](query)
-    #  Get bitmaks value from symbol array
+    #  Get bitmask value from symbol array
     #  @param [Array<Symbol>] query
     #  @return [Integer]
     # @overload [](*query)
@@ -240,7 +241,7 @@ module FFI
       when Symbol
         flat_query.inject(0) do |val, o|
           v = @kv_map[o]
-          if v then val |= v else val end
+          if v then val | v else val end
         end
       when Integer, ->(o) { o.respond_to?(:to_int) }
         val = flat_query.inject(0) { |mask, o| mask |= o.to_int }
@@ -260,35 +261,41 @@ module FFI
     def to_native(query, ctx)
       return 0 if query.nil?
       flat_query = [query].flatten
-      flat_query.inject(0) do |val, o|
+      res = flat_query.inject(0) do |val, o|
         case o
         when Symbol
           v = @kv_map[o]
           raise ArgumentError, "invalid bitmask value, #{o.inspect}" unless v
-          val |= v
+          val | v
         when Integer
-          val |= o
+          val | o
         when ->(obj) { obj.respond_to?(:to_int) }
-          val |= o.to_int
+          val | o.to_int
         else
           raise ArgumentError, "invalid bitmask value, #{o.inspect}"
         end
       end
+      # Take two's complement of positive values bigger than the max value
+      # for the type when native type is signed.
+      if @signed && res >= (1 << (@native_type.size * 8 - 1))
+        res = -(-res & ((1 << (@native_type.size * 8)) - 1))
+      end
+      res
     end
 
     # @param [Integer] val
     # @param ctx unused
     # @return [Array<Symbol, Integer>] list of symbol names corresponding to val, plus an optional remainder if some bits don't match any constant
     def from_native(val, ctx)
-      list = @kv_map.select { |_, v| v & val != 0 }.keys
+      flags = @kv_map.select { |_, v| v & val != 0 }
+      list = flags.keys
+      # force an unsigned value of the correct size
+      val &= (1 << (@native_type.size * 8)) - 1 if @signed
       # If there are unmatch flags,
       # return them in an integer,
       # else information can be lost.
       # Similar to Enum behavior.
-      remainder = val ^ list.inject(0) do |tmp, o|
-        v = @kv_map[o]
-        if v then tmp |= v else tmp end
-      end
+      remainder = val ^ flags.values.reduce(0, :|)
       list.push remainder unless remainder == 0
       return list
     end
