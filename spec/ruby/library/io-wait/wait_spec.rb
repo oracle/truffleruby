@@ -48,25 +48,18 @@ describe "IO#wait" do
     end
 
     it "waits for the READABLE event to be ready" do
-      queue = Queue.new
-      thread = Thread.new { queue.pop; sleep 1; @w.write('data to read') };
+      @r.wait(IO::READABLE, 0).should == nil
 
-      queue.push('signal');
-      @r.wait(IO::READABLE, 2).should_not == nil
-
-      thread.join
+      @w.write('data to read')
+      @r.wait(IO::READABLE, 0).should_not == nil
     end
 
     it "waits for the WRITABLE event to be ready" do
       written_bytes = IOWaitSpec.exhaust_write_buffer(@w)
+      @w.wait(IO::WRITABLE, 0).should == nil
 
-      queue = Queue.new
-      thread = Thread.new { queue.pop; sleep 1; @r.read(written_bytes) };
-
-      queue.push('signal');
-      @w.wait(IO::WRITABLE, 2).should_not == nil
-
-      thread.join
+      @r.read(written_bytes)
+      @w.wait(IO::WRITABLE, 0).should_not == nil
     end
 
     it "returns nil when the READABLE event is not ready during the timeout" do
