@@ -5,6 +5,7 @@ rpm: &rpm
   openssl: openssl-devel
   yaml: libyaml-devel
   cext: gcc make
+  c++: gcc-c++
   set-locale:
     - ENV LANG=en_US.UTF-8
 
@@ -16,6 +17,7 @@ deb: &deb
   openssl: libssl-dev
   yaml: libyaml-dev
   cext: gcc make
+  c++: g++
   set-locale:
     # Uncomment the en_US.UTF-8 line in /etc/locale.gen
     - RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen

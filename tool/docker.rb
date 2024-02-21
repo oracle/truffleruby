@@ -125,6 +125,7 @@ class JT
       packages << distro.fetch('openssl')
       packages << distro.fetch('yaml')
       packages << distro.fetch('cext')
+      packages << distro.fetch('c++') if full_test
 
       proxy_vars = []
       # There is an issue with dnf + proxy in Fedora 34, install packages outside proxy to workaround
