@@ -25,12 +25,13 @@ deb: &deb
     - RUN locale-gen
     - ENV LANG=en_US.UTF-8
 
-ol7:
-  base: oraclelinux:7-slim
-  # --enablerepo needed for libyaml-devel
-  install: RUN yum install --enablerepo=ol7_optional_latest -y
-  locale:
-  <<: *rpm
+# Too old g++
+#ol7:
+#  base: oraclelinux:7-slim
+#  # --enablerepo needed for libyaml-devel
+#  install: RUN yum install --enablerepo=ol7_optional_latest -y
+#  locale:
+#  <<: *rpm
 
 ol8:
   base: oraclelinux:8-slim
@@ -57,11 +58,6 @@ fedora38:
   install: RUN dnf install -y
   locale: glibc-langpack-en
   <<: *rpm
-
-ubuntu1604:
-  base: ubuntu:16.04
-  install: RUN apt-get update && apt-get install -y
-  <<: *deb
 
 ubuntu1804:
   base: ubuntu:18.04
