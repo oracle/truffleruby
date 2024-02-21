@@ -27,6 +27,10 @@ public final class FrozenStringLiteralNode extends RubyContextSourceNode {
         this.definition = definition;
     }
 
+    public ImmutableRubyString getFrozenString() {
+        return frozenString;
+    }
+
     @Override
     public ImmutableRubyString execute(VirtualFrame frame) {
         return frozenString;

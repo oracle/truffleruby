@@ -40,13 +40,13 @@ ast: |
                           ToSNodeGen
                               children:
                                   valueNode_ =
-                                      StringLiteralNode
+                                      FrozenStringLiteralNode
                                           attributes:
-                                              encoding = UTF-8
+                                              definition = "expression" (ASCII-8BIT)
                                               flags = 1
+                                              frozenString = "echo 1 " (UTF-8)
                                               sourceCharIndex = 1
                                               sourceLength = 7
-                                              tstring = echo 1 
                           ToSNodeGen
                               children:
                                   valueNode_ =

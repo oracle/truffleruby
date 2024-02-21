@@ -49,7 +49,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable
         implements TruffleObject, DetailedInspectingSupport {
 
     public final TruffleString tstring;
-    private final RubyEncoding encoding;
+    public final RubyEncoding encoding;
     private Pointer nativeString = null;
 
     ImmutableRubyString(TruffleString tstring, RubyEncoding encoding) {

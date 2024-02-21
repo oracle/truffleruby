@@ -2400,8 +2400,11 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         for (ToSNode child : children) {
-            if (child.getValueNode() instanceof StringLiteralNode stringLiteralNode) {
-                var fragment = new TStringWithEncoding(stringLiteralNode.getTString(), stringLiteralNode.getEncoding());
+            // assume string fragments are represented with FrozenStringLiteralNode and not StringLiteralNode
+            if (child.getValueNode() instanceof FrozenStringLiteralNode frozenStringLiteralNode) {
+                ImmutableRubyString frozenString = frozenStringLiteralNode.getFrozenString();
+                var fragment = new TStringWithEncoding(frozenString.tstring, frozenString.encoding);
+
                 try {
                     // MRI: reg_fragment_check
                     var strEnc = ClassicRegexp.setRegexpEncoding(fragment, options, sourceEncoding, currentNode);
@@ -2505,9 +2508,18 @@ public class YARPTranslator extends YARPBaseTranslator {
         final ToSNode[] children = new ToSNode[parts.length];
 
         for (int i = 0; i < parts.length; i++) {
-            RubyNode expression = parts[i].accept(this);
+            final RubyNode expression;
+
+            if (parts[i] instanceof Nodes.StringNode stringNode) {
+                // use frozen String literals to avoid extra allocations in the interpreter
+                // it will be addressed in Prism (see https://github.com/ruby/prism/issues/2532)
+                expression = visitStringNode(stringNode, true);
+            } else {
+                expression = parts[i].accept(this);
+            }
             children[i] = ToSNodeGen.create(expression);
         }
+
         return children;
     }
 
@@ -3232,6 +3244,10 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitStringNode(Nodes.StringNode node) {
+        return visitStringNode(node, node.isFrozen());
+    }
+
+    public RubyNode visitStringNode(Nodes.StringNode node, boolean frozen) {
         final RubyNode rubyNode;
         final RubyEncoding encoding;
 
@@ -3245,7 +3261,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         byte[] bytes = node.unescaped;
 
-        if (!node.isFrozen()) {
+        if (!frozen) {
             final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
