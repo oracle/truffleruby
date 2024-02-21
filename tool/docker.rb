@@ -92,10 +92,6 @@ class JT
         case arg
         when *docker_distros
           distro_name = arg[2..-1]
-        when '--graalvm'
-          install_method = :graalvm
-          graalvm_tarball = args.shift
-          graalvm_components = args.shift.split(':').map { |path| File.expand_path(path) }
         when '--standalone'
           install_method = :standalone
           standalone_tarball = args.shift
@@ -160,34 +156,7 @@ class JT
         Dir.mkdir docker_dir
       end
 
-      check_post_install_message = [
-          "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
-          "RUN grep '/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
-      ]
-
       case install_method
-      when :graalvm
-        FileUtils.copy graalvm_tarball, docker_dir unless print_only
-        graalvm_tarball = File.basename(graalvm_tarball)
-        language_dir = graalvm_tarball.include?('java11') ? 'languages' : 'jre/languages'
-
-        lines << "COPY #{graalvm_tarball} /test/"
-        graalvm_base = '/test/graalvm'
-        lines << "RUN mkdir #{graalvm_base}"
-        lines << "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
-        graalvm_bin = "#{graalvm_base}/bin"
-
-        graalvm_components.each do |component|
-          FileUtils.copy component, docker_dir unless print_only
-          component = File.basename(component)
-          lines << "COPY #{component} /test/"
-          lines << "RUN #{graalvm_bin}/gu install --file /test/#{component} | tee -a install.log"
-        end
-        ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
-        ruby_bin = graalvm_bin
-
-        lines.push(*check_post_install_message)
-        lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :standalone
         FileUtils.copy standalone_tarball, docker_dir unless print_only
         standalone_tarball = File.basename(standalone_tarball)
@@ -222,29 +191,23 @@ class JT
 
       lines << "ENV PATH=#{ruby_bin}:$PATH"
 
-      configs = install_method == :graalvm ? %w[--native --jvm] : ['']
-
-      configs.each do |c|
-        lines << "RUN ruby #{c} --version"
-      end
+      lines << 'RUN ruby --version'
 
       if basic_test || full_test
-        configs.each do |c|
-          lines << "RUN cp -R #{ruby_base}/lib/gems /test/clean-gems"
+        lines << "RUN cp -R #{ruby_base}/lib/gems /test/clean-gems"
 
-          gem_install = "ruby #{c} -S gem install --no-document"
-          lines << "RUN #{gem_install} color"
-          lines << "RUN ruby #{c} -rcolor -e 'raise unless defined?(Color)'"
+        gem_install = 'ruby -S gem install --no-document'
+        lines << "RUN #{gem_install} color"
+        lines << "RUN ruby -rcolor -e 'raise unless defined?(Color)'"
 
-          lines << "RUN #{gem_install} oily_png"
-          lines << "RUN ruby #{c} -roily_png -e 'raise unless defined?(OilyPNG::Color)'"
+        lines << "RUN #{gem_install} oily_png"
+        lines << "RUN ruby -roily_png -e 'raise unless defined?(OilyPNG::Color)'"
 
-          lines << "RUN #{gem_install} unf"
-          lines << "RUN ruby #{c} -runf -e 'raise unless defined?(UNF)'"
+        lines << "RUN #{gem_install} unf"
+        lines << "RUN ruby -runf -e 'raise unless defined?(UNF)'"
 
-          lines << "RUN rm -rf #{ruby_base}/lib/gems"
-          lines << "RUN mv /test/clean-gems #{ruby_base}/lib/gems"
-        end
+        lines << "RUN rm -rf #{ruby_base}/lib/gems"
+        lines << "RUN mv /test/clean-gems #{ruby_base}/lib/gems"
       end
 
       if full_test
@@ -254,19 +217,14 @@ class JT
           lines << "COPY --chown=test #{file} #{file}"
         end
 
-        configs.each do |c|
-          excludes = %w[fails slow]
+        excludes = %w[fails slow]
 
-          %w[:command_line :security :language :core :tracepoint :library :capi :library_cext :truffle :truffle_capi].each do |set|
-            t_config = c.empty? ? '' : '-T' + c
-            t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
-            lines << "RUN ruby spec/mspec/bin/mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"
-          end
+        %w[:command_line :security :language :core :tracepoint :library :capi :library_cext :truffle :truffle_capi].each do |set|
+          t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
+          lines << "RUN ruby spec/mspec/bin/mspec -t #{ruby_bin}/ruby #{t_excludes} #{set}"
         end
 
-        configs.each do |c|
-          lines << "RUN ruby #{c} --experimental-options --engine.CompilationFailureAction=ExitVM --compiler.TreatPerformanceWarningsAsErrors=all --compiler.IterativePartialEscape  --engine.MultiTier=false pe/pe.rb || true"
-        end
+        lines << 'RUN ruby --experimental-options --engine.CompilationFailureAction=ExitVM --compiler.TreatPerformanceWarningsAsErrors=all --compiler.IterativePartialEscape  --engine.MultiTier=false pe/pe.rb || true'
       end
 
       lines << 'CMD bash'
