@@ -29,12 +29,12 @@ Then download the standalone's `.tar.gz` for linux-amd64 (looks like `ruby-stand
 The jdk version to use for the standalone is the one in `graal/vm/ce-release-artifacts.json`.
 The TruffleRuby commit in that build should correspond to the last commit of the release branch (`release/graal-vm/$VERSION`).
 
-We run all Docker tests, only on the standalone distribution to make it reasonably fast.
+We run all Docker tests on the standalone distributions.
 This can be done with:
 ```bash
 jt docker test --standalone $PATH_TO_STANDALONE_TAR_GZ --test release/graal-vm/$VERSION
 # A concrete example
-jt docker test --standalone $PWD/ruby-standalone-svm-java17-linux-amd64-*.tar.gz --test release/graal-vm/23.0
+jt docker test --standalone $PWD/ruby-native-standalone-svm-svmee-java22-linux-amd64-*.tar.gz --test release/graal-vm/23.0
 ```
 
 We typically run them in parallel instead to make it faster, running each of these commands in a different terminal:
