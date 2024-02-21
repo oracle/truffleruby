@@ -82,6 +82,24 @@ describe "IO#wait" do
         -> { @w.wait(-1, 0) }.should raise_error(ArgumentError, "Events must be positive integer!")
       end
     end
+
+    it "changes thread status to 'sleep' when waits for READABLE event" do
+      t = Thread.new { @r.wait(IO::READABLE, 10) }
+      sleep 1
+      t.status.should == 'sleep'
+      t.kill
+      t.join # Thread#kill doesn't wait for the thread to end
+    end
+
+    it "changes thread status to 'sleep' when waits for WRITABLE event" do
+      written_bytes = IOWaitSpec.exhaust_write_buffer(@w)
+
+      t = Thread.new { @w.wait(IO::WRITABLE, 10) }
+      sleep 1
+      t.status.should == 'sleep'
+      t.kill
+      t.join # Thread#kill doesn't wait for the thread to end
+    end
   end
 
   context "[timeout, mode] passed" do

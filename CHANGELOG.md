@@ -6,6 +6,7 @@ Bug fixes:
 
 * Add missing thread-safe objects write barriers for `TruffleRuby::ConcurrentMap` (#3179, @eregon).
 * Fix repeated calling of methods `Dir#{each,each_child,children}` (#3464, @andrykonchin).
+* Fix `IO#{wait,wait_readable,wait_writable}` methods and switch the current thread into a sleep state (@andrykonchin).
 
 Compatibility:
 
