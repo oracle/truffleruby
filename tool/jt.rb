@@ -2904,6 +2904,7 @@ module Commands
         false
       else
         STDERR.puts "Missing methods in YARPTranslator: #{missing}"
+        true
       end
     end
 
