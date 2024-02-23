@@ -15,6 +15,7 @@
 
 #include "prism/defines.h"
 #include "prism/util/pm_constant_pool.h"
+#include "prism/util/pm_integer.h"
 #include "prism/util/pm_string.h"
 
 #include <assert.h>
@@ -2841,6 +2842,13 @@ typedef struct pm_flip_flop_node {
 typedef struct pm_float_node {
     /** The embedded base node. */
     pm_node_t base;
+
+    /**
+     * FloatNode#value
+     *
+     * The value of the floating point number as a Float.
+     */
+    double value;
 } pm_float_node_t;
 
 /**
@@ -3712,6 +3720,13 @@ typedef struct pm_instance_variable_write_node {
 typedef struct pm_integer_node {
     /** The embedded base node. */
     pm_node_t base;
+
+    /**
+     * IntegerNode#value
+     *
+     * The value of the integer literal as a number.
+     */
+    pm_integer_t value;
 } pm_integer_node_t;
 
 /**

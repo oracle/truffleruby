@@ -10,6 +10,7 @@ package org.prism;
 import org.prism.Nodes;
 
 import java.lang.Short;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -308,6 +309,49 @@ public class Loader {
         return (short) flags;
     }
 
+    private static final long UNSIGNED_INT_MASK = (1L << Integer.SIZE) - 1L;
+    private static final BigInteger UNSIGNED_LONG_MASK = BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
+
+    private Object loadInteger() {
+        boolean negative = buffer.get() != 0;
+
+        int wordsLength = loadVarUInt();
+        assert wordsLength > 0;
+
+        // Load the first word. If it's the only word, then return an int if it
+        // fits into one and a long otherwise.
+        int firstWord = loadVarUInt();
+        if (wordsLength == 1) {
+            if (firstWord < 0) {
+                long words = firstWord & UNSIGNED_INT_MASK;
+                return negative ? -words : words;
+            }
+            return negative ? -firstWord : firstWord;
+        }
+
+        // Load the second word. If there are only two words, then return a long
+        // if it fits into one and a BigInt otherwise.
+        int secondWord = loadVarUInt();
+        if (wordsLength == 2) {
+            long words = ((long) secondWord << 32L) | (firstWord & UNSIGNED_INT_MASK);
+            if (words < 0L) {
+                BigInteger result = BigInteger.valueOf(words).and(UNSIGNED_LONG_MASK);
+                return negative ? result.negate() : result;
+            }
+            return negative ? -words : words;
+        }
+
+        // Otherwise, load the remaining words and return a BigInt.
+        BigInteger result = BigInteger.valueOf(firstWord & UNSIGNED_INT_MASK);
+        result = result.or(BigInteger.valueOf(secondWord & UNSIGNED_INT_MASK).shiftLeft(32));
+
+        for (int wordsIndex = 2; wordsIndex < wordsLength; wordsIndex++) {
+            result = result.or(BigInteger.valueOf(loadVarUInt() & UNSIGNED_INT_MASK).shiftLeft(wordsIndex * 32));
+        }
+
+        return result;
+    }
+
     private Nodes.Node loadNode() {
         int type = buffer.get() & 0xFF;
         int startOffset = loadVarUInt();
@@ -421,7 +465,7 @@ public class Loader {
             case 53:
                 return new Nodes.FlipFlopNode(loadFlags(), loadOptionalNode(), loadOptionalNode(), startOffset, length);
             case 54:
-                return new Nodes.FloatNode(startOffset, length);
+                return new Nodes.FloatNode(buffer.getDouble(), startOffset, length);
             case 55:
                 return new Nodes.ForNode(loadNode(), loadNode(), (Nodes.StatementsNode) loadOptionalNode(), startOffset, length);
             case 56:
@@ -477,7 +521,7 @@ public class Loader {
             case 81:
                 return new Nodes.InstanceVariableWriteNode(loadConstant(), loadNode(), startOffset, length);
             case 82:
-                return new Nodes.IntegerNode(loadFlags(), startOffset, length);
+                return new Nodes.IntegerNode(loadFlags(), loadInteger(), startOffset, length);
             case 83:
                 return new Nodes.InterpolatedMatchLastLineNode(loadFlags(), loadNodes(), startOffset, length);
             case 84:

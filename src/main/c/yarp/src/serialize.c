@@ -32,7 +32,7 @@ pm_serialize_location(const pm_parser_t *parser, const pm_location_t *location, 
 }
 
 static void
-pm_serialize_string(pm_parser_t *parser, pm_string_t *string, pm_buffer_t *buffer) {
+pm_serialize_string(const pm_parser_t *parser, const pm_string_t *string, pm_buffer_t *buffer) {
     switch (string->type) {
         case PM_STRING_SHARED: {
             pm_buffer_append_byte(buffer, 1);
@@ -53,6 +53,16 @@ pm_serialize_string(pm_parser_t *parser, pm_string_t *string, pm_buffer_t *buffe
             assert(false && "Cannot serialize mapped strings.");
             break;
 #endif
+    }
+}
+
+static void
+pm_serialize_integer(const pm_integer_t *integer, pm_buffer_t *buffer) {
+    pm_buffer_append_byte(buffer, integer->negative ? 1 : 0);
+    pm_buffer_append_varuint(buffer, pm_sizet_to_u32(integer->length + 1));
+
+    for (const pm_integer_word_t *node = &integer->head; node != NULL; node = node->next) {
+        pm_buffer_append_varuint(buffer, node->value);
     }
 }
 
@@ -544,6 +554,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_FLOAT_NODE: {
+            pm_buffer_append_double(buffer, ((pm_float_node_t *)node)->value);
             break;
         }
         case PM_FOR_NODE: {
@@ -766,6 +777,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         }
         case PM_INTEGER_NODE: {
             pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
+            pm_serialize_integer(&((pm_integer_node_t *)node)->value, buffer);
             break;
         }
         case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
@@ -1405,7 +1417,7 @@ pm_serialize_metadata(pm_parser_t *parser, pm_buffer_t *buffer) {
     pm_serialize_diagnostic_list(parser, &parser->warning_list, buffer);
 }
 
-#line 245 "serialize.c.erb"
+#line 259 "serialize.c.erb"
 /**
  * Serialize the metadata, nodes, and constant pool.
  */

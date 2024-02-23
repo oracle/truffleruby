@@ -3990,9 +3990,16 @@ public abstract class Nodes {
      *     ^^^
      */
     public static final class FloatNode extends Node {
+        /**
+         * <pre>
+         * The value of the floating point number as a Float.
+         * </pre>
+         */
+        public final double value;
 
-        public FloatNode(int startOffset, int length) {
+        public FloatNode(double value, int startOffset, int length) {
             super(startOffset, length);
+            this.value = value;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4015,6 +4022,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value);
+            builder.append('\n');
             return builder.toString();
         }
     }
@@ -5541,10 +5552,17 @@ public abstract class Nodes {
      */
     public static final class IntegerNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The value of the integer literal as a number.
+         * </pre>
+         */
+        public final Object value;
 
-        public IntegerNode(short flags, int startOffset, int length) {
+        public IntegerNode(short flags, Object value, int startOffset, int length) {
             super(startOffset, length);
             this.flags = flags;
+            this.value = value;
         }
         
         public boolean isBinary() {
@@ -5586,6 +5604,10 @@ public abstract class Nodes {
             builder.append(nextIndent);
             builder.append("flags: ");
             builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value);
             builder.append('\n');
             return builder.toString();
         }
