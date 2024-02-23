@@ -151,6 +151,7 @@ import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.supercall.ZSuperOutsideMethodNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -1656,16 +1657,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitFloatNode(Nodes.FloatNode node) {
-        final String string = toString(node).replaceAll("_", "");
-        double value;
-
-        try {
-            value = SafeDoubleParser.parseDouble(string);
-        } catch (NumberFormatException e) {
-            value = string.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
-        }
-
-        final RubyNode rubyNode = new FloatLiteralNode(value);
+        final RubyNode rubyNode = new FloatLiteralNode(node.value);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2360,7 +2352,18 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
-        final RubyNode rubyNode = translateIntegerLiteralString(toString(node));
+        Object value = node.value;
+        final RubyNode rubyNode;
+        if (value instanceof Integer i) {
+            rubyNode = new IntegerFixnumLiteralNode(i);
+        } else if (value instanceof Long l) {
+            rubyNode = new LongFixnumLiteralNode(l);
+        } else if (value instanceof BigInteger bigInteger) {
+            rubyNode = new ObjectLiteralNode(new RubyBignum(bigInteger));
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(value.getClass().getName());
+        }
+
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -2899,11 +2902,11 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode numeratorNode;
         final RubyNode denominatorNode;
 
-        // Handle float literals differently and avoid Java float/double types to not lose precision.
+        // Handle rational float literals differently and avoid Java float/double types to not lose precision.
         // So normalize numerator and denominator, e.g 3.14r literal is translated into Rational(314, 100).
-        // The other option is to represent float literal as a String and rely on parsing String literals in
-        // the Kernel#Rational() method. The only downside is worse performance as far as Kernel#Rational()
-        // is implemented in Ruby.
+        // The other option is to represent rational float literals as a String and rely on parsing String literals in
+        // the Kernel#Rational() method. The downside is worse performance due to repeated runtime calls vs once at
+        // translation time.
         if (node.numeric instanceof Nodes.FloatNode floatNode) {
             // Translate as Rational.convert(numerator, denominator).
 
@@ -2918,7 +2921,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             assert fractionLength > 0;
 
             String numerator = string.replace(".", ""); // remove float point
-            numeratorNode = translateIntegerLiteralString(numerator, 10); // string literal may have leading "0" (e.g. for 0.1r) so specify base explicitly
+            numeratorNode = translateIntegerLiteralString(numerator); // string literal may have leading "0" (e.g. for 0.1r) so specify base explicitly
 
             String denominator = "1" + "0".repeat(fractionLength);
             denominatorNode = translateIntegerLiteralString(denominator);
@@ -2932,6 +2935,27 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         RubyNode rubyNode = createCallNode(rationalModuleNode, "convert", arguments);
         return assignPositionAndFlags(node, rubyNode);
+    }
+
+    /** Parse Integer literal ourselves. */
+    private RubyNode translateIntegerLiteralString(String string) {
+        final RubyNode rubyNode;
+        TruffleString tstring = toTString(string);
+
+        Object numeratorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring,
+                sourceEncoding, 10, true);
+
+        if (numeratorInteger instanceof Integer i) {
+            rubyNode = new IntegerFixnumLiteralNode(i);
+        } else if (numeratorInteger instanceof Long l) {
+            rubyNode = new LongFixnumLiteralNode(l);
+        } else if (numeratorInteger instanceof RubyBignum bignum) {
+            rubyNode = new ObjectLiteralNode(bignum);
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(numeratorInteger.getClass().getName());
+        }
+
+        return rubyNode;
     }
 
     @Override
@@ -3909,34 +3933,6 @@ public class YARPTranslator extends YARPBaseTranslator {
                 keywordArguments,
                 requiredKeywordArgumentsCount,
                 parametersNode.keyword_rest != null);
-    }
-
-    /** Parse Integer literal ourselves. See https://github.com/ruby/yarp/issues/1098 */
-    private RubyNode translateIntegerLiteralString(String string, int base) {
-        final RubyNode rubyNode;
-        TruffleString tstring = toTString(string);
-
-        Object numeratorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring,
-                sourceEncoding,
-                base,
-                true);
-
-        if (numeratorInteger instanceof Integer i) {
-            rubyNode = new IntegerFixnumLiteralNode(i);
-        } else if (numeratorInteger instanceof Long l) {
-            rubyNode = new LongFixnumLiteralNode(l);
-        } else if (numeratorInteger instanceof RubyBignum bignum) {
-            rubyNode = new ObjectLiteralNode(bignum);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere(numeratorInteger.getClass().getName());
-        }
-
-        return rubyNode;
-    }
-
-    /** Parse Integer literal */
-    private RubyNode translateIntegerLiteralString(String string) {
-        return translateIntegerLiteralString(string, 0); // detect base automatically
     }
 
 }
