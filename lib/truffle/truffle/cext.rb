@@ -190,7 +190,15 @@ module Truffle::CExt
 
     init_functions = libtrampoline[:rb_tr_trampoline_init_functions]
     init_functions = Primitive.interop_eval_nfi('(env,(string):pointer):void').bind(init_functions)
-    init_functions.call(-> name { LIBTRUFFLERUBY[name] })
+    if Truffle::Boot.get_option 'cexts-panama' and Primitive.vm_java_version >= 22 and !TruffleRuby.native?
+      init_functions.call(-> name {
+        closure = LIBTRUFFLERUBY[name].createNativeClosure('panama')
+        keep_alive << closure
+        closure
+      })
+    else
+      init_functions.call(-> name { LIBTRUFFLERUBY[name] })
+    end
 
     init_constants = libtrampoline[:rb_tr_trampoline_init_global_constants]
     init_constants = Primitive.interop_eval_nfi('((string):pointer):void').bind(init_constants)
