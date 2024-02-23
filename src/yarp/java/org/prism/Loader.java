@@ -309,7 +309,6 @@ public class Loader {
         return (short) flags;
     }
 
-    private static final long UNSIGNED_INT_MASK = (1L << Integer.SIZE) - 1L;
     private static final BigInteger UNSIGNED_LONG_MASK = BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
 
     private Object loadInteger() {
@@ -323,18 +322,26 @@ public class Loader {
         int firstWord = loadVarUInt();
         if (wordsLength == 1) {
             if (firstWord < 0) {
-                long words = firstWord & UNSIGNED_INT_MASK;
+                if (negative && firstWord == Integer.MIN_VALUE) {
+                    return Integer.MIN_VALUE;
+                }
+
+                long words = Integer.toUnsignedLong(firstWord);
                 return negative ? -words : words;
             }
             return negative ? -firstWord : firstWord;
         }
 
         // Load the second word. If there are only two words, then return a long
-        // if it fits into one and a BigInt otherwise.
+        // if it fits into one and a BigInteger otherwise.
         int secondWord = loadVarUInt();
         if (wordsLength == 2) {
-            long words = ((long) secondWord << 32L) | (firstWord & UNSIGNED_INT_MASK);
+            long words = (((long) secondWord) << 32L) | Integer.toUnsignedLong(firstWord);
             if (words < 0L) {
+                if (negative && words == Long.MIN_VALUE) {
+                    return Long.MIN_VALUE;
+                }
+
                 BigInteger result = BigInteger.valueOf(words).and(UNSIGNED_LONG_MASK);
                 return negative ? result.negate() : result;
             }
@@ -342,14 +349,14 @@ public class Loader {
         }
 
         // Otherwise, load the remaining words and return a BigInt.
-        BigInteger result = BigInteger.valueOf(firstWord & UNSIGNED_INT_MASK);
-        result = result.or(BigInteger.valueOf(secondWord & UNSIGNED_INT_MASK).shiftLeft(32));
+        BigInteger result = BigInteger.valueOf(Integer.toUnsignedLong(firstWord));
+        result = result.or(BigInteger.valueOf(Integer.toUnsignedLong(secondWord)).shiftLeft(32));
 
         for (int wordsIndex = 2; wordsIndex < wordsLength; wordsIndex++) {
-            result = result.or(BigInteger.valueOf(loadVarUInt() & UNSIGNED_INT_MASK).shiftLeft(wordsIndex * 32));
+            result = result.or(BigInteger.valueOf(Integer.toUnsignedLong(loadVarUInt())).shiftLeft(wordsIndex * 32));
         }
 
-        return result;
+        return negative ? result.negate() : result;
     }
 
     private Nodes.Node loadNode() {
