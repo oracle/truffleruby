@@ -69,8 +69,8 @@ ast: |
                                   TryNodeGen
                                       attributes:
                                           flags = 0
-                                          sourceCharIndex = 10
-                                          sourceLength = 21
+                                          sourceCharIndex = 5
+                                          sourceLength = 26
                                       children:
                                           rescueParts = [
                                               RescueStandardErrorNode

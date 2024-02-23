@@ -32,7 +32,7 @@ pm_serialize_location(const pm_parser_t *parser, const pm_location_t *location, 
 }
 
 static void
-pm_serialize_string(pm_parser_t *parser, pm_string_t *string, pm_buffer_t *buffer) {
+pm_serialize_string(const pm_parser_t *parser, const pm_string_t *string, pm_buffer_t *buffer) {
     switch (string->type) {
         case PM_STRING_SHARED: {
             pm_buffer_append_byte(buffer, 1);
@@ -48,9 +48,21 @@ pm_serialize_string(pm_parser_t *parser, pm_string_t *string, pm_buffer_t *buffe
             pm_buffer_append_bytes(buffer, pm_string_source(string), length);
             break;
         }
+#ifdef PRISM_HAS_MMAP
         case PM_STRING_MAPPED:
             assert(false && "Cannot serialize mapped strings.");
             break;
+#endif
+    }
+}
+
+static void
+pm_serialize_integer(const pm_integer_t *integer, pm_buffer_t *buffer) {
+    pm_buffer_append_byte(buffer, integer->negative ? 1 : 0);
+    pm_buffer_append_varuint(buffer, pm_sizet_to_u32(integer->length + 1));
+
+    for (const pm_integer_word_t *node = &integer->head; node != NULL; node = node->next) {
+        pm_buffer_append_varuint(buffer, node->value);
     }
 }
 
@@ -542,6 +554,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_FLOAT_NODE: {
+            pm_buffer_append_double(buffer, ((pm_float_node_t *)node)->value);
             break;
         }
         case PM_FOR_NODE: {
@@ -764,6 +777,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         }
         case PM_INTEGER_NODE: {
             pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
+            pm_serialize_integer(&((pm_integer_node_t *)node)->value, buffer);
             break;
         }
         case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
@@ -806,6 +820,9 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             for (uint32_t index = 0; index < parts_size; index++) {
                 pm_serialize_node(parser, (pm_node_t *) ((pm_interpolated_x_string_node_t *)node)->parts.nodes[index], buffer);
             }
+            break;
+        }
+        case PM_IT_PARAMETERS_NODE: {
             break;
         }
         case PM_KEYWORD_HASH_NODE: {
@@ -1293,6 +1310,17 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
 }
 
 static void
+pm_serialize_newline_list(pm_newline_list_t *list, pm_buffer_t *buffer) {
+    uint32_t size = pm_sizet_to_u32(list->size);
+    pm_buffer_append_varuint(buffer, size);
+
+    for (uint32_t i = 0; i < size; i++) {
+        uint32_t offset = pm_sizet_to_u32(list->offsets[i]);
+        pm_buffer_append_varuint(buffer, offset);
+    }
+}
+
+static void
 pm_serialize_comment(pm_parser_t *parser, pm_comment_t *comment, pm_buffer_t *buffer) {
     // serialize type
     pm_buffer_append_byte(buffer, (uint8_t) comment->type);
@@ -1378,18 +1406,24 @@ pm_serialize_encoding(const pm_encoding_t *encoding, pm_buffer_t *buffer) {
     pm_buffer_append_string(buffer, encoding->name, encoding_length);
 }
 
-#line 218 "serialize.c.erb"
-/**
- * Serialize the encoding, metadata, nodes, and constant pool.
- */
-void
-pm_serialize_content(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
+static void
+pm_serialize_metadata(pm_parser_t *parser, pm_buffer_t *buffer) {
     pm_serialize_encoding(parser->encoding, buffer);
     pm_buffer_append_varsint(buffer, parser->start_line);
+    pm_serialize_newline_list(&parser->newline_list, buffer);
     pm_serialize_magic_comment_list(parser, &parser->magic_comment_list, buffer);
     pm_serialize_data_loc(parser, buffer);
     pm_serialize_diagnostic_list(parser, &parser->error_list, buffer);
     pm_serialize_diagnostic_list(parser, &parser->warning_list, buffer);
+}
+
+#line 259 "serialize.c.erb"
+/**
+ * Serialize the metadata, nodes, and constant pool.
+ */
+void
+pm_serialize_content(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
+    pm_serialize_metadata(parser, buffer);
 
     // Here we're going to leave space for the offset of the constant pool in
     // the buffer.
@@ -1480,13 +1514,7 @@ pm_serialize_lex(pm_buffer_t *buffer, const uint8_t *source, size_t size, const 
     // Append 0 to mark end of tokens.
     pm_buffer_append_byte(buffer, 0);
 
-    pm_serialize_encoding(parser.encoding, buffer);
-    pm_buffer_append_varsint(buffer, parser.start_line);
-    pm_serialize_comment_list(&parser, &parser.comment_list, buffer);
-    pm_serialize_magic_comment_list(&parser, &parser.magic_comment_list, buffer);
-    pm_serialize_data_loc(&parser, buffer);
-    pm_serialize_diagnostic_list(&parser, &parser.error_list, buffer);
-    pm_serialize_diagnostic_list(&parser, &parser.warning_list, buffer);
+    pm_serialize_metadata(&parser, buffer);
 
     pm_node_destroy(&parser, node);
     pm_parser_free(&parser);

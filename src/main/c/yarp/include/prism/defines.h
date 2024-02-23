@@ -10,6 +10,7 @@
 #define PRISM_DEFINES_H
 
 #include <ctype.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -97,6 +98,31 @@
 #   define PM_STATIC_ASSERT(line, condition, message) _Static_assert(condition, message)
 #else
 #   define PM_STATIC_ASSERT(line, condition, message) typedef char PM_CONCATENATE(static_assert_, line)[(condition) ? 1 : -1]
+#endif
+
+/**
+ * In general, libc for embedded systems does not support memory-mapped files.
+ * If the target platform is POSIX or Windows, we can map a file in memory and
+ * read it in a more efficient manner.
+ */
+#ifdef _WIN32
+#   define PRISM_HAS_MMAP
+#else
+#   include <unistd.h>
+#   ifdef _POSIX_MAPPED_FILES
+#       define PRISM_HAS_MMAP
+#   endif
+#endif
+
+/**
+ * isinf on Windows is defined as accepting a float, but on POSIX systems it
+ * accepts a float, a double, or a long double. We want to mirror this behavior
+ * on windows.
+ */
+#ifdef _WIN32
+#   include <float.h>
+#   undef isinf
+#   define isinf(x) (sizeof(x) == sizeof(float) ? !_finitef(x) : !_finite(x))
 #endif
 
 #endif

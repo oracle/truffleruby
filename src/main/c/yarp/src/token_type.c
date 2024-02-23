@@ -469,7 +469,7 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_HEREDOC_START:
             return "heredoc beginning";
         case PM_TOKEN_IDENTIFIER:
-            return "local variable or method identifier";
+            return "local variable or method";
         case PM_TOKEN_IGNORED_NEWLINE:
             return "ignored newline";
         case PM_TOKEN_INSTANCE_VARIABLE:
@@ -579,7 +579,7 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_LABEL:
             return "label";
         case PM_TOKEN_LABEL_END:
-            return "':'";
+            return "label terminator";
         case PM_TOKEN_LAMBDA_BEGIN:
             return "'{'";
         case PM_TOKEN_LESS:
@@ -681,7 +681,7 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_UPLUS:
             return "'+'";
         case PM_TOKEN_USTAR:
-            return "'*'";
+            return "*";
         case PM_TOKEN_USTAR_STAR:
             return "'**'";
         case PM_TOKEN_WORDS_SEP:

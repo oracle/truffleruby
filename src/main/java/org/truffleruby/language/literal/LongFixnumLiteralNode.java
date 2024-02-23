@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.literal;
 
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -22,6 +23,7 @@ public final class LongFixnumLiteralNode extends RubyContextSourceNode {
     private final long value;
 
     public LongFixnumLiteralNode(long value) {
+        assert !CoreLibrary.fitsIntoInteger(value) : "long in int range : " + value;
         this.value = value;
     }
 

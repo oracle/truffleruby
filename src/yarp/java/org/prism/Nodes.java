@@ -48,38 +48,19 @@ public abstract class Nodes {
 
     public static final class Source {
         public final byte[] bytes;
-        private int startLine;
-        private final int[] lineOffsets;
+        private int startLine = 1;
+        private int[] lineOffsets = null;
 
-        public Source(byte[] bytes) {
-            this(bytes, 1, computeLineOffsets(bytes));
+        Source(byte[] bytes) {
+          this.bytes = bytes;
         }
 
-        public Source(byte[] bytes, int startLine, int[] lineOffsets) {
-            assert lineOffsets[0] == 0;
-            this.bytes = bytes;
+        void setStartLine(int startLine) {
             this.startLine = startLine;
+        }
+
+        void setLineOffsets(int[] lineOffsets) {
             this.lineOffsets = lineOffsets;
-        }
-
-        public void setStartLine(int startLine) {
-            this.startLine = startLine;
-        }
-
-        public static int[] computeLineOffsets(byte[] bytes) {
-            int[] lineOffsets = new int[8];
-            int lineOffsetsSize = 0;
-            lineOffsets[lineOffsetsSize++] = 0;
-
-            for (int i = 0; i < bytes.length; i++) {
-                if (bytes[i] == '\n') {
-                    if (lineOffsetsSize == lineOffsets.length) {
-                        lineOffsets = Arrays.copyOf(lineOffsets, lineOffsets.length * 2);
-                    }
-                    lineOffsets[lineOffsetsSize++] = i + 1;
-                }
-            }
-            return Arrays.copyOf(lineOffsets, lineOffsetsSize);
         }
 
         // 1-based
@@ -4009,9 +3990,16 @@ public abstract class Nodes {
      *     ^^^
      */
     public static final class FloatNode extends Node {
+        /**
+         * <pre>
+         * The value of the floating point number as a Float.
+         * </pre>
+         */
+        public final double value;
 
-        public FloatNode(int startOffset, int length) {
+        public FloatNode(double value, int startOffset, int length) {
             super(startOffset, length);
+            this.value = value;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4034,6 +4022,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value);
+            builder.append('\n');
             return builder.toString();
         }
     }
@@ -5560,10 +5552,17 @@ public abstract class Nodes {
      */
     public static final class IntegerNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The value of the integer literal as a number.
+         * </pre>
+         */
+        public final Object value;
 
-        public IntegerNode(short flags, int startOffset, int length) {
+        public IntegerNode(short flags, Object value, int startOffset, int length) {
             super(startOffset, length);
             this.flags = flags;
+            this.value = value;
         }
         
         public boolean isBinary() {
@@ -5605,6 +5604,10 @@ public abstract class Nodes {
             builder.append(nextIndent);
             builder.append("flags: ");
             builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("value: ");
+            builder.append(this.value);
             builder.append('\n');
             return builder.toString();
         }
@@ -5986,6 +5989,42 @@ public abstract class Nodes {
             for (Node child : this.parts) {
                 builder.append(nextNextIndent).append(child.toString(nextNextIndent));
             }
+            return builder.toString();
+        }
+    }
+
+    /**
+     * Represents an implicit set of parameters through the use of the `it` keyword within a block or lambda.
+     *
+     *     -> { it + it }
+     *     ^^^^^^^^^^^^^^
+     */
+    public static final class ItParametersNode extends Node {
+
+        public ItParametersNode(int startOffset, int length) {
+            super(startOffset, length);
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
+        public Node[] childNodes() {
+            return EMPTY_ARRAY;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitItParametersNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
             return builder.toString();
         }
     }

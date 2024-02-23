@@ -360,6 +360,10 @@ public abstract class AbstractNodeVisitor<T> {
         return defaultVisit(node);
     }
 
+    public T visitItParametersNode(Nodes.ItParametersNode node) {
+        return defaultVisit(node);
+    }
+
     public T visitKeywordHashNode(Nodes.KeywordHashNode node) {
         return defaultVisit(node);
     }

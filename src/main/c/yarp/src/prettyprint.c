@@ -7,46 +7,11 @@
 /******************************************************************************/
 #include "prism/prettyprint.h"
 
-static void
-prettyprint_source(pm_buffer_t *output_buffer, const uint8_t *source, size_t length) {
-    for (size_t index = 0; index < length; index++) {
-        const uint8_t byte = source[index];
-
-        if ((byte <= 0x06) || (byte >= 0x0E && byte <= 0x1F) || (byte >= 0x7F)) {
-            pm_buffer_append_format(output_buffer, "\\x%02X", byte);
-        } else {
-            switch (byte) {
-                case '\a': pm_buffer_append_string(output_buffer, "\\a", 2); break;
-                case '\b': pm_buffer_append_string(output_buffer, "\\b", 2); break;
-                case '\t': pm_buffer_append_string(output_buffer, "\\t", 2); break;
-                case '\n': pm_buffer_append_string(output_buffer, "\\n", 2); break;
-                case '\v': pm_buffer_append_string(output_buffer, "\\v", 2); break;
-                case '\f': pm_buffer_append_string(output_buffer, "\\f", 2); break;
-                case '\r': pm_buffer_append_string(output_buffer, "\\r", 2); break;
-                case '"': pm_buffer_append_string(output_buffer, "\\\"", 2); break;
-                case '#': {
-                    if (index + 1 < length) {
-                        const uint8_t next_byte = source[index + 1];
-                        if (next_byte == '{' || next_byte == '@' || next_byte == '$') {
-                            pm_buffer_append_byte(output_buffer, '\\');
-                        }
-                    }
-
-                    pm_buffer_append_byte(output_buffer, '#');
-                    break;
-                }
-                case '\\': pm_buffer_append_string(output_buffer, "\\\\", 2); break;
-                default: pm_buffer_append_byte(output_buffer, byte); break;
-            }
-        }
-    }
-}
-
 static inline void
 prettyprint_location(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_location_t *location) {
-    pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start);
-    pm_line_column_t end = pm_newline_list_line_column(&parser->newline_list, location->end);
-    pm_buffer_append_format(output_buffer, "(%lu,%lu)-(%lu,%lu)", (unsigned long) start.line, (unsigned long) start.column, (unsigned long) end.line, (unsigned long) end.column);
+    pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start, parser->start_line);
+    pm_line_column_t end = pm_newline_list_line_column(&parser->newline_list, location->end, parser->start_line);
+    pm_buffer_append_format(output_buffer, "(%" PRIi32 ",%" PRIu32 ")-(%" PRIi32 ",%" PRIu32 ")", start.line, start.column, end.line, end.column);
 }
 
 static inline void
@@ -70,11 +35,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // new_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 new_name:", 19);
+                pm_buffer_append_string(output_buffer, "+-- new_name:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->new_name, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -83,11 +48,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // old_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 old_name:", 19);
+                pm_buffer_append_string(output_buffer, "+-- old_name:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->old_name, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -96,12 +61,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -116,11 +81,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // new_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 new_name:", 19);
+                pm_buffer_append_string(output_buffer, "+-- new_name:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->new_name, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -129,11 +94,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // old_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 old_name:", 19);
+                pm_buffer_append_string(output_buffer, "+-- old_name:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->old_name, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -142,12 +107,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -162,11 +127,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // left
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 left:", 15);
+                pm_buffer_append_string(output_buffer, "+-- left:", 9);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -175,11 +140,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // right
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 right:", 16);
+                pm_buffer_append_string(output_buffer, "+-- right:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -188,12 +153,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -208,11 +173,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // left
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 left:", 15);
+                pm_buffer_append_string(output_buffer, "+-- left:", 9);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -221,11 +186,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // right
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 right:", 16);
+                pm_buffer_append_string(output_buffer, "+-- right:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -234,12 +199,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -254,21 +219,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORD_SPLAT) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " contains_keyword_splat", 23);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->arguments.size));
 
                 size_t last_index = cast->arguments.size;
@@ -276,15 +241,8 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     size_t prefix_length = prefix_buffer->length;
                     pm_buffer_append_string(prefix_buffer, "    ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -301,37 +259,30 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_ARRAY_NODE_FLAGS_CONTAINS_SPLAT) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " contains_splat", 15);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // elements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 elements:", 19);
+                pm_buffer_append_string(output_buffer, "+-- elements:", 13);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -340,15 +291,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -356,15 +307,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -380,14 +331,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // constant
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 constant:", 19);
+                pm_buffer_append_string(output_buffer, "+-- constant:", 13);
                 if (cast->constant == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -397,23 +348,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // requireds
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 requireds:", 20);
+                pm_buffer_append_string(output_buffer, "+-- requireds:", 14);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->requireds.size));
 
                 size_t last_index = cast->requireds.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->requireds.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -422,14 +366,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rest
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rest:", 15);
+                pm_buffer_append_string(output_buffer, "+-- rest:", 9);
                 if (cast->rest == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -439,23 +383,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // posts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 posts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- posts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->posts.size));
 
                 size_t last_index = cast->posts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->posts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -464,15 +401,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -480,15 +417,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -504,11 +441,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // key
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 key:", 14);
+                pm_buffer_append_string(output_buffer, "+-- key:", 8);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->key, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -517,11 +454,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -530,15 +467,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -554,14 +491,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 if (cast->value == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -571,12 +508,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -591,7 +528,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -608,15 +545,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // begin_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 begin_keyword_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- begin_keyword_loc:", 22);
                 pm_location_t *location = &cast->begin_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -624,14 +561,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -641,14 +578,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rescue_clause
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rescue_clause:", 24);
+                pm_buffer_append_string(output_buffer, "+-- rescue_clause:", 18);
                 if (cast->rescue_clause == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rescue_clause, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -658,14 +595,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // else_clause
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 else_clause:", 22);
+                pm_buffer_append_string(output_buffer, "+-- else_clause:", 16);
                 if (cast->else_clause == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->else_clause, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -675,14 +612,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // ensure_clause
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ensure_clause:", 24);
+                pm_buffer_append_string(output_buffer, "+-- ensure_clause:", 18);
                 if (cast->ensure_clause == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->ensure_clause, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -692,15 +629,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -716,14 +653,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // expression
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 expression:", 21);
+                pm_buffer_append_string(output_buffer, "+-- expression:", 15);
                 if (cast->expression == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -733,12 +670,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -753,21 +690,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -784,7 +721,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -796,14 +733,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parameters
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parameters:", 21);
+                pm_buffer_append_string(output_buffer, "+-- parameters:", 15);
                 if (cast->parameters == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -813,14 +750,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -830,24 +767,24 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -862,23 +799,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 if (cast->name == 0) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_constant(output_buffer, parser, cast->name);
@@ -889,15 +826,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -905,12 +842,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -925,14 +862,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parameters
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parameters:", 21);
+                pm_buffer_append_string(output_buffer, "+-- parameters:", 15);
                 if (cast->parameters == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -942,23 +879,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->locals.size));
 
                 size_t last_index = cast->locals.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->locals.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -967,15 +897,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -983,15 +913,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1007,14 +937,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1024,12 +954,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -1044,7 +974,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -1066,21 +996,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1090,15 +1020,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1106,15 +1036,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // message_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 message_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- message_loc:", 16);
                 pm_location_t *location = &cast->message_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1122,7 +1052,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // read_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 read_name:", 20);
+                pm_buffer_append_string(output_buffer, "+-- read_name:", 14);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->read_name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1131,7 +1061,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // write_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 write_name:", 21);
+                pm_buffer_append_string(output_buffer, "+-- write_name:", 15);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->write_name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1140,19 +1070,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -1173,7 +1103,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -1195,21 +1125,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1219,15 +1149,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1235,7 +1165,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1244,15 +1174,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // message_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 message_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- message_loc:", 16);
                 pm_location_t *location = &cast->message_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1260,15 +1190,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1276,14 +1206,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1293,15 +1223,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1309,9 +1239,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -1334,7 +1264,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -1356,21 +1286,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1380,15 +1310,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1396,15 +1326,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // message_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 message_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- message_loc:", 16);
                 pm_location_t *location = &cast->message_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1412,7 +1342,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // read_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 read_name:", 20);
+                pm_buffer_append_string(output_buffer, "+-- read_name:", 14);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->read_name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1421,7 +1351,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // write_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 write_name:", 21);
+                pm_buffer_append_string(output_buffer, "+-- write_name:", 15);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->write_name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1430,7 +1360,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1439,19 +1369,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -1472,7 +1402,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -1494,21 +1424,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1518,15 +1448,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1534,15 +1464,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // message_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 message_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- message_loc:", 16);
                 pm_location_t *location = &cast->message_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1550,7 +1480,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // read_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 read_name:", 20);
+                pm_buffer_append_string(output_buffer, "+-- read_name:", 14);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->read_name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1559,7 +1489,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // write_name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 write_name:", 21);
+                pm_buffer_append_string(output_buffer, "+-- write_name:", 15);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->write_name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1568,19 +1498,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -1601,7 +1531,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -1623,18 +1553,18 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -1643,19 +1573,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -1664,12 +1594,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // message_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 message_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- message_loc:", 16);
                 pm_location_t *location = &cast->message_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -1684,11 +1614,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -1697,11 +1627,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // target
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 target:", 17);
+                pm_buffer_append_string(output_buffer, "+-- target:", 11);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -1710,12 +1640,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -1730,14 +1660,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // predicate
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 predicate:", 20);
+                pm_buffer_append_string(output_buffer, "+-- predicate:", 14);
                 if (cast->predicate == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1747,23 +1677,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // conditions
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 conditions:", 21);
+                pm_buffer_append_string(output_buffer, "+-- conditions:", 15);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->conditions.size));
 
                 size_t last_index = cast->conditions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->conditions.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -1772,14 +1695,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // consequent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 consequent:", 21);
+                pm_buffer_append_string(output_buffer, "+-- consequent:", 15);
                 if (cast->consequent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1789,24 +1712,24 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // case_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 case_keyword_loc:", 27);
+                pm_buffer_append_string(output_buffer, "+-- case_keyword_loc:", 21);
                 pm_location_t *location = &cast->case_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -1821,14 +1744,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // predicate
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 predicate:", 20);
+                pm_buffer_append_string(output_buffer, "+-- predicate:", 14);
                 if (cast->predicate == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1838,23 +1761,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // conditions
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 conditions:", 21);
+                pm_buffer_append_string(output_buffer, "+-- conditions:", 15);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->conditions.size));
 
                 size_t last_index = cast->conditions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->conditions.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -1863,14 +1779,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // consequent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 consequent:", 21);
+                pm_buffer_append_string(output_buffer, "+-- consequent:", 15);
                 if (cast->consequent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1880,24 +1796,24 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // case_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 case_keyword_loc:", 27);
+                pm_buffer_append_string(output_buffer, "+-- case_keyword_loc:", 21);
                 pm_location_t *location = &cast->case_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -1912,7 +1828,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -1924,23 +1840,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // class_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 class_keyword_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- class_keyword_loc:", 22);
                 pm_location_t *location = &cast->class_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // constant_path
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 constant_path:", 24);
+                pm_buffer_append_string(output_buffer, "+-- constant_path:", 18);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant_path, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -1949,15 +1865,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // inheritance_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 inheritance_operator_loc:", 35);
+                pm_buffer_append_string(output_buffer, "+-- inheritance_operator_loc:", 29);
                 pm_location_t *location = &cast->inheritance_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -1965,14 +1881,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // superclass
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 superclass:", 21);
+                pm_buffer_append_string(output_buffer, "+-- superclass:", 15);
                 if (cast->superclass == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->superclass, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1982,14 +1898,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -1999,19 +1915,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2028,7 +1944,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2037,31 +1953,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2082,7 +1998,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2091,35 +2007,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2128,7 +2044,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2145,7 +2061,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2154,31 +2070,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2199,7 +2115,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2216,7 +2132,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2233,7 +2149,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2242,23 +2158,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2267,15 +2183,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -2291,7 +2207,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2300,31 +2216,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2345,7 +2261,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2354,35 +2270,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2391,7 +2307,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2408,7 +2324,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2417,31 +2333,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2462,11 +2378,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // target
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 target:", 17);
+                pm_buffer_append_string(output_buffer, "+-- target:", 11);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2475,19 +2391,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2508,14 +2424,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parent:", 17);
+                pm_buffer_append_string(output_buffer, "+-- parent:", 11);
                 if (cast->parent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parent, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -2525,11 +2441,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // child
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 child:", 16);
+                pm_buffer_append_string(output_buffer, "+-- child:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->child, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2538,12 +2454,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // delimiter_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 delimiter_loc:", 24);
+                pm_buffer_append_string(output_buffer, "+-- delimiter_loc:", 18);
                 pm_location_t *location = &cast->delimiter_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -2558,11 +2474,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // target
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 target:", 17);
+                pm_buffer_append_string(output_buffer, "+-- target:", 11);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2571,23 +2487,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2596,7 +2512,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2613,11 +2529,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // target
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 target:", 17);
+                pm_buffer_append_string(output_buffer, "+-- target:", 11);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2626,19 +2542,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2659,14 +2575,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parent:", 17);
+                pm_buffer_append_string(output_buffer, "+-- parent:", 11);
                 if (cast->parent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parent, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -2676,11 +2592,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // child
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 child:", 16);
+                pm_buffer_append_string(output_buffer, "+-- child:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->child, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2689,12 +2605,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // delimiter_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 delimiter_loc:", 24);
+                pm_buffer_append_string(output_buffer, "+-- delimiter_loc:", 18);
                 pm_location_t *location = &cast->delimiter_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -2709,11 +2625,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // target
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 target:", 17);
+                pm_buffer_append_string(output_buffer, "+-- target:", 11);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->target, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2722,19 +2638,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -2755,7 +2671,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2772,7 +2688,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2789,7 +2705,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2798,23 +2714,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -2823,12 +2739,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -2843,7 +2759,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -2852,26 +2768,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -2881,14 +2797,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parameters
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parameters:", 21);
+                pm_buffer_append_string(output_buffer, "+-- parameters:", 15);
                 if (cast->parameters == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -2898,14 +2814,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -2915,7 +2831,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -2927,27 +2843,27 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // def_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 def_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- def_keyword_loc:", 20);
                 pm_location_t *location = &cast->def_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -2955,15 +2871,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -2971,15 +2887,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -2987,15 +2903,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // equal_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 equal_loc:", 20);
+                pm_buffer_append_string(output_buffer, "+-- equal_loc:", 14);
                 pm_location_t *location = &cast->equal_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3003,15 +2919,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3027,15 +2943,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3043,11 +2959,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3056,15 +2972,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3072,12 +2988,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -3092,26 +3008,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // else_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 else_keyword_loc:", 27);
+                pm_buffer_append_string(output_buffer, "+-- else_keyword_loc:", 21);
                 pm_location_t *location = &cast->else_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3121,15 +3037,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3145,26 +3061,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3174,12 +3090,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -3194,19 +3110,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // variable
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 variable:", 19);
+                pm_buffer_append_string(output_buffer, "+-- variable:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -3227,26 +3143,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // ensure_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ensure_keyword_loc:", 29);
+                pm_buffer_append_string(output_buffer, "+-- ensure_keyword_loc:", 23);
                 pm_location_t *location = &cast->ensure_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3256,12 +3172,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -3283,14 +3199,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // constant
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 constant:", 19);
+                pm_buffer_append_string(output_buffer, "+-- constant:", 13);
                 if (cast->constant == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3300,11 +3216,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // left
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 left:", 15);
+                pm_buffer_append_string(output_buffer, "+-- left:", 9);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3313,23 +3229,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // requireds
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 requireds:", 20);
+                pm_buffer_append_string(output_buffer, "+-- requireds:", 14);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->requireds.size));
 
                 size_t last_index = cast->requireds.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->requireds.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -3338,11 +3247,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // right
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 right:", 16);
+                pm_buffer_append_string(output_buffer, "+-- right:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3351,15 +3260,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3367,15 +3276,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3391,28 +3300,28 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_RANGE_FLAGS_EXCLUDE_END) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " exclude_end", 12);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // left
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 left:", 15);
+                pm_buffer_append_string(output_buffer, "+-- left:", 9);
                 if (cast->left == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3422,14 +3331,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // right
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 right:", 16);
+                pm_buffer_append_string(output_buffer, "+-- right:", 10);
                 if (cast->right == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3439,21 +3348,29 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             break;
         }
         case PM_FLOAT_NODE: {
+            pm_float_node_t *cast = (pm_float_node_t *) node;
             pm_buffer_append_string(output_buffer, "@ FloatNode (location: ", 23);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
+                pm_buffer_append_format(output_buffer, " %f\n", cast->value);
+            }
 
             break;
         }
@@ -3466,11 +3383,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // index
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 index:", 16);
+                pm_buffer_append_string(output_buffer, "+-- index:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->index, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3479,11 +3396,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // collection
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 collection:", 21);
+                pm_buffer_append_string(output_buffer, "+-- collection:", 15);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->collection, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3492,14 +3409,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3509,39 +3426,39 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // for_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 for_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- for_keyword_loc:", 20);
                 pm_location_t *location = &cast->for_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // in_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 in_keyword_loc:", 25);
+                pm_buffer_append_string(output_buffer, "+-- in_keyword_loc:", 19);
                 pm_location_t *location = &cast->in_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // do_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 do_keyword_loc:", 25);
+                pm_buffer_append_string(output_buffer, "+-- do_keyword_loc:", 19);
                 pm_location_t *location = &cast->do_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3549,12 +3466,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -3583,9 +3500,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -3608,7 +3525,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3617,31 +3534,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -3662,7 +3579,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3671,35 +3588,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3708,7 +3625,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3725,7 +3642,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3734,31 +3651,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -3779,7 +3696,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3796,7 +3713,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3813,7 +3730,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -3822,23 +3739,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -3847,12 +3764,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -3867,35 +3784,28 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // elements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 elements:", 19);
+                pm_buffer_append_string(output_buffer, "+-- elements:", 13);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -3904,12 +3814,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -3924,14 +3834,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // constant
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 constant:", 19);
+                pm_buffer_append_string(output_buffer, "+-- constant:", 13);
                 if (cast->constant == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3941,23 +3851,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // elements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 elements:", 19);
+                pm_buffer_append_string(output_buffer, "+-- elements:", 13);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -3966,14 +3869,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rest
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rest:", 15);
+                pm_buffer_append_string(output_buffer, "+-- rest:", 9);
                 if (cast->rest == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -3983,15 +3886,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -3999,15 +3902,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4023,15 +3926,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // if_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 if_keyword_loc:", 25);
+                pm_buffer_append_string(output_buffer, "+-- if_keyword_loc:", 19);
                 pm_location_t *location = &cast->if_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4039,11 +3942,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // predicate
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 predicate:", 20);
+                pm_buffer_append_string(output_buffer, "+-- predicate:", 14);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -4052,15 +3955,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // then_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 then_keyword_loc:", 27);
+                pm_buffer_append_string(output_buffer, "+-- then_keyword_loc:", 21);
                 pm_location_t *location = &cast->then_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4068,14 +3971,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4085,14 +3988,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // consequent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 consequent:", 21);
+                pm_buffer_append_string(output_buffer, "+-- consequent:", 15);
                 if (cast->consequent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4102,15 +4005,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4126,7 +4029,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // numeric
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 numeric:", 18);
+                pm_buffer_append_string(output_buffer, "+-- numeric:", 12);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4147,7 +4050,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4175,11 +4078,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // pattern
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 pattern:", 18);
+                pm_buffer_append_string(output_buffer, "+-- pattern:", 12);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->pattern, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -4188,14 +4091,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4205,27 +4108,27 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // in_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 in_loc:", 17);
+                pm_buffer_append_string(output_buffer, "+-- in_loc:", 11);
                 pm_location_t *location = &cast->in_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // then_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 then_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- then_loc:", 13);
                 pm_location_t *location = &cast->then_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4241,7 +4144,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -4263,21 +4166,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4287,15 +4190,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4303,26 +4206,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4332,26 +4235,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4361,19 +4264,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4394,7 +4297,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -4416,21 +4319,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4440,15 +4343,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4456,26 +4359,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4485,26 +4388,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4514,7 +4417,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -4523,19 +4426,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4556,7 +4459,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -4578,21 +4481,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 if (cast->receiver == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4602,15 +4505,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call_operator_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- call_operator_loc:", 22);
                 pm_location_t *location = &cast->call_operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -4618,26 +4521,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4647,26 +4550,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->block, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4676,19 +4579,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4709,7 +4612,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_CALL_NODE_FLAGS_SAFE_NAVIGATION) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -4731,18 +4634,18 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " ignore_visibility", 18);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // receiver
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 receiver:", 19);
+                pm_buffer_append_string(output_buffer, "+-- receiver:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->receiver, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -4751,26 +4654,26 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -4780,21 +4683,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -4817,7 +4720,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -4826,31 +4729,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4871,7 +4774,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -4880,35 +4783,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -4917,7 +4820,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -4934,7 +4837,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -4943,31 +4846,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -4988,7 +4891,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5005,7 +4908,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5022,7 +4925,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5031,23 +4934,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -5056,12 +4959,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -5076,7 +4979,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_INTEGER_BASE_FLAGS_BINARY) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -5098,8 +5001,43 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " hexadecimal", 12);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // value
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
+                const pm_integer_t *integer = &cast->value;
+                if (integer->length == 0) {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    if (integer->negative) pm_buffer_append_byte(output_buffer, '-');
+                    pm_buffer_append_format(output_buffer, "%" PRIu32 "\n", integer->head.value);
+                } else if (integer->length == 1) {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    if (integer->negative) pm_buffer_append_byte(output_buffer, '-');
+                    pm_buffer_append_format(output_buffer, "%" PRIu64 "\n", ((uint64_t) integer->head.value) | (((uint64_t) integer->head.next->value) << 32));
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+
+                    const pm_integer_word_t *node = &integer->head;
+                    uint32_t index = 0;
+
+                    while (node != NULL) {
+                        if (index != 0) pm_buffer_append_string(output_buffer, " | ", 3);
+                        pm_buffer_append_format(output_buffer, "%" PRIu32, node->value);
+
+                        if (index != 0) {
+                            pm_buffer_append_string(output_buffer, " << ", 4);
+                            pm_buffer_append_format(output_buffer, "%" PRIu32, index * 32);
+                        }
+
+                        node = node->next;
+                        index++;
+                    }
+                    pm_buffer_append_string(output_buffer, "]\n", 2);
+                }
             }
 
             break;
@@ -5113,7 +5051,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -5170,42 +5108,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " forced_us_ascii_encoding", 25);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // parts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- parts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -5214,12 +5145,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -5234,7 +5165,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -5291,42 +5222,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " forced_us_ascii_encoding", 25);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // parts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- parts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -5335,12 +5259,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -5355,15 +5279,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -5371,23 +5295,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- parts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -5396,15 +5313,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -5420,15 +5337,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -5436,23 +5353,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // parts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- parts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -5461,15 +5371,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -5485,35 +5395,28 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // parts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- parts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->parts.size));
 
                 size_t last_index = cast->parts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -5522,14 +5425,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
+
+            break;
+        }
+        case PM_IT_PARAMETERS_NODE: {
+            pm_buffer_append_string(output_buffer, "@ ItParametersNode (location: ", 30);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
 
             break;
         }
@@ -5542,21 +5452,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_KEYWORD_HASH_NODE_FLAGS_SYMBOL_KEYS) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " symbol_keys", 12);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // elements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 elements:", 19);
+                pm_buffer_append_string(output_buffer, "+-- elements:", 13);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->elements.size));
 
                 size_t last_index = cast->elements.size;
@@ -5564,15 +5474,8 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     size_t prefix_length = prefix_buffer->length;
                     pm_buffer_append_string(prefix_buffer, "    ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->elements.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -5589,23 +5492,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 if (cast->name == 0) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_constant(output_buffer, parser, cast->name);
@@ -5616,15 +5519,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -5632,12 +5535,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -5652,7 +5555,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -5664,50 +5567,50 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // parameters
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 parameters:", 21);
+                pm_buffer_append_string(output_buffer, "+-- parameters:", 15);
                 if (cast->parameters == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->parameters, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -5717,9 +5620,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -5742,35 +5645,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -5779,7 +5682,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5788,7 +5691,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // depth
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
+                pm_buffer_append_string(output_buffer, "+-- depth:", 10);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
@@ -5803,35 +5706,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -5840,7 +5743,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5849,7 +5752,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator:", 19);
+                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->operator);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5858,7 +5761,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // depth
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
+                pm_buffer_append_string(output_buffer, "+-- depth:", 10);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
@@ -5873,35 +5776,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -5910,7 +5813,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5919,7 +5822,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // depth
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
+                pm_buffer_append_string(output_buffer, "+-- depth:", 10);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
@@ -5934,7 +5837,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5943,7 +5846,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // depth
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
+                pm_buffer_append_string(output_buffer, "+-- depth:", 10);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
@@ -5958,7 +5861,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5967,7 +5870,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // depth
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 depth:", 16);
+                pm_buffer_append_string(output_buffer, "+-- depth:", 10);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
@@ -5982,7 +5885,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -5991,30 +5894,30 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // depth
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 depth:", 16);
+                pm_buffer_append_string(output_buffer, "+-- depth:", 10);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->depth);
             }
 
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6023,12 +5926,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6043,7 +5946,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -6100,52 +6003,52 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " forced_us_ascii_encoding", 25);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // content_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 content_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- content_loc:", 16);
                 pm_location_t *location = &cast->content_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // unescaped
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 unescaped:", 20);
+                pm_buffer_append_string(output_buffer, "+-- unescaped:", 14);
                 pm_buffer_append_string(output_buffer, " \"", 2);
-                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6160,11 +6063,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6173,11 +6076,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // pattern
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 pattern:", 18);
+                pm_buffer_append_string(output_buffer, "+-- pattern:", 12);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->pattern, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6186,12 +6089,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6206,11 +6109,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->value, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6219,11 +6122,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // pattern
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 pattern:", 18);
+                pm_buffer_append_string(output_buffer, "+-- pattern:", 12);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->pattern, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6232,12 +6135,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6252,11 +6155,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // call
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 call:", 15);
+                pm_buffer_append_string(output_buffer, "+-- call:", 9);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->call, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6265,7 +6168,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // targets
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 targets:", 18);
+                pm_buffer_append_string(output_buffer, "+-- targets:", 12);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->targets.size));
 
                 size_t last_index = cast->targets.size;
@@ -6273,15 +6176,8 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     size_t prefix_length = prefix_buffer->length;
                     pm_buffer_append_string(prefix_buffer, "    ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->targets.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6305,7 +6201,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -6317,23 +6213,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // module_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 module_keyword_loc:", 29);
+                pm_buffer_append_string(output_buffer, "+-- module_keyword_loc:", 23);
                 pm_location_t *location = &cast->module_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // constant_path
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 constant_path:", 24);
+                pm_buffer_append_string(output_buffer, "+-- constant_path:", 18);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->constant_path, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6342,14 +6238,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -6359,19 +6255,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -6388,23 +6284,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // lefts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lefts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- lefts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->lefts.size));
 
                 size_t last_index = cast->lefts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->lefts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6413,14 +6302,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rest
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rest:", 15);
+                pm_buffer_append_string(output_buffer, "+-- rest:", 9);
                 if (cast->rest == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -6430,23 +6319,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rights
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rights:", 17);
+                pm_buffer_append_string(output_buffer, "+-- rights:", 11);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->rights.size));
 
                 size_t last_index = cast->rights.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rights.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6455,15 +6337,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -6471,15 +6353,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -6495,23 +6377,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // lefts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lefts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- lefts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->lefts.size));
 
                 size_t last_index = cast->lefts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->lefts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6520,14 +6395,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rest
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rest:", 15);
+                pm_buffer_append_string(output_buffer, "+-- rest:", 9);
                 if (cast->rest == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -6537,23 +6412,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rights
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rights:", 17);
+                pm_buffer_append_string(output_buffer, "+-- rights:", 11);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->rights.size));
 
                 size_t last_index = cast->rights.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rights.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6562,15 +6430,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -6578,15 +6446,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -6594,19 +6462,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -6627,14 +6495,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -6644,12 +6512,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6671,24 +6539,24 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6703,7 +6571,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // maximum
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 maximum:", 18);
+                pm_buffer_append_string(output_buffer, "+-- maximum:", 12);
                 pm_buffer_append_format(output_buffer, " %" PRIu8 "\n", cast->maximum);
             }
 
@@ -6718,7 +6586,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // number
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 number:", 17);
+                pm_buffer_append_string(output_buffer, "+-- number:", 11);
                 pm_buffer_append_format(output_buffer, " %" PRIu32 "\n", cast->number);
             }
 
@@ -6733,21 +6601,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -6756,19 +6624,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -6789,21 +6657,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -6812,31 +6680,31 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // value
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 value:", 16);
+                pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -6857,11 +6725,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // left
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 left:", 15);
+                pm_buffer_append_string(output_buffer, "+-- left:", 9);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6870,11 +6738,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // right
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 right:", 16);
+                pm_buffer_append_string(output_buffer, "+-- right:", 10);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -6883,12 +6751,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -6903,23 +6771,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // requireds
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 requireds:", 20);
+                pm_buffer_append_string(output_buffer, "+-- requireds:", 14);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->requireds.size));
 
                 size_t last_index = cast->requireds.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->requireds.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6928,23 +6789,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // optionals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 optionals:", 20);
+                pm_buffer_append_string(output_buffer, "+-- optionals:", 14);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->optionals.size));
 
                 size_t last_index = cast->optionals.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->optionals.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6953,14 +6807,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rest
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rest:", 15);
+                pm_buffer_append_string(output_buffer, "+-- rest:", 9);
                 if (cast->rest == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->rest, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -6970,23 +6824,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // posts
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 posts:", 16);
+                pm_buffer_append_string(output_buffer, "+-- posts:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->posts.size));
 
                 size_t last_index = cast->posts.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->posts.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -6995,23 +6842,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keywords
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keywords:", 19);
+                pm_buffer_append_string(output_buffer, "+-- keywords:", 13);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->keywords.size));
 
                 size_t last_index = cast->keywords.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->keywords.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -7020,14 +6860,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_rest
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_rest:", 23);
+                pm_buffer_append_string(output_buffer, "+-- keyword_rest:", 17);
                 if (cast->keyword_rest == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->keyword_rest, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7037,9 +6877,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -7062,14 +6902,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7079,24 +6919,24 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7111,11 +6951,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // expression
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 expression:", 21);
+                pm_buffer_append_string(output_buffer, "+-- expression:", 15);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -7124,36 +6964,36 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7168,11 +7008,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // variable
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 variable:", 19);
+                pm_buffer_append_string(output_buffer, "+-- variable:", 13);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->variable, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -7181,12 +7021,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7201,14 +7041,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7218,36 +7058,36 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7262,14 +7102,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7279,36 +7119,36 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7323,7 +7163,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -7335,7 +7175,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -7356,28 +7196,28 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_RANGE_FLAGS_EXCLUDE_END) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " exclude_end", 12);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // left
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 left:", 15);
+                pm_buffer_append_string(output_buffer, "+-- left:", 9);
                 if (cast->left == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->left, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7387,14 +7227,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // right
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 right:", 16);
+                pm_buffer_append_string(output_buffer, "+-- right:", 10);
                 if (cast->right == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->right, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7404,12 +7244,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7424,7 +7264,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // numeric
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 numeric:", 18);
+                pm_buffer_append_string(output_buffer, "+-- numeric:", 12);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -7452,7 +7292,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_REGULAR_EXPRESSION_FLAGS_IGNORE_CASE) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -7509,52 +7349,52 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " forced_us_ascii_encoding", 25);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // content_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 content_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- content_loc:", 16);
                 pm_location_t *location = &cast->content_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // unescaped
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 unescaped:", 20);
+                pm_buffer_append_string(output_buffer, "+-- unescaped:", 14);
                 pm_buffer_append_string(output_buffer, " \"", 2);
-                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7569,21 +7409,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -7592,12 +7432,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7612,21 +7452,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_constant(output_buffer, parser, cast->name);
                 pm_buffer_append_byte(output_buffer, '\n');
@@ -7643,11 +7483,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // expression
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 expression:", 21);
+                pm_buffer_append_string(output_buffer, "+-- expression:", 15);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -7656,19 +7496,19 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // rescue_expression
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 rescue_expression:", 28);
+                pm_buffer_append_string(output_buffer, "+-- rescue_expression:", 22);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
@@ -7689,35 +7529,28 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // exceptions
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 exceptions:", 21);
+                pm_buffer_append_string(output_buffer, "+-- exceptions:", 15);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->exceptions.size));
 
                 size_t last_index = cast->exceptions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->exceptions.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -7726,15 +7559,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -7742,14 +7575,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // reference
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 reference:", 20);
+                pm_buffer_append_string(output_buffer, "+-- reference:", 14);
                 if (cast->reference == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->reference, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7759,14 +7592,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7776,9 +7609,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // consequent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 consequent:", 21);
+                pm_buffer_append_string(output_buffer, "+-- consequent:", 15);
                 if (cast->consequent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -7801,23 +7634,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_PARAMETER_FLAGS_REPEATED_PARAMETER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " repeated_parameter", 19);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name:", 15);
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
                 if (cast->name == 0) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_constant(output_buffer, parser, cast->name);
@@ -7828,15 +7661,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // name_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 name_loc:", 19);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
                 pm_location_t *location = &cast->name_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -7844,12 +7677,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -7871,21 +7704,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -7915,7 +7748,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // locals
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 locals:", 17);
+                pm_buffer_append_string(output_buffer, "+-- locals:", 11);
                 pm_buffer_append_string(output_buffer, " [", 2);
                 for (uint32_t index = 0; index < cast->locals.size; index++) {
                     if (index != 0) pm_buffer_append_string(output_buffer, ", ", 2);
@@ -7927,35 +7760,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // class_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 class_keyword_loc:", 28);
+                pm_buffer_append_string(output_buffer, "+-- class_keyword_loc:", 22);
                 pm_location_t *location = &cast->class_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // expression
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 expression:", 21);
+                pm_buffer_append_string(output_buffer, "+-- expression:", 15);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->expression, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -7964,14 +7797,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 if (cast->body == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -7981,12 +7814,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -8008,9 +7841,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // filepath
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 filepath:", 19);
+                pm_buffer_append_string(output_buffer, "+-- filepath:", 13);
                 pm_buffer_append_string(output_buffer, " \"", 2);
-                prettyprint_source(output_buffer, pm_string_source(&cast->filepath), pm_string_length(&cast->filepath));
+                pm_buffer_append_source(output_buffer, pm_string_source(&cast->filepath), pm_string_length(&cast->filepath), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -8032,21 +7865,21 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 operator_loc:", 23);
+                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // expression
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 expression:", 21);
+                pm_buffer_append_string(output_buffer, "+-- expression:", 15);
                 if (cast->expression == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -8069,7 +7902,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 body:", 15);
+                pm_buffer_append_string(output_buffer, "+-- body:", 9);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->body.size));
 
                 size_t last_index = cast->body.size;
@@ -8077,15 +7910,8 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     size_t prefix_length = prefix_buffer->length;
                     pm_buffer_append_string(prefix_buffer, "    ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->body.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -8102,7 +7928,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_STRING_FLAGS_FORCED_UTF8_ENCODING) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -8119,22 +7945,22 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " frozen", 7);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8142,27 +7968,27 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // content_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 content_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- content_loc:", 16);
                 pm_location_t *location = &cast->content_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8170,9 +7996,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // unescaped
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 unescaped:", 20);
+                pm_buffer_append_string(output_buffer, "+-- unescaped:", 14);
                 pm_buffer_append_string(output_buffer, " \"", 2);
-                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -8187,27 +8013,27 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8215,14 +8041,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -8232,15 +8058,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8248,9 +8074,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // block
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 block:", 16);
+                pm_buffer_append_string(output_buffer, "+-- block:", 10);
                 if (cast->block == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -8273,7 +8099,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_SYMBOL_FLAGS_FORCED_UTF8_ENCODING) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -8290,22 +8116,22 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " forced_us_ascii_encoding", 25);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8313,15 +8139,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // value_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 value_loc:", 20);
+                pm_buffer_append_string(output_buffer, "+-- value_loc:", 14);
                 pm_location_t *location = &cast->value_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8329,15 +8155,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8345,9 +8171,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // unescaped
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 unescaped:", 20);
+                pm_buffer_append_string(output_buffer, "+-- unescaped:", 14);
                 pm_buffer_append_string(output_buffer, " \"", 2);
-                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -8369,23 +8195,16 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // names
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 names:", 16);
+                pm_buffer_append_string(output_buffer, "+-- names:", 10);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->names.size));
 
                 size_t last_index = cast->names.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->names.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -8394,12 +8213,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -8414,23 +8233,23 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // predicate
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 predicate:", 20);
+                pm_buffer_append_string(output_buffer, "+-- predicate:", 14);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -8439,15 +8258,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // then_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 then_keyword_loc:", 27);
+                pm_buffer_append_string(output_buffer, "+-- then_keyword_loc:", 21);
                 pm_location_t *location = &cast->then_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8455,14 +8274,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->statements, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -8472,14 +8291,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // consequent
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 consequent:", 21);
+                pm_buffer_append_string(output_buffer, "+-- consequent:", 15);
                 if (cast->consequent == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->consequent, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -8489,15 +8308,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // end_keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 end_keyword_loc:", 26);
+                pm_buffer_append_string(output_buffer, "+-- end_keyword_loc:", 20);
                 pm_location_t *location = &cast->end_keyword_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8513,41 +8332,41 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_LOOP_FLAGS_BEGIN_MODIFIER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " begin_modifier", 15);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8555,11 +8374,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // predicate
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 predicate:", 20);
+                pm_buffer_append_string(output_buffer, "+-- predicate:", 14);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -8568,9 +8387,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -8593,35 +8412,28 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // conditions
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 conditions:", 21);
+                pm_buffer_append_string(output_buffer, "+-- conditions:", 15);
                 pm_buffer_append_format(output_buffer, " (length: %lu)\n", (unsigned long) (cast->conditions.size));
 
                 size_t last_index = cast->conditions.size;
                 for (uint32_t index = 0; index < last_index; index++) {
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
-
-                    if (index == last_index - 1) {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "    ", 4);
-                    } else {
-                        pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 ", 10);
-                        pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
-                    }
-
+                    pm_buffer_append_string(output_buffer, "+-- ", 4);
+                    pm_buffer_append_string(prefix_buffer, (index == last_index - 1) ? "    " : "|   ", 4);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->conditions.nodes[index], prefix_buffer);
                     prefix_buffer->length = prefix_length;
                 }
@@ -8630,9 +8442,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -8655,41 +8467,41 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_LOOP_FLAGS_BEGIN_MODIFIER) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " begin_modifier", 15);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8697,11 +8509,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // predicate
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 predicate:", 20);
+                pm_buffer_append_string(output_buffer, "+-- predicate:", 14);
                 pm_buffer_append_byte(output_buffer, '\n');
 
                 size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                pm_buffer_append_string(prefix_buffer, "|   ", 4);
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 prettyprint_node(output_buffer, parser, (pm_node_t *) cast->predicate, prefix_buffer);
                 prefix_buffer->length = prefix_length;
@@ -8710,9 +8522,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 statements:", 21);
+                pm_buffer_append_string(output_buffer, "+-- statements:", 15);
                 if (cast->statements == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
@@ -8735,7 +8547,7 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 flags:", 16);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
                 if (cast->base.flags & PM_ENCODING_FLAGS_FORCED_UTF8_ENCODING) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
@@ -8747,52 +8559,52 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_append_string(output_buffer, " forced_binary_encoding", 23);
                     found = true;
                 }
-                if (!found) pm_buffer_append_string(output_buffer, " \xe2\x88\x85", 4);
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 opening_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- opening_loc:", 16);
                 pm_location_t *location = &cast->opening_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // content_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 content_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- content_loc:", 16);
                 pm_location_t *location = &cast->content_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 closing_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- closing_loc:", 16);
                 pm_location_t *location = &cast->closing_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // unescaped
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 unescaped:", 20);
+                pm_buffer_append_string(output_buffer, "+-- unescaped:", 14);
                 pm_buffer_append_string(output_buffer, " \"", 2);
-                prettyprint_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped));
+                pm_buffer_append_source(output_buffer, pm_string_source(&cast->unescaped), pm_string_length(&cast->unescaped), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
@@ -8807,27 +8619,27 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // keyword_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 keyword_loc:", 22);
+                pm_buffer_append_string(output_buffer, "+-- keyword_loc:", 16);
                 pm_location_t *location = &cast->keyword_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
-                prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             // lparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 lparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- lparen_loc:", 15);
                 pm_location_t *location = &cast->lparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
@@ -8835,14 +8647,14 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // arguments
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80 arguments:", 20);
+                pm_buffer_append_string(output_buffer, "+-- arguments:", 14);
                 if (cast->arguments == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, '\n');
 
                     size_t prefix_length = prefix_buffer->length;
-                    pm_buffer_append_string(prefix_buffer, "\xe2\x94\x82   ", 6);
+                    pm_buffer_append_string(prefix_buffer, "|   ", 4);
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->arguments, prefix_buffer);
                     prefix_buffer->length = prefix_length;
@@ -8852,15 +8664,15 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             // rparen_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80 rparen_loc:", 21);
+                pm_buffer_append_string(output_buffer, "+-- rparen_loc:", 15);
                 pm_location_t *location = &cast->rparen_loc;
                 if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " \xe2\x88\x85\n", 5);
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
                 } else {
                     pm_buffer_append_byte(output_buffer, ' ');
                     prettyprint_location(output_buffer, parser, location);
                     pm_buffer_append_string(output_buffer, " = \"", 4);
-                    prettyprint_source(output_buffer, location->start, (size_t) (location->end - location->start));
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                     pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
