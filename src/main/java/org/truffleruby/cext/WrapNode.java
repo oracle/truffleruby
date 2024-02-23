@@ -13,6 +13,7 @@ import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -27,15 +28,16 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.lang.invoke.VarHandle;
 
+@ImportStatic(ObjectIDOperations.class)
 @GenerateUncached
 public abstract class WrapNode extends RubyBaseNode {
 
@@ -46,21 +48,20 @@ public abstract class WrapNode extends RubyBaseNode {
 
     public abstract ValueWrapper execute(Object value);
 
-    @Specialization
-    ValueWrapper wrapLong(long value,
-            @Cached @Exclusive InlinedBranchProfile smallFixnumProfile) {
-        if (value >= ValueWrapperManager.MIN_FIXNUM_VALUE && value <= ValueWrapperManager.MAX_FIXNUM_VALUE) {
-            smallFixnumProfile.enter(this);
-            long val = (value << 1) | LONG_TAG;
-            return new ValueWrapper(null, val, null);
-        } else {
-            return getContext().getValueWrapperManager().longWrapper(value);
-        }
+    @Specialization(guards = "isSmallFixnum(value)")
+    ValueWrapper wrapFixnum(long value) {
+        long val = (value << 1) | LONG_TAG;
+        return new ValueWrapper(null, val, null);
+    }
+
+    @Specialization(guards = "!isSmallFixnum(value)")
+    ValueWrapper wrapNonFixnum(long value) {
+        return new ValueWrapper(value, UNSET_HANDLE, null);
     }
 
     @Specialization
     ValueWrapper wrapDouble(double value) {
-        return getContext().getValueWrapperManager().doubleWrapper(value);
+        return new ValueWrapper(value, UNSET_HANDLE, null);
     }
 
     @Specialization

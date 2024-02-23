@@ -68,16 +68,6 @@ public final class ValueWrapperManager {
         return language.getCurrentFiber().handleData;
     }
 
-    /* We keep a map of long wrappers that have been generated because various C extensions assume that any given fixnum
-     * will translate to a given VALUE. */
-    public ValueWrapper longWrapper(long value) {
-        return new ValueWrapper(value, UNSET_HANDLE, null);
-    }
-
-    public ValueWrapper doubleWrapper(double value) {
-        return new ValueWrapper(value, UNSET_HANDLE, null);
-    }
-
     @TruffleBoundary
     public synchronized HandleBlock addToBlockMap(RubyContext context, RubyLanguage language) {
         HandleBlock block = new HandleBlock(context, language, this);
