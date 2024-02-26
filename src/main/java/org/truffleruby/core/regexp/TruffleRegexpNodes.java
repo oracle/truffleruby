@@ -24,6 +24,7 @@ import java.util.function.Function;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
@@ -86,6 +87,7 @@ import org.truffleruby.language.dispatch.LazyDispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.parser.RubyDeferredWarnings;
+import org.truffleruby.utils.RunTwiceBranchProfile;
 
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
@@ -372,41 +374,49 @@ public abstract class TruffleRegexpNodes {
         @Child DispatchNode warnOnFallbackNode;
 
         @Specialization(guards = "encoding == US_ASCII")
-        Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+                @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
             final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
             if (tregex != null) {
                 return tregex;
             } else {
+                compileProfile.enter();
                 return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == ISO_8859_1")
-        Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+                @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
             final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
             if (tregex != null) {
                 return tregex;
             } else {
+                compileProfile.enter();
                 return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == UTF_8")
-        Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+                @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
             final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
             if (tregex != null) {
                 return tregex;
             } else {
+                compileProfile.enter();
                 return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == BINARY")
-        Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+                @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
             final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
             if (tregex != null) {
                 return tregex;
             } else {
+                compileProfile.enter();
                 return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
             }
         }

@@ -101,6 +101,7 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -417,7 +418,7 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "<<", required = 1, raiseIfNotMutableSelf = true)
+    @CoreMethod(names = "<<", required = 1, raiseIfNotMutableSelf = true, split = Split.ALWAYS)
     @ImportStatic(StringGuards.class)
     public abstract static class StringConcatOneNode extends CoreMethodArrayArgumentsNode {
 
