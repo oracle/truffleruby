@@ -69,18 +69,6 @@ suite = {
 
         # ------------- Libraries -------------
 
-        "JCODINGS": {
-            "moduleName": "org.jruby.jcodings",
-            "maven": {
-                "groupId": "org.jruby.jcodings",
-                "artifactId": "jcodings",
-                "version": "1.0.58"
-            },
-            "digest": "sha512:625210aa07d1e08bf2f5fdc9da6c491a4e5a56e7db297cba1aa73636670ac1d62f3fd763716ef6ede862456b17169272ed9c8461d07100f95262163dc9c18ef8",
-            "sourceDigest": "sha512:d0f883f658310f7ad091aea08df28f1f5fe12080d6cb266cd91aec7e34cda1d57736d32618e8632b329854367d6e4d5fc91b5eb8ac9b823b26113fae3f75f50c",
-            "license": ["MIT"],
-        },
-
         "JONI": {
             "moduleName": "org.jruby.joni",
             "maven": {
