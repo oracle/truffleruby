@@ -11,6 +11,7 @@ package org.truffleruby.utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.NodeCloneable;
 
 public final class RunTwiceBranchProfile extends NodeCloneable {
@@ -27,6 +28,11 @@ public final class RunTwiceBranchProfile extends NodeCloneable {
                 return MANY;
             }
         }
+    }
+
+    @NeverDefault
+    public static RunTwiceBranchProfile create() {
+        return new RunTwiceBranchProfile();
     }
 
     @CompilationFinal private ExecuteCounter executeCounter = ExecuteCounter.NEVER;
