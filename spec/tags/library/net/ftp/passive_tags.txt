@@ -1,1 +1,0 @@
-slow:Net::FTP#passive is the value of Net::FTP.default_value by default

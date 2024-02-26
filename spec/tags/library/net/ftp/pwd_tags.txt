@@ -1,7 +1,0 @@
-slow:Net::FTP#pwd sends the PWD command to the server
-slow:Net::FTP#pwd returns the current directory
-slow:Net::FTP#pwd raises a Net::FTPPermError when the response code is 500
-slow:Net::FTP#pwd raises a Net::FTPPermError when the response code is 501
-slow:Net::FTP#pwd raises a Net::FTPPermError when the response code is 502
-slow:Net::FTP#pwd raises a Net::FTPTempError when the response code is 421
-slow:Net::FTP#pwd raises a Net::FTPPermError when the response code is 550
