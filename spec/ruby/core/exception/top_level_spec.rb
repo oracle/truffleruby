@@ -21,12 +21,16 @@ describe "An Exception reaching the top level" do
     RUBY
     lines = ruby_exe(code, args: "2>&1", exit_status: 1).lines
     lines.map! { |l| l.chomp[/:(in.+)/, 1] }
-    lines.size.should == 5
-    lines[0].should =~ /\Ain [`'](?:Object#)?raise_wrapped': wrapped \(RuntimeError\)\z/
-    lines[1].should =~ /\Ain [`'](?:rescue in )?<main>'\z/
-    lines[2].should =~ /\Ain [`']<main>'\z/
-    lines[3].should =~ /\Ain [`'](?:Object#)?raise_cause': the cause \(RuntimeError\)\z/
-    lines[4].should =~ /\Ain [`']<main>'\z/
+    expected = [
+      /\Ain [`'](?:Object#)?raise_wrapped': wrapped \(RuntimeError\)\z/,
+      # https://bugs.ruby-lang.org/issues/20275
+      *(/\Ain [`'](?:rescue in )?<main>'\z/ if RUBY_ENGINE == 'ruby'),
+      /\Ain [`']<main>'\z/,
+      /\Ain [`'](?:Object#)?raise_cause': the cause \(RuntimeError\)\z/,
+      /\Ain [`']<main>'\z/,
+    ]
+    lines.size.should == expected.size
+    lines.zip(expected) { |l,e| l.should =~ e }
   end
 
   describe "with a custom backtrace" do
