@@ -87,7 +87,7 @@ Runtime configurations are further detailed in [Deploying TruffleRuby](doc/user/
 TruffleRuby is actively tested on the following systems:
 
 * Oracle Linux 7, 8, 9
-* Ubuntu 16.04, 18.04, 20.04, 22.04 (all LTS)
+* Ubuntu 18.04, 20.04, 22.04 (all LTS)
 * Fedora 37, 38
 * Debian 10, 11, 12
 * macOS 11 (Big Sur)
@@ -102,7 +102,7 @@ environment, for example, by unmounting system filesystems such as `/dev/shm`.
 
 ## Dependencies
 
-* [make and gcc](doc/user/installing-llvm.md) for building C and C++ extensions
+* [make, gcc and g++](doc/user/installing-llvm.md) for building C and C++ extensions
 * [libssl](doc/user/installing-libssl.md) for the `openssl` C extension
 * [libyaml](doc/user/installing-libyaml.md) for the `psych` C extension
 * [zlib](doc/user/installing-zlib.md) for the `zlib` C extension

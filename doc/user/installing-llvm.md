@@ -12,14 +12,18 @@ The packages below are required to build C and C++ extensions.
 ### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
-sudo dnf install make gcc
+sudo dnf install make gcc gcc-c++
 ```
+
+`gcc-c++` is only necessary for building C++ extensions.
 
 ### Debian-based: Ubuntu, etc
 
 ```bash
-sudo apt-get install make gcc
+sudo apt-get install make gcc g++
 ```
+
+`g++` is only necessary for building C++ extensions.
 
 ### macOS
 
