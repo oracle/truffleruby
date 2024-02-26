@@ -1,0 +1,2 @@
+slow:Net::HTTP#started? returns true when self has been started
+slow:Net::HTTP#started? returns false when self has been stopped again
