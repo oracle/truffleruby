@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 
 # Should be synchronized with spec/ruby/language/optional_assignments_spec.rb
-# Some specs for assignments are locate in language/variables_spec.rb
+# Some specs for assignments are located in language/variables_spec.rb
 describe 'Assignments' do
   describe 'using =' do
     describe 'evaluation order' do
@@ -14,7 +14,7 @@ describe 'Assignments' do
         ScratchPad.recorded.should == [:receiver, :rhs]
       end
 
-      it 'evaluates expressions left to right when assignment with a #[]' do
+      it 'evaluates expressions left to right when assignment with a #[]=' do
         object = Object.new
         def object.[]=(_, _) end
         ScratchPad.record []
@@ -246,7 +246,7 @@ describe 'Multiple assignments' do
     end
 
     ruby_version_is ''...'3.1' do
-      it 'evaluates expressions right to left when assignment with a #[]' do
+      it 'evaluates expressions right to left when assignment with a #[]=' do
         object = Object.new
         def object.[]=(_, _) end
         ScratchPad.record []
@@ -255,7 +255,7 @@ describe 'Multiple assignments' do
         ScratchPad.recorded.should == [:e, :f, :a, :b, :c, :d]
       end
 
-      it 'evaluates expressions right to left when assignment with a nested #[]' do
+      it 'evaluates expressions right to left when assignment with a nested #[]=' do
         object = Object.new
         def object.[]=(_, _) end
         ScratchPad.record []
@@ -266,7 +266,7 @@ describe 'Multiple assignments' do
     end
 
     ruby_version_is '3.1' do
-      it 'evaluates expressions left to right when assignment with a #[]' do
+      it 'evaluates expressions left to right when assignment with a #[]=' do
         object = Object.new
         def object.[]=(_, _) end
         ScratchPad.record []
@@ -275,7 +275,7 @@ describe 'Multiple assignments' do
         ScratchPad.recorded.should == [:a, :b, :c, :d, :e, :f]
       end
 
-      it 'evaluates expressions left to right when assignment with a nested #[]' do
+      it 'evaluates expressions left to right when assignment with a nested #[]=' do
         object = Object.new
         def object.[]=(_, _) end
         ScratchPad.record []
