@@ -120,11 +120,8 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     @Override
     public AssignableNode visitCallTargetNode(Nodes.CallTargetNode node) {
         // store receiver in a local variable to evaluate before assigned value
-        var receiverExpression = new YARPExecutedOnceExpression("receiver", node.receiver, yarpTranslator);
-        RubyNode writeReceiverNode = receiverExpression.getWriteNode();
-        Nodes.Node readReceiver = receiverExpression.getReadYARPNode();
+        Nodes.Node readReceiver = stash(node.receiver, "receiver");
 
-        prolog.add(writeReceiverNode);
         node = new Nodes.CallTargetNode(node.flags, readReceiver, node.name, node.startOffset, node.length);
 
         final RubyNode rubyNode = node.accept(yarpTranslator);
@@ -133,13 +130,10 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     @Override
     public AssignableNode visitConstantPathTargetNode(Nodes.ConstantPathTargetNode node) {
-        // store parent lexical scope (e.g foo in foo::C = ...) in a local variable to evaluate before assigned value
         if (node.parent != null) {
-            var parentExpression = new YARPExecutedOnceExpression("parent", node.parent, yarpTranslator);
-            RubyNode writeParentNode = parentExpression.getWriteNode();
-            Nodes.Node readParent = parentExpression.getReadYARPNode();
+            // store parent lexical scope (e.g foo in foo::C = ...) in a local variable to evaluate before assigned value
+            Nodes.Node readParent = stash(node.parent, "parent");
 
-            prolog.add(writeParentNode);
             node = new Nodes.ConstantPathTargetNode(readParent, node.child, node.startOffset, node.length);
         }
 
@@ -167,11 +161,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     @Override
     public AssignableNode visitIndexTargetNode(Nodes.IndexTargetNode node) {
         // store receiver in a local variable to evaluate before assigned value
-        var receiverExpression = new YARPExecutedOnceExpression("receiver", node.receiver, yarpTranslator);
-        RubyNode writeReceiverNode = receiverExpression.getWriteNode();
-        Nodes.Node readReceiver = receiverExpression.getReadYARPNode();
-
-        prolog.add(writeReceiverNode);
+        Nodes.Node readReceiver = stash(node.receiver, "receiver");
 
         // store arguments in local variables to evaluate after receiver but before assigned values
         final Nodes.ArgumentsNode arguments;
@@ -179,9 +169,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
             var argumentsReads = new Nodes.Node[node.arguments.arguments.length];
 
             for (int i = 0; i < node.arguments.arguments.length; i++) {
-                var e = new YARPExecutedOnceExpression("argument", node.arguments.arguments[i], yarpTranslator);
-                prolog.add(e.getWriteNode());
-                argumentsReads[i] = e.getReadYARPNode();
+                argumentsReads[i] = stash(node.arguments.arguments[i], "argument");
             }
 
             arguments = new Nodes.ArgumentsNode(node.arguments.flags, argumentsReads, node.arguments.startOffset,
@@ -242,6 +230,18 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     @Override
     protected AssignableNode defaultVisit(Nodes.Node node) {
         throw new Error("Unknown node: " + node);
+    }
+
+    /** Cash node evaluation result in a local variable to execute before assigning */
+    Nodes.Node stash(Nodes.Node node, String name) {
+        var e = new YARPExecutedOnceExpression(name, node, yarpTranslator);
+        RubyNode writeNode = e.getWriteNode();
+
+        if (writeNode != null) {
+            prolog.add(writeNode);
+        }
+
+        return e.getReadYARPNode();
     }
 
 }

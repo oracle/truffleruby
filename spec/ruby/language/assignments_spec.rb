@@ -313,4 +313,100 @@ describe 'Multiple assignments' do
       end
     end
   end
+
+  context 'when assignment with method call and receiver is self' do
+    it 'assigns values correctly when assignment with accessor' do
+      object = Object.new
+      class << object
+        attr_accessor :a, :b
+
+        def assign(v1, v2)
+          self.a, self.b = v1, v2
+        end
+      end
+
+      object.assign :v1, :v2
+      object.a.should == :v1
+      object.b.should == :v2
+    end
+
+    it 'evaluates expressions right to left when assignment with a nested accessor' do
+      object = Object.new
+      class << object
+        attr_accessor :a, :b
+
+        def assign(v1, v2)
+          (self.a, self.b), c = [v1, v2], nil
+        end
+      end
+
+      object.assign :v1, :v2
+      object.a.should == :v1
+      object.b.should == :v2
+    end
+
+    it 'assigns values correctly when assignment with a #[]=' do
+      object = Object.new
+      class << object
+        def []=(key, v)
+          @h ||= {}
+          @h[key] = v
+        end
+
+        def [](key)
+          (@h || {})[key]
+        end
+
+        def assign(k1, v1, k2, v2)
+          self[k1], self[k2] = v1, v2
+        end
+      end
+
+      object.assign :k1, :v1, :k2, :v2
+      object[:k1].should == :v1
+      object[:k2].should == :v2
+    end
+
+    it 'assigns values correctly when assignment with a nested #[]=' do
+      object = Object.new
+      class << object
+        def []=(key, v)
+          @h ||= {}
+          @h[key] = v
+        end
+
+        def [](key)
+          (@h || {})[key]
+        end
+
+        def assign(k1, v1, k2, v2)
+          (self[k1], self[k2]), c = [v1, v2], nil
+        end
+      end
+
+      object.assign :k1, :v1, :k2, :v2
+      object[:k1].should == :v1
+      object[:k2].should == :v2
+    end
+
+    it 'assigns values correctly when assignment with compounded constant' do
+      m = Module.new
+      m.module_exec do
+        self::A, self::B = :v1, :v2
+      end
+
+      m::A.should == :v1
+      m::B.should == :v2
+    end
+
+    it 'assigns values correctly when assignment with a nested compounded constant' do
+      m = Module.new
+      m.module_exec do
+        (self::A, self::B), c = [:v1, :v2], nil
+      end
+
+      m::A.should == :v1
+      m::B.should == :v2
+    end
+  end
 end
