@@ -1,0 +1,60 @@
+name: Check importing latest Prism
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'
+permissions:
+  contents: read
+
+jobs:
+  # Inspired from the job "build" in ../ci.yml
+  test-import-prism:
+    if: github.repository == 'oracle/truffleruby'
+    runs-on: ubuntu-20.04
+    env:
+      BUNDLE_WITHOUT: "memcheck:types"
+    steps:
+    - name: Clone Prism
+      uses: actions/checkout@v4
+      with:
+        repository: ruby/prism
+        path: prism
+    - name: Setup system Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ruby
+        bundler-cache: true
+        working-directory: prism
+
+    # Clone truffleruby in truffleruby-ws/truffleruby so that tool/import-prism.sh
+    # has the correct relative path to the cloned prism repo.
+    - run: mkdir truffleruby-ws
+    - name: Clone TruffleRuby
+      uses: actions/checkout@v4
+      with:
+        path: truffleruby-ws/truffleruby
+    - name: Setup jt
+      run: echo "$PWD/truffleruby-ws/truffleruby/bin" >> $GITHUB_PATH
+
+    - name: Restore ~/.mx/cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.mx/cache
+        key: mx-cache-prism-${{ runner.os }}-${{ hashFiles('truffleruby-ws/truffleruby/common.json') }}
+
+    - name: Import latest prism in TruffleRuby
+      run: tool/import-prism.sh
+      working-directory: truffleruby-ws/truffleruby
+
+    - uses: ./truffleruby-ws/truffleruby/.github/actions/setup-jvmci-graal
+
+    - name: Build TruffleRuby
+      run: jt build
+      working-directory: truffleruby-ws/truffleruby
+
+    - name: Parse test/prism/fixtures/**/*.txt
+      run: jt ruby -e 'Dir.glob("test/prism/fixtures/**/*.txt") { |file| puts file; puts Truffle::Debug.parse_ast(File.read(file)) }'
+      working-directory: prism
+
+    - name: Execute p 1+2
+      run: jt ruby -e 'p 1+2'
