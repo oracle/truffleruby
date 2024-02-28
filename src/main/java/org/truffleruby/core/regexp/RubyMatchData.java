@@ -11,7 +11,7 @@ package org.truffleruby.core.regexp;
 
 import java.util.Set;
 
-import org.joni.Region;
+import org.graalvm.shadowed.org.joni.Region;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;

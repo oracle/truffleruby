@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.regexp;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
+import org.graalvm.shadowed.org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 

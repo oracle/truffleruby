@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
-import org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.Encoding;
 
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.array.ArrayUtils;

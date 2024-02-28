@@ -28,11 +28,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.string;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.EUCJPEncoding;
-import org.jcodings.specific.UTF8Encoding;
-import org.jcodings.specific.Windows_31JEncoding;
+import org.graalvm.shadowed.org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.specific.ASCIIEncoding;
+import org.graalvm.shadowed.org.jcodings.specific.EUCJPEncoding;
+import org.graalvm.shadowed.org.jcodings.specific.UTF8Encoding;
+import org.graalvm.shadowed.org.jcodings.specific.Windows_31JEncoding;
 
 public enum KCode {
 

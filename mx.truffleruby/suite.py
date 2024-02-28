@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "d6243acce05af06b17d63dddb2972e739141dc6d",
+                "version": "3f39def1e63211bae1359722528902f979a8afcf",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "d6243acce05af06b17d63dddb2972e739141dc6d",
+                "version": "3f39def1e63211bae1359722528902f979a8afcf",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -68,18 +68,6 @@ suite = {
     "libraries": {
 
         # ------------- Libraries -------------
-
-        "JCODINGS": {
-            "moduleName": "org.jruby.jcodings",
-            "maven": {
-                "groupId": "org.jruby.jcodings",
-                "artifactId": "jcodings",
-                "version": "1.0.58"
-            },
-            "digest": "sha512:625210aa07d1e08bf2f5fdc9da6c491a4e5a56e7db297cba1aa73636670ac1d62f3fd763716ef6ede862456b17169272ed9c8461d07100f95262163dc9c18ef8",
-            "sourceDigest": "sha512:d0f883f658310f7ad091aea08df28f1f5fe12080d6cb266cd91aec7e34cda1d57736d32618e8632b329854367d6e4d5fc91b5eb8ac9b823b26113fae3f75f50c",
-            "license": ["MIT"],
-        },
 
         "JONI": {
             "moduleName": "org.jruby.joni",
@@ -273,9 +261,9 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
-                # Libraries, keep in sync with TRUFFLERUBY.exclude and truffle_jars (in mx_truffleruby.py)
-                "truffleruby:JCODINGS",
-                "truffleruby:JONI",
+                # Library distributions, keep in sync with truffle_jars in mx_truffleruby.py
+                "truffle:TRUFFLE_JCODINGS",
+                "truffleruby:TRUFFLERUBY_JONI",
             ],
             "annotationProcessors": [
                 "truffle:TRUFFLE_DSL_PROCESSOR",
@@ -424,6 +412,38 @@ suite = {
                 "BSD-simplified",   # MRI
             ],
         },
+
+        "org.graalvm.shadowed.org.joni": {
+            # Shadowed JONI library (org.jruby.joni:joni)
+            "dir": "src/shadowed/joni",
+            "sourceDirs": ["java"],
+            "javaCompliance": "17+",
+            "spotbugsIgnoresGenerated": True,
+            "dependencies": [
+                "truffle:TRUFFLE_JCODINGS",
+            ],
+            "shadedDependencies": [
+                "truffleruby:JONI",
+            ],
+            "class": "ShadedLibraryProject",
+            "shade": {
+                "packages": {
+                    "org.joni": "org.graalvm.shadowed.org.joni",
+                    "org.jcodings": "org.graalvm.shadowed.org.jcodings",
+                },
+                "exclude": [
+                    "META-INF/MANIFEST.MF",
+                    "META-INF/maven/org.jruby.joni/joni/*", # pom.xml, pom.properties
+                    "module-info.java",
+                    "org/joni/bench/*.java",
+                ],
+            },
+            "description": "JOni library shadowed for TruffleRuby.",
+            # We need to force javac because the generated sources in this project produce warnings in JDT.
+            "forceJavac": "true",
+            "javac.lint.overrides": "none",
+            "jacoco": "exclude",
+        },
     },
 
     "distributions": {
@@ -511,13 +531,12 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
+                # Library distributions, keep in sync with truffle_jars in mx_truffleruby.py
+                "truffle:TRUFFLE_JCODINGS",
+                "truffleruby:TRUFFLERUBY_JONI",
                 # runtime-only dependencies
                 "truffle:TRUFFLE_NFI_LIBFFI",
                 "sulong:SULONG_NATIVE",
-            ],
-            "exclude": [ # Keep in sync with org.truffleruby dependencies and truffle_jars in mx_truffleruby.py
-                "truffleruby:JCODINGS",
-                "truffleruby:JONI",
             ],
             "description": "Core module of Ruby on Truffle",
             "license": [
@@ -858,6 +877,37 @@ suite = {
                 "tag": ["default", "public"],
             },
             "noMavenJavadoc": True,
+        },
+
+        "TRUFFLERUBY_JONI": {
+            # JONI library shadowed for TruffleRuby.
+            "moduleInfo": {
+                "name": "org.graalvm.shadowed.joni",
+                "requires": [
+                    "org.graalvm.shadowed.jcodings",
+                ],
+                "exports": [
+                    "org.graalvm.shadowed.org.joni to org.graalvm.ruby",
+                    "org.graalvm.shadowed.org.joni.constants to org.graalvm.ruby",
+                    "org.graalvm.shadowed.org.joni.exception to org.graalvm.ruby",
+                ],
+            },
+            "javaCompliance": "17+",
+            "dependencies": [
+                "org.graalvm.shadowed.org.joni",
+            ],
+            "distDependencies": [
+                "truffle:TRUFFLE_JCODINGS",
+            ],
+            "description": "JOni module shadowed for TruffleRuby.",
+            "license": ["MIT"],
+            "maven": {
+                "groupId": "org.graalvm.shadowed",
+                "artifactId": "joni",
+                "tag": ["default", "public"],
+            },
+            "allowsJavadocWarnings": True,
+            "compress": True,
         },
     },
 }

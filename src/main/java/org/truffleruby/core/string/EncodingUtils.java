@@ -30,9 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jcodings.Encoding;
-import org.jcodings.ascii.AsciiTables;
-import org.jcodings.specific.ASCIIEncoding;
+import org.graalvm.shadowed.org.jcodings.Encoding;
+import org.graalvm.shadowed.org.jcodings.ascii.AsciiTables;
+import org.graalvm.shadowed.org.jcodings.specific.ASCIIEncoding;
 
 public final class EncodingUtils {
 
