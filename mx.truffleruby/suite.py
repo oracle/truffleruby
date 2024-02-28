@@ -887,10 +887,9 @@ suite = {
                     "org.graalvm.shadowed.jcodings",
                 ],
                 "exports": [
-                    # Unqualified exports
-                    "org.graalvm.shadowed.org.joni",
-                    "org.graalvm.shadowed.org.joni.constants",
-                    "org.graalvm.shadowed.org.joni.exception",
+                    "org.graalvm.shadowed.org.joni to org.graalvm.ruby",
+                    "org.graalvm.shadowed.org.joni.constants to org.graalvm.ruby",
+                    "org.graalvm.shadowed.org.joni.exception to org.graalvm.ruby",
                 ],
             },
             "javaCompliance": "17+",
