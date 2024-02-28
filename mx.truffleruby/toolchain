@@ -4,3 +4,4 @@ COMPONENTS=TruffleRuby,suite:tools,LLVM.org toolchain
 # To also create the standalone
 INSTALLABLES=TruffleRuby
 BUILD_TARGETS=GRAALVM_STANDALONES
+INCLUDE_LLVM_TOOLCHAIN_IN_RUBY_STANDALONE=true
