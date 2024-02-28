@@ -160,7 +160,7 @@ Supported backends are:
 #### Simple looping
 
 Simple looping does the simplest thing possible and runs your benchmark in a
-loop printing the iterations per second as it goes. By default it runs for
+loop printing the iterations per second as it goes. By default, it runs for
 10s, printing the time every second, but you can use options like `--time 60`
 to run for 60 seconds, and `--freq 0.1` to print ten times a second.
 
@@ -170,7 +170,7 @@ and the elapsed time since the benchmark started with the `--elapsed` flag.
 #### `bm` and `bmbm`
 
 `bm` and `bmbm` only run your benchmark once when timing, which isn't what
-benchmarks written for `benchmark-ips` expect. Therefore if a benchmark takes
+benchmarks written for `benchmark-ips` expect. Therefore, if a benchmark takes
 less than a tenth of a second it is run several times so that it takes about a
 second. The number of iterations is the same for all benchmarks in the same set
 and is printed as the set starts.
