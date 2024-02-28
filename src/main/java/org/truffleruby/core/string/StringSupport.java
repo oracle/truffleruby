@@ -650,7 +650,7 @@ public final class StringSupport {
     // MRI: str_succ
     @TruffleBoundary
     public static TStringBuilder succCommon(RubyString original, Node node) {
-        byte carry[] = new byte[org.graalvm.shadowed.org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
+        byte carry[] = new byte[Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
         carry[0] = 1;
         int carryLen = 1;
@@ -794,7 +794,7 @@ public final class StringSupport {
     private static NeighborChar succAlnumChar(RubyEncoding encoding, byte[] bytes, int p, int len, byte[] carry,
             int carryP, Node node) {
         Encoding enc = encoding.jcoding;
-        byte save[] = new byte[org.graalvm.shadowed.org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
+        byte save[] = new byte[Config.ENC_CODE_TO_MBC_MAXLEN];
         int c = enc.mbcToCode(bytes, p, p + len);
 
         final int cType;
