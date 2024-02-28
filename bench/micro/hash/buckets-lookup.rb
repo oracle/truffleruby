@@ -10,14 +10,16 @@
 
 # Benchmarks looking up keys
 
-max = 400_000 # > 0.75*(524288 + 21) (cf. BucketsHashStore)
-hash = { a: 1, b: 2, c: 3, d: 4 } # big enough to start as a bucket hash
-max.times { |i|
-  hash[i] = i
-}
+if RUBY_ENGINE == 'truffleruby'
+  max = 400_000 # > 0.75*(524288 + 21) (cf. BucketsHashStore)
+  hash = { a: 1, b: 2, c: 3, d: 4 } # big enough to start as a bucket hash
+  max.times { |i|
+    hash[i] = i
+  }
 
-benchmark 'core-hash-buckets-lookup' do
-  1000.times do |i|
-    Primitive.blackhole(hash[i])
+  benchmark 'core-hash-buckets-lookup' do
+    1000.times do |i|
+      Primitive.blackhole(hash[i])
+    end
   end
 end
