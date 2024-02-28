@@ -260,20 +260,13 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
 # Only keep what we need from the Sulong home.
 # Exclude the toolchain launchers, we don't need them, and they would not work in the native standalone.
 # Excluding "native/bin" or "native/bin/*" does not work so we have to list them.
-include_llvm_toolchain = os.getenv('INCLUDE_LLVM_TOOLCHAIN_IN_RUBY_STANDALONE') == 'true'
-
 toolchain_launchers = ['binutil', 'clang', 'clang++', 'clang-cl', 'flang', 'ld']
-if include_llvm_toolchain:
-    sulong_home_excludes = []
-else:
-    sulong_home_excludes = [f"native/bin/graalvm-native-{launcher}" for launcher in toolchain_launchers] + \
-        ['native/cmake', 'native/include', 'native/lib/*++*']
+sulong_home_excludes = [f"native/bin/graalvm-native-{launcher}" for launcher in toolchain_launchers] + \
+    ['native/cmake', 'native/include', 'native/lib/*++*']
 standalone_dependencies_common = {
     'LLVM Runtime Core': ('lib/sulong', []),
     'LLVM Runtime Native': ('lib/sulong', sulong_home_excludes),
 }
-if include_llvm_toolchain:
-    standalone_dependencies_common['LLVM.org toolchain'] = ('lib/llvm-toolchain', [])
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
