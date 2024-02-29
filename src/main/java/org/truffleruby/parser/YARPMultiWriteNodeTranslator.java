@@ -206,7 +206,7 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
         throw new Error("Unknown node: " + node);
     }
 
-    /** Cash node evaluation result in a local variable to execute before assigning */
+    /** Cache node evaluation result in a local variable to execute before assigning */
     Nodes.Node stash(Nodes.Node node, String name) {
         var e = new YARPExecutedOnceExpression(name, node, yarpTranslator);
         RubyNode writeNode = e.getWriteNode();
