@@ -25,6 +25,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateInline
 public abstract class PropagateSharingNode extends RubyBaseNode {
 
+    public final Object propagate(Node node, RubyDynamicObject source, Object value) {
+        execute(node, source, value);
+        return value;
+    }
+
     public abstract void execute(Node node, RubyDynamicObject source, Object value);
 
     @Specialization(guards = "!isSharedNode.execute(node, source)")
