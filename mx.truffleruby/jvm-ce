@@ -3,4 +3,4 @@ DYNAMIC_IMPORTS=/tools,/compiler
 COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler
 # To also create the standalone
 INSTALLABLES=TruffleRuby
-BUILD_TARGETS=GRAALVM,GRAALVM_STANDALONES
+BUILD_TARGETS=GRAALVM_STANDALONES

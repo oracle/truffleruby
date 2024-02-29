@@ -4,5 +4,5 @@ COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterpris
 NATIVE_IMAGES=false
 # To also create the standalone
 INSTALLABLES=TruffleRuby
-BUILD_TARGETS=GRAALVM,GRAALVM_STANDALONES
+BUILD_TARGETS=GRAALVM_STANDALONES
 # NOTE: SVM EE is added as a workaround to tell the JVM standalone to be EE
