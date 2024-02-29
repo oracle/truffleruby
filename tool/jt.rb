@@ -286,7 +286,6 @@ module Utilities
     require_ruby_launcher!
     File.expand_path('../..', @ruby_launcher_realpath)
   end
-  alias_method :'ruby-home', :ruby_home
 
   def truffleruby!
     raise 'This command requires TruffleRuby.' unless truffleruby?
@@ -915,6 +914,10 @@ module Commands
 
   def launcher
     puts ruby_launcher
+  end
+
+  define_method(:'ruby-home') do
+    puts ruby_home
   end
 
   def build(*options)
