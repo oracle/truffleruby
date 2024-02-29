@@ -167,12 +167,11 @@ public final class SharedObjects {
 
     public static void onShareHook(RubyDynamicObject object) {
         if (object instanceof RubyModule) {
-            // We want to share ClassVariableStorage but not expose is to ObjectSpace.reachable_objects_from
+            // We want to share ClassVariableStorage but not expose it to ObjectSpace.reachable_objects_from
             final ClassVariableStorage classVariables = ((RubyModule) object).fields.getClassVariables();
             DynamicObjectLibrary.getUncached().updateShape(classVariables);
             DynamicObjectLibrary.getUncached().markShared(classVariables);
-        } else if (object instanceof RubyArray) {
-            RubyArray array = (RubyArray) object;
+        } else if (object instanceof RubyArray array) {
             array.setStore(ArrayStoreLibrary.getUncached().makeShared(array.getStore(), array.size));
         }
     }

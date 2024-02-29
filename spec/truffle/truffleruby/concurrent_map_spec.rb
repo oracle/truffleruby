@@ -104,6 +104,9 @@ describe "TruffleRuby::ConcurrentMap" do
   end
 
   it "#get_and_set gets current value and set new value" do
+    @h.get_and_set(:a, "hello").should == nil
+    @h[:a].should == "hello"
+
     @h[:foobar] = "bloop"
     expected_value = "bleep"
 

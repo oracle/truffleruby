@@ -30,6 +30,7 @@ import org.truffleruby.extra.RubyConcurrentMap.Key;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.CallBlockNode;
 
 import java.util.Iterator;
@@ -76,11 +77,20 @@ public abstract class ConcurrentMapNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         @TruffleBoundary
-        RubyConcurrentMap initializeCopy(RubyConcurrentMap self, RubyConcurrentMap other) {
+        RubyConcurrentMap initializeCopy(RubyConcurrentMap self, RubyConcurrentMap other,
+                @Cached PropagateSharingNode propagateSharingKey,
+                @Cached PropagateSharingNode propagateSharingValue) {
             if (self.getMap() == null) {
-                self.allocateMap(0, 0.0f);
+                self.allocateMap(other.getMap().size(), 0.0f);
             }
-            self.getMap().putAll(other.getMap());
+
+            for (var entry : other.getMap().entrySet()) {
+                Key keyObject = entry.getKey();
+                Object value = entry.getValue();
+                propagateSharingKey.execute(this, self, keyObject.key);
+                propagateSharingValue.execute(this, self, value);
+                self.getMap().put(keyObject, value);
+            }
             return self;
         }
     }
@@ -99,8 +109,12 @@ public abstract class ConcurrentMapNodes {
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         Object setIndex(RubyConcurrentMap self, Object key, Object value,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached PropagateSharingNode propagateSharingKey,
+                @Cached PropagateSharingNode propagateSharingValue) {
             final int hashCode = hashNode.execute(this, key);
+            propagateSharingKey.execute(this, self, key);
+            propagateSharingValue.execute(this, self, value);
             put(self.getMap(), new Key(key, hashCode), value);
             return value;
         }
@@ -116,10 +130,13 @@ public abstract class ConcurrentMapNodes {
         @Specialization
         Object computeIfAbsent(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
-                @Cached CallBlockNode yieldNode) {
+                @Cached CallBlockNode yieldNode,
+                @Cached PropagateSharingNode propagateSharingKey,
+                @Cached PropagateSharingNode propagateSharingValue) {
             final int hashCode = hashNode.execute(this, key);
-            final Object returnValue = ConcurrentOperations
-                    .getOrCompute(self.getMap(), new Key(key, hashCode), (k) -> yieldNode.yield(this, block));
+            propagateSharingKey.execute(this, self, key);
+            final Object returnValue = ConcurrentOperations.getOrCompute(self.getMap(), new Key(key, hashCode),
+                    (k) -> propagateSharingValue.propagate(this, self, yieldNode.yield(this, block)));
             assert returnValue != null;
             return returnValue;
         }
@@ -131,12 +148,15 @@ public abstract class ConcurrentMapNodes {
         @Specialization
         Object computeIfPresent(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
-                @Cached CallBlockNode yieldNode) {
+                @Cached CallBlockNode yieldNode,
+                @Cached PropagateSharingNode propagateSharingValue) {
+            // The key does not need to be shared for computeIfPresent() because that never inserts the key in the map
             final int hashCode = hashNode.execute(this, key);
-            return nullToNil(
-                    computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) ->
-                    // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
-                    nilToNull(yieldNode.yield(this, block, v))));
+            return nullToNil(computeIfPresent(self.getMap(), new Key(key, hashCode), (k, v) -> {
+                // TODO (Chris, 6 May 2021): It's unfortunate we're calling this behind a boundary! Can we do better?
+                Object value = yieldNode.yield(this, block, v);
+                return nilToNull(propagateSharingValue.propagate(this, self, value));
+            }));
         }
 
         @TruffleBoundary
@@ -151,12 +171,15 @@ public abstract class ConcurrentMapNodes {
         @Specialization
         Object compute(RubyConcurrentMap self, Object key, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
-                @Cached CallBlockNode yieldNode) {
+                @Cached CallBlockNode yieldNode,
+                @Cached PropagateSharingNode propagateSharingKey,
+                @Cached PropagateSharingNode propagateSharingValue) {
             final int hashCode = hashNode.execute(this, key);
-            return nullToNil(compute(
-                    self.getMap(),
-                    new Key(key, hashCode),
-                    (k, v) -> nilToNull(yieldNode.yield(this, block, nullToNil(v)))));
+            propagateSharingKey.execute(this, self, key);
+            return nullToNil(compute(self.getMap(), new Key(key, hashCode), (k, v) -> {
+                Object value = yieldNode.yield(this, block, nullToNil(v));
+                return nilToNull(propagateSharingValue.propagate(this, self, value));
+            }));
         }
 
         @TruffleBoundary
@@ -171,13 +194,14 @@ public abstract class ConcurrentMapNodes {
         @Specialization
         Object mergePair(RubyConcurrentMap self, Object key, Object value, RubyProc block,
                 @Cached ToHashByHashCode hashNode,
-                @Cached CallBlockNode yieldNode) {
+                @Cached CallBlockNode yieldNode,
+                @Cached PropagateSharingNode propagateSharingKey,
+                @Cached PropagateSharingNode propagateSharingValue) {
             final int hashCode = hashNode.execute(this, key);
-            return nullToNil(merge(
-                    self.getMap(),
-                    new Key(key, hashCode),
-                    value,
-                    (existingValue, newValue) -> nilToNull(yieldNode.yield(this, block, existingValue))));
+            propagateSharingKey.execute(this, self, key);
+            propagateSharingKey.execute(this, self, value);
+            return nullToNil(merge(self.getMap(), new Key(key, hashCode), value, (existingValue, newValue) -> nilToNull(
+                    propagateSharingValue.propagate(this, self, yieldNode.yield(this, block, existingValue)))));
         }
 
         @TruffleBoundary
@@ -193,13 +217,16 @@ public abstract class ConcurrentMapNodes {
         @Specialization
         boolean replacePair(RubyConcurrentMap self, Object key, Object expectedValue, Object newValue,
                 @Cached ToHashByHashCode hashNode,
+                @Cached PropagateSharingNode propagateSharingValue,
                 @Cached ReferenceEqualNode equalNode,
                 @Cached InlinedConditionProfile isPrimitiveProfile) {
+            // The key does not need to be shared for replace() because that never inserts the key in the map
             final int hashCode = hashNode.execute(this, key);
 
             if (isPrimitiveProfile.profile(this, RubyGuards.isPrimitive(expectedValue))) {
                 return replacePairPrimitive(self, key, expectedValue, newValue, hashCode, equalNode);
             } else {
+                propagateSharingValue.execute(this, self, newValue);
                 return replace(self.getMap(), new Key(key, hashCode), expectedValue, newValue);
             }
         }
@@ -274,8 +301,11 @@ public abstract class ConcurrentMapNodes {
     public abstract static class ReplaceIfExistsNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         Object replaceIfExists(RubyConcurrentMap self, Object key, Object newValue,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached PropagateSharingNode propagateSharingValue) {
+            // The key does not need to be shared for replace() because that never inserts the key in the map
             final int hashCode = hashNode.execute(this, key);
+            propagateSharingValue.execute(this, self, newValue);
             return nullToNil(replace(self.getMap(), new Key(key, hashCode), newValue));
         }
 
@@ -289,8 +319,12 @@ public abstract class ConcurrentMapNodes {
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         Object getAndSet(RubyConcurrentMap self, Object key, Object value,
-                @Cached ToHashByHashCode hashNode) {
+                @Cached ToHashByHashCode hashNode,
+                @Cached PropagateSharingNode propagateSharingKey,
+                @Cached PropagateSharingNode propagateSharingValue) {
             final int hashCode = hashNode.execute(this, key);
+            propagateSharingKey.execute(this, self, key);
+            propagateSharingValue.execute(this, self, value);
             return nullToNil(put(self.getMap(), new Key(key, hashCode), value));
         }
 

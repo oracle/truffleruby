@@ -4,6 +4,8 @@ New features:
 
 Bug fixes:
 
+* Add missing thread-safe objects write barriers for `TruffleRuby::ConcurrentMap` (#3179, @eregon).
+
 Compatibility:
 
 Performance:
