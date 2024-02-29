@@ -102,7 +102,9 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
             postNodes[i] = node.rights[i].accept(this);
         }
 
+        // prolog is supposed to be executed in the outer MultipleAssignmentNode (in multi-assignment only)
         final var multipleAssignmentNode = new MultipleAssignmentNode(
+                null,
                 preNodes,
                 restNode,
                 postNodes,

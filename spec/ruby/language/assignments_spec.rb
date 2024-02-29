@@ -203,6 +203,77 @@ describe 'Assignments' do
   end
 end
 
+# generic cases
+describe 'Multiple assignments' do
+  it 'assigns multiple targets when assignment with an accessor' do
+    object = Object.new
+    class << object
+      attr_accessor :a, :b
+    end
+
+    object.a, object.b = :a, :b
+
+    object.a.should == :a
+    object.b.should == :b
+  end
+
+  it 'assigns multiple targets when assignment with a nested accessor' do
+    object = Object.new
+    class << object
+      attr_accessor :a, :b
+    end
+
+    (object.a, object.b), c = [:a, :b], nil
+
+    object.a.should == :a
+    object.b.should == :b
+  end
+
+  it 'assigns multiple targets when assignment with a #[]=' do
+    object = Object.new
+    class << object
+      def []=(k, v) (@h ||= {})[k] = v; end
+      def [](k) (@h ||= {})[k]; end
+    end
+
+    object[:a], object[:b] = :a, :b
+
+    object[:a].should == :a
+    object[:b].should == :b
+  end
+
+  it 'assigns multiple targets when assignment with a nested #[]=' do
+    object = Object.new
+    class << object
+      def []=(k, v) (@h ||= {})[k] = v; end
+      def [](k) (@h ||= {})[k]; end
+    end
+
+    (object[:a], object[:b]), c = [:v1, :v2], nil
+
+    object[:a].should == :v1
+    object[:b].should == :v2
+  end
+
+  it 'assigns multiple targets when assignment with compounded constant' do
+    m = Module.new
+
+    m::A, m::B = :a, :b
+
+    m::A.should == :a
+    m::B.should == :b
+  end
+
+  it 'assigns multiple targets when assignment with a nested compounded constant' do
+    m = Module.new
+
+    (m::A, m::B), c = [:a, :b], nil
+
+    m::A.should == :a
+    m::B.should == :b
+  end
+end
+
 describe 'Multiple assignments' do
   describe 'evaluation order' do
     ruby_version_is ''...'3.1' do
@@ -242,6 +313,25 @@ describe 'Multiple assignments' do
 
         ((ScratchPad << :a; object).a, foo), bar = [(ScratchPad << :b; :b)]
         ScratchPad.recorded.should == [:a, :b]
+      end
+
+      it 'evaluates expressions left to right when assignment with a deeply nested accessor' do
+        o = Object.new
+        def o.a=(value) end
+        def o.b=(value) end
+        def o.c=(value) end
+        def o.d=(value) end
+        def o.e=(value) end
+        def o.f=(value) end
+        ScratchPad.record []
+
+        (ScratchPad << :a; o).a,
+          ((ScratchPad << :b; o).b,
+          ((ScratchPad << :c; o).c, (ScratchPad << :d; o).d),
+          (ScratchPad << :e; o).e),
+        (ScratchPad << :f; o).f = (ScratchPad << :value; :value)
+
+        ScratchPad.recorded.should == [:a, :b, :c, :d, :e, :f, :value]
       end
     end
 
@@ -283,6 +373,20 @@ describe 'Multiple assignments' do
         ((ScratchPad << :a; object)[(ScratchPad << :b; :b)], foo), bar = [(ScratchPad << :c; :c)]
         ScratchPad.recorded.should == [:a, :b, :c]
       end
+
+      it 'evaluates expressions left to right when assignment with a deeply nested #[]=' do
+        o = Object.new
+        def o.[]=(_, _) end
+        ScratchPad.record []
+
+        (ScratchPad << :ra; o)[(ScratchPad << :aa; :aa)],
+          ((ScratchPad << :rb; o)[(ScratchPad << :ab; :ab)],
+          ((ScratchPad << :rc; o)[(ScratchPad << :ac; :ac)], (ScratchPad << :rd; o)[(ScratchPad << :ad; :ad)]),
+          (ScratchPad << :re; o)[(ScratchPad << :ae; :ae)]),
+        (ScratchPad << :rf; o)[(ScratchPad << :af; :af)] = (ScratchPad << :value; :value)
+
+        ScratchPad.recorded.should == [:ra, :aa, :rb, :ab, :rc, :ac, :rd, :ad, :re, :ae, :rf, :af, :value]
+      end
     end
 
     ruby_version_is ''...'3.2' do
@@ -310,6 +414,19 @@ describe 'Multiple assignments' do
 
         ((ScratchPad << :a; m)::A, foo), bar = [(ScratchPad << :b; :b)]
         ScratchPad.recorded.should == [:a, :b]
+      end
+
+      it 'evaluates expressions left to right when assignment with deeply nested compounded constants' do
+        m = Module.new
+        ScratchPad.record []
+
+        (ScratchPad << :a; m)::A,
+          ((ScratchPad << :b; m)::B,
+          ((ScratchPad << :c; m)::C, (ScratchPad << :d; m)::D),
+          (ScratchPad << :e; m)::E),
+        (ScratchPad << :f; m)::F = (ScratchPad << :value; :value)
+
+        ScratchPad.recorded.should == [:a, :b, :c, :d, :e, :f, :value]
       end
     end
   end

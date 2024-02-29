@@ -165,6 +165,11 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
 
         final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, readNode);
         final RubyNode rubyNode = translator.translate();
+
+        // Prolog is used now only for caching of method receiver (e.g. a.b or a[b]) and constant module (e.g. a::B).
+        // So for method or block parameters prolog is supposed to be empty.
+        assert translator.prolog.isEmpty();
+
         return rubyNode;
     }
 

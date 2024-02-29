@@ -47,7 +47,6 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
     }
 
     public RubyNode translate() {
-        final RubyNode rubyNode;
         final RubyNode rhsNode = node.value.accept(yarpTranslator);
         final SplatCastNode splatCastNode = SplatCastNodeGen.create(
                 language,
@@ -78,21 +77,13 @@ public final class YARPMultiWriteNodeTranslator extends AbstractNodeVisitor<Assi
             postNodes[i] = node.rights[i].accept(this);
         }
 
-        RubyNode multipleAssignmentNode = new MultipleAssignmentNode(
+        return new MultipleAssignmentNode(
+                prolog.toArray(RubyNode.EMPTY_ARRAY),
                 preNodes,
                 restNode,
                 postNodes,
                 splatCastNode,
                 rhsNode);
-
-        if (prolog.isEmpty()) {
-            rubyNode = multipleAssignmentNode;
-        } else {
-            RubyNode prologSequence = YARPBaseTranslator.sequence(prolog.toArray(RubyNode.EMPTY_ARRAY));
-            rubyNode = YARPBaseTranslator.sequence(prologSequence, multipleAssignmentNode);
-        }
-
-        return rubyNode;
     }
 
     @Override

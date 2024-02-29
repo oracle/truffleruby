@@ -7,9 +7,9 @@ ruby: |
 ast: |
   MultipleAssignmentNode
       attributes:
-          flags = 0
-          sourceCharIndex = -1
-          sourceLength = 0
+          flags = 1
+          sourceCharIndex = 0
+          sourceLength = 20
       children:
           preNodes = [
               MultipleAssignmentNode
@@ -65,6 +65,53 @@ ast: |
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 3 # c
+          ]
+          prolog = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 4 # %receiver_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          RubyCallNode
+                              attributes:
+                                  descriptor = NoKeywordArgumentsDescriptor
+                                  dispatchConfig = PRIVATE
+                                  emptyKeywordsProfile = false
+                                  flags = 0
+                                  isAttrAssign = false
+                                  isSafeNavigation = false
+                                  isSplatted = false
+                                  isVCall = true
+                                  lastArgIsNotHashProfile = false
+                                  methodName = "a"
+                                  notEmptyKeywordsProfile = false
+                                  notRuby2KeywordsHashProfile = false
+                                  sourceCharIndex = 1
+                                  sourceLength = 1
+                              children:
+                                  receiver =
+                                      SelfNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = -1
+                                              sourceLength = 0
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 5 # %argument_1
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :key
+                                  sourceCharIndex = 3
+                                  sourceLength = 4
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

@@ -7,9 +7,9 @@ ruby: |
 ast: |
   MultipleAssignmentNode
       attributes:
-          flags = 0
-          sourceCharIndex = -1
-          sourceLength = 0
+          flags = 1
+          sourceCharIndex = 0
+          sourceLength = 23
       children:
           preNodes = [
               MultipleAssignmentNode
@@ -65,6 +65,69 @@ ast: |
               WriteFrameSlotNodeGen
                   attributes:
                       frameSlot = 3 # c
+          ]
+          prolog = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 4 # %receiver_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          InlinedIndexGetNodeGen
+                              attributes:
+                                  assumptions = [Assumption(valid, name=set_trace_func is not used)]
+                                  flags = 0
+                                  parameters = RubyCallNodeParameters{methodName='[]', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
+                                  sourceCharIndex = 1
+                                  sourceLength = 4
+                              children:
+                                  leftNode_ =
+                                      RubyCallNode
+                                          attributes:
+                                              descriptor = NoKeywordArgumentsDescriptor
+                                              dispatchConfig = PRIVATE
+                                              emptyKeywordsProfile = false
+                                              flags = 0
+                                              isAttrAssign = false
+                                              isSafeNavigation = false
+                                              isSplatted = false
+                                              isVCall = true
+                                              lastArgIsNotHashProfile = false
+                                              methodName = "a"
+                                              notEmptyKeywordsProfile = false
+                                              notRuby2KeywordsHashProfile = false
+                                              sourceCharIndex = 1
+                                              sourceLength = 1
+                                          children:
+                                              receiver =
+                                                  SelfNode
+                                                      attributes:
+                                                          flags = 0
+                                                          sourceCharIndex = -1
+                                                          sourceLength = 0
+                                  rightNode_ =
+                                      IntegerFixnumLiteralNode
+                                          attributes:
+                                              flags = 0
+                                              sourceCharIndex = 3
+                                              sourceLength = 1
+                                              value = 0
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 5 # %argument_1
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :key
+                                  sourceCharIndex = 6
+                                  sourceLength = 4
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
