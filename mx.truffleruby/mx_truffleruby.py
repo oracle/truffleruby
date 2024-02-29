@@ -224,7 +224,9 @@ def ruby_testdownstream_aot(args):
 
 def ruby_spotbugs(args):
     """Run SpotBugs with custom options to detect more issues"""
-    mx.command_function('build')(['--no-native']) # SpotBugs needs all Java projects to be built
+    # SpotBugs needs all Java projects to be built
+    # GR-52408: mx.command_function('build')(['--no-native']) should be enough but it fails
+    mx.command_function('build')([])
 
     filters = join(root, 'mx.truffleruby', 'spotbugs-filters.xml')
     spotbugsArgs = ['-textui', '-low', '-longBugCodes', '-include', filters]
