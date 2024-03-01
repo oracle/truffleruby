@@ -46,7 +46,14 @@ describe "A class definition" do
     -> {
       class ClassSpecsNumber
       end
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /ClassSpecsNumber is not a class/)
+  end
+
+  it "raises TypeError if constant given as class name exists and is Module but not a Class" do
+    -> {
+      class ClassSpecs::ModuleToReopen
+      end
+    }.should raise_error(TypeError, /ModuleToReopen is not a class/)
   end
 
   # test case known to be detecting bugs (JRuby, MRI)
@@ -343,6 +350,14 @@ describe "Reopening a class" do
     end
     ClassSpecs::M.m.should == 1
     ClassSpecs::L.singleton_class.send(:remove_method, :m)
+  end
+
+  it "does not raise FrozenError if class is frozen and is not modified" do
+    ClassSpecs::FrozenClass.should.frozen?
+
+    class ClassSpecs::FrozenClass
+      :foo
+    end.should == :foo
   end
 end
 

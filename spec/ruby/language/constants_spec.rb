@@ -734,7 +734,7 @@ describe 'Allowed characters' do
 end
 
 describe 'Assignment' do
-  context 'dynamic assignment' do
+  describe 'dynamic assignment' do
     it 'raises SyntaxError' do
       -> do
         eval <<-CODE
@@ -743,6 +743,24 @@ describe 'Assignment' do
           end
         CODE
       end.should raise_error(SyntaxError, /dynamic constant assignment/)
+    end
+  end
+
+  context 'when module is frozen' do
+    it 'raises FrozenError' do
+      m = Module.new
+      m.freeze
+
+      -> { m::A = 1 }.should raise_error(FrozenError, /can't modify frozen Module:/)
+    end
+  end
+
+  context 'when class is frozen' do
+    it 'raises FrozenError' do
+      c = Class.new
+      c.freeze
+
+      -> { c::A = 1 }.should raise_error(FrozenError, /can't modify frozen/)
     end
   end
 end

@@ -42,6 +42,14 @@ describe "The module keyword" do
     end
   end
 
+  it "does not raise FrozenError when frozen module is reopen and is not modified" do
+    ModuleSpecs::FrozenModule.should.frozen?
+
+    module ModuleSpecs::FrozenModule
+      :foo
+    end.should == :foo
+  end
+
   it "raises a TypeError if the constant is a Class" do
     -> do
       module ModuleSpecs::Modules::Klass; end

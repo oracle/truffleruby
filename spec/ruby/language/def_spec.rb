@@ -90,7 +90,7 @@ describe "An instance method" do
     -> { foo 1, 2 }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1)')
   end
 
-  it "raises FrozenError with the correct class name" do
+  it "raises FrozenError with the correct class name if frozen" do
     -> {
       Module.new do
         self.freeze
@@ -270,14 +270,15 @@ describe "A singleton method definition" do
     -> { def obj.foo; end }.should raise_error(FrozenError)
   end
 
-  it "raises FrozenError with the correct class name" do
+  it "raises FrozenError with the correct class name if frozen" do
     obj = Object.new
     obj.freeze
     -> { def obj.foo; end }.should raise_error(FrozenError){ |e|
       e.message.should.start_with? "can't modify frozen object"
     }
 
-    c = obj.singleton_class
+    c = Class.new
+    c.freeze
     -> { def c.foo; end }.should raise_error(FrozenError){ |e|
       e.message.should.start_with? "can't modify frozen Class"
     }

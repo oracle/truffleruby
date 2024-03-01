@@ -17,6 +17,10 @@ module ModuleSpecs
     module IncludedModuleSpecs
     end
   end
+
+  module FrozenModule
+  end
+  FrozenModule.freeze
 end
 
 class Object

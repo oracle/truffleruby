@@ -141,3 +141,29 @@ describe "calling methods on the metaclass" do
     d_meta.ham.should == 'iberico'
   end
 end
+
+context 'when object is frozen' do
+  it 'does not raise FrozenError if object is not modified' do
+    o = Object.new
+    o.freeze
+    class << o
+      :foo
+    end.should == :foo
+  end
+
+  it 'does not raise FrozenError if it is a class and it is not modified' do
+    o = Class.new
+    o.freeze
+    class << o
+      :foo
+    end.should == :foo
+  end
+
+  it 'does not raise FrozenError if it is a module and it is not modified' do
+    o = Module.new
+    o.freeze
+    class << o
+      :foo
+    end.should == :foo
+  end
+end

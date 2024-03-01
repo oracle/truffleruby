@@ -282,13 +282,27 @@ describe "Instantiating a singleton class" do
   it "raises a TypeError when new is called" do
     -> {
       Object.new.singleton_class.new
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /can't create instance of singleton class/)
   end
 
   it "raises a TypeError when allocate is called" do
     -> {
       Object.new.singleton_class.allocate
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /can't create instance of singleton class/)
+  end
+end
+
+describe "Copying a singleton class" do
+  it "raises TypeError when #clone is called" do
+    -> {
+      Object.new.singleton_class.clone
+    }.should raise_error(TypeError, /can't copy singleton class/)
+  end
+
+  it "raises TypeError when #dup is called" do
+    -> {
+      Object.new.singleton_class.dup
+    }.should raise_error(TypeError, /can't copy singleton class/)
   end
 end
 

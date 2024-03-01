@@ -126,6 +126,13 @@ module ClassSpecs
   DEFINE_CLASS = -> do
     class ::A; end
   end
+
+  class FrozenClass
+  end
+  FrozenClass.freeze
+
+  module ModuleToReopen
+  end
 end
 
 class Class
