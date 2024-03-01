@@ -703,6 +703,9 @@ struct pm_parser {
     /** The version of prism that we should use to parse. */
     pm_options_version_t version;
 
+    /** The command line flags given from the options. */
+    uint8_t command_line;
+
     /** Whether or not we're at the beginning of a command. */
     bool command_start;
 

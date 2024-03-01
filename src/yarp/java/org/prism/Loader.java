@@ -5,6 +5,7 @@
 /* if you are looking to modify the                                           */
 /* template                                                                   */
 /******************************************************************************/
+
 package org.prism;
 
 import org.prism.Nodes;
@@ -255,18 +256,6 @@ public class Loader {
         return constants;
     }
 
-    private Nodes.Node[] loadNodes() {
-        int length = loadVarUInt();
-        if (length == 0) {
-            return Nodes.Node.EMPTY_ARRAY;
-        }
-        Nodes.Node[] nodes = new Nodes.Node[length];
-        for (int i = 0; i < length; i++) {
-            nodes[i] = loadNode();
-        }
-        return nodes;
-    }
-
     private Nodes.Location loadLocation() {
         return new Nodes.Location(loadVarUInt(), loadVarUInt());
     }
@@ -396,7 +385,7 @@ public class Loader {
             case 15:
                 return new Nodes.BlockParameterNode(loadFlags(), loadOptionalConstant(), startOffset, length);
             case 16:
-                return new Nodes.BlockParametersNode((Nodes.ParametersNode) loadOptionalNode(), loadNodes(), startOffset, length);
+                return new Nodes.BlockParametersNode((Nodes.ParametersNode) loadOptionalNode(), loadBlockLocalVariableNodes(), startOffset, length);
             case 17:
                 return new Nodes.BreakNode((Nodes.ArgumentsNode) loadOptionalNode(), startOffset, length);
             case 18:
@@ -496,7 +485,7 @@ public class Loader {
             case 65:
                 return new Nodes.HashNode(loadNodes(), startOffset, length);
             case 66:
-                return new Nodes.HashPatternNode(loadOptionalNode(), loadNodes(), loadOptionalNode(), startOffset, length);
+                return new Nodes.HashPatternNode(loadOptionalNode(), loadAssocNodes(), loadOptionalNode(), startOffset, length);
             case 67:
                 return new Nodes.IfNode(loadNode(), (Nodes.StatementsNode) loadOptionalNode(), loadOptionalNode(), startOffset, length);
             case 68:
@@ -566,7 +555,7 @@ public class Loader {
             case 100:
                 return new Nodes.MatchRequiredNode(loadNode(), loadNode(), startOffset, length);
             case 101:
-                return new Nodes.MatchWriteNode((Nodes.CallNode) loadNode(), loadNodes(), startOffset, length);
+                return new Nodes.MatchWriteNode((Nodes.CallNode) loadNode(), loadLocalVariableTargetNodes(), startOffset, length);
             case 102:
                 return new Nodes.MissingNode(startOffset, length);
             case 103:
@@ -592,7 +581,7 @@ public class Loader {
             case 113:
                 return new Nodes.OrNode(loadNode(), loadNode(), startOffset, length);
             case 114:
-                return new Nodes.ParametersNode(loadNodes(), loadNodes(), loadOptionalNode(), loadNodes(), loadNodes(), loadOptionalNode(), (Nodes.BlockParameterNode) loadOptionalNode(), startOffset, length);
+                return new Nodes.ParametersNode(loadNodes(), loadOptionalParameterNodes(), loadOptionalNode(), loadNodes(), loadNodes(), loadOptionalNode(), (Nodes.BlockParameterNode) loadOptionalNode(), startOffset, length);
             case 115:
                 return new Nodes.ParenthesesNode(loadOptionalNode(), startOffset, length);
             case 116:
@@ -666,6 +655,76 @@ public class Loader {
             default:
                 throw new Error("Unknown node type: " + type);
         }
+    }
+
+    private static final Nodes.Node[] EMPTY_Node_ARRAY = {};
+
+    private Nodes.Node[] loadNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_Node_ARRAY;
+        }
+        Nodes.Node[] nodes = new Nodes.Node[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = loadNode();
+        }
+        return nodes;
+    }
+
+    private static final Nodes.BlockLocalVariableNode[] EMPTY_BlockLocalVariableNode_ARRAY = {};
+
+    private Nodes.BlockLocalVariableNode[] loadBlockLocalVariableNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_BlockLocalVariableNode_ARRAY;
+        }
+        Nodes.BlockLocalVariableNode[] nodes = new Nodes.BlockLocalVariableNode[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = (Nodes.BlockLocalVariableNode) loadNode();
+        }
+        return nodes;
+    }
+
+    private static final Nodes.AssocNode[] EMPTY_AssocNode_ARRAY = {};
+
+    private Nodes.AssocNode[] loadAssocNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_AssocNode_ARRAY;
+        }
+        Nodes.AssocNode[] nodes = new Nodes.AssocNode[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = (Nodes.AssocNode) loadNode();
+        }
+        return nodes;
+    }
+
+    private static final Nodes.LocalVariableTargetNode[] EMPTY_LocalVariableTargetNode_ARRAY = {};
+
+    private Nodes.LocalVariableTargetNode[] loadLocalVariableTargetNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_LocalVariableTargetNode_ARRAY;
+        }
+        Nodes.LocalVariableTargetNode[] nodes = new Nodes.LocalVariableTargetNode[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = (Nodes.LocalVariableTargetNode) loadNode();
+        }
+        return nodes;
+    }
+
+    private static final Nodes.OptionalParameterNode[] EMPTY_OptionalParameterNode_ARRAY = {};
+
+    private Nodes.OptionalParameterNode[] loadOptionalParameterNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_OptionalParameterNode_ARRAY;
+        }
+        Nodes.OptionalParameterNode[] nodes = new Nodes.OptionalParameterNode[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = (Nodes.OptionalParameterNode) loadNode();
+        }
+        return nodes;
     }
 
     private void expect(byte value, String error) {

@@ -5,6 +5,7 @@
 /* if you are looking to modify the                                           */
 /* template                                                                   */
 /******************************************************************************/
+
 #include "prism/prettyprint.h"
 
 static inline void
@@ -5010,34 +5011,9 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "+-- value:", 10);
                 const pm_integer_t *integer = &cast->value;
-                if (integer->length == 0) {
-                    pm_buffer_append_byte(output_buffer, ' ');
-                    if (integer->negative) pm_buffer_append_byte(output_buffer, '-');
-                    pm_buffer_append_format(output_buffer, "%" PRIu32 "\n", integer->head.value);
-                } else if (integer->length == 1) {
-                    pm_buffer_append_byte(output_buffer, ' ');
-                    if (integer->negative) pm_buffer_append_byte(output_buffer, '-');
-                    pm_buffer_append_format(output_buffer, "%" PRIu64 "\n", ((uint64_t) integer->head.value) | (((uint64_t) integer->head.next->value) << 32));
-                } else {
-                    pm_buffer_append_byte(output_buffer, ' ');
-
-                    const pm_integer_word_t *node = &integer->head;
-                    uint32_t index = 0;
-
-                    while (node != NULL) {
-                        if (index != 0) pm_buffer_append_string(output_buffer, " | ", 3);
-                        pm_buffer_append_format(output_buffer, "%" PRIu32, node->value);
-
-                        if (index != 0) {
-                            pm_buffer_append_string(output_buffer, " << ", 4);
-                            pm_buffer_append_format(output_buffer, "%" PRIu32, index * 32);
-                        }
-
-                        node = node->next;
-                        index++;
-                    }
-                    pm_buffer_append_string(output_buffer, "]\n", 2);
-                }
+                pm_buffer_append_byte(output_buffer, ' ');
+                pm_integer_string(output_buffer, integer);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
 
             break;

@@ -7,6 +7,7 @@
 #define PRISM_NUMBER_H
 
 #include "prism/defines.h"
+#include "prism/util/pm_buffer.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -92,6 +93,25 @@ PRISM_EXPORTED_FUNCTION void pm_integer_parse(pm_integer_t *integer, pm_integer_
  * @return The size of the memory associated with the integer.
  */
 size_t pm_integer_memsize(const pm_integer_t *integer);
+
+/**
+ * Compare two integers. This function returns -1 if the left integer is less
+ * than the right integer, 0 if they are equal, and 1 if the left integer is
+ * greater than the right integer.
+ *
+ * @param left The left integer to compare.
+ * @param right The right integer to compare.
+ * @return The result of the comparison.
+ */
+int pm_integer_compare(const pm_integer_t *left, const pm_integer_t *right);
+
+/**
+ * Convert an integer to a decimal string.
+ *
+ * @param buffer The buffer to append the string to.
+ * @param integer The integer to convert to a string.
+ */
+PRISM_EXPORTED_FUNCTION void pm_integer_string(pm_buffer_t *buffer, const pm_integer_t *integer);
 
 /**
  * Free the internal memory of an integer. This memory will only be allocated if
