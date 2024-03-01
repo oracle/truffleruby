@@ -103,20 +103,20 @@ ast: |
                                               sourceLength = 0
                                           children:
                                               values = [
-                                                  StringLiteralNode
+                                                  FrozenStringLiteralNode
                                                       attributes:
-                                                          encoding = UTF-8
+                                                          definition = expression
                                                           flags = 0
+                                                          frozenString = bar
                                                           sourceCharIndex = 31
                                                           sourceLength = 5
-                                                          tstring = bar
-                                                  StringLiteralNode
+                                                  FrozenStringLiteralNode
                                                       attributes:
-                                                          encoding = UTF-8
+                                                          definition = expression
                                                           flags = 0
+                                                          frozenString = baz
                                                           sourceCharIndex = 38
                                                           sourceLength = 5
-                                                          tstring = baz
                                               ]
                                   ]
                           ReadLocalVariableNode

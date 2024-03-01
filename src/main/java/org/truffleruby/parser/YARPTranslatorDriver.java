@@ -84,6 +84,7 @@ import org.prism.Parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 public final class YARPTranslatorDriver {
@@ -388,7 +389,7 @@ public final class YARPTranslatorDriver {
             scopes = new byte[0][][];
         }
 
-        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, version,
+        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, EnumSet.noneOf(ParsingOptions.CommandLine.class), version,
                 scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
