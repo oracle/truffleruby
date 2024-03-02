@@ -283,9 +283,9 @@ module Truffle
     # The mechanism does track the line numbers,
     # and updates $. accordingly.
     #
-    def gets(sep = $/)
+    def gets(...)
       while advance!
-        line = @stream.gets(sep)
+        line = @stream.gets(...)
 
         unless line
           return nil if @use_stdin_only

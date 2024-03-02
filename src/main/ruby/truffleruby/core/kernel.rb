@@ -337,8 +337,8 @@ module Kernel
   end
   module_function :getc
 
-  def gets(*args)
-    line = ARGF.gets(*args)
+  def gets(...)
+    line = ARGF.gets(...)
     Primitive.io_last_line_set(Primitive.caller_special_variables, line) if line
     line
   end
