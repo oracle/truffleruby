@@ -29,6 +29,8 @@ public abstract class ParsingOptions {
     /**
      * The command line options that can be passed to the parser.
      * See PM_OPTIONS_COMMAND_LINE_* in include/prism/options.h.
+     *
+     * NOTE: positions should match PM_OPTIONS_COMMAND_LINE_* constants values
      */
     public enum CommandLine { A, E, L, N, P, X };
 
@@ -94,7 +96,7 @@ public abstract class ParsingOptions {
     private static <T extends Enum<T>> byte serializeEnumSet(EnumSet<T> set) {
         byte result = 0;
         for (T value : set) {
-            result |= 1 << (value.ordinal() + 1);
+            result |= 1 << value.ordinal();
         }
         return result;
     }
