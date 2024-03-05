@@ -9,6 +9,8 @@ Bug fixes:
 
 Compatibility:
 
+* Allow null encoding pointer in `rb_enc_interned_str_cstr` (@thomasmarshall).
+
 Performance:
 
 Changes:
