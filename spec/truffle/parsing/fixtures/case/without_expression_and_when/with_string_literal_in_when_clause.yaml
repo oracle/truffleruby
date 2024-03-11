@@ -1,0 +1,38 @@
+subject: "case expression"
+description: "without expression to match / and String literal in when clause (case exp when 'string' ... end)"
+notes: >
+  String becomes frozen and is represented as FrozenStringLiteralNode
+focused_on_node: "org.truffleruby.language.control.IfElseNode"
+ruby: |
+  case
+  when "foo"
+    true
+  end
+ast: |
+  IfElseNodeGen
+      attributes:
+          flags = 1
+          sourceCharIndex = 0
+          sourceLength = 26
+      children:
+          condition =
+              FrozenStringLiteralNode
+                  attributes:
+                      definition = expression
+                      flags = 0
+                      frozenString = foo
+                      sourceCharIndex = 10
+                      sourceLength = 5
+          elseBody =
+              NilLiteralNode
+                  attributes:
+                      flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+          thenBody =
+              BooleanLiteralNode
+                  attributes:
+                      flags = 1
+                      sourceCharIndex = 18
+                      sourceLength = 4
+                      value = true

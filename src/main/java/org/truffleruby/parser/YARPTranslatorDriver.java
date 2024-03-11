@@ -54,10 +54,6 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.SetBindingFrameForEvalNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
-import org.truffleruby.core.kernel.AutoSplitNode;
-import org.truffleruby.core.kernel.ChompLoopNode;
-import org.truffleruby.core.kernel.KernelGetsNode;
-import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.EmitWarningsNode;
@@ -71,12 +67,11 @@ import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.WhileNode;
-import org.truffleruby.language.control.WhileNodeFactory;
 import org.truffleruby.language.locals.FrameDescriptorNamesIterator;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.options.Options;
 import org.truffleruby.shared.Metrics;
 import org.prism.Nodes;
 import org.prism.ParseResult;
@@ -84,6 +79,7 @@ import org.prism.Parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 public final class YARPTranslatorDriver {
@@ -159,6 +155,13 @@ public final class YARPTranslatorDriver {
         // Parse to the YARP AST
         final RubyDeferredWarnings rubyWarnings = new RubyDeferredWarnings();
         final String sourcePath = rubySource.getSourcePath(language).intern();
+        final Options options;
+
+        if (parserContext == ParserContext.TOP_LEVEL_FIRST) {
+            options = context.getOptions();
+        } else {
+            options = null;
+        }
 
         if (parseResult == null) {
             printParseTranslateExecuteMetric("before-parsing", context, source);
@@ -166,7 +169,7 @@ public final class YARPTranslatorDriver {
                     "parsing",
                     source.getName(),
                     () -> parseToYARPAST(rubySource, sourcePath, sourceBytes, localsInScopes,
-                            language.options.FROZEN_STRING_LITERALS));
+                            language.options.FROZEN_STRING_LITERALS, options));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -256,21 +259,6 @@ public final class YARPTranslatorDriver {
             truffleNode = YARPTranslator.sequence(YARPTranslator.initFlipFlopStates(environment), truffleNode);
         }
 
-        if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {
-            if (context.getOptions().PRINT_LOOP) {
-                truffleNode = YARPTranslator.sequence(truffleNode, new KernelPrintLastLineNode());
-            }
-            if (context.getOptions().SPLIT_LOOP) {
-                truffleNode = YARPTranslator.sequence(new AutoSplitNode(), truffleNode);
-            }
-
-            if (context.getOptions().CHOMP_LOOP) {
-                truffleNode = YARPTranslator.sequence(new ChompLoopNode(), truffleNode);
-            }
-            truffleNode = new WhileNode(
-                    WhileNodeFactory.WhileRepeatingNodeGen.create(new KernelGetsNode(), truffleNode));
-        }
-
         RubyNode[] beginBlocks = translator.getBeginBlocks();
 
         // add BEGIN {} blocks at the very beginning of the program
@@ -353,13 +341,38 @@ public final class YARPTranslatorDriver {
     }
 
     public static ParseResult parseToYARPAST(RubySource rubySource, String sourcePath, byte[] sourceBytes,
-            List<List<String>> localsInScopes, boolean frozenStringLiteral) {
+            List<List<String>> localsInScopes, boolean frozenStringLiteral, Options cliOptions) {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
 
         final byte[] filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
         int line = rubySource.getLineOffset() + 1;
         byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
         var version = ParsingOptions.SyntaxVersion.V3_3_0;
+
+        // Prism handles command line options (-n, -l, -a, -p) on its own
+        final EnumSet<ParsingOptions.CommandLine> commandline;
+
+        if (cliOptions != null && cliOptions.GETS_LOOP) {
+            List<ParsingOptions.CommandLine> yarpCliOptions = new ArrayList<>();
+            yarpCliOptions.add(ParsingOptions.CommandLine.N);
+
+            if (cliOptions.PRINT_LOOP) {
+                yarpCliOptions.add(ParsingOptions.CommandLine.P);
+            }
+
+            if (cliOptions.SPLIT_LOOP) {
+                yarpCliOptions.add(ParsingOptions.CommandLine.A);
+            }
+
+            if (cliOptions.CHOMP_LOOP) {
+                yarpCliOptions.add(ParsingOptions.CommandLine.L);
+            }
+
+            commandline = EnumSet.copyOf(yarpCliOptions);
+        } else {
+            // EnumSet.copyOf method requires a collection to be non-empty
+            commandline = EnumSet.noneOf(ParsingOptions.CommandLine.class);
+        }
 
         byte[][][] scopes;
 
@@ -388,7 +401,8 @@ public final class YARPTranslatorDriver {
             scopes = new byte[0][][];
         }
 
-        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, version,
+        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, commandline,
+                version,
                 scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 

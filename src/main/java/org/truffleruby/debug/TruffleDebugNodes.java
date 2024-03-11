@@ -275,7 +275,7 @@ public abstract class TruffleDebugNodes {
             String sourcePath = rubySource.getSourcePath(language).intern();
 
             return YARPTranslatorDriver.parseToYARPAST(rubySource, sourcePath, rubySource.getBytes(),
-                    Collections.emptyList(), language.options.FROZEN_STRING_LITERALS);
+                    Collections.emptyList(), language.options.FROZEN_STRING_LITERALS, null);
         }
     }
 

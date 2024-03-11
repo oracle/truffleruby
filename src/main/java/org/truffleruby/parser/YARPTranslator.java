@@ -493,7 +493,8 @@ public class YARPTranslator extends YARPBaseTranslator {
                 requireds[i - 1] = new Nodes.RequiredParameterNode(NO_FLAGS, name, 0, 0);
             }
 
-            parameters = new Nodes.ParametersNode(requireds, EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY,
+            parameters = new Nodes.ParametersNode(requireds, EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY, null,
+                    EMPTY_NODE_ARRAY,
                     EMPTY_NODE_ARRAY, null, null, 0, 0);
         } else if (parametersNode == null) {
             parameters = ZERO_PARAMETERS_NODE;
@@ -1716,9 +1717,11 @@ public class YARPTranslator extends YARPBaseTranslator {
         final String parameterName = environment.allocateLocalTemp("for");
 
         final var requireds = new Nodes.Node[]{ new Nodes.RequiredParameterNode(NO_FLAGS, parameterName, 0, 0) };
-        final var parameters = new Nodes.ParametersNode(requireds, Nodes.Node.EMPTY_ARRAY, null, Nodes.Node.EMPTY_ARRAY,
+        final var parameters = new Nodes.ParametersNode(requireds, EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY, null,
+                Nodes.Node.EMPTY_ARRAY,
                 Nodes.Node.EMPTY_ARRAY, null, null, 0, 0);
-        final var blockParameters = new Nodes.BlockParametersNode(parameters, Nodes.Node.EMPTY_ARRAY, 0, 0);
+        final var blockParameters = new Nodes.BlockParametersNode(parameters, EMPTY_BLOCK_LOCAL_VARIABLE_NODE_ARRAY, 0,
+                0);
 
         final var readParameter = new Nodes.LocalVariableReadNode(parameterName, 0, 0, 0);
         final Nodes.Node writeIndex;
@@ -2669,8 +2672,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         String[] names = new String[numberOfNames];
 
         for (int i = 0; i < numberOfNames; i++) {
-            // Nodes.LocalVariableTargetNode is the only expected node here
-            names[i] = ((Nodes.LocalVariableTargetNode) node.targets[i]).name;
+            names[i] = node.targets[i].name;
         }
 
         final RubyNode[] setters = new RubyNode[numberOfNames];
@@ -3801,8 +3803,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         for (var node : parametersNode.optionals) {
-            String name = ((Nodes.OptionalParameterNode) node).name;
-            var descriptor = new ArgumentDescriptor(ArgumentType.opt, name);
+            var descriptor = new ArgumentDescriptor(ArgumentType.opt, node.name);
             descriptors.add(descriptor);
         }
 

@@ -48,9 +48,11 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     protected final Node currentNode;
 
     public static final Nodes.Node[] EMPTY_NODE_ARRAY = Nodes.Node.EMPTY_ARRAY;
+    public static final Nodes.OptionalParameterNode[] EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY = {};
+    public static final Nodes.BlockLocalVariableNode[] EMPTY_BLOCK_LOCAL_VARIABLE_NODE_ARRAY = {};
 
     public static final Nodes.ParametersNode ZERO_PARAMETERS_NODE = new Nodes.ParametersNode(EMPTY_NODE_ARRAY,
-            EMPTY_NODE_ARRAY, null, EMPTY_NODE_ARRAY, EMPTY_NODE_ARRAY, null, null, 0, 0);
+            EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY, null, EMPTY_NODE_ARRAY, EMPTY_NODE_ARRAY, null, null, 0, 0);
 
     public static final short NO_FLAGS = 0;
 

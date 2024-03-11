@@ -5,6 +5,7 @@
 /* if you are looking to modify the                                           */
 /* template                                                                   */
 /******************************************************************************/
+
 package org.prism;
 
 import java.lang.Override;
@@ -27,6 +28,12 @@ public abstract class Nodes {
     @Target(ElementType.FIELD)
     @Retention(RetentionPolicy.SOURCE)
     public @interface Nullable {
+    }
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface UnionType {
+        Class<? extends Node>[] value();
     }
 
     public static final class Location {
@@ -883,10 +890,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `alias` keyword to alias a global variable.
      *
      *     alias $foo $bar
      *     ^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class AliasGlobalVariableNode extends Node {
         public final Node new_name;
@@ -931,10 +940,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `alias` keyword to alias a method.
      *
      *     alias foo bar
      *     ^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class AliasMethodNode extends Node {
         public final Node new_name;
@@ -979,10 +990,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an alternation pattern in pattern matching.
      *
-     *     foo => bar | baz
+     *     foo =&gt; bar | baz
      *            ^^^^^^^^^
+     * </pre>
      */
     public static final class AlternationPatternNode extends Node {
         public final Node left;
@@ -1027,10 +1040,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&` operator or the `and` keyword.
+     * <pre>
+     * Represents the use of the `&amp;&amp;` operator or the `and` keyword.
      *
      *     left and right
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class AndNode extends Node {
         /**
@@ -1040,7 +1055,7 @@ public abstract class Nodes {
          *     left and right
          *     ^^^^
          *
-         *     1 && 2
+         *     1 &amp;&amp; 2
          *     ^
          * </pre>
          */
@@ -1049,7 +1064,7 @@ public abstract class Nodes {
          * <pre>
          * Represents the right side of the expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
          *
-         *     left && right
+         *     left &amp;&amp; right
          *             ^^^^^
          *
          *     1 and 2
@@ -1097,10 +1112,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a set of arguments to a method or a keyword.
      *
      *     return foo, bar, baz
      *            ^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ArgumentsNode extends Node {
         public final short flags;
@@ -1123,7 +1140,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.arguments;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.arguments));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1155,10 +1174,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an array literal. This can be a regular array using brackets or a special array using % like %w or %i.
      *
      *     [1, 2, 3]
      *     ^^^^^^^^^
+     * </pre>
      */
     public static final class ArrayNode extends Node {
         public final short flags;
@@ -1181,7 +1202,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.elements;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.elements));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -1213,6 +1236,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an array pattern in pattern matching.
      *
      *     foo in 1, 2
@@ -1229,6 +1253,7 @@ public abstract class Nodes {
      *
      *     foo in Bar[1, 2, 3]
      *     ^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ArrayPatternNode extends Node {
         @Nullable
@@ -1307,10 +1332,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a hash key/value pair.
      *
-     *     { a => b }
+     *     { a =&gt; b }
      *       ^^^^^^
+     * </pre>
      */
     public static final class AssocNode extends Node {
         /**
@@ -1320,10 +1347,10 @@ public abstract class Nodes {
          *     { a: b }
          *       ^
          *
-         *     { foo => bar }
+         *     { foo =&gt; bar }
          *       ^^^
          *
-         *     { def a; end => 1 }
+         *     { def a; end =&gt; 1 }
          *       ^^^^^^^^^^
          * </pre>
          */
@@ -1332,7 +1359,7 @@ public abstract class Nodes {
          * <pre>
          * The value of the association, if present. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
          *
-         *     { foo => bar }
+         *     { foo =&gt; bar }
          *              ^^^
          *
          *     { x: 1 }
@@ -1380,10 +1407,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a splat in a hash literal.
      *
      *     { **foo }
      *       ^^^^^
+     * </pre>
      */
     public static final class AssocSplatNode extends Node {
         /**
@@ -1433,17 +1462,19 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents reading a reference to a field in the previous match.
      *
-     *     $'
+     *     $&#39;
      *     ^^
+     * </pre>
      */
     public static final class BackReferenceReadNode extends Node {
         /**
          * <pre>
          * The name of the back-reference variable, including the leading `$`.
          *
-         *     $& # name `:$&`
+         *     $&amp; # name `:$&amp;`
          *
          *     $+ # name `:$+`
          * </pre>
@@ -1484,12 +1515,14 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a begin statement.
      *
      *     begin
      *       foo
      *     end
      *     ^^^^^
+     * </pre>
      */
     public static final class BeginNode extends Node {
         @Nullable
@@ -1563,10 +1596,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents block method arguments.
      *
-     *     bar(&args)
+     *     bar(&amp;args)
      *     ^^^^^^^^^^
+     * </pre>
      */
     public static final class BlockArgumentNode extends Node {
         @Nullable
@@ -1608,10 +1643,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a block local variable.
      *
      *     a { |; b| }
      *            ^
+     * </pre>
      */
     public static final class BlockLocalVariableNode extends Node {
         public final short flags;
@@ -1660,10 +1697,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a block of ruby code.
      *
      *     [1, 2, 3].each { |i| puts x }
      *                    ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class BlockNode extends Node {
         public final String[] locals;
@@ -1723,11 +1762,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a block parameter to a method, block, or lambda definition.
      *
-     *     def a(&b)
+     *     def a(&amp;b)
      *           ^^
      *     end
+     * </pre>
      */
     public static final class BlockParameterNode extends Node {
         public final short flags;
@@ -1777,21 +1818,23 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a block's parameters declaration.
+     * <pre>
+     * Represents a block&#39;s parameters declaration.
      *
-     *     -> (a, b = 1; local) { }
+     *     -&gt; (a, b = 1; local) { }
      *        ^^^^^^^^^^^^^^^^^
      *
      *     foo do |a, b = 1; local|
      *            ^^^^^^^^^^^^^^^^^
      *     end
+     * </pre>
      */
     public static final class BlockParametersNode extends Node {
         @Nullable
         public final ParametersNode parameters;
-        public final Node[] locals;
+        public final BlockLocalVariableNode[] locals;
 
-        public BlockParametersNode(ParametersNode parameters, Node[] locals, int startOffset, int length) {
+        public BlockParametersNode(ParametersNode parameters, BlockLocalVariableNode[] locals, int startOffset, int length) {
             super(startOffset, length);
             this.parameters = parameters;
             this.locals = locals;
@@ -1841,10 +1884,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `break` keyword.
      *
      *     break foo
      *     ^^^^^^^^^
+     * </pre>
      */
     public static final class BreakNode extends Node {
         @Nullable
@@ -1886,10 +1931,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator on a call.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator on a call.
      *
-     *     foo.bar &&= value
+     *     foo.bar &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class CallAndWriteNode extends Node {
         public final short flags;
@@ -1971,6 +2018,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a method call, in all of the various forms that can take.
      *
      *     foo
@@ -1988,8 +2036,9 @@ public abstract class Nodes {
      *     foo.bar
      *     ^^^^^^^
      *
-     *     foo&.bar
+     *     foo&amp;.bar
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class CallNode extends Node {
         public final short flags;
@@ -2091,10 +2140,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of an assignment operator on a call.
      *
      *     foo.bar += baz
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class CallOperatorWriteNode extends Node {
         public final short flags;
@@ -2182,10 +2233,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator on a call.
      *
      *     foo.bar ||= value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class CallOrWriteNode extends Node {
         public final short flags;
@@ -2267,18 +2320,20 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents assigning to a method call.
      *
      *     foo.bar, = 1
      *     ^^^^^^^
      *
      *     begin
-     *     rescue => foo.bar
+     *     rescue =&gt; foo.bar
      *               ^^^^^^^
      *     end
      *
      *     for foo.bar in baz do end
      *         ^^^^^^^
+     * </pre>
      */
     public static final class CallTargetNode extends Node {
         public final short flags;
@@ -2345,10 +2400,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents assigning to a local variable in pattern matching.
      *
-     *     foo => [bar => baz]
+     *     foo =&gt; [bar =&gt; baz]
      *            ^^^^^^^^^^^^
+     * </pre>
      */
     public static final class CapturePatternNode extends Node {
         public final Node value;
@@ -2393,12 +2450,14 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of a case statement for pattern matching.
      *
      *     case true
      *     in false
      *     end
      *     ^^^^^^^^^
+     * </pre>
      */
     public static final class CaseMatchNode extends Node {
         @Nullable
@@ -2465,12 +2524,14 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of a case statement.
      *
      *     case true
      *     when false
      *     end
      *     ^^^^^^^^^^
+     * </pre>
      */
     public static final class CaseNode extends Node {
         @Nullable
@@ -2537,10 +2598,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a class declaration involving the `class` keyword.
      *
      *     class Foo end
      *     ^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ClassNode extends Node {
         public final String[] locals;
@@ -2612,10 +2675,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator for assignment to a class variable.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator for assignment to a class variable.
      *
-     *     @@target &&= value
+     *     &#64;&#64;target &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ClassVariableAndWriteNode extends Node {
         public final String name;
@@ -2660,10 +2725,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents assigning to a class variable using an operator that isn't `=`.
+     * <pre>
+     * Represents assigning to a class variable using an operator that isn&#39;t `=`.
      *
-     *     @@target += value
+     *     &#64;&#64;target += value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ClassVariableOperatorWriteNode extends Node {
         public final String name;
@@ -2714,10 +2781,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator for assignment to a class variable.
      *
-     *     @@target ||= value
+     *     &#64;&#64;target ||= value
      *     ^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ClassVariableOrWriteNode extends Node {
         public final String name;
@@ -2762,19 +2831,21 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents referencing a class variable.
      *
-     *     @@foo
+     *     &#64;&#64;foo
      *     ^^^^^
+     * </pre>
      */
     public static final class ClassVariableReadNode extends Node {
         /**
          * <pre>
-         * The name of the class variable, which is a `@@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         * The name of the class variable, which is a `&#64;&#64;` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
          *
-         *     @@abc   # name `:@@abc`
+         *     &#64;&#64;abc   # name `:&#64;&#64;abc`
          *
-         *     @@_test # name `:@@_test`
+         *     &#64;&#64;_test # name `:&#64;&#64;_test`
          * </pre>
          */
         public final String name;
@@ -2813,10 +2884,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to a class variable in a context that doesn't have an explicit value.
+     * <pre>
+     * Represents writing to a class variable in a context that doesn&#39;t have an explicit value.
      *
-     *     @@foo, @@bar = baz
+     *     &#64;&#64;foo, &#64;&#64;bar = baz
      *     ^^^^^  ^^^^^
+     * </pre>
      */
     public static final class ClassVariableTargetNode extends Node {
         public final String name;
@@ -2855,10 +2928,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing to a class variable.
      *
-     *     @@foo = 1
+     *     &#64;&#64;foo = 1
      *     ^^^^^^^^^
+     * </pre>
      */
     public static final class ClassVariableWriteNode extends Node {
         public final String name;
@@ -2903,10 +2978,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator for assignment to a constant.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator for assignment to a constant.
      *
-     *     Target &&= value
+     *     Target &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantAndWriteNode extends Node {
         public final String name;
@@ -2951,10 +3028,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents assigning to a constant using an operator that isn't `=`.
+     * <pre>
+     * Represents assigning to a constant using an operator that isn&#39;t `=`.
      *
      *     Target += value
      *     ^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantOperatorWriteNode extends Node {
         public final String name;
@@ -3005,10 +3084,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator for assignment to a constant.
      *
      *     Target ||= value
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantOrWriteNode extends Node {
         public final String name;
@@ -3053,10 +3134,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator for assignment to a constant path.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator for assignment to a constant path.
      *
-     *     Parent::Child &&= value
+     *     Parent::Child &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantPathAndWriteNode extends Node {
         public final ConstantPathNode target;
@@ -3101,14 +3184,17 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents accessing a constant through a path of `::` operators.
      *
      *     Foo::Bar
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class ConstantPathNode extends Node {
         @Nullable
         public final Node parent;
+        @UnionType({ ConstantReadNode.class, MissingNode.class })
         public final Node child;
 
         public ConstantPathNode(Node parent, Node child, int startOffset, int length) {
@@ -3152,10 +3238,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents assigning to a constant path using an operator that isn't `=`.
+     * <pre>
+     * Represents assigning to a constant path using an operator that isn&#39;t `=`.
      *
      *     Parent::Child += value
      *     ^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantPathOperatorWriteNode extends Node {
         public final ConstantPathNode target;
@@ -3206,10 +3294,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator for assignment to a constant path.
      *
      *     Parent::Child ||= value
      *     ^^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantPathOrWriteNode extends Node {
         public final ConstantPathNode target;
@@ -3254,14 +3344,17 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to a constant path in a context that doesn't have an explicit value.
+     * <pre>
+     * Represents writing to a constant path in a context that doesn&#39;t have an explicit value.
      *
      *     Foo::Foo, Bar::Bar = baz
      *     ^^^^^^^^  ^^^^^^^^
+     * </pre>
      */
     public static final class ConstantPathTargetNode extends Node {
         @Nullable
         public final Node parent;
+        @UnionType({ ConstantReadNode.class, MissingNode.class })
         public final Node child;
 
         public ConstantPathTargetNode(Node parent, Node child, int startOffset, int length) {
@@ -3305,6 +3398,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing to a constant path.
      *
      *     ::Foo = 1
@@ -3315,6 +3409,7 @@ public abstract class Nodes {
      *
      *     ::Foo::Bar = 1
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ConstantPathWriteNode extends Node {
         public final ConstantPathNode target;
@@ -3359,10 +3454,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents referencing a constant.
      *
      *     Foo
      *     ^^^
+     * </pre>
      */
     public static final class ConstantReadNode extends Node {
         /**
@@ -3410,10 +3507,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to a constant in a context that doesn't have an explicit value.
+     * <pre>
+     * Represents writing to a constant in a context that doesn&#39;t have an explicit value.
      *
      *     Foo, Bar = baz
      *     ^^^  ^^^
+     * </pre>
      */
     public static final class ConstantTargetNode extends Node {
         public final String name;
@@ -3452,10 +3551,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing to a constant.
      *
      *     Foo = 1
      *     ^^^^^^^
+     * </pre>
      */
     public static final class ConstantWriteNode extends Node {
         public final String name;
@@ -3500,11 +3601,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a method definition.
      *
      *     def method
      *     end
      *     ^^^^^^^^^^
+     * </pre>
      */
     public static final class DefNode extends Node {
         public final int serializedLength;
@@ -3581,10 +3684,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `defined?` keyword.
      *
      *     defined?(a)
      *     ^^^^^^^^^^^
+     * </pre>
      */
     public static final class DefinedNode extends Node {
         public final Node value;
@@ -3623,10 +3728,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an `else` clause in a `case`, `if`, or `unless` statement.
      *
      *     if a then b else c end
      *                 ^^^^^^^^^^
+     * </pre>
      */
     public static final class ElseNode extends Node {
         @Nullable
@@ -3668,10 +3775,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an interpolated set of statements.
      *
-     *     "foo #{bar}"
+     *     &quot;foo #{bar}&quot;
      *          ^^^^^^
+     * </pre>
      */
     public static final class EmbeddedStatementsNode extends Node {
         @Nullable
@@ -3713,10 +3822,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an interpolated variable.
      *
-     *     "foo #@bar"
+     *     &quot;foo #&#64;bar&quot;
      *          ^^^^^
+     * </pre>
      */
     public static final class EmbeddedVariableNode extends Node {
         public final Node variable;
@@ -3755,6 +3866,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an `ensure` clause in a `begin` statement.
      *
      *     begin
@@ -3763,6 +3875,7 @@ public abstract class Nodes {
      *     ^^^^^^
      *       bar
      *     end
+     * </pre>
      */
     public static final class EnsureNode extends Node {
         @Nullable
@@ -3804,10 +3917,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the literal `false` keyword.
      *
      *     false
      *     ^^^^^
+     * </pre>
      */
     public static final class FalseNode extends Node {
 
@@ -3840,6 +3955,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a find pattern in pattern matching.
      *
      *     foo in *bar, baz, *qux
@@ -3850,6 +3966,7 @@ public abstract class Nodes {
      *
      *     foo in Foo(*bar, baz, *qux)
      *            ^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class FindPatternNode extends Node {
         @Nullable
@@ -3920,10 +4037,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `..` or `...` operators to create flip flops.
      *
      *     baz if foo .. bar
      *            ^^^^^^^^^^
+     * </pre>
      */
     public static final class FlipFlopNode extends Node {
         public final short flags;
@@ -3984,10 +4103,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a floating point number literal.
      *
      *     1.0
      *     ^^^
+     * </pre>
      */
     public static final class FloatNode extends Node {
         /**
@@ -4031,10 +4152,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `for` keyword.
      *
      *     for i in a end
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ForNode extends Node {
         public final Node index;
@@ -4088,12 +4211,14 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents forwarding all arguments to this method to another method.
      *
      *     def foo(...)
      *       bar(...)
      *           ^^^
      *     end
+     * </pre>
      */
     public static final class ForwardingArgumentsNode extends Node {
 
@@ -4126,11 +4251,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the forwarding parameter in a method, block, or lambda declaration.
      *
      *     def foo(...)
      *             ^^^
      *     end
+     * </pre>
      */
     public static final class ForwardingParameterNode extends Node {
 
@@ -4163,10 +4290,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `super` keyword without parentheses or arguments.
      *
      *     super
      *     ^^^^^
+     * </pre>
      */
     public static final class ForwardingSuperNode extends Node {
         @Nullable
@@ -4208,10 +4337,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator for assignment to a global variable.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator for assignment to a global variable.
      *
-     *     $target &&= value
+     *     $target &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class GlobalVariableAndWriteNode extends Node {
         public final String name;
@@ -4256,10 +4387,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents assigning to a global variable using an operator that isn't `=`.
+     * <pre>
+     * Represents assigning to a global variable using an operator that isn&#39;t `=`.
      *
      *     $target += value
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class GlobalVariableOperatorWriteNode extends Node {
         public final String name;
@@ -4310,10 +4443,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator for assignment to a global variable.
      *
      *     $target ||= value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class GlobalVariableOrWriteNode extends Node {
         public final String name;
@@ -4358,10 +4493,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents referencing a global variable.
      *
      *     $foo
      *     ^^^^
+     * </pre>
      */
     public static final class GlobalVariableReadNode extends Node {
         /**
@@ -4409,10 +4546,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to a global variable in a context that doesn't have an explicit value.
+     * <pre>
+     * Represents writing to a global variable in a context that doesn&#39;t have an explicit value.
      *
      *     $foo, $bar = baz
      *     ^^^^  ^^^^
+     * </pre>
      */
     public static final class GlobalVariableTargetNode extends Node {
         public final String name;
@@ -4451,10 +4590,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing to a global variable.
      *
      *     $foo = 1
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class GlobalVariableWriteNode extends Node {
         public final String name;
@@ -4499,10 +4640,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a hash literal.
      *
-     *     { a => b }
+     *     { a =&gt; b }
      *     ^^^^^^^^^^
+     * </pre>
      */
     public static final class HashNode extends Node {
         /**
@@ -4516,6 +4659,7 @@ public abstract class Nodes {
          *       ^^^^^
          * </pre>
          */
+        @UnionType({ AssocNode.class, AssocSplatNode.class })
         public final Node[] elements;
 
         public HashNode(Node[] elements, int startOffset, int length) {
@@ -4530,7 +4674,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.elements;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.elements));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -4558,22 +4704,25 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a hash pattern in pattern matching.
      *
-     *     foo => { a: 1, b: 2 }
+     *     foo =&gt; { a: 1, b: 2 }
      *            ^^^^^^^^^^^^^^
      *
-     *     foo => { a: 1, b: 2, **c }
+     *     foo =&gt; { a: 1, b: 2, **c }
      *            ^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class HashPatternNode extends Node {
         @Nullable
         public final Node constant;
-        public final Node[] elements;
+        public final AssocNode[] elements;
         @Nullable
+        @UnionType({ AssocSplatNode.class, NoKeywordsParameterNode.class })
         public final Node rest;
 
-        public HashPatternNode(Node constant, Node[] elements, Node rest, int startOffset, int length) {
+        public HashPatternNode(Node constant, AssocNode[] elements, Node rest, int startOffset, int length) {
             super(startOffset, length);
             this.constant = constant;
             this.elements = elements;
@@ -4631,6 +4780,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `if` keyword, either in the block form or the modifier form.
      *
      *     bar if foo
@@ -4638,6 +4788,7 @@ public abstract class Nodes {
      *
      *     if foo then bar end
      *     ^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class IfNode extends Node {
         public final Node predicate;
@@ -4699,12 +4850,15 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an imaginary number literal.
      *
      *     1.0i
      *     ^^^^
+     * </pre>
      */
     public static final class ImaginaryNode extends Node {
+        @UnionType({ FloatNode.class, IntegerNode.class, RationalNode.class })
         public final Node numeric;
 
         public ImaginaryNode(Node numeric, int startOffset, int length) {
@@ -4741,7 +4895,8 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents a node that is implicitly being added to the tree but doesn't correspond directly to a node in the source.
+     * <pre>
+     * Represents a node that is implicitly being added to the tree but doesn&#39;t correspond directly to a node in the source.
      *
      *     { foo: }
      *       ^^^^
@@ -4751,6 +4906,7 @@ public abstract class Nodes {
      *
      *     foo in { bar: }
      *              ^^^^
+     * </pre>
      */
     public static final class ImplicitNode extends Node {
         public final Node value;
@@ -4789,6 +4945,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents using a trailing comma to indicate an implicit rest parameter.
      *
      *     foo { |bar,| }
@@ -4802,6 +4959,7 @@ public abstract class Nodes {
      *
      *     foo, = bar
      *        ^
+     * </pre>
      */
     public static final class ImplicitRestNode extends Node {
 
@@ -4834,10 +4992,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `in` keyword in a case statement.
      *
      *     case a; in b then c end
      *             ^^^^^^^^^^^
+     * </pre>
      */
     public static final class InNode extends Node {
         public final Node pattern;
@@ -4885,10 +5045,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator on a call to the `[]` method.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator on a call to the `[]` method.
      *
-     *     foo.bar[baz] &&= value
+     *     foo.bar[baz] &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class IndexAndWriteNode extends Node {
         public final short flags;
@@ -4976,10 +5138,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of an assignment operator on a call to `[]`.
      *
      *     foo.bar[baz] += value
      *     ^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class IndexOperatorWriteNode extends Node {
         public final short flags;
@@ -5073,10 +5237,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator on a call to `[]`.
      *
      *     foo.bar[baz] ||= value
      *     ^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class IndexOrWriteNode extends Node {
         public final short flags;
@@ -5164,18 +5330,20 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents assigning to an index.
      *
      *     foo[bar], = 1
      *     ^^^^^^^^
      *
      *     begin
-     *     rescue => foo[bar]
+     *     rescue =&gt; foo[bar]
      *               ^^^^^^^^
      *     end
      *
      *     for foo[bar] in baz do end
      *         ^^^^^^^^
+     * </pre>
      */
     public static final class IndexTargetNode extends Node {
         public final short flags;
@@ -5254,10 +5422,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator for assignment to an instance variable.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator for assignment to an instance variable.
      *
-     *     @target &&= value
+     *     &#64;target &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InstanceVariableAndWriteNode extends Node {
         public final String name;
@@ -5302,10 +5472,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents assigning to an instance variable using an operator that isn't `=`.
+     * <pre>
+     * Represents assigning to an instance variable using an operator that isn&#39;t `=`.
      *
-     *     @target += value
+     *     &#64;target += value
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InstanceVariableOperatorWriteNode extends Node {
         public final String name;
@@ -5356,10 +5528,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator for assignment to an instance variable.
      *
-     *     @target ||= value
+     *     &#64;target ||= value
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InstanceVariableOrWriteNode extends Node {
         public final String name;
@@ -5404,19 +5578,21 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents referencing an instance variable.
      *
-     *     @foo
+     *     &#64;foo
      *     ^^^^
+     * </pre>
      */
     public static final class InstanceVariableReadNode extends Node {
         /**
          * <pre>
-         * The name of the instance variable, which is a `@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         * The name of the instance variable, which is a `&#64;` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
          *
-         *     @x     # name `:@x`
+         *     &#64;x     # name `:&#64;x`
          *
-         *     @_test # name `:@_test`
+         *     &#64;_test # name `:&#64;_test`
          * </pre>
          */
         public final String name;
@@ -5455,10 +5631,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to an instance variable in a context that doesn't have an explicit value.
+     * <pre>
+     * Represents writing to an instance variable in a context that doesn&#39;t have an explicit value.
      *
-     *     @foo, @bar = baz
+     *     &#64;foo, &#64;bar = baz
      *     ^^^^  ^^^^
+     * </pre>
      */
     public static final class InstanceVariableTargetNode extends Node {
         public final String name;
@@ -5497,10 +5675,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing to an instance variable.
      *
-     *     @foo = 1
+     *     &#64;foo = 1
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class InstanceVariableWriteNode extends Node {
         public final String name;
@@ -5545,10 +5725,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an integer number literal.
      *
      *     1
      *     ^
+     * </pre>
      */
     public static final class IntegerNode extends Node {
         public final short flags;
@@ -5614,13 +5796,16 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a regular expression literal that contains interpolation that is being used in the predicate of a conditional to implicitly match against the last line read by an IO object.
      *
      *     if /foo #{bar} baz/ then end
      *        ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InterpolatedMatchLastLineNode extends Node {
         public final short flags;
+        @UnionType({ StringNode.class, EmbeddedStatementsNode.class, EmbeddedVariableNode.class })
         public final Node[] parts;
 
         public InterpolatedMatchLastLineNode(short flags, Node[] parts, int startOffset, int length) {
@@ -5688,7 +5873,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.parts;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.parts));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -5720,13 +5907,16 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a regular expression literal that contains interpolation.
      *
      *     /foo #{bar} baz/
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InterpolatedRegularExpressionNode extends Node {
         public final short flags;
+        @UnionType({ StringNode.class, EmbeddedStatementsNode.class, EmbeddedVariableNode.class })
         public final Node[] parts;
 
         public InterpolatedRegularExpressionNode(short flags, Node[] parts, int startOffset, int length) {
@@ -5794,7 +5984,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.parts;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.parts));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -5826,12 +6018,15 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a string literal that contains interpolation.
      *
-     *     "foo #{bar} baz"
+     *     &quot;foo #{bar} baz&quot;
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InterpolatedStringNode extends Node {
+        @UnionType({ StringNode.class, EmbeddedStatementsNode.class, EmbeddedVariableNode.class, InterpolatedStringNode.class })
         public final Node[] parts;
 
         public InterpolatedStringNode(Node[] parts, int startOffset, int length) {
@@ -5854,7 +6049,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.parts;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.parts));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -5882,12 +6079,15 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a symbol literal that contains interpolation.
      *
-     *     :"foo #{bar} baz"
+     *     :&quot;foo #{bar} baz&quot;
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InterpolatedSymbolNode extends Node {
+        @UnionType({ StringNode.class, EmbeddedStatementsNode.class, EmbeddedVariableNode.class })
         public final Node[] parts;
 
         public InterpolatedSymbolNode(Node[] parts, int startOffset, int length) {
@@ -5910,7 +6110,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.parts;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.parts));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -5938,12 +6140,15 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an xstring literal that contains interpolation.
      *
      *     `foo #{bar} baz`
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class InterpolatedXStringNode extends Node {
+        @UnionType({ StringNode.class, EmbeddedStatementsNode.class, EmbeddedVariableNode.class })
         public final Node[] parts;
 
         public InterpolatedXStringNode(Node[] parts, int startOffset, int length) {
@@ -5966,7 +6171,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.parts;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.parts));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -5994,10 +6201,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an implicit set of parameters through the use of the `it` keyword within a block or lambda.
      *
-     *     -> { it + it }
+     *     -&gt; { it + it }
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ItParametersNode extends Node {
 
@@ -6030,13 +6239,16 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a hash literal without opening and closing braces.
      *
      *     foo(a: b)
      *         ^^^^
+     * </pre>
      */
     public static final class KeywordHashNode extends Node {
         public final short flags;
+        @UnionType({ AssocNode.class, AssocSplatNode.class })
         public final Node[] elements;
 
         public KeywordHashNode(short flags, Node[] elements, int startOffset, int length) {
@@ -6056,7 +6268,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.elements;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.elements));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -6088,11 +6302,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a keyword rest parameter to a method, block, or lambda definition.
      *
      *     def a(**b)
      *           ^^^
      *     end
+     * </pre>
      */
     public static final class KeywordRestParameterNode extends Node {
         public final short flags;
@@ -6142,10 +6358,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents using a lambda literal (not the lambda method call).
      *
-     *     ->(value) { value * 2 }
+     *     -&gt;(value) { value * 2 }
      *     ^^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class LambdaNode extends Node {
         public final String[] locals;
@@ -6205,10 +6423,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `&&=` operator for assignment to a local variable.
+     * <pre>
+     * Represents the use of the `&amp;&amp;=` operator for assignment to a local variable.
      *
-     *     target &&= value
+     *     target &amp;&amp;= value
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class LocalVariableAndWriteNode extends Node {
         public final Node value;
@@ -6259,10 +6479,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents assigning to a local variable using an operator that isn't `=`.
+     * <pre>
+     * Represents assigning to a local variable using an operator that isn&#39;t `=`.
      *
      *     target += value
      *     ^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class LocalVariableOperatorWriteNode extends Node {
         public final Node value;
@@ -6319,10 +6541,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||=` operator for assignment to a local variable.
      *
      *     target ||= value
      *     ^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class LocalVariableOrWriteNode extends Node {
         public final Node value;
@@ -6373,10 +6597,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents reading a local variable. Note that this requires that a local variable of the same name has already been written to in the same scope, otherwise it is parsed as a method call.
      *
      *     foo
      *     ^^^
+     * </pre>
      */
     public static final class LocalVariableReadNode extends Node {
         /**
@@ -6449,10 +6675,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents writing to a local variable in a context that doesn't have an explicit value.
+     * <pre>
+     * Represents writing to a local variable in a context that doesn&#39;t have an explicit value.
      *
      *     foo, bar = baz
      *     ^^^  ^^^
+     * </pre>
      */
     public static final class LocalVariableTargetNode extends Node {
         public final String name;
@@ -6497,10 +6725,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing to a local variable.
      *
      *     foo = 1
      *     ^^^^^^^
+     * </pre>
      */
     public static final class LocalVariableWriteNode extends Node {
         public final String name;
@@ -6551,10 +6781,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a regular expression literal used in the predicate of a conditional to implicitly match against the last line read by an IO object.
      *
      *     if /foo/i then end
      *        ^^^^^^
+     * </pre>
      */
     public static final class MatchLastLineNode extends Node {
         public final short flags;
@@ -6643,10 +6875,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the modifier `in` operator.
      *
      *     foo in bar
      *     ^^^^^^^^^^
+     * </pre>
      */
     public static final class MatchPredicateNode extends Node {
         public final Node value;
@@ -6691,10 +6925,12 @@ public abstract class Nodes {
     }
 
     /**
-     * Represents the use of the `=>` operator.
+     * <pre>
+     * Represents the use of the `=&gt;` operator.
      *
-     *     foo => bar
+     *     foo =&gt; bar
      *     ^^^^^^^^^^
+     * </pre>
      */
     public static final class MatchRequiredNode extends Node {
         public final Node value;
@@ -6739,16 +6975,18 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents writing local variables using a regular expression match with named capture groups.
      *
-     *     /(?<foo>bar)/ =~ baz
+     *     /(?&lt;foo&gt;bar)/ =~ baz
      *     ^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class MatchWriteNode extends Node {
         public final CallNode call;
-        public final Node[] targets;
+        public final LocalVariableTargetNode[] targets;
 
-        public MatchWriteNode(CallNode call, Node[] targets, int startOffset, int length) {
+        public MatchWriteNode(CallNode call, LocalVariableTargetNode[] targets, int startOffset, int length) {
             super(startOffset, length);
             this.call = call;
             this.targets = targets;
@@ -6796,7 +7034,9 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a node that is missing from the source and results in a syntax error.
+     * </pre>
      */
     public static final class MissingNode extends Node {
 
@@ -6829,10 +7069,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a module declaration involving the `module` keyword.
      *
      *     module Foo end
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class ModuleNode extends Node {
         public final String[] locals;
@@ -6895,15 +7137,19 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a multi-target expression.
      *
      *     a, (b, c) = 1, 2, 3
      *        ^^^^^^
+     * </pre>
      */
     public static final class MultiTargetNode extends Node {
+        @UnionType({ LocalVariableTargetNode.class, InstanceVariableTargetNode.class, ClassVariableTargetNode.class, GlobalVariableTargetNode.class, ConstantTargetNode.class, ConstantPathTargetNode.class, CallTargetNode.class, IndexTargetNode.class, MultiTargetNode.class, RequiredParameterNode.class, BackReferenceReadNode.class, NumberedReferenceReadNode.class })
         public final Node[] lefts;
         @Nullable
         public final Node rest;
+        @UnionType({ LocalVariableTargetNode.class, InstanceVariableTargetNode.class, ClassVariableTargetNode.class, GlobalVariableTargetNode.class, ConstantTargetNode.class, ConstantPathTargetNode.class, CallTargetNode.class, IndexTargetNode.class, MultiTargetNode.class, RequiredParameterNode.class, BackReferenceReadNode.class })
         public final Node[] rights;
 
         public MultiTargetNode(Node[] lefts, Node rest, Node[] rights, int startOffset, int length) {
@@ -6967,15 +7213,19 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a write to a multi-target expression.
      *
      *     a, b, c = 1, 2, 3
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class MultiWriteNode extends Node {
+        @UnionType({ LocalVariableTargetNode.class, InstanceVariableTargetNode.class, ClassVariableTargetNode.class, GlobalVariableTargetNode.class, ConstantTargetNode.class, ConstantPathTargetNode.class, CallTargetNode.class, IndexTargetNode.class, MultiTargetNode.class })
         public final Node[] lefts;
         @Nullable
         public final Node rest;
+        @UnionType({ LocalVariableTargetNode.class, InstanceVariableTargetNode.class, ClassVariableTargetNode.class, GlobalVariableTargetNode.class, ConstantTargetNode.class, ConstantPathTargetNode.class, CallTargetNode.class, IndexTargetNode.class, MultiTargetNode.class })
         public final Node[] rights;
         public final Node value;
 
@@ -7046,10 +7296,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `next` keyword.
      *
      *     next 1
      *     ^^^^^^
+     * </pre>
      */
     public static final class NextNode extends Node {
         @Nullable
@@ -7091,10 +7343,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `nil` keyword.
      *
      *     nil
      *     ^^^
+     * </pre>
      */
     public static final class NilNode extends Node {
 
@@ -7127,11 +7381,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of `**nil` inside method arguments.
      *
      *     def a(**nil)
      *           ^^^^^
      *     end
+     * </pre>
      */
     public static final class NoKeywordsParameterNode extends Node {
 
@@ -7164,10 +7420,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an implicit set of parameters through the use of numbered parameters within a block or lambda.
      *
-     *     -> { _1 + _2 }
+     *     -&gt; { _1 + _2 }
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class NumberedParametersNode extends Node {
         public final int maximum;
@@ -7206,10 +7464,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents reading a numbered reference to a capture in the previous match.
      *
      *     $1
      *     ^^
+     * </pre>
      */
     public static final class NumberedReferenceReadNode extends Node {
         /**
@@ -7259,11 +7519,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an optional keyword parameter to a method, block, or lambda definition.
      *
      *     def a(b: 1)
      *           ^^^^
      *     end
+     * </pre>
      */
     public static final class OptionalKeywordParameterNode extends Node {
         public final short flags;
@@ -7318,11 +7580,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an optional parameter to a method, block, or lambda definition.
      *
      *     def a(b = 1)
      *           ^^^^^
      *     end
+     * </pre>
      */
     public static final class OptionalParameterNode extends Node {
         public final short flags;
@@ -7377,10 +7641,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `||` operator or the `or` keyword.
      *
      *     left or right
      *     ^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class OrNode extends Node {
         /**
@@ -7447,25 +7713,32 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the list of parameters on a method, block, or lambda definition.
      *
      *     def a(b, c, d)
      *           ^^^^^^^
      *     end
+     * </pre>
      */
     public static final class ParametersNode extends Node {
+        @UnionType({ RequiredParameterNode.class, MultiTargetNode.class })
         public final Node[] requireds;
-        public final Node[] optionals;
+        public final OptionalParameterNode[] optionals;
         @Nullable
+        @UnionType({ RestParameterNode.class, ImplicitRestNode.class })
         public final Node rest;
+        @UnionType({ RequiredParameterNode.class, MultiTargetNode.class, KeywordRestParameterNode.class, NoKeywordsParameterNode.class })
         public final Node[] posts;
+        @UnionType({ RequiredKeywordParameterNode.class, OptionalKeywordParameterNode.class })
         public final Node[] keywords;
         @Nullable
+        @UnionType({ KeywordRestParameterNode.class, ForwardingParameterNode.class, NoKeywordsParameterNode.class })
         public final Node keyword_rest;
         @Nullable
         public final BlockParameterNode block;
 
-        public ParametersNode(Node[] requireds, Node[] optionals, Node rest, Node[] posts, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
+        public ParametersNode(Node[] requireds, OptionalParameterNode[] optionals, Node rest, Node[] posts, Node[] keywords, Node keyword_rest, BlockParameterNode block, int startOffset, int length) {
             super(startOffset, length);
             this.requireds = requireds;
             this.optionals = optionals;
@@ -7564,10 +7837,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a parenthesized expression
      *
      *     (10 + 34)
      *     ^^^^^^^^^
+     * </pre>
      */
     public static final class ParenthesesNode extends Node {
         @Nullable
@@ -7614,10 +7889,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `^` operator for pinning an expression in a pattern matching expression.
      *
      *     foo in ^(bar)
      *            ^^^^^^
+     * </pre>
      */
     public static final class PinnedExpressionNode extends Node {
         public final Node expression;
@@ -7656,10 +7933,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `^` operator for pinning a variable in a pattern matching expression.
      *
      *     foo in ^bar
      *            ^^^^
+     * </pre>
      */
     public static final class PinnedVariableNode extends Node {
         public final Node variable;
@@ -7698,10 +7977,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `END` keyword.
      *
      *     END { foo }
      *     ^^^^^^^^^^^
+     * </pre>
      */
     public static final class PostExecutionNode extends Node {
         @Nullable
@@ -7743,10 +8024,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `BEGIN` keyword.
      *
      *     BEGIN { foo }
      *     ^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class PreExecutionNode extends Node {
         @Nullable
@@ -7788,7 +8071,9 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * The top level node of any parse tree.
+     * </pre>
      */
     public static final class ProgramNode extends Node {
         public final String[] locals;
@@ -7836,6 +8121,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `..` or `...` operators.
      *
      *     1..2
@@ -7843,6 +8129,7 @@ public abstract class Nodes {
      *
      *     c if a =~ /left/ ... b =~ /right/
      *          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class RangeNode extends Node {
         public final short flags;
@@ -7926,10 +8213,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a rational number literal.
      *
      *     1.0r
      *     ^^^^
+     * </pre>
      */
     public static final class RationalNode extends Node {
         public final Node numeric;
@@ -7968,10 +8257,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `redo` keyword.
      *
      *     redo
      *     ^^^^
+     * </pre>
      */
     public static final class RedoNode extends Node {
 
@@ -8004,10 +8295,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a regular expression literal with no interpolation.
      *
      *     /foo/i
      *     ^^^^^^
+     * </pre>
      */
     public static final class RegularExpressionNode extends Node {
         public final short flags;
@@ -8096,11 +8389,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a required keyword parameter to a method, block, or lambda definition.
      *
      *     def a(b: )
      *           ^^
      *     end
+     * </pre>
      */
     public static final class RequiredKeywordParameterNode extends Node {
         public final short flags;
@@ -8149,11 +8444,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a required parameter to a method, block, or lambda definition.
      *
      *     def a(b)
      *           ^
      *     end
+     * </pre>
      */
     public static final class RequiredParameterNode extends Node {
         public final short flags;
@@ -8202,10 +8499,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an expression modified with a rescue.
      *
      *     foo rescue nil
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class RescueModifierNode extends Node {
         public final Node expression;
@@ -8255,15 +8554,17 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a rescue statement.
      *
      *     begin
-     *     rescue Foo, *splat, Bar => ex
+     *     rescue Foo, *splat, Bar =&gt; ex
      *       foo
      *     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
      *     end
      *
      * `Foo, *splat, Bar` are in the `exceptions` field. `ex` is in the `exception` field.
+     * </pre>
      */
     public static final class RescueNode extends Node {
         public final Node[] exceptions;
@@ -8340,11 +8641,13 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a rest parameter to a method, block, or lambda definition.
      *
      *     def a(*b)
      *           ^^
      *     end
+     * </pre>
      */
     public static final class RestParameterNode extends Node {
         public final short flags;
@@ -8394,10 +8697,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `retry` keyword.
      *
      *     retry
      *     ^^^^^
+     * </pre>
      */
     public static final class RetryNode extends Node {
 
@@ -8430,10 +8735,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `return` keyword.
      *
      *     return 1
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class ReturnNode extends Node {
         @Nullable
@@ -8475,10 +8782,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the `self` keyword.
      *
      *     self
      *     ^^^^
+     * </pre>
      */
     public static final class SelfNode extends Node {
 
@@ -8511,10 +8820,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a singleton class declaration involving the `class` keyword.
      *
-     *     class << self end
+     *     class &lt;&lt; self end
      *     ^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class SingletonClassNode extends Node {
         public final String[] locals;
@@ -8571,10 +8882,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `__ENCODING__` keyword.
      *
      *     __ENCODING__
      *     ^^^^^^^^^^^^
+     * </pre>
      */
     public static final class SourceEncodingNode extends Node {
 
@@ -8607,10 +8920,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `__FILE__` keyword.
      *
      *     __FILE__
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class SourceFileNode extends Node {
         public final byte[] filepath;
@@ -8649,10 +8964,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `__LINE__` keyword.
      *
      *     __LINE__
      *     ^^^^^^^^
+     * </pre>
      */
     public static final class SourceLineNode extends Node {
 
@@ -8685,10 +9002,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the splat operator.
      *
      *     [*a]
      *      ^^
+     * </pre>
      */
     public static final class SplatNode extends Node {
         @Nullable
@@ -8730,10 +9049,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a set of statements contained within some scope.
      *
      *     foo; bar; baz
      *     ^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class StatementsNode extends Node {
         public final Node[] body;
@@ -8750,7 +9071,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.body;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.body));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -8778,16 +9101,18 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a string literal, a string contained within a `%w` list, or plain string content within an interpolated string.
      *
-     *     "foo"
+     *     &quot;foo&quot;
      *     ^^^^^
      *
      *     %w[foo]
      *        ^^^
      *
-     *     "foo #{bar} baz"
+     *     &quot;foo #{bar} baz&quot;
      *      ^^^^      ^^^^
+     * </pre>
      */
     public static final class StringNode extends Node {
         public final short flags;
@@ -8844,6 +9169,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `super` keyword with parentheses or arguments.
      *
      *     super()
@@ -8851,6 +9177,7 @@ public abstract class Nodes {
      *
      *     super foo, bar
      *     ^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class SuperNode extends Node {
         @Nullable
@@ -8901,6 +9228,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents a symbol literal or a symbol contained within a `%i` list.
      *
      *     :foo
@@ -8908,6 +9236,7 @@ public abstract class Nodes {
      *
      *     %i[foo]
      *        ^^^
+     * </pre>
      */
     public static final class SymbolNode extends Node {
         public final short flags;
@@ -8964,10 +9293,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the literal `true` keyword.
      *
      *     true
      *     ^^^^
+     * </pre>
      */
     public static final class TrueNode extends Node {
 
@@ -9000,12 +9331,15 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `undef` keyword.
      *
      *     undef :foo, :bar, :baz
      *     ^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class UndefNode extends Node {
+        @UnionType({ SymbolNode.class, InterpolatedSymbolNode.class })
         public final Node[] names;
 
         public UndefNode(Node[] names, int startOffset, int length) {
@@ -9020,7 +9354,9 @@ public abstract class Nodes {
         }
 
         public Node[] childNodes() {
-            return this.names;
+            ArrayList<Node> childNodes = new ArrayList<>();
+            childNodes.addAll(Arrays.asList(this.names));
+            return childNodes.toArray(EMPTY_ARRAY);
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -9048,6 +9384,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `unless` keyword, either in the block form or the modifier form.
      *
      *     bar unless foo
@@ -9055,6 +9392,7 @@ public abstract class Nodes {
      *
      *     unless foo then bar end
      *     ^^^^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class UnlessNode extends Node {
         public final Node predicate;
@@ -9116,6 +9454,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `until` keyword, either in the block form or the modifier form.
      *
      *     bar until foo
@@ -9123,6 +9462,7 @@ public abstract class Nodes {
      *
      *     until foo do bar end
      *     ^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class UntilNode extends Node {
         public final short flags;
@@ -9185,12 +9525,14 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `when` keyword within a case statement.
      *
      *     case true
      *     when true
      *     ^^^^^^^^^
      *     end
+     * </pre>
      */
     public static final class WhenNode extends Node {
         public final Node[] conditions;
@@ -9247,6 +9589,7 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `while` keyword, either in the block form or the modifier form.
      *
      *     bar while foo
@@ -9254,6 +9597,7 @@ public abstract class Nodes {
      *
      *     while foo do bar end
      *     ^^^^^^^^^^^^^^^^^^^^
+     * </pre>
      */
     public static final class WhileNode extends Node {
         public final short flags;
@@ -9316,10 +9660,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents an xstring literal with no interpolation.
      *
      *     `foo`
      *     ^^^^^
+     * </pre>
      */
     public static final class XStringNode extends Node {
         public final short flags;
@@ -9372,10 +9718,12 @@ public abstract class Nodes {
     }
 
     /**
+     * <pre>
      * Represents the use of the `yield` keyword.
      *
      *     yield 1
      *     ^^^^^^^
+     * </pre>
      */
     public static final class YieldNode extends Node {
         @Nullable
