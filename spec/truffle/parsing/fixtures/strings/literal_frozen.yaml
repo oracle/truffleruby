@@ -10,8 +10,8 @@ ruby: |
 ast: |
   FrozenStringLiteralNode
       attributes:
-          definition = expression
+          definition = "expression" (ASCII-8BIT)
           flags = 1
-          frozenString = foobar
+          frozenString = "foobar" (UTF-8)
           sourceCharIndex = 30
           sourceLength = 8

@@ -33,6 +33,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.support.DetailedInspectingSupport;
 import org.truffleruby.language.ImmutableRubyObjectCopyable;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseNode;
@@ -44,7 +45,8 @@ import java.util.Objects;
 /** All ImmutableRubyString are interned and must be created through
  * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
 @ExportLibrary(InteropLibrary.class)
-public final class ImmutableRubyString extends ImmutableRubyObjectCopyable implements TruffleObject {
+public final class ImmutableRubyString extends ImmutableRubyObjectCopyable
+        implements TruffleObject, DetailedInspectingSupport {
 
     public final TruffleString tstring;
     private final RubyEncoding encoding;
@@ -61,6 +63,11 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable imple
     @Override
     public String toString() {
         return tstring.toString();
+    }
+
+    @Override
+    public String toStringWithDetails() {
+        return "\"" + tstring + "\" (" + encoding.name + ")";
     }
 
     public TruffleString asTruffleStringUncached() {

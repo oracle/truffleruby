@@ -42,7 +42,7 @@ ast: |
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
-                                  object = ""
+                                  object = "" (UTF-8)
                                   sourceCharIndex = 2
                                   sourceLength = 3
               ToSNodeGen

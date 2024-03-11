@@ -53,7 +53,7 @@ ast: |
                                       ObjectLiteralNode
                                           attributes:
                                               flags = 0
-                                              object = ""
+                                              object = "" (UTF-8)
                                               sourceCharIndex = 8
                                               sourceLength = 4
                       ]
