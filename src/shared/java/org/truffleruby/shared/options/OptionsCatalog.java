@@ -415,7 +415,7 @@ public final class OptionsCatalog {
 
     public static final OptionDescriptor VIRTUAL_THREAD_FIBERS = OptionDescriptor
             .newBuilder(VIRTUAL_THREAD_FIBERS_KEY, "ruby.virtual-thread-fibers")
-            .help("Use JDK 19+ VirtualThread for Fibers, also requires --vm.-enable-preview")
+            .help("Use VirtualThread for Fibers")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
