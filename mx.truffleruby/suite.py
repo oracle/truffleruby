@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "8f380d326998db82b7c6c7a354eac800ac1ca8a2",
+                "version": "219b3c7e4c89b8229ba9af7adfa8c1f3acfddbbd",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "8f380d326998db82b7c6c7a354eac800ac1ca8a2",
+                "version": "219b3c7e4c89b8229ba9af7adfa8c1f3acfddbbd",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -562,7 +562,6 @@ suite = {
             ],
             "description": "TruffleRuby (GraalVM Ruby)",
             "maven": {
-                "groupId": "org.graalvm.polyglot",
                 "artifactId": "ruby-community",
                 "tag": ["default", "public"],
             },
