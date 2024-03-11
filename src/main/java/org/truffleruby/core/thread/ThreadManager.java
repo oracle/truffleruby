@@ -185,6 +185,12 @@ public final class ThreadManager {
                     body.run();
                 } finally {
                     truffleContext.leave(node, prev);
+
+                    // For PolyglotThread, the order is leave(), disposeThread(), afterLeave(), as desired.
+                    // But for an "embedder thread" like this one, disposeThread() is only done just before disposeContext(),
+                    // so we do the disposeThread() logic here to release the CountDownLatch and let doKillOtherFibers() proceed.
+                    context.fiberManager.cleanup(fiber, Thread.currentThread());
+
                     afterLeave.run();
                 }
             });
