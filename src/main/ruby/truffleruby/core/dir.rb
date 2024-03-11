@@ -116,6 +116,8 @@ class Dir
   def each
     return to_enum unless block_given?
 
+    rewind
+
     while s = read
       yield s
     end
@@ -124,6 +126,8 @@ class Dir
   end
 
   def children
+    rewind
+
     ret = []
     while s = read
       ret << s if s != '.' and s != '..'
@@ -133,6 +137,8 @@ class Dir
 
   def each_child
     return to_enum(:each_child) unless block_given?
+
+    rewind
 
     while s = read
       yield s unless s == '.' or s == '..'
