@@ -2400,10 +2400,20 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         for (ToSNode child : children) {
-            // assume string fragments are represented with FrozenStringLiteralNode and not StringLiteralNode
-            if (child.getValueNode() instanceof FrozenStringLiteralNode frozenStringLiteralNode) {
-                ImmutableRubyString frozenString = frozenStringLiteralNode.getFrozenString();
-                var fragment = new TStringWithEncoding(frozenString.tstring, frozenString.encoding);
+            // Expect that String fragments are represented either with FrozenStringLiteralNode or StringLiteralNode.
+            // StringLiteralNode is possible in the following case: /a #{ "b" } c/
+            if (child.getValueNode() instanceof FrozenStringLiteralNode ||
+                    child.getValueNode() instanceof StringLiteralNode) {
+                final TStringWithEncoding fragment;
+
+                if (child.getValueNode() instanceof FrozenStringLiteralNode frozenStringLiteralNode) {
+                    ImmutableRubyString frozenString = frozenStringLiteralNode.getFrozenString();
+                    fragment = new TStringWithEncoding(frozenString.tstring, frozenString.encoding);
+                } else if (child.getValueNode() instanceof StringLiteralNode stringLiteralNode) {
+                    fragment = new TStringWithEncoding(stringLiteralNode.getTString(), stringLiteralNode.getEncoding());
+                } else {
+                    throw CompilerDirectives.shouldNotReachHere();
+                }
 
                 try {
                     // MRI: reg_fragment_check
