@@ -43,8 +43,18 @@ public final class WriteConstantNode extends RubyContextSourceAssignableNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        // value should be evaluated after module
+        final Object moduleObject = moduleNode.execute(frame);
         final Object value = valueNode.execute(frame);
-        assign(frame, value);
+
+        // check module only after value evaluation
+        if (!moduleProfile.profile(moduleObject instanceof RubyModule)) {
+            throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
+        }
+
+        RubyModule module = (RubyModule) moduleObject;
+        assign(module, value);
+
         return value;
     }
 

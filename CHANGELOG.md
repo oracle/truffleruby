@@ -9,6 +9,9 @@ Bug fixes:
 
 Compatibility:
 
+* Change assignment evaluation order for fully qualified constant and evaluate left-hand-side before right-hand-side (#3039, @andrykonchin).
+* Fix evaluation order for multi-assignment and evaluate left-hand-side before right-hand-side (@andrykonchin).
+
 Performance:
 
 Changes:

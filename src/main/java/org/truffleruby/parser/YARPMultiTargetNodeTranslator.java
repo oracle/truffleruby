@@ -23,6 +23,9 @@ import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.WriteLocalNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Translate Nodes.MultiTargetNode.
  *
  * Used in the following cases: descturturing in multi-assignment and destructuring in method or block parameters:
@@ -42,6 +45,11 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     private final YARPTranslator yarpTranslator;
     /** a node that will be destructured */
     private final RubyNode readNode;
+    /** Nodes to initialize local variables before assign values. Store in the local variables receivers of attribute
+     * (a.b = ...) and reference (a[b] = ...) assignments as well as fully qualified constants' modules (A::B = ...).
+     * They should be evaluated before values to conform with the left-to-right order semantic. Specific to
+     * multi-assignment only and isn't needed to handle method/proc parameters. */
+    public final List<RubyNode> prolog;
 
     public YARPMultiTargetNodeTranslator(
             Nodes.MultiTargetNode node,
@@ -52,6 +60,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         this.language = language;
         this.yarpTranslator = yarpTranslator;
         this.readNode = readNode;
+        this.prolog = new ArrayList<>();
     }
 
     public MultipleAssignmentNode translate() {
@@ -93,7 +102,9 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
             postNodes[i] = node.rights[i].accept(this);
         }
 
+        // prolog is supposed to be executed in the outer MultipleAssignmentNode (in multi-assignment only)
         final var multipleAssignmentNode = new MultipleAssignmentNode(
+                null,
                 preNodes,
                 restNode,
                 postNodes,
@@ -110,12 +121,24 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     @Override
     public AssignableNode visitCallTargetNode(Nodes.CallTargetNode node) {
+        // store receiver in a local variable to evaluate before assigned value
+        Nodes.Node readReceiver = stash(node.receiver, "receiver");
+
+        node = new Nodes.CallTargetNode(node.flags, readReceiver, node.name, node.startOffset, node.length);
+
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
 
     @Override
     public AssignableNode visitConstantPathTargetNode(Nodes.ConstantPathTargetNode node) {
+        if (node.parent != null) {
+            // store parent lexical scope (e.g foo in foo::C = ...) in a local variable to evaluate before assigned value
+            Nodes.Node readParent = stash(node.parent, "parent");
+
+            node = new Nodes.ConstantPathTargetNode(readParent, node.child, node.startOffset, node.length);
+        }
+
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
@@ -139,6 +162,27 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     @Override
     public AssignableNode visitIndexTargetNode(Nodes.IndexTargetNode node) {
+        // store receiver in a local variable to evaluate before assigned value
+        Nodes.Node readReceiver = stash(node.receiver, "receiver");
+
+        // store arguments in local variables to evaluate after receiver but before assigned values
+        final Nodes.ArgumentsNode arguments;
+        if (node.arguments != null) {
+            var argumentsReads = new Nodes.Node[node.arguments.arguments.length];
+
+            for (int i = 0; i < node.arguments.arguments.length; i++) {
+                argumentsReads[i] = stash(node.arguments.arguments[i], "argument");
+            }
+
+            arguments = new Nodes.ArgumentsNode(node.arguments.flags, argumentsReads, node.arguments.startOffset,
+                    node.arguments.length);
+        } else {
+            arguments = null;
+        }
+
+        node = new Nodes.IndexTargetNode(node.flags, readReceiver, arguments, node.block, node.startOffset,
+                node.length);
+
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
     }
@@ -159,6 +203,8 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     public AssignableNode visitMultiTargetNode(Nodes.MultiTargetNode node) {
         final var translator = new YARPMultiTargetNodeTranslator(node, language, yarpTranslator, null);
         final MultipleAssignmentNode multipleAssignmentNode = translator.translate();
+
+        prolog.addAll(translator.prolog);
 
         return multipleAssignmentNode.toAssignableNode();
     }
@@ -186,6 +232,18 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     @Override
     protected AssignableNode defaultVisit(Nodes.Node node) {
         throw new Error("Unknown node: " + node);
+    }
+
+    /** Cache node evaluation result in a local variable to execute before assigning */
+    Nodes.Node stash(Nodes.Node node, String name) {
+        var e = new YARPExecutedOnceExpression(name, node, yarpTranslator);
+        RubyNode writeNode = e.getWriteNode();
+
+        if (writeNode != null) {
+            prolog.add(writeNode);
+        }
+
+        return e.getReadYARPNode();
     }
 
 }

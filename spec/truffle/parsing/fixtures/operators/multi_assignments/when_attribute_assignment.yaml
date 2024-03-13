@@ -38,6 +38,26 @@ ast: |
                                   sourceLength = 0
                       ]
                       receiver =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 3 # %receiver_0
+                                  sourceCharIndex = 0
+                                  sourceLength = 1
+                                  type = FRAME_LOCAL
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2 # b
+          ]
+          prolog = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 3 # %receiver_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
                           RubyCallNode
                               attributes:
                                   descriptor = NoKeywordArgumentsDescriptor
@@ -61,9 +81,6 @@ ast: |
                                               flags = 0
                                               sourceCharIndex = -1
                                               sourceLength = 0
-              WriteFrameSlotNodeGen
-                  attributes:
-                      frameSlot = 2 # b
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode

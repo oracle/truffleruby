@@ -22,12 +22,13 @@ ast: |
                       sourceLength = 10
                   children:
                       operand1Node_ =
-                          ObjectLiteralNode
+                          ReadLocalVariableNode
                               attributes:
                                   flags = 0
-                                  object = :key
+                                  frameSlot = 4 # %argument_1
                                   sourceCharIndex = 5
                                   sourceLength = 4
+                                  type = FRAME_LOCAL
                       operand2Node_ =
                           NilLiteralNode
                               attributes:
@@ -35,6 +36,26 @@ ast: |
                                   sourceCharIndex = -1
                                   sourceLength = 0
                       receiver_ =
+                          ReadLocalVariableNode
+                              attributes:
+                                  flags = 0
+                                  frameSlot = 3 # %receiver_0
+                                  sourceCharIndex = 0
+                                  sourceLength = 4
+                                  type = FRAME_LOCAL
+              WriteFrameSlotNodeGen
+                  attributes:
+                      frameSlot = 2 # b
+          ]
+          prolog = [
+              WriteLocalVariableNode
+                  attributes:
+                      flags = 0
+                      frameSlot = 3 # %receiver_0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
                           InlinedIndexGetNodeGen
                               attributes:
                                   assumptions = [Assumption(valid, name=set_trace_func is not used)]
@@ -74,9 +95,20 @@ ast: |
                                               sourceCharIndex = 2
                                               sourceLength = 1
                                               value = 0
-              WriteFrameSlotNodeGen
+              WriteLocalVariableNode
                   attributes:
-                      frameSlot = 2 # b
+                      flags = 0
+                      frameSlot = 4 # %argument_1
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                  children:
+                      valueNode =
+                          ObjectLiteralNode
+                              attributes:
+                                  flags = 0
+                                  object = :key
+                                  sourceCharIndex = 5
+                                  sourceLength = 4
           ]
           rhsNode =
               ArrayLiteralNode$UninitialisedArrayLiteralNode
