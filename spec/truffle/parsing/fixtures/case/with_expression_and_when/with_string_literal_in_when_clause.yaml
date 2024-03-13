@@ -28,9 +28,9 @@ ast: |
                       leftNode_ =
                           FrozenStringLiteralNode
                               attributes:
-                                  definition = expression
+                                  definition = "expression" (ASCII-8BIT)
                                   flags = 0
-                                  frozenString = foo
+                                  frozenString = "foo" (UTF-8)
                                   sourceCharIndex = 13
                                   sourceLength = 5
                       rightNode_ =

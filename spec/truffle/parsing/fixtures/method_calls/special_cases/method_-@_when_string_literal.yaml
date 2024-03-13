@@ -8,8 +8,8 @@ ruby: |
 ast: |
   FrozenStringLiteralNode
       attributes:
-          definition = method
+          definition = "method" (ASCII-8BIT)
           flags = 1
-          frozenString = foobar
+          frozenString = "foobar" (UTF-8)
           sourceCharIndex = 0
           sourceLength = 9

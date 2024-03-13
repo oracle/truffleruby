@@ -27,9 +27,9 @@ ast: |
           arguments = [
               FrozenStringLiteralNode
                   attributes:
-                      definition = expression
+                      definition = "expression" (ASCII-8BIT)
                       flags = 0
-                      frozenString = echo \xFF 1
+                      frozenString = "echo \xFF 1" (ASCII-8BIT)
                       sourceCharIndex = 21
                       sourceLength = 13
           ]

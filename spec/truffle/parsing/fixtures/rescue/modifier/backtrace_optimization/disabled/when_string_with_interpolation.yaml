@@ -36,13 +36,13 @@ ast: |
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
-                                                  StringLiteralNode
+                                                  FrozenStringLiteralNode
                                                       attributes:
-                                                          encoding = UTF-8
+                                                          definition = "expression" (ASCII-8BIT)
                                                           flags = 0
+                                                          frozenString = "abc " (UTF-8)
                                                           sourceCharIndex = 14
                                                           sourceLength = 4
-                                                          tstring = abc 
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
@@ -55,13 +55,13 @@ ast: |
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
-                                                  StringLiteralNode
+                                                  FrozenStringLiteralNode
                                                       attributes:
-                                                          encoding = UTF-8
+                                                          definition = "expression" (ASCII-8BIT)
                                                           flags = 0
+                                                          frozenString = " def" (UTF-8)
                                                           sourceCharIndex = 25
                                                           sourceLength = 4
-                                                          tstring =  def
                                   ]
           ]
           tryPart =

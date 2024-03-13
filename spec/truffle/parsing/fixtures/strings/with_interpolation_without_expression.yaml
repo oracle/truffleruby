@@ -19,30 +19,30 @@ ast: |
               ToSNodeGen
                   children:
                       valueNode_ =
-                          StringLiteralNode
+                          FrozenStringLiteralNode
                               attributes:
-                                  encoding = UTF-8
+                                  definition = "expression" (ASCII-8BIT)
                                   flags = 1
+                                  frozenString = "ab" (UTF-8)
                                   sourceCharIndex = 1
                                   sourceLength = 2
-                                  tstring = ab
               ToSNodeGen
                   children:
                       valueNode_ =
                           ObjectLiteralNode
                               attributes:
                                   flags = 0
-                                  object = ""
+                                  object = "" (UTF-8)
                                   sourceCharIndex = 3
                                   sourceLength = 4
               ToSNodeGen
                   children:
                       valueNode_ =
-                          StringLiteralNode
+                          FrozenStringLiteralNode
                               attributes:
-                                  encoding = UTF-8
+                                  definition = "expression" (ASCII-8BIT)
                                   flags = 0
+                                  frozenString = "cd" (UTF-8)
                                   sourceCharIndex = 7
                                   sourceLength = 2
-                                  tstring = cd
           ]

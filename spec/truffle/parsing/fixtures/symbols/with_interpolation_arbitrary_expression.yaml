@@ -23,13 +23,13 @@ ast: |
                           ToSNodeGen
                               children:
                                   valueNode_ =
-                                      StringLiteralNode
+                                      FrozenStringLiteralNode
                                           attributes:
-                                              encoding = UTF-8
+                                              definition = "expression" (ASCII-8BIT)
                                               flags = 1
+                                              frozenString = "ab" (UTF-8)
                                               sourceCharIndex = 2
                                               sourceLength = 2
-                                              tstring = ab
                           ToSNodeGen
                               children:
                                   valueNode_ =
@@ -42,11 +42,11 @@ ast: |
                           ToSNodeGen
                               children:
                                   valueNode_ =
-                                      StringLiteralNode
+                                      FrozenStringLiteralNode
                                           attributes:
-                                              encoding = UTF-8
+                                              definition = "expression" (ASCII-8BIT)
                                               flags = 0
+                                              frozenString = "cd" (UTF-8)
                                               sourceCharIndex = 11
                                               sourceLength = 2
-                                              tstring = cd
                       ]

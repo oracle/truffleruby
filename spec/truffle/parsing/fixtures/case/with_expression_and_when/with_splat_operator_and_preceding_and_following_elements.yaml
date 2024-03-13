@@ -105,16 +105,16 @@ ast: |
                                               values = [
                                                   FrozenStringLiteralNode
                                                       attributes:
-                                                          definition = expression
+                                                          definition = "expression" (ASCII-8BIT)
                                                           flags = 0
-                                                          frozenString = bar
+                                                          frozenString = "bar" (UTF-8)
                                                           sourceCharIndex = 31
                                                           sourceLength = 5
                                                   FrozenStringLiteralNode
                                                       attributes:
-                                                          definition = expression
+                                                          definition = "expression" (ASCII-8BIT)
                                                           flags = 0
-                                                          frozenString = baz
+                                                          frozenString = "baz" (UTF-8)
                                                           sourceCharIndex = 38
                                                           sourceLength = 5
                                               ]
