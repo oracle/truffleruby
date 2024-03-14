@@ -8,6 +8,7 @@ Bug fixes:
 * Fix repeated calling of methods `Dir#{each,each_child,children}` (#3464, @andrykonchin).
 
 Compatibility:
+* Move `IO#wait_readable`, `IO#wait_writable`, `IO#wait_priority` and `IO#wait` into core library (@andrykonchin).
 
 Performance:
 
