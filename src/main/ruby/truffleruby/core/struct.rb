@@ -33,7 +33,7 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name, *attrs, keyword_init: nil, &block)
+  def self.new(klass_name = nil, *attrs, keyword_init: nil, &block)
     if klass_name
       if Primitive.is_a?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
         attrs.unshift klass_name
