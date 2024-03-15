@@ -1056,6 +1056,38 @@ public abstract class TruffleRegexpNodes {
         }
     }
 
+    @CoreMethod(names = "linear_time?", onSingleton = true, required = 1)
+    public abstract static class IsLinearTimeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        Object isLinearTime(RubyRegexp regexp,
+                @Cached InlinedConditionProfile tRegexCouldNotCompileProfile,
+                @Cached TRegexCompileNode tRegexCompileNode,
+                @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Bind("this") Node node) {
+            final Object compiledRegex = tRegexCompileNode.executeTRegexCompile(regexp, false, regexp.encoding);
+
+            if (tRegexCouldNotCompileProfile.profile(node, compiledRegex == nil)) {
+                return nil;
+            }
+
+            Object isBacktracking = readMember(node, regexInterop, compiledRegex, "isBacktracking",
+                    translateInteropExceptionNode);
+            return !(boolean) isBacktracking;
+        }
+
+        private static Object readMember(Node node, InteropLibrary interop, Object receiver, String name,
+                TranslateInteropExceptionNode translateInteropExceptionNode) {
+            try {
+                return interop.readMember(receiver, name);
+            } catch (InteropException e) {
+                throw translateInteropExceptionNode.execute(node, e);
+            }
+        }
+    }
+
+
     public abstract static class MatchNode extends RubyBaseNode {
 
         @Child private DispatchNode dupNode = DispatchNode.create();
