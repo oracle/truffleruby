@@ -259,7 +259,13 @@ module Truffle
       end
 
       begin
+        # Change thread status manually.
+        # Don't mark Truffle::POSIX.truffleposix_poll_single_fd as blocking because
+        # then it would automatically retry on EINTR without considering/adjusting the timeout.
+        status = Primitive.thread_set_status(Thread.current, :sleep)
         returned_events = Truffle::POSIX.truffleposix_poll_single_fd(Primitive.io_fd(io), event_mask, remaining_timeout)
+        Primitive.thread_set_status(Thread.current, status)
+
         result =
           if returned_events < 0
             errno = Errno.errno
