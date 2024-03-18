@@ -82,8 +82,8 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyPRNGRandomizer;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.BlockingCallInterruptible;
 import org.truffleruby.interop.ForeignToRubyNode;
@@ -580,7 +580,9 @@ public abstract class ThreadNodes {
                     return false;
                 }
             }
-            return createString(fromJavaStringNode, StringUtils.toLowerCase(status.name()), Encodings.US_ASCII); // CR_7BIT
+
+            RubySymbol nameSymbol = threadStatusToRubySymbol(status, coreSymbols());
+            return nameSymbol.getString();
         }
 
     }
@@ -588,10 +590,9 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_set_status")
     public abstract static class ThreadSetStatusPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         Object threadSetStatus(RubyThread thread, RubySymbol status) {
-            ThreadStatus current = thread.status;
+            ThreadStatus previous = thread.status;
 
             if (status == coreSymbols().RUN) {
                 thread.status = ThreadStatus.RUN;
@@ -602,11 +603,10 @@ public abstract class ThreadNodes {
             } else if (status == coreSymbols().DEAD) {
                 thread.status = ThreadStatus.DEAD;
             } else {
-                throw CompilerDirectives.shouldNotReachHere("Unknown thread status: " + status);
+                throw CompilerDirectives.shouldNotReachHere(status.toString());
             }
 
-            String currentName = StringUtils.toLowerCase(current.name());
-            return getLanguage().getSymbol(currentName);
+            return threadStatusToRubySymbol(previous, coreSymbols());
         }
     }
 
@@ -1081,4 +1081,23 @@ public abstract class ThreadNodes {
             throw new RaiseException(getContext(), coreExceptions().localJumpError("no block given", this));
         }
     }
+
+    private static RubySymbol threadStatusToRubySymbol(ThreadStatus status, CoreSymbols coreSymbols) {
+        final RubySymbol symbol;
+
+        if (status == ThreadStatus.RUN) {
+            symbol = coreSymbols.RUN;
+        } else if (status == ThreadStatus.SLEEP) {
+            symbol = coreSymbols.SLEEP;
+        } else if (status == ThreadStatus.ABORTING) {
+            symbol = coreSymbols.ABORTING;
+        } else if (status == ThreadStatus.DEAD) {
+            symbol = coreSymbols.DEAD;
+        } else {
+            throw CompilerDirectives.shouldNotReachHere(status.toString());
+        }
+
+        return symbol;
+    }
+
 }
