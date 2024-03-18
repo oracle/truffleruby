@@ -66,6 +66,11 @@ public final class CoreSymbols {
     public final RubySymbol DECONSTRUCT = createRubySymbol("deconstruct");
     public final RubySymbol DECONSTRUCT_KEYS = createRubySymbol("deconstruct_keys");
 
+    public final RubySymbol RUN = createRubySymbol("run");
+    public final RubySymbol SLEEP = createRubySymbol("sleep");
+    public final RubySymbol ABORTING = createRubySymbol("aborting");
+    public final RubySymbol DEAD = createRubySymbol("dead");
+
     // Added to workaround liquid's no symbols leaked test (SecurityTest#test_does_not_permanently_add_filters_to_symbol_table)
     public final RubySymbol IMMEDIATE_SWEEP = createRubySymbol("immediate_sweep");
     public final RubySymbol IMMEDIATE_MARK = createRubySymbol("immediate_mark");

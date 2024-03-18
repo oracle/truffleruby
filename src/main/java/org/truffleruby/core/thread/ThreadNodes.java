@@ -592,19 +592,17 @@ public abstract class ThreadNodes {
         @Specialization
         Object threadSetStatus(RubyThread thread, RubySymbol status) {
             ThreadStatus current = thread.status;
-            String newName = status.getString();
 
-            if (newName.equals("run")) {
+            if (status == coreSymbols().RUN) {
                 thread.status = ThreadStatus.RUN;
-            } else if (newName.equals("sleep")) {
+            } else if (status == coreSymbols().SLEEP) {
                 thread.status = ThreadStatus.SLEEP;
-            } else if (newName.equals("aborting")) {
+            } else if (status == coreSymbols().ABORTING) {
                 thread.status = ThreadStatus.ABORTING;
-            } else if (newName.equals("dead")) {
+            } else if (status == coreSymbols().DEAD) {
                 thread.status = ThreadStatus.DEAD;
             } else {
-                throw new RaiseException(getContext(),
-                        coreExceptions().argumentError("Unknown thread status: " + newName, this));
+                throw CompilerDirectives.shouldNotReachHere("Unknown thread status: " + status);
             }
 
             String currentName = StringUtils.toLowerCase(current.name());
