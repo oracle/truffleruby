@@ -1,4 +1,0 @@
-fails:Regexp.linear_time? returns true if matching can be done in linear time
-fails:Regexp.linear_time? return false if matching can't be done in linear time
-fails:Regexp.linear_time? accepts flags for string argument
-fails:Regexp.linear_time? warns about flags being ignored for regexp arguments

@@ -10,9 +10,9 @@ Bug fixes:
 
 Compatibility:
 * Move `IO#wait_readable`, `IO#wait_writable`, `IO#wait_priority` and `IO#wait` into core library (@andrykonchin).
-
 * Change assignment evaluation order for fully qualified constant and evaluate left-hand-side before right-hand-side (#3039, @andrykonchin).
 * Fix evaluation order for multi-assignment and evaluate left-hand-side before right-hand-side (@andrykonchin).
+* Add `Regexp.linear_time?` method (#3039, @andrykonchin).
 
 Performance:
 

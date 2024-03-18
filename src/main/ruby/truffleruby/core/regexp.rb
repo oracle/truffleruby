@@ -98,6 +98,22 @@ class Regexp
     end
   end
 
+  def self.linear_time?(regexp, options = undefined)
+    if Primitive.is_a?(regexp, Regexp)
+      unless Primitive.undefined?(options)
+        warn('flags ignored', uplevel: 1)
+      end
+    else
+      if Primitive.undefined?(options)
+        options = 0
+      end
+
+      regexp = Regexp.new(regexp, options) # expect String source to be passed
+    end
+
+    Truffle::RegexpOperations.linear_time?(regexp)
+  end
+
   def self.union(*patterns)
     case patterns.size
     when 0
