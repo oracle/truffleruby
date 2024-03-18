@@ -263,8 +263,12 @@ module Truffle
         # Don't mark Truffle::POSIX.truffleposix_poll_single_fd as blocking because
         # then it would automatically retry on EINTR without considering/adjusting the timeout.
         status = Primitive.thread_set_status(Thread.current, :sleep)
-        returned_events = Truffle::POSIX.truffleposix_poll_single_fd(Primitive.io_fd(io), event_mask, remaining_timeout)
-        Primitive.thread_set_status(Thread.current, status)
+
+        begin
+          returned_events = Truffle::POSIX.truffleposix_poll_single_fd(Primitive.io_fd(io), event_mask, remaining_timeout)
+        ensure
+          Primitive.thread_set_status(Thread.current, status)
+        end
 
         result =
           if returned_events < 0
