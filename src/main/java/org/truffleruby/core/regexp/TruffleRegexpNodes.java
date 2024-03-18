@@ -30,7 +30,6 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
-import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -68,6 +67,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.RubyBaseNode;
@@ -965,16 +965,18 @@ public abstract class TruffleRegexpNodes {
                 tstringToMatch = tstring;
                 execMethod = "execBoolean";
             }
-            final Object result = invoke(node, regexInterop, tRegex, execMethod, translateInteropExceptionNode,
-                    tstringToMatch, fromIndex);
+
+            final Object[] arguments = new Object[]{ tstringToMatch, fromIndex };
+            final Object result = InteropNodes.invokeMember(node, regexInterop, tRegex, execMethod, arguments,
+                    translateInteropExceptionNode);
 
             if (createMatchDataProfile.profile(node, createMatchData)) {
-                final boolean isMatch = (boolean) readMember(node, resultInterop, result, "isMatch",
+                final boolean isMatch = (boolean) InteropNodes.readMember(node, resultInterop, result, "isMatch",
                         translateInteropExceptionNode);
 
                 if (matchFoundProfile.profile(node, isMatch)) {
                     final int groupCount = groupCountProfile
-                            .profile(node, (int) readMember(node, regexInterop, tRegex, "groupCount",
+                            .profile(node, (int) InteropNodes.readMember(node, regexInterop, tRegex, "groupCount",
                                     translateInteropExceptionNode));
                     final Region region = new Region(groupCount);
 
@@ -1033,24 +1035,6 @@ public abstract class TruffleRegexpNodes {
             return matchData;
         }
 
-        private static Object readMember(Node node, InteropLibrary interop, Object receiver, String name,
-                TranslateInteropExceptionNode translateInteropExceptionNode) {
-            try {
-                return interop.readMember(receiver, name);
-            } catch (InteropException e) {
-                throw translateInteropExceptionNode.execute(node, e);
-            }
-        }
-
-        private static Object invoke(Node node, InteropLibrary interop, Object receiver, String member,
-                TranslateInteropExceptionNode translateInteropExceptionNode, Object... args) {
-            try {
-                return interop.invokeMember(receiver, member, args);
-            } catch (InteropException e) {
-                throw translateInteropExceptionNode.executeInInvokeMember(node, e, receiver, args);
-            }
-        }
-
         private static Object dupString(Object string, DispatchNode stringDupNode) {
             return stringDupNode.call(string, "dup");
         }
@@ -1072,21 +1056,11 @@ public abstract class TruffleRegexpNodes {
                 return nil;
             }
 
-            Object isBacktracking = readMember(node, regexInterop, compiledRegex, "isBacktracking",
-                    translateInteropExceptionNode);
-            return !(boolean) isBacktracking;
-        }
-
-        private static Object readMember(Node node, InteropLibrary interop, Object receiver, String name,
-                TranslateInteropExceptionNode translateInteropExceptionNode) {
-            try {
-                return interop.readMember(receiver, name);
-            } catch (InteropException e) {
-                throw translateInteropExceptionNode.execute(node, e);
-            }
+            boolean isBacktracking = (boolean) InteropNodes.readMember(node, regexInterop, compiledRegex,
+                    "isBacktracking", translateInteropExceptionNode);
+            return !isBacktracking;
         }
     }
-
 
     public abstract static class MatchNode extends RubyBaseNode {
 
