@@ -12,12 +12,17 @@ package org.truffleruby.core.exception;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.objects.AllocationTracing;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.Source;
 
 @CoreModule(value = "SyntaxError", isClass = true)
 public abstract class SyntaxErrorNodes {
@@ -31,6 +36,29 @@ public abstract class SyntaxErrorNodes {
             final RubySyntaxError instance = new RubySyntaxError(rubyClass, shape, nil, null, nil, null);
             AllocationTracing.trace(instance, this);
             return instance;
+        }
+
+    }
+
+    @CoreMethod(names = "path")
+    public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        Object path(RubySyntaxError syntaxError) {
+            if (!syntaxError.hasSourceLocation()) {
+                return nil;
+            }
+
+            Source source;
+            try {
+                source = syntaxError.getSourceLocation().getSource();
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+
+            var path = getLanguage().getPathToTStringCache().getCachedPath(source);
+            return createString(path, Encodings.UTF_8);
         }
 
     }

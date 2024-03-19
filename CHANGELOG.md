@@ -80,6 +80,7 @@ Compatibility:
 * Remove deprecated `Fixnum` and `Bignum` constants (#3039, @andrykonchin).
 * Add `rb_enc_interned_str_cstr` function (#3408, @goyox86, @thomasmarshall).
 * Add `rb_str_to_interned_str` function (#3408, @thomasmarshall).
+* Add `SyntaxError#path` method (#3039, @wasabigeek).
 
 Performance:
 
