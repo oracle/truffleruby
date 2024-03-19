@@ -39,9 +39,15 @@ public abstract class IsFrozenNode extends RubyBaseNode {
 
     @Specialization(guards = { "!isRubyObjectRange(object)", "isNotRubyString(object)" },
             limit = "getDynamicObjectCacheLimit()")
-    boolean isFrozen(RubyDynamicObject object,
+    boolean isFrozenCached(RubyDynamicObject object,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         return (objectLibrary.getShapeFlags(object) & FROZEN_FLAG) != 0;
+    }
+
+    // Avoid the uncached DynamicObjectLibrary: this is much faster as it does not have any Shape check/library overhead
+    @Specialization(guards = { "!isRubyObjectRange(object)", "isNotRubyString(object)" }, replaces = "isFrozenCached")
+    boolean isFrozenUncached(RubyDynamicObject object) {
+        return (object.getShape().getFlags() & FROZEN_FLAG) != 0;
     }
 
     @Specialization
