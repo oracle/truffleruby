@@ -582,7 +582,7 @@ public abstract class ThreadNodes {
             }
 
             RubySymbol nameSymbol = threadStatusToRubySymbol(status, coreSymbols());
-            return nameSymbol.getString();
+            return createString(nameSymbol.tstring, nameSymbol.encoding);
         }
 
     }
