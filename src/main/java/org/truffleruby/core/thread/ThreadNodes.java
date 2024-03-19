@@ -603,7 +603,8 @@ public abstract class ThreadNodes {
             } else if (status == coreSymbols().DEAD) {
                 thread.status = ThreadStatus.DEAD;
             } else {
-                throw CompilerDirectives.shouldNotReachHere(status.toString());
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw CompilerDirectives.shouldNotReachHere("Unknown thread status: " + status.getString());
             }
 
             return threadStatusToRubySymbol(previous, coreSymbols());
@@ -1094,7 +1095,8 @@ public abstract class ThreadNodes {
         } else if (status == ThreadStatus.DEAD) {
             symbol = coreSymbols.DEAD;
         } else {
-            throw CompilerDirectives.shouldNotReachHere(status.toString());
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw CompilerDirectives.shouldNotReachHere("Unknown thread status: " + status);
         }
 
         return symbol;
