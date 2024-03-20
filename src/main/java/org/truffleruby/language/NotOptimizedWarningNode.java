@@ -74,7 +74,8 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     @TruffleBoundary
     private void log(String message) {
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
-        final SourceSection userSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+        final SourceSection userSourceSection = getContext().getCallStack()
+                .getTopMostUserSourceSection(getEncapsulatingSourceSection());
 
         final String displayedWarning = String.format(
                 "%s: %s",
