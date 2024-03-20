@@ -39,6 +39,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -180,12 +181,30 @@ public abstract class RegexpNodes {
     @Primitive(name = "regexp_compile", lowerFixnum = 1)
     public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libPattern.isRubyString(pattern)", limit = "1")
-        static RubyRegexp initialize(Object pattern, int options,
+        static final InlinedBranchProfile UNCACHED_BRANCH_PROFILE = InlinedBranchProfile.getUncached();
+
+        @Specialization(
+                guards = { "libPattern.isRubyString(pattern)", "pattern == cachedPattern" },
+                limit = "getDefaultCacheLimit()")
+        static RubyRegexp fastCompiling(Object pattern, int options,
+                @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
+                @Cached @Shared RubyStringLibrary libPattern,
+                @Cached(value = "pattern") Object cachedPattern,
+                @Bind("this") Node node,
+                @Cached("compile(pattern, options, node, libPattern, asTruffleStringNode, UNCACHED_BRANCH_PROFILE)") RubyRegexp regexp) {
+            return regexp;
+        }
+
+        @Specialization(replaces = "fastCompiling", guards = "libPattern.isRubyString(pattern)")
+        RubyRegexp slowCompiling(Object pattern, int options,
                 @Cached InlinedBranchProfile errorProfile,
-                @Cached TruffleString.AsTruffleStringNode asTruffleStringNode,
-                @Cached RubyStringLibrary libPattern,
-                @Bind("this") Node node) {
+                @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
+                @Cached @Shared RubyStringLibrary libPattern) {
+            return compile(pattern, options, this, libPattern, asTruffleStringNode, errorProfile);
+        }
+
+        public RubyRegexp compile(Object pattern, int options, Node node, RubyStringLibrary libPattern,
+                TruffleString.AsTruffleStringNode asTruffleStringNode, InlinedBranchProfile errorProfile) {
             var encoding = libPattern.getEncoding(pattern);
             try {
                 return RubyRegexp.create(

@@ -407,9 +407,10 @@ module Truffle
       else
         pattern = StringValue(pattern)
         pattern = Regexp.quote(pattern) if quote
-        Regexp.new(pattern)
+        Primitive.regexp_compile pattern, 0
       end
     end
+    Truffle::Graal.always_split(method(:coerce_to_regexp))
 
     def self.coerce_to_encoding(obj)
       case obj

@@ -185,10 +185,11 @@ class String
     if block_given?
       each_grapheme_cluster(&block)
     else
-      regex = Regexp.new('\X'.encode(encoding))
+      regex = Primitive.regexp_compile('\X'.encode(encoding), 0)
       scan(regex)
     end
   end
+  Truffle::Graal.always_split(instance_method(:grapheme_clusters))
 
   def include?(needle)
     Primitive.as_boolean(Primitive.find_string(self, StringValue(needle), 0))
@@ -374,11 +375,12 @@ class String
   def each_grapheme_cluster
     return to_enum(:each_grapheme_cluster) { size } unless block_given?
 
-    regex = Regexp.new('\X'.encode(encoding))
+    regex = Primitive.regexp_compile('\X'.encode(encoding), 0)
     # scan(regex, &block) would leak the $ vars in the user block which is probably unwanted
     scan(regex) { |e| yield e }
     self
   end
+  Truffle::Graal.always_split(instance_method(:each_grapheme_cluster))
 
   def encode!(to = undefined, from = undefined, **options)
     Primitive.check_mutable_string self
