@@ -71,7 +71,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.LazyWarnNode;
-import org.truffleruby.language.NotOptimizedWarningNode;
+import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
@@ -311,11 +311,10 @@ public abstract class TruffleRegexpNodes {
 
         @Specialization(replaces = "fastUnion")
         Object slowUnion(RubyString str, Object sep, Object[] args,
-                @Cached NotOptimizedWarningNode notOptimizedWarningNode,
+                @Cached PerformanceWarningNode performanceWarningNode,
                 @Cached InlinedBranchProfile errorProfile) {
-            notOptimizedWarningNode.warn(
-                    "unbounded creation of regexps causes deoptimization loops which hurts performance significantly, " +
-                            "avoid creating regexps dynamically where possible or cache them to fix this");
+            performanceWarningNode.warn(
+                    "unbounded creation of regexps causes deoptimization loops which hurt performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
 
             return buildUnion(str, sep, args, errorProfile);
         }

@@ -144,6 +144,14 @@ public abstract class TruffleGraalNodes {
 
     }
 
+    @Primitive(name = "compiled?")
+    public abstract static class IsCompiledNode extends PrimitiveNode {
+        @Specialization
+        boolean isCompiled() {
+            return CompilerDirectives.inCompiledCode();
+        }
+    }
+
     @Primitive(name = "assert_compilation_constant")
     public abstract static class AssertCompilationConstantNode extends PrimitiveArrayArgumentsNode {
 
@@ -163,7 +171,7 @@ public abstract class TruffleGraalNodes {
     }
 
     @Primitive(name = "assert_not_compiled")
-    public abstract static class AssertNotCompilationConstantNode extends PrimitiveNode {
+    public abstract static class AssertNotCompiledNode extends PrimitiveNode {
 
         @Specialization
         Object assertNotCompiled() {

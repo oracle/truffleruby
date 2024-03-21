@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -32,7 +33,7 @@ import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.annotations.Visibility;
-import org.truffleruby.language.NotOptimizedWarningNode;
+import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -60,6 +61,7 @@ public abstract class RegexpNodes {
 
         public abstract RubyString execute(Object raw);
 
+        @NeverDefault
         public static QuoteNode create() {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
@@ -76,10 +78,11 @@ public abstract class RegexpNodes {
         }
 
         @Fallback
-        RubyString quote(Object raw,
+        static RubyString quote(Object raw,
                 @Cached ToStrNode toStrNode,
-                @Cached QuoteNode recursive) {
-            return recursive.execute(toStrNode.execute(this, raw));
+                @Cached QuoteNode recursive,
+                @Bind("this") Node node) {
+            return recursive.execute(toStrNode.execute(node, raw));
         }
 
     }
@@ -192,9 +195,9 @@ public abstract class RegexpNodes {
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
                 @Cached @Shared RubyStringLibrary libPattern,
-                @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn(
-                    "unbounded creation of regexps causes deoptimization loops which hurts performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
+                @Cached PerformanceWarningNode performanceWarningNode) {
+            performanceWarningNode.warn(
+                    "unbounded creation of regexps causes deoptimization loops which hurt performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
             return compile(pattern, options, this, libPattern, asTruffleStringNode, errorProfile);
         }
 
