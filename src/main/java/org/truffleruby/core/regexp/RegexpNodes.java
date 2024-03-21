@@ -26,9 +26,11 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.ATStringWithEncoding;
+import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -179,12 +181,18 @@ public abstract class RegexpNodes {
         static final InlinedBranchProfile UNCACHED_BRANCH_PROFILE = InlinedBranchProfile.getUncached();
 
         @Specialization(
-                guards = { "libPattern.isRubyString(pattern)", "pattern == cachedPattern" },
+                guards = {
+                        "libPattern.isRubyString(pattern)",
+                        "patternEqualNode.execute(node, libPattern, pattern, cachedPattern, cachedPatternEnc)",
+                        "options == cachedOptions" },
                 limit = "getDefaultCacheLimit()")
         static RubyRegexp fastCompiling(Object pattern, int options,
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
                 @Cached @Shared RubyStringLibrary libPattern,
-                @Cached(value = "pattern") Object cachedPattern,
+                @Cached("asTruffleStringUncached(pattern)") TruffleString cachedPattern,
+                @Cached("libPattern.getEncoding(pattern)") RubyEncoding cachedPatternEnc,
+                @Cached("options") int cachedOptions,
+                @Cached StringHelperNodes.EqualSameEncodingNode patternEqualNode,
                 @Bind("this") Node node,
                 @Cached("compile(pattern, options, node, libPattern, asTruffleStringNode, UNCACHED_BRANCH_PROFILE)") RubyRegexp regexp) {
             return regexp;
