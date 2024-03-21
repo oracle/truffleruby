@@ -316,6 +316,7 @@ class String
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, last_match)
     ret
   end
+  Truffle::Graal.always_split(instance_method(:scan))
 
   def split(pattern = nil, limit = undefined, &block)
     Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
