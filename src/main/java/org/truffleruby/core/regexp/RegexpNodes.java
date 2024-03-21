@@ -32,6 +32,7 @@ import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -199,7 +200,10 @@ public abstract class RegexpNodes {
         RubyRegexp slowCompiling(Object pattern, int options,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
-                @Cached @Shared RubyStringLibrary libPattern) {
+                @Cached @Shared RubyStringLibrary libPattern,
+                @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
+            notOptimizedWarningNode.warn(
+                    "unbounded creation of regexps causes deoptimization loops which hurts performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
             return compile(pattern, options, this, libPattern, asTruffleStringNode, errorProfile);
         }
 
