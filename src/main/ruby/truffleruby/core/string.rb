@@ -189,7 +189,6 @@ class String
       scan(regex)
     end
   end
-  Truffle::Graal.always_split(instance_method(:grapheme_clusters))
 
   def include?(needle)
     Primitive.as_boolean(Primitive.find_string(self, StringValue(needle), 0))
@@ -381,7 +380,6 @@ class String
     scan(regex) { |e| yield e }
     self
   end
-  Truffle::Graal.always_split(instance_method(:each_grapheme_cluster))
 
   def encode!(to = undefined, from = undefined, **options)
     Primitive.check_mutable_string self
