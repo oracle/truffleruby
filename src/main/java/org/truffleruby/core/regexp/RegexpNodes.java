@@ -37,7 +37,6 @@ import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -59,8 +58,6 @@ public abstract class RegexpNodes {
     @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
     public abstract static class QuoteNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private QuoteNode quoteNode;
-
         public abstract RubyString execute(Object raw);
 
         public static QuoteNode create() {
@@ -75,22 +72,16 @@ public abstract class RegexpNodes {
 
         @Specialization
         RubyString quoteSymbol(RubySymbol raw) {
-            return doQuoteString(createString(raw.tstring, raw.encoding));
+            return createString(ClassicRegexp.quote19(new ATStringWithEncoding(raw.tstring, raw.encoding)));
         }
 
         @Fallback
         RubyString quote(Object raw,
-                @Cached ToStrNode toStrNode) {
-            return doQuoteString(toStrNode.execute(this, raw));
+                @Cached ToStrNode toStrNode,
+                @Cached QuoteNode recursive) {
+            return recursive.execute(toStrNode.execute(this, raw));
         }
 
-        private RubyString doQuoteString(Object raw) {
-            if (quoteNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                quoteNode = insert(QuoteNode.create());
-            }
-            return quoteNode.execute(raw);
-        }
     }
 
     @CoreMethod(names = "source")
