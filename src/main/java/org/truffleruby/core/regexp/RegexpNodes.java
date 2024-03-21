@@ -19,6 +19,7 @@ import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.joni.NameEntry;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -43,7 +44,6 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreModule(value = "Regexp", isClass = true)
@@ -58,7 +58,7 @@ public abstract class RegexpNodes {
         }
     }
 
-    @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
+    @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class QuoteNode extends CoreMethodArrayArgumentsNode {
 
         public abstract RubyString execute(Object raw);
@@ -68,10 +68,25 @@ public abstract class RegexpNodes {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
 
-        @Specialization(guards = "libRaw.isRubyString(raw)", limit = "1")
+        @Specialization(
+                guards = {
+                        "libRaw.isRubyString(raw)",
+                        "rawEqualNode.execute(node, libRaw, raw, cachedRaw, cachedRawEnc)" },
+                limit = "getDefaultCacheLimit()")
+        static RubyString quoteStringCached(Object raw,
+                @Cached @Shared RubyStringLibrary libRaw,
+                @Cached("asTruffleStringUncached(raw)") TruffleString cachedRaw,
+                @Cached("libRaw.getEncoding(raw)") RubyEncoding cachedRawEnc,
+                @Cached StringHelperNodes.EqualSameEncodingNode rawEqualNode,
+                @Bind("this") Node node,
+                @Cached("quote(libRaw, raw)") RubyString quotedString) {
+            return quotedString;
+        }
+
+        @Specialization(replaces = "quoteStringCached", guards = "libRaw.isRubyString(raw)")
         RubyString quoteString(Object raw,
-                @Cached RubyStringLibrary libRaw) {
-            return createString(ClassicRegexp.quote19(new ATStringWithEncoding(libRaw, raw)));
+                @Cached @Shared RubyStringLibrary libRaw) {
+            return quote(libRaw, raw);
         }
 
         @Specialization
@@ -79,12 +94,17 @@ public abstract class RegexpNodes {
             return createString(ClassicRegexp.quote19(new ATStringWithEncoding(raw.tstring, raw.encoding)));
         }
 
-        @Fallback
-        static RubyString quote(Object raw,
+        @Specialization(guards = { "!libRaw.isRubyString(raw)", "!isRubySymbol(raw)" })
+        static RubyString quoteGeneric(Object raw,
+                @Cached @Shared RubyStringLibrary libRaw,
                 @Cached ToStrNode toStrNode,
                 @Cached QuoteNode recursive,
                 @Bind("this") Node node) {
             return recursive.execute(toStrNode.execute(node, raw));
+        }
+
+        RubyString quote(RubyStringLibrary strings, Object string) {
+            return createString(ClassicRegexp.quote19(new ATStringWithEncoding(strings, string)));
         }
 
     }
