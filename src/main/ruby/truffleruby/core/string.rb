@@ -654,6 +654,7 @@ class String
     Primitive.string_replace(s, res) if res
     s
   end
+  Truffle::Graal.always_split(instance_method(:sub))
 
   def sub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
@@ -672,6 +673,7 @@ class String
       nil
     end
   end
+  Truffle::Graal.always_split(instance_method(:sub!))
 
   def slice!(one, two = undefined)
     Primitive.check_mutable_string self
@@ -899,6 +901,7 @@ class String
     Primitive.string_replace(s, res) if res
     s
   end
+  Truffle::Graal.always_split(instance_method(:gsub))
 
   def gsub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
@@ -917,6 +920,7 @@ class String
       nil
     end
   end
+  Truffle::Graal.always_split(instance_method(:gsub!))
 
   def match(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
@@ -931,11 +935,13 @@ class String
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     result
   end
+  Truffle::Graal.always_split(instance_method(:match))
 
   def match?(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
     pattern.match? self, pos
   end
+  Truffle::Graal.always_split(instance_method(:match?))
 
   def scrub(replace = nil, &block)
     return Primitive.dup_as_string_instance(self) if valid_encoding?
