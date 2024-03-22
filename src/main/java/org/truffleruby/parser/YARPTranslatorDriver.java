@@ -401,9 +401,8 @@ public final class YARPTranslatorDriver {
             scopes = new byte[0][][];
         }
 
-        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, commandline,
-                version,
-                scopes);
+        byte[] parsingOptions = ParsingOptions.serialize(filepath, line, 0, encoding, frozenStringLiteral, commandline,
+                version, scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         return YARPLoader.load(serializedBytes, sourceBytes, rubySource);
