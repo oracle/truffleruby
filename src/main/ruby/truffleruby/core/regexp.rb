@@ -184,7 +184,6 @@ class Regexp
   end
   Truffle::Graal.always_split(method(:new))
 
-
   class << self
     alias_method :compile, :new
   end

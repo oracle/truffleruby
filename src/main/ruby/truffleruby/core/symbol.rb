@@ -88,6 +88,7 @@ class Symbol
   def match(*args, &block)
     to_s.match(*args, &block)
   end
+  Truffle::Graal.always_split(instance_method(:match))
 
   def =~(pattern)
     str = to_s

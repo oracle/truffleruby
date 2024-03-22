@@ -20,8 +20,31 @@ guard -> { TruffleRuby.jit? } do # this test needs splitting
       Warning[:performance] = @performance_warnings
     end
 
-    it "Regexp.union with 1 argument" do
+    it "Regexp.new" do
       # Check that separate call sites with fixed input does not warn
+      -> {
+        Regexp.new("a")
+        Regexp.new("b")
+        Regexp.new("c")
+        Regexp.new("d")
+        Regexp.new("e")
+        Regexp.new("f")
+        Regexp.new("g")
+        Regexp.new("h")
+        Regexp.new("i")
+        Regexp.new("j")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |pattern|
+          Regexp.new(pattern)
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "Regexp.union with 1 argument" do
+      # Check that separate call sites with fixed input do not warn
       -> {
         Regexp.union("a")
         Regexp.union("b")
@@ -35,7 +58,7 @@ guard -> { TruffleRuby.jit? } do # this test needs splitting
         Regexp.union("j")
       }.should_not complain
 
-      # Check that calling it with many different inputs has the warning.
+      # Check that calling it with many different inputs has the warning
       -> {
         ("a".."z").each do |pattern|
           Regexp.union(pattern)
@@ -44,7 +67,7 @@ guard -> { TruffleRuby.jit? } do # this test needs splitting
     end
 
     it "Regexp.union with multiple arguments" do
-      # Check that separate call sites with fixed input does not warn
+      # Check that separate call sites with fixed input do not warn
       -> {
         Regexp.union("h", "a")
         Regexp.union("h", "b")
@@ -58,7 +81,7 @@ guard -> { TruffleRuby.jit? } do # this test needs splitting
         Regexp.union("h", "j")
       }.should_not complain
 
-      # Check that calling it with many different inputs has the warning.
+      # Check that calling it with many different inputs has the warning
       -> {
         ("a".."z").each do |pattern|
           Regexp.union("h", pattern)
@@ -66,8 +89,17 @@ guard -> { TruffleRuby.jit? } do # this test needs splitting
       }.should complain(/unbounded creation of regexps/)
     end
 
+    it "interpolated Regexp" do
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |pattern|
+          / #{pattern} /
+        end
+      }.should complain(/unstable interpolated regexps/)
+    end
+
     it "String#scan" do
-      # Check that separate call sites with fixed input does not warn
+      # Check that separate call sites with fixed input do not warn
       -> {
         "zzz".scan("a")
         "zzz".scan("b")
@@ -81,11 +113,215 @@ guard -> { TruffleRuby.jit? } do # this test needs splitting
         "zzz".scan("j")
       }.should_not complain
 
-      # Check that calling it with many different inputs has the warning.
+      # Check that calling it with many different inputs has the warning
       -> {
         # "a".."z" and not just "a".."j" because there can be some late heuristic megamorphic splitting by TRegex (ExecCompiledRegexNode)
         ("a".."z").each do |pattern|
           "zzz".scan(pattern)
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "String#sub" do
+      pattern = Class.new do
+        def initialize(string) = @string = string
+        def to_str = @string
+      end
+
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        "zzz".sub(pattern.new("a"), "replacement")
+        "zzz".sub(pattern.new("b"), "replacement")
+        "zzz".sub(pattern.new("c"), "replacement")
+        "zzz".sub(pattern.new("d"), "replacement")
+        "zzz".sub(pattern.new("e"), "replacement")
+        "zzz".sub(pattern.new("f"), "replacement")
+        "zzz".sub(pattern.new("g"), "replacement")
+        "zzz".sub(pattern.new("h"), "replacement")
+        "zzz".sub(pattern.new("i"), "replacement")
+        "zzz".sub(pattern.new("j"), "replacement")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |s|
+          "zzz".sub(pattern.new(s), "replacement")
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "String#sub!" do
+      pattern = Class.new do
+        def initialize(string) = @string = string
+        def to_str = @string
+      end
+
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        "zzz".sub!(pattern.new("a"), "replacement")
+        "zzz".sub!(pattern.new("b"), "replacement")
+        "zzz".sub!(pattern.new("c"), "replacement")
+        "zzz".sub!(pattern.new("d"), "replacement")
+        "zzz".sub!(pattern.new("e"), "replacement")
+        "zzz".sub!(pattern.new("f"), "replacement")
+        "zzz".sub!(pattern.new("g"), "replacement")
+        "zzz".sub!(pattern.new("h"), "replacement")
+        "zzz".sub!(pattern.new("i"), "replacement")
+        "zzz".sub!(pattern.new("j"), "replacement")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |s|
+          "zzz".sub!(pattern.new(s), "replacement")
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "String#gsub" do
+      pattern = Class.new do
+        def initialize(string) = @string = string
+        def to_str = @string
+      end
+
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        "zzz".gsub(pattern.new("a"), "replacement")
+        "zzz".gsub(pattern.new("b"), "replacement")
+        "zzz".gsub(pattern.new("c"), "replacement")
+        "zzz".gsub(pattern.new("d"), "replacement")
+        "zzz".gsub(pattern.new("e"), "replacement")
+        "zzz".gsub(pattern.new("f"), "replacement")
+        "zzz".gsub(pattern.new("g"), "replacement")
+        "zzz".gsub(pattern.new("h"), "replacement")
+        "zzz".gsub(pattern.new("i"), "replacement")
+        "zzz".gsub(pattern.new("j"), "replacement")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |s|
+          "zzz".gsub(pattern.new(s), "replacement")
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "String#gsub!" do
+      pattern = Class.new do
+        def initialize(string) = @string = string
+        def to_str = @string
+      end
+
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        "zzz".gsub!(pattern.new("a"), "replacement")
+        "zzz".gsub!(pattern.new("b"), "replacement")
+        "zzz".gsub!(pattern.new("c"), "replacement")
+        "zzz".gsub!(pattern.new("d"), "replacement")
+        "zzz".gsub!(pattern.new("e"), "replacement")
+        "zzz".gsub!(pattern.new("f"), "replacement")
+        "zzz".gsub!(pattern.new("g"), "replacement")
+        "zzz".gsub!(pattern.new("h"), "replacement")
+        "zzz".gsub!(pattern.new("i"), "replacement")
+        "zzz".gsub!(pattern.new("j"), "replacement")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |s|
+          "zzz".gsub!(pattern.new(s), "replacement")
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "String#match" do
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        "zzz".match("a")
+        "zzz".match("b")
+        "zzz".match("c")
+        "zzz".match("d")
+        "zzz".match("e")
+        "zzz".match("f")
+        "zzz".match("g")
+        "zzz".match("h")
+        "zzz".match("i")
+        "zzz".match("j")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |pattern|
+          "zzz".match(pattern)
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "String#match?" do
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        "zzz".match?("a")
+        "zzz".match?("b")
+        "zzz".match?("c")
+        "zzz".match?("d")
+        "zzz".match?("e")
+        "zzz".match?("f")
+        "zzz".match?("g")
+        "zzz".match?("h")
+        "zzz".match?("i")
+        "zzz".match?("j")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |pattern|
+          "zzz".match?(pattern)
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "Symbol#match" do
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        :zzz.match("a")
+        :zzz.match("b")
+        :zzz.match("c")
+        :zzz.match("d")
+        :zzz.match("e")
+        :zzz.match("f")
+        :zzz.match("g")
+        :zzz.match("h")
+        :zzz.match("i")
+        :zzz.match("j")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |pattern|
+          :zzz.match(pattern)
+        end
+      }.should complain(/unbounded creation of regexps/)
+    end
+
+    it "Symbol#match?" do
+      # Check that separate call sites with fixed input do not warn
+      -> {
+        :zzz.match?("a")
+        :zzz.match?("b")
+        :zzz.match?("c")
+        :zzz.match?("d")
+        :zzz.match?("e")
+        :zzz.match?("f")
+        :zzz.match?("g")
+        :zzz.match?("h")
+        :zzz.match?("i")
+        :zzz.match?("j")
+      }.should_not complain
+
+      # Check that calling it with many different inputs has the warning
+      -> {
+        ("a".."z").each do |pattern|
+          :zzz.match?(pattern)
         end
       }.should complain(/unbounded creation of regexps/)
     end
