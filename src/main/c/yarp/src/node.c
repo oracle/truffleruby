@@ -34,7 +34,7 @@ bool
 pm_node_list_grow(pm_node_list_t *list) {
     if (list->size == list->capacity) {
         list->capacity = list->capacity == 0 ? 4 : list->capacity * 2;
-        list->nodes = (pm_node_t **) realloc(list->nodes, sizeof(pm_node_t *) * list->capacity);
+        list->nodes = (pm_node_t **) xrealloc(list->nodes, sizeof(pm_node_t *) * list->capacity);
         return list->nodes != NULL;
     }
     return true;
@@ -68,7 +68,7 @@ pm_node_list_prepend(pm_node_list_t *list, pm_node_t *node) {
 void
 pm_node_list_free(pm_node_list_t *list) {
     if (list->capacity > 0) {
-        free(list->nodes);
+        xfree(list->nodes);
         *list = (pm_node_list_t) { 0 };
     }
 }
@@ -1052,6 +1052,12 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
             break;
         }
 #line 93 "node.c.erb"
+        case PM_SHAREABLE_CONSTANT_NODE: {
+            pm_shareable_constant_node_t *cast = (pm_shareable_constant_node_t *) node;
+            pm_node_destroy(parser, (pm_node_t *)cast->write);
+            break;
+        }
+#line 93 "node.c.erb"
         case PM_SINGLETON_CLASS_NODE: {
             pm_singleton_class_node_t *cast = (pm_singleton_class_node_t *) node;
             pm_constant_id_list_free(&cast->locals);
@@ -1180,7 +1186,7 @@ pm_node_destroy(pm_parser_t *parser, pm_node_t *node) {
             assert(false && "unreachable");
             break;
     }
-    free(node);
+    xfree(node);
 }
 
 static void
@@ -2311,6 +2317,13 @@ pm_node_memsize_node(pm_node_t *node, pm_memsize_t *memsize) {
             break;
         }
 #line 140 "node.c.erb"
+        case PM_SHAREABLE_CONSTANT_NODE: {
+            pm_shareable_constant_node_t *cast = (pm_shareable_constant_node_t *) node;
+            memsize->memsize += sizeof(*cast);
+            pm_node_memsize_node((pm_node_t *)cast->write, memsize);
+            break;
+        }
+#line 140 "node.c.erb"
         case PM_SINGLETON_CLASS_NODE: {
             pm_singleton_class_node_t *cast = (pm_singleton_class_node_t *) node;
             memsize->memsize += sizeof(*cast);
@@ -2738,6 +2751,8 @@ pm_node_type_to_str(pm_node_type_t node_type)
             return "PM_RETURN_NODE";
         case PM_SELF_NODE:
             return "PM_SELF_NODE";
+        case PM_SHAREABLE_CONSTANT_NODE:
+            return "PM_SHAREABLE_CONSTANT_NODE";
         case PM_SINGLETON_CLASS_NODE:
             return "PM_SINGLETON_CLASS_NODE";
         case PM_SOURCE_ENCODING_NODE:
@@ -2775,6 +2790,1491 @@ pm_node_type_to_str(pm_node_type_t node_type)
     }
     return "";
 }
+
+/**
+ * Visit each of the nodes in this subtree using the given visitor callback. The
+ * callback function will be called for each node in the subtree. If it returns
+ * false, then that node's children will not be visited. If it returns true,
+ * then the children will be visited. The data parameter is treated as an opaque
+ * pointer and is passed to the visitor callback for consumers to use as they
+ * see fit.
+ */
+PRISM_EXPORTED_FUNCTION void
+pm_visit_node(const pm_node_t *node, bool (*visitor)(const pm_node_t *node, void *data), void *data) {
+    if (visitor(node, data)) pm_visit_child_nodes(node, visitor, data);
+}
+
+/**
+ * Visit the children of the given node with the given callback. This is the
+ * default behavior for walking the tree that is called from pm_visit_node if
+ * the callback returns true.
+ */
+PRISM_EXPORTED_FUNCTION void
+pm_visit_child_nodes(const pm_node_t *node, bool (*visitor)(const pm_node_t *node, void *data), void *data) {
+    switch (PM_NODE_TYPE(node)) {
+        case PM_ALIAS_GLOBAL_VARIABLE_NODE: {
+            const pm_alias_global_variable_node_t *cast = (const pm_alias_global_variable_node_t *) node;
+
+            // Visit the new_name field
+            pm_visit_node((const pm_node_t *) cast->new_name, visitor, data);
+
+            // Visit the old_name field
+            pm_visit_node((const pm_node_t *) cast->old_name, visitor, data);
+
+            break;
+        }
+        case PM_ALIAS_METHOD_NODE: {
+            const pm_alias_method_node_t *cast = (const pm_alias_method_node_t *) node;
+
+            // Visit the new_name field
+            pm_visit_node((const pm_node_t *) cast->new_name, visitor, data);
+
+            // Visit the old_name field
+            pm_visit_node((const pm_node_t *) cast->old_name, visitor, data);
+
+            break;
+        }
+        case PM_ALTERNATION_PATTERN_NODE: {
+            const pm_alternation_pattern_node_t *cast = (const pm_alternation_pattern_node_t *) node;
+
+            // Visit the left field
+            pm_visit_node((const pm_node_t *) cast->left, visitor, data);
+
+            // Visit the right field
+            pm_visit_node((const pm_node_t *) cast->right, visitor, data);
+
+            break;
+        }
+        case PM_AND_NODE: {
+            const pm_and_node_t *cast = (const pm_and_node_t *) node;
+
+            // Visit the left field
+            pm_visit_node((const pm_node_t *) cast->left, visitor, data);
+
+            // Visit the right field
+            pm_visit_node((const pm_node_t *) cast->right, visitor, data);
+
+            break;
+        }
+        case PM_ARGUMENTS_NODE: {
+            const pm_arguments_node_t *cast = (const pm_arguments_node_t *) node;
+
+            // Visit the arguments field
+            const pm_node_list_t *arguments = &cast->arguments;
+            for (size_t index = 0; index < arguments->size; index++) {
+                pm_visit_node(arguments->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_ARRAY_NODE: {
+            const pm_array_node_t *cast = (const pm_array_node_t *) node;
+
+            // Visit the elements field
+            const pm_node_list_t *elements = &cast->elements;
+            for (size_t index = 0; index < elements->size; index++) {
+                pm_visit_node(elements->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_ARRAY_PATTERN_NODE: {
+            const pm_array_pattern_node_t *cast = (const pm_array_pattern_node_t *) node;
+
+            // Visit the constant field
+            if (cast->constant != NULL) {
+                pm_visit_node((const pm_node_t *) cast->constant, visitor, data);
+            }
+
+            // Visit the requireds field
+            const pm_node_list_t *requireds = &cast->requireds;
+            for (size_t index = 0; index < requireds->size; index++) {
+                pm_visit_node(requireds->nodes[index], visitor, data);
+            }
+
+            // Visit the rest field
+            if (cast->rest != NULL) {
+                pm_visit_node((const pm_node_t *) cast->rest, visitor, data);
+            }
+
+            // Visit the posts field
+            const pm_node_list_t *posts = &cast->posts;
+            for (size_t index = 0; index < posts->size; index++) {
+                pm_visit_node(posts->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_ASSOC_NODE: {
+            const pm_assoc_node_t *cast = (const pm_assoc_node_t *) node;
+
+            // Visit the key field
+            pm_visit_node((const pm_node_t *) cast->key, visitor, data);
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_ASSOC_SPLAT_NODE: {
+            const pm_assoc_splat_node_t *cast = (const pm_assoc_splat_node_t *) node;
+
+            // Visit the value field
+            if (cast->value != NULL) {
+                pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+            }
+
+            break;
+        }
+        case PM_BACK_REFERENCE_READ_NODE:
+            break;
+        case PM_BEGIN_NODE: {
+            const pm_begin_node_t *cast = (const pm_begin_node_t *) node;
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            // Visit the rescue_clause field
+            if (cast->rescue_clause != NULL) {
+                pm_visit_node((const pm_node_t *) cast->rescue_clause, visitor, data);
+            }
+
+            // Visit the else_clause field
+            if (cast->else_clause != NULL) {
+                pm_visit_node((const pm_node_t *) cast->else_clause, visitor, data);
+            }
+
+            // Visit the ensure_clause field
+            if (cast->ensure_clause != NULL) {
+                pm_visit_node((const pm_node_t *) cast->ensure_clause, visitor, data);
+            }
+
+            break;
+        }
+        case PM_BLOCK_ARGUMENT_NODE: {
+            const pm_block_argument_node_t *cast = (const pm_block_argument_node_t *) node;
+
+            // Visit the expression field
+            if (cast->expression != NULL) {
+                pm_visit_node((const pm_node_t *) cast->expression, visitor, data);
+            }
+
+            break;
+        }
+        case PM_BLOCK_LOCAL_VARIABLE_NODE:
+            break;
+        case PM_BLOCK_NODE: {
+            const pm_block_node_t *cast = (const pm_block_node_t *) node;
+
+            // Visit the parameters field
+            if (cast->parameters != NULL) {
+                pm_visit_node((const pm_node_t *) cast->parameters, visitor, data);
+            }
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_BLOCK_PARAMETER_NODE:
+            break;
+        case PM_BLOCK_PARAMETERS_NODE: {
+            const pm_block_parameters_node_t *cast = (const pm_block_parameters_node_t *) node;
+
+            // Visit the parameters field
+            if (cast->parameters != NULL) {
+                pm_visit_node((const pm_node_t *) cast->parameters, visitor, data);
+            }
+
+            // Visit the locals field
+            const pm_node_list_t *locals = &cast->locals;
+            for (size_t index = 0; index < locals->size; index++) {
+                pm_visit_node(locals->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_BREAK_NODE: {
+            const pm_break_node_t *cast = (const pm_break_node_t *) node;
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            break;
+        }
+        case PM_CALL_AND_WRITE_NODE: {
+            const pm_call_and_write_node_t *cast = (const pm_call_and_write_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CALL_NODE: {
+            const pm_call_node_t *cast = (const pm_call_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            break;
+        }
+        case PM_CALL_OPERATOR_WRITE_NODE: {
+            const pm_call_operator_write_node_t *cast = (const pm_call_operator_write_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CALL_OR_WRITE_NODE: {
+            const pm_call_or_write_node_t *cast = (const pm_call_or_write_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CALL_TARGET_NODE: {
+            const pm_call_target_node_t *cast = (const pm_call_target_node_t *) node;
+
+            // Visit the receiver field
+            pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+
+            break;
+        }
+        case PM_CAPTURE_PATTERN_NODE: {
+            const pm_capture_pattern_node_t *cast = (const pm_capture_pattern_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            // Visit the target field
+            pm_visit_node((const pm_node_t *) cast->target, visitor, data);
+
+            break;
+        }
+        case PM_CASE_MATCH_NODE: {
+            const pm_case_match_node_t *cast = (const pm_case_match_node_t *) node;
+
+            // Visit the predicate field
+            if (cast->predicate != NULL) {
+                pm_visit_node((const pm_node_t *) cast->predicate, visitor, data);
+            }
+
+            // Visit the conditions field
+            const pm_node_list_t *conditions = &cast->conditions;
+            for (size_t index = 0; index < conditions->size; index++) {
+                pm_visit_node(conditions->nodes[index], visitor, data);
+            }
+
+            // Visit the consequent field
+            if (cast->consequent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->consequent, visitor, data);
+            }
+
+            break;
+        }
+        case PM_CASE_NODE: {
+            const pm_case_node_t *cast = (const pm_case_node_t *) node;
+
+            // Visit the predicate field
+            if (cast->predicate != NULL) {
+                pm_visit_node((const pm_node_t *) cast->predicate, visitor, data);
+            }
+
+            // Visit the conditions field
+            const pm_node_list_t *conditions = &cast->conditions;
+            for (size_t index = 0; index < conditions->size; index++) {
+                pm_visit_node(conditions->nodes[index], visitor, data);
+            }
+
+            // Visit the consequent field
+            if (cast->consequent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->consequent, visitor, data);
+            }
+
+            break;
+        }
+        case PM_CLASS_NODE: {
+            const pm_class_node_t *cast = (const pm_class_node_t *) node;
+
+            // Visit the constant_path field
+            pm_visit_node((const pm_node_t *) cast->constant_path, visitor, data);
+
+            // Visit the superclass field
+            if (cast->superclass != NULL) {
+                pm_visit_node((const pm_node_t *) cast->superclass, visitor, data);
+            }
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_CLASS_VARIABLE_AND_WRITE_NODE: {
+            const pm_class_variable_and_write_node_t *cast = (const pm_class_variable_and_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
+            const pm_class_variable_operator_write_node_t *cast = (const pm_class_variable_operator_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CLASS_VARIABLE_OR_WRITE_NODE: {
+            const pm_class_variable_or_write_node_t *cast = (const pm_class_variable_or_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CLASS_VARIABLE_READ_NODE:
+            break;
+        case PM_CLASS_VARIABLE_TARGET_NODE:
+            break;
+        case PM_CLASS_VARIABLE_WRITE_NODE: {
+            const pm_class_variable_write_node_t *cast = (const pm_class_variable_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_AND_WRITE_NODE: {
+            const pm_constant_and_write_node_t *cast = (const pm_constant_and_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_OPERATOR_WRITE_NODE: {
+            const pm_constant_operator_write_node_t *cast = (const pm_constant_operator_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_OR_WRITE_NODE: {
+            const pm_constant_or_write_node_t *cast = (const pm_constant_or_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_PATH_AND_WRITE_NODE: {
+            const pm_constant_path_and_write_node_t *cast = (const pm_constant_path_and_write_node_t *) node;
+
+            // Visit the target field
+            pm_visit_node((const pm_node_t *) cast->target, visitor, data);
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_PATH_NODE: {
+            const pm_constant_path_node_t *cast = (const pm_constant_path_node_t *) node;
+
+            // Visit the parent field
+            if (cast->parent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->parent, visitor, data);
+            }
+
+            // Visit the child field
+            pm_visit_node((const pm_node_t *) cast->child, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
+            const pm_constant_path_operator_write_node_t *cast = (const pm_constant_path_operator_write_node_t *) node;
+
+            // Visit the target field
+            pm_visit_node((const pm_node_t *) cast->target, visitor, data);
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_PATH_OR_WRITE_NODE: {
+            const pm_constant_path_or_write_node_t *cast = (const pm_constant_path_or_write_node_t *) node;
+
+            // Visit the target field
+            pm_visit_node((const pm_node_t *) cast->target, visitor, data);
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_PATH_TARGET_NODE: {
+            const pm_constant_path_target_node_t *cast = (const pm_constant_path_target_node_t *) node;
+
+            // Visit the parent field
+            if (cast->parent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->parent, visitor, data);
+            }
+
+            // Visit the child field
+            pm_visit_node((const pm_node_t *) cast->child, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_PATH_WRITE_NODE: {
+            const pm_constant_path_write_node_t *cast = (const pm_constant_path_write_node_t *) node;
+
+            // Visit the target field
+            pm_visit_node((const pm_node_t *) cast->target, visitor, data);
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_CONSTANT_READ_NODE:
+            break;
+        case PM_CONSTANT_TARGET_NODE:
+            break;
+        case PM_CONSTANT_WRITE_NODE: {
+            const pm_constant_write_node_t *cast = (const pm_constant_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_DEF_NODE: {
+            const pm_def_node_t *cast = (const pm_def_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the parameters field
+            if (cast->parameters != NULL) {
+                pm_visit_node((const pm_node_t *) cast->parameters, visitor, data);
+            }
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_DEFINED_NODE: {
+            const pm_defined_node_t *cast = (const pm_defined_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_ELSE_NODE: {
+            const pm_else_node_t *cast = (const pm_else_node_t *) node;
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_EMBEDDED_STATEMENTS_NODE: {
+            const pm_embedded_statements_node_t *cast = (const pm_embedded_statements_node_t *) node;
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_EMBEDDED_VARIABLE_NODE: {
+            const pm_embedded_variable_node_t *cast = (const pm_embedded_variable_node_t *) node;
+
+            // Visit the variable field
+            pm_visit_node((const pm_node_t *) cast->variable, visitor, data);
+
+            break;
+        }
+        case PM_ENSURE_NODE: {
+            const pm_ensure_node_t *cast = (const pm_ensure_node_t *) node;
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_FALSE_NODE:
+            break;
+        case PM_FIND_PATTERN_NODE: {
+            const pm_find_pattern_node_t *cast = (const pm_find_pattern_node_t *) node;
+
+            // Visit the constant field
+            if (cast->constant != NULL) {
+                pm_visit_node((const pm_node_t *) cast->constant, visitor, data);
+            }
+
+            // Visit the left field
+            pm_visit_node((const pm_node_t *) cast->left, visitor, data);
+
+            // Visit the requireds field
+            const pm_node_list_t *requireds = &cast->requireds;
+            for (size_t index = 0; index < requireds->size; index++) {
+                pm_visit_node(requireds->nodes[index], visitor, data);
+            }
+
+            // Visit the right field
+            pm_visit_node((const pm_node_t *) cast->right, visitor, data);
+
+            break;
+        }
+        case PM_FLIP_FLOP_NODE: {
+            const pm_flip_flop_node_t *cast = (const pm_flip_flop_node_t *) node;
+
+            // Visit the left field
+            if (cast->left != NULL) {
+                pm_visit_node((const pm_node_t *) cast->left, visitor, data);
+            }
+
+            // Visit the right field
+            if (cast->right != NULL) {
+                pm_visit_node((const pm_node_t *) cast->right, visitor, data);
+            }
+
+            break;
+        }
+        case PM_FLOAT_NODE:
+            break;
+        case PM_FOR_NODE: {
+            const pm_for_node_t *cast = (const pm_for_node_t *) node;
+
+            // Visit the index field
+            pm_visit_node((const pm_node_t *) cast->index, visitor, data);
+
+            // Visit the collection field
+            pm_visit_node((const pm_node_t *) cast->collection, visitor, data);
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_FORWARDING_ARGUMENTS_NODE:
+            break;
+        case PM_FORWARDING_PARAMETER_NODE:
+            break;
+        case PM_FORWARDING_SUPER_NODE: {
+            const pm_forwarding_super_node_t *cast = (const pm_forwarding_super_node_t *) node;
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            break;
+        }
+        case PM_GLOBAL_VARIABLE_AND_WRITE_NODE: {
+            const pm_global_variable_and_write_node_t *cast = (const pm_global_variable_and_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
+            const pm_global_variable_operator_write_node_t *cast = (const pm_global_variable_operator_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_GLOBAL_VARIABLE_OR_WRITE_NODE: {
+            const pm_global_variable_or_write_node_t *cast = (const pm_global_variable_or_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_GLOBAL_VARIABLE_READ_NODE:
+            break;
+        case PM_GLOBAL_VARIABLE_TARGET_NODE:
+            break;
+        case PM_GLOBAL_VARIABLE_WRITE_NODE: {
+            const pm_global_variable_write_node_t *cast = (const pm_global_variable_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_HASH_NODE: {
+            const pm_hash_node_t *cast = (const pm_hash_node_t *) node;
+
+            // Visit the elements field
+            const pm_node_list_t *elements = &cast->elements;
+            for (size_t index = 0; index < elements->size; index++) {
+                pm_visit_node(elements->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_HASH_PATTERN_NODE: {
+            const pm_hash_pattern_node_t *cast = (const pm_hash_pattern_node_t *) node;
+
+            // Visit the constant field
+            if (cast->constant != NULL) {
+                pm_visit_node((const pm_node_t *) cast->constant, visitor, data);
+            }
+
+            // Visit the elements field
+            const pm_node_list_t *elements = &cast->elements;
+            for (size_t index = 0; index < elements->size; index++) {
+                pm_visit_node(elements->nodes[index], visitor, data);
+            }
+
+            // Visit the rest field
+            if (cast->rest != NULL) {
+                pm_visit_node((const pm_node_t *) cast->rest, visitor, data);
+            }
+
+            break;
+        }
+        case PM_IF_NODE: {
+            const pm_if_node_t *cast = (const pm_if_node_t *) node;
+
+            // Visit the predicate field
+            pm_visit_node((const pm_node_t *) cast->predicate, visitor, data);
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            // Visit the consequent field
+            if (cast->consequent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->consequent, visitor, data);
+            }
+
+            break;
+        }
+        case PM_IMAGINARY_NODE: {
+            const pm_imaginary_node_t *cast = (const pm_imaginary_node_t *) node;
+
+            // Visit the numeric field
+            pm_visit_node((const pm_node_t *) cast->numeric, visitor, data);
+
+            break;
+        }
+        case PM_IMPLICIT_NODE: {
+            const pm_implicit_node_t *cast = (const pm_implicit_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_IMPLICIT_REST_NODE:
+            break;
+        case PM_IN_NODE: {
+            const pm_in_node_t *cast = (const pm_in_node_t *) node;
+
+            // Visit the pattern field
+            pm_visit_node((const pm_node_t *) cast->pattern, visitor, data);
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_INDEX_AND_WRITE_NODE: {
+            const pm_index_and_write_node_t *cast = (const pm_index_and_write_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INDEX_OPERATOR_WRITE_NODE: {
+            const pm_index_operator_write_node_t *cast = (const pm_index_operator_write_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INDEX_OR_WRITE_NODE: {
+            const pm_index_or_write_node_t *cast = (const pm_index_or_write_node_t *) node;
+
+            // Visit the receiver field
+            if (cast->receiver != NULL) {
+                pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+            }
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INDEX_TARGET_NODE: {
+            const pm_index_target_node_t *cast = (const pm_index_target_node_t *) node;
+
+            // Visit the receiver field
+            pm_visit_node((const pm_node_t *) cast->receiver, visitor, data);
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            break;
+        }
+        case PM_INSTANCE_VARIABLE_AND_WRITE_NODE: {
+            const pm_instance_variable_and_write_node_t *cast = (const pm_instance_variable_and_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
+            const pm_instance_variable_operator_write_node_t *cast = (const pm_instance_variable_operator_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INSTANCE_VARIABLE_OR_WRITE_NODE: {
+            const pm_instance_variable_or_write_node_t *cast = (const pm_instance_variable_or_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INSTANCE_VARIABLE_READ_NODE:
+            break;
+        case PM_INSTANCE_VARIABLE_TARGET_NODE:
+            break;
+        case PM_INSTANCE_VARIABLE_WRITE_NODE: {
+            const pm_instance_variable_write_node_t *cast = (const pm_instance_variable_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_INTEGER_NODE:
+            break;
+        case PM_INTERPOLATED_MATCH_LAST_LINE_NODE: {
+            const pm_interpolated_match_last_line_node_t *cast = (const pm_interpolated_match_last_line_node_t *) node;
+
+            // Visit the parts field
+            const pm_node_list_t *parts = &cast->parts;
+            for (size_t index = 0; index < parts->size; index++) {
+                pm_visit_node(parts->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_INTERPOLATED_REGULAR_EXPRESSION_NODE: {
+            const pm_interpolated_regular_expression_node_t *cast = (const pm_interpolated_regular_expression_node_t *) node;
+
+            // Visit the parts field
+            const pm_node_list_t *parts = &cast->parts;
+            for (size_t index = 0; index < parts->size; index++) {
+                pm_visit_node(parts->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_INTERPOLATED_STRING_NODE: {
+            const pm_interpolated_string_node_t *cast = (const pm_interpolated_string_node_t *) node;
+
+            // Visit the parts field
+            const pm_node_list_t *parts = &cast->parts;
+            for (size_t index = 0; index < parts->size; index++) {
+                pm_visit_node(parts->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_INTERPOLATED_SYMBOL_NODE: {
+            const pm_interpolated_symbol_node_t *cast = (const pm_interpolated_symbol_node_t *) node;
+
+            // Visit the parts field
+            const pm_node_list_t *parts = &cast->parts;
+            for (size_t index = 0; index < parts->size; index++) {
+                pm_visit_node(parts->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_INTERPOLATED_X_STRING_NODE: {
+            const pm_interpolated_x_string_node_t *cast = (const pm_interpolated_x_string_node_t *) node;
+
+            // Visit the parts field
+            const pm_node_list_t *parts = &cast->parts;
+            for (size_t index = 0; index < parts->size; index++) {
+                pm_visit_node(parts->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_IT_PARAMETERS_NODE:
+            break;
+        case PM_KEYWORD_HASH_NODE: {
+            const pm_keyword_hash_node_t *cast = (const pm_keyword_hash_node_t *) node;
+
+            // Visit the elements field
+            const pm_node_list_t *elements = &cast->elements;
+            for (size_t index = 0; index < elements->size; index++) {
+                pm_visit_node(elements->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_KEYWORD_REST_PARAMETER_NODE:
+            break;
+        case PM_LAMBDA_NODE: {
+            const pm_lambda_node_t *cast = (const pm_lambda_node_t *) node;
+
+            // Visit the parameters field
+            if (cast->parameters != NULL) {
+                pm_visit_node((const pm_node_t *) cast->parameters, visitor, data);
+            }
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_LOCAL_VARIABLE_AND_WRITE_NODE: {
+            const pm_local_variable_and_write_node_t *cast = (const pm_local_variable_and_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
+            const pm_local_variable_operator_write_node_t *cast = (const pm_local_variable_operator_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_LOCAL_VARIABLE_OR_WRITE_NODE: {
+            const pm_local_variable_or_write_node_t *cast = (const pm_local_variable_or_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_LOCAL_VARIABLE_READ_NODE:
+            break;
+        case PM_LOCAL_VARIABLE_TARGET_NODE:
+            break;
+        case PM_LOCAL_VARIABLE_WRITE_NODE: {
+            const pm_local_variable_write_node_t *cast = (const pm_local_variable_write_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_MATCH_LAST_LINE_NODE:
+            break;
+        case PM_MATCH_PREDICATE_NODE: {
+            const pm_match_predicate_node_t *cast = (const pm_match_predicate_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            // Visit the pattern field
+            pm_visit_node((const pm_node_t *) cast->pattern, visitor, data);
+
+            break;
+        }
+        case PM_MATCH_REQUIRED_NODE: {
+            const pm_match_required_node_t *cast = (const pm_match_required_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            // Visit the pattern field
+            pm_visit_node((const pm_node_t *) cast->pattern, visitor, data);
+
+            break;
+        }
+        case PM_MATCH_WRITE_NODE: {
+            const pm_match_write_node_t *cast = (const pm_match_write_node_t *) node;
+
+            // Visit the call field
+            pm_visit_node((const pm_node_t *) cast->call, visitor, data);
+
+            // Visit the targets field
+            const pm_node_list_t *targets = &cast->targets;
+            for (size_t index = 0; index < targets->size; index++) {
+                pm_visit_node(targets->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_MISSING_NODE:
+            break;
+        case PM_MODULE_NODE: {
+            const pm_module_node_t *cast = (const pm_module_node_t *) node;
+
+            // Visit the constant_path field
+            pm_visit_node((const pm_node_t *) cast->constant_path, visitor, data);
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_MULTI_TARGET_NODE: {
+            const pm_multi_target_node_t *cast = (const pm_multi_target_node_t *) node;
+
+            // Visit the lefts field
+            const pm_node_list_t *lefts = &cast->lefts;
+            for (size_t index = 0; index < lefts->size; index++) {
+                pm_visit_node(lefts->nodes[index], visitor, data);
+            }
+
+            // Visit the rest field
+            if (cast->rest != NULL) {
+                pm_visit_node((const pm_node_t *) cast->rest, visitor, data);
+            }
+
+            // Visit the rights field
+            const pm_node_list_t *rights = &cast->rights;
+            for (size_t index = 0; index < rights->size; index++) {
+                pm_visit_node(rights->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_MULTI_WRITE_NODE: {
+            const pm_multi_write_node_t *cast = (const pm_multi_write_node_t *) node;
+
+            // Visit the lefts field
+            const pm_node_list_t *lefts = &cast->lefts;
+            for (size_t index = 0; index < lefts->size; index++) {
+                pm_visit_node(lefts->nodes[index], visitor, data);
+            }
+
+            // Visit the rest field
+            if (cast->rest != NULL) {
+                pm_visit_node((const pm_node_t *) cast->rest, visitor, data);
+            }
+
+            // Visit the rights field
+            const pm_node_list_t *rights = &cast->rights;
+            for (size_t index = 0; index < rights->size; index++) {
+                pm_visit_node(rights->nodes[index], visitor, data);
+            }
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_NEXT_NODE: {
+            const pm_next_node_t *cast = (const pm_next_node_t *) node;
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            break;
+        }
+        case PM_NIL_NODE:
+            break;
+        case PM_NO_KEYWORDS_PARAMETER_NODE:
+            break;
+        case PM_NUMBERED_PARAMETERS_NODE:
+            break;
+        case PM_NUMBERED_REFERENCE_READ_NODE:
+            break;
+        case PM_OPTIONAL_KEYWORD_PARAMETER_NODE: {
+            const pm_optional_keyword_parameter_node_t *cast = (const pm_optional_keyword_parameter_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_OPTIONAL_PARAMETER_NODE: {
+            const pm_optional_parameter_node_t *cast = (const pm_optional_parameter_node_t *) node;
+
+            // Visit the value field
+            pm_visit_node((const pm_node_t *) cast->value, visitor, data);
+
+            break;
+        }
+        case PM_OR_NODE: {
+            const pm_or_node_t *cast = (const pm_or_node_t *) node;
+
+            // Visit the left field
+            pm_visit_node((const pm_node_t *) cast->left, visitor, data);
+
+            // Visit the right field
+            pm_visit_node((const pm_node_t *) cast->right, visitor, data);
+
+            break;
+        }
+        case PM_PARAMETERS_NODE: {
+            const pm_parameters_node_t *cast = (const pm_parameters_node_t *) node;
+
+            // Visit the requireds field
+            const pm_node_list_t *requireds = &cast->requireds;
+            for (size_t index = 0; index < requireds->size; index++) {
+                pm_visit_node(requireds->nodes[index], visitor, data);
+            }
+
+            // Visit the optionals field
+            const pm_node_list_t *optionals = &cast->optionals;
+            for (size_t index = 0; index < optionals->size; index++) {
+                pm_visit_node(optionals->nodes[index], visitor, data);
+            }
+
+            // Visit the rest field
+            if (cast->rest != NULL) {
+                pm_visit_node((const pm_node_t *) cast->rest, visitor, data);
+            }
+
+            // Visit the posts field
+            const pm_node_list_t *posts = &cast->posts;
+            for (size_t index = 0; index < posts->size; index++) {
+                pm_visit_node(posts->nodes[index], visitor, data);
+            }
+
+            // Visit the keywords field
+            const pm_node_list_t *keywords = &cast->keywords;
+            for (size_t index = 0; index < keywords->size; index++) {
+                pm_visit_node(keywords->nodes[index], visitor, data);
+            }
+
+            // Visit the keyword_rest field
+            if (cast->keyword_rest != NULL) {
+                pm_visit_node((const pm_node_t *) cast->keyword_rest, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            break;
+        }
+        case PM_PARENTHESES_NODE: {
+            const pm_parentheses_node_t *cast = (const pm_parentheses_node_t *) node;
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_PINNED_EXPRESSION_NODE: {
+            const pm_pinned_expression_node_t *cast = (const pm_pinned_expression_node_t *) node;
+
+            // Visit the expression field
+            pm_visit_node((const pm_node_t *) cast->expression, visitor, data);
+
+            break;
+        }
+        case PM_PINNED_VARIABLE_NODE: {
+            const pm_pinned_variable_node_t *cast = (const pm_pinned_variable_node_t *) node;
+
+            // Visit the variable field
+            pm_visit_node((const pm_node_t *) cast->variable, visitor, data);
+
+            break;
+        }
+        case PM_POST_EXECUTION_NODE: {
+            const pm_post_execution_node_t *cast = (const pm_post_execution_node_t *) node;
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_PRE_EXECUTION_NODE: {
+            const pm_pre_execution_node_t *cast = (const pm_pre_execution_node_t *) node;
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_PROGRAM_NODE: {
+            const pm_program_node_t *cast = (const pm_program_node_t *) node;
+
+            // Visit the statements field
+            pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+
+            break;
+        }
+        case PM_RANGE_NODE: {
+            const pm_range_node_t *cast = (const pm_range_node_t *) node;
+
+            // Visit the left field
+            if (cast->left != NULL) {
+                pm_visit_node((const pm_node_t *) cast->left, visitor, data);
+            }
+
+            // Visit the right field
+            if (cast->right != NULL) {
+                pm_visit_node((const pm_node_t *) cast->right, visitor, data);
+            }
+
+            break;
+        }
+        case PM_RATIONAL_NODE: {
+            const pm_rational_node_t *cast = (const pm_rational_node_t *) node;
+
+            // Visit the numeric field
+            pm_visit_node((const pm_node_t *) cast->numeric, visitor, data);
+
+            break;
+        }
+        case PM_REDO_NODE:
+            break;
+        case PM_REGULAR_EXPRESSION_NODE:
+            break;
+        case PM_REQUIRED_KEYWORD_PARAMETER_NODE:
+            break;
+        case PM_REQUIRED_PARAMETER_NODE:
+            break;
+        case PM_RESCUE_MODIFIER_NODE: {
+            const pm_rescue_modifier_node_t *cast = (const pm_rescue_modifier_node_t *) node;
+
+            // Visit the expression field
+            pm_visit_node((const pm_node_t *) cast->expression, visitor, data);
+
+            // Visit the rescue_expression field
+            pm_visit_node((const pm_node_t *) cast->rescue_expression, visitor, data);
+
+            break;
+        }
+        case PM_RESCUE_NODE: {
+            const pm_rescue_node_t *cast = (const pm_rescue_node_t *) node;
+
+            // Visit the exceptions field
+            const pm_node_list_t *exceptions = &cast->exceptions;
+            for (size_t index = 0; index < exceptions->size; index++) {
+                pm_visit_node(exceptions->nodes[index], visitor, data);
+            }
+
+            // Visit the reference field
+            if (cast->reference != NULL) {
+                pm_visit_node((const pm_node_t *) cast->reference, visitor, data);
+            }
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            // Visit the consequent field
+            if (cast->consequent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->consequent, visitor, data);
+            }
+
+            break;
+        }
+        case PM_REST_PARAMETER_NODE:
+            break;
+        case PM_RETRY_NODE:
+            break;
+        case PM_RETURN_NODE: {
+            const pm_return_node_t *cast = (const pm_return_node_t *) node;
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            break;
+        }
+        case PM_SELF_NODE:
+            break;
+        case PM_SHAREABLE_CONSTANT_NODE: {
+            const pm_shareable_constant_node_t *cast = (const pm_shareable_constant_node_t *) node;
+
+            // Visit the write field
+            pm_visit_node((const pm_node_t *) cast->write, visitor, data);
+
+            break;
+        }
+        case PM_SINGLETON_CLASS_NODE: {
+            const pm_singleton_class_node_t *cast = (const pm_singleton_class_node_t *) node;
+
+            // Visit the expression field
+            pm_visit_node((const pm_node_t *) cast->expression, visitor, data);
+
+            // Visit the body field
+            if (cast->body != NULL) {
+                pm_visit_node((const pm_node_t *) cast->body, visitor, data);
+            }
+
+            break;
+        }
+        case PM_SOURCE_ENCODING_NODE:
+            break;
+        case PM_SOURCE_FILE_NODE:
+            break;
+        case PM_SOURCE_LINE_NODE:
+            break;
+        case PM_SPLAT_NODE: {
+            const pm_splat_node_t *cast = (const pm_splat_node_t *) node;
+
+            // Visit the expression field
+            if (cast->expression != NULL) {
+                pm_visit_node((const pm_node_t *) cast->expression, visitor, data);
+            }
+
+            break;
+        }
+        case PM_STATEMENTS_NODE: {
+            const pm_statements_node_t *cast = (const pm_statements_node_t *) node;
+
+            // Visit the body field
+            const pm_node_list_t *body = &cast->body;
+            for (size_t index = 0; index < body->size; index++) {
+                pm_visit_node(body->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_STRING_NODE:
+            break;
+        case PM_SUPER_NODE: {
+            const pm_super_node_t *cast = (const pm_super_node_t *) node;
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            // Visit the block field
+            if (cast->block != NULL) {
+                pm_visit_node((const pm_node_t *) cast->block, visitor, data);
+            }
+
+            break;
+        }
+        case PM_SYMBOL_NODE:
+            break;
+        case PM_TRUE_NODE:
+            break;
+        case PM_UNDEF_NODE: {
+            const pm_undef_node_t *cast = (const pm_undef_node_t *) node;
+
+            // Visit the names field
+            const pm_node_list_t *names = &cast->names;
+            for (size_t index = 0; index < names->size; index++) {
+                pm_visit_node(names->nodes[index], visitor, data);
+            }
+
+            break;
+        }
+        case PM_UNLESS_NODE: {
+            const pm_unless_node_t *cast = (const pm_unless_node_t *) node;
+
+            // Visit the predicate field
+            pm_visit_node((const pm_node_t *) cast->predicate, visitor, data);
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            // Visit the consequent field
+            if (cast->consequent != NULL) {
+                pm_visit_node((const pm_node_t *) cast->consequent, visitor, data);
+            }
+
+            break;
+        }
+        case PM_UNTIL_NODE: {
+            const pm_until_node_t *cast = (const pm_until_node_t *) node;
+
+            // Visit the predicate field
+            pm_visit_node((const pm_node_t *) cast->predicate, visitor, data);
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_WHEN_NODE: {
+            const pm_when_node_t *cast = (const pm_when_node_t *) node;
+
+            // Visit the conditions field
+            const pm_node_list_t *conditions = &cast->conditions;
+            for (size_t index = 0; index < conditions->size; index++) {
+                pm_visit_node(conditions->nodes[index], visitor, data);
+            }
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_WHILE_NODE: {
+            const pm_while_node_t *cast = (const pm_while_node_t *) node;
+
+            // Visit the predicate field
+            pm_visit_node((const pm_node_t *) cast->predicate, visitor, data);
+
+            // Visit the statements field
+            if (cast->statements != NULL) {
+                pm_visit_node((const pm_node_t *) cast->statements, visitor, data);
+            }
+
+            break;
+        }
+        case PM_X_STRING_NODE:
+            break;
+        case PM_YIELD_NODE: {
+            const pm_yield_node_t *cast = (const pm_yield_node_t *) node;
+
+            // Visit the arguments field
+            if (cast->arguments != NULL) {
+                pm_visit_node((const pm_node_t *) cast->arguments, visitor, data);
+            }
+
+            break;
+        }
+        case PM_SCOPE_NODE:
+            break;
+    }
+}
+
+// We optionally support dumping to JSON. For systems that don't want or need
+// this functionality, it can be turned off with the PRISM_EXCLUDE_JSON define.
+#ifndef PRISM_EXCLUDE_JSON
 
 static void
 pm_dump_json_constant(pm_buffer_t *buffer, const pm_parser_t *parser, pm_constant_id_t constant_id) {
@@ -4135,11 +5635,7 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             // Dump the operator_loc field
             pm_buffer_append_byte(buffer, ',');
             pm_buffer_append_string(buffer, "\"operator_loc\":", 15);
-            if (cast->operator_loc.start != NULL) {
-                pm_dump_json_location(buffer, parser, &cast->operator_loc);
-            } else {
-                pm_buffer_append_string(buffer, "null", 4);
-            }
+            pm_dump_json_location(buffer, parser, &cast->operator_loc);
 
             pm_buffer_append_byte(buffer, '}');
             break;
@@ -6017,6 +7513,23 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             const pm_interpolated_string_node_t *cast = (const pm_interpolated_string_node_t *) node;
             pm_dump_json_location(buffer, parser, &cast->base.location);
 
+            // Dump the flags field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"flags\":", 8);
+            size_t flags = 0;
+            pm_buffer_append_byte(buffer, '[');
+            if (PM_NODE_FLAG_P(cast, PM_INTERPOLATED_STRING_NODE_FLAGS_FROZEN)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"FROZEN\"", 8);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_INTERPOLATED_STRING_NODE_FLAGS_MUTABLE)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"MUTABLE\"", 9);
+                flags++;
+            }
+            pm_buffer_append_byte(buffer, ']');
+
             // Dump the opening_loc field
             pm_buffer_append_byte(buffer, ',');
             pm_buffer_append_string(buffer, "\"opening_loc\":", 14);
@@ -7617,6 +9130,42 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             pm_buffer_append_byte(buffer, '}');
             break;
         }
+        case PM_SHAREABLE_CONSTANT_NODE: {
+            pm_buffer_append_string(buffer, "{\"type\":\"ShareableConstantNode\",\"location\":", 43);
+
+            const pm_shareable_constant_node_t *cast = (const pm_shareable_constant_node_t *) node;
+            pm_dump_json_location(buffer, parser, &cast->base.location);
+
+            // Dump the flags field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"flags\":", 8);
+            size_t flags = 0;
+            pm_buffer_append_byte(buffer, '[');
+            if (PM_NODE_FLAG_P(cast, PM_SHAREABLE_CONSTANT_NODE_FLAGS_LITERAL)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"LITERAL\"", 9);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_EVERYTHING)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"EXPERIMENTAL_EVERYTHING\"", 25);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_COPY)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"EXPERIMENTAL_COPY\"", 19);
+                flags++;
+            }
+            pm_buffer_append_byte(buffer, ']');
+
+            // Dump the write field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"write\":", 8);
+            pm_dump_json(buffer, parser, (const pm_node_t *) cast->write);
+
+            pm_buffer_append_byte(buffer, '}');
+            break;
+        }
         case PM_SINGLETON_CLASS_NODE: {
             pm_buffer_append_string(buffer, "{\"type\":\"SingletonClassNode\",\"location\":", 40);
 
@@ -7681,6 +9230,33 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
 
             const pm_source_file_node_t *cast = (const pm_source_file_node_t *) node;
             pm_dump_json_location(buffer, parser, &cast->base.location);
+
+            // Dump the flags field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"flags\":", 8);
+            size_t flags = 0;
+            pm_buffer_append_byte(buffer, '[');
+            if (PM_NODE_FLAG_P(cast, PM_STRING_FLAGS_FORCED_UTF8_ENCODING)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"FORCED_UTF8_ENCODING\"", 22);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_STRING_FLAGS_FORCED_BINARY_ENCODING)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"FORCED_BINARY_ENCODING\"", 24);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_STRING_FLAGS_FROZEN)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"FROZEN\"", 8);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_STRING_FLAGS_MUTABLE)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"MUTABLE\"", 9);
+                flags++;
+            }
+            pm_buffer_append_byte(buffer, ']');
 
             // Dump the filepath field
             pm_buffer_append_byte(buffer, ',');
@@ -7770,6 +9346,11 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             if (PM_NODE_FLAG_P(cast, PM_STRING_FLAGS_FROZEN)) {
                 if (flags != 0) pm_buffer_append_byte(buffer, ',');
                 pm_buffer_append_string(buffer, "\"FROZEN\"", 8);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_STRING_FLAGS_MUTABLE)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"MUTABLE\"", 9);
                 flags++;
             }
             pm_buffer_append_byte(buffer, ']');
@@ -8086,6 +9667,15 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             }
             pm_buffer_append_byte(buffer, ']');
 
+            // Dump the then_keyword_loc field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"then_keyword_loc\":", 19);
+            if (cast->then_keyword_loc.start != NULL) {
+                pm_dump_json_location(buffer, parser, &cast->then_keyword_loc);
+            } else {
+                pm_buffer_append_string(buffer, "null", 4);
+            }
+
             // Dump the statements field
             pm_buffer_append_byte(buffer, ',');
             pm_buffer_append_string(buffer, "\"statements\":", 13);
@@ -8241,3 +9831,5 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             break;
     }
 }
+
+#endif

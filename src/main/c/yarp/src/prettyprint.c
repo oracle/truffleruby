@@ -8,6 +8,15 @@
 
 #include "prism/prettyprint.h"
 
+// We optionally support pretty printing nodes. For systems that don't want or
+// need this functionality, it can be turned off with the
+// PRISM_EXCLUDE_PRETTYPRINT define.
+#ifdef PRISM_EXCLUDE_PRETTYPRINT
+
+void pm_prettyprint(void) {}
+
+#else
+
 static inline void
 prettyprint_location(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_location_t *location) {
     pm_line_column_t start = pm_newline_list_line_column(&parser->newline_list, location->start, parser->start_line);
@@ -2186,15 +2195,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
                 pm_location_t *location = &cast->operator_loc;
-                if (location->start == NULL) {
-                    pm_buffer_append_string(output_buffer, " nil\n", 5);
-                } else {
-                    pm_buffer_append_byte(output_buffer, ' ');
-                    prettyprint_location(output_buffer, parser, location);
-                    pm_buffer_append_string(output_buffer, " = \"", 4);
-                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
-                    pm_buffer_append_string(output_buffer, "\"\n", 2);
-                }
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
             break;
@@ -5252,6 +5257,25 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
 
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
+                bool found = false;
+                if (cast->base.flags & PM_INTERPOLATED_STRING_NODE_FLAGS_FROZEN) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " frozen", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTERPOLATED_STRING_NODE_FLAGS_MUTABLE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " mutable", 8);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             // opening_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -7715,6 +7739,51 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
 
             break;
         }
+        case PM_SHAREABLE_CONSTANT_NODE: {
+            pm_shareable_constant_node_t *cast = (pm_shareable_constant_node_t *) node;
+            pm_buffer_append_string(output_buffer, "@ ShareableConstantNode (location: ", 35);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
+                bool found = false;
+                if (cast->base.flags & PM_SHAREABLE_CONSTANT_NODE_FLAGS_LITERAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " literal", 8);
+                    found = true;
+                }
+                if (cast->base.flags & PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_EVERYTHING) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " experimental_everything", 24);
+                    found = true;
+                }
+                if (cast->base.flags & PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_COPY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " experimental_copy", 18);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // write
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- write:", 10);
+                pm_buffer_append_byte(output_buffer, '\n');
+
+                size_t prefix_length = prefix_buffer->length;
+                pm_buffer_append_string(prefix_buffer, "    ", 4);
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->write, prefix_buffer);
+                prefix_buffer->length = prefix_length;
+            }
+
+            break;
+        }
         case PM_SINGLETON_CLASS_NODE: {
             pm_singleton_class_node_t *cast = (pm_singleton_class_node_t *) node;
             pm_buffer_append_string(output_buffer, "@ SingletonClassNode (location: ", 32);
@@ -7813,6 +7882,35 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ SourceFileNode (location: ", 28);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
+                bool found = false;
+                if (cast->base.flags & PM_STRING_FLAGS_FORCED_UTF8_ENCODING) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " forced_utf8_encoding", 21);
+                    found = true;
+                }
+                if (cast->base.flags & PM_STRING_FLAGS_FORCED_BINARY_ENCODING) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " forced_binary_encoding", 23);
+                    found = true;
+                }
+                if (cast->base.flags & PM_STRING_FLAGS_FROZEN) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " frozen", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_STRING_FLAGS_MUTABLE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " mutable", 8);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // filepath
             {
@@ -7919,6 +8017,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 if (cast->base.flags & PM_STRING_FLAGS_FROZEN) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " frozen", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_STRING_FLAGS_MUTABLE) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " mutable", 8);
                     found = true;
                 }
                 if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
@@ -8415,6 +8518,22 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 }
             }
 
+            // then_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- then_keyword_loc:", 21);
+                pm_location_t *location = &cast->then_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             // statements
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -8667,3 +8786,5 @@ pm_prettyprint(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm_n
     prettyprint_node(output_buffer, parser, node, &prefix_buffer);
     pm_buffer_free(&prefix_buffer);
 }
+
+#endif

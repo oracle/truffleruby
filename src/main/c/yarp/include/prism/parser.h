@@ -6,8 +6,8 @@
 #ifndef PRISM_PARSER_H
 #define PRISM_PARSER_H
 
-#include "prism/ast.h"
 #include "prism/defines.h"
+#include "prism/ast.h"
 #include "prism/encoding.h"
 #include "prism/options.h"
 #include "prism/util/pm_constant_pool.h"
@@ -173,7 +173,7 @@ typedef struct pm_lex_mode {
              * This is the character set that should be used to delimit the
              * tokens within the regular expression.
              */
-            uint8_t breakpoints[6];
+            uint8_t breakpoints[7];
         } regexp;
 
         struct {
@@ -206,7 +206,7 @@ typedef struct pm_lex_mode {
              * This is the character set that should be used to delimit the
              * tokens within the string.
              */
-            uint8_t breakpoints[6];
+            uint8_t breakpoints[7];
         } string;
 
         struct {
@@ -234,6 +234,9 @@ typedef struct pm_lex_mode {
              * a tilde heredoc.
              */
             size_t common_whitespace;
+
+            /** True if the previous token ended with a line continuation. */
+            bool line_continuation;
         } heredoc;
     } as;
 
@@ -445,6 +448,13 @@ typedef struct {
     void (*callback)(void *data, pm_parser_t *parser, pm_token_t *token);
 } pm_lex_callback_t;
 
+/** The type of shareable constant value that can be set. */
+typedef uint8_t pm_shareable_constant_value_t;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_NONE = 0x0;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_LITERAL = 0x1;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_EXPERIMENTAL_EVERYTHING = 0x2;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_EXPERIMENTAL_COPY = 0x4;
+
 /**
  * This struct represents a node in a linked list of scopes. Some scopes can see
  * into their parent scopes, while others cannot.
@@ -483,6 +493,12 @@ typedef struct pm_scope {
      * about how many numbered parameters exist.
      */
     int8_t numbered_parameters;
+
+    /**
+     * The current state of constant shareability for this scope. This is
+     * changed by magic shareable_constant_value comments.
+     */
+    pm_shareable_constant_value_t shareable_constant;
 
     /**
      * A boolean indicating whether or not this scope can see into its parent.
@@ -706,6 +722,16 @@ struct pm_parser {
     /** The command line flags given from the options. */
     uint8_t command_line;
 
+    /**
+     * Whether or not we have found a frozen_string_literal magic comment with
+     * a true or false value.
+     * May be:
+     *  - PM_OPTIONS_FROZEN_STRING_LITERAL_DISABLED
+     *  - PM_OPTIONS_FROZEN_STRING_LITERAL_ENABLED
+     *  - PM_OPTIONS_FROZEN_STRING_LITERAL_UNSET
+     */
+    int8_t frozen_string_literal;
+
     /** Whether or not we're at the beginning of a command. */
     bool command_start;
 
@@ -735,10 +761,10 @@ struct pm_parser {
     bool semantic_token_seen;
 
     /**
-     * Whether or not we have found a frozen_string_literal magic comment with
-     * a true value.
+     * True if the current regular expression being lexed contains only ASCII
+     * characters.
      */
-    bool frozen_string_literal;
+    bool current_regular_expression_ascii_only;
 };
 
 #endif

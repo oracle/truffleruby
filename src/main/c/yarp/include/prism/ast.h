@@ -966,56 +966,59 @@ enum pm_node_type {
     /** SelfNode */
     PM_SELF_NODE = 132,
 
+    /** ShareableConstantNode */
+    PM_SHAREABLE_CONSTANT_NODE = 133,
+
     /** SingletonClassNode */
-    PM_SINGLETON_CLASS_NODE = 133,
+    PM_SINGLETON_CLASS_NODE = 134,
 
     /** SourceEncodingNode */
-    PM_SOURCE_ENCODING_NODE = 134,
+    PM_SOURCE_ENCODING_NODE = 135,
 
     /** SourceFileNode */
-    PM_SOURCE_FILE_NODE = 135,
+    PM_SOURCE_FILE_NODE = 136,
 
     /** SourceLineNode */
-    PM_SOURCE_LINE_NODE = 136,
+    PM_SOURCE_LINE_NODE = 137,
 
     /** SplatNode */
-    PM_SPLAT_NODE = 137,
+    PM_SPLAT_NODE = 138,
 
     /** StatementsNode */
-    PM_STATEMENTS_NODE = 138,
+    PM_STATEMENTS_NODE = 139,
 
     /** StringNode */
-    PM_STRING_NODE = 139,
+    PM_STRING_NODE = 140,
 
     /** SuperNode */
-    PM_SUPER_NODE = 140,
+    PM_SUPER_NODE = 141,
 
     /** SymbolNode */
-    PM_SYMBOL_NODE = 141,
+    PM_SYMBOL_NODE = 142,
 
     /** TrueNode */
-    PM_TRUE_NODE = 142,
+    PM_TRUE_NODE = 143,
 
     /** UndefNode */
-    PM_UNDEF_NODE = 143,
+    PM_UNDEF_NODE = 144,
 
     /** UnlessNode */
-    PM_UNLESS_NODE = 144,
+    PM_UNLESS_NODE = 145,
 
     /** UntilNode */
-    PM_UNTIL_NODE = 145,
+    PM_UNTIL_NODE = 146,
 
     /** WhenNode */
-    PM_WHEN_NODE = 146,
+    PM_WHEN_NODE = 147,
 
     /** WhileNode */
-    PM_WHILE_NODE = 147,
+    PM_WHILE_NODE = 148,
 
     /** XStringNode */
-    PM_X_STRING_NODE = 148,
+    PM_X_STRING_NODE = 149,
 
     /** YieldNode */
-    PM_YIELD_NODE = 149,
+    PM_YIELD_NODE = 150,
 
     /** A special kind of node used for compilation. */
     PM_SCOPE_NODE
@@ -2184,21 +2187,46 @@ typedef struct pm_class_variable_write_node {
 
     /**
      * ClassVariableWriteNode#name
+     *
+     * The name of the class variable, which is a `@@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @@abc = 123     # name `@@abc`
+     *
+     *     @@_test = :test # name `@@_test`
      */
     pm_constant_id_t name;
 
     /**
      * ClassVariableWriteNode#name_loc
+     *
+     * The location of the variable name.
+     *
+     *     @@foo = :bar
+     *     ^^^^^
      */
     pm_location_t name_loc;
 
     /**
      * ClassVariableWriteNode#value
+     *
+     * The value to assign to the class variable. Can be any node that
+     * represents a non-void expression.
+     *
+     *     @@foo = :bar
+     *             ^^^^
+     *
+     *     @@_xyz = 123
+     *              ^^^
      */
     struct pm_node *value;
 
     /**
      * ClassVariableWriteNode#operator_loc
+     *
+     * The location of the `=` operator.
+     *
+     *     @@foo = :bar
+     *           ^
      */
     pm_location_t operator_loc;
 } pm_class_variable_write_node_t;
@@ -3687,21 +3715,46 @@ typedef struct pm_instance_variable_write_node {
 
     /**
      * InstanceVariableWriteNode#name
+     *
+     * The name of the instance variable, which is a `@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @x = :y       # name `:@x`
+     *
+     *     @_foo = "bar" # name `@_foo`
      */
     pm_constant_id_t name;
 
     /**
      * InstanceVariableWriteNode#name_loc
+     *
+     * The location of the variable name.
+     *
+     *     @_x = 1
+     *     ^^^
      */
     pm_location_t name_loc;
 
     /**
      * InstanceVariableWriteNode#value
+     *
+     * The value to assign to the instance variable. Can be any node that
+     * represents a non-void expression.
+     *
+     *     @foo = :bar
+     *            ^^^^
+     *
+     *     @_x = 1234
+     *           ^^^^
      */
     struct pm_node *value;
 
     /**
      * InstanceVariableWriteNode#operator_loc
+     *
+     * The location of the `=` operator.
+     *
+     *     @x = y
+     *        ^
      */
     pm_location_t operator_loc;
 } pm_instance_variable_write_node_t;
@@ -3812,6 +3865,9 @@ typedef struct pm_interpolated_regular_expression_node {
  * InterpolatedStringNode
  *
  * Type: PM_INTERPOLATED_STRING_NODE
+ * Flags:
+ *    PM_INTERPOLATED_STRING_NODE_FLAGS_FROZEN
+ *    PM_INTERPOLATED_STRING_NODE_FLAGS_MUTABLE
  *
  * @extends pm_node_t
  */
@@ -4555,13 +4611,13 @@ typedef struct pm_numbered_reference_read_node {
     /**
      * NumberedReferenceReadNode#number
      *
-     * The (1-indexed, from the left) number of the capture group. Numbered references that would overflow a `uint32`  result in a `number` of exactly `2**32 - 1`.
+     * The (1-indexed, from the left) number of the capture group. Numbered references that are too large result in this value being `0`.
      *
      *     $1          # number `1`
      *
      *     $5432       # number `5432`
      *
-     *     $4294967296 # number `4294967295`
+     *     $4294967296 # number `0`
      */
     uint32_t number;
 } pm_numbered_reference_read_node_t;
@@ -5200,6 +5256,29 @@ typedef struct pm_self_node {
 } pm_self_node_t;
 
 /**
+ * ShareableConstantNode
+ *
+ * Type: PM_SHAREABLE_CONSTANT_NODE
+ * Flags:
+ *    PM_SHAREABLE_CONSTANT_NODE_FLAGS_LITERAL
+ *    PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_EVERYTHING
+ *    PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_COPY
+ *
+ * @extends pm_node_t
+ */
+typedef struct pm_shareable_constant_node {
+    /** The embedded base node. */
+    pm_node_t base;
+
+    /**
+     * ShareableConstantNode#write
+     *
+     * The constant write that should be modified with the shareability state.
+     */
+    struct pm_node *write;
+} pm_shareable_constant_node_t;
+
+/**
  * SingletonClassNode
  *
  * Type: PM_SINGLETON_CLASS_NODE
@@ -5257,6 +5336,11 @@ typedef struct pm_source_encoding_node {
  * SourceFileNode
  *
  * Type: PM_SOURCE_FILE_NODE
+ * Flags:
+ *    PM_STRING_FLAGS_FORCED_UTF8_ENCODING
+ *    PM_STRING_FLAGS_FORCED_BINARY_ENCODING
+ *    PM_STRING_FLAGS_FROZEN
+ *    PM_STRING_FLAGS_MUTABLE
  *
  * @extends pm_node_t
  */
@@ -5329,6 +5413,7 @@ typedef struct pm_statements_node {
  *    PM_STRING_FLAGS_FORCED_UTF8_ENCODING
  *    PM_STRING_FLAGS_FORCED_BINARY_ENCODING
  *    PM_STRING_FLAGS_FROZEN
+ *    PM_STRING_FLAGS_MUTABLE
  *
  * @extends pm_node_t
  */
@@ -5562,6 +5647,11 @@ typedef struct pm_when_node {
     struct pm_node_list conditions;
 
     /**
+     * WhenNode#then_keyword_loc
+     */
+    pm_location_t then_keyword_loc;
+
+    /**
      * WhenNode#statements
      */
     struct pm_statements_node *statements;
@@ -5730,6 +5820,17 @@ typedef enum pm_integer_base_flags {
 } pm_integer_base_flags_t;
 
 /**
+ * Flags for interpolated string nodes that indicated mutability if they are also marked as literals.
+ */
+typedef enum pm_interpolated_string_node_flags {
+    /** frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal` */
+    PM_INTERPOLATED_STRING_NODE_FLAGS_FROZEN = 1,
+
+    /** mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal` */
+    PM_INTERPOLATED_STRING_NODE_FLAGS_MUTABLE = 2,
+} pm_interpolated_string_node_flags_t;
+
+/**
  * Flags for keyword hash nodes.
  */
 typedef enum pm_keyword_hash_node_flags {
@@ -5800,6 +5901,20 @@ typedef enum pm_regular_expression_flags {
 } pm_regular_expression_flags_t;
 
 /**
+ * Flags for shareable constant nodes.
+ */
+typedef enum pm_shareable_constant_node_flags {
+    /** constant writes that should be modified with shareable constant value literal */
+    PM_SHAREABLE_CONSTANT_NODE_FLAGS_LITERAL = 1,
+
+    /** constant writes that should be modified with shareable constant value experimental everything */
+    PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_EVERYTHING = 2,
+
+    /** constant writes that should be modified with shareable constant value experimental copy */
+    PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_COPY = 4,
+} pm_shareable_constant_node_flags_t;
+
+/**
  * Flags for string nodes.
  */
 typedef enum pm_string_flags {
@@ -5809,8 +5924,11 @@ typedef enum pm_string_flags {
     /** internal bytes forced the encoding to binary */
     PM_STRING_FLAGS_FORCED_BINARY_ENCODING = 2,
 
-    /** frozen by virtue of a `frozen_string_literal` comment */
+    /** frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal` */
     PM_STRING_FLAGS_FROZEN = 4,
+
+    /** mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal` */
+    PM_STRING_FLAGS_MUTABLE = 8,
 } pm_string_flags_t;
 
 /**
