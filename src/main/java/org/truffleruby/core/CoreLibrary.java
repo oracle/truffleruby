@@ -202,6 +202,7 @@ public final class CoreLibrary {
     public final RubyModule truffleRegexpOperationsModule;
     public final RubyModule truffleRandomOperationsModule;
     public final RubyModule truffleThreadOperationsModule;
+    public final RubyModule truffleWarningOperationsModule;
     public final RubyClass encodingCompatibilityErrorClass;
     public final RubyClass encodingUndefinedConversionErrorClass;
     public final RubyClass methodClass;
@@ -508,6 +509,7 @@ public final class CoreLibrary {
         defineModule(truffleModule, "ReadlineHistory");
         truffleRandomOperationsModule = defineModule(truffleModule, "RandomOperations");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
+        truffleWarningOperationsModule = defineModule(truffleModule, "WarningOperations");
         defineModule(truffleModule, "WeakRefOperations");
         handleClass = defineClass(truffleModule, objectClass, "Handle");
         warningModule = defineModule("Warning");

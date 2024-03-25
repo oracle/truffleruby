@@ -11,35 +11,25 @@ package org.truffleruby.language;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
-import com.oracle.truffle.api.dsl.NeverDefault;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
-/** Displays a warning when code is compiled that will compile successfully but is very low performance. We don't want
- * to bail out, as this isn't visible to users - we want them to see if they're using code like this in something like a
- * benchmark.
- *
- * Ideally you should not use this node, and instead you should optimise the code which would use it. */
-@GenerateUncached
-public abstract class NotOptimizedWarningNode extends RubyBaseNode {
-
-    @NeverDefault
-    public static NotOptimizedWarningNode create() {
-        return NotOptimizedWarningNodeGen.create();
-    }
+public abstract class PerformanceWarningNode extends RubyBaseNode {
 
     @SuppressWarnings("serial")
     protected static final class Warned extends ControlFlowException {
     }
+
+    @Child ReadSimpleGlobalVariableNode readVerboseNode = ReadSimpleGlobalVariableNode.create("$VERBOSE");
 
     public final void warn(String message) {
         executeWarn(message);
@@ -50,10 +40,10 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     @Specialization(rewriteOn = Warned.class)
     void warnOnce(String message) throws Warned {
         // The message should be a constant, because we don't want to do anything expensive to create it
-        CompilerAsserts.compilationConstant(message);
+        CompilerAsserts.partialEvaluationConstant(message);
 
-        // If we're in the interpreter then don't warn
-        if (CompilerDirectives.inInterpreter()) {
+        // Do not warn if $VERBOSE is nil
+        if (readVerboseNode.execute() == nil) {
             return;
         }
 
@@ -74,15 +64,18 @@ public abstract class NotOptimizedWarningNode extends RubyBaseNode {
     @TruffleBoundary
     private void log(String message) {
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
-        final SourceSection userSourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+        final SourceSection userSourceSection = getContext().getCallStack()
+                .getTopMostUserSourceSection(getEncapsulatingSourceSection());
 
         final String displayedWarning = String.format(
-                "%s: %s",
+                "%s: warning: %s%n",
                 getContext().fileLine(userSourceSection),
                 message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {
-            RubyLanguage.LOGGER.log(Level.WARNING, displayedWarning);
+            var warningString = createString(TruffleString.FromJavaStringNode.getUncached(), displayedWarning,
+                    Encodings.US_ASCII);
+            RubyContext.send(this, coreLibrary().truffleWarningOperationsModule, "performance_warning", warningString);
         }
     }
 

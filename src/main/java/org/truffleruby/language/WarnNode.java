@@ -39,8 +39,8 @@ public class WarnNode extends RubyBaseNode {
     }
 
     public boolean shouldWarn() {
-        final Object verbosity = readVerboseNode.execute();
-        return verbosity != nil;
+        final Object verbose = readVerboseNode.execute();
+        return verbose != nil;
     }
 
     public final boolean shouldWarnForDeprecation() {
