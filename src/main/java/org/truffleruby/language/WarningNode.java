@@ -23,8 +23,8 @@ public final class WarningNode extends WarnNode {
 
     @Override
     public boolean shouldWarn() {
-        final Object verbosity = readVerboseNode.execute();
-        return verbosity == Boolean.TRUE;
+        final Object verbose = readVerboseNode.execute();
+        return verbose == Boolean.TRUE;
     }
 
     @DenyReplace

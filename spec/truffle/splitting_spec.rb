@@ -8,7 +8,7 @@
 
 require_relative '../ruby/spec_helper'
 
-describe 'Critical methods whic must split' do
+describe 'Critical methods which must split' do
   it 'are under 100 AST nodes' do
     code = <<-'EOF'
 require 'strscan'

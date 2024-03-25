@@ -88,6 +88,7 @@ class Symbol
   def match(*args, &block)
     to_s.match(*args, &block)
   end
+  Truffle::Graal.always_split(instance_method(:match))
 
   def =~(pattern)
     str = to_s
@@ -108,6 +109,7 @@ class Symbol
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
     pattern.match? to_s, pos
   end
+  Truffle::Graal.always_split(instance_method(:match?))
 
   def encoding
     Primitive.encoding_get_object_encoding self

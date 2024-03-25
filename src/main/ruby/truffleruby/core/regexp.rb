@@ -126,7 +126,7 @@ class Regexp
       else
         converted = Truffle::Type.rb_check_convert_type(pattern, Regexp, :to_regexp)
         if Primitive.nil? converted
-          Regexp.new(Regexp.quote(pattern))
+          Primitive.regexp_compile(Regexp.quote(pattern), 0)
         else
           converted
         end
@@ -198,6 +198,7 @@ class Regexp
 
     Primitive.regexp_compile pattern, opts # may be overridden by subclasses
   end
+  Truffle::Graal.always_split(method(:new))
 
   class << self
     alias_method :compile, :new

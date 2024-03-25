@@ -45,6 +45,7 @@ import org.graalvm.shadowed.org.joni.Region;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -70,6 +71,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.LazyWarnNode;
+import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
@@ -285,7 +287,7 @@ public abstract class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
+    @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true, split = Split.ALWAYS)
     public abstract static class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
 
         static final InlinedBranchProfile UNCACHED_BRANCH_PROFILE = InlinedBranchProfile.getUncached();
@@ -309,7 +311,11 @@ public abstract class TruffleRegexpNodes {
 
         @Specialization(replaces = "fastUnion")
         Object slowUnion(RubyString str, Object sep, Object[] args,
+                @Cached PerformanceWarningNode performanceWarningNode,
                 @Cached InlinedBranchProfile errorProfile) {
+            performanceWarningNode.warn(
+                    "unbounded creation of regexps causes deoptimization loops which hurt performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
+
             return buildUnion(str, sep, args, errorProfile);
         }
 

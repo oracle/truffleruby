@@ -185,7 +185,7 @@ class String
     if block_given?
       each_grapheme_cluster(&block)
     else
-      regex = Regexp.new('\X'.encode(encoding))
+      regex = Primitive.regexp_compile('\X'.encode(encoding), 0)
       scan(regex)
     end
   end
@@ -315,6 +315,7 @@ class String
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, last_match)
     ret
   end
+  Truffle::Graal.always_split(instance_method(:scan))
 
   def split(pattern = nil, limit = undefined, &block)
     Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
@@ -374,7 +375,7 @@ class String
   def each_grapheme_cluster
     return to_enum(:each_grapheme_cluster) { size } unless block_given?
 
-    regex = Regexp.new('\X'.encode(encoding))
+    regex = Primitive.regexp_compile('\X'.encode(encoding), 0)
     # scan(regex, &block) would leak the $ vars in the user block which is probably unwanted
     scan(regex) { |e| yield e }
     self
@@ -653,6 +654,7 @@ class String
     Primitive.string_replace(s, res) if res
     s
   end
+  Truffle::Graal.always_split(instance_method(:sub))
 
   def sub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
@@ -671,6 +673,7 @@ class String
       nil
     end
   end
+  Truffle::Graal.always_split(instance_method(:sub!))
 
   def slice!(one, two = undefined)
     Primitive.check_mutable_string self
@@ -898,6 +901,7 @@ class String
     Primitive.string_replace(s, res) if res
     s
   end
+  Truffle::Graal.always_split(instance_method(:gsub))
 
   def gsub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
@@ -916,6 +920,7 @@ class String
       nil
     end
   end
+  Truffle::Graal.always_split(instance_method(:gsub!))
 
   def match(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
@@ -930,11 +935,13 @@ class String
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     result
   end
+  Truffle::Graal.always_split(instance_method(:match))
 
   def match?(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
     pattern.match? self, pos
   end
+  Truffle::Graal.always_split(instance_method(:match?))
 
   def scrub(replace = nil, &block)
     return Primitive.dup_as_string_instance(self) if valid_encoding?

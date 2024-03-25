@@ -15,5 +15,9 @@ module Truffle
 
       raise ArgumentError, "unknown category: #{category}"
     end
+
+    def self.performance_warning(message)
+      ::Warning.warn(message, category: :performance)
+    end
   end
 end

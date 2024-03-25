@@ -18,6 +18,7 @@ Compatibility:
 * Allow null encoding pointer in `rb_enc_interned_str_cstr` (@thomasmarshall).
 
 Performance:
+* Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
 
 Changes:
 

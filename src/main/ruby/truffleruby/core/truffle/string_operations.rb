@@ -76,6 +76,7 @@ module Truffle
         gsub_other_matches(global, orig, pattern)
       end
     end
+    Truffle::Graal.always_split(method(:gsub_internal_matches))
 
     def self.gsub_new_offset(orig, match)
       start_pos = Primitive.match_data_byte_begin(match, 0)
@@ -127,6 +128,7 @@ module Truffle
       end
       res
     end
+    Truffle::Graal.always_split(method(:gsub_other_matches))
 
     def self.gsub_internal_yield_matches(orig, matches)
       return nil if matches.empty?
