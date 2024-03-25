@@ -1,3 +1,8 @@
+# 24.0.1
+
+Bug fixes:
+* Fix `rb_global_variable()` for `Float` and bignum values during the `Init_` function (#3478, @eregon).
+
 # 24.0.0
 
 New features:
