@@ -2811,6 +2811,12 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitNumberedReferenceReadNode(Nodes.NumberedReferenceReadNode node) {
+        // numbered references that are too large, e.g. $4294967296, are always `nil`
+        if (node.number == 0) {
+            final RubyNode rubyNode = new NilLiteralNode();
+            return assignPositionAndFlags(node, rubyNode);
+        }
+
         final RubyNode lastMatchNode = ReadGlobalVariableNodeGen.create("$~");
         final RubyNode rubyNode = new ReadMatchReferenceNodes.ReadNthMatchNode(lastMatchNode, node.number);
 
