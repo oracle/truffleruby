@@ -68,7 +68,7 @@ public abstract class PerformanceWarningNode extends RubyBaseNode {
                 .getTopMostUserSourceSection(getEncapsulatingSourceSection());
 
         final String displayedWarning = String.format(
-                "%s: warning: %s\n",
+                "%s: warning: %s%n",
                 getContext().fileLine(userSourceSection),
                 message);
 
