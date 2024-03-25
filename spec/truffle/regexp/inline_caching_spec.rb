@@ -10,7 +10,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { TruffleRuby.jit? } do # this test needs splitting
+# This test requires splitting (--engine.Splitting) which is only available with the OptimizedTruffleRuntime.
+# It fails under --experimental-engine-caching because CallInternalMethodNode does not have cached specializations for
+# !isSingleContext() and so ends up using an IndirectCallNode which prevents splitting.
+guard -> { TruffleRuby.jit? && !Truffle::Boot.get_option('experimental-engine-caching') } do
   describe "Inline caching for dynamically-created Regexp works for" do
     before :each do
       @performance_warnings, Warning[:performance] = Warning[:performance], true
