@@ -76,7 +76,7 @@ GEM
     racc (1.6.2)
     rake (13.0.6)
     rbs (2.8.2)
-    rdoc (6.5.0)
+    rdoc (6.5.1.1)
       psych (>= 4.0.0)
     readline (0.0.3)
       reline
@@ -178,7 +178,7 @@ DEPENDENCIES
   racc (= 1.6.2)
   rake (= 13.0.6)
   rbs (= 2.8.2)
-  rdoc (= 6.5.0)
+  rdoc (= 6.5.1.1)
   readline (= 0.0.3)
   readline-ext (= 0.1.5)
   reline (= 0.3.2)
