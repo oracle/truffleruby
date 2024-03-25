@@ -353,7 +353,7 @@ public final class FiberManager {
     }
 
     public void cleanup(RubyFiber fiber, Thread javaThread) {
-        context.getValueWrapperManager().cleanup(context, fiber.handleData);
+        context.getValueWrapperManager().cleanup(fiber.handleData);
 
         fiber.status = FiberStatus.TERMINATED;
 

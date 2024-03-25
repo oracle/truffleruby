@@ -1791,11 +1791,10 @@ public abstract class CExtNodes {
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        Object wrapInt(Object value,
+        ValueWrapper wrap(Object value,
                 @Cached WrapNode wrapNode) {
             return wrapNode.execute(value);
         }
-
     }
 
     @Primitive(name = "cext_unwrap")
@@ -1820,6 +1819,21 @@ public abstract class CExtNodes {
         }
     }
 
+    @Primitive(name = "cext_to_wrapper")
+    public abstract static class CExtToWrapperNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        ValueWrapper toWrapper(Object value,
+                @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
+            ValueWrapper wrapper = toWrapperNode.execute(this, value);
+            if (wrapper == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw CompilerDirectives.shouldNotReachHere("ValueWrapper not found for " + value);
+            }
+            return wrapper;
+        }
+    }
+
+
     @CoreMethod(names = "create_mark_list", onSingleton = true, required = 1)
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
@@ -1837,7 +1851,7 @@ public abstract class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        Object addToMarkList(Object markedObject,
+        Object rbGCMark(Object markedObject,
                 @Cached InlinedBranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(this, markedObject);

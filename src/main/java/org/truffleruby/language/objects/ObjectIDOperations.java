@@ -54,6 +54,7 @@ public abstract class ObjectIDOperations {
 
     // primitive => ID
 
+    /** Whether the long fits as a tagged pointer (fixnum) in C */
     public static boolean isSmallFixnum(long fixnum) {
         // TODO: optimize
         return MIN_FIXNUM_VALUE <= fixnum && fixnum <= MAX_FIXNUM_VALUE;

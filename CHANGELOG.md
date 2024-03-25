@@ -7,6 +7,7 @@ Bug fixes:
 * Add missing thread-safe objects write barriers for `TruffleRuby::ConcurrentMap` (#3179, @eregon).
 * Fix repeated calling of methods `Dir#{each,each_child,children}` (#3464, @andrykonchin).
 * Fix `IO#{wait,wait_readable,wait_writable}` methods and switch the current thread into a sleep state (@andrykonchin).
+* Fix `rb_global_variable()` for `Float` and bignum values during the `Init_` function (#3478, @eregon).
 
 Compatibility:
 * Move `IO#wait_readable`, `IO#wait_writable`, `IO#wait_priority` and `IO#wait` into core library (@andrykonchin).

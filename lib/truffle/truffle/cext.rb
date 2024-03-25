@@ -214,11 +214,15 @@ module Truffle::CExt
     function_name = "Init_#{name}"
 
     init_function = library[function_name]
-    begin
-      Primitive.call_with_c_mutex_and_frame(VOID_TO_VOID_WRAPPER, [init_function], nil, nil)
-    ensure
-      resolve_registered_addresses
-    end
+
+    Primitive.call_with_c_mutex_and_frame(-> {
+      begin
+        Primitive.interop_execute(VOID_TO_VOID_WRAPPER, [init_function])
+      ensure
+        # Resolve while inside the ExtensionCallStackEntry to ensure the preservedObjects are still all alive
+        resolve_registered_addresses
+      end
+    }, [], nil, nil)
   end
 
   def supported?
@@ -2238,15 +2242,19 @@ module Truffle::CExt
     else
       # Read it immediately if outside Init_ function.
       # This assumes the value is already set when this is called and does not change after that.
-      GC_REGISTERED_ADDRESSES[address] = LIBTRUFFLERUBY.rb_tr_read_VALUE_pointer(address)
+      register_address(address)
     end
   end
 
   def resolve_registered_addresses
-    c_global_variables = Primitive.fiber_c_global_variables
-    c_global_variables.each do |address|
-      GC_REGISTERED_ADDRESSES[address] = LIBTRUFFLERUBY.rb_tr_read_VALUE_pointer(address)
-    end
+    Primitive.fiber_c_global_variables.each { |address| register_address(address) }
+  end
+
+  private def register_address(address)
+    # We save the ValueWrapper here and not the actual value/object, this is important for primitives like double and
+    # not-fixnum-long, as we need to preserve the handle by preserving the ValueWrapper of that handle.
+    # For those cases the primitive cannot itself reference its ValueWrapper, unlike RubyDynamicObject and ImmutableRubyObject.
+    GC_REGISTERED_ADDRESSES[address] = Primitive.cext_to_wrapper LIBTRUFFLERUBY.rb_tr_read_VALUE_pointer(address)
   end
 
   def rb_gc_unregister_address(address)

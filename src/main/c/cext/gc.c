@@ -69,8 +69,8 @@ void rb_gc_register_mark_object(VALUE obj) {
 }
 
 void* rb_tr_read_VALUE_pointer(VALUE *pointer) {
-  VALUE value = *pointer;
-  return rb_tr_unwrap(value);
+  // No rb_tr_unwrap() here as the caller actually wants a ValueWrapper or a handle
+  return *pointer;
 }
 
 int rb_during_gc(void) {

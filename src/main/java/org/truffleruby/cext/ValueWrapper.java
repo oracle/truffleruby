@@ -74,10 +74,10 @@ public final class ValueWrapper implements TruffleObject {
     @Override
     public String toString() {
         if (object != null) {
-            return object.toString();
+            return "ValueWrapper[" + object + "]";
         } else {
             assert ValueWrapperManager.isTaggedLong(handle);
-            return Long.toString(ValueWrapperManager.untagTaggedLong(handle));
+            return "ValueWrapper[" + ValueWrapperManager.untagTaggedLong(handle) + "]";
         }
     }
 
@@ -92,7 +92,7 @@ public final class ValueWrapper implements TruffleObject {
                 throw TranslateInteropExceptionNode.executeUncached(e);
             }
         } else {
-            return "VALUE: " + toString();
+            return "VALUE: " + this;
         }
     }
 
