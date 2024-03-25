@@ -68,43 +68,55 @@ public abstract class RegexpNodes {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
 
+        @SuppressWarnings("truffle-static-method")
         @Specialization(
                 guards = {
-                        "libRaw.isRubyString(raw)",
-                        "rawEqualNode.execute(node, libRaw, raw, cachedRaw, cachedRawEnc)" },
+                        "libString.isRubyString(raw)",
+                        "equalNode.execute(node, libString, raw, cachedString, cachedEnc)" },
                 limit = "getDefaultCacheLimit()")
-        static RubyString quoteStringCached(Object raw,
-                @Cached @Shared RubyStringLibrary libRaw,
-                @Cached("asTruffleStringUncached(raw)") TruffleString cachedRaw,
-                @Cached("libRaw.getEncoding(raw)") RubyEncoding cachedRawEnc,
-                @Cached StringHelperNodes.EqualSameEncodingNode rawEqualNode,
+        RubyString quoteStringCached(Object raw,
+                @Cached @Shared RubyStringLibrary libString,
+                @Cached("asTruffleStringUncached(raw)") TruffleString cachedString,
+                @Cached("libString.getEncoding(raw)") RubyEncoding cachedEnc,
+                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Bind("this") Node node,
-                @Cached("quote(libRaw, raw)") RubyString quotedString) {
-            return quotedString;
+                @Cached("quote(libString, raw)") TStringWithEncoding quotedString) {
+            return createString(quotedString);
         }
 
-        @Specialization(replaces = "quoteStringCached", guards = "libRaw.isRubyString(raw)")
+        @Specialization(replaces = "quoteStringCached", guards = "libString.isRubyString(raw)")
         RubyString quoteString(Object raw,
-                @Cached @Shared RubyStringLibrary libRaw) {
-            return quote(libRaw, raw);
+                @Cached @Shared RubyStringLibrary libString) {
+            return createString(quote(libString, raw));
         }
 
-        @Specialization
+        @Specialization(guards = "raw == cachedSymbol", limit = "getDefaultCacheLimit()")
+        RubyString quoteSymbolCached(RubySymbol raw,
+                @Cached("raw") RubySymbol cachedSymbol,
+                @Cached("quote(cachedSymbol)") TStringWithEncoding quotedString) {
+            return createString(quotedString);
+        }
+
+        @Specialization(replaces = "quoteSymbolCached")
         RubyString quoteSymbol(RubySymbol raw) {
-            return createString(ClassicRegexp.quote19(new ATStringWithEncoding(raw.tstring, raw.encoding)));
+            return createString(quote(raw));
         }
 
-        @Specialization(guards = { "!libRaw.isRubyString(raw)", "!isRubySymbol(raw)" })
+        @Specialization(guards = { "!libString.isRubyString(raw)", "!isRubySymbol(raw)" })
         static RubyString quoteGeneric(Object raw,
-                @Cached @Shared RubyStringLibrary libRaw,
+                @Cached @Shared RubyStringLibrary libString,
                 @Cached ToStrNode toStrNode,
                 @Cached QuoteNode recursive,
                 @Bind("this") Node node) {
             return recursive.execute(toStrNode.execute(node, raw));
         }
 
-        RubyString quote(RubyStringLibrary strings, Object string) {
-            return createString(ClassicRegexp.quote19(new ATStringWithEncoding(strings, string)));
+        TStringWithEncoding quote(RubyStringLibrary strings, Object string) {
+            return ClassicRegexp.quote19(new ATStringWithEncoding(strings, string));
+        }
+
+        TStringWithEncoding quote(RubySymbol symbol) {
+            return ClassicRegexp.quote19(new ATStringWithEncoding(symbol.tstring, symbol.encoding));
         }
 
     }

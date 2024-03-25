@@ -96,7 +96,7 @@ guard -> { TruffleRuby.jit? && !Truffle::Boot.get_option('experimental-engine-ca
       # Check that calling it with many different inputs has the warning
       -> {
         ("a".."z").each do |pattern|
-          / #{pattern} /
+          /#{pattern}/
         end
       }.should complain(/unstable interpolated regexps/)
     end
@@ -126,6 +126,8 @@ guard -> { TruffleRuby.jit? && !Truffle::Boot.get_option('experimental-engine-ca
     end
 
     it "String#sub" do
+      # Don't use String explicitly to trigger Truffle::Type.coerce_to_regexp. String argument is handled with
+      # Primitive.matchdata_create_single_group and isn't converted to Regexp immediately.
       pattern = Class.new do
         def initialize(string) = @string = string
         def to_str = @string
@@ -154,6 +156,8 @@ guard -> { TruffleRuby.jit? && !Truffle::Boot.get_option('experimental-engine-ca
     end
 
     it "String#sub!" do
+      # Don't use String explicitly to trigger Truffle::Type.coerce_to_regexp. String argument is handled with
+      # Primitive.matchdata_create_single_group and isn't converted to Regexp immediately.
       pattern = Class.new do
         def initialize(string) = @string = string
         def to_str = @string
@@ -182,6 +186,8 @@ guard -> { TruffleRuby.jit? && !Truffle::Boot.get_option('experimental-engine-ca
     end
 
     it "String#gsub" do
+      # Don't use String explicitly to trigger Truffle::Type.coerce_to_regexp. String argument is handled with
+      # Primitive.matchdata_create_single_group and isn't converted to Regexp immediately.
       pattern = Class.new do
         def initialize(string) = @string = string
         def to_str = @string
@@ -210,6 +216,8 @@ guard -> { TruffleRuby.jit? && !Truffle::Boot.get_option('experimental-engine-ca
     end
 
     it "String#gsub!" do
+      # Don't use String explicitly to trigger Truffle::Type.coerce_to_regexp. String argument is handled with
+      # Primitive.matchdata_create_single_group and isn't converted to Regexp immediately.
       pattern = Class.new do
         def initialize(string) = @string = string
         def to_str = @string
