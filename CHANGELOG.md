@@ -15,6 +15,7 @@ Compatibility:
 * Fix evaluation order for multi-assignment and evaluate left-hand-side before right-hand-side (@andrykonchin).
 
 Performance:
+* Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
 
 Changes:
 
