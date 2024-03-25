@@ -357,9 +357,7 @@ public final class ValueWrapperManager {
 
     public static HandleBlock allocateNewBlock(RubyContext context, RubyLanguage language) {
         HandleBlockHolder holder = getBlockHolder(context, language);
-        HandleBlock block = holder.handleBlock;
-
-        block = context.getValueWrapperManager().addToBlockMap(context, language);
+        HandleBlock block = context.getValueWrapperManager().addToBlockMap(context, language);
 
         holder.handleBlock = block;
         return block;
