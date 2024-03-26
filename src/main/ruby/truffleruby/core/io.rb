@@ -1673,6 +1673,8 @@ class IO
       str = IO.read_encode self, read_all
       return str unless buffer
 
+      # intentionally don't preserve buffer encoding
+      # see https://bugs.ruby-lang.org/issues/20416
       return buffer.replace(str)
     end
 
@@ -1753,10 +1755,14 @@ class IO
     str = Truffle::POSIX.read_string_nonblock(self, size, exception)
 
     case str
-    when Symbol
+    when Symbol # :wait_readable in case of EAGAIN_ERRNO
       str
     when String
-      buffer ? buffer.replace(str) : str
+      if buffer
+        buffer.replace str.force_encoding(buffer.encoding)
+      else
+        str
+      end
     else # EOF
       if exception
         raise EOFError, 'end of file reached'
@@ -1871,8 +1877,7 @@ class IO
         raise EOFError if Primitive.nil? data
       end
 
-      buffer.replace(data)
-      buffer
+      buffer.replace data.force_encoding(buffer.encoding)
     else
       return +'' if size == 0
 
@@ -2196,20 +2201,23 @@ class IO
   #
   #  @todo  Improve reading into provided buffer.
   #
-  def sysread(number_of_bytes, buffer = undefined)
+  def sysread(number_of_bytes, buffer = nil)
     ensure_open_and_readable
     flush
     raise IOError unless @ibuffer.empty?
+
+    buffer = StringValue(buffer) if buffer
 
     str, errno = Truffle::POSIX.read_string(self, number_of_bytes)
     Errno.handle_errno(errno) unless errno == 0
 
     raise EOFError if Primitive.nil? str
 
-    unless Primitive.undefined? buffer
-      StringValue(buffer).replace str
+    if buffer
+      buffer.replace str.force_encoding(buffer.encoding)
+    else
+      str
     end
-    str
   end
 
   ##

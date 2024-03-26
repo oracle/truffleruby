@@ -9,6 +9,7 @@ Bug fixes:
 * Fix `IO#{wait,wait_readable,wait_writable}` methods and switch the current thread into a sleep state (@andrykonchin).
 * Fix `rb_global_variable()` for `Float` and bignum values during the `Init_` function (#3478, @eregon).
 * Fix parsing literal floats when the locale does not use `.` for the decimal separator (e.g. `LANG=fr_FR.UTF-8`) (#3512, @eregon).
+* Fix `IO#{read_nonblock,readpartial,sysread}` and preserve a provided buffer's encoding (#3506, @andrykonchyn).
 
 Compatibility:
 * Move `IO#wait_readable`, `IO#wait_writable`, `IO#wait_priority` and `IO#wait` into core library (@andrykonchin).
