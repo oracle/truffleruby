@@ -15,7 +15,7 @@ import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.string.TStringWithEncoding;
-import org.truffleruby.language.NotOptimizedWarningNode;
+import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -103,8 +103,9 @@ public final class InterpolatedRegexpNode extends RubyContextSourceNode {
 
         @Specialization(replaces = "fast")
         Object slow(TStringWithEncoding[] parts,
-                @Cached NotOptimizedWarningNode notOptimizedWarningNode) {
-            notOptimizedWarningNode.warn("unstable interpolated regexps are not optimized");
+                @Cached PerformanceWarningNode performanceWarningNode) {
+            performanceWarningNode.warn(
+                    "unstable interpolated regexps cause deoptimization loops which hurt performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
             return createRegexp(parts);
         }
 

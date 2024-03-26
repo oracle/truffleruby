@@ -3,6 +3,9 @@
 Bug fixes:
 * Fix `rb_global_variable()` for `Float` and bignum values during the `Init_` function (#3478, @eregon).
 
+Performance:
+* Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
+
 # 24.0.0
 
 New features:
