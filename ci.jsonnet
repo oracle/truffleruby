@@ -14,7 +14,7 @@ local overlay = "5f8343f15cac08e5b60c54a08bde56b8d88b0aa0";
 
 # For debugging: generated builds will be restricted to those listed in
 # the array. No restriction is applied when it is empty.
-local restrict_builds_to = [];
+local restrict_builds_to = ["ruby-test-specs-on-cruby"];
 
 # Import support functions, they can be replaced with identity functions
 # and it would still work.
