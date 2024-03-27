@@ -2460,7 +2460,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitInterpolatedXStringNode(Nodes.InterpolatedXStringNode node) {
         // replace `` literal with a Kernel#` method call
 
-        var stringNode = new Nodes.InterpolatedStringNode(node.parts, node.startOffset, node.length);
+        var stringNode = new Nodes.InterpolatedStringNode(NO_FLAGS, node.parts, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
 
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
@@ -2518,15 +2518,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         final ToSNode[] children = new ToSNode[parts.length];
 
         for (int i = 0; i < parts.length; i++) {
-            final RubyNode expression;
-
-            if (parts[i] instanceof Nodes.StringNode stringNode) {
-                // use frozen String literals to avoid extra allocations in the interpreter
-                // it will be addressed in Prism (see https://github.com/ruby/prism/issues/2532)
-                expression = visitStringNode(stringNode, true);
-            } else {
-                expression = parts[i].accept(this);
-            }
+            RubyNode expression = parts[i].accept(this);
             children[i] = ToSNodeGen.create(expression);
         }
 
@@ -3260,10 +3252,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitStringNode(Nodes.StringNode node) {
-        return visitStringNode(node, node.isFrozen());
-    }
-
-    public RubyNode visitStringNode(Nodes.StringNode node, boolean frozen) {
         final RubyNode rubyNode;
         final RubyEncoding encoding;
 
@@ -3277,7 +3265,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         byte[] bytes = node.unescaped;
 
-        if (!frozen) {
+        if (!node.isFrozen()) {
             final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
