@@ -6,7 +6,7 @@ source test/truffle/common.sh.inc
 jt mx --dy /vm,/graal-js sversions
 
 jt mx --env jvm-js ruby_maven_deploy_public
-maven_repo="$(dirname "$(pwd)")/graal/sdk/mxbuild/jdk21/mx.sdk/public-maven-repo"
+maven_repo=$(echo "$(dirname "$(pwd)")"/graal/sdk/mxbuild/jdk*/mx.sdk/public-maven-repo)
 if [ ! -d "$maven_repo" ]; then
     echo "Maven repo not at $maven_repo ?"
     exit 2
