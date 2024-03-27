@@ -100,7 +100,8 @@ public abstract class ParsingOptions {
     private static <T extends Enum<T>> byte serializeEnumSet(EnumSet<T> set) {
         byte result = 0;
         for (T value : set) {
-            result |= 1 << value.ordinal();
+            assert (1 << value.ordinal()) <= Byte.MAX_VALUE;
+            result |= (byte) (1 << value.ordinal());
         }
         return result;
     }
