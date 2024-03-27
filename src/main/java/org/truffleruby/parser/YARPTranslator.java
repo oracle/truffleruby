@@ -2393,8 +2393,8 @@ public class YARPTranslator extends YARPBaseTranslator {
         if (!options.isKcodeDefault()) { // explicit encoding
             encoding = encodingAndOptions.encoding;
         } else {
-            // use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
-            // see https://github.com/ruby/prism/issues/1997
+            // Use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
+            // Needed until https://github.com/ruby/prism/issues/2620 is fixed
             // The logic comes from ParserSupport#createMaster
             encoding = Encodings.BINARY;
         }
@@ -3008,7 +3008,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final RubyRegexp regexp;
         try {
-            // Needed until https://github.com/ruby/prism/issues/1997 is fixed
+            // Needed until https://github.com/ruby/prism/issues/2620 is fixed
             sourceWithEnc = ClassicRegexp.setRegexpEncoding(sourceWithEnc, options, sourceEncoding, currentNode);
 
             regexp = RubyRegexp.create(language, sourceWithEnc.tstring, sourceWithEnc.encoding,
@@ -3058,15 +3058,16 @@ public class YARPTranslator extends YARPBaseTranslator {
             explicitEncoding = false;
         }
 
-        if (!explicitEncoding) {
-            if (flags.isForcedBinaryEncoding()) {
-                regexpEncoding = Encodings.BINARY;
-            } else if (flags.isForcedUsAsciiEncoding()) {
-                regexpEncoding = Encodings.US_ASCII;
-            } else if (flags.isForcedUtf8Encoding()) {
-                regexpEncoding = Encodings.UTF_8;
-            }
-        }
+        // Don't check forced encoding flags until https://github.com/ruby/prism/issues/2620 is fixed
+        // if (!explicitEncoding) {
+        //     if (flags.isForcedBinaryEncoding()) {
+        //         regexpEncoding = Encodings.BINARY;
+        //     } else if (flags.isForcedUsAsciiEncoding()) {
+        //         regexpEncoding = Encodings.US_ASCII;
+        //     } else if (flags.isForcedUtf8Encoding()) {
+        //         regexpEncoding = Encodings.UTF_8;
+        //     }
+        // }
 
         final RegexpOptions options = new RegexpOptions(kcode, fixed, flags.isOnce(), flags.isExtended(),
                 flags.isMultiLine(), flags.isIgnoreCase(), flags.isAscii8bit(), !explicitEncoding, true);
