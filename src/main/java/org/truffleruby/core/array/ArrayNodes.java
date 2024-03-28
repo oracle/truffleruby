@@ -1305,27 +1305,30 @@ public abstract class ArrayNodes {
 
         // Uses block and no Symbol
 
-        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
-        Object injectEmptyArray(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block) {
-            return initialOrSymbol;
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbolOrString)" })
+        Object injectEmptyArray(
+                RubyArray array, Object initialOrSymbolOrString, NotProvided symbolOrString, RubyProc block) {
+            return initialOrSymbolOrString;
         }
 
         @Specialization(guards = { "isEmptyArray(array)" })
         Object injectEmptyArrayNoInitial(
-                RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block) {
+                RubyArray array, NotProvided initialOrSymbolOrString, NotProvided symbolOrString, RubyProc block) {
             return nil;
         }
 
-        @Specialization(guards = { "!isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
-        Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
+        @Specialization(guards = { "!isEmptyArray(array)", "wasProvided(initialOrSymbolOrString)" })
+        Object injectWithInitial(
+                RubyArray array, Object initialOrSymbolOrString, NotProvided symbolOrString, RubyProc block,
                 @Cached @Shared ArrayEachIteratorNode iteratorNode) {
-            return injectBlockHelper(array, block, initialOrSymbol, 0, iteratorNode);
+            return injectBlockHelper(array, block, initialOrSymbolOrString, 0, iteratorNode);
         }
 
         @Specialization(
                 guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
-        Object injectNoInitial(RubyArray array, NotProvided initialOrSymbol, NotProvided symbol, RubyProc block,
+        Object injectNoInitial(
+                RubyArray array, NotProvided initialOrSymbolOrString, NotProvided symbolOrString, RubyProc block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared ArrayEachIteratorNode iteratorNode) {
@@ -1353,23 +1356,28 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isEmptyArray(array)" })
         Object injectSymbolEmptyArrayNoInitial(
-                RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block) {
+                RubyArray array, RubySymbol initialOrSymbolOrString, NotProvided symbolOrString, Nil block) {
             return nil;
         }
 
         @Specialization(
                 guards = {
                         "isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)" })
-        Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block) {
-            return initialOrSymbol;
+                        "wasProvided(initialOrSymbolOrString)" })
+        Object injectSymbolEmptyArray(
+                RubyArray array, Object initialOrSymbolOrString, RubySymbol symbolOrString, Nil block) {
+            return initialOrSymbolOrString;
         }
 
         @Specialization(
                 guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         Object injectSymbolNoInitial(
-                VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
+                VirtualFrame frame,
+                RubyArray array,
+                RubySymbol initialOrSymbolOrString,
+                NotProvided symbolOrString,
+                Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
@@ -1378,7 +1386,7 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.execute(this, initialOrSymbol),
+                    toJavaString.execute(this, initialOrSymbolOrString),
                     stores,
                     store,
                     stores.read(store, 0),
@@ -1390,10 +1398,14 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = {
                         "!isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)" },
+                        "wasProvided(initialOrSymbolOrString)" },
                 limit = "storageStrategyLimit()")
         Object injectSymbolWithInitial(
-                VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
+                VirtualFrame frame,
+                RubyArray array,
+                Object initialOrSymbolOrString,
+                RubySymbol symbolOrString,
+                Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
@@ -1402,23 +1414,95 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.execute(this, symbol),
+                    toJavaString.execute(this, symbolOrString),
                     stores,
                     store,
-                    initialOrSymbol,
+                    initialOrSymbolOrString,
                     0,
                     arraySizeProfile,
                     loopProfile);
         }
 
-        private Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbol,
+        // Uses String and no block
+
+        @Specialization(guards = { "isEmptyArray(array)" })
+        Object injectStringEmptyArrayNoInitial(
+                RubyArray array, RubyString initialOrSymbolOrString, NotProvided symbolOrString, Nil block) {
+            return nil;
+        }
+
+        @Specialization(
+                guards = {
+                        "isEmptyArray(array)",
+                        "wasProvided(initialOrSymbolOrString)" })
+        Object injectStringEmptyArray(
+                RubyArray array, Object initialOrSymbolOrString, RubyString symbolOrString, Nil block) {
+            return initialOrSymbolOrString;
+        }
+
+        @Specialization(
+                guards = { "!isEmptyArray(array)" },
+                limit = "storageStrategyLimit()")
+        Object injectStringNoInitial(
+                VirtualFrame frame,
+                RubyArray array,
+                RubyString initialOrSymbolOrString,
+                NotProvided symbolOrString,
+                Nil block,
+                @Bind("array.getStore()") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached @Shared IntValueProfile arraySizeProfile,
+                @Cached @Exclusive LoopConditionProfile loopProfile,
+                @Cached @Shared ToJavaStringNode toJavaString) {
+            return injectSymbolHelper(
+                    frame,
+                    array,
+                    toJavaString.execute(this, initialOrSymbolOrString),
+                    stores,
+                    store,
+                    stores.read(store, 0),
+                    1,
+                    arraySizeProfile,
+                    loopProfile);
+        }
+
+        @Specialization(
+                guards = {
+                        "!isEmptyArray(array)",
+                        "wasProvided(initialOrSymbolOrString)" },
+                limit = "storageStrategyLimit()")
+        Object injectSymbolWithInitial(
+                VirtualFrame frame,
+                RubyArray array,
+                Object initialOrSymbolOrString,
+                RubyString symbolOrString,
+                Nil block,
+                @Bind("array.getStore()") Object store,
+                @CachedLibrary("store") ArrayStoreLibrary stores,
+                @Cached @Shared IntValueProfile arraySizeProfile,
+                @Cached @Exclusive LoopConditionProfile loopProfile,
+                @Cached @Shared ToJavaStringNode toJavaString) {
+            return injectSymbolHelper(
+                    frame,
+                    array,
+                    toJavaString.execute(this, symbolOrString),
+                    stores,
+                    store,
+                    initialOrSymbolOrString,
+                    0,
+                    arraySizeProfile,
+                    loopProfile);
+        }
+
+        private Object injectSymbolHelper(VirtualFrame frame, RubyArray array, String symbolOrString,
                 ArrayStoreLibrary stores, Object store, Object initial, int start,
                 IntValueProfile arraySizeProfile, LoopConditionProfile loopProfile) {
             Object accumulator = initial;
             int n = start;
             try {
                 for (; loopProfile.inject(n < arraySizeProfile.profile(array.size)); n++) {
-                    accumulator = dispatch.callWithFrame(PUBLIC, frame, accumulator, symbol, stores.read(store, n));
+                    accumulator = dispatch.callWithFrame(PUBLIC, frame, accumulator, symbolOrString,
+                            stores.read(store, n));
                     TruffleSafepoint.poll(this);
                 }
             } finally {
