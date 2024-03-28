@@ -2510,7 +2510,8 @@ public class YARPTranslator extends YARPBaseTranslator {
         int start = parts[0].startOffset;
         var last = ArrayUtils.getLast(parts);
         int length = last.endOffset() - start;
-        return new Nodes.StringNode(NO_FLAGS, concatenated, start, length);
+        short flags = node.isFrozen() ? Nodes.StringFlags.FROZEN : NO_FLAGS;
+        return new Nodes.StringNode(flags, concatenated, start, length);
     }
 
     /** Translate parts of interpolated String, Symbol or Regexp */
