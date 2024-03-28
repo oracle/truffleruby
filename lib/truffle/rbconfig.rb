@@ -135,10 +135,11 @@ module RbConfig
 
   # Set extra flags needed for --building-core-cexts
   if Truffle::Boot.get_option 'building-core-cexts'
-    libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{soext}"
-    libtrufflerubytrampoline = "#{ruby_home}/src/main/c/cext-trampoline/libtrufflerubytrampoline.#{soext}"
+    repo = Truffle::System.get_java_property 'truffleruby.repository'
+    libtruffleruby = "#{repo}/src/main/c/cext/libtruffleruby.#{soext}"
+    libtrufflerubytrampoline = "#{repo}/src/main/c/cext-trampoline/libtrufflerubytrampoline.#{soext}"
 
-    relative_debug_paths = " -fdebug-prefix-map=#{ruby_home}=."
+    relative_debug_paths = " -fdebug-prefix-map=#{repo}=."
     cppflags << relative_debug_paths
 
     warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
