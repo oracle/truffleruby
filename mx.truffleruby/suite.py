@@ -404,8 +404,8 @@ suite = {
                 "src/main/c/ripper/<extsuffix:ripper>",
                 "src/main/c/syslog/<extsuffix:syslog>",
                 "src/main/c/zlib/<extsuffix:zlib>",
-                "lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
-                "lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
+                "src/main/c/debug/<extsuffix:debug>",
+                "src/main/c/rbs/<extsuffix:rbs_extension>",
             ],
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -696,14 +696,10 @@ suite = {
             "fileListPurpose": 'native-image-resources',
             "native": True,
             "platformDependent": False,
-            # The project org.truffleruby.cext touches lib/gems/gems/debug-1.7.1/ext
-            # and lib/gems/extensions/$ARCH-$OS/$ABI/rbs-2.8.2/gem.build_complete.
-            # This causes this layout distribution to be rebuilt even though nothing changes in the result.
-            # To avoid that we force org.truffleruby.cext to complete first.
-            "dependencies": ["org.truffleruby.cext"],
             "layout": {
                 "lib/": [
                     "file:lib/json",
+                    "file:lib/gems",
                     "file:lib/mri",
                     "file:lib/patches",
                     "file:lib/truffle",
@@ -713,23 +709,6 @@ suite = {
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
-                ],
-                "lib/gems/": [
-                    {
-                        "source_type": "file",
-                        "path": "lib/gems/*",
-                        "exclude": [
-                            # The debug and rbs gems have native extensions.
-                            # Do not ship ext/ as it includes an unnecessary copy of the .so and intermediate files.
-                            # The .so in lib/ are copied in the platform-specific distribution.
-                            # <extsuffix:...> does not work in exclude, so use .* here (.{so,bundle} does not work either).
-                            "lib/gems/extensions",
-                            "lib/gems/gems/debug-1.7.1/ext",
-                            "lib/gems/gems/debug-1.7.1/lib/debug/debug.*",
-                            "lib/gems/gems/rbs-2.8.2/ext",
-                            "lib/gems/gems/rbs-2.8.2/lib/rbs_extension.*",
-                        ],
-                    },
                 ],
             },
             "license": [
@@ -759,9 +738,12 @@ suite = {
                 # Create the complete files to let RubyGems know the gems are fully built
                 "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.7.1/gem.build_complete": "string:",
                 "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-2.8.2/gem.build_complete": "string:",
-                # The platform-specific files from debug and rbs, see comment above
-                "lib/gems/gems/debug-1.7.1/lib/debug/": "dependency:org.truffleruby.cext/lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
-                "lib/gems/gems/rbs-2.8.2/lib/": "dependency:org.truffleruby.cext/lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
+                "lib/gems/gems/debug-1.7.1/lib/debug/": [
+                    "dependency:org.truffleruby.cext/src/main/c/debug/<extsuffix:debug>",
+                ],
+                "lib/gems/gems/rbs-2.8.2/lib/": [
+                    "dependency:org.truffleruby.cext/src/main/c/rbs/<extsuffix:rbs_extension>",
+                ],
                 "lib/mri/": [
                     "dependency:org.truffleruby.cext/src/main/c/bigdecimal/<extsuffix:bigdecimal>",
                     "dependency:org.truffleruby.cext/src/main/c/date/<extsuffix:date_core>",

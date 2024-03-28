@@ -32,22 +32,15 @@ BASIC_EXTCONF_DEPS := $(BASIC_DEPS) $(RBCONFIG) $(MKMF)
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) | $(LIBTRUFFLERUBY)
 
-DEBUG_GEM := $(ROOT)/lib/gems/gems/debug-1.7.1
-DEBUG_GEM_EXT := $(DEBUG_GEM)/ext/debug
-DEBUG_GEM_EXT_SO := $(DEBUG_GEM_EXT)/debug.$(DLEXT)
-DEBUG_GEM_LIB_SO := $(DEBUG_GEM)/lib/debug/debug.$(DLEXT)
-
-RBS_GEM := $(ROOT)/lib/gems/gems/rbs-2.8.2
-RBS_GEM_EXT := $(RBS_GEM)/ext/rbs_extension
-RBS_GEM_EXT_SO := $(RBS_GEM_EXT)/rbs_extension.$(DLEXT)
-RBS_GEM_LIB_SO := $(RBS_GEM)/lib/rbs_extension.$(DLEXT)
+DEBUG_GEM_EXT := $(ROOT)/lib/gems/gems/debug-1.7.1/ext/debug
+RBS_GEM_EXT := $(ROOT)/lib/gems/gems/rbs-2.8.2/ext/rbs_extension
 
 IF_EXTCONF_FAIL := ( echo "`pwd`/extconf.rb failed:" 1>&2 && cat mkmf.log && false )
 
 all: $(TRAMPOLINE) $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT) \
 			psych/psych.$(DLEXT) ripper/ripper.$(DLEXT) syslog/syslog.$(DLEXT) nkf/nkf.$(DLEXT) \
 			bigdecimal/bigdecimal.$(DLEXT) date/date_core.$(DLEXT) io-console/console.$(DLEXT) etc/etc.$(DLEXT) \
-			rbconfig-sizeof/sizeof.$(DLEXT) $(DEBUG_GEM_LIB_SO) $(RBS_GEM_LIB_SO)
+			rbconfig-sizeof/sizeof.$(DLEXT) debug/debug.$(DLEXT) rbs/rbs_extension.$(DLEXT)
 
 clean: clean_cexts clean_truffleposix clean_trampoline
 
@@ -70,8 +63,8 @@ clean_cexts:
 	$(Q) rm -f io-console/Makefile io-console/*.o io-console/console.$(DLEXT)
 	$(Q) rm -f etc/Makefile etc/*.o etc/etc.$(DLEXT) etc/constdefs.h
 	$(Q) rm -f rbconfig-sizeof/Makefile rbconfig-sizeof/*.o rbconfig-sizeof/sizeof.$(DLEXT)
-	$(Q) rm -f $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.o $(DEBUG_GEM_EXT_SO) $(DEBUG_GEM_LIB_SO)
-	$(Q) rm -f $(RBS_GEM_EXT)/Makefile $(RBS_GEM_EXT)/*.o $(RBS_GEM_EXT_SO) $(RBS_GEM_LIB_SO)
+	$(Q) rm -f debug/Makefile debug/*.o debug/debug.$(DLEXT)
+	$(Q) rm -f rbs/Makefile rbs/*.o rbs/rbs_extension.$(DLEXT)
 
 # spawn-helper
 $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
@@ -178,21 +171,24 @@ psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h
 	$(Q) cd psych && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # debug bundled gem
-$(DEBUG_GEM_EXT)/Makefile: $(DEBUG_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
-	$(Q) cd $(DEBUG_GEM_EXT) && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+debug/extconf.rb: $(DEBUG_GEM_EXT)/extconf.rb $(DEBUG_GEM_EXT)/*.c
+	$(Q) mkdir -p debug
+	$(Q) cd debug && cp $(DEBUG_GEM_EXT)/*.{rb,c} .
 
-$(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c
-	$(Q) cd $(DEBUG_GEM_EXT) && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+debug/Makefile: debug/extconf.rb $(EXTCONF_DEPS)
+	$(Q) cd debug && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-$(DEBUG_GEM_LIB_SO): $(DEBUG_GEM_EXT_SO)
-	$(Q) cp $< $@
+debug/debug.$(DLEXT): debug/Makefile
+	$(Q) cd debug && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
 
 # rbs bundled gem
-$(RBS_GEM_EXT)/Makefile: $(RBS_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
-	$(Q) cd $(RBS_GEM_EXT) && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
+rbs/extconf.rb: $(RBS_GEM_EXT)/extconf.rb $(RBS_GEM_EXT)/*.c $(RBS_GEM_EXT)/*.h
+	$(Q) mkdir -p rbs
+	$(Q) cd rbs && cp $(RBS_GEM_EXT)/*.{rb,c,h} .
 
-$(RBS_GEM_EXT_SO): $(RBS_GEM_EXT)/Makefile $(RBS_GEM_EXT)/*.c $(RBS_GEM_EXT)/*.h
-	$(Q) cd $(RBS_GEM_EXT) && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+rbs/Makefile: rbs/extconf.rb $(EXTCONF_DEPS)
+	$(Q) cd rbs && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
 
-$(RBS_GEM_LIB_SO): $(RBS_GEM_EXT_SO)
-	$(Q) cp $< $@
+rbs/rbs_extension.$(DLEXT): rbs/Makefile
+	$(Q) cd rbs && $(MAKE) $(MKMF_MAKEFILE_SUBPROCESS_FLAGS)
+
