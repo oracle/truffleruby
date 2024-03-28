@@ -3251,6 +3251,12 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitShareableConstantNode(Nodes.ShareableConstantNode node) {
+        // is not implemented for now but the method is supposed to be overridden
+        throw fail(node);
+    }
+
+    @Override
     public RubyNode visitStringNode(Nodes.StringNode node) {
         final RubyNode rubyNode;
         final RubyEncoding encoding;

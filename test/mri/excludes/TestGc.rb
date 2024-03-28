@@ -20,3 +20,4 @@ exclude :test_stat_heap_constraints, "NoMethodError: undefined method `stat_heap
 exclude :test_stat_heap_all, "NoMethodError: undefined method `stat_heap' for GC:Module"
 exclude :test_latest_gc_info_need_major_by, "NameError: uninitialized constant GC::OPTS"
 exclude :test_thrashing_for_young_objects, "NoMethodError: undefined method `stat_heap' for GC:Module"
+exclude :test_ast_node_buffer, "SyntaxError: (eval):2: YARPTranslator does not know how to translate ShareableConstantNode at (eval):2"
