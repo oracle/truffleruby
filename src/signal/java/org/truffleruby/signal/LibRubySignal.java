@@ -16,6 +16,8 @@ public abstract class LibRubySignal {
         System.load(path);
     }
 
+    public static native void setupLocale();
+
     public static native int setupSIGVTALRMEmptySignalHandler();
 
     public static native long threadID();
