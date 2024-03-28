@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -24,6 +25,7 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.PropertyGetter;
@@ -92,6 +94,7 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
+import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -334,6 +337,18 @@ public abstract class KernelNodes {
                 @Cached(
                         value = "getAdoptedNode(this).getEncapsulatingSourceSection()",
                         allowUncached = true, neverDefault = false) SourceSection sourceSection) {
+
+            final MaterializedFrame materializedCallerFrame = Truffle.getRuntime()
+                    .iterateFrames(f -> f.getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize(), 1);
+
+            if (!CallStackManager.isRubyFrame(materializedCallerFrame)) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError(
+                                "Cannot create Binding object for non-Ruby caller",
+                                this));
+            }
+
             needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);
         }
