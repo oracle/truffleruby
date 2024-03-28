@@ -368,7 +368,7 @@ suite = {
                 "TRUFFLERUBY", # We need this jar to run extconf.rb
                 "TRUFFLERUBY-LAUNCHER", # We need this jar to run extconf.rb
                 "sulong:SULONG_NATIVE", # We need this jar to find the toolchain with Toolchain#getToolPath
-                "org.truffleruby.yarp.bindings", # libyarpbindings.so
+                "TRUFFLERUBY_BOOTSTRAP_HOME", # libyarpbindings.so, librubysignal.so
             ],
             "license": ["EPL-2.0"],
         },
@@ -667,6 +667,30 @@ suite = {
             "maven": False,
         },
 
+        "TRUFFLERUBY_BOOTSTRAP_HOME": {
+            "description": "TruffleRuby bootstrap home used by a minimal TruffleRuby to run extconf.rb of default & bundled gems C extensions",
+            "native": True,
+            "platformDependent": True,
+            "layout": {
+                "lib/": [
+                    "file:lib/json",
+                    "file:lib/mri",
+                    "file:lib/patches",
+                    "file:lib/truffle",
+                    "dependency:org.truffleruby.yarp.bindings",
+                ],
+                "lib/cext/": [
+                    "file:lib/cext/*.rb",
+                    # libtruffleposix is handled specially in posix.rb to avoid a cyclic dependency between org.truffleruby.cext and TRUFFLERUBY-BOOTSTRAP-LAUNCHER
+                    "dependency:org.truffleruby.librubysignal",
+                ],
+                "lib/cext/include/": [
+                    "file:lib/cext/include/*",
+                ],
+            },
+            "maven": False,
+        },
+
         "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC": {
             "description": "Platform-agnostic TruffleRuby home files",
             "fileListPurpose": 'native-image-resources',
@@ -732,8 +756,10 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                     "dependency:org.truffleruby.librubysignal",
                 ],
+                # Create the complete files to let RubyGems know the gems are fully built
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.7.1/gem.build_complete": "string:",
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-2.8.2/gem.build_complete": "string:",
                 # The platform-specific files from debug and rbs, see comment above
-                "lib/gems/": "file:lib/gems/extensions",
                 "lib/gems/gems/debug-1.7.1/lib/debug/": "dependency:org.truffleruby.cext/lib/gems/gems/debug-1.7.1/lib/debug/<extsuffix:debug>",
                 "lib/gems/gems/rbs-2.8.2/lib/": "dependency:org.truffleruby.cext/lib/gems/gems/rbs-2.8.2/lib/<extsuffix:rbs_extension>",
                 "lib/mri/": [
@@ -764,9 +790,9 @@ suite = {
         },
 
         "TRUFFLERUBY_GRAALVM_SUPPORT_NO_NI_RESOURCES": {
+            "description": "TruffleRuby support distribution for the GraalVM, the contents is not included as native image resources.",
             "native": True,
             "platformDependent": True,
-            "description": "TruffleRuby support distribution for the GraalVM, the contents is not included as native image resources.",
             "layout": {
                 "./": [
                     "file:CHANGELOG.md",

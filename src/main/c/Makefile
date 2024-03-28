@@ -186,7 +186,6 @@ $(DEBUG_GEM_EXT_SO): $(DEBUG_GEM_EXT)/Makefile $(DEBUG_GEM_EXT)/*.c
 
 $(DEBUG_GEM_LIB_SO): $(DEBUG_GEM_EXT_SO)
 	$(Q) cp $< $@
-	$(Q) $(RUBY) $(ROOT)/tool/mark-gem-extension-as-built.rb debug
 
 # rbs bundled gem
 $(RBS_GEM_EXT)/Makefile: $(RBS_GEM_EXT)/extconf.rb $(EXTCONF_DEPS)
@@ -197,4 +196,3 @@ $(RBS_GEM_EXT_SO): $(RBS_GEM_EXT)/Makefile $(RBS_GEM_EXT)/*.c $(RBS_GEM_EXT)/*.h
 
 $(RBS_GEM_LIB_SO): $(RBS_GEM_EXT_SO)
 	$(Q) cp $< $@
-	$(Q) $(RUBY) $(ROOT)/tool/mark-gem-extension-as-built.rb rbs

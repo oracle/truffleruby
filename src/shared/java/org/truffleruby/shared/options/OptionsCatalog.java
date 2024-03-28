@@ -759,7 +759,7 @@ public final class OptionsCatalog {
 
     public static final OptionDescriptor BUILDING_CORE_CEXTS = OptionDescriptor
             .newBuilder(BUILDING_CORE_CEXTS_KEY, "ruby.building-core-cexts")
-            .help("Used while building TruffleRuby to build core C extensions")
+            .help("Used while building TruffleRuby to build default & bundled gems C extensions")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
