@@ -1,6 +1,6 @@
 require 'mkmf'
-require_relative '../../lib/debug/version'
-File.write("debug_version.h", "#define RUBY_DEBUG_VERSION \"#{DEBUGGER__::VERSION}\"\n")
+# TruffleRuby: hardcode the version here to avoid depending on version.rb which is not copied to src/main/c/debug
+File.write("debug_version.h", "#define RUBY_DEBUG_VERSION \"#{"1.7.1"}\"\n")
 $distcleanfiles << "debug_version.h"
 
 if defined? RubyVM

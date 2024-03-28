@@ -11,6 +11,7 @@ from __future__ import print_function
 import os
 import pipes
 from os.path import join, exists, basename
+import re
 import shutil
 import sys
 
@@ -47,6 +48,27 @@ def add_ext_suffix(name):
         return name + '.so'
 
 mx_subst.results_substitutions.register_with_arg('extsuffix', add_ext_suffix)
+
+# From org.truffleruby.shared.Platform
+def get_cruby_arch():
+    arch = mx.get_arch()
+    if arch == 'amd64':
+        return 'x86_64'
+    elif arch == 'aarch64':
+        return 'aarch64'
+    else:
+        raise Exception("Unknown platform " + arch)
+
+mx_subst.results_substitutions.register_no_arg('cruby_arch', get_cruby_arch)
+
+def get_truffleruby_abi_version():
+    path = join(root, 'lib/cext/include/truffleruby/truffleruby-abi-version.h')
+    with open(path, "r") as f:
+        contents = f.read()
+    m = re.search('"(.+)"', contents)
+    return m.group(1)
+
+mx_subst.results_substitutions.register_no_arg('truffleruby_abi_version', get_truffleruby_abi_version)
 
 # Utilities
 
@@ -118,10 +140,10 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         if debug_args:
             jvm_args.extend(['-ea', '-esa'])
 
-        jvm_args.append('-Dorg.graalvm.language.ruby.home=' + root)
+        bootstrap_home = mx.distribution('TRUFFLERUBY_BOOTSTRAP_HOME').get_output()
+        jvm_args.append('-Dorg.graalvm.language.ruby.home=' + bootstrap_home)
 
-        libyarpbindings = list(mx.project('org.truffleruby.yarp.bindings').getArchivableResults())[0][0]
-        jvm_args.append('-Dtruffleruby.libyarpbindings=' + libyarpbindings)
+        jvm_args.append('-Dtruffleruby.repository=' + root)
 
         main_class = 'org.truffleruby.launcher.RubyLauncher'
         ruby_options = [

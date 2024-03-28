@@ -816,17 +816,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     private boolean isRubyHome(TruffleFile path) {
         var lib = path.resolve("lib");
         return lib.resolve("truffle").isDirectory() &&
-                lib.resolve("gems").isDirectory() &&
+                (options.BUILDING_CORE_CEXTS || lib.resolve("gems").isDirectory()) &&
                 lib.resolve("patches").isDirectory();
     }
 
     private void loadLibYARPBindings() {
-        String libyarpbindings;
-        if (options.BUILDING_CORE_CEXTS) {
-            libyarpbindings = System.getProperty("truffleruby.libyarpbindings");
-        } else {
-            libyarpbindings = getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX;
-        }
+        String libyarpbindings = getRubyHome() + "/lib/libyarpbindings" + Platform.LIB_SUFFIX;
         Parser.loadLibrary(libyarpbindings);
     }
 

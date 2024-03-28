@@ -167,7 +167,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Used internally for the launcher to communicate with the RubyContext
     ARGV_GLOBAL_VALUES: [argv-global-values, string-array, '<key>,<value>,...', Parsed options from script argv with a value]
     ARGV_GLOBAL_FLAGS: [argv-global-flags, string-array, '<flag>,<flag>,...', Parsed options from script argv acting as flags (no value)]
-    BUILDING_CORE_CEXTS: [building-core-cexts, boolean, false, 'Used while building TruffleRuby to build core C extensions']
+    BUILDING_CORE_CEXTS: [building-core-cexts, boolean, false, 'Used while building TruffleRuby to build default & bundled gems C extensions']
 
     # Low-level logging of implementation details
     LAZY_TRANSLATION_LOG: [lazy-translation-log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
