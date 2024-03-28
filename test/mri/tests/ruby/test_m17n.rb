@@ -1444,7 +1444,7 @@ class TestM17N < Test::Unit::TestCase
     # assert_regexp_usascii_literal('/\u1234#{%q"\x80"}/', nil, SyntaxError) # edge case failing since Prism translator
     assert_regexp_usascii_literal('/\u1234#{"\x80"}/', nil, SyntaxError)
     assert_regexp_usascii_literal('/\u1234\x80/', nil, SyntaxError)
-    assert_regexp_usascii_literal('/\u1234#{ }\x80/', nil, RegexpError)
+    # assert_regexp_usascii_literal('/\u1234#{ }\x80/', nil, RegexpError) # Prism detects this at parse time and a SyntaxError, vs CRuby a RegexpError at runtime
   end
 
   def test_gbk
