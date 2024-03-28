@@ -1,0 +1,2 @@
+fails:A non blockign fiber with a scheduler calls io_wait on the scheduler when attempting to read from a non-blocking IO that has no data
+fails:A non blockign fiber with a scheduler calls io_wait on the scheduler when attempting to write to a non-blocking IO that is has no capacity

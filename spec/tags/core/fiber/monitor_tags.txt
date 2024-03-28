@@ -1,0 +1,3 @@
+fails:A non blocking fiber with a scheduler calls `block` on the scheduler when attempting to lock a locked monitor and unblock when the monitor is available
+fails:A non blocking fiber with a scheduler calls `block` on the scheduler when attempting to synchronize on a locked monitor and unblock when the monitor is available
+fails:A non blocking fiber with a scheduler does not call block when synchronizing on a monitor that is already owned by the fiber

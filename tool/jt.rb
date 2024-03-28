@@ -1682,7 +1682,7 @@ module Commands
       options += %w[--excl-tag slow]
     end
 
-    options += %w[--timeout 600] if ci?
+    options += %w[--timeout 600 -fs] if ci?
 
     args, ruby_args = args_split(args)
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])

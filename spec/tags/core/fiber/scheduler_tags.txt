@@ -1,0 +1,10 @@
+slow:Fiber.scheduler executes the close method on the main thread when that thread exits
+fails:Fiber.scheduler returns nil on the root fiber
+fails:Fiber.scheduler returns the scheduler for the current thread, even when set on another fiber
+fails:Fiber.scheduler executes the fiber method on the same fiber as the caller of `Fiber::schedule
+fails:Fiber.scheduler executes the close method on the root fiber when the thread exits
+fails:Fiber.scheduler executes the close method on the main thread when that thread exits
+fails:Fiber.scheduler has its `kerenl_sleep` method called when a `sleep` is called in a non-blocking fiber
+fails:Fiber.scheduler executes the close method before removing the scheduler on the thread
+fails:Fiber.scheduler calls hooks from within hooks
+fails:Fiber.scheduler throwing an exception from close will stop the scheduler being removed

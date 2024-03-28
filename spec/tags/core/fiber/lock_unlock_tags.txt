@@ -1,0 +1,3 @@
+fails:A non blocking fiber with a scheduler calls `block` on the scheduler when attempting to lock a locked mutex and unblock when the mutex is available
+fails:A non blocking fiber with a scheduler calls `block` on the scheduler when attempting to synchronize on a locked mutex and unblock when the mutex is available
+fails:A non blocking fiber with a scheduler raises a ThreadError if the lock is acquired in the block handler
