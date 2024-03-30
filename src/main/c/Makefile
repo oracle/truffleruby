@@ -173,7 +173,7 @@ psych/psych.$(DLEXT): psych/Makefile psych/*.c psych/*.h
 # debug bundled gem
 debug/extconf.rb: $(DEBUG_GEM_EXT)/extconf.rb $(DEBUG_GEM_EXT)/*.c
 	$(Q) mkdir -p debug
-	$(Q) cd debug && cp $(DEBUG_GEM_EXT)/*.{rb,c} .
+	$(Q) cd debug && cp $^ .
 
 debug/Makefile: debug/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd debug && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
@@ -184,7 +184,7 @@ debug/debug.$(DLEXT): debug/Makefile
 # rbs bundled gem
 rbs/extconf.rb: $(RBS_GEM_EXT)/extconf.rb $(RBS_GEM_EXT)/*.c $(RBS_GEM_EXT)/*.h
 	$(Q) mkdir -p rbs
-	$(Q) cd rbs && cp $(RBS_GEM_EXT)/*.{rb,c,h} .
+	$(Q) cd rbs && cp $^ .
 
 rbs/Makefile: rbs/extconf.rb $(EXTCONF_DEPS)
 	$(Q) cd rbs && $(RUBY) extconf.rb || $(IF_EXTCONF_FAIL)
