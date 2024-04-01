@@ -603,6 +603,10 @@ module Truffle::CExt
     ruby_class
   end
 
+  def rb_class_get_superclass(ruby_class)
+    ruby_class.superclass || false
+  end
+
   def rb_obj_respond_to(object, name, priv)
     object.respond_to?(name, priv != 0)
   end

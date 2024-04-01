@@ -51,6 +51,10 @@ VALUE rb_singleton_class(VALUE object) {
   return RUBY_CEXT_INVOKE("rb_singleton_class", object);
 }
 
+VALUE rb_class_get_superclass(VALUE klass) {
+  return RUBY_CEXT_INVOKE("rb_class_get_superclass", klass);
+}
+
 VALUE rb_obj_alloc(VALUE ruby_class) {
   return RUBY_INVOKE(ruby_class, "__allocate__");
 }
