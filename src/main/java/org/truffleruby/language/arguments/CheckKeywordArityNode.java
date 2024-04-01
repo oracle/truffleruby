@@ -117,6 +117,11 @@ public final class CheckKeywordArityNode extends RubyBaseNode {
 
     static RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
         final String[] names = arity.getKeywordArguments();
+
+        if (names.length == 0) {
+            return RubySymbol.EMPTY_ARRAY;
+        }
+
         final RubySymbol[] symbols = new RubySymbol[names.length];
         for (int i = 0; i < names.length; i++) {
             symbols[i] = language.getSymbol(names[i]);
