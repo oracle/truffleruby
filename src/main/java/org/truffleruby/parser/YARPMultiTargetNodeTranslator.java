@@ -78,10 +78,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
                 true,
                 null);
 
-        final AssignableNode[] preNodes = new AssignableNode[node.lefts.length];
-        for (int i = 0; i < node.lefts.length; i++) {
-            preNodes[i] = node.lefts[i].accept(this);
-        }
+        final AssignableNode[] preNodes = processAssignables(node.lefts);
 
         final AssignableNode restNode;
         if (node.rest != null) {
@@ -97,10 +94,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
             restNode = null;
         }
 
-        final AssignableNode[] postNodes = new AssignableNode[node.rights.length];
-        for (int i = 0; i < node.rights.length; i++) {
-            postNodes[i] = node.rights[i].accept(this);
-        }
+        final AssignableNode[] postNodes = processAssignables(node.rights);
 
         // prolog is supposed to be executed in the outer MultipleAssignmentNode (in multi-assignment only)
         final var multipleAssignmentNode = new MultipleAssignmentNode(
@@ -111,6 +105,18 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
                 splatCastNode,
                 rhsNode);
         return multipleAssignmentNode;
+    }
+
+    private AssignableNode[] processAssignables(Nodes.Node[] nodes) {
+        if (nodes.length == 0) {
+            return MultipleAssignmentNode.EMPTY_ASSIGNABLES;
+        }
+
+        final AssignableNode[] assignables = new AssignableNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            assignables[i] = nodes[i].accept(this);
+        }
+        return assignables;
     }
 
     @Override

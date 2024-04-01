@@ -144,6 +144,10 @@ public final class MultipleAssignmentNode extends RubyContextSourceAssignableNod
     }
 
     protected AssignableNode[] cloneUninitializedAssignable(AssignableNode[] nodes) {
+        if (nodes.length == 0) {
+            return AssignableNode.EMPTY_ARRAY;
+        }
+
         AssignableNode[] copies = new AssignableNode[nodes.length];
         for (int i = 0; i < nodes.length; i++) {
             copies[i] = nodes[i].cloneUninitializedAssignable();
