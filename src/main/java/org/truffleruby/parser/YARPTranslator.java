@@ -2387,7 +2387,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
         var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
         var options = encodingAndOptions.options;
-        final ToSNode[] children = translateInterpolatedParts(node.parts);
+        final ToSNode[] children = translateInterpolatedPartsIgnoreForceEncodingFlags(node.parts);
 
         final RubyEncoding encoding;
         if (!options.isKcodeDefault()) { // explicit encoding
@@ -2520,6 +2520,31 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         for (int i = 0; i < parts.length; i++) {
             RubyNode expression = parts[i].accept(this);
+            children[i] = ToSNodeGen.create(expression);
+        }
+
+        return children;
+    }
+
+    /** Regexp encoding negotiation does not work correctly if such flags are kept, e.g. for /#{ }\xc2\xa1/e in
+     * test_m17n.rb. Not clear what is a good solution yet. */
+    private ToSNode[] translateInterpolatedPartsIgnoreForceEncodingFlags(Nodes.Node[] parts) {
+        final ToSNode[] children = new ToSNode[parts.length];
+
+        for (int i = 0; i < parts.length; i++) {
+            RubyNode expression;
+            if (parts[i] instanceof Nodes.StringNode stringNode) {
+                short flags = stringNode.isFrozen() ? Nodes.StringFlags.FROZEN : NO_FLAGS;
+                Nodes.StringNode stringNodeNoForceEncoding = new Nodes.StringNode(flags, stringNode.unescaped,
+                        stringNode.startOffset, stringNode.length);
+
+                // Prism might assign new line flag not to the outer regexp node but to its first part instead
+                copyNewLineFlag(stringNode, stringNodeNoForceEncoding);
+
+                expression = stringNodeNoForceEncoding.accept(this);
+            } else {
+                expression = parts[i].accept(this);
+            }
             children[i] = ToSNodeGen.create(expression);
         }
 

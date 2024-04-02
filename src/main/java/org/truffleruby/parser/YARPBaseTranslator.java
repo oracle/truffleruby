@@ -215,6 +215,10 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         }
     }
 
+    protected void copyNewLineFlag(Nodes.Node source, Nodes.Node target) {
+        target.setNewLineFlag(source.hasNewLineFlag());
+    }
+
     protected static RubyNode sequence(Nodes.Node yarpNode, RubyNode... sequence) {
         assert !yarpNode.hasNewLineFlag() : "Expected node passed to sequence() to not have a newline flag";
 
