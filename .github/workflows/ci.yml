@@ -12,6 +12,8 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-20.04
+    env:
+      JT_JDK: '21'
     steps:
     - name: Clone TruffleRuby
       uses: actions/checkout@v4
