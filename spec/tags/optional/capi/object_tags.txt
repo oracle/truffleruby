@@ -1,0 +1,3 @@
+fails:CApiObject allocator accessors rb_define_alloc_func sets up the allocator
+fails:CApiObject allocator accessors rb_define_alloc_func sets up the allocator for a subclass of String
+fails:CApiObject allocator accessors rb_define_alloc_func sets up the allocator for a subclass of Array
