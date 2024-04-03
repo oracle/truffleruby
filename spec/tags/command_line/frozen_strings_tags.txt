@@ -3,3 +3,8 @@ slow:The --enable-frozen-string-literal flag causes string literals to produce t
 slow:The --enable-frozen-string-literal flag causes string literals to produce the same object for literals with the same content
 slow:The --enable-frozen-string-literal flag causes string literals to produce the same object for literals with the same content in different files
 slow:The --enable-frozen-string-literal flag causes string literals to produce different objects for literals with the same content in different files if they have different encodings
+slow:The --disable-frozen-string-literal flag causes string literals to produce a different object each time
+slow:With neither --enable-frozen-string-literal nor --disable-frozen-string-literal flag set produce a different object each time
+slow:With neither --enable-frozen-string-literal nor --disable-frozen-string-literal flag set if file has no frozen_string_literal comment produce different mutable strings each time
+slow:With neither --enable-frozen-string-literal nor --disable-frozen-string-literal flag set if file has frozen_string_literal:true comment produce same frozen strings each time
+slow:With neither --enable-frozen-string-literal nor --disable-frozen-string-literal flag set if file has frozen_string_literal:false comment produce different mutable strings each time

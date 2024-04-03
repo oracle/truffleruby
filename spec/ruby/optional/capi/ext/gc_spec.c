@@ -105,12 +105,12 @@ void Init_gc_spec(void) {
   registered_before_rb_gc_register_address = rb_str_new_cstr("registered before rb_gc_register_address()");
 
   registered_before_rb_global_variable_string = rb_str_new_cstr("registered before rb_global_variable()");
-  registered_before_rb_global_variable_bignum = LONG2NUM(INT64_MAX);
+  registered_before_rb_global_variable_bignum = LL2NUM(INT64_MAX);
   registered_before_rb_global_variable_float = DBL2NUM(3.14);
 
   registered_after_rb_global_variable_string = rb_str_new_cstr("registered after rb_global_variable()");
   rb_global_variable(&registered_after_rb_global_variable_string);
-  registered_after_rb_global_variable_bignum = LONG2NUM(INT64_MAX);
+  registered_after_rb_global_variable_bignum = LL2NUM(INT64_MAX);
   rb_global_variable(&registered_after_rb_global_variable_bignum);
   registered_after_rb_global_variable_float = DBL2NUM(6.28);
   rb_global_variable(&registered_after_rb_global_variable_float);

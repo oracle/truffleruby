@@ -8,29 +8,32 @@ describe "An Exception reaching the top level" do
   it "the Exception#cause is printed to STDERR with backtraces" do
     code = <<-RUBY
     def raise_cause
-      raise "the cause"
+      raise "the cause" # 2
     end
     def raise_wrapped
-      raise "wrapped"
+      raise "wrapped" # 5
     end
     begin
-      raise_cause
+      raise_cause # 8
     rescue
-      raise_wrapped
+      raise_wrapped # 10
     end
     RUBY
     lines = ruby_exe(code, args: "2>&1", exit_status: 1).lines
-    lines.map! { |l| l.chomp[/:(in.+)/, 1] }
-    expected = [
-      /\Ain [`'](?:Object#)?raise_wrapped': wrapped \(RuntimeError\)\z/,
-      # https://bugs.ruby-lang.org/issues/20275
-      *(/\Ain [`'](?:rescue in )?<main>'\z/ if RUBY_ENGINE == 'ruby'),
-      /\Ain [`']<main>'\z/,
-      /\Ain [`'](?:Object#)?raise_cause': the cause \(RuntimeError\)\z/,
-      /\Ain [`']<main>'\z/,
-    ]
-    lines.size.should == expected.size
-    lines.zip(expected) { |l,e| l.should =~ e }
+
+    lines.map! { |l| l.chomp[/:(\d+:in.+)/, 1] }
+    lines[0].should =~ /\A5:in [`'](?:Object#)?raise_wrapped': wrapped \(RuntimeError\)\z/
+    if lines[1].include? 'rescue in'
+      # CRuby < 3.4 has an extra 'rescue in' backtrace entry
+      lines[1].should =~ /\A10:in [`']rescue in <main>'\z/
+      lines.delete_at 1
+      lines[1].should =~ /\A7:in [`']<main>'\z/
+    else
+      lines[1].should =~ /\A10:in [`']<main>'\z/
+    end
+    lines[2].should =~ /\A2:in [`'](?:Object#)?raise_cause': the cause \(RuntimeError\)\z/
+    lines[3].should =~ /\A8:in [`']<main>'\z/
+    lines.size.should == 4
   end
 
   describe "with a custom backtrace" do
