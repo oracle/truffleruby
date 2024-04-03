@@ -5823,10 +5823,10 @@ typedef enum pm_integer_base_flags {
  * Flags for interpolated string nodes that indicated mutability if they are also marked as literals.
  */
 typedef enum pm_interpolated_string_node_flags {
-    /** frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal` */
+    /** frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'` */
     PM_INTERPOLATED_STRING_NODE_FLAGS_FROZEN = 1,
 
-    /** mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal` */
+    /** mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'` */
     PM_INTERPOLATED_STRING_NODE_FLAGS_MUTABLE = 2,
 } pm_interpolated_string_node_flags_t;
 

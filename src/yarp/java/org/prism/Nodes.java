@@ -439,10 +439,10 @@ public abstract class Nodes {
      */
     public static final class InterpolatedStringNodeFlags implements Comparable<InterpolatedStringNodeFlags> {
 
-        // frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`
+        // frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'`
         public static final short FROZEN = 1 << 0;
 
-        // mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`
+        // mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'`
         public static final short MUTABLE = 1 << 1;
 
         public static boolean isFrozen(short flags) {
@@ -10047,6 +10047,7 @@ public abstract class Nodes {
 
     public enum ErrorType {
         ALIAS_ARGUMENT,
+        ALIAS_ARGUMENT_NUMBERED_REFERENCE,
         AMPAMPEQ_MULTI_ASSIGN,
         ARGUMENT_AFTER_BLOCK,
         ARGUMENT_AFTER_FORWARDING_ELLIPSES,
@@ -10093,6 +10094,7 @@ public abstract class Nodes {
         CLASS_SUPERCLASS,
         CLASS_TERM,
         CLASS_UNEXPECTED_END,
+        CLASS_VARIABLE_BARE,
         CONDITIONAL_ELSIF_PREDICATE,
         CONDITIONAL_IF_PREDICATE,
         CONDITIONAL_PREDICATE_TERM,
@@ -10154,6 +10156,7 @@ public abstract class Nodes {
         FOR_IN,
         FOR_INDEX,
         FOR_TERM,
+        GLOBAL_VARIABLE_BARE,
         HASH_EXPRESSION_AFTER_LABEL,
         HASH_KEY,
         HASH_ROCKET,
@@ -10165,6 +10168,7 @@ public abstract class Nodes {
         INCOMPLETE_VARIABLE_CLASS_3_3_0,
         INCOMPLETE_VARIABLE_INSTANCE,
         INCOMPLETE_VARIABLE_INSTANCE_3_3_0,
+        INSTANCE_VARIABLE_BARE,
         INVALID_CHARACTER,
         INVALID_ENCODING_MAGIC_COMMENT,
         INVALID_FLOAT_EXPONENT,
@@ -10213,7 +10217,7 @@ public abstract class Nodes {
         PARAMETER_BLOCK_MULTI,
         PARAMETER_CIRCULAR,
         PARAMETER_METHOD_NAME,
-        PARAMETER_NAME_REPEAT,
+        PARAMETER_NAME_DUPLICATED,
         PARAMETER_NO_DEFAULT,
         PARAMETER_NO_DEFAULT_KW,
         PARAMETER_NUMBERED_RESERVED,
@@ -10222,6 +10226,7 @@ public abstract class Nodes {
         PARAMETER_STAR,
         PARAMETER_UNEXPECTED_FWD,
         PARAMETER_WILD_LOOSE_COMMA,
+        PATTERN_CAPTURE_DUPLICATE,
         PATTERN_EXPRESSION_AFTER_BRACKET,
         PATTERN_EXPRESSION_AFTER_COMMA,
         PATTERN_EXPRESSION_AFTER_HROCKET,
@@ -10233,6 +10238,7 @@ public abstract class Nodes {
         PATTERN_EXPRESSION_AFTER_RANGE,
         PATTERN_EXPRESSION_AFTER_REST,
         PATTERN_HASH_KEY,
+        PATTERN_HASH_KEY_DUPLICATE,
         PATTERN_HASH_KEY_LABEL,
         PATTERN_IDENT_AFTER_HROCKET,
         PATTERN_LABEL_AFTER_COMMA,
@@ -10253,6 +10259,7 @@ public abstract class Nodes {
         RESCUE_TERM,
         RESCUE_VARIABLE,
         RETURN_INVALID,
+        SCRIPT_NOT_FOUND,
         SINGLETON_FOR_LITERALS,
         STATEMENT_ALIAS,
         STATEMENT_POSTEXE_END,
@@ -10306,6 +10313,7 @@ public abstract class Nodes {
         KEYWORD_EOL,
         LITERAL_IN_CONDITION_DEFAULT,
         LITERAL_IN_CONDITION_VERBOSE,
+        SHEBANG_CARRIAGE_RETURN,
         UNEXPECTED_CARRIAGE_RETURN,
     }
 

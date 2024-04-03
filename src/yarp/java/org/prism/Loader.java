@@ -192,7 +192,7 @@ public class Loader {
 
         // error messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
-            Nodes.ErrorType type = Nodes.ERROR_TYPES[buffer.get() & 0xFF];
+            Nodes.ErrorType type = Nodes.ERROR_TYPES[loadVarUInt()];
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
@@ -211,7 +211,7 @@ public class Loader {
 
         // warning messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
-            Nodes.WarningType type = Nodes.WARNING_TYPES[(buffer.get() & 0xFF) - 233];
+            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 240];
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();

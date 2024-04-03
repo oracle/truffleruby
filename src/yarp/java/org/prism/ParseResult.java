@@ -14,11 +14,14 @@ public final class ParseResult {
     }
 
     public enum ErrorLevel {
-        /** For errors that cannot be recovered from. */
-        ERROR_FATAL,
+        /** For errors that should raise SyntaxError. */
+        ERROR_SYNTAX,
 
         /** For errors that should raise ArgumentError. */
         ERROR_ARGUMENT,
+
+        /** For errors that should raise LoadError. */
+        ERROR_LOAD,
     }
 
     public static ErrorLevel[] ERROR_LEVELS = ErrorLevel.values();
