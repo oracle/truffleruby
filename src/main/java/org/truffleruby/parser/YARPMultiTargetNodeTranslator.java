@@ -109,7 +109,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
 
     private AssignableNode[] processAssignables(Nodes.Node[] nodes) {
         if (nodes.length == 0) {
-            return MultipleAssignmentNode.EMPTY_ASSIGNABLES;
+            return AssignableNode.EMPTY_ARRAY;
         }
 
         final AssignableNode[] assignables = new AssignableNode[nodes.length];
