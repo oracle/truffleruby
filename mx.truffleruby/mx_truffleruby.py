@@ -266,6 +266,9 @@ def ruby_maven_deploy_public(args):
     licenses = ['EPL-2.0', 'PSF-License', 'GPLv2-CPE', 'ICU,GPLv2', 'BSD-simplified', 'BSD-new', 'UPL', 'MIT']
     mx_sdk.maven_deploy_public(args, licenses=licenses, deploy_snapshots=False)
 
+def ruby_maven_deploy_public_repo_dir(args):
+    print(mx_sdk.maven_deploy_public_repo_dir())
+
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby license files',
@@ -379,4 +382,5 @@ mx.update_commands(_suite, {
     'verify-ci': [verify_ci, '[options]'],
     'ruby_jacoco_args': [ruby_jacoco_args, ''],
     'ruby_maven_deploy_public': [ruby_maven_deploy_public, ''],
+    'ruby_maven_deploy_public_repo_dir': [ruby_maven_deploy_public_repo_dir, ''],
 })
