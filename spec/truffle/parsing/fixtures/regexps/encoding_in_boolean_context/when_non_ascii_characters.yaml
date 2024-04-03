@@ -21,12 +21,16 @@ ast: |
           methodName = "=~"
           notEmptyKeywordsProfile = false
           notRuby2KeywordsHashProfile = false
+          sourceCharIndex = 21
+          sourceLength = 10
       children:
           arguments = [
               ReadGlobalVariableNodeGen
                   attributes:
                       flags = 0
                       name = "$_"
+                      sourceCharIndex = -1
+                      sourceLength = 0
                   children:
                       lookupGlobalVariableStorageNode =
                           LookupGlobalVariableStorageNodeGen
@@ -39,3 +43,5 @@ ast: |
                   attributes:
                       flags = 0
                       object = RubyRegexp(source = abc \xFF, options = RegexpOptions(kcode: NONE, fixed, kcodeDefault, literal), encoding = ASCII-8BIT)
+                      sourceCharIndex = 21
+                      sourceLength = 10
