@@ -5,7 +5,12 @@ source test/truffle/common.sh.inc
 # Clone Graal.js repository
 jt mx --dy /vm,/graal-js sversions
 
-jt mx --env jvm-js ruby_maven_deploy_public
+# Running that command from /vm as primary suite is needed
+# to deploy org.graalvm.polyglot:js-community and not just org.graalvm.js:js-community (GR-52171)
+pushd ../graal/vm
+jt mx --dy truffleruby,/graal-js ruby_maven_deploy_public
+popd
+
 maven_repo=$(echo "$(dirname "$(pwd)")"/graal/sdk/mxbuild/jdk*/mx.sdk/public-maven-repo)
 if [ ! -d "$maven_repo" ]; then
     echo "Maven repo not at $maven_repo ?"
