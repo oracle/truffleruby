@@ -40,6 +40,8 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
+    public static final RubySymbol[] EMPTY_ARRAY = new RubySymbol[0];
+
     public final RubyEncoding encoding;
     private final String string;
     public final TruffleString tstring;

@@ -416,6 +416,7 @@ public abstract class KernelNodes {
     @GenerateInline(inlineByDefault = true)
     public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
+        public static final DynamicObjectLibrary[] EMPTY_DYNAMIC_OBJECT_LIBRARY_ARRAY = new DynamicObjectLibrary[0];
         public static final PropertyGetter[] EMPTY_PROPERTY_GETTER_ARRAY = new PropertyGetter[0];
 
         public abstract RubyDynamicObject execute(Node node, RubyDynamicObject newObject, RubyDynamicObject from);
@@ -466,6 +467,10 @@ public abstract class KernelNodes {
         }
 
         protected DynamicObjectLibrary[] createWriteFieldNodes(PropertyGetter[] propertyGetters) {
+            if (propertyGetters.length == 0) {
+                return EMPTY_DYNAMIC_OBJECT_LIBRARY_ARRAY;
+            }
+
             final DynamicObjectLibrary[] nodes = new DynamicObjectLibrary[propertyGetters.length];
             for (int i = 0; i < propertyGetters.length; i++) {
                 nodes[i] = DynamicObjectLibrary.getFactory().createDispatched(1);
