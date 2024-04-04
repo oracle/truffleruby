@@ -2511,7 +2511,18 @@ public class YARPTranslator extends YARPBaseTranslator {
         var last = ArrayUtils.getLast(parts);
         int length = last.endOffset() - start;
         short flags = node.isFrozen() ? Nodes.StringFlags.FROZEN : NO_FLAGS;
-        return new Nodes.StringNode(flags, concatenated, start, length);
+
+        // Prism may assign a new-line flag to one of the nested parts instead of the outer String node
+        boolean isNewLineFlag = node.hasNewLineFlag();
+        for (var part : parts) {
+            if (part.hasNewLineFlag()) {
+                isNewLineFlag = true;
+            }
+        }
+
+        var stringNode = new Nodes.StringNode(flags, concatenated, start, length);
+        stringNode.setNewLineFlag(isNewLineFlag);
+        return stringNode;
     }
 
     /** Translate parts of interpolated String, Symbol or Regexp */

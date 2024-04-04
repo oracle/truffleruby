@@ -10,7 +10,7 @@ ast: |
   FrozenStringLiteralNode
       attributes:
           definition = "expression" (ASCII-8BIT)
-          flags = 0
+          flags = 1
           frozenString = "foobar" (UTF-8)
           sourceCharIndex = 30
           sourceLength = 11
