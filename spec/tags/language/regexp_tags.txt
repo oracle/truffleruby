@@ -1,1 +1,0 @@
-fails(https://github.com/ruby/prism/issues/2115):Literal Regexps matches against $_ (last input) in a conditional if no explicit matchee provided

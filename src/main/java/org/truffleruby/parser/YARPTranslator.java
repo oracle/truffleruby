@@ -2387,14 +2387,14 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitInterpolatedRegularExpressionNode(Nodes.InterpolatedRegularExpressionNode node) {
         var encodingAndOptions = getRegexpEncodingAndOptions(new Nodes.RegularExpressionFlags(node.flags));
         var options = encodingAndOptions.options;
-        final ToSNode[] children = translateInterpolatedParts(node.parts);
+        final ToSNode[] children = translateInterpolatedPartsIgnoreForceEncodingFlags(node.parts);
 
         final RubyEncoding encoding;
         if (!options.isKcodeDefault()) { // explicit encoding
             encoding = encodingAndOptions.encoding;
         } else {
-            // use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
-            // see https://github.com/ruby/prism/issues/1997
+            // Use BINARY explicitly probably because forcing encoding isn't implemented yet in Prism
+            // Needed until https://github.com/ruby/prism/issues/2620 is fixed
             // The logic comes from ParserSupport#createMaster
             encoding = Encodings.BINARY;
         }
@@ -2460,7 +2460,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitInterpolatedXStringNode(Nodes.InterpolatedXStringNode node) {
         // replace `` literal with a Kernel#` method call
 
-        var stringNode = new Nodes.InterpolatedStringNode(node.parts, node.startOffset, node.length);
+        var stringNode = new Nodes.InterpolatedStringNode(NO_FLAGS, node.parts, node.startOffset, node.length);
         final RubyNode string = stringNode.accept(this);
 
         final RubyNode rubyNode = createCallNode(new SelfNode(), "`", string);
@@ -2510,7 +2510,19 @@ public class YARPTranslator extends YARPBaseTranslator {
         int start = parts[0].startOffset;
         var last = ArrayUtils.getLast(parts);
         int length = last.endOffset() - start;
-        return new Nodes.StringNode(NO_FLAGS, concatenated, start, length);
+        short flags = node.isFrozen() ? Nodes.StringFlags.FROZEN : NO_FLAGS;
+
+        // Prism may assign a new-line flag to one of the nested parts instead of the outer String node
+        boolean isNewLineFlag = node.hasNewLineFlag();
+        for (var part : parts) {
+            if (part.hasNewLineFlag()) {
+                isNewLineFlag = true;
+            }
+        }
+
+        var stringNode = new Nodes.StringNode(flags, concatenated, start, length);
+        stringNode.setNewLineFlag(isNewLineFlag);
+        return stringNode;
     }
 
     /** Translate parts of interpolated String, Symbol or Regexp */
@@ -2518,12 +2530,29 @@ public class YARPTranslator extends YARPBaseTranslator {
         final ToSNode[] children = new ToSNode[parts.length];
 
         for (int i = 0; i < parts.length; i++) {
-            final RubyNode expression;
+            RubyNode expression = parts[i].accept(this);
+            children[i] = ToSNodeGen.create(expression);
+        }
 
+        return children;
+    }
+
+    /** Regexp encoding negotiation does not work correctly if such flags are kept, e.g. for /#{ }\xc2\xa1/e in
+     * test_m17n.rb. Not clear what is a good solution yet. */
+    private ToSNode[] translateInterpolatedPartsIgnoreForceEncodingFlags(Nodes.Node[] parts) {
+        final ToSNode[] children = new ToSNode[parts.length];
+
+        for (int i = 0; i < parts.length; i++) {
+            RubyNode expression;
             if (parts[i] instanceof Nodes.StringNode stringNode) {
-                // use frozen String literals to avoid extra allocations in the interpreter
-                // it will be addressed in Prism (see https://github.com/ruby/prism/issues/2532)
-                expression = visitStringNode(stringNode, true);
+                short flags = stringNode.isFrozen() ? Nodes.StringFlags.FROZEN : NO_FLAGS;
+                Nodes.StringNode stringNodeNoForceEncoding = new Nodes.StringNode(flags, stringNode.unescaped,
+                        stringNode.startOffset, stringNode.length);
+
+                // Prism might assign new line flag not to the outer regexp node but to its first part instead
+                copyNewLineFlag(stringNode, stringNodeNoForceEncoding);
+
+                expression = stringNodeNoForceEncoding.accept(this);
             } else {
                 expression = parts[i].accept(this);
             }
@@ -2811,6 +2840,12 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitNumberedReferenceReadNode(Nodes.NumberedReferenceReadNode node) {
+        // numbered references that are too large, e.g. $4294967296, are always `nil`
+        if (node.number == 0) {
+            final RubyNode rubyNode = new NilLiteralNode();
+            return assignPositionAndFlags(node, rubyNode);
+        }
+
         final RubyNode lastMatchNode = ReadGlobalVariableNodeGen.create("$~");
         final RubyNode rubyNode = new ReadMatchReferenceNodes.ReadNthMatchNode(lastMatchNode, node.number);
 
@@ -3010,7 +3045,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final RubyRegexp regexp;
         try {
-            // Needed until https://github.com/ruby/prism/issues/1997 is fixed
+            // Needed until https://github.com/ruby/prism/issues/2620 is fixed
             sourceWithEnc = ClassicRegexp.setRegexpEncoding(sourceWithEnc, options, sourceEncoding, currentNode);
 
             regexp = RubyRegexp.create(language, sourceWithEnc.tstring, sourceWithEnc.encoding,
@@ -3060,15 +3095,16 @@ public class YARPTranslator extends YARPBaseTranslator {
             explicitEncoding = false;
         }
 
-        if (!explicitEncoding) {
-            if (flags.isForcedBinaryEncoding()) {
-                regexpEncoding = Encodings.BINARY;
-            } else if (flags.isForcedUsAsciiEncoding()) {
-                regexpEncoding = Encodings.US_ASCII;
-            } else if (flags.isForcedUtf8Encoding()) {
-                regexpEncoding = Encodings.UTF_8;
-            }
-        }
+        // Don't check forced encoding flags until https://github.com/ruby/prism/issues/2620 is fixed
+        // if (!explicitEncoding) {
+        //     if (flags.isForcedBinaryEncoding()) {
+        //         regexpEncoding = Encodings.BINARY;
+        //     } else if (flags.isForcedUsAsciiEncoding()) {
+        //         regexpEncoding = Encodings.US_ASCII;
+        //     } else if (flags.isForcedUtf8Encoding()) {
+        //         regexpEncoding = Encodings.UTF_8;
+        //     }
+        // }
 
         final RegexpOptions options = new RegexpOptions(kcode, fixed, flags.isOnce(), flags.isExtended(),
                 flags.isMultiLine(), flags.isIgnoreCase(), flags.isAscii8bit(), !explicitEncoding, true);
@@ -3253,11 +3289,13 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
-    public RubyNode visitStringNode(Nodes.StringNode node) {
-        return visitStringNode(node, node.isFrozen());
+    public RubyNode visitShareableConstantNode(Nodes.ShareableConstantNode node) {
+        // is not implemented for now but the method is supposed to be overridden
+        throw fail(node);
     }
 
-    public RubyNode visitStringNode(Nodes.StringNode node, boolean frozen) {
+    @Override
+    public RubyNode visitStringNode(Nodes.StringNode node) {
         final RubyNode rubyNode;
         final RubyEncoding encoding;
 
@@ -3271,7 +3309,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         byte[] bytes = node.unescaped;
 
-        if (!frozen) {
+        if (!node.isFrozen()) {
             final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {

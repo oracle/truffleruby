@@ -14,21 +14,26 @@ public final class ParseResult {
     }
 
     public enum ErrorLevel {
-        /** For errors that cannot be recovered from. */
-        ERROR_FATAL,
+        /** For errors that should raise SyntaxError. */
+        ERROR_SYNTAX,
 
         /** For errors that should raise ArgumentError. */
         ERROR_ARGUMENT,
+
+        /** For errors that should raise LoadError. */
+        ERROR_LOAD,
     }
 
     public static ErrorLevel[] ERROR_LEVELS = ErrorLevel.values();
 
     public static final class Error {
+        public final Nodes.ErrorType type;
         public final String message;
         public final Nodes.Location location;
         public final ErrorLevel level;
 
-        public Error(String message, Nodes.Location location, ErrorLevel level) {
+        public Error(Nodes.ErrorType type, String message, Nodes.Location location, ErrorLevel level) {
+            this.type = type;
             this.message = message;
             this.location = location;
             this.level = level;
@@ -46,11 +51,13 @@ public final class ParseResult {
     public static WarningLevel[] WARNING_LEVELS = WarningLevel.values();
 
     public static final class Warning {
+        public final Nodes.WarningType type;
         public final String message;
         public final Nodes.Location location;
         public final WarningLevel level;
 
-        public Warning(String message, Nodes.Location location, WarningLevel level) {
+        public Warning(Nodes.WarningType type, String message, Nodes.Location location, WarningLevel level) {
+            this.type = type;
             this.message = message;
             this.location = location;
             this.level = level;

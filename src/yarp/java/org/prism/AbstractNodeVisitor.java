@@ -1335,6 +1335,16 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     /**
+     * Visit a ShareableConstantNode node.
+     *
+     * @param node The node to visit.
+     * @return The result of visiting the node.
+     */
+    public T visitShareableConstantNode(Nodes.ShareableConstantNode node) {
+        return defaultVisit(node);
+    }
+
+    /**
      * Visit a SingletonClassNode node.
      *
      * @param node The node to visit.

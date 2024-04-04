@@ -8,6 +8,11 @@
 
 #include "prism.h"
 
+// We optionally support serializing to a binary string. For systems that don't
+// want or need this functionality, it can be turned off with the
+// PRISM_EXCLUDE_SERIALIZATION define.
+#ifndef PRISM_EXCLUDE_SERIALIZATION
+
 #include <stdio.h>
 
 static inline uint32_t
@@ -60,10 +65,14 @@ pm_serialize_string(const pm_parser_t *parser, const pm_string_t *string, pm_buf
 static void
 pm_serialize_integer(const pm_integer_t *integer, pm_buffer_t *buffer) {
     pm_buffer_append_byte(buffer, integer->negative ? 1 : 0);
-    pm_buffer_append_varuint(buffer, pm_sizet_to_u32(integer->length + 1));
-
-    for (const pm_integer_word_t *node = &integer->head; node != NULL; node = node->next) {
-        pm_buffer_append_varuint(buffer, node->value);
+    if (integer->values == NULL) {
+        pm_buffer_append_varuint(buffer, pm_sizet_to_u32(1));
+        pm_buffer_append_varuint(buffer, integer->value);
+    } else {
+        pm_buffer_append_varuint(buffer, pm_sizet_to_u32(integer->length));
+        for (size_t i = 0; i < integer->length; i++) {
+            pm_buffer_append_varuint(buffer, integer->values[i]);
+        }
     }
 }
 
@@ -800,6 +809,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_INTERPOLATED_STRING_NODE: {
+            pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             uint32_t parts_size = pm_sizet_to_u32(((pm_interpolated_string_node_t *)node)->parts.size);
             pm_buffer_append_varuint(buffer, parts_size);
             for (uint32_t index = 0; index < parts_size; index++) {
@@ -1173,6 +1183,11 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_SELF_NODE: {
             break;
         }
+        case PM_SHAREABLE_CONSTANT_NODE: {
+            pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
+            pm_serialize_node(parser, (pm_node_t *)((pm_shareable_constant_node_t *)node)->write, buffer);
+            break;
+        }
         case PM_SINGLETON_CLASS_NODE: {
             uint32_t locals_size = pm_sizet_to_u32(((pm_singleton_class_node_t *)node)->locals.size);
             pm_buffer_append_varuint(buffer, locals_size);
@@ -1191,6 +1206,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_SOURCE_FILE_NODE: {
+            pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             pm_serialize_string(parser, &((pm_source_file_node_t *)node)->filepath, buffer);
             break;
         }
@@ -1376,6 +1392,9 @@ pm_serialize_data_loc(const pm_parser_t *parser, pm_buffer_t *buffer) {
 
 static void
 pm_serialize_diagnostic(pm_parser_t *parser, pm_diagnostic_t *diagnostic, pm_buffer_t *buffer) {
+    // serialize the type
+    pm_buffer_append_varuint(buffer, (uint32_t) diagnostic->diag_id);
+
     // serialize message
     size_t message_length = strlen(diagnostic->message);
     pm_buffer_append_varuint(buffer, pm_sizet_to_u32(message_length));
@@ -1418,7 +1437,7 @@ pm_serialize_metadata(pm_parser_t *parser, pm_buffer_t *buffer) {
     pm_serialize_diagnostic_list(parser, &parser->warning_list, buffer);
 }
 
-#line 259 "serialize.c.erb"
+#line 271 "serialize.c.erb"
 /**
  * Serialize the metadata, nodes, and constant pool.
  */
@@ -1550,23 +1569,4 @@ pm_serialize_parse_lex(pm_buffer_t *buffer, const uint8_t *source, size_t size, 
     pm_options_free(&options);
 }
 
-/**
- * Parse the source and return true if it parses without errors or warnings.
- */
-PRISM_EXPORTED_FUNCTION bool
-pm_parse_success_p(const uint8_t *source, size_t size, const char *data) {
-    pm_options_t options = { 0 };
-    pm_options_read(&options, data);
-
-    pm_parser_t parser;
-    pm_parser_init(&parser, source, size, &options);
-
-    pm_node_t *node = pm_parse(&parser);
-    pm_node_destroy(&parser, node);
-
-    bool result = parser.error_list.size == 0 && parser.warning_list.size == 0;
-    pm_parser_free(&parser);
-    pm_options_free(&options);
-
-    return result;
-}
+#endif

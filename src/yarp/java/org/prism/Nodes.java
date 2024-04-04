@@ -435,6 +435,60 @@ public abstract class Nodes {
     }
 
     /**
+     * Flags for interpolated string nodes that indicated mutability if they are also marked as literals.
+     */
+    public static final class InterpolatedStringNodeFlags implements Comparable<InterpolatedStringNodeFlags> {
+
+        // frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'`
+        public static final short FROZEN = 1 << 0;
+
+        // mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'`
+        public static final short MUTABLE = 1 << 1;
+
+        public static boolean isFrozen(short flags) {
+            return (flags & FROZEN) != 0;
+        }
+
+        public static boolean isMutable(short flags) {
+            return (flags & MUTABLE) != 0;
+        }
+
+        private final short flags;
+
+        public InterpolatedStringNodeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof InterpolatedStringNodeFlags)) {
+                return false;
+            }
+
+            return flags == ((InterpolatedStringNodeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(InterpolatedStringNodeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isFrozen() {
+            return (flags & FROZEN) != 0;
+        }
+
+        public boolean isMutable() {
+            return (flags & MUTABLE) != 0;
+        }
+
+    }
+
+    /**
      * Flags for keyword hash nodes.
      */
     public static final class KeywordHashNodeFlags implements Comparable<KeywordHashNodeFlags> {
@@ -760,6 +814,71 @@ public abstract class Nodes {
     }
 
     /**
+     * Flags for shareable constant nodes.
+     */
+    public static final class ShareableConstantNodeFlags implements Comparable<ShareableConstantNodeFlags> {
+
+        // constant writes that should be modified with shareable constant value literal
+        public static final short LITERAL = 1 << 0;
+
+        // constant writes that should be modified with shareable constant value experimental everything
+        public static final short EXPERIMENTAL_EVERYTHING = 1 << 1;
+
+        // constant writes that should be modified with shareable constant value experimental copy
+        public static final short EXPERIMENTAL_COPY = 1 << 2;
+
+        public static boolean isLiteral(short flags) {
+            return (flags & LITERAL) != 0;
+        }
+
+        public static boolean isExperimentalEverything(short flags) {
+            return (flags & EXPERIMENTAL_EVERYTHING) != 0;
+        }
+
+        public static boolean isExperimentalCopy(short flags) {
+            return (flags & EXPERIMENTAL_COPY) != 0;
+        }
+
+        private final short flags;
+
+        public ShareableConstantNodeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ShareableConstantNodeFlags)) {
+                return false;
+            }
+
+            return flags == ((ShareableConstantNodeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(ShareableConstantNodeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isLiteral() {
+            return (flags & LITERAL) != 0;
+        }
+
+        public boolean isExperimentalEverything() {
+            return (flags & EXPERIMENTAL_EVERYTHING) != 0;
+        }
+
+        public boolean isExperimentalCopy() {
+            return (flags & EXPERIMENTAL_COPY) != 0;
+        }
+
+    }
+
+    /**
      * Flags for string nodes.
      */
     public static final class StringFlags implements Comparable<StringFlags> {
@@ -770,8 +889,11 @@ public abstract class Nodes {
         // internal bytes forced the encoding to binary
         public static final short FORCED_BINARY_ENCODING = 1 << 1;
 
-        // frozen by virtue of a `frozen_string_literal` comment
+        // frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`
         public static final short FROZEN = 1 << 2;
+
+        // mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`
+        public static final short MUTABLE = 1 << 3;
 
         public static boolean isForcedUtf8Encoding(short flags) {
             return (flags & FORCED_UTF8_ENCODING) != 0;
@@ -783,6 +905,10 @@ public abstract class Nodes {
 
         public static boolean isFrozen(short flags) {
             return (flags & FROZEN) != 0;
+        }
+
+        public static boolean isMutable(short flags) {
+            return (flags & MUTABLE) != 0;
         }
 
         private final short flags;
@@ -820,6 +946,10 @@ public abstract class Nodes {
 
         public boolean isFrozen() {
             return (flags & FROZEN) != 0;
+        }
+
+        public boolean isMutable() {
+            return (flags & MUTABLE) != 0;
         }
 
     }
@@ -2936,7 +3066,28 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ClassVariableWriteNode extends Node {
+        /**
+         * <pre>
+         * The name of the class variable, which is a `&#64;&#64;` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     &#64;&#64;abc = 123     # name `&#64;&#64;abc`
+         *
+         *     &#64;&#64;_test = :test # name `&#64;&#64;_test`
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * The value to assign to the class variable. Can be any node that
+         * represents a non-void expression.
+         *
+         *     &#64;&#64;foo = :bar
+         *             ^^^^
+         *
+         *     &#64;&#64;_xyz = 123
+         *              ^^^
+         * </pre>
+         */
         public final Node value;
 
         public ClassVariableWriteNode(String name, Node value, int startOffset, int length) {
@@ -5683,7 +5834,28 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class InstanceVariableWriteNode extends Node {
+        /**
+         * <pre>
+         * The name of the instance variable, which is a `&#64;` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     &#64;x = :y       # name `:&#64;x`
+         *
+         *     &#64;_foo = &quot;bar&quot; # name `&#64;_foo`
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * The value to assign to the instance variable. Can be any node that
+         * represents a non-void expression.
+         *
+         *     &#64;foo = :bar
+         *            ^^^^
+         *
+         *     &#64;_x = 1234
+         *           ^^^^
+         * </pre>
+         */
         public final Node value;
 
         public InstanceVariableWriteNode(String name, Node value, int startOffset, int length) {
@@ -6026,14 +6198,24 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class InterpolatedStringNode extends Node {
+        public final short flags;
         @UnionType({ StringNode.class, EmbeddedStatementsNode.class, EmbeddedVariableNode.class, InterpolatedStringNode.class })
         public final Node[] parts;
 
-        public InterpolatedStringNode(Node[] parts, int startOffset, int length) {
+        public InterpolatedStringNode(short flags, Node[] parts, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.parts = parts;
         }
-                
+        
+        public boolean isFrozen() {
+            return InterpolatedStringNodeFlags.isFrozen(this.flags);
+        }
+
+        public boolean isMutable() {
+            return InterpolatedStringNodeFlags.isMutable(this.flags);
+        }
+        
         @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             Node first = this.parts.length > 0 ? this.parts[0] : null;
@@ -6068,6 +6250,10 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             String nextNextIndent = nextIndent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("parts: ");
             builder.append('\n');
@@ -7474,13 +7660,13 @@ public abstract class Nodes {
     public static final class NumberedReferenceReadNode extends Node {
         /**
          * <pre>
-         * The (1-indexed, from the left) number of the capture group. Numbered references that would overflow a `uint32`  result in a `number` of exactly `2**32 - 1`.
+         * The (1-indexed, from the left) number of the capture group. Numbered references that are too large result in this value being `0`.
          *
          *     $1          # number `1`
          *
          *     $5432       # number `5432`
          *
-         *     $4294967296 # number `4294967295`
+         *     $4294967296 # number `0`
          * </pre>
          */
         public final int number;
@@ -8821,6 +9007,75 @@ public abstract class Nodes {
 
     /**
      * <pre>
+     * This node wraps a constant write to indicate that when the value is written, it should have its shareability state modified.
+     *
+     *     # shareable_constant_value: literal
+     *     C = { a: 1 }
+     *     ^^^^^^^^^^^^
+     * </pre>
+     */
+    public static final class ShareableConstantNode extends Node {
+        public final short flags;
+        /**
+         * <pre>
+         * The constant write that should be modified with the shareability state.
+         * </pre>
+         */
+        @UnionType({ ConstantWriteNode.class, ConstantAndWriteNode.class, ConstantOrWriteNode.class, ConstantOperatorWriteNode.class, ConstantPathWriteNode.class, ConstantPathAndWriteNode.class, ConstantPathOrWriteNode.class, ConstantPathOperatorWriteNode.class })
+        public final Node write;
+
+        public ShareableConstantNode(short flags, Node write, int startOffset, int length) {
+            super(startOffset, length);
+            this.flags = flags;
+            this.write = write;
+        }
+        
+        public boolean isLiteral() {
+            return ShareableConstantNodeFlags.isLiteral(this.flags);
+        }
+
+        public boolean isExperimentalEverything() {
+            return ShareableConstantNodeFlags.isExperimentalEverything(this.flags);
+        }
+
+        public boolean isExperimentalCopy() {
+            return ShareableConstantNodeFlags.isExperimentalCopy(this.flags);
+        }
+        
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+            this.write.accept(visitor);
+        }
+
+        public Node[] childNodes() {
+            return new Node[] { this.write };
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitShareableConstantNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("write: ");
+            builder.append(this.write.toString(nextIndent));
+            return builder.toString();
+        }
+    }
+
+    /**
+     * <pre>
      * Represents a singleton class declaration involving the `class` keyword.
      *
      *     class &lt;&lt; self end
@@ -8928,13 +9183,31 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class SourceFileNode extends Node {
+        public final short flags;
         public final byte[] filepath;
 
-        public SourceFileNode(byte[] filepath, int startOffset, int length) {
+        public SourceFileNode(short flags, byte[] filepath, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.filepath = filepath;
         }
-                
+        
+        public boolean isForcedUtf8Encoding() {
+            return StringFlags.isForcedUtf8Encoding(this.flags);
+        }
+
+        public boolean isForcedBinaryEncoding() {
+            return StringFlags.isForcedBinaryEncoding(this.flags);
+        }
+
+        public boolean isFrozen() {
+            return StringFlags.isFrozen(this.flags);
+        }
+
+        public boolean isMutable() {
+            return StringFlags.isMutable(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
         }
 
@@ -8955,6 +9228,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("filepath: ");
             builder.append('"' + new String(this.filepath, StandardCharsets.UTF_8) + '"');
@@ -9134,6 +9411,10 @@ public abstract class Nodes {
 
         public boolean isFrozen() {
             return StringFlags.isFrozen(this.flags);
+        }
+
+        public boolean isMutable() {
+            return StringFlags.isMutable(this.flags);
         }
         
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -9764,5 +10045,278 @@ public abstract class Nodes {
         }
     }
 
+    public enum ErrorType {
+        ALIAS_ARGUMENT,
+        ALIAS_ARGUMENT_NUMBERED_REFERENCE,
+        AMPAMPEQ_MULTI_ASSIGN,
+        ARGUMENT_AFTER_BLOCK,
+        ARGUMENT_AFTER_FORWARDING_ELLIPSES,
+        ARGUMENT_BARE_HASH,
+        ARGUMENT_BLOCK_FORWARDING,
+        ARGUMENT_BLOCK_MULTI,
+        ARGUMENT_FORMAL_CLASS,
+        ARGUMENT_FORMAL_CONSTANT,
+        ARGUMENT_FORMAL_GLOBAL,
+        ARGUMENT_FORMAL_IVAR,
+        ARGUMENT_FORWARDING_UNBOUND,
+        ARGUMENT_IN,
+        ARGUMENT_NO_FORWARDING_AMP,
+        ARGUMENT_NO_FORWARDING_ELLIPSES,
+        ARGUMENT_NO_FORWARDING_STAR,
+        ARGUMENT_NO_FORWARDING_STAR_STAR,
+        ARGUMENT_SPLAT_AFTER_ASSOC_SPLAT,
+        ARGUMENT_SPLAT_AFTER_SPLAT,
+        ARGUMENT_TERM_PAREN,
+        ARGUMENT_UNEXPECTED_BLOCK,
+        ARRAY_ELEMENT,
+        ARRAY_EXPRESSION,
+        ARRAY_EXPRESSION_AFTER_STAR,
+        ARRAY_SEPARATOR,
+        ARRAY_TERM,
+        BEGIN_LONELY_ELSE,
+        BEGIN_TERM,
+        BEGIN_UPCASE_BRACE,
+        BEGIN_UPCASE_TERM,
+        BEGIN_UPCASE_TOPLEVEL,
+        BLOCK_PARAM_LOCAL_VARIABLE,
+        BLOCK_PARAM_PIPE_TERM,
+        BLOCK_TERM_BRACE,
+        BLOCK_TERM_END,
+        CANNOT_PARSE_EXPRESSION,
+        CANNOT_PARSE_STRING_PART,
+        CASE_EXPRESSION_AFTER_CASE,
+        CASE_EXPRESSION_AFTER_WHEN,
+        CASE_MATCH_MISSING_PREDICATE,
+        CASE_MISSING_CONDITIONS,
+        CASE_TERM,
+        CLASS_IN_METHOD,
+        CLASS_NAME,
+        CLASS_SUPERCLASS,
+        CLASS_TERM,
+        CLASS_UNEXPECTED_END,
+        CLASS_VARIABLE_BARE,
+        CONDITIONAL_ELSIF_PREDICATE,
+        CONDITIONAL_IF_PREDICATE,
+        CONDITIONAL_PREDICATE_TERM,
+        CONDITIONAL_TERM,
+        CONDITIONAL_TERM_ELSE,
+        CONDITIONAL_UNLESS_PREDICATE,
+        CONDITIONAL_UNTIL_PREDICATE,
+        CONDITIONAL_WHILE_PREDICATE,
+        CONSTANT_PATH_COLON_COLON_CONSTANT,
+        DEF_ENDLESS,
+        DEF_ENDLESS_SETTER,
+        DEF_NAME,
+        DEF_NAME_AFTER_RECEIVER,
+        DEF_PARAMS_TERM,
+        DEF_PARAMS_TERM_PAREN,
+        DEF_RECEIVER,
+        DEF_RECEIVER_TERM,
+        DEF_TERM,
+        DEFINED_EXPRESSION,
+        EMBDOC_TERM,
+        EMBEXPR_END,
+        EMBVAR_INVALID,
+        END_UPCASE_BRACE,
+        END_UPCASE_TERM,
+        ESCAPE_INVALID_CONTROL,
+        ESCAPE_INVALID_CONTROL_REPEAT,
+        ESCAPE_INVALID_HEXADECIMAL,
+        ESCAPE_INVALID_META,
+        ESCAPE_INVALID_META_REPEAT,
+        ESCAPE_INVALID_UNICODE,
+        ESCAPE_INVALID_UNICODE_CM_FLAGS,
+        ESCAPE_INVALID_UNICODE_LITERAL,
+        ESCAPE_INVALID_UNICODE_LONG,
+        ESCAPE_INVALID_UNICODE_TERM,
+        EXPECT_ARGUMENT,
+        EXPECT_EOL_AFTER_STATEMENT,
+        EXPECT_EXPRESSION_AFTER_AMPAMPEQ,
+        EXPECT_EXPRESSION_AFTER_COMMA,
+        EXPECT_EXPRESSION_AFTER_EQUAL,
+        EXPECT_EXPRESSION_AFTER_LESS_LESS,
+        EXPECT_EXPRESSION_AFTER_LPAREN,
+        EXPECT_EXPRESSION_AFTER_OPERATOR,
+        EXPECT_EXPRESSION_AFTER_PIPEPIPEEQ,
+        EXPECT_EXPRESSION_AFTER_QUESTION,
+        EXPECT_EXPRESSION_AFTER_SPLAT,
+        EXPECT_EXPRESSION_AFTER_SPLAT_HASH,
+        EXPECT_EXPRESSION_AFTER_STAR,
+        EXPECT_IDENT_REQ_PARAMETER,
+        EXPECT_LPAREN_REQ_PARAMETER,
+        EXPECT_RBRACKET,
+        EXPECT_RPAREN,
+        EXPECT_RPAREN_AFTER_MULTI,
+        EXPECT_RPAREN_REQ_PARAMETER,
+        EXPECT_STRING_CONTENT,
+        EXPECT_WHEN_DELIMITER,
+        EXPRESSION_BARE_HASH,
+        FLOAT_PARSE,
+        FOR_COLLECTION,
+        FOR_IN,
+        FOR_INDEX,
+        FOR_TERM,
+        GLOBAL_VARIABLE_BARE,
+        HASH_EXPRESSION_AFTER_LABEL,
+        HASH_KEY,
+        HASH_ROCKET,
+        HASH_TERM,
+        HASH_VALUE,
+        HEREDOC_TERM,
+        INCOMPLETE_QUESTION_MARK,
+        INCOMPLETE_VARIABLE_CLASS,
+        INCOMPLETE_VARIABLE_CLASS_3_3_0,
+        INCOMPLETE_VARIABLE_INSTANCE,
+        INCOMPLETE_VARIABLE_INSTANCE_3_3_0,
+        INSTANCE_VARIABLE_BARE,
+        INVALID_CHARACTER,
+        INVALID_ENCODING_MAGIC_COMMENT,
+        INVALID_FLOAT_EXPONENT,
+        INVALID_MULTIBYTE_CHAR,
+        INVALID_MULTIBYTE_CHARACTER,
+        INVALID_MULTIBYTE_ESCAPE,
+        INVALID_NUMBER_BINARY,
+        INVALID_NUMBER_DECIMAL,
+        INVALID_NUMBER_HEXADECIMAL,
+        INVALID_NUMBER_OCTAL,
+        INVALID_NUMBER_UNDERSCORE,
+        INVALID_PERCENT,
+        INVALID_PRINTABLE_CHARACTER,
+        INVALID_VARIABLE_GLOBAL,
+        INVALID_VARIABLE_GLOBAL_3_3_0,
+        IT_NOT_ALLOWED_NUMBERED,
+        IT_NOT_ALLOWED_ORDINARY,
+        LAMBDA_OPEN,
+        LAMBDA_TERM_BRACE,
+        LAMBDA_TERM_END,
+        LIST_I_LOWER_ELEMENT,
+        LIST_I_LOWER_TERM,
+        LIST_I_UPPER_ELEMENT,
+        LIST_I_UPPER_TERM,
+        LIST_W_LOWER_ELEMENT,
+        LIST_W_LOWER_TERM,
+        LIST_W_UPPER_ELEMENT,
+        LIST_W_UPPER_TERM,
+        MALLOC_FAILED,
+        MIXED_ENCODING,
+        MODULE_IN_METHOD,
+        MODULE_NAME,
+        MODULE_TERM,
+        MULTI_ASSIGN_MULTI_SPLATS,
+        MULTI_ASSIGN_UNEXPECTED_REST,
+        NO_LOCAL_VARIABLE,
+        NOT_EXPRESSION,
+        NUMBER_LITERAL_UNDERSCORE,
+        NUMBERED_PARAMETER_IT,
+        NUMBERED_PARAMETER_ORDINARY,
+        NUMBERED_PARAMETER_OUTER_SCOPE,
+        OPERATOR_MULTI_ASSIGN,
+        OPERATOR_WRITE_ARGUMENTS,
+        OPERATOR_WRITE_BLOCK,
+        PARAMETER_ASSOC_SPLAT_MULTI,
+        PARAMETER_BLOCK_MULTI,
+        PARAMETER_CIRCULAR,
+        PARAMETER_METHOD_NAME,
+        PARAMETER_NAME_DUPLICATED,
+        PARAMETER_NO_DEFAULT,
+        PARAMETER_NO_DEFAULT_KW,
+        PARAMETER_NUMBERED_RESERVED,
+        PARAMETER_ORDER,
+        PARAMETER_SPLAT_MULTI,
+        PARAMETER_STAR,
+        PARAMETER_UNEXPECTED_FWD,
+        PARAMETER_WILD_LOOSE_COMMA,
+        PATTERN_CAPTURE_DUPLICATE,
+        PATTERN_EXPRESSION_AFTER_BRACKET,
+        PATTERN_EXPRESSION_AFTER_COMMA,
+        PATTERN_EXPRESSION_AFTER_HROCKET,
+        PATTERN_EXPRESSION_AFTER_IN,
+        PATTERN_EXPRESSION_AFTER_KEY,
+        PATTERN_EXPRESSION_AFTER_PAREN,
+        PATTERN_EXPRESSION_AFTER_PIN,
+        PATTERN_EXPRESSION_AFTER_PIPE,
+        PATTERN_EXPRESSION_AFTER_RANGE,
+        PATTERN_EXPRESSION_AFTER_REST,
+        PATTERN_HASH_KEY,
+        PATTERN_HASH_KEY_DUPLICATE,
+        PATTERN_HASH_KEY_LABEL,
+        PATTERN_IDENT_AFTER_HROCKET,
+        PATTERN_LABEL_AFTER_COMMA,
+        PATTERN_REST,
+        PATTERN_TERM_BRACE,
+        PATTERN_TERM_BRACKET,
+        PATTERN_TERM_PAREN,
+        PIPEPIPEEQ_MULTI_ASSIGN,
+        REGEXP_ENCODING_OPTION_MISMATCH,
+        REGEXP_INCOMPAT_CHAR_ENCODING,
+        REGEXP_INVALID_UNICODE_RANGE,
+        REGEXP_NON_ESCAPED_MBC,
+        REGEXP_TERM,
+        REGEXP_UNKNOWN_OPTIONS,
+        REGEXP_UTF8_CHAR_NON_UTF8_REGEXP,
+        RESCUE_EXPRESSION,
+        RESCUE_MODIFIER_VALUE,
+        RESCUE_TERM,
+        RESCUE_VARIABLE,
+        RETURN_INVALID,
+        SCRIPT_NOT_FOUND,
+        SINGLETON_FOR_LITERALS,
+        STATEMENT_ALIAS,
+        STATEMENT_POSTEXE_END,
+        STATEMENT_PREEXE_BEGIN,
+        STATEMENT_UNDEF,
+        STRING_CONCATENATION,
+        STRING_INTERPOLATED_TERM,
+        STRING_LITERAL_EOF,
+        STRING_LITERAL_TERM,
+        SYMBOL_INVALID,
+        SYMBOL_TERM_DYNAMIC,
+        SYMBOL_TERM_INTERPOLATED,
+        TERNARY_COLON,
+        TERNARY_EXPRESSION_FALSE,
+        TERNARY_EXPRESSION_TRUE,
+        UNARY_RECEIVER,
+        UNDEF_ARGUMENT,
+        UNEXPECTED_TOKEN_CLOSE_CONTEXT,
+        UNEXPECTED_TOKEN_IGNORE,
+        UNTIL_TERM,
+        VOID_EXPRESSION,
+        WHILE_TERM,
+        WRITE_TARGET_IN_METHOD,
+        WRITE_TARGET_READONLY,
+        WRITE_TARGET_UNEXPECTED,
+        XSTRING_TERM,
+    }
+
+    public static ErrorType[] ERROR_TYPES = ErrorType.values();
+
+    public enum WarningType {
+        AMBIGUOUS_FIRST_ARGUMENT_MINUS,
+        AMBIGUOUS_FIRST_ARGUMENT_PLUS,
+        AMBIGUOUS_PREFIX_AMPERSAND,
+        AMBIGUOUS_PREFIX_STAR,
+        AMBIGUOUS_PREFIX_STAR_STAR,
+        AMBIGUOUS_SLASH,
+        COMPARISON_AFTER_COMPARISON,
+        DOT_DOT_DOT_EOL,
+        EQUAL_IN_CONDITIONAL,
+        EQUAL_IN_CONDITIONAL_3_3_0,
+        END_IN_METHOD,
+        DUPLICATED_HASH_KEY,
+        DUPLICATED_WHEN_CLAUSE,
+        FLOAT_OUT_OF_RANGE,
+        IGNORED_FROZEN_STRING_LITERAL,
+        INTEGER_IN_FLIP_FLOP,
+        INVALID_CHARACTER,
+        INVALID_NUMBERED_REFERENCE,
+        INVALID_SHAREABLE_CONSTANT_VALUE,
+        KEYWORD_EOL,
+        LITERAL_IN_CONDITION_DEFAULT,
+        LITERAL_IN_CONDITION_VERBOSE,
+        SHEBANG_CARRIAGE_RETURN,
+        UNEXPECTED_CARRIAGE_RETURN,
+    }
+
+    public static WarningType[] WARNING_TYPES = WarningType.values();
 }
 // @formatter:on

@@ -1,0 +1,16 @@
+subject: "String"
+description: "2 string literals concatenated at parse/translation time / with frozen_string_literal: true"
+notes: >
+  Result string should be frozen and represented as a FrozenStringLiteralNode node
+focused_on_node: "org.truffleruby.language.literal.FrozenStringLiteralNode"
+ruby: |
+  # frozen_string_literal: true
+  "foo" "bar"
+ast: |
+  FrozenStringLiteralNode
+      attributes:
+          definition = "expression" (ASCII-8BIT)
+          flags = 1
+          frozenString = "foobar" (UTF-8)
+          sourceCharIndex = 30
+          sourceLength = 11

@@ -10,7 +10,7 @@ FUZZ_OUTPUT_DIR = $(shell pwd)/fuzz/output
 
 SOEXT := $(shell ruby -e 'puts RbConfig::CONFIG["SOEXT"]')
 
-CPPFLAGS := -Iinclude
+CPPFLAGS := -Iinclude $(CPPFLAGS)
 CFLAGS := -g -O2 -std=c99 -Wall -Werror -Wextra -Wpedantic -Wundef -Wconversion -Wno-missing-braces -fPIC -fvisibility=hidden $(CFLAGS)
 CC := cc
 WASI_SDK_PATH := /opt/wasi-sdk
@@ -93,6 +93,9 @@ clean:
 all-no-debug: DEBUG_FLAGS := -DNDEBUG=1
 all-no-debug: OPTFLAGS := -O3
 all-no-debug: all
+
+minimal: CFLAGS := $(CFLAGS) -DPRISM_BUILD_MINIMAL
+minimal: all
 
 run: Makefile $(STATIC_OBJECTS) $(HEADERS) test.c
 	$(ECHO) "compiling test.c"
