@@ -78,6 +78,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.context = context;
         }
 
+        @TruffleBoundary
         void processReferenceQueue(ReferenceProcessingService<?, ?> service) {
             if (processOnMainThread()) {
                 drainReferenceQueues();

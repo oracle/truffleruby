@@ -39,6 +39,8 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.graalvm.nativeimage.ImageInfo;
+import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.options.OptionDescriptors;
 import org.prism.Parser;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -125,6 +127,7 @@ import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
+import org.truffleruby.signal.LibRubySignal;
 import org.truffleruby.stdlib.CoverageManager;
 
 import com.oracle.truffle.api.Assumption;
@@ -159,8 +162,7 @@ import static org.truffleruby.language.RubyBaseNode.nil;
                 RubyLanguage.MIME_TYPE_MAIN_SCRIPT },
         defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
-        fileTypeDetectors = RubyFileTypeDetector.class,
-        needsAllEncodings = true)
+        fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
@@ -459,6 +461,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 this.allocationReporter = env.lookup(AllocationReporter.class);
                 this.options = new LanguageOptions(env, env.getOptions(), singleContext);
                 setRubyHome(findRubyHome(env));
+                setupLocale(env, rubyHome);
                 loadLibYARPBindings();
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
@@ -540,6 +543,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
         synchronized (this) {
             setRubyHome(findRubyHome(newEnv));
+            setupLocale(newEnv, rubyHome);
             loadLibYARPBindings();
             setupCleaner();
         }
@@ -818,6 +822,24 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return lib.resolve("truffle").isDirectory() &&
                 (options.BUILDING_CORE_CEXTS || lib.resolve("gems").isDirectory()) &&
                 lib.resolve("patches").isDirectory();
+    }
+
+    private void setupLocale(Env env, String rubyHome) {
+        // CRuby does setlocale(LC_CTYPE, "") because this is needed to get the locale encoding with nl_langinfo(CODESET).
+        // This means every locale category except LC_CTYPE remains the initial "C".
+        // LC_CTYPE is set according to environment variables (LC_ALL, LC_CTYPE, LANG).
+        // HotSpot does setlocale(LC_ALL, "") and Native Image does nothing.
+        // We match CRuby by doing setlocale(LC_ALL, "C") and setlocale(LC_CTYPE, "").
+        // This also affects C functions that depend on the locale in C extensions, so best to follow CRuby here.
+        // Change the strict minimum if embedded because setlocale() is process-wide.
+        if (env.getOptions().get(OptionsCatalog.EMBEDDED_KEY)) {
+            if (ImageInfo.inImageRuntimeCode()) {
+                ProcessProperties.setLocale("LC_CTYPE", "");
+            }
+        } else {
+            LibRubySignal.loadLibrary(rubyHome, Platform.LIB_SUFFIX);
+            LibRubySignal.setupLocale();
+        }
     }
 
     private void loadLibYARPBindings() {

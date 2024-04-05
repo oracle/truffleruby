@@ -48,6 +48,7 @@ LANGUAGE_OPTIONS:
 - CLASS_CACHE
 - ARRAY_DUP_CACHE
 - ARRAY_STRATEGY_CACHE
+# Other
 - EXPERIMENTAL_ENGINE_CACHING
 - RUN_TWICE
 - CHECK_CLONE_UNINITIALIZED_CORRECTNESS
@@ -85,6 +86,8 @@ EXPERT:
     LAZY_RUBYGEMS: [lazy-rubygems, boolean, ['RUBYGEMS && ', DEFAULT_LAZY], Load RubyGems lazily on first failing require]
 
     # Embedding options
+    # It would be tempting to make these language options, but that does not work because the pre-initialized context is created with (isNativeAccessAllowed=false, embedded=true)
+    # and it must be compatible (to be reused) with the runtime context created from the truffleruby launcher, which is (isNativeAccessAllowed=true, embedded=false).
     EMBEDDED: [embedded, boolean, true, 'Set default options for an embedded use of TruffleRuby, rather than top-level use']
     NATIVE_PLATFORM: [platform-native, boolean, ['env.isNativeAccessAllowed() && ', true], Enables native calls via Truffle NFI for internal functionality]
     NATIVE_INTERRUPT: [platform-native-interrupt, boolean, NATIVE_PLATFORM, Use the SIGVTALRM signal to interrupt native blocking calls]
