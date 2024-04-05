@@ -8,14 +8,15 @@ Bug fixes:
 * Fix repeated calling of methods `Dir#{each,each_child,children}` (#3464, @andrykonchin).
 * Fix `IO#{wait,wait_readable,wait_writable}` methods and switch the current thread into a sleep state (@andrykonchin).
 * Fix `rb_global_variable()` for `Float` and bignum values during the `Init_` function (#3478, @eregon).
+* Fix `rb_gc_register_mark_object()` for `Float` and bignum values (#3502, @eregon, @andrykonchin).
 * Fix parsing literal floats when the locale does not use `.` for the decimal separator (e.g. `LANG=fr_FR.UTF-8`) (#3512, @eregon).
 
 Compatibility:
+
 * Move `IO#wait_readable`, `IO#wait_writable`, `IO#wait_priority` and `IO#wait` into core library (@andrykonchin).
 * Change assignment evaluation order for fully qualified constant and evaluate left-hand-side before right-hand-side (#3039, @andrykonchin).
 * Fix evaluation order for multi-assignment and evaluate left-hand-side before right-hand-side (@andrykonchin).
 * Add `Regexp.linear_time?` method (#3039, @andrykonchin).
-
 * Allow null encoding pointer in `rb_enc_interned_str_cstr` (@thomasmarshall).
 
 Performance:
