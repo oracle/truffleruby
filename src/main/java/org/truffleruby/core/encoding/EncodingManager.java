@@ -20,8 +20,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.shadowed.org.jcodings.Encoding;
 import org.graalvm.shadowed.org.jcodings.EncodingDB;
 import org.truffleruby.RubyContext;
@@ -134,11 +136,16 @@ public final class EncodingManager {
         // LC_CTYPE is set according to environment variables (LC_ALL, LC_CTYPE, LANG).
         // HotSpot does setlocale(LC_ALL, "") and Native Image does nothing.
         // We match CRuby by doing setlocale(LC_ALL, "C") and setlocale(LC_CTYPE, "").
-        // This is notably important for Prism to be able to parse floating-point numbers:
-        // https://github.com/ruby/prism/issues/2638
-        // It also affects C functions that depend on the locale in C extensions, so best to follow CRuby here.
-        LibRubySignal.loadLibrary(language.getRubyHome(), Platform.LIB_SUFFIX);
-        LibRubySignal.setupLocale();
+        // This also affects C functions that depend on the locale in C extensions, so best to follow CRuby here.
+        // Change the strict minimum if embedded because setlocale() is process-wide.
+        if (context.getOptions().EMBEDDED) {
+            if (TruffleOptions.AOT) {
+                ProcessProperties.setLocale("LC_CTYPE", "");
+            }
+        } else {
+            LibRubySignal.loadLibrary(language.getRubyHome(), Platform.LIB_SUFFIX);
+            LibRubySignal.setupLocale();
+        }
 
         final String localeEncodingName;
         final String detector;
