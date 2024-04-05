@@ -159,8 +159,7 @@ import static org.truffleruby.language.RubyBaseNode.nil;
                 RubyLanguage.MIME_TYPE_MAIN_SCRIPT },
         defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
-        fileTypeDetectors = RubyFileTypeDetector.class,
-        needsAllEncodings = true)
+        fileTypeDetectors = RubyFileTypeDetector.class)
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
