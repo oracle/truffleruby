@@ -152,6 +152,7 @@ suite = {
             "requires": ["java.management"],
             "dependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "sdk:NATIVEIMAGE",
                 "sdk:POLYGLOT",
             ],
             "annotationProcessors": [
@@ -261,6 +262,9 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
+                "sdk:COLLECTIONS",
+                "sdk:NATIVEIMAGE",
+                "sdk:POLYGLOT",
                 # Library distributions, keep in sync with truffle_jars in mx_truffleruby.py
                 "truffle:TRUFFLE_JCODINGS",
                 "truffleruby:TRUFFLERUBY_JONI",
@@ -311,6 +315,7 @@ suite = {
                 "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
                 "sdk:MAVEN_DOWNLOADER",
+                "sdk:NATIVEIMAGE",
             ],
             "jacoco": "include",
             "javaCompliance": "17+",
@@ -489,6 +494,7 @@ suite = {
             ],
             "distDependencies": [
                 "truffleruby:TRUFFLERUBY-ANNOTATIONS",
+                "sdk:NATIVEIMAGE",
                 "sdk:POLYGLOT",
             ],
             "description": "TruffleRuby Shared constants and predicates",
@@ -531,6 +537,9 @@ suite = {
                 "sulong:SULONG_API",
                 "sulong:SULONG_NFI",
                 "sdk:JLINE3",
+                "sdk:COLLECTIONS",
+                "sdk:NATIVEIMAGE",
+                "sdk:POLYGLOT",
                 # Library distributions, keep in sync with truffle_jars in mx_truffleruby.py
                 "truffle:TRUFFLE_JCODINGS",
                 "truffleruby:TRUFFLERUBY_JONI",
@@ -600,6 +609,7 @@ suite = {
                 "sdk:POLYGLOT",
                 "sdk:LAUNCHER_COMMON",
                 "sdk:MAVEN_DOWNLOADER",
+                "sdk:NATIVEIMAGE",
             ],
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
