@@ -20,10 +20,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.shadowed.org.jcodings.Encoding;
 import org.graalvm.shadowed.org.jcodings.EncodingDB;
 import org.truffleruby.RubyContext;
@@ -39,8 +37,6 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.shared.Platform;
-import org.truffleruby.signal.LibRubySignal;
 
 import static org.truffleruby.core.encoding.Encodings.INITIAL_NUMBER_OF_ENCODINGS;
 
@@ -131,27 +127,12 @@ public final class EncodingManager {
     }
 
     private void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
-        // CRuby does setlocale(LC_CTYPE, "") because this is needed to get the locale encoding with nl_langinfo(CODESET).
-        // This means every locale category except LC_CTYPE remains the initial "C".
-        // LC_CTYPE is set according to environment variables (LC_ALL, LC_CTYPE, LANG).
-        // HotSpot does setlocale(LC_ALL, "") and Native Image does nothing.
-        // We match CRuby by doing setlocale(LC_ALL, "C") and setlocale(LC_CTYPE, "").
-        // This also affects C functions that depend on the locale in C extensions, so best to follow CRuby here.
-        // Change the strict minimum if embedded because setlocale() is process-wide.
-        if (context.getOptions().EMBEDDED) {
-            if (TruffleOptions.AOT) {
-                ProcessProperties.setLocale("LC_CTYPE", "");
-            }
-        } else {
-            LibRubySignal.loadLibrary(language.getRubyHome(), Platform.LIB_SUFFIX);
-            LibRubySignal.setupLocale();
-        }
-
         final String localeEncodingName;
         final String detector;
         if (nfi != null) {
             final int codeset = (int) nativeConfiguration.get("platform.langinfo.CODESET");
 
+            // nl_langinfo() needs setlocale(LC_CTYPE, "") before, which is done in RubyLanguage#setupLocale()
             // char *nl_langinfo(nl_item item);
             // nl_item is int on at least Linux and macOS
             final Object nl_langinfo = nfi.getFunction(context, "nl_langinfo", "(sint32):string");

@@ -71,6 +71,7 @@ public final class DataObjectFinalizationService
         this(language, referenceProcessor.processingQueue);
     }
 
+    @TruffleBoundary
     public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object finalizerCFunction,
             Object dataStruct) {
         final DataObjectFinalizerReference newRef = createRef(object, finalizerCFunction, dataStruct);
