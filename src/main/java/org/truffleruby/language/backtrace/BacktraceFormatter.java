@@ -69,7 +69,7 @@ public final class BacktraceFormatter {
     // For debugging:
     // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(this)
     public static String printableRubyBacktrace(Object maybeNode) {
-        final Node node = maybeNode instanceof Node ? (Node) maybeNode : null;
+        final Node node = maybeNode instanceof Node n && n.isAdoptable() ? (Node) maybeNode : null;
         final RubyContext context = RubyLanguage.getCurrentContext();
         final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(
                 context,
@@ -79,7 +79,7 @@ public final class BacktraceFormatter {
         if (backtrace.isEmpty()) {
             return "<empty backtrace>";
         } else if (node == null) {
-            return "# the first entry line is imprecise because 'this' is not a Node, select caller Java frames in the debugger until 'this' is a Node to fix this\n" +
+            return "# the first entry line is imprecise because 'this' is not an adopted Node, select caller Java frames in the debugger until 'this' is an adopted Node to fix this\n" +
                     backtrace;
         } else {
             return backtrace;
