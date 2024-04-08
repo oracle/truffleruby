@@ -604,6 +604,7 @@ module Truffle::CExt
   end
 
   def rb_class_get_superclass(ruby_class)
+    return false unless Primitive.is_a?(ruby_class, Class)
     ruby_class.superclass || false
   end
 
