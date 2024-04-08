@@ -65,7 +65,8 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 }
 
 void rb_gc_register_mark_object(VALUE obj) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_gc_register_mark_object", obj);
+  // No rb_tr_unwrap() here as the caller actually wants a ValueWrapper or a handle
+  polyglot_invoke(RUBY_CEXT, "rb_gc_register_mark_object", obj);
 }
 
 void* rb_tr_read_VALUE_pointer(VALUE *pointer) {

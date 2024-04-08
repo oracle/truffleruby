@@ -1621,8 +1621,12 @@ module Truffle::CExt
 
   GC_ROOTS = []
 
-  def rb_gc_register_mark_object(obj)
-    GC_ROOTS.push obj
+  def rb_gc_register_mark_object(value)
+    # We save the ValueWrapper here and not the actual value/object, this is important for primitives like double and
+    # not-fixnum-long, as we need to preserve the handle by preserving the ValueWrapper of that handle.
+    # For those cases the primitive cannot itself reference its ValueWrapper, unlike RubyDynamicObject and ImmutableRubyObject.
+    wrapper = Primitive.cext_to_wrapper(value)
+    GC_ROOTS.push wrapper
   end
 
   def rb_gc_latest_gc_info(hash_or_key)
