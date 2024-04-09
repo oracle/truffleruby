@@ -163,7 +163,11 @@ class BasicSocket < IO
       end
 
       str = buf.read_string(n_bytes)
-      buffer ? buffer.replace(str) : str
+      if buffer
+        buffer.replace str.force_encoding(buffer.encoding)
+      else
+        str
+      end
     end
   end
 
