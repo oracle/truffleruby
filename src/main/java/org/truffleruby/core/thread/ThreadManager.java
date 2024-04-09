@@ -25,7 +25,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.ValueType;
 import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.TruffleSafepoint;
 import com.oracle.truffle.api.TruffleSafepoint.Interrupter;
 import com.oracle.truffle.api.TruffleSafepoint.InterruptibleFunction;
@@ -144,10 +143,6 @@ public final class ThreadManager {
     }
 
     private static ThreadFactory getVirtualThreadFactory() {
-        if (TruffleOptions.AOT) {
-            return null; // GR-40931 native image does not support deoptimization + VirtualThread currently.
-        }
-
         final Method ofVirtual, unstarted;
         try {
             ofVirtual = Thread.class.getMethod("ofVirtual");
@@ -166,7 +161,7 @@ public final class ThreadManager {
         };
     }
 
-    @CompilationFinal static ThreadFactory VIRTUAL_THREAD_FACTORY = getVirtualThreadFactory();
+    static final ThreadFactory VIRTUAL_THREAD_FACTORY = getVirtualThreadFactory();
 
     public Thread createFiberJavaThread(RubyFiber fiber, SourceSection sourceSection, Runnable beforeEnter,
             Runnable body, Runnable afterLeave, Node node) {
