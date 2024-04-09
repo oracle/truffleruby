@@ -1784,6 +1784,14 @@ module Truffle::CExt
     raise NotImplementedError, "#{function}() function is unimplemented on this machine"
   end
 
+  def rb_bug(message)
+    raise Exception, "rb_bug: #{message}"
+  end
+
+  def rb_fatal(message)
+    raise Exception, "rb_fatal: #{message}"
+  end
+
   def test_kwargs(kwargs, raise_error)
     return false if Primitive.nil?(kwargs)
 
