@@ -85,7 +85,7 @@ VALUE rb_syserr_new_str(int n, VALUE mesg) {
   return RUBY_CEXT_INVOKE("rb_syserr_new", INT2FIX(n), mesg);
 }
 
-VALUE make_errno_exc_str(VALUE mesg) {
+static VALUE make_errno_exc_str(VALUE mesg) {
   int n = errno;
 
   errno = 0;
