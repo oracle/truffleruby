@@ -61,7 +61,9 @@ class IPSocket < BasicSocket
       end
     end
 
-    message = buffer.replace(message) if buffer
+    if buffer
+      message = buffer.replace message.force_encoding(buffer.encoding)
+    end
 
     [message, [aname, addr.ip_port, hostname, addr.ip_address]]
   end

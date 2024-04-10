@@ -58,11 +58,18 @@ class UNIXSocket < BasicSocket
     Errno.handle('connect(2)') if status < 0
   end
 
-  def recvfrom(bytes_read, flags = 0)
+  def recvfrom(bytes_read, flags = 0, buffer = nil)
     Truffle::Socket::Foreign.memory_pointer(bytes_read) do |buf|
       n_bytes = Truffle::Socket::Foreign.recvfrom(Primitive.io_fd(self), buf, bytes_read, flags, nil, nil)
       Errno.handle('recvfrom(2)') if n_bytes == -1
-      return [buf.read_string(n_bytes), ['AF_UNIX', '']]
+
+      message = buf.read_string(n_bytes)
+
+      if buffer
+        message = buffer.replace message.force_encoding(buffer.encoding)
+      end
+
+      return [message, ['AF_UNIX', '']]
     end
   end
 

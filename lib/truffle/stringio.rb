@@ -450,6 +450,8 @@ class StringIO
       pos = d.pos
       string = d.string
 
+      # intentionally don't preserve buffer's encoding
+      # see https://bugs.ruby-lang.org/issues/20418
       if length
         length = Truffle::Type.coerce_to length, Integer, :to_int
         raise ArgumentError if length < 0

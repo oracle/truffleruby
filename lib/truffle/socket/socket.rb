@@ -384,7 +384,9 @@ class Socket < BasicSocket
     if message == :wait_readable
       message
     else
-      message = buffer.replace(message) if buffer
+      if buffer
+        message = buffer.replace message.force_encoding(buffer.encoding)
+      end
       [message, addr]
     end
   end

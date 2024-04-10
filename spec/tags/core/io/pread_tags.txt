@@ -18,3 +18,4 @@ fails:IO#pread raises TypeError if offset is not an Integer and cannot be coerce
 fails:IO#pread raises ArgumentError for negative values of maxlen
 fails:IO#pread raised Errno::EINVAL for negative values of offset
 fails:IO#pread raises TypeError if the buffer is not a String and cannot be coerced into String
+fails:IO#pread preserves the encoding of the given buffer
