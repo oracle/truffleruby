@@ -1500,6 +1500,14 @@ module Truffle::CExt
     Primitive.object_hidden_var_set(ruby_class.singleton_class, ALLOCATOR_FUNC, nil)
   end
 
+  def rb_tr_set_default_alloc_func(ruby_class, alloc_function)
+    Primitive.object_hidden_var_set(ruby_class.singleton_class, ALLOCATOR_FUNC, alloc_function)
+  end
+
+  def rb_tr_default_alloc_func(ruby_class)
+    ruby_class.__send__(:__layout_allocate__)
+  end
+
   def rb_alias(mod, new_name, old_name)
     mod.send(:alias_method, new_name, old_name)
   end
