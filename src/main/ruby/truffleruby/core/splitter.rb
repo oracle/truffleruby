@@ -88,6 +88,7 @@ module Truffle
 
         orig_block ? string : result
       end
+      Truffle::Graal.always_split(instance_method(:split))
 
       private
 
