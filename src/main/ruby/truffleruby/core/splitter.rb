@@ -44,7 +44,7 @@ module Truffle
         # To simplify the code, we present a single block
         # that either calls user (origin) block or adds a substring to the resulting array
         # See motivation: https://github.com/oracle/truffleruby/pull/2052#issuecomment-663449395
-        block = orig_block || result.method(:<<).to_proc
+        callable = orig_block || result.method(:<<)
 
         return (orig_block ? string : result) if string.empty?
 
@@ -57,7 +57,7 @@ module Truffle
         if limit == 1
           dup_string = string.dup
 
-          block.call(dup_string)
+          callable.call(dup_string)
           return orig_block ? dup_string : result
         end
 
@@ -72,7 +72,7 @@ module Truffle
           # See motivation: https://github.com/oracle/truffleruby/pull/2052#issuecomment-663494235
           return Primitive.string_awk_split string, awk_limit, orig_block
         elsif Primitive.is_a?(pattern, Regexp)
-          split_type_regexp(string, pattern, limit, block)
+          split_type_regexp(string, pattern, limit, callable)
         else
           pattern = StringValue(pattern)
 
@@ -80,14 +80,15 @@ module Truffle
           valid_encoding?(pattern)
 
           if pattern.empty?
-            split_type_chars(string, limit, block)
+            split_type_chars(string, limit, callable)
           else
-            split_type_string(string, pattern, limit, block)
+            split_type_string(string, pattern, limit, callable)
           end
         end
 
         orig_block ? string : result
       end
+      Truffle::Graal.always_split(instance_method(:split))
 
       private
 
@@ -95,24 +96,24 @@ module Truffle
         raise ArgumentError, "invalid byte sequence in #{string.encoding.name}" unless string.valid_encoding?
       end
 
-      def split_type_chars(string, limit, block)
+      def split_type_chars(string, limit, callable)
         if limit > 0
           last = string.size > (limit - 1) ? string[(limit - 1)..-1] : empty_string(string)
 
           string.each_char.each_with_index do |char, index|
             break if index == limit - 1
-            block.call(char)
+            callable.call(char)
           end
 
-          block.call(last)
+          callable.call(last)
         else
-          string.each_char(&block)
+          string.each_char { |c| callable.call(c) }
 
-          block.call(empty_string(string)) if tail_empty?(limit)
+          callable.call(empty_string(string)) if tail_empty?(limit)
         end
       end
 
-      def split_type_string(string, pattern, limit, block)
+      def split_type_string(string, pattern, limit, callable)
         pos = 0
         empty_count = 0
         limited = limit > 0
@@ -128,24 +129,24 @@ module Truffle
           break unless nxt
 
           match_size = nxt - pos
-          empty_count = add_substring(string, ret, string.byteslice(pos, match_size), empty_count, block)
+          empty_count = add_substring(string, ret, string.byteslice(pos, match_size), empty_count, callable)
 
           pos = nxt + pat_size
           count += 1
         end
 
         # No more separators, but we need to grab the last part still.
-        empty_count = add_substring(string, ret, string.byteslice(pos, str_size - pos), empty_count, block)
+        empty_count = add_substring(string, ret, string.byteslice(pos, str_size - pos), empty_count, callable)
 
         if tail_empty?(limit)
-          add_empty(string, ret, empty_count, block)
+          add_empty(string, ret, empty_count, callable)
         end
       end
 
-      def split_type_regexp(string, pattern, limit, block)
+      def split_type_regexp(string, pattern, limit, callable)
         # Handle // as a special case.
         if pattern.source.empty?
-          return split_type_chars(string, limit, block)
+          return split_type_chars(string, limit, callable)
         end
 
         start = 0
@@ -164,12 +165,12 @@ module Truffle
 
           unless collapsed && (Primitive.match_data_byte_begin(match, 0) == last_match_end)
             substring = Truffle::RegexpOperations.pre_match_from(match, last_match_end)
-            empty_count = add_substring(string, ret, substring, empty_count, block)
+            empty_count = add_substring(string, ret, substring, empty_count, callable)
 
             # length > 1 means there are captures
             if match.length > 1
               match.captures.compact.each do |capture|
-                empty_count = add_substring(string, ret, capture, empty_count, block)
+                empty_count = add_substring(string, ret, capture, empty_count, callable)
               end
             end
 
@@ -186,31 +187,31 @@ module Truffle
         end
 
         if last_match
-          empty_count = add_substring(string, ret, last_match.post_match, empty_count, block)
+          empty_count = add_substring(string, ret, last_match.post_match, empty_count, callable)
         elsif ret.empty?
-          empty_count = add_substring(string, ret, string.dup, empty_count, block)
+          empty_count = add_substring(string, ret, string.dup, empty_count, callable)
         end
 
         if tail_empty?(limit)
-          add_empty(string, ret, empty_count, block)
+          add_empty(string, ret, empty_count, callable)
         end
 
-        block ? string : ret
+        callable ? string : ret
       end
 
 
-      def add_substring(string, array, substring, empty_count, block)
+      def add_substring(string, array, substring, empty_count, callable)
         return empty_count + 1 if substring.length == 0 # remember another one empty match
 
-        add_empty(string, array, empty_count, block)
+        add_empty(string, array, empty_count, callable)
 
-        block.call(substring)
+        callable.call(substring)
 
         0 # always release all empties when we get non empty substring
       end
 
-      def add_empty(string, array, count, block)
-        count.times { block.call(empty_string(string)) }
+      def add_empty(string, array, count, callable)
+        count.times { callable.call(empty_string(string)) }
       end
 
       def empty_string(original)

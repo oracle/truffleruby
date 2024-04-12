@@ -320,6 +320,7 @@ class String
   def split(pattern = nil, limit = undefined, &block)
     Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
   end
+  Truffle::Graal.always_split(instance_method(:split))
 
   def squeeze(*strings)
     str = Primitive.dup_as_string_instance(self)
