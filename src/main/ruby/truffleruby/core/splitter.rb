@@ -107,7 +107,7 @@ module Truffle
 
           callable.call(last)
         else
-          string.each_char(&callable)
+          string.each_char { |c| callable.call(c) }
 
           callable.call(empty_string(string)) if tail_empty?(limit)
         end
