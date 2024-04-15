@@ -128,7 +128,7 @@ module Truffle::POSIX
       parsed_sig = Primitive.interop_eval_nfi "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
       bound_func = parsed_sig.bind(func)
 
-      on.define_singleton_method method_name, -> *args do
+      method_body = Truffle::Graal.copy_captured_locals -> *args do
         string_args.each do |i|
           str = args.fetch(i)
           # TODO CS 14-Nov-17 this involves copying to a Java byte[], and then NFI will copy it again!
@@ -164,6 +164,7 @@ module Truffle::POSIX
 
         result
       end
+      on.define_singleton_method method_name, method_body
     else
       on.define_singleton_method method_name, -> * do
         raise NotImplementedError, "#{native_name} is not available"
