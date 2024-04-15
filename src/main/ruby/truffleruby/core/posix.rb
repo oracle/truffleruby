@@ -140,7 +140,7 @@ module Truffle::POSIX
             result = Primitive.thread_run_blocking_nfi_system_call(bound_func, args)
           end while Primitive.is_a?(result, Integer) and result == -1 and Errno.errno == EINTR
         else
-          result = bound_func.call(*args)
+          result = Primitive.interop_execute(bound_func, args)
         end
 
         if return_type == :string
