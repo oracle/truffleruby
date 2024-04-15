@@ -2533,13 +2533,8 @@ module Commands
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     FileUtils.rm_rf dest
-    if @ruby_name != @mx_env
-      # if `--name NAME` is passed, we want to copy so we don't end up with two symlinks
-      # to the same directory for the same --env but different names
-      FileUtils.cp_r(build_dir, dest)
-    else
-      File.symlink(build_dir, dest)
-    end
+    # NOTE: revert the changes and create a symlink if possible when [GR-53433] is resolved
+    FileUtils.cp_r(build_dir, dest)
 
     # Symlink builds into version manager
     rbenv_root = ENV['RBENV_ROOT']
