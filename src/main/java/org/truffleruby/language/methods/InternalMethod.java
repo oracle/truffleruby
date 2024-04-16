@@ -57,6 +57,9 @@ public final class InternalMethod implements ObjectGraphNode {
     private final CachedLazyCallTargetSupplier callTargetSupplier;
     @CompilationFinal private RootCallTarget callTarget;
 
+    /** call target of a Proc created from a method and cached for consequent Method#to_proc calls */
+    public RootCallTarget toProcCallTarget;
+
     public static InternalMethod fromProc(
             RubyContext context,
             SharedMethodInfo sharedMethodInfo,
