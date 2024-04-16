@@ -1665,6 +1665,7 @@ public abstract class KernelNodes {
 
     @GenerateInline
     @GenerateCached(false)
+    @ReportPolymorphism
     public abstract static class SprintfInnerNode extends RubyBaseNode {
 
         public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,
