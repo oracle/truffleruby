@@ -1887,6 +1887,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "set_mark_list_on_object", onSingleton = true, required = 1)
+    @ReportPolymorphism
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
