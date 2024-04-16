@@ -1392,10 +1392,12 @@ class String
     end
     Primitive.string_unpack(self, format, offset)
   end
+  Truffle::Graal.always_split(instance_method(:unpack))
 
   def unpack1(format, offset: undefined)
     unpack(format, offset: offset).first
   end
+  Truffle::Graal.always_split(instance_method(:unpack1))
 
   def unicode_normalize(form = :nfc)
     require 'unicode_normalize/normalize.rb' unless defined? UnicodeNormalize

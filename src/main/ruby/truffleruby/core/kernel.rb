@@ -721,6 +721,8 @@ module Kernel
     nil
   end
   module_function :printf
+  Truffle::Graal.always_split(instance_method(:printf))
+  Truffle::Graal.always_split(method(:printf))
 
   private def pp(*args)
     require 'pp'
