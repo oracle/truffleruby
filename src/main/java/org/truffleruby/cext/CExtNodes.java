@@ -445,9 +445,9 @@ public abstract class CExtNodes {
 
         @Specialization
         Object markOnCallExit(Object object,
-                @Cached WrapNode wrapNode,
-                @Cached MarkingServiceNodes.QueueForMarkOnExitNode markOnExitNode) {
-            markOnExitNode.execute(wrapNode.execute(object));
+                @Cached WrapNode wrapNode) {
+            ValueWrapper wrapper = wrapNode.execute(object);
+            getLanguage().getCurrentThread().getCurrentFiber().extensionCallStack.markOnExitObject(wrapper);
             return nil;
         }
     }
