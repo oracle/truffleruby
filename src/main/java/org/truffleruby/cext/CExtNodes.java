@@ -34,6 +34,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -2029,8 +2030,7 @@ public abstract class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_tr_sprintf", onSingleton = true, required = 3)
-    @ReportPolymorphism
+    @CoreMethod(names = "rb_tr_sprintf", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
@@ -2069,6 +2069,7 @@ public abstract class CExtNodes {
 
     @GenerateInline
     @GenerateCached(false)
+    @ReportPolymorphism
     public abstract static class RBSprintfInnerNode extends RubyBaseNode {
 
         public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,

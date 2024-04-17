@@ -14,7 +14,7 @@ public enum Split {
     DEFAULT,
     ALWAYS,
     HEURISTIC,
-    /** Disallow splitting for this CallTarget, which avoids making a eager uninitialized copy of the AST. Useful
+    /** Disallow splitting for this CallTarget, which avoids making an eager uninitialized copy of the AST. Useful
      * notably for methods not specializing on their arguments and just calling a TruffleBoundary. */
     NEVER
 }

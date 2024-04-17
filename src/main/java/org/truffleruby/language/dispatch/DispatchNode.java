@@ -300,12 +300,10 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         return callNode.execute(frame, method, receiver, rubyArgs);
     }
 
-
     /** This will be called from the {@link CallInternalMethodNode} child whenever it creates a new
      * {@link DirectCallNode}. */
     public final void applySplittingInliningStrategy(RootCallTarget callTarget, String methodName,
             DirectCallNode callNode) {
-
 
         final Options options = getContext().getOptions();
 

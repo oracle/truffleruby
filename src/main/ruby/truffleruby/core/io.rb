@@ -1664,6 +1664,7 @@ class IO
     fmt = StringValue(fmt)
     write sprintf(fmt, *args)
   end
+  Truffle::Graal.always_split(instance_method(:printf))
 
   def read(length = nil, buffer = nil)
     ensure_open_and_readable
@@ -2485,6 +2486,7 @@ class IO::BidirectionalPipe < IO
   def printf(fmt, *args)
     @write.printf(fmt, *args)
   end
+  Truffle::Graal.always_split(instance_method(:printf))
 
   def putc(obj)
     @write.putc(obj)
