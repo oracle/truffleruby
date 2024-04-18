@@ -40,6 +40,7 @@ import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -325,7 +326,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         performIncludes(inclusionPoint, modulesToInclude);
 
-        newHierarchyVersion();
+        newHierarchyVersion(context, currentNode);
     }
 
     private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
@@ -401,9 +402,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         // If there were already prepended modules, invalidate the first of them
-        newHierarchyVersion();
+        newHierarchyVersion(context, currentNode);
 
-        invalidateBuiltinsAssumptions();
+        invalidateBuiltinsAssumptions(context, currentNode);
     }
 
     private List<RubyModule> getPrependedModulesAndSelf() {
@@ -555,9 +556,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
 
             // invalidate assumptions to not use an AST-inlined methods
-            changedMethod(method.getName());
+            changedMethod(context, method.getName(), currentNode);
             if (refinedModule != null) {
-                refinedModule.fields.changedMethod(method.getName());
+                refinedModule.fields.changedMethod(context, method.getName(), currentNode);
             }
         }
 
@@ -585,7 +586,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean removeMethod(String methodName) {
+    public boolean removeMethod(RubyContext context, String methodName, Node currentNode) {
         final InternalMethod method = getMethod(methodName);
         if (method == null) {
             return false;
@@ -596,7 +597,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             removedEntry.invalidate(rubyModule, methodName);
         }
 
-        changedMethod(methodName);
+        changedMethod(context, methodName, currentNode);
         return true;
     }
 
@@ -841,13 +842,13 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    public void newHierarchyVersion() {
+    public void newHierarchyVersion(RubyContext context, Node currentNode) {
         if (!isClass()) {
             hierarchyUnmodifiedAssumption.invalidate(getName());
         }
 
         if (isRefinement()) {
-            getRefinedModule().fields.invalidateBuiltinsAssumptions();
+            getRefinedModule().fields.invalidateBuiltinsAssumptions(context, currentNode);
         }
     }
 
@@ -1159,18 +1160,31 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         assert old == null;
     }
 
-    private void changedMethod(String name) {
-        Assumption assumption = inlinedBuiltinsAssumptions.get(name);
+    private void changedMethod(RubyContext context, String methodName, Node currentNode) {
+        Assumption assumption = inlinedBuiltinsAssumptions.get(methodName);
         if (assumption != null) {
             assumption.invalidate();
+
+            PerformanceWarningNode.warn(
+                    context,
+                    StringUtils.format("Redefining '%s#%s' disables interpreter and JIT optimizations", getName(),
+                            methodName),
+                    currentNode);
         }
     }
 
-    private void invalidateBuiltinsAssumptions() {
+    private void invalidateBuiltinsAssumptions(RubyContext context, Node currentNode) {
         if (!inlinedBuiltinsAssumptions.isEmpty()) {
             for (Assumption assumption : inlinedBuiltinsAssumptions.values()) {
                 assumption.invalidate();
             }
+
+            PerformanceWarningNode.warn(
+                    context,
+                    StringUtils.format("Prepending a module to %s disables interpreter and JIT optimizations",
+                            getName()),
+                    currentNode);
         }
     }
+
 }

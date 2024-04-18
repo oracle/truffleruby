@@ -1,0 +1,2 @@
+slow:Redefining optimized core methods emits performance warning for redefining core classes methods
+slow:Prepending a module into a class with optimised methods emits performance warning
