@@ -33,6 +33,7 @@
   * [How to add a new spec](#how-to-add-a-new-spec)
   * [How to work on a new CRuby feature](#how-to-work-on-a-new-cruby-feature)
   * [How to prepare PR for changes in the next CRuby version](#how-to-prepare-pr-for-changes-in-the-next-cruby-version)
+  * [How to use jt CLI tool](#how-to-use-jt-cli-tool)
 
 ## How to find a Core Method implementation
 
@@ -1602,3 +1603,32 @@ If the new feature breaks existing behavior and some specs fail - disable them t
 is switched to the next CRuby version completely) with tagging as failed (use `jt tag <path-to-spec-file>`)
 
 Look for additional details in [The "Running specs for Ruby 3.3 features" section of the Contributor Workflow document](workflow.md#running-specs-for-ruby-33-features).
+
+## How to use jt CLI tool
+
+The `jt` CLI tool has a lot of commands but there are very few basic ones that you may need to use often:
+
+- `jt ruby` - run TruffleRuby REPL (`irb`)
+    - `jt ruby <filename>` - execute a file with Ruby source code with TruffleRuby
+    - `jt ruby -e '<Ruby source code>'` - execute a string of Ruby source code with TruffleRuby REPL
+    - `jt -q ruby --jdebug -e '<Ruby source code>'` - to launch debugger
+- `jt test <path to test file>` - run ruby/spec test file
+    - `jt --use ruby test <path to test file>` - to use tests against current CRuby, not TruffleRuby
+        - `jt -u ruby test <path to test file>` - there is a short form `-u`
+    - `jt test <path to test file> -- --jdebug` - to launch debugger
+    - `jt test fast <path to test file>` - run subset of specs and tag slow test cases with tag `slow`
+    - `jt test :next` - run specs for features introduced in the next CRuby version, not supported by TruffleRuby currently
+- `jt test mri <path to test file>` - run MRI test file
+  - `jt test mri <path to test file> --jdebug` - to launch debugger for MRI tests (without `--`)
+  - `jt test mri <path to MRI test file> -- -n <test case name>` - to run only specified UnitTest case
+- `jt build`
+- `jt clean`
+- `jt rebuild`
+- `jt sync` - to synchronize changes in Standard Library Ruby source code and apply them without rebuilding TruffleRuby
+- `jt tag` - ruby/spec only
+- `jt untag <path-to-file>` - (ruby/spec only) regenerate an exclude file for particular ruby/spec file (and list all the failed test cases)
+- `jt retag <path-to-file>` - (MRI test only) regenerate an exclude file for particular MRI test file (and list all the failed test cases)
+- `jt lint fast` - to run some linter checks (that are run on CI) locally
+- `jt rubocop` - to run Ruby source code linter separately from other linter checks.
+    - `jt rubocop -a` - to correct safely Rubocop warnings automatically
+    - `jt rubocop -A` - to correct unsafely Rubocop warnings automatically
