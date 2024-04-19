@@ -604,6 +604,7 @@ module Truffle::CExt
   end
 
   def rb_class_get_superclass(ruby_class)
+    return false unless Primitive.is_a?(ruby_class, Class)
     ruby_class.superclass || false
   end
 
@@ -1497,6 +1498,14 @@ module Truffle::CExt
     nil # it's fine to call this on a class that doesn't have an allocator
   else
     Primitive.object_hidden_var_set(ruby_class.singleton_class, ALLOCATOR_FUNC, nil)
+  end
+
+  def rb_tr_set_default_alloc_func(ruby_class, alloc_function)
+    Primitive.object_hidden_var_set(ruby_class.singleton_class, ALLOCATOR_FUNC, alloc_function)
+  end
+
+  def rb_tr_default_alloc_func(ruby_class)
+    ruby_class.__send__(:__layout_allocate__)
   end
 
   def rb_alias(mod, new_name, old_name)
