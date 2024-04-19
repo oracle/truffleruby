@@ -32,6 +32,7 @@
   * [How to introduce a constant in specs](#how-to-introduce-a-constant-in-specs)
   * [How to add a new spec](#how-to-add-a-new-spec)
   * [How to work on a new CRuby feature](#how-to-work-on-a-new-cruby-feature)
+  * [How to prepare PR for changes in the next CRuby version](#how-to-prepare-pr-for-changes-in-the-next-cruby-version)
 
 ## How to find a Core Method implementation
 
@@ -1582,3 +1583,22 @@ When you work on a new feature/method usually you make the following steps:
 - untag MRI tests and ensure they pass too
 - mention in a PR description an original issue in a way it's described in the Ruby
   release notes or provide a link to an original ticket (on <https://bugs.ruby-lang.org>)
+
+## How to prepare PR for changes in the next CRuby version
+
+When you work on a new feature that is introduced in Ruby version which TruffleRuby doesn't support yet
+(e.g. TruffleRuby is compatible with Ruby 3.1 now but the feature is introduced in Ruby 3.2) there is a
+problem with running proper specs locally and on CI (both internal and GitHub Actions).
+
+So you should ensure that the specs for the new feature are run and passed successfully on CI and the
+whole suit pass successfully as well:
+
+- add specs for the new feature if they are missing (with a `ruby_version_is` guard)
+- use `PRETEND_RUBY_VERSION` environment variable to run specs for the new feature
+- add a file with specs for the new feature to the next list in `spec/truffleruby.next-specs` (to run them on CI)
+- use `jt test :next` to run locally all the specs for the next CRuby version
+
+If the new feature breaks existing behavior and some specs fail - disable them temporary (until TruffleRuby
+is switched to the next CRuby version completely) with tagging as failed (use `jt tag <path-to-spec-file>`)
+
+Look for additional details in [The "Running specs for Ruby 3.3 features" section of the Contributor Workflow document](workflow.md#running-specs-for-ruby-33-features).
