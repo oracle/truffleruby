@@ -33,19 +33,14 @@ class Struct
     alias_method :subclass_new, :new
   end
 
-  def self.new(klass_name = nil, *attrs, keyword_init: nil, &block)
-    if klass_name
-      if Primitive.is_a?(klass_name, Symbol) # Truffle: added to avoid exception and match MRI
-        attrs.unshift klass_name
-        klass_name = nil
-      else
-        begin
-          klass_name = StringValue klass_name
-        rescue TypeError
-          attrs.unshift klass_name
-          klass_name = nil
-        end
-      end
+  def self.new(*attrs, keyword_init: nil, &block)
+    klass_name = nil
+
+    first = attrs[0]
+    if attrs.size >= 1 && !Primitive.is_a?(first, Symbol)
+      # nil check because Struct.new(nil, :foo) is valid
+      klass_name = StringValue(first) unless Primitive.nil?(first)
+      attrs.shift
     end
 
     attrs = attrs.map { |a| Truffle::Type.symbol_or_string_to_symbol(a) }
