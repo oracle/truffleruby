@@ -31,6 +31,7 @@
   * [How to tag slow ruby/spec tests](#how-to-tag-slow-rubyspec-tests)
   * [How to introduce a constant in specs](#how-to-introduce-a-constant-in-specs)
   * [How to add a new spec](#how-to-add-a-new-spec)
+  * [How to work on a new CRuby feature](#how-to-work-on-a-new-cruby-feature)
 
 ## How to find a Core Method implementation
 
@@ -1564,3 +1565,20 @@ There are the following main directories:
 - `spec/ruby/core` - specs for the Core Library
 - `spec/ruby/library` - specs for the Standard Library
 - `spec/ruby/language` - specs for the Ruby syntax itself
+
+## How to work on a new CRuby feature
+
+When you work on a new feature/method usually you make the following steps:
+
+- check a feature/method description in the Ruby documentation
+- check a corresponding issue (on the Ruby bug tracker <https://bugs.ruby-lang.org>):
+  - a feature description
+  - discussion
+  - "Associated revisions" tab with commits and diffs (pay attention to added MRI and ruby/spec tests)
+- check existing ruby/spec tests in the TruffleRuby repository
+- add missing test cases
+- untag ruby/spec tests
+- implement the feature
+- untag MRI tests and ensure they pass too
+- mention in a PR description an original issue in a way it's described in the Ruby
+  release notes or provide a link to an original ticket (on <https://bugs.ruby-lang.org>)
