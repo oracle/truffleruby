@@ -115,7 +115,6 @@ public final class OptionsCatalog {
     public static final OptionKey<Integer> METHOD_LOOKUP_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> DISPATCH_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> YIELD_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> METHOD_TO_PROC_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> IS_A_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> BIND_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> CONSTANT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -925,14 +924,6 @@ public final class OptionsCatalog {
             .usageSyntax("8")
             .build();
 
-    public static final OptionDescriptor METHOD_TO_PROC_CACHE = OptionDescriptor
-            .newBuilder(METHOD_TO_PROC_CACHE_KEY, "ruby.to-proc-cache")
-            .help("Method#to_proc cache size")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("8")
-            .build();
-
     public static final OptionDescriptor IS_A_CACHE = OptionDescriptor
             .newBuilder(IS_A_CACHE_KEY, "ruby.is-a-cache")
             .help("Kernel#is_a? and #kind_of? cache size")
@@ -1509,8 +1500,6 @@ public final class OptionsCatalog {
                 return DISPATCH_CACHE;
             case "ruby.yield-cache":
                 return YIELD_CACHE;
-            case "ruby.to-proc-cache":
-                return METHOD_TO_PROC_CACHE;
             case "ruby.is-a-cache":
                 return IS_A_CACHE;
             case "ruby.bind-cache":
@@ -1709,7 +1698,6 @@ public final class OptionsCatalog {
             METHOD_LOOKUP_CACHE,
             DISPATCH_CACHE,
             YIELD_CACHE,
-            METHOD_TO_PROC_CACHE,
             IS_A_CACHE,
             BIND_CACHE,
             CONSTANT_CACHE,

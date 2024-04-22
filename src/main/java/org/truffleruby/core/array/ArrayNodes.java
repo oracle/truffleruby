@@ -1491,8 +1491,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "pack", required = 1)
-    @ReportPolymorphism
+    @CoreMethod(names = "pack", required = 1, split = Split.ALWAYS)
     public abstract static class ArrayPackNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1506,6 +1505,7 @@ public abstract class ArrayNodes {
 
     @GenerateCached(false)
     @GenerateInline
+    @ReportPolymorphism
     public abstract static class PackNode extends RubyBaseNode {
 
         public abstract RubyString execute(Node node, RubyArray array, Object format);

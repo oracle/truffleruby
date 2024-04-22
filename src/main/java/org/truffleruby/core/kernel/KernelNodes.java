@@ -1616,8 +1616,8 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1)
-    @ReportPolymorphism
+    @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1,
+            split = Split.ALWAYS)
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         static final String GVAR_DEBUG = "$DEBUG";
@@ -1665,6 +1665,7 @@ public abstract class KernelNodes {
 
     @GenerateInline
     @GenerateCached(false)
+    @ReportPolymorphism
     public abstract static class SprintfInnerNode extends RubyBaseNode {
 
         public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,

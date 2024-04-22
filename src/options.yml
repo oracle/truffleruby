@@ -28,7 +28,6 @@ LANGUAGE_OPTIONS:
 - METHOD_LOOKUP_CACHE
 - DISPATCH_CACHE
 - YIELD_CACHE
-- METHOD_TO_PROC_CACHE
 - IS_A_CACHE
 - BIND_CACHE
 - CONSTANT_CACHE
@@ -201,7 +200,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     METHOD_LOOKUP_CACHE: [method-lookup-cache, integer, DEFAULT_CACHE, Method lookup cache size]
     DISPATCH_CACHE: [dispatch-cache, integer, DEFAULT_CACHE, Dispatch (various forms of method call) cache size]
     YIELD_CACHE: [yield-cache, integer, DEFAULT_CACHE, Yield cache size]
-    METHOD_TO_PROC_CACHE: [to-proc-cache, integer, DEFAULT_CACHE, Method#to_proc cache size]
     IS_A_CACHE: [is-a-cache, integer, DEFAULT_CACHE, 'Kernel#is_a? and #kind_of? cache size']
     BIND_CACHE: [bind-cache, integer, DEFAULT_CACHE, Cache size of test for being able to bind a method to a module]
     CONSTANT_CACHE: [constant-cache, integer, DEFAULT_CACHE, Constant cache size]

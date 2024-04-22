@@ -54,5 +54,13 @@ void rb_tr_init(void *ruby_cext) {
   polyglot_invoke(rb_tr_cext, "cext_start_new_handle_block");
   rb_tr_init_exception();
   rb_tr_init_global_constants(sulong_get_constant);
+
+  // In CRuby some core classes have custom allocation function.
+  // So mimic this CRuby implementation detail to satisfy rb_define_alloc_func's specs
+  // for classes that are used in these specs only.
+  rb_tr_set_default_alloc_func(rb_cBasicObject, rb_tr_default_alloc_func);
+  rb_tr_set_default_alloc_func(rb_cArray, rb_tr_default_alloc_func);
+  rb_tr_set_default_alloc_func(rb_cString, rb_tr_default_alloc_func);
+
   polyglot_invoke(rb_tr_cext, "cext_start_new_handle_block");
 }

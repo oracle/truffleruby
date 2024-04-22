@@ -88,10 +88,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     @Override
-    protected void validateArguments(Map<String, String> polyglotOptions) {
-    }
-
-    @Override
     protected void printVersion() {
         getOutput().println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         getOutput().println();
@@ -131,10 +127,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             if (config.readRubyOptEnv) {
                 /* Calling processArguments() here will also add any unrecognized arguments such as
                  * --jvm/--native/--vm.* arguments and polyglot options to `config.getUnknownArguments()`, which will
-                 * then be processed by AbstractLanguageLauncher and Launcher. If we are going to run Native, Launcher
-                 * will apply VM options to the current process. If we are going to run on JVM, Launcher will collect
-                 * them and pass them when execve()'ing to bin/java. Polyglot options are parsed by
-                 * AbstractLanguageLauncher in the final process. */
+                 * then be processed by AbstractLanguageLauncher. For VM arguments, #validateVmArguments() will be
+                 * called to check that the guessed --vm.* arguments match the actual ones (should always be the case,
+                 * except if --vm.* arguments are added dynamically like --vm.Xmn1g for gem/bundle on native). If they
+                 * do not match then the thin launcher will relaunch by execve(). Polyglot options are parsed by
+                 * AbstractLanguageLauncher#parseUnrecognizedOptions. */
                 // Process RUBYOPT
                 final List<String> rubyoptArgs = getArgsFromEnvVariable("RUBYOPT");
                 new CommandLineParser(rubyoptArgs, config, false, true).processArguments();
@@ -382,7 +379,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         String value = System.getenv(name);
         if (value != null) {
             value = value.strip();
-            if (value.length() != 0) {
+            if (!value.isEmpty()) {
                 return new ArrayList<>(Arrays.asList(value.split("\\s+")));
             }
         }
@@ -391,7 +388,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private static List<String> getPathListFromEnvVariable(String name) {
         final String value = System.getenv(name);
-        if (value != null && value.length() != 0) {
+        if (value != null && !value.isEmpty()) {
             return new ArrayList<>(Arrays.asList(value.split(":")));
         }
         return Collections.emptyList();

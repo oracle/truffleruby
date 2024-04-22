@@ -73,8 +73,8 @@ jobs:
 
     - name: Create archive
       run: |
-        cd $(dirname $(jt ruby-home))
-        mv $(basename $(jt ruby-home)) truffleruby-jvm
+        mv "$(jt -u jvm ruby-home)" "${{ github.workspace }}/truffleruby-jvm"
+        cd ${{ github.workspace }}
         tar cf ${{ github.workspace }}/truffleruby-jvm.tar truffleruby-jvm
     - uses: actions/upload-artifact@v2
       with:
@@ -115,13 +115,9 @@ jobs:
 
       - name: Create archive
         run: |
-          df -h
           mv "$(jt -u native ruby-home)" "${{ github.workspace }}/truffleruby-native"
-          rm -r mxbuild ../graal/sdk/mxbuild
-          df -h
           cd ${{ github.workspace }}
           tar cf ${{ github.workspace }}/truffleruby-native.tar truffleruby-native
-          ls -lh ${{ github.workspace }}/truffleruby-native.tar
       - uses: actions/upload-artifact@v2
         with:
           name: truffleruby-native

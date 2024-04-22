@@ -109,6 +109,14 @@ rb_alloc_func_t rb_get_alloc_func(VALUE klass) {
   return RUBY_CEXT_INVOKE_NO_WRAP("rb_get_alloc_func", klass);
 }
 
+void rb_tr_set_default_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
+  polyglot_invoke(RUBY_CEXT, "rb_tr_set_default_alloc_func", rb_tr_unwrap(ruby_class), alloc_function);
+}
+
+VALUE rb_tr_default_alloc_func(VALUE klass) {
+  return RUBY_CEXT_INVOKE("rb_tr_default_alloc_func", klass);
+}
+
 VALUE rb_define_class_id(ID id, VALUE super) {
   // id is deliberately ignored - see MRI
   if (!super) {

@@ -48,6 +48,9 @@ extern ID (*rb_tr_sym2id)(VALUE sym);
 extern void* (*rb_tr_force_native)(VALUE obj);
 extern bool (*rb_tr_is_native_object)(VALUE value);
 extern VALUE (*rb_tr_rb_f_notimplement)(int argc, const VALUE *argv, VALUE obj, VALUE marker);
+extern void rb_tr_set_default_alloc_func(VALUE klass, rb_alloc_func_t func);
+extern VALUE rb_tr_default_alloc_func(VALUE klass);
+
 
 // Create a native MutableTruffleString from ptr and len without copying.
 // The returned RubyString is only valid as long as ptr is valid (typically only as long as the caller is on the stack),
