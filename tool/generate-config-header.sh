@@ -25,7 +25,7 @@ mx_platform="${os}_${arch}"
 archive=$(basename "$url")
 
 if [ ! -e "$archive" ]; then
-    curl -O "$url"
+    curl -LO "$url"
 fi
 
 if [ ! -d "ruby-$VERSION" ]; then
