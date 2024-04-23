@@ -10,7 +10,7 @@
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.CompilerAsserts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.SharedIndicesMap.ContextArray;
 
@@ -31,8 +31,9 @@ public final class GlobalVariableReader {
         this.unaliasedStorage = globalVariablesArray.get(index);
     }
 
-    @TruffleBoundary
     public Object getValue() {
+        CompilerAsserts.neverPartOfCompilation("Only behind @TruffleBoundary");
+
         if (globalVariableAliasedAssumption.isValid()) {
             return unaliasedStorage.getValue();
         } else {

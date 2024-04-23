@@ -678,6 +678,7 @@ public final class RubyContext {
         return logger;
     }
 
+    @TruffleBoundary
     public ConsoleHolder getConsoleHolder() {
         if (consoleHolder == null) {
             synchronized (this) {
