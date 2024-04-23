@@ -48,6 +48,7 @@ describe "String tests" do
     ary.insert(3, nil)
     ptrary.write_array_of_pointer(ary)
     expect(ptrary.get_array_of_string(0)).to eq(["foo", "bar", "baz"])
+    expect(ptrary.read_array_of_string).to eq(["foo", "bar", "baz"])
   end
 
   it "reads an array of strings of the size specified, substituting nil when a pointer is NULL" do
@@ -61,6 +62,7 @@ describe "String tests" do
     ary.insert(2, nil)
     ptrary.write_array_of_pointer(ary)
     expect(ptrary.get_array_of_string(0, 4)).to eq(["foo", "bar", nil, "baz"])
+    expect(ptrary.read_array_of_string(4)).to eq(["foo", "bar", nil, "baz"])
   end
 
   it "reads an array of strings, taking a memory offset parameter" do
@@ -85,6 +87,7 @@ describe "String tests" do
     end
     ptrary.write_array_of_pointer(ary)
     expect { ptrary.get_array_of_string(0, 6) }.to raise_error(IndexError)
+    expect { ptrary.read_array_of_string(6) }.to raise_error(IndexError)
   end
 
   it "raises an IndexError when trying to read an array of strings using a negative offset" do
