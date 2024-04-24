@@ -19,6 +19,12 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2024-27282 | Arbitrary memory address read vulnerability with Regex search | [Fix](https://github.com/ruby/ruby/commit/989a2355808a63fc45367785c82ffd46d18c900a) | | Not applicable thanks to Java semantics
+CVE-2024-27281 | RCE vulnerability with .rdoc_options in RDoc | [Fix](https://github.com/ruby/rdoc/compare/v6.3.3...v6.3.4.1) | [Test](https://github.com/ruby/rdoc/commit/60a6d74ebdbb7d585e379526e5639932fdca2904) | Not applicable because TruffleRuby does not generate rdoc on gem install
+CVE-2024-27280 | Buffer overread vulnerability in StringIO | [Fix](https://github.com/ruby/stringio/compare/v3.0.1...v3.0.1.1) | [Test](https://github.com/ruby/stringio/commit/c58c5f54f1eab99665ea6a161d29ff6a7490afc8) | Not applicable, we use the Ruby implementation of StringIO
+CVE-2023-36617 | ReDoS vulnerability in URI | [Fix](https://github.com/ruby/uri/compare/v0.12.1...v0.12.2) | [Test](https://github.com/ruby/uri/compare/v0.12.1...v0.12.2) | Not applicable thanks to TRegex
+CVE-2023-28756 | ReDoS vulnerability in Time | [Fix](https://github.com/ruby/time/compare/v0.2.1...v0.2.2) | [Test](https://github.com/ruby/time/commit/c9b92a6e21f432528bddf65fbd132db3487d07bf) | Not applicable thanks to TRegex
+CVE-2023-28755 | ReDoS vulnerability in URI | [Fix](https://github.com/ruby/uri/compare/v0.12.0...v0.12.1) | [Test](https://github.com/ruby/uri/commit/d829f16559b9b61478dea024d72a2d615f67942f) | Not applicable thanks to TRegex
 CVE-2021-33621 | HTTP response splitting in CGI | [Fix](https://github.com/ruby/cgi/compare/v0.3.3...v0.3.5) | [Test](https://github.com/ruby/cgi/compare/v0.3.3...v0.3.5) | Same
 CVE-2022-28739 | Buffer overrun in String-to-Float conversion | | | Not applicable thanks to Java semantics
 CVE-2022-28738 | Double free in Regexp compilation | | | Not applicable thanks to Java semantics
