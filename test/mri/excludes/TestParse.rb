@@ -1,5 +1,4 @@
 exclude :test_disallowed_class_variable, "/Users/andrykonchin/projects/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_parse.rb:380:in `block in assert_disallowed_variable'."
-exclude :test_disallowed_gloal_variable, "https://github.com/ruby/prism/issues/2673"
 exclude :test_disallowed_instance_variable, "/Users/andrykonchin/projects/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_parse.rb:380:in `block in assert_disallowed_variable'."
 exclude :test_dynamic_constant_assignment, "/Users/andrykonchin/projects/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_parse.rb:155:in `test_dynamic_constant_assignment'."
 exclude :test_else_without_rescue, "[\"/Users/andrykonchin/projects/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_parse.rb\", 21]."
