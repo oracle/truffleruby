@@ -2,10 +2,13 @@ subject: "retry"
 description: "retry control flow operator"
 focused_on_node: "org.truffleruby.language.control.RetryNode"
 ruby: |
-  retry
+  begin
+  rescue
+    retry
+  end
 ast: |
   RetryNode
       attributes:
           flags = 1
-          sourceCharIndex = 0
+          sourceCharIndex = 15
           sourceLength = 5
