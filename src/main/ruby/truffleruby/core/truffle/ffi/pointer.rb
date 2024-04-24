@@ -182,6 +182,10 @@ module Truffle::FFI
       end
     end
 
+    def read_array_of_string(count = nil)
+      get_array_of_string(0, count)
+    end
+
     def get_bytes(offset, length)
       check_bounds(offset, length)
       Primitive.pointer_read_bytes address + offset, length
