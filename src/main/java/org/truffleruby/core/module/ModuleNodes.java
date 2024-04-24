@@ -2041,7 +2041,7 @@ public abstract class ModuleNodes {
         private void removeMethod(RubyModule module, String name, TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             raiseIfFrozenNode.execute(this, module);
 
-            if (module.fields.removeMethod(name)) {
+            if (module.fields.removeMethod(getContext(), name, this)) {
                 if (RubyGuards.isSingletonClass(module)) {
                     final RubyDynamicObject receiver = ((RubyClass) module).attached;
                     methodRemovedNode.call(receiver, "singleton_method_removed", getSymbol(name));

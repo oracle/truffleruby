@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
@@ -52,7 +53,7 @@ public abstract class PerformanceWarningNode extends RubyBaseNode {
             return;
         }
 
-        log(message);
+        log(getContext(), message, this);
         throw new Warned();
     }
 
@@ -62,20 +63,37 @@ public abstract class PerformanceWarningNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private void log(String message) {
+    public static void warn(RubyContext context, String message, Node currentNode) {
+        // Do not warn if $VERBOSE is nil
+        if (!context.getCoreLibrary().warningsEnabled()) {
+            return;
+        }
+
+        // Only warn if Warning[:performance] is true
+        if (!context.getWarningCategoryPerformance().get()) {
+            return;
+        }
+
+        log(context, message, currentNode);
+    }
+
+    @TruffleBoundary
+    private static void log(RubyContext context, String message, Node currentNode) {
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
-        final SourceSection userSourceSection = getContext().getCallStack()
-                .getTopMostUserSourceSection(getEncapsulatingSourceSection());
+        final SourceSection userSourceSection = context.getCallStack()
+                .getTopMostUserSourceSection(currentNode.getEncapsulatingSourceSection());
 
         final String displayedWarning = String.format(
                 "%s: warning: %s%n",
-                getContext().fileLine(userSourceSection),
+                context.fileLine(userSourceSection),
                 message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {
-            var warningString = createString(TruffleString.FromJavaStringNode.getUncached(), displayedWarning,
+            var messageString = createString(currentNode, TruffleString.FromJavaStringNode.getUncached(),
+                    displayedWarning,
                     Encodings.US_ASCII);
-            RubyContext.send(this, coreLibrary().truffleWarningOperationsModule, "performance_warning", warningString);
+            var warningModule = context.getCoreLibrary().truffleWarningOperationsModule;
+            RubyContext.send(currentNode, warningModule, "performance_warning", messageString);
         }
     }
 
