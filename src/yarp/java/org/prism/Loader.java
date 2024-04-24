@@ -102,7 +102,7 @@ public class Loader {
         expect((byte) 'M', "incorrect prism header");
 
         expect((byte) 0, "prism major version does not match");
-        expect((byte) 24, "prism minor version does not match");
+        expect((byte) 27, "prism minor version does not match");
         expect((byte) 0, "prism patch version does not match");
 
         expect((byte) 1, "Loader.java requires no location fields in the serialized output");
@@ -211,7 +211,7 @@ public class Loader {
 
         // warning messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
-            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 240];
+            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 257];
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();

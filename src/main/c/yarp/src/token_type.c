@@ -540,7 +540,7 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_KEYWORD_RESCUE:
             return "'rescue'";
         case PM_TOKEN_KEYWORD_RESCUE_MODIFIER:
-            return "'rescue'";
+            return "'rescue' modifier";
         case PM_TOKEN_KEYWORD_RETRY:
             return "'retry'";
         case PM_TOKEN_KEYWORD_RETURN:
@@ -658,13 +658,13 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_STAR_STAR_EQUAL:
             return "'**='";
         case PM_TOKEN_STRING_BEGIN:
-            return "string beginning";
+            return "string literal";
         case PM_TOKEN_STRING_CONTENT:
             return "string content";
         case PM_TOKEN_STRING_END:
             return "string ending";
         case PM_TOKEN_SYMBOL_BEGIN:
-            return "symbol beginning";
+            return "symbol literal";
         case PM_TOKEN_TILDE:
             return "'~'";
         case PM_TOKEN_UAMPERSAND:

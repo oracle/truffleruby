@@ -1028,7 +1028,23 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class AliasGlobalVariableNode extends Node {
+        /**
+         * <pre>
+         * Represents the new name of the global variable that can be used after aliasing. This can be either a global variable, a back reference, or a numbered reference.
+         *
+         *     alias $foo $bar
+         *           ^^^^
+         * </pre>
+         */
         public final Node new_name;
+        /**
+         * <pre>
+         * Represents the old name of the global variable that could be used before aliasing. This can be either a global variable, a back reference, or a numbered reference.
+         *
+         *     alias $foo $bar
+         *                ^^^^
+         * </pre>
+         */
         public final Node old_name;
 
         public AliasGlobalVariableNode(Node new_name, Node old_name, int startOffset, int length) {
@@ -1313,6 +1329,11 @@ public abstract class Nodes {
      */
     public static final class ArrayNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * Represent the list of zero or more [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression) within the array.
+         * </pre>
+         */
         public final Node[] elements;
 
         public ArrayNode(short flags, Node[] elements, int startOffset, int length) {
@@ -2022,6 +2043,14 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class BreakNode extends Node {
+        /**
+         * <pre>
+         * The arguments to the break statement, if present. These can be any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     break foo
+         *           ^^^
+         * </pre>
+         */
         @Nullable
         public final ArgumentsNode arguments;
 
@@ -3078,8 +3107,7 @@ public abstract class Nodes {
         public final String name;
         /**
          * <pre>
-         * The value to assign to the class variable. Can be any node that
-         * represents a non-void expression.
+         * The value to write to the class variable. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
          *
          *     &#64;&#64;foo = :bar
          *             ^^^^
@@ -3343,8 +3371,37 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ConstantPathNode extends Node {
+        /**
+         * <pre>
+         * The left-hand node of the path, if present. It can be `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression). It will be `nil` when the constant lookup is at the root of the module tree.
+         *
+         *     Foo::Bar
+         *     ^^^
+         *
+         *     self::Test
+         *     ^^^^
+         *
+         *     a.b::C
+         *     ^^^
+         * </pre>
+         */
         @Nullable
         public final Node parent;
+        /**
+         * <pre>
+         * The right-hand node of the path. Always a `ConstantReadNode` in a
+         * valid Ruby syntax tree.
+         *
+         *     ::Foo
+         *       ^^^
+         *
+         *     self::Test
+         *           ^^^^
+         *
+         *     a.b::C
+         *          ^
+         * </pre>
+         */
         @UnionType({ ConstantReadNode.class, MissingNode.class })
         public final Node child;
 
@@ -3563,7 +3620,26 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ConstantPathWriteNode extends Node {
+        /**
+         * <pre>
+         * A node representing the constant path being written to.
+         *
+         *     Foo::Bar = 1
+         *     ^^^^^^^^
+         *
+         *     ::Foo = :abc
+         *     ^^^^^
+         * </pre>
+         */
         public final ConstantPathNode target;
+        /**
+         * <pre>
+         * The value to write to the constant path. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     FOO::BAR = :abc
+         *                ^^^^
+         * </pre>
+         */
         public final Node value;
 
         public ConstantPathWriteNode(ConstantPathNode target, Node value, int startOffset, int length) {
@@ -3710,7 +3786,27 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ConstantWriteNode extends Node {
+        /**
+         * <pre>
+         * The name of the [constant](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#constants).
+         *
+         *     Foo = :bar # name `:Foo`
+         *
+         *     XYZ = 1    # name `:XYZ`
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * The value to write to the constant. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     FOO = :bar
+         *           ^^^^
+         *
+         *     MyClass = Class.new
+         *               ^^^^^^^^^
+         * </pre>
+         */
         public final Node value;
 
         public ConstantWriteNode(String name, Node value, int startOffset, int length) {
@@ -4749,7 +4845,27 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class GlobalVariableWriteNode extends Node {
+        /**
+         * <pre>
+         * The name of the global variable, which is a `$` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifier). Alternatively, it can be one of the special global variables designated by a symbol.
+         *
+         *     $foo = :bar  # name `:$foo`
+         *
+         *     $_Test = 123 # name `:$_Test`
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * The value to write to the global variable. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     $foo = :bar
+         *            ^^^^
+         *
+         *     $-xyz = 123
+         *             ^^^
+         * </pre>
+         */
         public final Node value;
 
         public GlobalVariableWriteNode(String name, Node value, int startOffset, int length) {
@@ -4932,19 +5048,67 @@ public abstract class Nodes {
 
     /**
      * <pre>
-     * Represents the use of the `if` keyword, either in the block form or the modifier form.
+     * Represents the use of the `if` keyword, either in the block form or the modifier form, or a ternary expression.
      *
      *     bar if foo
      *     ^^^^^^^^^^
      *
      *     if foo then bar end
      *     ^^^^^^^^^^^^^^^^^^^
+     *
+     *     foo ? bar : baz
+     *     ^^^^^^^^^^^^^^^
      * </pre>
      */
     public static final class IfNode extends Node {
+        /**
+         * <pre>
+         * The node for the condition the `IfNode` is testing.
+         *
+         *     if foo
+         *        ^^^
+         *       bar
+         *     end
+         *
+         *     bar if foo
+         *            ^^^
+         *
+         *     foo ? bar : baz
+         *     ^^^
+         * </pre>
+         */
         public final Node predicate;
+        /**
+         * <pre>
+         * Represents the body of statements that will be executed when the predicate is evaluated as truthy. Will be `nil` when no body is provided.
+         *
+         *     if foo
+         *       bar
+         *       ^^^
+         *       baz
+         *       ^^^
+         *     end
+         * </pre>
+         */
         @Nullable
         public final StatementsNode statements;
+        /**
+         * <pre>
+         * Represents an `ElseNode` or an `IfNode` when there is an `else` or an `elsif` in the `if` statement.
+         *
+         *     if foo
+         *       bar
+         *     elsif baz
+         *     ^^^^^^^^^
+         *       qux
+         *       ^^^
+         *     end
+         *     ^^^
+         *
+         *     if foo then bar else baz end
+         *                     ^^^^^^^^^^^^
+         * </pre>
+         */
         @Nullable
         public final Node consequent;
 
@@ -5846,8 +6010,7 @@ public abstract class Nodes {
         public final String name;
         /**
          * <pre>
-         * The value to assign to the instance variable. Can be any node that
-         * represents a non-void expression.
+         * The value to write to the instance variable. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
          *
          *     &#64;foo = :bar
          *            ^^^^
@@ -6919,8 +7082,43 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class LocalVariableWriteNode extends Node {
+        /**
+         * <pre>
+         * The name of the local variable, which is an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     foo = :bar # name `:foo`
+         *
+         *     abc = 123  # name `:abc`
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * The number of semantic scopes we have to traverse to find the declaration of this variable.
+         *
+         *     foo = 1         # depth 0
+         *
+         *     tap { foo = 1 } # depth 1
+         *
+         * The specific rules for calculating the depth may differ from individual Ruby implementations, as they are not specified by the language. For more information, see [the Prism documentation](https://github.com/ruby/prism/blob/main/docs/local_variable_depth.md).
+         * </pre>
+         */
         public final int depth;
+        /**
+         * <pre>
+         * The value to write to the local variable. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo = :bar
+         *           ^^^^
+         *
+         *     abc = 1234
+         *           ^^^^
+         *
+         * Note that since the name of a local variable is known before the value is parsed, it is valid for a local variable to appear within the value of its own write.
+         *
+         *     foo = foo
+         * </pre>
+         */
         public final Node value;
 
         public LocalVariableWriteNode(String name, int depth, Node value, int startOffset, int length) {
@@ -9184,6 +9382,11 @@ public abstract class Nodes {
      */
     public static final class SourceFileNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * Represents the file path being parsed. This corresponds directly to the `filepath` option given to the various `Prism::parse*` APIs.
+         * </pre>
+         */
         public final byte[] filepath;
 
         public SourceFileNode(short flags, byte[] filepath, int startOffset, int length) {
@@ -9676,9 +9879,37 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class UnlessNode extends Node {
+        /**
+         * <pre>
+         * The condition to be evaluated for the unless expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     unless cond then bar end
+         *            ^^^^
+         *
+         *     bar unless cond
+         *                ^^^^
+         * </pre>
+         */
         public final Node predicate;
+        /**
+         * <pre>
+         * The body of statements that will executed if the unless condition is
+         * falsey. Will be `nil` if no body is provided.
+         *
+         *     unless cond then bar end
+         *                      ^^^
+         * </pre>
+         */
         @Nullable
         public final StatementsNode statements;
+        /**
+         * <pre>
+         * The else clause of the unless expression, if present.
+         *
+         *     unless cond then bar else baz end
+         *                          ^^^^^^^^
+         * </pre>
+         */
         @Nullable
         public final ElseNode consequent;
 
@@ -10107,7 +10338,6 @@ public abstract class Nodes {
         DEF_ENDLESS,
         DEF_ENDLESS_SETTER,
         DEF_NAME,
-        DEF_NAME_AFTER_RECEIVER,
         DEF_PARAMS_TERM,
         DEF_PARAMS_TERM_PAREN,
         DEF_RECEIVER,
@@ -10144,6 +10374,7 @@ public abstract class Nodes {
         EXPECT_EXPRESSION_AFTER_STAR,
         EXPECT_IDENT_REQ_PARAMETER,
         EXPECT_LPAREN_REQ_PARAMETER,
+        EXPECT_MESSAGE,
         EXPECT_RBRACKET,
         EXPECT_RPAREN,
         EXPECT_RPAREN_AFTER_MULTI,
@@ -10151,6 +10382,14 @@ public abstract class Nodes {
         EXPECT_STRING_CONTENT,
         EXPECT_WHEN_DELIMITER,
         EXPRESSION_BARE_HASH,
+        EXPRESSION_NOT_WRITABLE,
+        EXPRESSION_NOT_WRITABLE_ENCODING,
+        EXPRESSION_NOT_WRITABLE_FALSE,
+        EXPRESSION_NOT_WRITABLE_FILE,
+        EXPRESSION_NOT_WRITABLE_LINE,
+        EXPRESSION_NOT_WRITABLE_NIL,
+        EXPRESSION_NOT_WRITABLE_SELF,
+        EXPRESSION_NOT_WRITABLE_TRUE,
         FLOAT_PARSE,
         FOR_COLLECTION,
         FOR_IN,
@@ -10169,9 +10408,12 @@ public abstract class Nodes {
         INCOMPLETE_VARIABLE_INSTANCE,
         INCOMPLETE_VARIABLE_INSTANCE_3_3_0,
         INSTANCE_VARIABLE_BARE,
+        INVALID_BLOCK_EXIT,
         INVALID_CHARACTER,
         INVALID_ENCODING_MAGIC_COMMENT,
         INVALID_FLOAT_EXPONENT,
+        INVALID_LOCAL_VARIABLE_READ,
+        INVALID_LOCAL_VARIABLE_WRITE,
         INVALID_MULTIBYTE_CHAR,
         INVALID_MULTIBYTE_CHARACTER,
         INVALID_MULTIBYTE_ESCAPE,
@@ -10182,8 +10424,12 @@ public abstract class Nodes {
         INVALID_NUMBER_UNDERSCORE,
         INVALID_PERCENT,
         INVALID_PRINTABLE_CHARACTER,
+        INVALID_RETRY_AFTER_ELSE,
+        INVALID_RETRY_AFTER_ENSURE,
+        INVALID_RETRY_WITHOUT_RESCUE,
         INVALID_VARIABLE_GLOBAL,
         INVALID_VARIABLE_GLOBAL_3_3_0,
+        INVALID_YIELD,
         IT_NOT_ALLOWED_NUMBERED,
         IT_NOT_ALLOWED_ORDINARY,
         LAMBDA_OPEN,
@@ -10240,6 +10486,7 @@ public abstract class Nodes {
         PATTERN_HASH_KEY,
         PATTERN_HASH_KEY_DUPLICATE,
         PATTERN_HASH_KEY_LABEL,
+        PATTERN_HASH_KEY_LOCALS,
         PATTERN_IDENT_AFTER_HROCKET,
         PATTERN_LABEL_AFTER_COMMA,
         PATTERN_REST,
@@ -10277,6 +10524,7 @@ public abstract class Nodes {
         TERNARY_EXPRESSION_TRUE,
         UNARY_RECEIVER,
         UNDEF_ARGUMENT,
+        UNEXPECTED_BLOCK_ARGUMENT,
         UNEXPECTED_TOKEN_CLOSE_CONTEXT,
         UNEXPECTED_TOKEN_IGNORE,
         UNTIL_TERM,
@@ -10315,6 +10563,9 @@ public abstract class Nodes {
         LITERAL_IN_CONDITION_VERBOSE,
         SHEBANG_CARRIAGE_RETURN,
         UNEXPECTED_CARRIAGE_RETURN,
+        UNREACHABLE_STATEMENT,
+        UNUSED_LOCAL_VARIABLE,
+        VOID_STATEMENT,
     }
 
     public static WarningType[] WARNING_TYPES = WarningType.values();
