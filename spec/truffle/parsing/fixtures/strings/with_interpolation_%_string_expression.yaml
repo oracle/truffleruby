@@ -11,6 +11,12 @@ ast: |
           sourceLength = 18
       children:
           body = [
+              EmitWarningsNode
+                  attributes:
+                      flags = 0
+                      sourceCharIndex = -1
+                      sourceLength = 0
+                      warnings = RubyDeferredWarnings(WarningMessage(message = 'possibly useless use of a literal in void context', verbosity = VERBOSE, fileName = '<parse_ast>', lineNumber = 1))
               WriteLocalVariableNode
                   attributes:
                       flags = 0
