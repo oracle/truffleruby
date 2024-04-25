@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubySystemExit;
 import org.truffleruby.core.proc.ProcOperations;
@@ -31,12 +33,14 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 public final class AtExitManager {
 
     private final RubyContext context;
+    private final RubyLanguage language;
 
     private final Deque<RubyProc> atExitHooks = new ConcurrentLinkedDeque<>();
     private final Deque<RubyProc> systemExitHooks = new ConcurrentLinkedDeque<>();
 
-    public AtExitManager(RubyContext context) {
+    public AtExitManager(RubyContext context, RubyLanguage language) {
         this.context = context;
+        this.language = language;
     }
 
     public void add(RubyProc block, boolean always) {
@@ -74,7 +78,7 @@ public final class AtExitManager {
             try {
                 ProcOperations.rootCall(block, NoKeywordArgumentsDescriptor.INSTANCE, RubyBaseNode.EMPTY_ARGUMENTS);
             } catch (AbstractTruffleException e) {
-                handleAtExitException(context, e);
+                handleAtExitException(context, language, e);
                 lastException = e;
             }
         }
@@ -99,7 +103,12 @@ public final class AtExitManager {
                 rubyException.getLogicalClass() == context.getCoreLibrary().signalExceptionClass;
     }
 
-    private static void handleAtExitException(RubyContext context, AbstractTruffleException exception) {
+    private static void handleAtExitException(RubyContext context, RubyLanguage language,
+            AbstractTruffleException exception) {
+        // Set $! for the next at_exit handlers
+        language.getCurrentThread().threadLocalGlobals.setLastException(ExceptionOperations
+                .getExceptionObject(exception));
+
         if (!isSilentException(context, exception)) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", exception);
         }

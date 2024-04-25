@@ -19,6 +19,7 @@ Compatibility:
 * Fix evaluation order for multi-assignment and evaluate left-hand-side before right-hand-side (@andrykonchin).
 * Add `Regexp.linear_time?` method (#3039, @andrykonchin).
 * Allow null encoding pointer in `rb_enc_interned_str_cstr` (@thomasmarshall).
+* Set `$!` when a `Kernel#at_exit` hook raises an exception (#3535, @andrykonchin).
 
 Performance:
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).

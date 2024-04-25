@@ -118,7 +118,7 @@ public final class RubyContext {
     private final MarkingService markingService;
     private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager();
     private final SharedObjects sharedObjects = new SharedObjects(this);
-    private final AtExitManager atExitManager = new AtExitManager(this);
+    private final AtExitManager atExitManager;
     private final CallStackManager callStack;
     private final CoreExceptions coreExceptions;
     private final EncodingManager encodingManager;
@@ -202,6 +202,7 @@ public final class RubyContext {
         finalizationService = new FinalizationService(referenceProcessor);
         markingService = new MarkingService();
         dataObjectFinalizationService = new DataObjectFinalizationService(language, referenceProcessor);
+        atExitManager = new AtExitManager(this, language);
 
         // We need to construct this at runtime
         random = createRandomInstance();

@@ -7,3 +7,4 @@ slow:Kernel.at_exit decides the exit status if both at_exit and the main script 
 slow:Kernel.at_exit runs all handlers even if some raise exceptions
 slow:Kernel.at_exit runs handlers even if the main script fails to parse
 slow:Kernel.at_exit calls the nested handler right after the outer one if a handler is nested into another handler
+slow:Kernel.at_exit gives access to an exception raised in a previous handler
