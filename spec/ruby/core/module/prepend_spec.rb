@@ -75,6 +75,26 @@ describe "Module#prepend" do
     foo.call.should == 'm'
   end
 
+  it "updates the optimized method when a prepended module is updated" do
+    out = ruby_exe(<<~RUBY)
+    module M; end
+    class Integer
+      prepend M
+    end
+    l = -> { 1 + 2 }
+    p l.call
+    M.module_eval do
+      def +(o)
+        $called = true
+        super(o)
+      end
+    end
+    p l.call
+    p $called
+    RUBY
+    out.should == "3\n3\ntrue\n"
+  end
+
   it "updates the method when there is a base included method and the prepended module overrides it" do
     base_module = Module.new do
       def foo

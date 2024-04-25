@@ -1,3 +1,4 @@
 fails:Module#prepend uses only new module when dupping the module
 fails:Module#prepend prepends a module if it is included in a super class
 fails:Module#prepend when module already exists in ancestor chain modifies the ancestor chain
+slow:Module#prepend updates the optimized method when a prepended module is updated
