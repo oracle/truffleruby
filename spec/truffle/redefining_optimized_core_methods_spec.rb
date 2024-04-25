@@ -189,7 +189,15 @@ describe "Redefining optimized core methods" do
       end
     CODE
 
-    code = [prolog, code_for_integer_class, code_for_float_class, code_for_nil_class, code_for_symbol_class].join("\n")
+    code_for_refining = <<~CODE
+    module R
+      refine Integer do
+        def +; end
+      end
+    end
+    CODE
+
+    code = [prolog, code_for_integer_class, code_for_float_class, code_for_nil_class, code_for_symbol_class, code_for_refining].join("\n")
     output = ruby_exe(code, args: "2>&1")
 
     output.should.include?("warning: Redefining 'Integer#+' disables interpreter and JIT optimizations")
@@ -226,11 +234,13 @@ describe "Redefining optimized core methods" do
     output.should.include?("warning: Redefining 'NilClass#nil?' disables interpreter and JIT optimizations")
 
     output.should.include?("warning: Redefining 'Symbol#to_proc' disables interpreter and JIT optimizations")
+
+    output.should.include?("warning: Refining 'Integer#+' disables interpreter and JIT optimizations")
   end
 end
 
 describe "Prepending a module into a class with optimised methods" do
-  it "emits performance warning" do
+  it "keeps the inlined nodes if no optimised method is overridden" do
     code = <<~CODE
       Warning[:performance] = true
 
@@ -242,6 +252,23 @@ describe "Prepending a module into a class with optimised methods" do
       end
     CODE
 
-    ruby_exe(code, args: "2>&1").should.include?("warning: Prepending a module to Integer disables interpreter and JIT optimizations")
+    ruby_exe(code, args: "2>&1").should == ''
+  end
+
+  it "emits performance warning if that module overrides an optimised method" do
+    code = <<~CODE
+      Warning[:performance] = true
+
+      module M
+        def <=>
+        end
+      end
+
+      class Integer
+        prepend M
+      end
+    CODE
+
+    ruby_exe(code, args: "2>&1").should.include?("warning: Redefining 'Integer#<=>' disables interpreter and JIT optimizations")
   end
 end

@@ -29,6 +29,8 @@ Changes:
 
 Memory Footprint:
 
+* Use inlined core method nodes even when modules are prepended to core classes (#3546, @eregon).
+
 # 24.0.0
 
 New features:

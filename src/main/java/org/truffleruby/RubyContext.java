@@ -221,6 +221,7 @@ public final class RubyContext {
         coreLibrary = new CoreLibrary(this, language);
         nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
+        language.coreMethodAssumptions.registerAssumptions(coreLibrary);
         valueWrapperManager = new ValueWrapperManager();
         Metrics.printTime("after-create-core-library");
 

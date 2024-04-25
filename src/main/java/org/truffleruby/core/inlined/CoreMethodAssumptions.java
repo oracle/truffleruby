@@ -15,15 +15,19 @@ import java.util.function.Consumer;
 
 import com.oracle.truffle.api.Assumption;
 
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.method.MethodEntry;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.BlockDefinitionNode;
+import org.truffleruby.language.methods.InternalMethod;
 
 /** We inline basic operations directly in the AST (instead of a method call) as it makes little sense to compile them
  * in isolation without the surrounding method and it delays more interesting compilations by filling the compilation
@@ -45,8 +49,7 @@ import org.truffleruby.language.methods.BlockDefinitionNode;
  * Two strategies are used to check method re-definition.
  * <li>If the class is a leaf class (there cannot be instances of a subclass of that class), then we only need to check
  * the receiver is an instance of that class and register an Assumption for the given method name (see
- * {@link ModuleFields#registerAssumption(String, com.oracle.truffle.api.Assumption)}). In such cases the method must be
- * public as we do not check visibility.</li>
+ * {@link ModuleFields#registerAssumption}). In such cases the method must be public as we do not check visibility.</li>
  * <li>Otherwise, we need to do a method lookup and verify the method that would be called is the standard definition we
  * expect.</li>
  * <p>
@@ -129,7 +132,6 @@ public final class CoreMethodAssumptions {
         nilClassIsNilAssumption = registerAssumption((cl) -> cl.nilClass, "Nil", "nil?");
 
         symbolToProcAssumption = registerAssumption((cl) -> cl.symbolClass, "Symbol", "to_proc");
-
     }
 
     @FunctionalInterface
@@ -138,14 +140,18 @@ public final class CoreMethodAssumptions {
     }
 
     private Assumption registerAssumption(ContextGetClass classGetter, String className, String methodName) {
-        final Assumption assumption = Assumption.create("inlined " + className + "#" + methodName);
-        classAssumptionsToRegister.add((cl) -> classGetter.apply(cl).fields.registerAssumption(methodName, assumption));
+        final Assumption assumption = Assumption.create(MethodEntry.CORE_METHOD_IS_NOT_OVERRIDDEN);
+        classAssumptionsToRegister.add((cl) -> {
+            classGetter.apply(cl).fields.registerAssumption(cl, methodName, assumption);
+        });
         return assumption;
     }
 
+    /** Must be called before any method is defined, otherwise these assumptions will not properly be reused in
+     * {@link ModuleFields#addMethod(RubyContext, Node, InternalMethod)}. */
     public void registerAssumptions(CoreLibrary coreLibrary) {
-        for (Consumer<CoreLibrary> registerers : classAssumptionsToRegister) {
-            registerers.accept(coreLibrary);
+        for (Consumer<CoreLibrary> registerer : classAssumptionsToRegister) {
+            registerer.accept(coreLibrary);
         }
     }
 

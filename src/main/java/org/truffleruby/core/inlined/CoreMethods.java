@@ -53,8 +53,6 @@ public final class CoreMethods {
         ARRAY_AT = getMethod(arrayClass, "at");
         ARRAY_INDEX_GET = getMethod(arrayClass, "[]");
         ARRAY_INDEX_SET = getMethod(arrayClass, "[]=");
-
-        language.coreMethodAssumptions.registerAssumptions(context.getCoreLibrary());
     }
 
     private InternalMethod getMethod(RubyModule module, String name) {

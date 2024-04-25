@@ -8,7 +8,7 @@ ast: |
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
           flags = 1
-          integerCaseEqualAssumption = Assumption(valid, name=inlined Integer#===)
+          integerCaseEqualAssumption = Assumption(valid, name=core method is not overridden:)
           parameters = RubyCallNodeParameters{methodName='===', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
           sourceCharIndex = 0
           sourceLength = 7

@@ -8,8 +8,8 @@ ast: |
       attributes:
           assumptions = [Assumption(valid, name=set_trace_func is not used)]
           flags = 1
-          floatEqualAssumption = Assumption(valid, name=inlined Float#==)
-          integerEqualAssumption = Assumption(valid, name=inlined Integer#==)
+          floatEqualAssumption = Assumption(valid, name=core method is not overridden:)
+          integerEqualAssumption = Assumption(valid, name=core method is not overridden:)
           parameters = RubyCallNodeParameters{methodName='==', descriptor=NoKeywordArgumentsDescriptor, isSplatted=false, ignoreVisibility=false, isVCall=false, isSafeNavigation=false, isAttrAssign=false}
           sourceCharIndex = 0
           sourceLength = 6
