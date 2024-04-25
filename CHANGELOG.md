@@ -23,6 +23,7 @@ Compatibility:
 
 Performance:
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
+* Optimize `Integer#pow` method for small modulus values (#3544, @andrykonchin).
 
 Changes:
 

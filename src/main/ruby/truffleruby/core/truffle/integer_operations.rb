@@ -35,5 +35,32 @@ module Truffle
         0
       end
     end
+
+    # Implementation of a**b mod c operation
+    # See https://en.wikipedia.org/wiki/Modular_exponentiation
+    # The only difference with the Right-to-left binary method is a special handling of negative modulus -
+    # a**b mod -c = (a**b mod c) - c
+    # MRI: similar to int_pow_tmp1/int_pow_tmp2/int_pow_tmp3
+    def self.modular_exponentiation(base, exponent, modulus)
+      return 0 if modulus == 1
+
+      negative = modulus < 0
+      modulus = modulus.abs
+
+      result = 1
+      base %= modulus
+
+      while exponent > 0
+        if exponent.odd?
+          result = (result * base) % modulus
+        end
+
+        base = (base * base) % modulus
+        exponent >>= 1
+      end
+
+      result -= modulus if negative
+      result
+    end
   end
 end

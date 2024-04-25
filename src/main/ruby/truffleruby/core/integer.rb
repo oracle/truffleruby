@@ -130,13 +130,15 @@ class Integer < Numeric
   end
 
   def pow(e, m = undefined)
-    if Primitive.undefined?(m)
-      self ** e
-    else
-      raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.is_a?(e, Integer)
-      raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(m, Integer)
-      raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
+    return self ** e if Primitive.undefined?(m)
 
+    raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.is_a?(e, Integer)
+    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(m, Integer)
+    raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
+
+    if Primitive.integer_fits_into_long(m)
+      Truffle::IntegerOperations.modular_exponentiation(self, e, m)
+    else
       Primitive.mod_pow(self, e, m)
     end
   end
