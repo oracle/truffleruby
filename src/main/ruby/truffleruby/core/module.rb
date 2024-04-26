@@ -86,6 +86,10 @@ class Module
         raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
 
+      if Primitive.is_a?(mod, Refinement)
+        raise TypeError, 'Cannot include refinement'
+      end
+
       mod.__send__ :append_features, self
       mod.__send__ :included, self
     end
@@ -100,6 +104,10 @@ class Module
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
         raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
+      end
+
+      if Primitive.is_a?(mod, Refinement)
+        raise TypeError, 'Cannot prepend refinement'
       end
 
       mod.__send__ :prepend_features, self
