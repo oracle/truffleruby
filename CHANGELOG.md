@@ -20,6 +20,7 @@ Compatibility:
 * Add `Regexp.linear_time?` method (#3039, @andrykonchin).
 * Allow null encoding pointer in `rb_enc_interned_str_cstr` (@thomasmarshall).
 * Allow anonymous memberless Struct (@simonlevasseur).
+* Set `$!` when a `Kernel#at_exit` hook raises an exception (#3535, @andrykonchin).
 
 Performance:
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
