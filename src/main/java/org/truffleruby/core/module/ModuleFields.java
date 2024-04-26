@@ -30,6 +30,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.ConcurrentWeakSet;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -49,6 +50,7 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -308,7 +310,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (ModuleOperations.includesModule(rubyModule, ancestor)) {
                 if (isIncludedModuleBeforeSuperClass(ancestor)) {
                     // Include the modules at the appropriate inclusionPoint
-                    performIncludes(inclusionPoint, modulesToInclude);
+                    performIncludes(context, inclusionPoint, modulesToInclude, currentNode);
                     assert modulesToInclude.isEmpty();
 
                     // We need to include the others after that module
@@ -324,12 +326,13 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        performIncludes(inclusionPoint, modulesToInclude);
+        performIncludes(context, inclusionPoint, modulesToInclude, currentNode);
 
-        newHierarchyVersion(context, currentNode);
+        newHierarchyVersion();
     }
 
-    private void performIncludes(ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors) {
+    private void performIncludes(RubyContext context, ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors,
+            Node node) {
         while (!moduleAncestors.isEmpty()) {
             RubyModule toInclude = moduleAncestors.pop();
             inclusionPoint.insertAfter(toInclude);
@@ -340,7 +343,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             newConstantsVersion(toInclude.fields.getConstantNames());
             if (rubyModule instanceof RubyClass) {
                 // M.include(N) just registers N but does nothing for methods until C.include/prepend(M)
-                newMethodsVersion(toInclude.fields.getMethodNames());
+                newMethodsVersion(context, toInclude.fields.getMethodNames(), node);
             }
         }
     }
@@ -391,7 +394,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                         moduleToInvalidate.fields.newConstantsVersion(constantsToInvalidate);
                         if (isClass) {
                             // M.prepend(N) just registers N but does nothing for methods until C.prepend/include(M)
-                            moduleToInvalidate.fields.newMethodsVersion(methodsToInvalidate);
+                            moduleToInvalidate.fields.newMethodsVersion(context, methodsToInvalidate, currentNode);
                         }
                     }
 
@@ -402,9 +405,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         // If there were already prepended modules, invalidate the first of them
-        newHierarchyVersion(context, currentNode);
-
-        invalidateBuiltinsAssumptions(context, currentNode);
+        newHierarchyVersion();
     }
 
     private List<RubyModule> getPrependedModulesAndSelf() {
@@ -526,12 +527,14 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public void addMethod(RubyContext context, Node currentNode, InternalMethod method) {
+        assert context.getCoreLibrary().state != CoreLibrary.State.CREATED : "should not add methods yet";
         assert ModuleOperations.canBindMethodTo(method, rubyModule) ||
                 ModuleOperations.assignableTo(context.getCoreLibrary().objectClass, method.getDeclaringModule()) ||
                 // TODO (pitr-ch 24-Jul-2016): find out why undefined methods sometimes do not match above assertion
                 // e.g. "block in _routes route_set.rb:525" in rails/actionpack/lib/action_dispatch/routing/
                 (method.isUndefined() && methods.get(method.getName()) != null);
 
+        final String name = method.getName();
         checkFrozen(context, currentNode);
 
         method = method.withOwner(rubyModule);
@@ -544,21 +547,27 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        MethodEntry previousMethodEntry = methods.put(method.getName(), new MethodEntry(method));
+        MethodEntry methodEntry;
+        Assumption assumption;
+        if (context.getCoreLibrary().isInitializing() && (assumption = inlinedBuiltinsAssumptions.get(name)) != null) {
+            methodEntry = new MethodEntry(method, assumption);
+        } else {
+            methodEntry = new MethodEntry(method);
+        }
+
+        MethodEntry previousMethodEntry = methods.put(name, methodEntry);
 
         if (!context.getCoreLibrary().isInitializing()) {
             if (previousMethodEntry != null) {
-                previousMethodEntry.invalidate(rubyModule, method.getName());
+                previousMethodEntry.invalidate(context, rubyModule, name, currentNode);
             }
 
             if (includedBy != null) {
-                invalidateMethodIncludedBy(method.getName());
+                invalidateMethodIncludedBy(context, name, currentNode);
             }
 
-            // invalidate assumptions to not use an AST-inlined methods
-            changedMethod(context, method.getName(), currentNode);
             if (refinedModule != null) {
-                refinedModule.fields.changedMethod(context, method.getName(), currentNode);
+                refinedModule.fields.refinedMethod(context, method.getName(), currentNode);
             }
         }
 
@@ -569,7 +578,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             if (previousMethodEntry == null || previousMethodEntry.getMethod() == null ||
                     previousMethodEntry.getMethod().getSharedMethodInfo() != method.getSharedMethodInfo()) {
 
-                final RubySymbol methodSymbol = context.getLanguageSlow().getSymbol(method.getName());
+                final RubySymbol methodSymbol = context.getLanguageSlow().getSymbol(name);
                 if (RubyGuards.isSingletonClass(rubyModule)) {
                     RubyDynamicObject receiver = ((RubyClass) rubyModule).attached;
                     RubyContext.send(currentNode, receiver, "singleton_method_added", methodSymbol);
@@ -580,13 +589,13 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         // track if ever a custom Module.const_add callback is defined and ignore a default one
-        if (context.getCoreLibrary().isLoaded() && method.getName().equals("const_added")) {
-            RubyLanguage.getCurrentContext().constAddedIsDefined();
+        if (context.getCoreLibrary().isLoaded() && name.equals("const_added")) {
+            context.constAddedIsDefined();
         }
     }
 
     @TruffleBoundary
-    public boolean removeMethod(RubyContext context, String methodName, Node currentNode) {
+    public boolean removeMethod(RubyContext context, String methodName, Node node) {
         final InternalMethod method = getMethod(methodName);
         if (method == null) {
             return false;
@@ -594,10 +603,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         MethodEntry removedEntry = methods.remove(methodName);
         if (removedEntry != null) {
-            removedEntry.invalidate(rubyModule, methodName);
+            removedEntry.invalidate(context, rubyModule, methodName, node);
         }
 
-        changedMethod(context, methodName, currentNode);
         return true;
     }
 
@@ -842,19 +850,15 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    public void newHierarchyVersion(RubyContext context, Node currentNode) {
+    public void newHierarchyVersion() {
         if (!isClass()) {
             hierarchyUnmodifiedAssumption.invalidate(getName());
         }
-
-        if (isRefinement()) {
-            getRefinedModule().fields.invalidateBuiltinsAssumptions(context, currentNode);
-        }
     }
 
-    private void invalidateMethodIncludedBy(String method) {
+    private void invalidateMethodIncludedBy(RubyContext context, String method, Node node) {
         for (RubyModule module : includedBy) {
-            module.fields.newMethodVersion(method);
+            module.fields.newMethodVersion(context, method, node);
         }
     }
 
@@ -884,20 +888,20 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    public void newMethodsVersion(Collection<String> methodsToInvalidate) {
+    public void newMethodsVersion(RubyContext context, Collection<String> methodsToInvalidate, Node node) {
         for (String name : methodsToInvalidate) {
-            newMethodVersion(name);
+            newMethodVersion(context, name, node);
         }
     }
 
-    private void newMethodVersion(String methodToInvalidate) {
+    private void newMethodVersion(RubyContext context, String methodToInvalidate, Node node) {
         while (true) {
             final MethodEntry methodEntry = methods.get(methodToInvalidate);
             if (methodEntry == null) {
                 return;
             } else {
                 if (methods.replace(methodToInvalidate, methodEntry, methodEntry.withNewAssumption())) {
-                    methodEntry.invalidate(rubyModule, methodToInvalidate);
+                    methodEntry.invalidate(context, rubyModule, methodToInvalidate, node);
                     return;
                 }
             }
@@ -1152,37 +1156,20 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     /** Registers an Assumption for a given method name, which is invalidated when a method with same name is defined or
-     * undefined in this class or when a module is prepended to this class. This does not check re-definitions in
-     * subclasses. */
-    public void registerAssumption(String methodName, Assumption assumption) {
-        assert RubyLanguage.getCurrentContext().getCoreLibrary().isInitializing();
+     * undefined in this class or in a prepended module. This does not check re-definitions in subclasses. */
+    public void registerAssumption(CoreLibrary coreLibrary, String methodName, Assumption assumption) {
+        assert coreLibrary.state == CoreLibrary.State.CREATED;
         Assumption old = inlinedBuiltinsAssumptions.put(methodName, assumption);
         assert old == null;
     }
 
-    private void changedMethod(RubyContext context, String methodName, Node currentNode) {
+    private void refinedMethod(RubyContext context, String methodName, Node currentNode) {
         Assumption assumption = inlinedBuiltinsAssumptions.get(methodName);
         if (assumption != null) {
-            assumption.invalidate();
-
-            PerformanceWarningNode.warn(
-                    context,
-                    StringUtils.format("Redefining '%s#%s' disables interpreter and JIT optimizations", getName(),
-                            methodName),
-                    currentNode);
-        }
-    }
-
-    private void invalidateBuiltinsAssumptions(RubyContext context, Node currentNode) {
-        if (!inlinedBuiltinsAssumptions.isEmpty()) {
-            for (Assumption assumption : inlinedBuiltinsAssumptions.values()) {
-                assumption.invalidate();
-            }
-
-            PerformanceWarningNode.warn(
-                    context,
-                    StringUtils.format("Prepending a module to %s disables interpreter and JIT optimizations",
-                            getName()),
+            var moduleAndMethodName = SharedMethodInfo.moduleAndMethodName(rubyModule, methodName);
+            assumption.invalidate("method is refined: " + moduleAndMethodName);
+            PerformanceWarningNode.warn(context,
+                    StringUtils.format("Refining '%s' disables interpreter and JIT optimizations", moduleAndMethodName),
                     currentNode);
         }
     }

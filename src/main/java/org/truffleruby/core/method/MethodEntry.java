@@ -9,20 +9,32 @@
  */
 package org.truffleruby.core.method;
 
+import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
+import java.util.Objects;
+
 public final class MethodEntry {
+
+    public static final String CORE_METHOD_IS_NOT_OVERRIDDEN = "core method is not overridden:";
 
     private final Assumption assumption;
     private final InternalMethod method;
 
     public MethodEntry(InternalMethod method) {
+        this(method, Assumption.create("method is not overridden:"));
+    }
+
+    public MethodEntry(InternalMethod method, Assumption assumption) {
         assert method != null;
-        this.assumption = Assumption.create("method is not overridden:");
+        this.assumption = Objects.requireNonNull(assumption);
         this.method = method;
     }
 
@@ -47,8 +59,17 @@ public final class MethodEntry {
         return method;
     }
 
-    public void invalidate(RubyModule module, String methodName) {
+    public void invalidate(RubyContext context, RubyModule module, String methodName, Node node) {
         assumption.invalidate(SharedMethodInfo.moduleAndMethodName(module, methodName));
+
+        if (assumption.getName() == CORE_METHOD_IS_NOT_OVERRIDDEN) {
+            PerformanceWarningNode.warn(context,
+                    StringUtils.format("Redefining '%s#%s' disables interpreter and JIT optimizations",
+                            module.getName(),
+                            methodName),
+                    node);
+        }
+
     }
 
 }

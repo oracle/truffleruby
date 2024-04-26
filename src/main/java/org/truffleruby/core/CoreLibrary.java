@@ -268,13 +268,16 @@ public final class CoreLibrary {
         return source.createUnavailableSection();
     }
 
-    private enum State {
+    public enum State {
+        CREATED,
+        /** Loading methods defined in Java */
         INITIALIZING,
+        /** Loading methods defined in Ruby */
         LOADING_RUBY_CORE,
         LOADED
     }
 
-    private State state = State.INITIALIZING;
+    public State state = State.CREATED;
 
     private final SingletonClassNode node;
 
@@ -601,6 +604,7 @@ public final class CoreLibrary {
     }
 
     public void loadCoreNodes() {
+        state = State.INITIALIZING;
         final CoreMethodNodeManager coreMethodNodeManager = new CoreMethodNodeManager(context);
         coreMethodNodeManager.loadCoreMethodNodes();
 
