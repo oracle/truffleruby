@@ -1099,16 +1099,31 @@ typedef struct pm_alias_global_variable_node {
 
     /**
      * AliasGlobalVariableNode#new_name
+     *
+     * Represents the new name of the global variable that can be used after aliasing. This can be either a global variable, a back reference, or a numbered reference.
+     *
+     *     alias $foo $bar
+     *           ^^^^
      */
     struct pm_node *new_name;
 
     /**
      * AliasGlobalVariableNode#old_name
+     *
+     * Represents the old name of the global variable that could be used before aliasing. This can be either a global variable, a back reference, or a numbered reference.
+     *
+     *     alias $foo $bar
+     *                ^^^^
      */
     struct pm_node *old_name;
 
     /**
      * AliasGlobalVariableNode#keyword_loc
+     *
+     * The location of the `alias` keyword.
+     *
+     *     alias $foo $bar
+     *     ^^^^^
      */
     pm_location_t keyword_loc;
 } pm_alias_global_variable_node_t;
@@ -1249,16 +1264,32 @@ typedef struct pm_array_node {
 
     /**
      * ArrayNode#elements
+     *
+     * Represent the list of zero or more [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression) within the array.
      */
     struct pm_node_list elements;
 
     /**
      * ArrayNode#opening_loc
+     *
+     * Represents the optional source location for the opening token.
+     *
+     *     [1,2,3]                 # "["
+     *     %w[foo bar baz]         # "%w["
+     *     %I(apple orange banana) # "%I("
+     *     foo = 1, 2, 3           # nil
      */
     pm_location_t opening_loc;
 
     /**
      * ArrayNode#closing_loc
+     *
+     * Represents the optional source location for the closing token.
+     *
+     *     [1,2,3]                 # "]"
+     *     %w[foo bar baz]         # "]"
+     *     %I(apple orange banana) # ")"
+     *     foo = 1, 2, 3           # nil
      */
     pm_location_t closing_loc;
 } pm_array_node_t;
@@ -1605,11 +1636,21 @@ typedef struct pm_break_node {
 
     /**
      * BreakNode#arguments
+     *
+     * The arguments to the break statement, if present. These can be any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     break foo
+     *           ^^^
      */
     struct pm_arguments_node *arguments;
 
     /**
      * BreakNode#keyword_loc
+     *
+     * The location of the `break` keyword.
+     *
+     *     break foo
+     *     ^^^^^
      */
     pm_location_t keyword_loc;
 } pm_break_node_t;
@@ -2209,8 +2250,7 @@ typedef struct pm_class_variable_write_node {
     /**
      * ClassVariableWriteNode#value
      *
-     * The value to assign to the class variable. Can be any node that
-     * represents a non-void expression.
+     * The value to write to the class variable. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     @@foo = :bar
      *             ^^^^
@@ -2372,16 +2412,47 @@ typedef struct pm_constant_path_node {
 
     /**
      * ConstantPathNode#parent
+     *
+     * The left-hand node of the path, if present. It can be `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression). It will be `nil` when the constant lookup is at the root of the module tree.
+     *
+     *     Foo::Bar
+     *     ^^^
+     *
+     *     self::Test
+     *     ^^^^
+     *
+     *     a.b::C
+     *     ^^^
      */
     struct pm_node *parent;
 
     /**
      * ConstantPathNode#child
+     *
+     * The right-hand node of the path. Always a `ConstantReadNode` in a
+     * valid Ruby syntax tree.
+     *
+     *     ::Foo
+     *       ^^^
+     *
+     *     self::Test
+     *           ^^^^
+     *
+     *     a.b::C
+     *          ^
      */
     struct pm_node *child;
 
     /**
      * ConstantPathNode#delimiter_loc
+     *
+     * The location of the `::` delimiter.
+     *
+     *     ::Foo
+     *     ^^
+     *
+     *     One::Two
+     *        ^^
      */
     pm_location_t delimiter_loc;
 } pm_constant_path_node_t;
@@ -2485,16 +2556,34 @@ typedef struct pm_constant_path_write_node {
 
     /**
      * ConstantPathWriteNode#target
+     *
+     * A node representing the constant path being written to.
+     *
+     *     Foo::Bar = 1
+     *     ^^^^^^^^
+     *
+     *     ::Foo = :abc
+     *     ^^^^^
      */
     struct pm_constant_path_node *target;
 
     /**
      * ConstantPathWriteNode#operator_loc
+     *
+     * The location of the `=` operator.
+     *
+     *     ::ABC = 123
+     *           ^
      */
     pm_location_t operator_loc;
 
     /**
      * ConstantPathWriteNode#value
+     *
+     * The value to write to the constant path. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     FOO::BAR = :abc
+     *                ^^^^
      */
     struct pm_node *value;
 } pm_constant_path_write_node_t;
@@ -2552,21 +2641,45 @@ typedef struct pm_constant_write_node {
 
     /**
      * ConstantWriteNode#name
+     *
+     * The name of the [constant](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#constants).
+     *
+     *     Foo = :bar # name `:Foo`
+     *
+     *     XYZ = 1    # name `:XYZ`
      */
     pm_constant_id_t name;
 
     /**
      * ConstantWriteNode#name_loc
+     *
+     * The location of the constant name.
+     *
+     *     FOO = 1
+     *     ^^^
      */
     pm_location_t name_loc;
 
     /**
      * ConstantWriteNode#value
+     *
+     * The value to write to the constant. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     FOO = :bar
+     *           ^^^^
+     *
+     *     MyClass = Class.new
+     *               ^^^^^^^^^
      */
     struct pm_node *value;
 
     /**
      * ConstantWriteNode#operator_loc
+     *
+     * The location of the `=` operator.
+     *
+     *     FOO = :bar
+     *         ^
      */
     pm_location_t operator_loc;
 } pm_constant_write_node_t;
@@ -3122,21 +3235,45 @@ typedef struct pm_global_variable_write_node {
 
     /**
      * GlobalVariableWriteNode#name
+     *
+     * The name of the global variable, which is a `$` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifier). Alternatively, it can be one of the special global variables designated by a symbol.
+     *
+     *     $foo = :bar  # name `:$foo`
+     *
+     *     $_Test = 123 # name `:$_Test`
      */
     pm_constant_id_t name;
 
     /**
      * GlobalVariableWriteNode#name_loc
+     *
+     * The location of the global variable's name.
+     *
+     *     $foo = :bar
+     *     ^^^^
      */
     pm_location_t name_loc;
 
     /**
      * GlobalVariableWriteNode#value
+     *
+     * The value to write to the global variable. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     $foo = :bar
+     *            ^^^^
+     *
+     *     $-xyz = 123
+     *             ^^^
      */
     struct pm_node *value;
 
     /**
      * GlobalVariableWriteNode#operator_loc
+     *
+     * The location of the `=` operator.
+     *
+     *     $foo = :bar
+     *          ^
      */
     pm_location_t operator_loc;
 } pm_global_variable_write_node_t;
@@ -3236,31 +3373,89 @@ typedef struct pm_if_node {
 
     /**
      * IfNode#if_keyword_loc
+     *
+     * The location of the `if` keyword if present.
+     *
+     *     bar if foo
+     *         ^^
+     *
+     * The `if_keyword_loc` field will be `nil` when the `IfNode` represents a ternary expression.
      */
     pm_location_t if_keyword_loc;
 
     /**
      * IfNode#predicate
+     *
+     * The node for the condition the `IfNode` is testing.
+     *
+     *     if foo
+     *        ^^^
+     *       bar
+     *     end
+     *
+     *     bar if foo
+     *            ^^^
+     *
+     *     foo ? bar : baz
+     *     ^^^
      */
     struct pm_node *predicate;
 
     /**
      * IfNode#then_keyword_loc
+     *
+     * The location of the `then` keyword (if present) or the `?` in a ternary expression, `nil` otherwise.
+     *
+     *     if foo then bar end
+     *            ^^^^
+     *
+     *     a ? b : c
+     *       ^
      */
     pm_location_t then_keyword_loc;
 
     /**
      * IfNode#statements
+     *
+     * Represents the body of statements that will be executed when the predicate is evaluated as truthy. Will be `nil` when no body is provided.
+     *
+     *     if foo
+     *       bar
+     *       ^^^
+     *       baz
+     *       ^^^
+     *     end
      */
     struct pm_statements_node *statements;
 
     /**
      * IfNode#consequent
+     *
+     * Represents an `ElseNode` or an `IfNode` when there is an `else` or an `elsif` in the `if` statement.
+     *
+     *     if foo
+     *       bar
+     *     elsif baz
+     *     ^^^^^^^^^
+     *       qux
+     *       ^^^
+     *     end
+     *     ^^^
+     *
+     *     if foo then bar else baz end
+     *                     ^^^^^^^^^^^^
      */
     struct pm_node *consequent;
 
     /**
      * IfNode#end_keyword_loc
+     *
+     * The location of the `end` keyword if present, `nil` otherwise.
+     *
+     *     if foo
+     *       bar
+     *     end
+     *     ^^^
      */
     pm_location_t end_keyword_loc;
 } pm_if_node_t;
@@ -3737,8 +3932,7 @@ typedef struct pm_instance_variable_write_node {
     /**
      * InstanceVariableWriteNode#value
      *
-     * The value to assign to the instance variable. Can be any node that
-     * represents a non-void expression.
+     * The value to write to the instance variable. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
      *
      *     @foo = :bar
      *            ^^^^
@@ -4242,26 +4436,62 @@ typedef struct pm_local_variable_write_node {
 
     /**
      * LocalVariableWriteNode#name
+     *
+     * The name of the local variable, which is an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     foo = :bar # name `:foo`
+     *
+     *     abc = 123  # name `:abc`
      */
     pm_constant_id_t name;
 
     /**
      * LocalVariableWriteNode#depth
+     *
+     * The number of semantic scopes we have to traverse to find the declaration of this variable.
+     *
+     *     foo = 1         # depth 0
+     *
+     *     tap { foo = 1 } # depth 1
+     *
+     * The specific rules for calculating the depth may differ from individual Ruby implementations, as they are not specified by the language. For more information, see [the Prism documentation](https://github.com/ruby/prism/blob/main/docs/local_variable_depth.md).
      */
     uint32_t depth;
 
     /**
      * LocalVariableWriteNode#name_loc
+     *
+     * The location of the variable name.
+     *
+     *     foo = :bar
+     *     ^^^
      */
     pm_location_t name_loc;
 
     /**
      * LocalVariableWriteNode#value
+     *
+     * The value to write to the local variable. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo = :bar
+     *           ^^^^
+     *
+     *     abc = 1234
+     *           ^^^^
+     *
+     * Note that since the name of a local variable is known before the value is parsed, it is valid for a local variable to appear within the value of its own write.
+     *
+     *     foo = foo
      */
     struct pm_node *value;
 
     /**
      * LocalVariableWriteNode#operator_loc
+     *
+     * The location of the `=` operator.
+     *
+     *     x = :y
+     *       ^
      */
     pm_location_t operator_loc;
 } pm_local_variable_write_node_t;
@@ -5350,6 +5580,8 @@ typedef struct pm_source_file_node {
 
     /**
      * SourceFileNode#filepath
+     *
+     * Represents the file path being parsed. This corresponds directly to the `filepath` option given to the various `Prism::parse*` APIs.
      */
     pm_string_t filepath;
 } pm_source_file_node_t;
@@ -5562,31 +5794,66 @@ typedef struct pm_unless_node {
 
     /**
      * UnlessNode#keyword_loc
+     *
+     * The location of the `unless` keyword.
+     *
+     *     unless cond then bar end
+     *     ^^^^^^
+     *
+     *     bar unless cond
+     *         ^^^^^^
      */
     pm_location_t keyword_loc;
 
     /**
      * UnlessNode#predicate
+     *
+     * The condition to be evaluated for the unless expression. It can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     unless cond then bar end
+     *            ^^^^
+     *
+     *     bar unless cond
+     *                ^^^^
      */
     struct pm_node *predicate;
 
     /**
      * UnlessNode#then_keyword_loc
+     *
+     * The location of the `then` keyword, if present.
+     * unless cond then bar end ^^^^
      */
     pm_location_t then_keyword_loc;
 
     /**
      * UnlessNode#statements
+     *
+     * The body of statements that will executed if the unless condition is
+     * falsey. Will be `nil` if no body is provided.
+     *
+     *     unless cond then bar end
+     *                      ^^^
      */
     struct pm_statements_node *statements;
 
     /**
      * UnlessNode#consequent
+     *
+     * The else clause of the unless expression, if present.
+     *
+     *     unless cond then bar else baz end
+     *                          ^^^^^^^^
      */
     struct pm_else_node *consequent;
 
     /**
      * UnlessNode#end_keyword_loc
+     *
+     * The location of the `end` keyword, if present.
+     *
+     *     unless cond then bar end
+     *                          ^^^
      */
     pm_location_t end_keyword_loc;
 } pm_unless_node_t;
