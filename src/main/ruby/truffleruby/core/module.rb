@@ -79,7 +79,7 @@ class Module
   def include(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
     if Primitive.is_a?(self, Refinement)
-      warn 'Refinement#include is deprecated and will be removed in Ruby 3.2', category: :deprecated, uplevel: 1
+      raise TypeError, 'Refinement#include has been removed'
     end
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
@@ -95,7 +95,7 @@ class Module
   def prepend(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
     if Primitive.is_a?(self, Refinement)
-      warn 'Refinement#prepend is deprecated and will be removed in Ruby 3.2', category: :deprecated, uplevel: 1
+      raise TypeError, 'Refinement#prepend has been removed'
     end
     modules.reverse_each do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
