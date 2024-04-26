@@ -76,12 +76,6 @@ VALUE rb_gv_get(const char *name) {
   return RUBY_CEXT_INVOKE("rb_gv_get", rb_str_new_cstr(name));
 }
 
-// $SAFE
-
-void rb_check_trusted(VALUE obj) {
-  rb_warning("rb_check_trusted is deprecated and will be removed in Ruby 3.2.");
-}
-
 // $VERBOSE
 
 VALUE rb_tr_ruby_verbose_ptr;

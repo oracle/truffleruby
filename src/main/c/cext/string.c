@@ -72,11 +72,6 @@ VALUE rb_str_new_static(const char *string, long length) {
   return rb_str_new(string, length);
 }
 
-VALUE rb_tainted_str_new(const char *ptr, long len) {
-    rb_warning("rb_tainted_str_new is deprecated and will be removed in Ruby 3.2.");
-    return rb_str_new(ptr, len);
-}
-
 VALUE rb_str_new_cstr(const char *string) {
   // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
   size_t len = strlen(string);
@@ -89,11 +84,6 @@ VALUE rb_str_new_shared(VALUE string) {
 
 VALUE rb_str_new_with_class(VALUE str, const char *string, long len) {
   return RUBY_INVOKE(RUBY_INVOKE(str, "class"), "new", rb_str_new(string, len));
-}
-
-VALUE rb_tainted_str_new_cstr(const char *ptr) {
-    rb_warning("rb_tainted_str_new_cstr is deprecated and will be removed in Ruby 3.2.");
-    return rb_str_new_cstr(ptr);
 }
 
 VALUE rb_str_dup(VALUE string) {
