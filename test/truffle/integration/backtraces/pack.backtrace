@@ -1,5 +1,5 @@
 /pack.rb:13:in `to_str': message (RuntimeError)
-	from /pack.rb:18:in `pack'
+	from <internal:core> core/array.rb:LINE:in `pack'
 	from /pack.rb:18:in `block in <main>'
 	from /backtraces.rb:17:in `check'
 	from /pack.rb:17:in `<main>'

@@ -57,6 +57,7 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
+import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.pack.PackCompiler;
 import org.truffleruby.core.hash.HashingNodes;
@@ -1491,15 +1492,15 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "pack", required = 1, split = Split.ALWAYS)
-    public abstract static class ArrayPackNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "array_pack", lowerFixnum = 1)
+    public abstract static class ArrayPackPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        RubyString pack(RubyArray array, Object format,
+        RubyString pack(RubyArray array, Object format, Object buffer,
                 @Cached ToStrNode toStrNode,
                 @Cached PackNode packNode) {
             final var formatAsString = toStrNode.execute(this, format);
-            return packNode.execute(this, array, formatAsString);
+            return packNode.execute(this, array, formatAsString, buffer);
         }
     }
 
@@ -1508,28 +1509,35 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class PackNode extends RubyBaseNode {
 
-        public abstract RubyString execute(Node node, RubyArray array, Object format);
+        public abstract RubyString execute(Node node, RubyArray array, Object format, Object buffer);
 
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
+                        "libBuffer.isRubyString(buffer)",
                         "equalNode.execute(libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "getCacheLimit()")
-        static RubyString packCached(Node node, RubyArray array, Object format,
+        static RubyString packCached(Node node, RubyArray array, Object format, Object buffer,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared RubyStringLibrary libBuffer,
                 @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
                 @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
-                @Cached("create(compileFormat(node, getJavaString(format)))") DirectCallNode callPackNode,
+                @Cached("compileFormat(node, getJavaString(format))") RootCallTarget formatCallTarget,
+                @Cached("create(formatCallTarget)") DirectCallNode callPackNode,
                 @Cached StringHelperNodes.EqualNode equalNode) {
+            final byte[] bytes = initOutputBytes(buffer, libBuffer, formatCallTarget, copyToByteArrayNode);
+
             final BytesResult result;
+
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ array.getStore(), array.size, false, null });
+                        new Object[]{ array.getStore(), array.size, bytes, libBuffer.byteLength(buffer) });
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
@@ -1538,22 +1546,28 @@ public abstract class ArrayNodes {
             return finishPack(node, cachedFormatLength, result, resizeProfile, writeAssociatedNode, fromByteArrayNode);
         }
 
-        @Specialization(guards = { "libFormat.isRubyString(format)" }, replaces = "packCached")
-        static RubyString packUncached(Node node, RubyArray array, Object format,
+        @Specialization(guards = { "libFormat.isRubyString(format)", "libBuffer.isRubyString(buffer)" },
+                replaces = "packCached")
+        static RubyString packUncached(Node node, RubyArray array, Object format, Object buffer,
                 @Cached @Shared InlinedBranchProfile exceptionProfile,
                 @Cached @Shared InlinedConditionProfile resizeProfile,
                 @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Shared RubyStringLibrary libBuffer,
                 @Cached @Shared WriteObjectFieldNode writeAssociatedNode,
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
+                @Cached @Shared TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached IndirectCallNode callPackNode) {
             final String formatString = toJavaStringNode.execute(node, format);
+            final RootCallTarget formatCallTarget = compileFormat(node, formatString);
+            final byte[] bytes = initOutputBytes(buffer, libBuffer, formatCallTarget, copyToByteArrayNode);
 
             final BytesResult result;
+
             try {
                 result = (BytesResult) callPackNode.call(
-                        compileFormat(node, formatString),
-                        new Object[]{ array.getStore(), array.size, false, null });
+                        formatCallTarget,
+                        new Object[]{ array.getStore(), array.size, bytes, libBuffer.byteLength(buffer) });
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
@@ -1589,6 +1603,20 @@ public abstract class ArrayNodes {
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext(node));
             }
+        }
+
+        private static byte[] initOutputBytes(Object buffer, RubyStringLibrary libBuffer,
+                RootCallTarget formatCallTarget, TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
+            int bufferLength = libBuffer.byteLength(buffer);
+            var formatRootNode = (FormatRootNode) formatCallTarget.getRootNode();
+            int expectedLength = formatRootNode.getExpectedLength();
+
+            // output buffer should be at least expectedLength to not mess up the expectedLength's logic
+            final int length = Math.max(bufferLength, expectedLength);
+            final byte[] bytes = new byte[length];
+            copyToByteArrayNode.execute(libBuffer.getTString(buffer), 0, bytes, 0, bufferLength,
+                    libBuffer.getTEncoding(buffer));
+            return bytes;
         }
 
         protected int getCacheLimit() {

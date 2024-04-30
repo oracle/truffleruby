@@ -30,17 +30,25 @@ public final class FormatRootNode extends RubyBaseRootNode implements InternalRo
     @Child private FormatNode child;
 
     @CompilationFinal private int expectedLength = 0;
+    private final boolean acceptOutput;
+    private final boolean acceptOutputPosition;
 
     public FormatRootNode(
             RubyLanguage language,
             SourceSection sourceSection,
             FormatEncoding encoding,
-            FormatNode child) {
+            FormatNode child,
+            boolean acceptOutput,
+            boolean acceptOutputPosition) {
         super(language, FormatFrameDescriptor.FRAME_DESCRIPTOR, sourceSection);
         this.encoding = encoding;
         this.child = child;
+        this.acceptOutput = acceptOutput;
+        this.acceptOutputPosition = acceptOutputPosition;
     }
 
+    /** Accepts the following arguments stored in a frame: source array, its length, output buffer as a bytes array,
+     * (optional) position in the output buffer to start from */
     @SuppressWarnings("unchecked")
     @Override
     public Object execute(VirtualFrame frame) {
@@ -48,8 +56,13 @@ public final class FormatRootNode extends RubyBaseRootNode implements InternalRo
         frame.setInt(FormatFrameDescriptor.SOURCE_END_POSITION_SLOT, (int) frame.getArguments()[1]);
         frame.setInt(FormatFrameDescriptor.SOURCE_START_POSITION_SLOT, 0);
         frame.setInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT, 0);
-        frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, new byte[expectedLength]);
-        frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, 0);
+
+        final byte[] outputInit = acceptOutput ? (byte[]) frame.getArguments()[2] : new byte[expectedLength];
+        frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, outputInit);
+
+        final int outputPosition = acceptOutputPosition ? (int) frame.getArguments()[3] : 0;
+        frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, outputPosition);
+
         frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, null);
 
         child.execute(frame);
@@ -93,6 +106,10 @@ public final class FormatRootNode extends RubyBaseRootNode implements InternalRo
     @Override
     public String getName() {
         return "format";
+    }
+
+    public int getExpectedLength() {
+        return expectedLength;
     }
 
     @Override
