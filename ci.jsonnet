@@ -238,7 +238,7 @@ local part_definitions = {
       platform_name:: "LinuxAMD64",
       "$.cap":: {
         normal_machine: [],
-        bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
+        bench_machine: ["e3"] + self.normal_machine + ["no_frequency_scaling"],
       },
     },
     linux_aarch64: common.linux_aarch64 + common_deps + {
