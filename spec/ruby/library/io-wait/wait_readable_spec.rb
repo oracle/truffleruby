@@ -24,4 +24,23 @@ describe "IO#wait_readable" do
   it "waits for the IO to become readable with the given large timeout" do
     @io.wait_readable(365 * 24 * 60 * 60).should == @io
   end
+
+  it "can be interrupted" do
+    rd, _wr = IO.pipe
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+    t = Thread.new do
+      rd.wait_readable(10)
+    end
+
+    Thread.pass until t.stop?
+    t.kill
+    t.join
+
+    finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    (finish - start).should < 9
+  ensure
+    rd.close
+    _wr.close
+  end
 end
