@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ZeroLengthArrayStore;
 
 public final class ArrayGuards {
@@ -40,5 +41,9 @@ public final class ArrayGuards {
 
     public static boolean zeroLengthStore(Object store) {
         return store == ZeroLengthArrayStore.ZERO_LENGTH_STORE;
+    }
+
+    public static boolean isZeroLengthArrayStore(Object store) {
+        return store == ZeroLengthArrayStore.ZERO_LENGTH_STORE || store == ArrayStoreLibrary.SHARED_INITIAL_STORE;
     }
 }

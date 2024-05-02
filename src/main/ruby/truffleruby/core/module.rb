@@ -78,10 +78,12 @@ class Module
 
   def include(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
+
     if Primitive.is_a?(self, Refinement)
       raise TypeError, 'Refinement#include has been removed'
     end
-    modules.reverse_each do |mod|
+
+    block = proc do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
         raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
@@ -93,15 +95,25 @@ class Module
       mod.__send__ :append_features, self
       mod.__send__ :included, self
     end
+
+    # __send__ calls above report polymorphism because they see different singleton classes for each module instance.
+    # But these methods are called only once per object and module pair, so it is not worth to split for them.
+    Truffle::Graal.never_split block
+
+    modules.reverse_each(&block)
+
     self
   end
+  Truffle::Graal.never_split instance_method(:include)
 
   def prepend(*modules)
     raise ArgumentError, 'wrong number of arguments (given 0, expected 1+)' if modules.empty?
+
     if Primitive.is_a?(self, Refinement)
       raise TypeError, 'Refinement#prepend has been removed'
     end
-    modules.reverse_each do |mod|
+
+    block = proc do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
         raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       end
@@ -113,8 +125,16 @@ class Module
       mod.__send__ :prepend_features, self
       mod.__send__ :prepended, self
     end
+
+    # __send__ calls above report polymorphism because they see different singleton classes for each module instance.
+    # But these methods are called only once per object and module pair, so it is not worth to split for them.
+    Truffle::Graal.never_split block
+
+    modules.reverse_each(&block)
+
     self
   end
+  Truffle::Graal.never_split instance_method(:prepend)
 
   def const_defined?(name, inherit = true)
     Primitive.module_const_defined?(self, name, inherit, true)
