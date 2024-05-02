@@ -60,7 +60,6 @@ import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 
@@ -85,13 +84,24 @@ public final class ClassicRegexp {
                             ? new RegexWarnCallback()
                             : new RegexWarnDeferredCallback(rubyDeferredWarnings));
         } catch (Exception e) {
-            String errorMessage = getRegexErrorMessage(source, e, options);
+            String errorMessage = getRegexErrorMessageForException(source, e, options);
             throw new DeferredRaiseException(c -> c.getCoreExceptions().regexpError(errorMessage, currentNode));
         }
     }
 
-    public static String getRegexErrorMessage(AbstractTruffleString source, Exception e, RegexpOptions options) {
-        return BacktraceFormatter.formatJavaThrowableMessage(e) + ": /" + source + "/" + options.toOptionsString();
+    private static String getRegexErrorMessageForException(AbstractTruffleString source, Exception e,
+            RegexpOptions options) {
+        String message = e.getMessage();
+
+        if (message == null) {
+            message = "<no message>";
+        }
+
+        return formatRegexErrorMessage(message, source, options.toOptionsString());
+    }
+
+    private static String formatRegexErrorMessage(String error, AbstractTruffleString source, String options) {
+        return error + ": /" + source + "/" + options;
     }
 
     @TruffleBoundary
@@ -112,7 +122,7 @@ public final class ClassicRegexp {
         while (p < end) {
             final int cl = strInEnc.characterLength(p - offset);
             if (cl <= 0) {
-                raisePreprocessError("invalid multibyte character", mode);
+                raisePreprocessError("invalid multibyte character", str, mode);
             }
             if (cl > 1 || (bytes[p] & 0x80) != 0) {
                 if (to != null) {
@@ -122,7 +132,7 @@ public final class ClassicRegexp {
                 if (encp[0] == null) {
                     encp[0] = enc;
                 } else if (encp[0] != enc) {
-                    raisePreprocessError("non ASCII character in UTF-8 regexp", mode);
+                    raisePreprocessError("non ASCII character in UTF-8 regexp", str, mode);
                 }
                 continue;
             }
@@ -130,7 +140,7 @@ public final class ClassicRegexp {
             switch (c = bytes[p++] & 0xff) {
                 case '\\':
                     if (p == end) {
-                        raisePreprocessError("too short escape sequence", mode);
+                        raisePreprocessError("too short escape sequence", str, mode);
                     }
 
                     switch (c = bytes[p++] & 0xff) {
@@ -160,7 +170,7 @@ public final class ClassicRegexp {
                                     buf = new byte[1];
                                 }
                                 int pbeg = p;
-                                p = readEscapedByte(buf, 0, bytes, p, end, mode);
+                                p = readEscapedByte(buf, 0, bytes, p, end, str, mode);
                                 c = buf[0];
                                 if (c == -1) {
                                     return false;
@@ -169,22 +179,22 @@ public final class ClassicRegexp {
                                     to.append(bytes, pbeg, p - pbeg);
                                 }
                             } else {
-                                p = unescapeEscapedNonAscii(to, bytes, p, end, enc, encp, mode);
+                                p = unescapeEscapedNonAscii(to, bytes, p, end, enc, encp, str, mode);
                             }
                             break;
 
                         case 'u':
                             if (p == end) {
-                                raisePreprocessError("too short escape sequence", mode);
+                                raisePreprocessError("too short escape sequence", str, mode);
                             }
                             if (bytes[p] == (byte) '{') { /* \\u{H HH HHH HHHH HHHHH HHHHHH ...} */
                                 p++;
-                                p = unescapeUnicodeList(to, bytes, p, end, encp, mode);
+                                p = unescapeUnicodeList(to, bytes, p, end, encp, str, mode);
                                 if (p == end || bytes[p++] != (byte) '}') {
-                                    raisePreprocessError("invalid Unicode list", mode);
+                                    raisePreprocessError("invalid Unicode list", str, mode);
                                 }
                             } else { /* \\uHHHH */
-                                p = unescapeUnicodeBmp(to, bytes, p, end, encp, mode);
+                                p = unescapeUnicodeBmp(to, bytes, p, end, encp, str, mode);
                             }
                             break;
                         case 'p': /* \p{Hiragana} */
@@ -217,21 +227,23 @@ public final class ClassicRegexp {
     }
 
     private static int unescapeUnicodeBmp(TStringBuilder to, byte[] bytes, int p, int end,
-            RubyEncoding[] encp, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
+            RubyEncoding[] encp, TStringWithEncoding source, RegexpSupport.ErrorMode mode)
+            throws DeferredRaiseException {
         if (p + 4 > end) {
-            raisePreprocessError("invalid Unicode escape", mode);
+            raisePreprocessError("invalid Unicode escape", source, mode);
         }
         int code = StringSupport.scanHex(bytes, p, 4);
         int len = StringSupport.hexLength(bytes, p, 4);
         if (len != 4) {
-            raisePreprocessError("invalid Unicode escape", mode);
+            raisePreprocessError("invalid Unicode escape", source, mode);
         }
-        appendUtf8(to, code, encp, mode);
+        appendUtf8(to, code, encp, source, mode);
         return p + 4;
     }
 
     private static int unescapeUnicodeList(TStringBuilder to, byte[] bytes, int p, int end,
-            RubyEncoding[] encp, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
+            RubyEncoding[] encp, TStringWithEncoding source, RegexpSupport.ErrorMode mode)
+            throws DeferredRaiseException {
         while (p < end && StringSupport.isAsciiSpace(bytes[p] & 0xff)) {
             p++;
         }
@@ -244,11 +256,11 @@ public final class ClassicRegexp {
                 break;
             }
             if (len > 6) {
-                raisePreprocessError("invalid Unicode range", mode);
+                raisePreprocessError("invalid Unicode range", source, mode);
             }
             p += len;
             if (to != null) {
-                appendUtf8(to, code, encp, mode);
+                appendUtf8(to, code, encp, source, mode);
             }
             hasUnicode = true;
             while (p < end && StringSupport.isAsciiSpace(bytes[p] & 0xff)) {
@@ -257,14 +269,14 @@ public final class ClassicRegexp {
         }
 
         if (!hasUnicode) {
-            raisePreprocessError("invalid Unicode list", mode);
+            raisePreprocessError("invalid Unicode list", source, mode);
         }
         return p;
     }
 
     private static void appendUtf8(TStringBuilder to, int code, RubyEncoding[] enc,
-            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
-        checkUnicodeRange(code, mode);
+            TStringWithEncoding source, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
+        checkUnicodeRange(code, source, mode);
 
         if (code < 0x80) {
             if (to != null) {
@@ -278,7 +290,7 @@ public final class ClassicRegexp {
             if (enc[0] == null) {
                 enc[0] = Encodings.UTF_8;
             } else if (enc[0] != Encodings.UTF_8) {
-                raisePreprocessError("UTF-8 character in non UTF-8 regexp", mode);
+                raisePreprocessError("UTF-8 character in non UTF-8 regexp", source, mode);
             }
         }
     }
@@ -320,29 +332,29 @@ public final class ClassicRegexp {
         }
     }
 
-    private static void checkUnicodeRange(int code, RegexpSupport.ErrorMode mode)
+    private static void checkUnicodeRange(int code, TStringWithEncoding source, RegexpSupport.ErrorMode mode)
             throws DeferredRaiseException {
         // Unicode is can be only 21 bits long, int is enough
         if ((0xd800 <= code && code <= 0xdfff) /* Surrogates */ || 0x10ffff < code) {
-            raisePreprocessError("invalid Unicode range", mode);
+            raisePreprocessError("invalid Unicode range", source, mode);
         }
     }
 
     private static int unescapeEscapedNonAscii(TStringBuilder to, byte[] bytes, int p, int end,
-            RubyEncoding enc, RubyEncoding[] encp, RegexpSupport.ErrorMode mode)
+            RubyEncoding enc, RubyEncoding[] encp, TStringWithEncoding source, RegexpSupport.ErrorMode mode)
             throws DeferredRaiseException {
         byte[] chBuf = new byte[enc.jcoding.maxLength()];
         int chLen = 0;
 
-        p = readEscapedByte(chBuf, chLen++, bytes, p, end, mode);
+        p = readEscapedByte(chBuf, chLen++, bytes, p, end, source, mode);
         while (chLen < enc.jcoding.maxLength() &&
                 StringSupport.MBCLEN_NEEDMORE_P(StringSupport.characterLength(enc, chBuf, 0, chLen))) {
-            p = readEscapedByte(chBuf, chLen++, bytes, p, end, mode);
+            p = readEscapedByte(chBuf, chLen++, bytes, p, end, source, mode);
         }
 
         int cl = StringSupport.characterLength(enc, chBuf, 0, chLen);
         if (cl == -1) {
-            raisePreprocessError("invalid multibyte escape", mode); // MBCLEN_INVALID_P
+            raisePreprocessError("invalid multibyte escape", source, mode); // MBCLEN_INVALID_P
         }
 
         if (chLen > 1 || (chBuf[0] & 0x80) != 0) {
@@ -353,7 +365,7 @@ public final class ClassicRegexp {
             if (encp[0] == null) {
                 encp[0] = enc;
             } else if (encp[0] != enc) {
-                raisePreprocessError("escaped non ASCII character in UTF-8 regexp", mode);
+                raisePreprocessError("escaped non ASCII character in UTF-8 regexp", source, mode);
             }
         } else {
             if (to != null) {
@@ -363,11 +375,12 @@ public final class ClassicRegexp {
         return p;
     }
 
-    public static int raisePreprocessError(String err, RegexpSupport.ErrorMode mode)
+    public static int raisePreprocessError(String err, TStringWithEncoding source, RegexpSupport.ErrorMode mode)
             throws DeferredRaiseException {
         switch (mode) {
             case RAISE:
-                throw new DeferredRaiseException(context -> context.getCoreExceptions().regexpError(err, null));
+                final String message = formatRegexErrorMessage(err, source.tstring, "");
+                throw new DeferredRaiseException(context -> context.getCoreExceptions().regexpError(message, null));
             case PREPROCESS:
                 throw new DeferredRaiseException(context -> context
                         .getCoreExceptions()
@@ -381,16 +394,16 @@ public final class ClassicRegexp {
     @SuppressWarnings("fallthrough")
     @SuppressFBWarnings("SF")
     public static int readEscapedByte(byte[] to, int toP, byte[] bytes, int p, int end,
-            RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
+            TStringWithEncoding source, RegexpSupport.ErrorMode mode) throws DeferredRaiseException {
         if (p == end || bytes[p++] != (byte) '\\') {
-            raisePreprocessError("too short escaped multibyte character", mode);
+            raisePreprocessError("too short escaped multibyte character", source, mode);
         }
 
         boolean metaPrefix = false, ctrlPrefix = false;
         int code = 0;
         while (true) {
             if (p == end) {
-                raisePreprocessError("too short escape sequence", mode);
+                raisePreprocessError("too short escape sequence", source, mode);
             }
 
             switch (bytes[p++]) {
@@ -439,14 +452,14 @@ public final class ClassicRegexp {
                     code = StringSupport.scanHex(bytes, p, hlen);
                     int len = StringSupport.hexLength(bytes, p, hlen);
                     if (len < 1) {
-                        raisePreprocessError("invalid hex escape", mode);
+                        raisePreprocessError("invalid hex escape", source, mode);
                     }
                     p += len;
                     break;
 
                 case 'M': /* \M-X, \M-\C-X, \M-\cX */
                     if (metaPrefix) {
-                        raisePreprocessError("duplicate meta escape", mode);
+                        raisePreprocessError("duplicate meta escape", source, mode);
                     }
                     metaPrefix = true;
                     if (p + 1 < end && bytes[p++] == (byte) '-' && (bytes[p] & 0x80) == 0) {
@@ -458,16 +471,16 @@ public final class ClassicRegexp {
                             break;
                         }
                     }
-                    raisePreprocessError("too short meta escape", mode);
+                    raisePreprocessError("too short meta escape", source, mode);
 
                 case 'C': /* \C-X, \C-\M-X */
                     if (p == end || bytes[p++] != (byte) '-') {
-                        raisePreprocessError("too short control escape", mode);
+                        raisePreprocessError("too short control escape", source, mode);
                     }
 
                 case 'c': /* \cX, \c\M-X */
                     if (ctrlPrefix) {
-                        raisePreprocessError("duplicate control escape", mode);
+                        raisePreprocessError("duplicate control escape", source, mode);
                     }
                     ctrlPrefix = true;
                     if (p < end && (bytes[p] & 0x80) == 0) {
@@ -479,13 +492,13 @@ public final class ClassicRegexp {
                             break;
                         }
                     }
-                    raisePreprocessError("too short control escape", mode);
+                    raisePreprocessError("too short control escape", source, mode);
                 default:
-                    raisePreprocessError("unexpected escape sequence", mode);
+                    raisePreprocessError("unexpected escape sequence", source, mode);
             } // switch
 
             if (code < 0 || code > 0xff) {
-                raisePreprocessError("invalid escape code", mode);
+                raisePreprocessError("invalid escape code", source, mode);
             }
 
             if (ctrlPrefix) {
