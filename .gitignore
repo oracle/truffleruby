@@ -23,28 +23,24 @@ nbproject
 workingsets.xml
 
 # C extensions
-*.o
-*.so
-*.a
-*.bundle
-*.dylib
-*.log
-*.tmp
-
-/.ext
-conftest
-conftest.c
-extconf.h
-mkmf.log
-
+# We use more precise ignores than e.g. `*.o`
+# to catch unexpected native build files in other directories
+bench/chunky_png/oily_png/**/*.o
+bench/chunky_png/oily_png/**/*.so
+bench/chunky_png/oily_png/**/*.bundle
 bench/chunky_png/oily_png/ext/oily_png/Makefile
+
+bench/psd.rb/psd_native/**/*.o
+bench/psd.rb/psd_native/**/*.so
+bench/psd.rb/psd_native/**/*.bundle
 bench/psd.rb/psd_native/ext/psd_native/Makefile
 
-lib/gems/extensions
-lib/gems/gems/*/ext/*/Makefile
-lib/gems/gems/*/ext/*/.*.time
-lib/gems/gems/debug-*/ext/debug/debug_version.h
-
+src/main/c/**/*.o
+src/main/c/**/*.so
+src/main/c/**/*.a
+src/main/c/**/*.bundle
+src/main/c/**/extconf.h
+src/main/c/**/mkmf.log
 src/main/c/*/Makefile
 !src/main/c/spawn-helper/Makefile
 !src/main/c/truffleposix/Makefile
@@ -52,14 +48,32 @@ src/main/c/cext-trampoline/trampoline.c
 src/main/c/cext/wrappers.c
 src/main/c/etc/constdefs.h
 src/main/c/spawn-helper/spawn-helper
+src/main/c/debug
+src/main/c/rbs
 
-spec/ffi/.bundle/config
-spec/ffi/vendor/bundle
+spec/truffle/fixtures/libtestnfi.so
+spec/truffle/fixtures/libtestnfi.dylib
 
+test/truffle/cexts/**/*.o
+test/truffle/cexts/**/*.so
+test/truffle/cexts/**/*.bundle
+test/truffle/cexts/**/mkmf.log
 test/truffle/cexts/**/Makefile
 
+test/mri/tests/cext-c/**/*.o
+test/mri/tests/cext-c/**/*.so
+test/mri/tests/cext-c/**/*.bundle
+test/mri/tests/cext-c/**/extconf.h
+test/mri/tests/cext-c/**/mkmf.log
 test/mri/tests/cext-c/**/Makefile
 test/mri/tests/cext-c/**/depend
+/.ext
+
+# Bundle
+spec/ffi/.bundle/config
+spec/ffi/vendor/bundle
+test/truffle/cexts/grpc/vendor/bundle
+test/truffle/gems/default-bundled-gems/.bundle/config
 
 # mx
 /mx.truffleruby/.pydevproject
@@ -104,8 +118,9 @@ tool/jay/jay
 # Generated
 doc/user/README.md
 
-# Ignore .rb files at the root, it's temporary files to debug some issue
+# Ignore .rb/.log files at the root, it's temporary files to debug some issue
 /*.rb
+/*.log
 
 # Ignore graphs and Seafoam generated illustrations
 /*.bgv
