@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.metadata = { "homepage_uri" => "https://github.com/ruby/cgi", "source_code_uri" => "https://github.com/ruby/cgi" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "Support for the Common Gateway Interface protocol.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/cgi/escape/extconf.rb".freeze]
@@ -18,6 +18,6 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/cgi".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "Support for the Common Gateway Interface protocol.".freeze
 end
