@@ -1207,7 +1207,7 @@ undefined method `foo' for nil:NilClass
 
       nil.foo + 1
     rescue NoMethodError => exc
-      def exc.backtrace_locations; []; end
+      def exc.backtrace_locations = []
       raise
     end
   end

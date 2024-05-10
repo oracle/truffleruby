@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 #--
 # Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
@@ -181,7 +182,7 @@ class Gem::Specification < Gem::BasicSpecification
   def self.clear_specs # :nodoc:
     @@all = nil
     @@stubs = nil
-    @@stubs_by_name = TruffleRuby::ConcurrentMap.new
+    @@stubs_by_name = {}
     @@spec_with_requirable_file = {}
     @@active_stub_with_requirable_file = {}
   end
@@ -818,9 +819,7 @@ class Gem::Specification < Gem::BasicSpecification
       pattern = "*.gemspec"
       stubs = stubs_for_pattern(pattern, false)
 
-      stubs_by_name = TruffleRuby::ConcurrentMap.new
-      stubs.select {|s| Gem::Platform.match_spec? s }.group_by(&:name).each_pair { |k, v| stubs_by_name[k] = v }
-      @@stubs_by_name = stubs_by_name
+      @@stubs_by_name = stubs.select {|s| Gem::Platform.match_spec? s }.group_by(&:name)
       stubs
     end
   end
@@ -931,9 +930,7 @@ class Gem::Specification < Gem::BasicSpecification
   # -- wilsonb
 
   def self.all=(specs)
-    stubs_by_name = TruffleRuby::ConcurrentMap.new
-    specs.group_by(&:name).each_pair { |k, v| stubs_by_name[k] = v }
-    @@stubs_by_name = stubs_by_name
+    @@stubs_by_name = specs.group_by(&:name)
     @@all = @@stubs = specs
   end
 
@@ -1051,7 +1048,7 @@ class Gem::Specification < Gem::BasicSpecification
       next if s.activated?
       s.contains_requirable_file? path
     end
-    stub && stub.to_spec
+    stub&.to_spec
   end
 
   def self.find_active_stub_by_path(path)
@@ -1303,6 +1300,8 @@ class Gem::Specification < Gem::BasicSpecification
   def self._load(str)
     Gem.load_yaml
 
+    yaml_set = false
+
     array = begin
       Marshal.load str
     rescue ArgumentError => e
@@ -1315,7 +1314,10 @@ class Gem::Specification < Gem::BasicSpecification
       message = e.message
       raise unless message.include?("YAML::")
 
-      Object.const_set "YAML", Psych unless Object.const_defined?(:YAML)
+      unless Object.const_defined?(:YAML)
+        Object.const_set "YAML", Psych
+        yaml_set = true
+      end
 
       if message.include?("YAML::Syck::")
         YAML.const_set "Syck", YAML unless YAML.const_defined?(:Syck)
@@ -1326,6 +1328,8 @@ class Gem::Specification < Gem::BasicSpecification
       end
 
       retry
+    ensure
+      Object.__send__(:remove_const, "YAML") if yaml_set
     end
 
     spec = Gem::Specification.new
@@ -1638,7 +1642,7 @@ class Gem::Specification < Gem::BasicSpecification
         builder.build_extensions
       end
     ensure
-      ui.close if ui
+      ui&.close
       Gem::Specification.unresolved_deps.replace unresolved_deps
     end
   end
@@ -2237,7 +2241,7 @@ class Gem::Specification < Gem::BasicSpecification
   # The platform this gem runs on.  See Gem::Platform for details.
 
   def platform
-    @new_platform ||= Gem::Platform::RUBY
+    @new_platform ||= Gem::Platform::RUBY # rubocop:disable Naming/MemoizedInstanceVariableName
   end
 
   def pretty_print(q) # :nodoc:
@@ -2716,6 +2720,8 @@ class Gem::Specification < Gem::BasicSpecification
     end
 
     @installed_by_version ||= nil
+
+    nil
   end
 
   def flatten_require_paths # :nodoc:

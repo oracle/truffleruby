@@ -26,7 +26,7 @@ class TestParse < Test::Unit::TestCase
   end
 
   def test_alias_backref
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /can't make alias|invalid argument being passed to `alias`/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /can't make alias/) do
       begin;
         alias $foo $1
       end;
@@ -84,7 +84,7 @@ class TestParse < Test::Unit::TestCase
     assert_equal([42, 42], [o.Foo, o.Bar])
     assert_equal([42, 42], [o::baz, o::qux])
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /Can't set variable|immutable variable as a write target/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /Can't set variable/) do
       begin;
         $1 ||= t.foo 42
       end;
@@ -192,13 +192,13 @@ class TestParse < Test::Unit::TestCase
   end
 
   def test_class_module
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /must be CONSTANT|expected a constant name/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /must be CONSTANT/) do
       begin;
         class foo; end
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /in method body|unexpected class definition in a method definition/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /in method body/) do
       begin;
         def foo
           class Foo; end
@@ -294,7 +294,7 @@ class TestParse < Test::Unit::TestCase
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /cannot be an instance variable|expected a local variable name in the block parameters/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /cannot be an instance variable/) do
       begin;
         o.foo {|; @a| @a = 42 }
       end;
@@ -377,10 +377,10 @@ class TestParse < Test::Unit::TestCase
 
   def assert_disallowed_variable(type, noname, invalid)
     noname.each do |name|
-      assert_syntax_error("proc{a = #{name} }", /(`|')#{Regexp.escape noname[0]}' without identifiers is not allowed as #{type} variable name|(`|')#{Regexp.escape noname[0]}' is not allowed as #{type} variable name/)
+      assert_syntax_error("proc{a = #{name} }", "`#{noname[0]}' without identifiers is not allowed as #{type} variable name")
     end
     invalid.each do |name|
-      assert_syntax_error("proc {a = #{name} }", /(`|')#{Regexp.escape name}' is not allowed as #{type} variable name|(`|')#{Regexp.escape noname[0]}' is not allowed as #{type} variable name/)
+      assert_syntax_error("proc {a = #{name} }", "`#{name}' is not allowed as #{type} variable name")
     end
   end
 
@@ -438,13 +438,13 @@ class TestParse < Test::Unit::TestCase
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument|repeated parameter name/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument/) do
       begin;
         1.times {|a, a|}
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument|repeated parameter name/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument/) do
       begin;
         def foo(a, a); end
       end;
@@ -607,16 +607,18 @@ class TestParse < Test::Unit::TestCase
     assert_syntax_error("?\\M-\x01", 'Invalid escape character syntax')
     assert_syntax_error("?\\M-\\C-\x01", 'Invalid escape character syntax')
     assert_syntax_error("?\\C-\\M-\x01", 'Invalid escape character syntax')
+
+    assert_equal("\xff", eval("# encoding: ascii-8bit\n""?\\\xFF"))
   end
 
   def test_percent
     assert_equal(:foo, eval('%s(foo)'))
-    assert_syntax_error('%s', /unterminated quoted string|expected a closing delimiter for the dynamic symbol/)
-    assert_syntax_error('%ss', /unknown type|invalid `%` token/)
-    assert_syntax_error('%z()', /unknown type|invalid `%` token/)
-    assert_syntax_error("%\u3042", /unknown type|invalid `%` token/)
-    assert_syntax_error("%q\u3042", /unknown type|invalid `%` token/)
-    assert_syntax_error("%", /unterminated quoted string|invalid `%` token/)
+    assert_syntax_error('%s', /unterminated quoted string/)
+    assert_syntax_error('%ss', /unknown type/)
+    assert_syntax_error('%z()', /unknown type/)
+    assert_syntax_error("%\u3042", /unknown type/)
+    assert_syntax_error("%q\u3042", /unknown type/)
+    assert_syntax_error("%", /unterminated quoted string/)
   end
 
   def test_symbol
@@ -643,7 +645,7 @@ class TestParse < Test::Unit::TestCase
   end
 
   def test_parse_string
-    assert_syntax_error("/\n", /unterminated|expected a closing delimiter for the regular expression/)
+    assert_syntax_error("/\n", /unterminated/)
   end
 
   def test_here_document
@@ -817,7 +819,7 @@ x = __ENCODING__
   end
 
   def test_set_backref
-    assert_syntax_error("$& = 1", /Can't set variable|immutable variable as a write target/)
+    assert_syntax_error("$& = 1", /Can't set variable/)
   end
 
   def test_arg_concat
@@ -1041,6 +1043,22 @@ x = __ENCODING__
     assert_syntax_error("    0b\n", /\^/)
   end
 
+  def test_unclosed_unicode_escape_at_eol_bug_19750
+    assert_separately([], "#{<<-"begin;"}\n#{<<~'end;'}")
+    begin;
+      assert_syntax_error("/\\u", /too short escape sequence/)
+      assert_syntax_error("/\\u{", /unterminated regexp meets end of file/)
+      assert_syntax_error("/\\u{\\n", /invalid Unicode list/)
+      assert_syntax_error("/a#\\u{\\n/", /invalid Unicode list/)
+      re = eval("/a#\\u{\n$/x")
+      assert_match(re, 'a')
+      assert_not_match(re, 'a#')
+      re = eval("/a#\\u\n$/x")
+      assert_match(re, 'a')
+      assert_not_match(re, 'a#')
+    end;
+  end
+
   def test_error_def_in_argument
     assert_separately([], "#{<<-"begin;"}\n#{<<~"end;"}")
     begin;
@@ -1111,7 +1129,7 @@ x = __ENCODING__
     end
 
   def test_unexpected_token_error
-    assert_syntax_error('"x"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', /unexpected|expected a newline or semicolon after the statement/)
+    assert_syntax_error('"x"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', /unexpected/)
   end
 
   def test_unexpected_token_after_numeric
@@ -1129,7 +1147,7 @@ x = __ENCODING__
   end
 
   def test_unterminated_regexp_error
-    e = assert_syntax_error("/x", /unterminated regexp meets end of file|expected a closing delimiter for the regular expression/)
+    e = assert_syntax_error("/x", /unterminated regexp meets end of file/)
     assert_not_match(/unexpected tSTRING_END/, e.message)
   end
 
@@ -1161,9 +1179,9 @@ x = __ENCODING__
   end
 
   def test_eof_in_def
-    assert_syntax_error("def m\n\0""end", /unexpected|cannot parse the expression/)
-    assert_syntax_error("def m\n\C-d""end", /unexpected|cannot parse the expression/)
-    assert_syntax_error("def m\n\C-z""end", /unexpected|cannot parse the expression/)
+    assert_syntax_error("def m\n\0""end", /unexpected/)
+    assert_syntax_error("def m\n\C-d""end", /unexpected/)
+    assert_syntax_error("def m\n\C-z""end", /unexpected/)
   end
 
   def test_unexpected_eof

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #--
 # Copyright (C) 2004 Mauricio Julio Fernández Pradier
 # See LICENSE.txt for additional licensing information.
@@ -616,8 +617,7 @@ EOM
 
     verify_checksums @digests, @checksums
 
-    @security_policy.verify_signatures @spec, @digests, @signatures if
-      @security_policy
+    @security_policy&.verify_signatures @spec, @digests, @signatures
 
     true
   rescue Gem::Security::Exception

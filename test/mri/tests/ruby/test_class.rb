@@ -96,6 +96,13 @@ class TestClass < Test::Unit::TestCase
 
   def test_superclass_of_basicobject
     assert_equal(nil, BasicObject.superclass)
+
+    assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
+    begin;
+      module Mod end
+      BasicObject.include(Mod)
+      assert_equal(nil, BasicObject.superclass)
+    end;
   end
 
   def test_module_function
@@ -308,7 +315,7 @@ class TestClass < Test::Unit::TestCase
   end
 
   def test_invalid_return_from_class_definition
-    assert_syntax_error("class C; return; end", /Invalid return|invalid `return`/)
+    assert_syntax_error("class C; return; end", /Invalid return/)
   end
 
   def test_invalid_yield_from_class_definition

@@ -200,6 +200,13 @@ class TestRegexp < Test::Unit::TestCase
     RUBY
   end
 
+  def test_utf8_comment_in_usascii_extended_regexp_bug_19455
+    assert_separately([], <<-RUBY)
+      assert_equal(Encoding::UTF_8, /(?#\u1000)/x.encoding)
+      assert_equal(Encoding::UTF_8, /#\u1000/x.encoding)
+    RUBY
+  end
+
   def test_union
     assert_equal :ok, begin
       Regexp.union(
@@ -1400,13 +1407,12 @@ class TestRegexp < Test::Unit::TestCase
     assert_no_match(/^\p{age=1.1}$/u, "\u2754")
 
     assert_no_match(/^\p{age=12.0}$/u, "\u32FF")
-    # TruffleRuby: invalid character property name <age=12.1> (RegexpError)
-    # assert_match(/^\p{age=12.1}$/u, "\u32FF")
-    # assert_no_match(/^\p{age=13.0}$/u, "\u{10570}")
-    # assert_match(/^\p{age=14.0}$/u, "\u{10570}")
-    # assert_match(/^\p{age=14.0}$/u, "\u9FFF")
-    # assert_match(/^\p{age=14.0}$/u, "\u{2A6DF}")
-    # assert_match(/^\p{age=14.0}$/u, "\u{2B738}")
+    assert_match(/^\p{age=12.1}$/u, "\u32FF")
+    assert_no_match(/^\p{age=13.0}$/u, "\u{10570}")
+    assert_match(/^\p{age=14.0}$/u, "\u{10570}")
+    assert_match(/^\p{age=14.0}$/u, "\u9FFF")
+    assert_match(/^\p{age=14.0}$/u, "\u{2A6DF}")
+    assert_match(/^\p{age=14.0}$/u, "\u{2B738}")
   end
 
   MatchData_A = eval("class MatchData_\u{3042} < MatchData; self; end")
@@ -1587,7 +1593,7 @@ class TestRegexp < Test::Unit::TestCase
     assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
     begin;
       begin
-        # require '-test-/regexp'
+        require '-test-/regexp'
       rescue LoadError
       else
         bug = '[ruby-core:79624] [Bug #13234]'
@@ -1781,6 +1787,14 @@ class TestRegexp < Test::Unit::TestCase
 
       assert_nil(/^a*b?a*$/ =~ "a" * 1000000 + "x")
     end;
+  end
+
+  def test_cache_index_initialize
+    str = 'test1-test2-test3-test4-test_5'
+    re = '^([0-9a-zA-Z\-/]*){1,256}$'
+    100.times do
+      assert !Regexp.new(re).match?(str)
+    end
   end
 
   def test_bug_19273 # [Bug #19273]

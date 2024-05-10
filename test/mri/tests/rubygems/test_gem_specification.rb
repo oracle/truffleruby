@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require "benchmark"
 require_relative "helper"
 require "date"
@@ -996,9 +997,9 @@ dependencies: []
     save_gemspec("b-1", "1", dir_standard_specs) {|s| s.name = "b" }
 
     assert_equal ["a-1"], Gem::Specification.stubs_for("a").map {|s| s.full_name }
-    assert_equal 1, Gem::Specification.class_variable_get(:@@stubs_by_name).size
+    assert_equal 1, Gem::Specification.class_variable_get(:@@stubs_by_name).length
     assert_equal ["b-1"], Gem::Specification.stubs_for("b").map {|s| s.full_name }
-    assert_equal 2, Gem::Specification.class_variable_get(:@@stubs_by_name).size
+    assert_equal 2, Gem::Specification.class_variable_get(:@@stubs_by_name).length
 
     assert_equal(
       Gem::Specification.stubs_for("a").map {|s| s.object_id },
@@ -1068,19 +1069,27 @@ dependencies: []
   end
 
   def test_handles_private_null_type
+    yaml_defined = Object.const_defined?("YAML")
+
     path = File.expand_path "data/pry-0.4.7.gemspec.rz", __dir__
 
     data = Marshal.load Gem::Util.inflate(Gem.read_binary(path))
 
     assert_instance_of Gem::Specification, data
+
+    assert_equal(yaml_defined, Object.const_defined?("YAML"))
   end
 
   def test_handles_dependencies_with_syck_requirements_bug
+    yaml_defined = Object.const_defined?("YAML")
+
     path = File.expand_path "data/excon-0.7.7.gemspec.rz", __dir__
 
     data = Marshal.load Gem::Util.inflate(Gem.read_binary(path))
 
     assert_instance_of Gem::Specification, data
+
+    assert_equal(yaml_defined, Object.const_defined?("YAML"))
   end
 
   def test_initialize

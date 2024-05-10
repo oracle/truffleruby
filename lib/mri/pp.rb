@@ -419,7 +419,7 @@ end
 class Data # :nodoc:
   def pretty_print(q) # :nodoc:
     q.group(1, sprintf("#<data %s", PP.mcall(self, Kernel, :class).name), '>') {
-      q.seplist(PP.mcall(self, Kernel, :class).members, lambda { q.text "," }) {|member|
+      q.seplist(PP.mcall(self, Data, :members), lambda { q.text "," }) {|member|
         q.breakable
         q.text member.to_s
         q.text '='
@@ -604,7 +604,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
       }
     end
   end
-end if defined?(RubyVM::AbstractSyntaxTree::Node)
+end
 
 class Object < BasicObject # :nodoc:
   include PP::ObjectMixin

@@ -98,6 +98,8 @@ struct st_table {
 
 enum st_retval {ST_CONTINUE, ST_STOP, ST_DELETE, ST_CHECK, ST_REPLACE};
 
+size_t rb_st_table_size(const struct st_table *tbl);
+#define st_table_size rb_st_table_size
 st_table *rb_st_init_table(const struct st_hash_type *);
 #define st_init_table rb_st_init_table
 st_table *rb_st_init_table_with_size(const struct st_hash_type *, st_index_t);
@@ -183,9 +185,7 @@ CONSTFUNC(st_index_t rb_st_hash_end(st_index_t h));
 CONSTFUNC(st_index_t rb_st_hash_start(st_index_t h));
 #define st_hash_start(h) ((st_index_t)(h))
 
-#ifndef TRUFFLERUBY
 void rb_hash_bulk_insert_into_st_table(long, const VALUE *, VALUE);
-#endif
 
 RUBY_SYMBOL_EXPORT_END
 

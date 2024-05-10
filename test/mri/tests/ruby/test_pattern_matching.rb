@@ -201,11 +201,11 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a | 0
-    #   end
-    # }, /illegal variable in alternative pattern/)
+    assert_syntax_error(%q{
+      case 0
+      in a | 0
+      end
+    }, /illegal variable in alternative pattern/)
   end
 
   def test_var_pattern
@@ -240,11 +240,11 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     }, /no such local variable/)
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a, a
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case 0
+      in a, a
+      end
+    }, /duplicated variable name/)
 
     assert_block do
       case [0, 1, 2, 3]
@@ -253,17 +253,17 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a, {a:}
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case 0
+      in a, {a:}
+      end
+    }, /duplicated variable name/)
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a, {"a":}
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case 0
+      in a, {"a":}
+      end
+    }, /duplicated variable name/)
 
     assert_block do
       case [0, "1"]
@@ -272,11 +272,11 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case [0, "1"]
-    #   in a, "#{case 1; in a; a; end}", a
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case [0, "1"]
+      in a, "#{case 1; in a; a; end}", a
+      end
+    }, /duplicated variable name/)
 
     assert_block do
       case 0
@@ -288,9 +288,9 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   0 => [a, a]
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      0 => [a, a]
+    }, /duplicated variable name/)
   end
 
   def test_literal_value_pattern
@@ -348,7 +348,7 @@ END
       case 0
       in a..b
       end
-    }, /unexpected|expected a delimiter after the patterns of an `in` clause/)
+    }, /unexpected/)
 
     assert_block do
       case 'abc'
@@ -1157,7 +1157,7 @@ END
       end
     end
 
-    bug18890 = self.then do # TruffleRuby: keep the test but do not check the warning # bug18890 = assert_warning(/(?:.*:[47]: warning: unused literal ignored\n){2}/) do
+    bug18890 = assert_warning(/(?:.*:[47]: warning: unused literal ignored\n){2}/) do
       eval("#{<<~';;;'}")
       proc do |i|
         case i
@@ -1179,17 +1179,17 @@ END
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case _
-    #   in a:, a:
-    #   end
-    # }, /duplicated key name/)
+    assert_syntax_error(%q{
+      case _
+      in a:, a:
+      end
+    }, /duplicated key name/)
 
-    # assert_syntax_error(%q{
-    #   case _
-    #   in a?:
-    #   end
-    # }, /key must be valid as local variables/)
+    assert_syntax_error(%q{
+      case _
+      in a?:
+      end
+    }, /key must be valid as local variables/)
 
     assert_block do
       case {a?: true}
@@ -1226,11 +1226,11 @@ END
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case _
-    #   in "a-b":
-    #   end
-    # }, /key must be valid as local variables/)
+    assert_syntax_error(%q{
+      case _
+      in "a-b":
+      end
+    }, /key must be valid as local variables/)
 
     assert_block do
       case {"a-b": true}
@@ -1243,13 +1243,13 @@ END
       case _
       in "#{a}": a
       end
-    }, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
+    }, /symbol literal with interpolation is not allowed/)
 
     assert_syntax_error(%q{
       case _
       in "#{a}":
       end
-    }, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
+    }, /symbol literal with interpolation is not allowed/)
   end
 
   def test_paren

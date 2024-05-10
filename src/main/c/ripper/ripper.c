@@ -112,11 +112,7 @@ struct lex_context;
 #include "ruby/st.h"
 #include "ruby/util.h"
 #include "ruby/ractor.h"
-#ifdef TRUFFLERUBY
-#include <truffleruby/internal/symbol.h>
-#else
 #include "symbol.h"
-#endif
 
 enum shareability {
     shareable_none,
@@ -11057,7 +11053,7 @@ yyreduce:
 #if 0
 			(yyval.val) = new_attr_op_assign(p, (yyvsp[-5].val), ID2VAL(idCOLON2), (yyvsp[-3].val), (yyvsp[-2].val), (yyvsp[0].val), &(yyloc));
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=(yyvsp[-5].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[-3].val);v4=dispatch3(field,v1,v2,v3);v5=v4;v6=(yyvsp[-2].val);v7=(yyvsp[0].val);v8=dispatch3(opassign,v5,v6,v7);(yyval.val)=v8;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=(yyvsp[-5].val);v2=(yyvsp[-4].val);v3=(yyvsp[-3].val);v4=dispatch3(field,v1,v2,v3);v5=v4;v6=(yyvsp[-2].val);v7=(yyvsp[0].val);v8=dispatch3(opassign,v5,v6,v7);(yyval.val)=v8;}
 		    }
 #line 11054 "ripper.c"
     break;
@@ -11449,7 +11445,7 @@ yyreduce:
 #if 0
 			(yyval.val) = new_command_qcall(p, ID2VAL(idCOLON2), (yyvsp[-3].val), (yyvsp[-1].val), (yyvsp[0].val), Qnull, &(yylsp[-1]), &(yyloc));
 #endif
-			{VALUE v1,v2,v3,v4,v5;v1=(yyvsp[-3].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[-1].val);v4=(yyvsp[0].val);v5=dispatch4(command_call,v1,v2,v3,v4);(yyval.val)=v5;}
+			{VALUE v1,v2,v3,v4,v5;v1=(yyvsp[-3].val);v2=(yyvsp[-2].val);v3=(yyvsp[-1].val);v4=(yyvsp[0].val);v5=dispatch4(command_call,v1,v2,v3,v4);(yyval.val)=v5;}
 		    }
 #line 11446 "ripper.c"
     break;
@@ -11460,7 +11456,7 @@ yyreduce:
 #if 0
 			(yyval.val) = new_command_qcall(p, ID2VAL(idCOLON2), (yyvsp[-4].val), (yyvsp[-2].val), (yyvsp[-1].val), (yyvsp[0].val), &(yylsp[-2]), &(yyloc));
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=(yyvsp[-4].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[-2].val);v4=(yyvsp[-1].val);v5=dispatch4(command_call,v1,v2,v3,v4);v6=v5;v7=(yyvsp[0].val);v8=dispatch2(method_add_block,v6,v7);(yyval.val)=v8;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=(yyvsp[-4].val);v2=(yyvsp[-3].val);v3=(yyvsp[-2].val);v4=(yyvsp[-1].val);v5=dispatch4(command_call,v1,v2,v3,v4);v6=v5;v7=(yyvsp[0].val);v8=dispatch2(method_add_block,v6,v7);(yyval.val)=v8;}
 		   }
 #line 11457 "ripper.c"
     break;
@@ -11865,7 +11861,7 @@ yyreduce:
 #if 0
 			(yyval.val) = attrset(p, (yyvsp[-2].val), idCOLON2, (yyvsp[0].val), &(yyloc));
 #endif
-			{VALUE v1,v2,v3,v4;v1=(yyvsp[-2].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[0].val);v4=dispatch3(field,v1,v2,v3);(yyval.val)=v4;}
+			{VALUE v1,v2,v3,v4;v1=(yyvsp[-2].val);v2=(yyvsp[-1].val);v3=(yyvsp[0].val);v4=dispatch3(field,v1,v2,v3);(yyval.val)=v4;}
 		    }
 #line 11862 "ripper.c"
     break;
@@ -12250,7 +12246,7 @@ yyreduce:
 #if 0
 			(yyval.val) = new_attr_op_assign(p, (yyvsp[-5].val), ID2VAL(idCOLON2), (yyvsp[-3].val), (yyvsp[-2].val), (yyvsp[0].val), &(yyloc));
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=(yyvsp[-5].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[-3].val);v4=dispatch3(field,v1,v2,v3);v5=v4;v6=(yyvsp[-2].val);v7=(yyvsp[0].val);v8=dispatch3(opassign,v5,v6,v7);(yyval.val)=v8;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=(yyvsp[-5].val);v2=(yyvsp[-4].val);v3=(yyvsp[-3].val);v4=dispatch3(field,v1,v2,v3);v5=v4;v6=(yyvsp[-2].val);v7=(yyvsp[0].val);v8=dispatch3(opassign,v5,v6,v7);(yyval.val)=v8;}
 		    }
 #line 12247 "ripper.c"
     break;
@@ -14499,7 +14495,7 @@ yyreduce:
 			(yyval.val) = new_qcall(p, ID2VAL(idCOLON2), (yyvsp[-3].val), (yyvsp[-1].val), (yyvsp[0].val), &(yylsp[-1]), &(yyloc));
 			nd_set_line((yyval.val), (yylsp[-1]).end_pos.lineno);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=(yyvsp[-3].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[-1].val);v4=dispatch3(call,v1,v2,v3);v5=v4;v6=(yyvsp[0].val);v7=dispatch2(method_add_arg,v5,v6);(yyval.val)=v7;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=(yyvsp[-3].val);v2=(yyvsp[-2].val);v3=(yyvsp[-1].val);v4=dispatch3(call,v1,v2,v3);v5=v4;v6=(yyvsp[0].val);v7=dispatch2(method_add_arg,v5,v6);(yyval.val)=v7;}
 		    }
 #line 14496 "ripper.c"
     break;
@@ -14510,7 +14506,7 @@ yyreduce:
 #if 0
 			(yyval.val) = new_qcall(p, ID2VAL(idCOLON2), (yyvsp[-2].val), (yyvsp[0].val), Qnull, &(yylsp[0]), &(yyloc));
 #endif
-			{VALUE v1,v2,v3,v4;v1=(yyvsp[-2].val);v2=ID2VAL(idCOLON2);v3=(yyvsp[0].val);v4=dispatch3(call,v1,v2,v3);(yyval.val)=v4;}
+			{VALUE v1,v2,v3,v4;v1=(yyvsp[-2].val);v2=(yyvsp[-1].val);v3=(yyvsp[0].val);v4=dispatch3(call,v1,v2,v3);(yyval.val)=v4;}
 		    }
 #line 14507 "ripper.c"
     break;
@@ -14534,7 +14530,7 @@ yyreduce:
 			(yyval.val) = new_qcall(p, ID2VAL(idCOLON2), (yyvsp[-2].val), ID2VAL(idCall), (yyvsp[0].val), &(yylsp[-1]), &(yyloc));
 			nd_set_line((yyval.val), (yylsp[-1]).end_pos.lineno);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=(yyvsp[-2].val);v2=ID2VAL(idCOLON2);v3=ID2VAL(idCall);v4=dispatch3(call,v1,v2,v3);v5=v4;v6=(yyvsp[0].val);v7=dispatch2(method_add_arg,v5,v6);(yyval.val)=v7;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=(yyvsp[-2].val);v2=(yyvsp[-1].val);v3=ID2VAL(idCall);v4=dispatch3(call,v1,v2,v3);v5=v4;v6=(yyvsp[0].val);v7=dispatch2(method_add_arg,v5,v6);(yyval.val)=v7;}
 		    }
 #line 14531 "ripper.c"
     break;
@@ -18360,6 +18356,8 @@ tokadd_codepoint(struct parser_params *p, rb_encoding **encp,
     return TRUE;
 }
 
+static int tokadd_mbchar(struct parser_params *p, int c);
+
 /* return value is for ?\u3042 */
 static void
 tokadd_utf8(struct parser_params *p, rb_encoding **encp,
@@ -18377,44 +18375,71 @@ tokadd_utf8(struct parser_params *p, rb_encoding **encp,
     if (regexp_literal) { tokadd(p, '\\'); tokadd(p, 'u'); }
 
     if (peek(p, open_brace)) {  /* handle \u{...} form */
-	const char *second = NULL;
-	int c, last = nextc(p);
-	if (p->lex.pcur >= p->lex.pend) goto unterminated;
-	while (ISSPACE(c = *p->lex.pcur) && ++p->lex.pcur < p->lex.pend);
-	while (c != close_brace) {
-	    if (c == term) goto unterminated;
-	    if (second == multiple_codepoints)
-		second = p->lex.pcur;
-	    if (regexp_literal) tokadd(p, last);
-	    if (!tokadd_codepoint(p, encp, regexp_literal, TRUE)) {
-		break;
-	    }
-	    while (ISSPACE(c = *p->lex.pcur)) {
-		if (++p->lex.pcur >= p->lex.pend) goto unterminated;
-		last = c;
-	    }
-	    if (term == -1 && !second)
-		second = multiple_codepoints;
-	}
+        if (regexp_literal && p->lex.strterm->u.literal.u1.func == str_regexp) {
+            /*
+             * Skip parsing validation code and copy bytes as-is until term or
+             * closing brace, in order to correctly handle extended regexps where
+             * invalid unicode escapes are allowed in comments. The regexp parser
+             * does its own validation and will catch any issues.
+             */
+            tokadd(p, open_brace);
+            while (++p->lex.pcur < p->lex.pend) {
+                int c = peekc(p);
+                if (c == close_brace) {
+                    tokadd(p, c);
+                    ++p->lex.pcur;
+                    break;
+                }
+                else if (c == term) {
+                    break;
+                }
+                if (c == '\\' && p->lex.pcur + 1 < p->lex.pend) {
+                    tokadd(p, c);
+                    c = *++p->lex.pcur;
+                }
+                tokadd_mbchar(p, c);
+            }
+        }
+        else {
+            const char *second = NULL;
+            int c, last = nextc(p);
+            if (p->lex.pcur >= p->lex.pend) goto unterminated;
+            while (ISSPACE(c = *p->lex.pcur) && ++p->lex.pcur < p->lex.pend);
+            while (c != close_brace) {
+                if (c == term) goto unterminated;
+                if (second == multiple_codepoints)
+                    second = p->lex.pcur;
+                if (regexp_literal) tokadd(p, last);
+                if (!tokadd_codepoint(p, encp, regexp_literal, TRUE)) {
+                    break;
+                }
+                while (ISSPACE(c = *p->lex.pcur)) {
+                    if (++p->lex.pcur >= p->lex.pend) goto unterminated;
+                    last = c;
+                }
+                if (term == -1 && !second)
+                    second = multiple_codepoints;
+            }
 
-	if (c != close_brace) {
-	  unterminated:
-	    token_flush(p);
-	    yyerror0("unterminated Unicode escape");
-	    return;
-	}
-	if (second && second != multiple_codepoints) {
-	    const char *pcur = p->lex.pcur;
-	    p->lex.pcur = second;
-	    dispatch_scan_event(p, tSTRING_CONTENT);
-	    token_flush(p);
-	    p->lex.pcur = pcur;
-	    yyerror0(multiple_codepoints);
-	    token_flush(p);
-	}
+            if (c != close_brace) {
+              unterminated:
+                token_flush(p);
+                yyerror0("unterminated Unicode escape");
+                return;
+            }
+            if (second && second != multiple_codepoints) {
+                const char *pcur = p->lex.pcur;
+                p->lex.pcur = second;
+                dispatch_scan_event(p, tSTRING_CONTENT);
+                token_flush(p);
+                p->lex.pcur = pcur;
+                yyerror0(multiple_codepoints);
+                token_flush(p);
+            }
 
-	if (regexp_literal) tokadd(p, close_brace);
-	nextc(p);
+            if (regexp_literal) tokadd(p, close_brace);
+            nextc(p);
+        }
     }
     else {			/* handle \uxxxx form */
 	if (!tokadd_codepoint(p, encp, regexp_literal, FALSE)) {
@@ -18749,7 +18774,7 @@ tokadd_string(struct parser_params *p,
 	    --*nest;
 	}
 	else if ((func & STR_FUNC_EXPAND) && c == '#' && p->lex.pcur < p->lex.pend) {
-	    int c2 = *p->lex.pcur;
+	    unsigned char c2 = *p->lex.pcur;
 	    if (c2 == '$' || c2 == '@' || c2 == '{') {
 		pushback(p, c);
 		break;
@@ -18874,18 +18899,7 @@ tokadd_string(struct parser_params *p,
 static inline rb_strterm_t *
 new_strterm(VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
-#ifdef TRUFFLERUBY
-    rb_strterm_t *term = xmalloc(sizeof(rb_strterm_t));
-    VALUE flags = T_IMEMO | (imemo_parser_strterm << FL_USHIFT);
-    term->flags = flags;
-    term->u.literal.u0.dummy = v0;
-    term->u.literal.u1.func = v1;
-    term->u.literal.u2.paren = v2;
-    term->u.literal.u3.term = v3;
-    return term;
-#else
     return (rb_strterm_t*)rb_imemo_new(imemo_parser_strterm, v1, v2, v3, v0);
-#endif
 }
 
 /* imemo_parser_strterm for literal */
@@ -19658,11 +19672,7 @@ formal_argument(struct parser_params *p, VALUE lhs)
 #undef ERR
     }
     shadowing_lvar(p, id);
-#ifdef TRUFFLERUBY
-    return id;
-#else
     return lhs;
-#endif
 }
 
 static int
@@ -20399,7 +20409,7 @@ parse_qmark(struct parser_params *p, int space_seen)
 	    enc = rb_utf8_encoding();
 	    tokadd_utf8(p, &enc, -1, 0, 0);
 	}
-	else if (!lex_eol_p(p) && !(c = *p->lex.pcur, ISASCII(c))) {
+        else if (!ISASCII(c = peekc(p))) {
 	    nextc(p);
 	    if (tokadd_mbchar(p, c) == -1) return 0;
 	}
@@ -20861,9 +20871,9 @@ parse_ident(struct parser_params *p, int c, int cmd_state)
     ident = tokenize_ident(p, last_state);
     if (result == tCONSTANT && is_local_id(ident)) result = tIDENTIFIER;
     if (!IS_lex_state_for(last_state, EXPR_DOT|EXPR_FNAME) &&
-	(result == tIDENTIFIER) && /* not EXPR_FNAME, not attrasgn */
-	lvar_defined(p, ident)) {
-	SET_LEX_STATE(EXPR_END|EXPR_LABEL);
+        (result == tIDENTIFIER) && /* not EXPR_FNAME, not attrasgn */
+        (lvar_defined(p, ident) || NUMPARAM_ID_P(ident))) {
+        SET_LEX_STATE(EXPR_END|EXPR_LABEL);
     }
     return result;
 }
@@ -22318,12 +22328,8 @@ check_literal_when(struct parser_params *p, NODE *arg, const YYLTYPE *loc)
 static int
 id_is_var(struct parser_params *p, ID id)
 {
-#ifdef TRUFFLERUBY
-	switch (id_type(id)) {
-#else
     if (is_notop_id(id)) {
 	switch (id & ID_SCOPE_MASK) {
-#endif
 	  case ID_GLOBAL: case ID_INSTANCE: case ID_CONST: case ID_CLASS:
 	    return 1;
 	  case ID_LOCAL:
@@ -22334,9 +22340,7 @@ id_is_var(struct parser_params *p, ID id)
 	    /* method call without arguments */
 	    return 0;
 	}
-#ifndef TRUFFLERUBY
     }
-#endif
     compile_error(p, "identifier %"PRIsVALUE" is not valid to get", rb_id2str(id));
     return 0;
 }
@@ -22879,11 +22883,7 @@ const_decl_path(struct parser_params *p, NODE **dest)
     return n;
 }
 
-#ifdef TRUFFLERUBY
-#define rb_mRubyVMFrozenCore Qnil
-#else
 extern VALUE rb_mRubyVMFrozenCore;
-#endif
 
 static NODE *
 make_shareable_node(struct parser_params *p, NODE *value, bool copy, const YYLTYPE *loc)
@@ -24272,26 +24272,43 @@ local_push(struct parser_params *p, int toplevel_scope)
 }
 
 static void
+vtable_chain_free(struct parser_params *p, struct vtable *table)
+{
+    while (!DVARS_TERMINAL_P(table)) {
+        struct vtable *cur_table = table;
+        table = cur_table->prev;
+        vtable_free(cur_table);
+    }
+}
+
+static void
+local_free(struct parser_params *p, struct local_vars *local)
+{
+    vtable_chain_free(p, local->used);
+
+# if WARN_PAST_SCOPE
+    vtable_chain_free(p, local->past);
+# endif
+
+    vtable_chain_free(p, local->args);
+    vtable_chain_free(p, local->vars);
+
+    ruby_sized_xfree(local, sizeof(struct local_vars));
+}
+
+static void
 local_pop(struct parser_params *p)
 {
     struct local_vars *local = p->lvtbl->prev;
     if (p->lvtbl->used) {
-	warn_unused_var(p, p->lvtbl);
-	vtable_free(p->lvtbl->used);
+        warn_unused_var(p, p->lvtbl);
     }
-# if WARN_PAST_SCOPE
-    while (p->lvtbl->past) {
-	struct vtable *past = p->lvtbl->past;
-	p->lvtbl->past = past->prev;
-	vtable_free(past);
-    }
-# endif
-    vtable_free(p->lvtbl->args);
-    vtable_free(p->lvtbl->vars);
+
+    local_free(p, p->lvtbl);
+    p->lvtbl = local;
+
     CMDARG_POP();
     COND_POP();
-    ruby_sized_xfree(p->lvtbl, sizeof(*p->lvtbl));
-    p->lvtbl = local;
 }
 
 #ifndef RIPPER
@@ -24859,9 +24876,7 @@ parser_mark(void *ptr)
     rb_gc_mark(p->debug_buffer);
     rb_gc_mark(p->debug_output);
 #ifdef YYMALLOC
-#ifndef TRUFFLERUBY
     rb_gc_mark((VALUE)p->heap);
-#endif
 #endif
 }
 
@@ -24871,30 +24886,20 @@ parser_free(void *ptr)
     struct parser_params *p = (struct parser_params*)ptr;
     struct local_vars *local, *prev;
 
-#ifdef TRUFFLERUBY
-    rb_imemo_tmpbuf_t *heap = p->heap;
-
-    while (heap != NULL) {
-        if (heap->ptr != NULL) {
-            xfree(ptr);
-        }
-        heap = heap->next;
-    }
-#endif
-
     if (p->tokenbuf) {
         ruby_sized_xfree(p->tokenbuf, p->toksiz);
     }
+
     for (local = p->lvtbl; local; local = prev) {
-	if (local->vars) xfree(local->vars);
-	prev = local->prev;
-	xfree(local);
+        prev = local->prev;
+        local_free(p, local);
     }
+
     {
-	token_info *ptinfo;
-	while ((ptinfo = p->token_info) != 0) {
-	    p->token_info = ptinfo->next;
-	    xfree(ptinfo);
+        token_info *ptinfo;
+        while ((ptinfo = p->token_info) != 0) {
+            p->token_info = ptinfo->next;
+            xfree(ptinfo);
 	}
     }
     xfree(ptr);

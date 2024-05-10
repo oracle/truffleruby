@@ -105,15 +105,15 @@ EOT
         }
       }
       [
-        # "\x00", # TruffleString: UTF-16 string byte length is not a multiple of 2
-        # "\xd7",
+        "\x00",
+        "\xd7",
         "\x00\xd8",
         "\x00\xd8\x00\xd8",
         "\x00\xdc",
         "\x00\xdc\x00\xd8",
         "\x00\xdc\x00\xdc",
-        # "\xe0",
-        # "\xff",
+        "\xe0",
+        "\xff",
       ].each {|s|
         s.force_encoding("utf-16le")
         a.for(s) {

@@ -36,9 +36,6 @@
 #include "ruby/internal/stdbool.h"
 #include "ruby/internal/value.h"
 #include "ruby/internal/value_type.h"
-#ifdef TRUFFLERUBY
-#include "ruby/internal/intern/object.h" /* for rb_obj_taint, etc */
-#endif
 #include "ruby/assert.h"
 #include "ruby/defines.h"
 
@@ -94,11 +91,7 @@
 #define FL_USER19       RBIMPL_CAST((VALUE)(unsigned int)RUBY_FL_USER19) /**< @old{RUBY_FL_USER19} */
 
 #define ELTS_SHARED          RUBY_ELTS_SHARED     /**< @old{RUBY_ELTS_SHARED} */
-#ifdef TRUFFLERUBY
-#define RB_OBJ_FREEZE        rb_obj_freeze
-#else
 #define RB_OBJ_FREEZE        rb_obj_freeze_inline /**< @alias{rb_obj_freeze_inline} */
-#endif
 
 /** @cond INTERNAL_MACRO */
 #define RUBY_ELTS_SHARED     RUBY_ELTS_SHARED
@@ -508,11 +501,7 @@ static inline VALUE
 RB_FL_TEST_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    return RBASIC_FLAGS(obj) & flags;
-#else
     return RBASIC(obj)->flags & flags;
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -613,7 +602,6 @@ RB_FL_ALL(VALUE obj, VALUE flags)
     return RB_FL_TEST(obj, flags) == flags;
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -636,7 +624,6 @@ rbimpl_fl_set_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags |= flags;
 }
-#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -651,11 +638,7 @@ static inline void
 RB_FL_SET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) | flags);
-#else
     rbimpl_fl_set_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -679,7 +662,6 @@ RB_FL_SET(VALUE obj, VALUE flags)
     }
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -702,7 +684,6 @@ rbimpl_fl_unset_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags &= ~flags;
 }
-#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -717,11 +698,7 @@ static inline void
 RB_FL_UNSET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) & ~flags);
-#else
     rbimpl_fl_unset_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -740,7 +717,6 @@ RB_FL_UNSET(VALUE obj, VALUE flags)
     }
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -763,7 +739,6 @@ rbimpl_fl_reverse_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags ^= flags;
 }
-#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -778,11 +753,7 @@ static inline void
 RB_FL_REVERSE_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) ^ flags);
-#else
     rbimpl_fl_reverse_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -801,11 +772,6 @@ RB_FL_REVERSE(VALUE obj, VALUE flags)
         RB_FL_REVERSE_RAW(obj, flags);
     }
 }
-
-#ifdef TRUFFLERUBY
-RBIMPL_WARNING_PUSH()
-RBIMPL_WARNING_IGNORED(-Wunused-parameter)
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
@@ -920,10 +886,6 @@ RB_OBJ_INFECT(VALUE dst, VALUE src)
     return;
 }
 
-#ifdef TRUFFLERUBY
-RBIMPL_WARNING_POP()
-#endif
-
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
@@ -943,11 +905,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_OBJ_FROZEN_RAW(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_obj_frozen_p(obj);
-#else
     return RB_FL_TEST_RAW(obj, RUBY_FL_FREEZE);
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -962,16 +920,12 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_OBJ_FROZEN(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_obj_frozen_p(obj);
-#else
     if (! RB_FL_ABLE(obj)) {
         return true;
     }
     else {
         return RB_OBJ_FROZEN_RAW(obj);
     }
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -984,17 +938,11 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 RB_OBJ_FREEZE_RAW(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    rb_obj_freeze(obj);
-#else
     RB_FL_SET_RAW(obj, RUBY_FL_FREEZE);
-#endif
 }
 
 RUBY_SYMBOL_EXPORT_BEGIN
-#ifndef TRUFFLERUBY
 void rb_obj_freeze_inline(VALUE obj);
-#endif
 RUBY_SYMBOL_EXPORT_END
 
 #endif /* RBIMPL_FL_TYPE_H */
