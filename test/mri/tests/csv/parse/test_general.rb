@@ -332,7 +332,7 @@ line,5,jkl
       if defined?(RubyVM::MJIT.enabled?) and RubyVM::MJIT.enabled?
         timeout = 5  # for --jit-wait
       end
-      Timeout.timeout(timeout) do
+      EnvUtil.timeout(timeout) do
         CSV.parse(data, **options)
         fail("Parse didn't error out")
       end

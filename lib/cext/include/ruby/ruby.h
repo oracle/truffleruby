@@ -88,7 +88,11 @@ VALUE rb_get_path(VALUE obj);
  * @exception      rb_eEncCompatError  `v` is not path-compatible.
  * @post           `v` is a path.
  */
+#ifdef TRUFFLERUBY
+#define FilePathValue(v) (v = rb_get_path(v))
+#else
 #define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
+#endif
 
 /**
  * @deprecated  This function is an alias  of rb_get_path() now.  The part that
@@ -272,9 +276,15 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 3, 0)
 int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
 
 /** @cond INTERNAL_MACRO */
+// TruffleRuby: enable this optimization in all cases,
+// by commenting/nesting the below checks under `#ifndef TRUFFLERUBY`/`#endif`.
+#ifndef TRUFFLERUBY
 #if RBIMPL_HAS_WARNING("-Wgnu-zero-variadic-macro-arguments")
 # /* Skip it; clang -pedantic doesn't like the following */
 #elif defined(__GNUC__) && defined(HAVE_VA_ARGS_MACRO) && defined(__OPTIMIZE__)
+#endif
+#endif
+#if 1 /* always enabled on TruffleRuby */
 # define rb_yield_values(argc, ...) \
 __extension__({ \
         const int rb_yield_values_argc = (argc); \
@@ -306,6 +316,8 @@ __extension__({ \
 #if !defined RUBY_EXPORT && !defined RUBY_NO_OLD_COMPATIBILITY
 # include "ruby/backward.h"
 #endif
+
+#include <truffleruby/truffleruby.h>
 
 RBIMPL_SYMBOL_EXPORT_END()
 

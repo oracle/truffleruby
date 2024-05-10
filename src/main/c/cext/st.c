@@ -1,3 +1,8 @@
+#include <ruby.h>
+
+RBIMPL_WARNING_IGNORED(-Wunused-function)
+RBIMPL_WARNING_IGNORED(-Wattributes)
+
 /* This is a public domain general purpose hash table package
    originally written by Peter Moore @ UCB.
 
@@ -2059,6 +2064,7 @@ st_numhash(st_data_t n)
     return (st_index_t)((n>>s1|(n<<s2)) ^ (n>>s2));
 }
 
+#ifndef TRUFFLERUBY
 /* Expand TAB to be suitable for holding SIZ entries in total.
    Pre-existing entries remain not deleted inside of TAB, but its bins
    are cleared to expect future reconstruction. See rehash below. */
@@ -2251,27 +2257,6 @@ st_insert_generic(st_table *tab, long argc, const VALUE *argv, VALUE hash)
     st_rehash(tab);
 }
 
-/* Mimics ruby's { foo => bar } syntax. This function is subpart
-   of rb_hash_bulk_insert. */
-void
-rb_hash_bulk_insert_into_st_table(long argc, const VALUE *argv, VALUE hash)
-{
-    st_index_t n, size = argc / 2;
-    st_table *tab = RHASH_ST_TABLE(hash);
-
-    tab = RHASH_TBL_RAW(hash);
-    n = tab->entries_bound + size;
-    st_expand_table(tab, n);
-    if (UNLIKELY(tab->num_entries))
-        st_insert_generic(tab, argc, argv, hash);
-    else if (argc <= 2)
-        st_insert_single(tab, hash, argv[0], argv[1]);
-    else if (tab->bin_power <= MAX_POWER2_FOR_TABLES_WITHOUT_BINS)
-        st_insert_linear(tab, argc, argv, hash);
-    else
-        st_insert_generic(tab, argc, argv, hash);
-}
-
 // to iterate iv_index_tbl
 st_data_t
 rb_st_nth_key(st_table *tab, st_index_t index)
@@ -2298,3 +2283,4 @@ rb_st_compact_table(st_table *tab)
 }
 
 #endif
+#endif /* TRUFFLERUBY */

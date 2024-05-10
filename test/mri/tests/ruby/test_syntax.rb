@@ -301,7 +301,8 @@ class TestSyntax < Test::Unit::TestCase
     bug10315 = '[ruby-core:65368] [Bug #10315]'
 
     o = KW2.new
-    assert_equal([23, 2], o.kw(**{k1: 22}, **{k1: 23}), bug10315)
+    r = EnvUtil.suppress_warning { eval "o.kw(**{k1: 22}, **{k1: 23})" } # TruffleRuby: use eval to avoid warning
+    assert_equal([23, 2], r, bug10315)
 
     h = {k3: 31}
     assert_raise(ArgumentError) {o.kw(**h)}
@@ -565,28 +566,28 @@ WARN
   end
 
   def test_duplicated_arg
-    assert_syntax_error("def foo(a, a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a, a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_, _) end")
     (obj = Object.new).instance_eval("def foo(_, x, _) x end")
     assert_equal(2, obj.foo(1, 2, 3))
   end
 
   def test_duplicated_rest
-    assert_syntax_error("def foo(a, *a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a, *a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_, *_) end")
     (obj = Object.new).instance_eval("def foo(_, x, *_) x end")
     assert_equal(2, obj.foo(1, 2, 3))
   end
 
   def test_duplicated_opt
-    assert_syntax_error("def foo(a, a=1) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a, a=1) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_, _=1) end")
     (obj = Object.new).instance_eval("def foo(_, x, _=42) x end")
     assert_equal(2, obj.foo(1, 2))
   end
 
   def test_duplicated_opt_rest
-    assert_syntax_error("def foo(a=1, *a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a=1, *a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_=1, *_) end")
     (obj = Object.new).instance_eval("def foo(_, x=42, *_) x end")
     assert_equal(42, obj.foo(1))
@@ -594,11 +595,11 @@ WARN
   end
 
   def test_duplicated_rest_opt
-    assert_syntax_error("def foo(*a, a=1) end", /duplicated argument name/)
+    assert_syntax_error("def foo(*a, a=1) end", /duplicated argument name|unexpected parameter order/)
   end
 
   def test_duplicated_rest_post
-    assert_syntax_error("def foo(*a, a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(*a, a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(*_, _) end")
     (obj = Object.new).instance_eval("def foo(*_, x, _) x end")
     assert_equal(2, obj.foo(1, 2, 3))
@@ -609,7 +610,7 @@ WARN
   end
 
   def test_duplicated_opt_post
-    assert_syntax_error("def foo(a=1, a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a=1, a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_=1, _) end")
     (obj = Object.new).instance_eval("def foo(_=1, x, _) x end")
     assert_equal(2, obj.foo(1, 2, 3))
@@ -620,7 +621,7 @@ WARN
   end
 
   def test_duplicated_kw
-    assert_syntax_error("def foo(a, a: 1) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a, a: 1) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_, _: 1) end")
     (obj = Object.new).instance_eval("def foo(_, x, _: 1) x end")
     assert_equal(3, obj.foo(2, 3))
@@ -631,7 +632,7 @@ WARN
   end
 
   def test_duplicated_rest_kw
-    assert_syntax_error("def foo(*a, a: 1) end", /duplicated argument name/)
+    assert_syntax_error("def foo(*a, a: 1) end", /duplicated argument name|repeated parameter name/)
     assert_nothing_raised {def foo(*_, _: 1) end}
     (obj = Object.new).instance_eval("def foo(*_, x: 42, _: 1) x end")
     assert_equal(42, obj.foo(42))
@@ -640,7 +641,7 @@ WARN
   end
 
   def test_duplicated_opt_kw
-    assert_syntax_error("def foo(a=1, a: 1) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a=1, a: 1) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_=1, _: 1) end")
     (obj = Object.new).instance_eval("def foo(_=42, x, _: 1) x end")
     assert_equal(0, obj.foo(0))
@@ -648,7 +649,7 @@ WARN
   end
 
   def test_duplicated_kw_kwrest
-    assert_syntax_error("def foo(a: 1, **a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a: 1, **a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_: 1, **_) end")
     (obj = Object.new).instance_eval("def foo(_: 1, x: 42, **_) x end")
     assert_equal(42, obj.foo())
@@ -658,7 +659,7 @@ WARN
   end
 
   def test_duplicated_rest_kwrest
-    assert_syntax_error("def foo(*a, **a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(*a, **a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(*_, **_) end")
     (obj = Object.new).instance_eval("def foo(*_, x, **_) x end")
     assert_equal(1, obj.foo(1))
@@ -667,7 +668,7 @@ WARN
   end
 
   def test_duplicated_opt_kwrest
-    assert_syntax_error("def foo(a=1, **a) end", /duplicated argument name/)
+    assert_syntax_error("def foo(a=1, **a) end", /duplicated argument name|repeated parameter name/)
     assert_valid_syntax("def foo(_=1, **_) end")
     (obj = Object.new).instance_eval("def foo(_=42, x, **_) x end")
     assert_equal(1, obj.foo(1))
@@ -1656,7 +1657,7 @@ eom
     assert_syntax_error('-> {-> {_1}; _2}', /numbered parameter is already used/)
     assert_syntax_error('proc {_1; _1 = nil}', /Can't assign to numbered parameter _1/)
     assert_syntax_error('proc {_1 = nil}', /_1 is reserved for numbered parameter/)
-    assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/)
+    # assert_syntax_error('_2=1', /_2 is reserved for numbered parameter/) # GR-30031
     assert_syntax_error('proc {|_3|}', /_3 is reserved for numbered parameter/)
     assert_syntax_error('def x(_4) end', /_4 is reserved for numbered parameter/)
     assert_syntax_error('def _5; end', /_5 is reserved for numbered parameter/)
