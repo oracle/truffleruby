@@ -346,7 +346,6 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'bin/rdbg',
         'bin/rdoc',
         'bin/ri',
-        'bin/syntax_suggest',
     ],
     library_configs=[
         mx_sdk_vm.LanguageLibraryConfig(
