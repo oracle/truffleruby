@@ -1,4 +1,5 @@
 exclude :test_backref_overrun, "Expected Exception(SyntaxError) was raised, but the message doesn't match."
+exclude :test_cache_index_initialize, "is too slow so leads to timeouts on CI"
 exclude :test_dup, "initialize_copy not implemented in TruffleRuby"
 exclude :test_dup_warn, "expected: /duplicated/"
 exclude :test_extended_comment_invalid_escape_bug_18294, "assert_separately failed with error message"
