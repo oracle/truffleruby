@@ -242,6 +242,9 @@ module Truffle::POSIX
       # We should capture the non-lazy method
       attach_function_eagerly :poll, [:pointer, :nfds_t, :int], :int, LIBC, false, :poll, self
       POLL = method(:poll)
+
+      attach_function_eagerly :truffleposix_poll_single_fd, [:int, :int, :int], :int, LIBTRUFFLEPOSIX, false, :truffleposix_poll_single_fd, self
+      POLL_SINGLE_FD = method(:truffleposix_poll_single_fd)
     end
   end
 

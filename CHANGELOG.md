@@ -11,6 +11,7 @@ Bug fixes:
 * Fix `rb_gc_register_mark_object()` for `Float` and bignum values (#3502, @eregon, @andrykonchin).
 * Fix parsing literal floats when the locale does not use `.` for the decimal separator (e.g. `LANG=fr_FR.UTF-8`) (#3512, @eregon).
 * Fix `IO#{read_nonblock,readpartial,sysread}`, `BasicSocket#{recv,recv_nonblock}`, `{Socket,UDPSocket}#recvfrom_nonblock`, `UnixSocket#recvfrom` and preserve a provided buffer's encoding (#3506, @andrykonchyn).
+* Repair `IO#{wait_readable,wait_writable,wait}` to be interruptible (#3504, @andrykonchin).
 
 Compatibility:
 

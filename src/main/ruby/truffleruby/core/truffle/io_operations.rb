@@ -265,7 +265,9 @@ module Truffle
         status = Primitive.thread_set_status(Thread.current, :sleep)
 
         begin
-          returned_events = Truffle::POSIX.truffleposix_poll_single_fd(Primitive.io_fd(io), event_mask, remaining_timeout)
+          returned_events = Primitive.thread_run_blocking_nfi_system_call(
+            Truffle::POSIX::POLL_SINGLE_FD,
+            [Primitive.io_fd(io), event_mask, remaining_timeout])
         ensure
           Primitive.thread_set_status(Thread.current, status)
         end
