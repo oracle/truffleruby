@@ -1,9 +1,22 @@
 # Updating our version of Ruby
 
-Before you do anything, check with Benoit Daloze for clearance to upgrade.
+> [!IMPORTANT]
+> Before you do anything, check with Benoit Daloze for clearance to upgrade.
+
+TruffleRuby contains some MRI source code files e.g. default gems source code,
+some C headers that define public API, etc. Some of them are modified to provide
+TruffleRuby-specific implementation or disable some functionality. During
+importing new MRI version source code files these patches should be also preserved.
 
 The workflow below will allow you to see and reapply the modifications that we
 have to MRI source code while updating.
+
+The approach is the following:
+- create a TruffleRuby branch with currently supported MRI version imported files
+  (and without any TruffleRuby-specific patches, so it actually undoes the patches)
+- create a TruffleRuby branch with the target MRI version imported files
+- apply the patches (the difference between the first branch and TruffleRuby master)
+  to the second branch
 
 You can re-run these instructions at any time to compare against unmodified
 MRI files.
@@ -39,6 +52,8 @@ ruby-install --no-install-deps -r ~/tmp ruby $VERSION
 rm -rf ~/tmp/ruby-$VERSION
 ```
 
+Ensure that currently supported MRI version is installed this way too.
+
 `ruby-build` does not keep the build directory
 (required as `RUBY_BUILD_DIR` for `tool/import-mri-files.sh`),
 so one needs the extra `ruby-install` command when using `ruby-build`.
@@ -47,8 +62,8 @@ See [these docs](../../doc/user/ruby-managers.md#ruby-install-and-chruby) for de
 
 ## Create reference branches
 
-For both the current version of Ruby you're using, and the new version, create
-reference branches that include unmodified MRI sources.
+For both the current version of Ruby you're using and the new version create
+reference branches (in the TruffleRuby repository) that include unmodified MRI sources.
 
 Check out the version of Ruby you want to create the branch for in `../ruby`, e.g.:
 
@@ -143,7 +158,10 @@ Update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `truffleruby-abi-version.h` to `$RUBY_VERSION.1` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
-* Update `versions.json` (with gem versions provided by `cat ../ruby/gems/bundled_gems | sort`, `ls -l lib/gems/specifications/default` and `grep 'VERSION =' lib/mri/rubygems.rb`)
+* Update `versions.json`
+  * with bundled gem versions provided by `cat ../ruby/gems/bundled_gems | sort`,
+  * default gem versions provided by `ls -l lib/gems/specifications/default`
+  * and `gem` gem version provided by `grep 'VERSION =' lib/mri/rubygems.rb`
 * Also update version numbers for `debug` and `rbs` in `src/main/c/Makefile`, `mx.truffleruby/suite.py` and `lib/gems/gems/debug-*/ext/debug/extconf.rb`.
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
 * This is a good time to get `jt build` working.
