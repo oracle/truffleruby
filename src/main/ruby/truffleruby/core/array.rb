@@ -719,6 +719,20 @@ class Array
     Array.new self[-n..-1]
   end
 
+  def pack(format, buffer: nil)
+    if Primitive.nil? buffer
+      Primitive.array_pack(self, format, '')
+    else
+      unless Primitive.is_a?(buffer, String)
+        raise TypeError, "buffer must be String, not #{Primitive.class(buffer)}"
+      end
+
+      string = Primitive.array_pack(self, format, buffer)
+      buffer.replace string.force_encoding(buffer.encoding)
+    end
+  end
+  Truffle::Graal.always_split instance_method(:pack)
+
   def permutation(num = undefined, &block)
     unless block_given?
       return to_enum(:permutation, num) do

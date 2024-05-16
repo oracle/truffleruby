@@ -22,6 +22,7 @@ Compatibility:
 * Allow null encoding pointer in `rb_enc_interned_str_cstr` (@thomasmarshall).
 * Allow anonymous memberless Struct (@simonlevasseur).
 * Set `$!` when a `Kernel#at_exit` hook raises an exception (#3535, @andrykonchin).
+* Support `:buffer` keyword argument to `Array#pack` (#3559, @andrykonchyn).
 
 Performance:
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).

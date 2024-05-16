@@ -46,7 +46,9 @@ public final class PackCompiler {
                 language,
                 currentNode.getEncapsulatingSourceSection(),
                 builder.getEncoding(),
-                builder.getNode()).getCallTarget();
+                builder.getNode(),
+                true,
+                true).getCallTarget();
     }
 
 }

@@ -46,7 +46,9 @@ public final class PrintfCompiler {
                 language,
                 currentNode.getEncapsulatingSourceSection(),
                 new FormatEncoding(encoding),
-                builder.getNode()).getCallTarget();
+                builder.getNode(),
+                false,
+                false).getCallTarget();
     }
 
 }

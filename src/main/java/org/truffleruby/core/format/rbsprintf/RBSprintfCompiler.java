@@ -51,7 +51,9 @@ public final class RBSprintfCompiler {
                 language,
                 currentNode.getEncapsulatingSourceSection(),
                 new FormatEncoding(formatEncoding),
-                builder.getNode()).getCallTarget();
+                builder.getNode(),
+                false,
+                false).getCallTarget();
     }
 
     private static int SIGN = 0x10;
