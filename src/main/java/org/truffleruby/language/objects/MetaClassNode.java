@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
+// Specializations are ordered by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 @GenerateInline(inlineByDefault = true)
 public abstract class MetaClassNode extends RubyBaseNode {

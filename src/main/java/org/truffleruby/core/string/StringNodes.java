@@ -1702,7 +1702,6 @@ public abstract class StringNodes {
 
         public abstract RubyString execute(Node node, RubyString string, Object other);
 
-
         @Specialization(guards = "string == other")
         static RubyString replaceStringIsSameAsOther(RubyString string, RubyString other) {
             return string;
