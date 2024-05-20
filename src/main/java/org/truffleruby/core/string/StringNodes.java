@@ -2754,7 +2754,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_unpack")
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache, CallTarget cache
     public abstract static class UnpackPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
 

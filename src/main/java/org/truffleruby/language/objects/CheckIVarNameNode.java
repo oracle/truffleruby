@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -27,6 +28,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @ImportStatic(Identifiers.class)
 @GenerateInline
 @GenerateCached(false)
+@ReportPolymorphism // inline cache
 public abstract class CheckIVarNameNode extends RubyBaseNode {
 
     /** Pass both the j.l.String name and the original name, the original name can be faster to check and the j.l.String

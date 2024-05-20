@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -22,32 +23,23 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 
-@ImportStatic(ShapeCachingGuards.class)
+// Splitting: not worth splitting given the generic specialization is fast enough
 @GenerateUncached
-@GenerateInline(inlineByDefault = true)
+@GenerateCached(false)
+@GenerateInline
+@ImportStatic(ShapeCachingGuards.class)
 public abstract class IsSharedNode extends RubyBaseNode {
-
-    protected static final int CACHE_LIMIT = 8;
 
     public abstract boolean execute(Node node, RubyDynamicObject object);
 
-    @Specialization(
-            guards = "object.getShape() == cachedShape",
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
+    @Specialization(guards = "object.getShape() == cachedShape", limit = "1")
     static boolean isShareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("cachedShape.isShared()") boolean shared) {
         return shared;
     }
 
-    @Specialization(guards = "updateShape(object)")
-    static boolean updateShapeAndIsShared(Node node, RubyDynamicObject object,
-            @Cached(inline = false) IsSharedNode isSharedNode) {
-        return isSharedNode.execute(isSharedNode, object);
-    }
-
-    @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
+    @Specialization(replaces = "isShareCached")
     static boolean isSharedUncached(Node node, RubyDynamicObject object,
             @Cached InlinedConditionProfile profile) {
         return getLanguage(node).options.SHARED_OBJECTS_ENABLED &&

@@ -30,7 +30,7 @@ import java.util.Arrays;
  * <p>
  * The copy itself can then be performed with {@link ArrayCopyCompatibleRangeNode}. In fact it MUST be performed, as the
  * array may otherwise contain uninitialized elements (in particular, {@code null} values in {@code Object} arrays). */
-@ReportPolymorphism
+@ReportPolymorphism // for ArrayStoreLibrary
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
 

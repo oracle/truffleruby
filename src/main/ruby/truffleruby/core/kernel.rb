@@ -777,8 +777,8 @@ module Kernel
     Process._fork
   end
   module_function :fork
+  Primitive.method_unimplement instance_method(:fork)
   Primitive.method_unimplement method(:fork)
-  Primitive.method_unimplement nil.method(:fork)
 
   def clone(freeze: nil)
     unless Primitive.boolean_or_nil?(freeze)
@@ -787,6 +787,8 @@ module Kernel
 
     Primitive.kernel_clone self, freeze
   end
+  Truffle::Graal.always_split instance_method(:clone)
+  Truffle::Graal.always_split method(:clone)
 
   def initialize_clone(from, freeze: nil)
     initialize_copy(from)

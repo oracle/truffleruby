@@ -43,14 +43,12 @@ import java.lang.invoke.VarHandle;
 import java.lang.management.ManagementFactory;
 import java.nio.file.NoSuchFileException;
 import java.util.Set;
-import java.util.logging.Level;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.sun.management.ThreadMXBean;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -63,7 +61,6 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
@@ -74,7 +71,6 @@ import org.truffleruby.shared.Platform;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreModule("Truffle::System")
@@ -226,45 +222,6 @@ public abstract class TruffleSystemNodes {
         @Specialization
         RubyString hostOS() {
             return createString(fromJavaStringNode, Platform.getOSName(), Encodings.UTF_8);
-        }
-
-    }
-
-    @CoreMethod(names = "log", onSingleton = true, required = 2)
-    public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = { "strings.isRubyString(message)", "level == cachedLevel" }, limit = "3")
-        Object logCached(RubySymbol level, Object message,
-                @Cached @Shared RubyStringLibrary strings,
-                @Cached @Shared ToJavaStringNode toJavaStringNode,
-                @Cached("level") RubySymbol cachedLevel,
-                @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            log(javaLevel, toJavaStringNode.execute(this, message));
-            return nil;
-        }
-
-        @Specialization(guards = "strings.isRubyString(message)", replaces = "logCached")
-        Object log(RubySymbol level, Object message,
-                @Cached @Shared RubyStringLibrary strings,
-                @Cached @Shared ToJavaStringNode toJavaStringNode) {
-            log(getLevel(level), toJavaStringNode.execute(this, message));
-            return nil;
-        }
-
-        @TruffleBoundary
-        protected Level getLevel(RubySymbol level) {
-            try {
-                return Level.parse(level.getString());
-            } catch (IllegalArgumentException e) {
-                throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
-                        "Could not find log level for: " + level,
-                        this));
-            }
-        }
-
-        @TruffleBoundary
-        public static void log(Level level, String message) {
-            RubyLanguage.LOGGER.log(level, message);
         }
 
     }

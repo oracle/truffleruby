@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -24,6 +25,7 @@ import org.truffleruby.parser.Identifiers;
 @ImportStatic(Identifiers.class)
 @GenerateInline
 @GenerateCached(false)
+@ReportPolymorphism // inline cache
 public abstract class CheckClassVariableNameNode extends RubyBaseNode {
 
     public abstract void execute(Node node, RubyDynamicObject object, String name);

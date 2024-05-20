@@ -55,6 +55,7 @@ class Integer < Numeric
 
     redo_coerced :**, o
   end
+  Truffle::Graal.always_split instance_method(:**)
 
   def [](index, len = undefined)
     if Primitive.is_a?(index, Range)

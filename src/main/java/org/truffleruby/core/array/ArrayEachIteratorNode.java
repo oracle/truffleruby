@@ -28,7 +28,7 @@ import com.oracle.truffle.api.nodes.NodeInterface;
 import org.truffleruby.language.yield.CallBlockNode;
 
 @ImportStatic(ArrayGuards.class)
-@ReportPolymorphism
+@ReportPolymorphism // for ArrayStoreLibrary
 @GenerateInline(inlineByDefault = true)
 public abstract class ArrayEachIteratorNode extends RubyBaseNode {
 

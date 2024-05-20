@@ -82,6 +82,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.shared.IsSharedNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -105,7 +106,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
@@ -420,21 +420,12 @@ public abstract class TruffleDebugNodes {
 
     @CoreMethod(names = "shared?", onSingleton = true, required = 1)
     @ImportStatic(SharedObjects.class)
-    public abstract static class IsSharedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IsSharedCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(
-                guards = "object.getShape() == cachedShape",
-                assumptions = "cachedShape.getValidAssumption()",
-                limit = "getDynamicObjectCacheLimit()")
-        boolean isSharedCached(RubyDynamicObject object,
-                @Cached("object.getShape()") Shape cachedShape,
-                @Cached("cachedShape.isShared()") boolean shared) {
-            return shared;
-        }
-
-        @Specialization(replaces = "isSharedCached")
-        boolean isShared(RubyDynamicObject object) {
-            return SharedObjects.isShared(object);
+        @Specialization
+        boolean isShared(RubyDynamicObject object,
+                @Cached IsSharedNode isSharedNode) {
+            return isSharedNode.execute(this, object);
         }
 
         @Specialization

@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -126,8 +127,9 @@ public final class RubyString extends RubyDynamicObject {
         return asTruffleStringNode.execute(tstring, libString.getTEncoding(this));
     }
 
-    @ImportStatic(RubyBaseNode.class)
     @ExportMessage
+    @ReportPolymorphism // inline cache
+    @ImportStatic(RubyBaseNode.class)
     public static final class AsString {
         @Specialization(
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",

@@ -24,6 +24,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
+// Splitting: naturally split
 public abstract class LookupSuperMethodNode extends RubyBaseNode {
 
     public abstract InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self);

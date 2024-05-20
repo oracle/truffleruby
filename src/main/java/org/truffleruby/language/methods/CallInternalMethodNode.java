@@ -39,7 +39,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
-@ReportPolymorphism
+@ReportPolymorphism // inline cache
 @GenerateUncached
 @ImportStatic(RubyArguments.class)
 public abstract class CallInternalMethodNode extends RubyBaseNode {

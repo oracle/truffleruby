@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
@@ -23,6 +24,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 @GenerateCached(false)
 @GenerateInline
+@ReportPolymorphism // inline cache
 public abstract class LookupClassVariableStorageNode extends RubyBaseNode {
 
     public abstract ClassVariableStorage execute(Node node, RubyModule module, String name);

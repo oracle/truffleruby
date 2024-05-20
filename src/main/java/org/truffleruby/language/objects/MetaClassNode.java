@@ -22,6 +22,8 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
 // Specializations are ordered by their frequency on railsbench using --engine.SpecializationStatistics
+// Splitting: no need to split this node, there are naturally many instances of this node in the AST and
+// the inline cache is only slightly faster and only used for singleton objects.
 @GenerateUncached
 @GenerateInline(inlineByDefault = true)
 public abstract class MetaClassNode extends RubyBaseNode {

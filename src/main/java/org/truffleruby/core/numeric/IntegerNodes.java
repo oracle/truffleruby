@@ -21,6 +21,7 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -28,6 +29,7 @@ import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -513,7 +515,8 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = { "%", "modulo" }, required = 1)
+    // Splitting: inline cache
+    @CoreMethod(names = { "%", "modulo" }, required = 1, split = Split.ALWAYS)
     public abstract static class ModNode extends CoreMethodArrayArgumentsNode {
 
         private final BranchProfile adjustProfile = BranchProfile.create();
@@ -1746,6 +1749,7 @@ public abstract class IntegerNodes {
     }
 
     @Primitive(name = "integer_pow", lowerFixnum = { 0, 1 })
+    @ReportPolymorphism // inline cache
     public abstract static class PowNode extends PrimitiveArrayArgumentsNode {
 
         @Child private PowNode recursivePowNode;

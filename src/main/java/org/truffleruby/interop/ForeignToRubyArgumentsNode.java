@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -22,6 +23,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 @GenerateUncached
 @GenerateCached(false)
 @GenerateInline
+@ReportPolymorphism // inline cache
 public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
 
     public abstract Object[] executeConvert(Node node, Object[] args);

@@ -27,7 +27,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
  * <p>
  * Typically only called after {@link ArrayPrepareForCopyNode} has been invoked on the destination. */
 @ImportStatic(ArrayGuards.class)
-@ReportPolymorphism
+@ReportPolymorphism // for ArrayStoreLibrary
 public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
 
     public static ArrayCopyCompatibleRangeNode create() {
@@ -49,7 +49,6 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
             limit = "storageStrategyLimit()")
     void copy(Object dstStore, Object srcStore, int dstStart, int srcStart, int length,
             @CachedLibrary("srcStore") ArrayStoreLibrary stores) {
-
         stores.copyContents(srcStore, srcStart, dstStore, dstStart, length);
     }
 }

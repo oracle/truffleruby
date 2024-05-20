@@ -20,11 +20,9 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
-@ReportPolymorphism
 public abstract class IDToSymbolNode extends RubyBaseNode {
 
     public abstract RubySymbol execute(Object value);

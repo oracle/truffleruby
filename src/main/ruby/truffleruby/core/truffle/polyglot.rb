@@ -44,6 +44,7 @@ module Polyglot
     def eval(language, code, filename = '(eval)')
       Primitive.inner_context_eval(self, language, code, filename)
     end
+    Truffle::Graal.always_split instance_method(:eval)
 
     # Close the inner context and release the associated resources.
     # If the context is not closed explicitly, then it is automatically closed together with the parent context.
