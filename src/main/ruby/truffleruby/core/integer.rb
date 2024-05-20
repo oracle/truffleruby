@@ -136,12 +136,15 @@ class Integer < Numeric
     raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(m, Integer)
     raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
 
-    if Primitive.integer_fits_into_long?(m)
+    # Ruby implementation is much faster than Java implementation for modulus <= 2^16,
+    # is comparable for bigger numbers (2^16 < x <= 2^32) and slower for numbers > 2^32.
+    if Primitive.integer_fits_into_int?(m)
       Truffle::IntegerOperations.modular_exponentiation(self, e, m)
     else
       Primitive.mod_pow(self, e, m)
     end
   end
+  Truffle::Graal.always_split instance_method(:pow)
 
   def times
     return to_enum(:times) { self } unless block_given?
