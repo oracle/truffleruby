@@ -555,13 +555,13 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     jruby: $.use.jruby + $.cap.bench + $.cap.weekly,
   },
   local graal_configurations = {
-    local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
+    local shared = $.cap.bench + $.cap.weekly + $.use.truffleruby + $.use.build,
 
     "jvm-ce": shared + $.env.jvm_ce,
     "jvm-ee": shared + $.env.jvm_ee,
   },
   local svm_configurations = {
-    local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
+    local shared = $.cap.bench + $.cap.weekly + $.use.truffleruby + $.use.build,
 
     "svm-ce": shared + $.env.native + $.env.gdb_svm,
     "svm-ee": shared + $.env.native_ee + $.env.gdb_svm,
@@ -675,7 +675,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-metrics-truffle":
         $.platform.linux + $.jdk.latest + $.use.common + $.env.jvm + $.use.build +
         $.use.truffleruby +
-        $.cap.bench + $.cap.daily +
+        $.cap.bench + $.cap.weekly +
         $.benchmark.runner + $.benchmark.interpreter_metrics +
         { timelimit: "00:40:00" },
     } +
@@ -685,7 +685,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
         $.platform.linux + $.jdk.latest + $.use.common +
         $.use.truffleruby + $.use.truffleruby_cexts +
         $.env.jvm_ce + $.use.build + $.use.gem_test_pack +
-        $.cap.bench + $.cap.daily +
+        $.cap.bench + $.cap.weekly +
         $.benchmark.runner + $.benchmark.cext_chunky +
         { timelimit: "00:40:00" },
     },
