@@ -2554,6 +2554,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitItLocalVariableReadNode(Nodes.ItLocalVariableReadNode node) {
+        throw CompilerDirectives.shouldNotReachHere("ItLocalVariableReadNode is only from Ruby 3.4");
+    }
+
+    @Override
     public RubyNode visitItParametersNode(Nodes.ItParametersNode node) {
         throw CompilerDirectives.shouldNotReachHere("ItParametersNode is only from Ruby 3.4");
     }
