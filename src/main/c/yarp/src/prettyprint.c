@@ -231,6 +231,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "+-- flags:", 10);
                 bool found = false;
+                if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORDS) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " contains_keywords", 18);
+                    found = true;
+                }
                 if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORD_SPLAT) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " contains_keyword_splat", 23);
@@ -1367,20 +1372,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -2026,11 +2031,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -2051,12 +2056,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 prefix_buffer->length = prefix_length;
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
@@ -2285,11 +2290,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -2310,12 +2315,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 prefix_buffer->length = prefix_length;
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
@@ -2444,17 +2449,17 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 }
             }
 
-            // child
+            // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- child:", 10);
-                pm_buffer_append_byte(output_buffer, '\n');
-
-                size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "|   ", 4);
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->child, prefix_buffer);
-                prefix_buffer->length = prefix_length;
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
+                if (cast->name == 0) {
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_constant(output_buffer, parser, cast->name);
+                    pm_buffer_append_byte(output_buffer, '\n');
+                }
             }
 
             // delimiter_loc
@@ -2462,6 +2467,18 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "+-- delimiter_loc:", 18);
                 pm_location_t *location = &cast->delimiter_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
+                pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -2490,11 +2507,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 prefix_buffer->length = prefix_length;
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -2515,12 +2532,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 prefix_buffer->length = prefix_length;
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
@@ -2595,17 +2612,17 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 }
             }
 
-            // child
+            // name
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- child:", 10);
-                pm_buffer_append_byte(output_buffer, '\n');
-
-                size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "|   ", 4);
-                pm_buffer_concat(output_buffer, prefix_buffer);
-                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->child, prefix_buffer);
-                prefix_buffer->length = prefix_length;
+                pm_buffer_append_string(output_buffer, "+-- name:", 9);
+                if (cast->name == 0) {
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_constant(output_buffer, parser, cast->name);
+                    pm_buffer_append_byte(output_buffer, '\n');
+                }
             }
 
             // delimiter_loc
@@ -2613,6 +2630,18 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "+-- delimiter_loc:", 18);
                 pm_location_t *location = &cast->delimiter_loc;
+                pm_buffer_append_byte(output_buffer, ' ');
+                prettyprint_location(output_buffer, parser, location);
+                pm_buffer_append_string(output_buffer, " = \"", 4);
+                pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // name_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- name_loc:", 13);
+                pm_location_t *location = &cast->name_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -3603,11 +3632,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -3628,12 +3657,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 prefix_buffer->length = prefix_length;
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
@@ -4420,20 +4449,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 }
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -4798,11 +4827,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -4823,12 +4852,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 prefix_buffer->length = prefix_length;
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
@@ -5436,6 +5465,13 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
 
             break;
         }
+        case PM_IT_LOCAL_VARIABLE_READ_NODE: {
+            pm_buffer_append_string(output_buffer, "@ ItLocalVariableReadNode (location: ", 37);
+            prettyprint_location(output_buffer, parser, &node->location);
+            pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            break;
+        }
         case PM_IT_PARAMETERS_NODE: {
             pm_buffer_append_string(output_buffer, "@ ItParametersNode (location: ", 30);
             prettyprint_location(output_buffer, parser, &node->location);
@@ -5715,11 +5751,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
-            // operator_loc
+            // binary_operator_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator_loc:", 17);
-                pm_location_t *location = &cast->operator_loc;
+                pm_buffer_append_string(output_buffer, "+-- binary_operator_loc:", 24);
+                pm_location_t *location = &cast->binary_operator_loc;
                 pm_buffer_append_byte(output_buffer, ' ');
                 prettyprint_location(output_buffer, parser, location);
                 pm_buffer_append_string(output_buffer, " = \"", 4);
@@ -5749,12 +5785,12 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
-            // operator
+            // binary_operator
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- operator:", 13);
+                pm_buffer_append_string(output_buffer, "+-- binary_operator:", 20);
                 pm_buffer_append_byte(output_buffer, ' ');
-                prettyprint_constant(output_buffer, parser, cast->operator);
+                prettyprint_constant(output_buffer, parser, cast->binary_operator);
                 pm_buffer_append_byte(output_buffer, '\n');
             }
 
@@ -7261,17 +7297,53 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
 
-            // numeric
+            // flags
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                pm_buffer_append_string(output_buffer, "+-- numeric:", 12);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
+                bool found = false;
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_BINARY) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " binary", 7);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_DECIMAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " decimal", 8);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_OCTAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " octal", 6);
+                    found = true;
+                }
+                if (cast->base.flags & PM_INTEGER_BASE_FLAGS_HEXADECIMAL) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " hexadecimal", 12);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
                 pm_buffer_append_byte(output_buffer, '\n');
+            }
 
-                size_t prefix_length = prefix_buffer->length;
-                pm_buffer_append_string(prefix_buffer, "    ", 4);
+            // numerator
+            {
                 pm_buffer_concat(output_buffer, prefix_buffer);
-                prettyprint_node(output_buffer, parser, (pm_node_t *) cast->numeric, prefix_buffer);
-                prefix_buffer->length = prefix_length;
+                pm_buffer_append_string(output_buffer, "+-- numerator:", 14);
+                const pm_integer_t *integer = &cast->numerator;
+                pm_buffer_append_byte(output_buffer, ' ');
+                pm_integer_string(output_buffer, integer);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
+            // denominator
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- denominator:", 16);
+                const pm_integer_t *integer = &cast->denominator;
+                pm_buffer_append_byte(output_buffer, ' ');
+                pm_integer_string(output_buffer, integer);
+                pm_buffer_append_byte(output_buffer, '\n');
             }
 
             break;
@@ -7700,6 +7772,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             pm_buffer_append_string(output_buffer, "@ ReturnNode (location: ", 24);
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
+
+            // flags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- flags:", 10);
+                bool found = false;
+                if (cast->base.flags & PM_RETURN_NODE_FLAGS_REDUNDANT) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " redundant", 10);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
 
             // keyword_loc
             {

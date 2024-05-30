@@ -147,8 +147,15 @@ public abstract class Nodes {
      */
     public static final class ArgumentsNodeFlags implements Comparable<ArgumentsNodeFlags> {
 
+        // if arguments contain keywords
+        public static final short CONTAINS_KEYWORDS = 1 << 0;
+
         // if arguments contain keyword splat
-        public static final short CONTAINS_KEYWORD_SPLAT = 1 << 0;
+        public static final short CONTAINS_KEYWORD_SPLAT = 1 << 1;
+
+        public static boolean isContainsKeywords(short flags) {
+            return (flags & CONTAINS_KEYWORDS) != 0;
+        }
 
         public static boolean isContainsKeywordSplat(short flags) {
             return (flags & CONTAINS_KEYWORD_SPLAT) != 0;
@@ -177,6 +184,10 @@ public abstract class Nodes {
         @Override
         public int compareTo(ArgumentsNodeFlags other) {
             return flags - other.flags;
+        }
+
+        public boolean isContainsKeywords() {
+            return (flags & CONTAINS_KEYWORDS) != 0;
         }
 
         public boolean isContainsKeywordSplat() {
@@ -814,6 +825,49 @@ public abstract class Nodes {
     }
 
     /**
+     * Flags for return nodes.
+     */
+    public static final class ReturnNodeFlags implements Comparable<ReturnNodeFlags> {
+
+        // a return statement that is redundant because it is the last statement in a method
+        public static final short REDUNDANT = 1 << 0;
+
+        public static boolean isRedundant(short flags) {
+            return (flags & REDUNDANT) != 0;
+        }
+
+        private final short flags;
+
+        public ReturnNodeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ReturnNodeFlags)) {
+                return false;
+            }
+
+            return flags == ((ReturnNodeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(ReturnNodeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isRedundant() {
+            return (flags & REDUNDANT) != 0;
+        }
+
+    }
+
+    /**
      * Flags for shareable constant nodes.
      */
     public static final class ShareableConstantNodeFlags implements Comparable<ShareableConstantNodeFlags> {
@@ -1275,6 +1329,10 @@ public abstract class Nodes {
             this.arguments = arguments;
         }
         
+        public boolean isContainsKeywords() {
+            return ArgumentsNodeFlags.isContainsKeywords(this.flags);
+        }
+
         public boolean isContainsKeywordSplat() {
             return ArgumentsNodeFlags.isContainsKeywordSplat(this.flags);
         }
@@ -2312,16 +2370,16 @@ public abstract class Nodes {
         public final Node receiver;
         public final String read_name;
         public final String write_name;
-        public final String operator;
+        public final String binary_operator;
         public final Node value;
 
-        public CallOperatorWriteNode(short flags, Node receiver, String read_name, String write_name, String operator, Node value, int startOffset, int length) {
+        public CallOperatorWriteNode(short flags, Node receiver, String read_name, String write_name, String binary_operator, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.flags = flags;
             this.receiver = receiver;
             this.read_name = read_name;
             this.write_name = write_name;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
             this.value = value;
         }
         
@@ -2381,8 +2439,8 @@ public abstract class Nodes {
             builder.append('"').append(this.write_name).append('"');
             builder.append('\n');
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             builder.append(nextIndent);
             builder.append("value: ");
@@ -2894,13 +2952,13 @@ public abstract class Nodes {
     public static final class ClassVariableOperatorWriteNode extends Node {
         public final String name;
         public final Node value;
-        public final String operator;
+        public final String binary_operator;
 
-        public ClassVariableOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
+        public ClassVariableOperatorWriteNode(String name, Node value, String binary_operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.value = value;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -2932,8 +2990,8 @@ public abstract class Nodes {
             builder.append("value: ");
             builder.append(this.value.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             return builder.toString();
         }
@@ -3217,13 +3275,13 @@ public abstract class Nodes {
     public static final class ConstantOperatorWriteNode extends Node {
         public final String name;
         public final Node value;
-        public final String operator;
+        public final String binary_operator;
 
-        public ConstantOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
+        public ConstantOperatorWriteNode(String name, Node value, String binary_operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.value = value;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3255,8 +3313,8 @@ public abstract class Nodes {
             builder.append("value: ");
             builder.append(this.value.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             return builder.toString();
         }
@@ -3389,37 +3447,26 @@ public abstract class Nodes {
         public final Node parent;
         /**
          * <pre>
-         * The right-hand node of the path. Always a `ConstantReadNode` in a
-         * valid Ruby syntax tree.
-         *
-         *     ::Foo
-         *       ^^^
-         *
-         *     self::Test
-         *           ^^^^
-         *
-         *     a.b::C
-         *          ^
+         * The name of the constant being accessed. This could be `nil` in the event of a syntax error.
          * </pre>
          */
-        @UnionType({ ConstantReadNode.class, MissingNode.class })
-        public final Node child;
+        @Nullable
+        public final String name;
 
-        public ConstantPathNode(Node parent, Node child, int startOffset, int length) {
+        public ConstantPathNode(Node parent, String name, int startOffset, int length) {
             super(startOffset, length);
             this.parent = parent;
-            this.child = child;
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parent != null) {
                 this.parent.accept(visitor);
             }
-            this.child.accept(visitor);
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.parent, this.child };
+            return new Node[] { this.parent };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3439,8 +3486,9 @@ public abstract class Nodes {
             builder.append("parent: ");
             builder.append(this.parent == null ? "null\n" : this.parent.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("child: ");
-            builder.append(this.child.toString(nextIndent));
+            builder.append("name: ");
+            builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
+            builder.append('\n');
             return builder.toString();
         }
     }
@@ -3456,13 +3504,13 @@ public abstract class Nodes {
     public static final class ConstantPathOperatorWriteNode extends Node {
         public final ConstantPathNode target;
         public final Node value;
-        public final String operator;
+        public final String binary_operator;
 
-        public ConstantPathOperatorWriteNode(ConstantPathNode target, Node value, String operator, int startOffset, int length) {
+        public ConstantPathOperatorWriteNode(ConstantPathNode target, Node value, String binary_operator, int startOffset, int length) {
             super(startOffset, length);
             this.target = target;
             this.value = value;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -3494,8 +3542,8 @@ public abstract class Nodes {
             builder.append("value: ");
             builder.append(this.value.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             return builder.toString();
         }
@@ -3562,24 +3610,23 @@ public abstract class Nodes {
     public static final class ConstantPathTargetNode extends Node {
         @Nullable
         public final Node parent;
-        @UnionType({ ConstantReadNode.class, MissingNode.class })
-        public final Node child;
+        @Nullable
+        public final String name;
 
-        public ConstantPathTargetNode(Node parent, Node child, int startOffset, int length) {
+        public ConstantPathTargetNode(Node parent, String name, int startOffset, int length) {
             super(startOffset, length);
             this.parent = parent;
-            this.child = child;
+            this.name = name;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.parent != null) {
                 this.parent.accept(visitor);
             }
-            this.child.accept(visitor);
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.parent, this.child };
+            return new Node[] { this.parent };
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -3599,8 +3646,9 @@ public abstract class Nodes {
             builder.append("parent: ");
             builder.append(this.parent == null ? "null\n" : this.parent.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("child: ");
-            builder.append(this.child.toString(nextIndent));
+            builder.append("name: ");
+            builder.append(this.name == null ? "null" : "\"" + this.name + "\"");
+            builder.append('\n');
             return builder.toString();
         }
     }
@@ -4407,8 +4455,34 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ForNode extends Node {
+        /**
+         * <pre>
+         * The index expression for `for` loops.
+         *
+         *     for i in a end
+         *         ^
+         * </pre>
+         */
         public final Node index;
+        /**
+         * <pre>
+         * The collection to iterate over.
+         *
+         *     for i in a end
+         *              ^
+         * </pre>
+         */
         public final Node collection;
+        /**
+         * <pre>
+         * Represents the body of statements to execute for each iteration of the loop.
+         *
+         *     for i in a
+         *       foo(i)
+         *       ^^^^^^
+         *     end
+         * </pre>
+         */
         @Nullable
         public final StatementsNode statements;
 
@@ -4644,13 +4718,13 @@ public abstract class Nodes {
     public static final class GlobalVariableOperatorWriteNode extends Node {
         public final String name;
         public final Node value;
-        public final String operator;
+        public final String binary_operator;
 
-        public GlobalVariableOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
+        public GlobalVariableOperatorWriteNode(String name, Node value, String binary_operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.value = value;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -4682,8 +4756,8 @@ public abstract class Nodes {
             builder.append("value: ");
             builder.append(this.value.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             return builder.toString();
         }
@@ -5468,16 +5542,16 @@ public abstract class Nodes {
         public final ArgumentsNode arguments;
         @Nullable
         public final Node block;
-        public final String operator;
+        public final String binary_operator;
         public final Node value;
 
-        public IndexOperatorWriteNode(short flags, Node receiver, ArgumentsNode arguments, Node block, String operator, Node value, int startOffset, int length) {
+        public IndexOperatorWriteNode(short flags, Node receiver, ArgumentsNode arguments, Node block, String binary_operator, Node value, int startOffset, int length) {
             super(startOffset, length);
             this.flags = flags;
             this.receiver = receiver;
             this.arguments = arguments;
             this.block = block;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
             this.value = value;
         }
         
@@ -5541,8 +5615,8 @@ public abstract class Nodes {
             builder.append("block: ");
             builder.append(this.block == null ? "null\n" : this.block.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             builder.append(nextIndent);
             builder.append("value: ");
@@ -5797,13 +5871,13 @@ public abstract class Nodes {
     public static final class InstanceVariableOperatorWriteNode extends Node {
         public final String name;
         public final Node value;
-        public final String operator;
+        public final String binary_operator;
 
-        public InstanceVariableOperatorWriteNode(String name, Node value, String operator, int startOffset, int length) {
+        public InstanceVariableOperatorWriteNode(String name, Node value, String binary_operator, int startOffset, int length) {
             super(startOffset, length);
             this.name = name;
             this.value = value;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
         }
                 
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
@@ -5835,8 +5909,8 @@ public abstract class Nodes {
             builder.append("value: ");
             builder.append(this.value.toString(nextIndent));
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             return builder.toString();
         }
@@ -6551,6 +6625,44 @@ public abstract class Nodes {
 
     /**
      * <pre>
+     * Represents reading from the implicit `it` local variable.
+     *
+     *     -&gt; { it }
+     *          ^^
+     * </pre>
+     */
+    public static final class ItLocalVariableReadNode extends Node {
+
+        public ItLocalVariableReadNode(int startOffset, int length) {
+            super(startOffset, length);
+        }
+                
+        public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
+        }
+
+        public Node[] childNodes() {
+            return EMPTY_ARRAY;
+        }
+
+        public <T> T accept(AbstractNodeVisitor<T> visitor) {
+            return visitor.visitItLocalVariableReadNode(this);
+        }
+
+        @Override
+        protected String toString(String indent) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(this.getClass().getSimpleName());
+            if (hasNewLineFlag()) {
+                builder.append("[Li]");
+            }
+            builder.append('\n');
+            String nextIndent = indent + "  ";
+            return builder.toString();
+        }
+    }
+
+    /**
+     * <pre>
      * Represents an implicit set of parameters through the use of the `it` keyword within a block or lambda.
      *
      *     -&gt; { it + it }
@@ -6838,14 +6950,14 @@ public abstract class Nodes {
     public static final class LocalVariableOperatorWriteNode extends Node {
         public final Node value;
         public final String name;
-        public final String operator;
+        public final String binary_operator;
         public final int depth;
 
-        public LocalVariableOperatorWriteNode(Node value, String name, String operator, int depth, int startOffset, int length) {
+        public LocalVariableOperatorWriteNode(Node value, String name, String binary_operator, int depth, int startOffset, int length) {
             super(startOffset, length);
             this.value = value;
             this.name = name;
-            this.operator = operator;
+            this.binary_operator = binary_operator;
             this.depth = depth;
         }
                 
@@ -6878,8 +6990,8 @@ public abstract class Nodes {
             builder.append('"').append(this.name).append('"');
             builder.append('\n');
             builder.append(nextIndent);
-            builder.append("operator: ");
-            builder.append('"').append(this.operator).append('"');
+            builder.append("binary_operator: ");
+            builder.append('"').append(this.binary_operator).append('"');
             builder.append('\n');
             builder.append(nextIndent);
             builder.append("depth: ");
@@ -6965,10 +7077,6 @@ public abstract class Nodes {
          * Note that this can also be an underscore followed by a number for the default block parameters.
          *
          *     _1     # name `:_1`
-         *
-         * Finally, for the default `it` block parameter, the name is `0it`. This is to distinguish it from an `it` local variable that is explicitly declared.
-         *
-         *     it     # name `:0it`
          * </pre>
          */
         public final String name;
@@ -8112,7 +8220,7 @@ public abstract class Nodes {
         @Nullable
         @UnionType({ RestParameterNode.class, ImplicitRestNode.class })
         public final Node rest;
-        @UnionType({ RequiredParameterNode.class, MultiTargetNode.class, KeywordRestParameterNode.class, NoKeywordsParameterNode.class })
+        @UnionType({ RequiredParameterNode.class, MultiTargetNode.class, KeywordRestParameterNode.class, NoKeywordsParameterNode.class, ForwardingParameterNode.class })
         public final Node[] posts;
         @UnionType({ RequiredKeywordParameterNode.class, OptionalKeywordParameterNode.class })
         public final Node[] keywords;
@@ -8605,19 +8713,52 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class RationalNode extends Node {
-        public final Node numeric;
+        public final short flags;
+        /**
+         * <pre>
+         * The numerator of the rational number.
+         *
+         *     1.5r # numerator 3
+         * </pre>
+         */
+        public final Object numerator;
+        /**
+         * <pre>
+         * The denominator of the rational number.
+         *
+         *     1.5r # denominator 2
+         * </pre>
+         */
+        public final Object denominator;
 
-        public RationalNode(Node numeric, int startOffset, int length) {
+        public RationalNode(short flags, Object numerator, Object denominator, int startOffset, int length) {
             super(startOffset, length);
-            this.numeric = numeric;
+            this.flags = flags;
+            this.numerator = numerator;
+            this.denominator = denominator;
         }
-                
+        
+        public boolean isBinary() {
+            return IntegerBaseFlags.isBinary(this.flags);
+        }
+
+        public boolean isDecimal() {
+            return IntegerBaseFlags.isDecimal(this.flags);
+        }
+
+        public boolean isOctal() {
+            return IntegerBaseFlags.isOctal(this.flags);
+        }
+
+        public boolean isHexadecimal() {
+            return IntegerBaseFlags.isHexadecimal(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
-            this.numeric.accept(visitor);
         }
 
         public Node[] childNodes() {
-            return new Node[] { this.numeric };
+            return EMPTY_ARRAY;
         }
 
         public <T> T accept(AbstractNodeVisitor<T> visitor) {
@@ -8634,8 +8775,17 @@ public abstract class Nodes {
             builder.append('\n');
             String nextIndent = indent + "  ";
             builder.append(nextIndent);
-            builder.append("numeric: ");
-            builder.append(this.numeric.toString(nextIndent));
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("numerator: ");
+            builder.append(this.numerator);
+            builder.append('\n');
+            builder.append(nextIndent);
+            builder.append("denominator: ");
+            builder.append(this.denominator);
+            builder.append('\n');
             return builder.toString();
         }
     }
@@ -9127,14 +9277,20 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ReturnNode extends Node {
+        public final short flags;
         @Nullable
         public final ArgumentsNode arguments;
 
-        public ReturnNode(ArgumentsNode arguments, int startOffset, int length) {
+        public ReturnNode(short flags, ArgumentsNode arguments, int startOffset, int length) {
             super(startOffset, length);
+            this.flags = flags;
             this.arguments = arguments;
         }
-                
+        
+        public boolean isRedundant() {
+            return ReturnNodeFlags.isRedundant(this.flags);
+        }
+        
         public <T> void visitChildNodes(AbstractNodeVisitor<T> visitor) {
             if (this.arguments != null) {
                 this.arguments.accept(visitor);
@@ -9158,6 +9314,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("flags: ");
+            builder.append(this.flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("arguments: ");
             builder.append(this.arguments == null ? "null\n" : this.arguments.toString(nextIndent));
@@ -10285,13 +10445,16 @@ public abstract class Nodes {
         ARGUMENT_BARE_HASH,
         ARGUMENT_BLOCK_FORWARDING,
         ARGUMENT_BLOCK_MULTI,
+        ARGUMENT_CONFLICT_AMPERSAND,
+        ARGUMENT_CONFLICT_STAR,
+        ARGUMENT_CONFLICT_STAR_STAR,
         ARGUMENT_FORMAL_CLASS,
         ARGUMENT_FORMAL_CONSTANT,
         ARGUMENT_FORMAL_GLOBAL,
         ARGUMENT_FORMAL_IVAR,
         ARGUMENT_FORWARDING_UNBOUND,
         ARGUMENT_IN,
-        ARGUMENT_NO_FORWARDING_AMP,
+        ARGUMENT_NO_FORWARDING_AMPERSAND,
         ARGUMENT_NO_FORWARDING_ELLIPSES,
         ARGUMENT_NO_FORWARDING_STAR,
         ARGUMENT_NO_FORWARDING_STAR_STAR,
@@ -10373,6 +10536,7 @@ public abstract class Nodes {
         EXPECT_EXPRESSION_AFTER_SPLAT_HASH,
         EXPECT_EXPRESSION_AFTER_STAR,
         EXPECT_IDENT_REQ_PARAMETER,
+        EXPECT_IN_DELIMITER,
         EXPECT_LPAREN_REQ_PARAMETER,
         EXPECT_MESSAGE,
         EXPECT_RBRACKET,
@@ -10388,6 +10552,7 @@ public abstract class Nodes {
         EXPRESSION_NOT_WRITABLE_FILE,
         EXPRESSION_NOT_WRITABLE_LINE,
         EXPRESSION_NOT_WRITABLE_NIL,
+        EXPRESSION_NOT_WRITABLE_NUMBERED,
         EXPRESSION_NOT_WRITABLE_SELF,
         EXPRESSION_NOT_WRITABLE_TRUE,
         FLOAT_PARSE,
@@ -10401,16 +10566,18 @@ public abstract class Nodes {
         HASH_ROCKET,
         HASH_TERM,
         HASH_VALUE,
+        HEREDOC_IDENTIFIER,
         HEREDOC_TERM,
         INCOMPLETE_QUESTION_MARK,
         INCOMPLETE_VARIABLE_CLASS,
-        INCOMPLETE_VARIABLE_CLASS_3_3_0,
+        INCOMPLETE_VARIABLE_CLASS_3_3,
         INCOMPLETE_VARIABLE_INSTANCE,
-        INCOMPLETE_VARIABLE_INSTANCE_3_3_0,
+        INCOMPLETE_VARIABLE_INSTANCE_3_3,
         INSTANCE_VARIABLE_BARE,
         INVALID_BLOCK_EXIT,
         INVALID_CHARACTER,
         INVALID_ENCODING_MAGIC_COMMENT,
+        INVALID_ESCAPE_CHARACTER,
         INVALID_FLOAT_EXPONENT,
         INVALID_LOCAL_VARIABLE_READ,
         INVALID_LOCAL_VARIABLE_WRITE,
@@ -10419,16 +10586,20 @@ public abstract class Nodes {
         INVALID_MULTIBYTE_ESCAPE,
         INVALID_NUMBER_BINARY,
         INVALID_NUMBER_DECIMAL,
+        INVALID_NUMBER_FRACTION,
         INVALID_NUMBER_HEXADECIMAL,
         INVALID_NUMBER_OCTAL,
-        INVALID_NUMBER_UNDERSCORE,
+        INVALID_NUMBER_UNDERSCORE_INNER,
+        INVALID_NUMBER_UNDERSCORE_TRAILING,
         INVALID_PERCENT,
+        INVALID_PERCENT_EOF,
         INVALID_PRINTABLE_CHARACTER,
         INVALID_RETRY_AFTER_ELSE,
         INVALID_RETRY_AFTER_ENSURE,
         INVALID_RETRY_WITHOUT_RESCUE,
+        INVALID_SYMBOL,
         INVALID_VARIABLE_GLOBAL,
-        INVALID_VARIABLE_GLOBAL_3_3_0,
+        INVALID_VARIABLE_GLOBAL_3_3,
         INVALID_YIELD,
         IT_NOT_ALLOWED_NUMBERED,
         IT_NOT_ALLOWED_ORDINARY,
@@ -10453,15 +10624,17 @@ public abstract class Nodes {
         NO_LOCAL_VARIABLE,
         NOT_EXPRESSION,
         NUMBER_LITERAL_UNDERSCORE,
+        NUMBERED_PARAMETER_INNER_BLOCK,
         NUMBERED_PARAMETER_IT,
         NUMBERED_PARAMETER_ORDINARY,
-        NUMBERED_PARAMETER_OUTER_SCOPE,
+        NUMBERED_PARAMETER_OUTER_BLOCK,
         OPERATOR_MULTI_ASSIGN,
         OPERATOR_WRITE_ARGUMENTS,
         OPERATOR_WRITE_BLOCK,
         PARAMETER_ASSOC_SPLAT_MULTI,
         PARAMETER_BLOCK_MULTI,
         PARAMETER_CIRCULAR,
+        PARAMETER_FORWARDING_AFTER_REST,
         PARAMETER_METHOD_NAME,
         PARAMETER_NAME_DUPLICATED,
         PARAMETER_NO_DEFAULT,
@@ -10472,6 +10645,7 @@ public abstract class Nodes {
         PARAMETER_STAR,
         PARAMETER_UNEXPECTED_FWD,
         PARAMETER_WILD_LOOSE_COMMA,
+        PARAMETER_UNEXPECTED_NO_KW,
         PATTERN_CAPTURE_DUPLICATE,
         PATTERN_EXPRESSION_AFTER_BRACKET,
         PATTERN_EXPRESSION_AFTER_COMMA,
@@ -10483,8 +10657,10 @@ public abstract class Nodes {
         PATTERN_EXPRESSION_AFTER_PIPE,
         PATTERN_EXPRESSION_AFTER_RANGE,
         PATTERN_EXPRESSION_AFTER_REST,
+        PATTERN_HASH_IMPLICIT,
         PATTERN_HASH_KEY,
         PATTERN_HASH_KEY_DUPLICATE,
+        PATTERN_HASH_KEY_INTERPOLATED,
         PATTERN_HASH_KEY_LABEL,
         PATTERN_HASH_KEY_LOCALS,
         PATTERN_IDENT_AFTER_HROCKET,
@@ -10525,6 +10701,9 @@ public abstract class Nodes {
         UNARY_RECEIVER,
         UNDEF_ARGUMENT,
         UNEXPECTED_BLOCK_ARGUMENT,
+        UNEXPECTED_INDEX_BLOCK,
+        UNEXPECTED_INDEX_KEYWORDS,
+        UNEXPECTED_SAFE_NAVIGATION,
         UNEXPECTED_TOKEN_CLOSE_CONTEXT,
         UNEXPECTED_TOKEN_IGNORE,
         UNTIL_TERM,
@@ -10539,6 +10718,7 @@ public abstract class Nodes {
     public static ErrorType[] ERROR_TYPES = ErrorType.values();
 
     public enum WarningType {
+        AMBIGUOUS_BINARY_OPERATOR,
         AMBIGUOUS_FIRST_ARGUMENT_MINUS,
         AMBIGUOUS_FIRST_ARGUMENT_PLUS,
         AMBIGUOUS_PREFIX_AMPERSAND,
@@ -10548,7 +10728,7 @@ public abstract class Nodes {
         COMPARISON_AFTER_COMPARISON,
         DOT_DOT_DOT_EOL,
         EQUAL_IN_CONDITIONAL,
-        EQUAL_IN_CONDITIONAL_3_3_0,
+        EQUAL_IN_CONDITIONAL_3_3,
         END_IN_METHOD,
         DUPLICATED_HASH_KEY,
         DUPLICATED_WHEN_CLAUSE,
@@ -10561,6 +10741,7 @@ public abstract class Nodes {
         KEYWORD_EOL,
         LITERAL_IN_CONDITION_DEFAULT,
         LITERAL_IN_CONDITION_VERBOSE,
+        SHAREABLE_CONSTANT_VALUE_LINE,
         SHEBANG_CARRIAGE_RETURN,
         UNEXPECTED_CARRIAGE_RETURN,
         UNREACHABLE_STATEMENT,

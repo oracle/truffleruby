@@ -885,6 +885,16 @@ public abstract class AbstractNodeVisitor<T> {
     }
 
     /**
+     * Visit a ItLocalVariableReadNode node.
+     *
+     * @param node The node to visit.
+     * @return The result of visiting the node.
+     */
+    public T visitItLocalVariableReadNode(Nodes.ItLocalVariableReadNode node) {
+        return defaultVisit(node);
+    }
+
+    /**
      * Visit a ItParametersNode node.
      *
      * @param node The node to visit.

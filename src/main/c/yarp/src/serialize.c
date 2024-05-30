@@ -288,7 +288,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             }
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->read_name));
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->write_name));
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_call_operator_write_node_t *)node)->binary_operator));
             pm_serialize_node(parser, (pm_node_t *)((pm_call_operator_write_node_t *)node)->value, buffer);
             break;
         }
@@ -379,7 +379,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_CLASS_VARIABLE_OPERATOR_WRITE_NODE: {
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_class_variable_operator_write_node_t *)node)->name));
             pm_serialize_node(parser, (pm_node_t *)((pm_class_variable_operator_write_node_t *)node)->value, buffer);
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_class_variable_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_class_variable_operator_write_node_t *)node)->binary_operator));
             break;
         }
         case PM_CLASS_VARIABLE_OR_WRITE_NODE: {
@@ -408,7 +408,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_CONSTANT_OPERATOR_WRITE_NODE: {
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_operator_write_node_t *)node)->name));
             pm_serialize_node(parser, (pm_node_t *)((pm_constant_operator_write_node_t *)node)->value, buffer);
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_operator_write_node_t *)node)->binary_operator));
             break;
         }
         case PM_CONSTANT_OR_WRITE_NODE: {
@@ -427,13 +427,13 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             } else {
                 pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_node_t *)node)->parent, buffer);
             }
-            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_node_t *)node)->child, buffer);
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_path_node_t *)node)->name));
             break;
         }
         case PM_CONSTANT_PATH_OPERATOR_WRITE_NODE: {
             pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_operator_write_node_t *)node)->target, buffer);
             pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_operator_write_node_t *)node)->value, buffer);
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_path_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_path_operator_write_node_t *)node)->binary_operator));
             break;
         }
         case PM_CONSTANT_PATH_OR_WRITE_NODE: {
@@ -447,7 +447,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             } else {
                 pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_target_node_t *)node)->parent, buffer);
             }
-            pm_serialize_node(parser, (pm_node_t *)((pm_constant_path_target_node_t *)node)->child, buffer);
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_constant_path_target_node_t *)node)->name));
             break;
         }
         case PM_CONSTANT_PATH_WRITE_NODE: {
@@ -599,7 +599,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_GLOBAL_VARIABLE_OPERATOR_WRITE_NODE: {
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_global_variable_operator_write_node_t *)node)->name));
             pm_serialize_node(parser, (pm_node_t *)((pm_global_variable_operator_write_node_t *)node)->value, buffer);
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_global_variable_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_global_variable_operator_write_node_t *)node)->binary_operator));
             break;
         }
         case PM_GLOBAL_VARIABLE_OR_WRITE_NODE: {
@@ -717,7 +717,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             } else {
                 pm_serialize_node(parser, (pm_node_t *)((pm_index_operator_write_node_t *)node)->block, buffer);
             }
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_index_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_index_operator_write_node_t *)node)->binary_operator));
             pm_serialize_node(parser, (pm_node_t *)((pm_index_operator_write_node_t *)node)->value, buffer);
             break;
         }
@@ -764,7 +764,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_INSTANCE_VARIABLE_OPERATOR_WRITE_NODE: {
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_instance_variable_operator_write_node_t *)node)->name));
             pm_serialize_node(parser, (pm_node_t *)((pm_instance_variable_operator_write_node_t *)node)->value, buffer);
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_instance_variable_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_instance_variable_operator_write_node_t *)node)->binary_operator));
             break;
         }
         case PM_INSTANCE_VARIABLE_OR_WRITE_NODE: {
@@ -833,6 +833,9 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             }
             break;
         }
+        case PM_IT_LOCAL_VARIABLE_READ_NODE: {
+            break;
+        }
         case PM_IT_PARAMETERS_NODE: {
             break;
         }
@@ -877,7 +880,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
         case PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE: {
             pm_serialize_node(parser, (pm_node_t *)((pm_local_variable_operator_write_node_t *)node)->value, buffer);
             pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_local_variable_operator_write_node_t *)node)->name));
-            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_local_variable_operator_write_node_t *)node)->operator));
+            pm_buffer_append_varuint(buffer, pm_sizet_to_u32(((pm_local_variable_operator_write_node_t *)node)->binary_operator));
             pm_buffer_append_varuint(buffer, ((pm_local_variable_operator_write_node_t *)node)->depth);
             break;
         }
@@ -1115,7 +1118,9 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_RATIONAL_NODE: {
-            pm_serialize_node(parser, (pm_node_t *)((pm_rational_node_t *)node)->numeric, buffer);
+            pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
+            pm_serialize_integer(&((pm_rational_node_t *)node)->numerator, buffer);
+            pm_serialize_integer(&((pm_rational_node_t *)node)->denominator, buffer);
             break;
         }
         case PM_REDO_NODE: {
@@ -1173,6 +1178,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_RETURN_NODE: {
+            pm_buffer_append_varuint(buffer, (uint32_t)(node->flags & ~PM_NODE_FLAG_COMMON_MASK));
             if (((pm_return_node_t *)node)->arguments == NULL) {
                 pm_buffer_append_byte(buffer, 0);
             } else {
