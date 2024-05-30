@@ -866,7 +866,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         short readFlags = (short) (node.flags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
 
         final Nodes.Node read = callNode(node, readFlags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
-        final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
+        final Nodes.Node executeOperator = callNode(node, read, node.binary_operator, node.value);
         final Nodes.Node write = callNode(node, writeFlags, readReceiver, node.write_name,
                 executeOperator);
         final RubyNode writeNode = write.accept(this);
@@ -1193,7 +1193,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.ClassVariableWriteNode(node.name,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -1270,7 +1270,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
         final var readNode = new Nodes.ConstantReadNode(node.name, startOffset, length);
-        final var operatorNode = callNode(node, readNode, node.operator, node.value);
+        final var operatorNode = callNode(node, readNode, node.binary_operator, node.value);
         final var writeNode = new Nodes.ConstantWriteNode(node.name, operatorNode, startOffset, length);
 
         return writeNode.accept(this);
@@ -1384,7 +1384,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         int length = node.length;
 
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
-        final var operatorNode = callNode(node, target, node.operator, node.value);
+        final var operatorNode = callNode(node, target, node.binary_operator, node.value);
         final var writeNode = new Nodes.ConstantPathWriteNode(target, operatorNode, startOffset, length);
 
         final RubyNode rubyNode;
@@ -1887,7 +1887,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var readNode = new Nodes.GlobalVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.GlobalVariableWriteNode(node.name,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -2132,7 +2132,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final Nodes.Node read = new Nodes.CallNode(node.flags, readReceiver, "[]",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArguments, 0, 0), blockArgument, 0, 0);
-        final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
+        final Nodes.Node executeOperator = callNode(node, read, node.binary_operator, node.value);
 
         final Nodes.Node[] readArgumentsAndResult = new Nodes.Node[argumentsCount + 1];
         System.arraycopy(readArguments, 0, readArgumentsAndResult, 0, argumentsCount);
@@ -2313,7 +2313,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.InstanceVariableWriteNode(node.name,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -2621,7 +2621,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         int length = node.length;
         var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length);
         var desugared = new Nodes.LocalVariableWriteNode(node.name, node.depth,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
