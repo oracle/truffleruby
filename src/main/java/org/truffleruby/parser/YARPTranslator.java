@@ -1305,7 +1305,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // A::B &&= 1
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
-            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+            target = new Nodes.ConstantPathNode(readParent, node.target.name, node.target.startOffset,
                     node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
@@ -1336,12 +1336,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitConstantPathNode(Nodes.ConstantPathNode node) {
-        // The child field should always be ConstantReadNode if there are no syntax errors.
-        // MissingNode could be assigned as well as an error recovery means,
-        // but we don't handle this case as far as it means there is a syntax error and translation is skipped at all.
-        assert node.child instanceof Nodes.ConstantReadNode;
-
-        final String name = ((Nodes.ConstantReadNode) node.child).name;
         final RubyNode moduleNode;
 
         if (node.parent != null) {
@@ -1352,7 +1346,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        final RubyNode rubyNode = new ReadConstantNode(moduleNode, name);
+        final RubyNode rubyNode = new ReadConstantNode(moduleNode, node.name);
 
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1370,7 +1364,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // A::B += 1
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
-            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+            target = new Nodes.ConstantPathNode(readParent, node.target.name, node.target.startOffset,
                     node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
@@ -1415,7 +1409,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // A::B ||= 1
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
-            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+            target = new Nodes.ConstantPathNode(readParent, node.target.name, node.target.startOffset,
                     node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
@@ -1458,9 +1452,8 @@ public class YARPTranslator extends YARPBaseTranslator {
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        final String name = ((Nodes.ConstantReadNode) constantPathNode.child).name;
         final RubyNode value = node.value.accept(this);
-        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
+        final RubyNode rubyNode = new WriteConstantNode(constantPathNode.name, moduleNode, value);
 
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1476,9 +1469,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        final String name = ((Nodes.ConstantReadNode) node.child).name;
-        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, null);
-
+        final RubyNode rubyNode = new WriteConstantNode(node.name, moduleNode, null);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -1738,7 +1729,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         } else if (node.index instanceof Nodes.ConstantTargetNode target) {
             writeIndex = new Nodes.ConstantWriteNode(target.name, readParameter, 0, 0);
         } else if (node.index instanceof Nodes.ConstantPathTargetNode target) {
-            final var constantPath = new Nodes.ConstantPathNode(target.parent, target.child, 0, 0);
+            final var constantPath = new Nodes.ConstantPathNode(target.parent, target.name, 0, 0);
             writeIndex = new Nodes.ConstantPathWriteNode(constantPath, readParameter, 0, 0);
         } else if (node.index instanceof Nodes.CallTargetNode target) {
             final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ readParameter }, 0, 0);
@@ -2903,7 +2894,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         // Create Prism CallNode to avoid duplication block literal related logic
         final var receiver = new Nodes.ConstantPathNode(
                 new Nodes.ConstantReadNode("Truffle", 0, 0),
-                new Nodes.ConstantReadNode("KernelOperations", 0, 0), 0, 0);
+                "KernelOperations", 0, 0);
         final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ new Nodes.FalseNode(0, 0) }, 0, 0);
         final var block = new Nodes.BlockNode(StringUtils.EMPTY_STRING_ARRAY, null, node.statements, 0, 0);
 

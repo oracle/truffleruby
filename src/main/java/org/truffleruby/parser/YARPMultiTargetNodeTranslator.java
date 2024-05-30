@@ -142,7 +142,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
             // store parent lexical scope (e.g foo in foo::C = ...) in a local variable to evaluate before assigned value
             Nodes.Node readParent = stash(node.parent, "parent");
 
-            node = new Nodes.ConstantPathTargetNode(readParent, node.child, node.startOffset, node.length);
+            node = new Nodes.ConstantPathTargetNode(readParent, node.name, node.startOffset, node.length);
         }
 
         final RubyNode rubyNode = node.accept(yarpTranslator);
