@@ -3,4 +3,3 @@ fails:top-level constant lookup on a class does not search Object after searchin
 fails:Module#private_constant marked constants sends #const_missing to the original class or module
 fails:Literal (A::X) constant resolution uses the module or class #name to craft the error message
 fails:Literal (A::X) constant resolution uses the module or class #inspect to craft the error message if they are anonymous
-fails:Literal (A::X) constant resolution with dynamically assigned constants evaluates left-to-right
