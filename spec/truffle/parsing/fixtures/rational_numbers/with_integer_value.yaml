@@ -2,7 +2,7 @@ subject: "Rational number"
 description: "with Integer value"
 notes: >
   Rational literal with Integer value is represented by `Rational.convert(Integer, 1)`.
-  Integer value is represented by LongFixnumLiteralNode.
+  Integer value is represented by IntegerFixnumLiteralNode.
 focused_on_node: "org.truffleruby.language.dispatch.RubyCallNode"
 ruby: |
   42r
@@ -28,8 +28,8 @@ ast: |
               IntegerFixnumLiteralNode
                   attributes:
                       flags = 0
-                      sourceCharIndex = 0
-                      sourceLength = 2
+                      sourceCharIndex = -1
+                      sourceLength = 0
                       value = 42
               IntegerFixnumLiteralNode
                   attributes:
