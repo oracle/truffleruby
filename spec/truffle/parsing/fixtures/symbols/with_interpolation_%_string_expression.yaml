@@ -60,13 +60,13 @@ ast: |
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
-                                                  StringLiteralNode
+                                                  FrozenStringLiteralNode
                                                       attributes:
-                                                          encoding = UTF-8
+                                                          definition = "expression" (ASCII-8BIT)
                                                           flags = 0
+                                                          frozenString = "123" (UTF-8)
                                                           sourceCharIndex = 7
                                                           sourceLength = 7
-                                                          tstring = 123
                                       ToSNodeGen
                                           children:
                                               valueNode_ =
