@@ -55,7 +55,11 @@ def get_cruby_arch():
     if arch == 'amd64':
         return 'x86_64'
     elif arch == 'aarch64':
-        return 'aarch64'
+        if mx.is_darwin():
+            # CRuby makes exception for macOS and uses `arm64` instead of `aarch64`
+            return 'arm64'
+        else:
+            return 'aarch64'
     else:
         raise Exception("Unknown platform " + arch)
 

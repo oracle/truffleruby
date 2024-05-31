@@ -88,6 +88,30 @@ describe 'RbConfig::CONFIG' do
       end
     end
   end
+
+  guard -> { %w[aarch64 arm64].include? RbConfig::CONFIG['host_cpu'] } do
+    it "['host_cpu'] returns CPU architecture properly for AArch64" do
+      platform_is :darwin do
+        RbConfig::CONFIG['host_cpu'].should == 'arm64'
+      end
+
+      platform_is_not :darwin do
+        RbConfig::CONFIG['host_cpu'].should == 'aarch64'
+      end
+    end
+  end
+
+  guard -> { platform_is(:linux) || platform_is(:darwin) } do
+    it "['host_os'] returns a proper OS name or platform" do
+      platform_is :darwin do
+        RbConfig::CONFIG['host_os'].should.match? /darwin/
+      end
+
+      platform_is :linux do
+        RbConfig::CONFIG['host_os'].should.match? /linux/
+      end
+    end
+  end
 end
 
 describe "RbConfig::TOPDIR" do
