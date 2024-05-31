@@ -19,6 +19,7 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2024-35176 | DoS in REXML | [Fix](https://github.com/ruby/rexml/pull/126/commits/ba70cfefadf7e79885fe08228d1df4c0549ad0f8) | [Test](https://github.com/ruby/rexml/pull/126/commits/ba70cfefadf7e79885fe08228d1df4c0549ad0f8) | [same mitigation as CRuby](https://www.ruby-lang.org/en/news/2024/05/16/dos-rexml-cve-2024-35176/), users must update rexml to 3.2.7+ if they use it
 CVE-2024-27282 | Arbitrary memory address read vulnerability with Regex search | [Fix](https://github.com/ruby/ruby/commit/989a2355808a63fc45367785c82ffd46d18c900a) | | Not applicable thanks to Java semantics
 CVE-2024-27281 | RCE vulnerability with .rdoc_options in RDoc | [Fix](https://github.com/ruby/rdoc/compare/v6.3.3...v6.3.4.1) | [Test](https://github.com/ruby/rdoc/commit/60a6d74ebdbb7d585e379526e5639932fdca2904) | Not applicable because TruffleRuby does not generate rdoc on gem install
 CVE-2024-27280 | Buffer overread vulnerability in StringIO | [Fix](https://github.com/ruby/stringio/compare/v3.0.1...v3.0.1.1) | [Test](https://github.com/ruby/stringio/commit/c58c5f54f1eab99665ea6a161d29ff6a7490afc8) | Not applicable, we use the Ruby implementation of StringIO
@@ -35,6 +36,8 @@ CVE-2021-31810 | Trusting FTP PASV responses vulnerability in Net::FTP | [Fix](h
 CVE-2021-32066 | A StartTLS stripping vulnerability in Net::IMAP | [Fix](https://github.com/ruby/ruby/commit/a21a3b7d23704a01d34bd79d09dc37897e00922a) | [Test](https://github.com/ruby/ruby/commit/a21a3b7d23704a01d34bd79d09dc37897e00922a) | Same
 CVE-2021-31799 | A command injection vulnerability in RDoc | [Fix](https://github.com/ruby/rdoc/commit/a7f5d6ab88632b3b482fe10611382ff73d14eed7) [Backport](https://github.com/ruby/ruby/commit/483f303d02e768b69e476e0b9be4ab2f26389522) | [Test](https://github.com/ruby/rdoc/commit/a7f5d6ab88632b3b482fe10611382ff73d14eed7) | Same
 CVE-2021-28966 | Path traversal in Tempfile on Windows | Sanitization of paths in tmpdir.rb | In `test/mri/tests/test_tmpdir.rb` | Sanitization of paths in tmpdir.rb
+CVE-2020-25613 | Potential HTTP Request Smuggling Vulnerability in WEBrick | [Fix](https://github.com/ruby/webrick/commit/076ac636bf48b7a492887ce4de7041de23e6c00d) | | WEBrick no longer shipped in stdlib
+CVE-2020-10933 | Heap exposure vulnerability in the socket library | [Fix](https://github.com/ruby/ruby/commit/61b7f86248bd121be2e83768be71ef289e8e5b90) | | Not applicable thanks to Java semantics
 CVE-2021-28965 | XML round-trip vulnerability in REXML | Update to REXML 3.2.5 | In ruby/rexml | Update to REXML 3.2.5
 CVE-2020-10663 | Unsafe Object Creation Vulnerability in JSON (Additional fix) | [Fix](https://bugs.ruby-lang.org/issues/16698) | [Spec](https://github.com/ruby/spec/pull/764) | The pure Ruby version of JSON we use is safe
 CVE-2019-16255 | A code injection vulnerability of Shell#[] and Shell#test | [Fix](https://github.com/ruby/ruby/commit/d6adc68dc9c74a33b3ca012af171e2d59f0dea10) | MRI test | Same
@@ -49,6 +52,7 @@ CVE-2019-8322 | Escape sequence injection in `gem owner` | Sanitise message | Te
 CVE-2019-8323 | Escape sequence injection vulnerability in API response handling | Sanitise message | Tested in `ruby/spec` `:security` | Applied the same patch
 CVE-2019-8324 | Installing a malicious gem may lead to arbitrary code execution | Verifying gems before pre-install checks | Tested in MRI `test/rubygems/test_gem_installer.rb` | Applied the same patch
 CVE-2019-8325 | Escape sequence injection in errors | Sanitise error messages | Tested in `ruby/spec` `:security` | Applied the same patch
+None | Multiple vulnerabilities in RubyGems | | | Applied the same patch
 CVE-2018-16395 | `OpenSSL::X509::Name` equality check does not work correctly | | |
 CVE-2018-16396 | Tainted flags are not propagated in `Array#pack` and `String#unpack` with some directives | Additional taint operations | Tested in `ruby/spec` `:security` | Additional taint operations
 CVE-2018-6914 | Unintentional file and directory creation with directory traversal in `tempfile` and `tmpdir` | Sanitization of paths | Tested in `ruby/spec` `:security` | Sanitization of paths
