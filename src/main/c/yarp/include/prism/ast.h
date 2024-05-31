@@ -831,194 +831,197 @@ enum pm_node_type {
     /** InterpolatedXStringNode */
     PM_INTERPOLATED_X_STRING_NODE = 87,
 
+    /** ItLocalVariableReadNode */
+    PM_IT_LOCAL_VARIABLE_READ_NODE = 88,
+
     /** ItParametersNode */
-    PM_IT_PARAMETERS_NODE = 88,
+    PM_IT_PARAMETERS_NODE = 89,
 
     /** KeywordHashNode */
-    PM_KEYWORD_HASH_NODE = 89,
+    PM_KEYWORD_HASH_NODE = 90,
 
     /** KeywordRestParameterNode */
-    PM_KEYWORD_REST_PARAMETER_NODE = 90,
+    PM_KEYWORD_REST_PARAMETER_NODE = 91,
 
     /** LambdaNode */
-    PM_LAMBDA_NODE = 91,
+    PM_LAMBDA_NODE = 92,
 
     /** LocalVariableAndWriteNode */
-    PM_LOCAL_VARIABLE_AND_WRITE_NODE = 92,
+    PM_LOCAL_VARIABLE_AND_WRITE_NODE = 93,
 
     /** LocalVariableOperatorWriteNode */
-    PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE = 93,
+    PM_LOCAL_VARIABLE_OPERATOR_WRITE_NODE = 94,
 
     /** LocalVariableOrWriteNode */
-    PM_LOCAL_VARIABLE_OR_WRITE_NODE = 94,
+    PM_LOCAL_VARIABLE_OR_WRITE_NODE = 95,
 
     /** LocalVariableReadNode */
-    PM_LOCAL_VARIABLE_READ_NODE = 95,
+    PM_LOCAL_VARIABLE_READ_NODE = 96,
 
     /** LocalVariableTargetNode */
-    PM_LOCAL_VARIABLE_TARGET_NODE = 96,
+    PM_LOCAL_VARIABLE_TARGET_NODE = 97,
 
     /** LocalVariableWriteNode */
-    PM_LOCAL_VARIABLE_WRITE_NODE = 97,
+    PM_LOCAL_VARIABLE_WRITE_NODE = 98,
 
     /** MatchLastLineNode */
-    PM_MATCH_LAST_LINE_NODE = 98,
+    PM_MATCH_LAST_LINE_NODE = 99,
 
     /** MatchPredicateNode */
-    PM_MATCH_PREDICATE_NODE = 99,
+    PM_MATCH_PREDICATE_NODE = 100,
 
     /** MatchRequiredNode */
-    PM_MATCH_REQUIRED_NODE = 100,
+    PM_MATCH_REQUIRED_NODE = 101,
 
     /** MatchWriteNode */
-    PM_MATCH_WRITE_NODE = 101,
+    PM_MATCH_WRITE_NODE = 102,
 
     /** MissingNode */
-    PM_MISSING_NODE = 102,
+    PM_MISSING_NODE = 103,
 
     /** ModuleNode */
-    PM_MODULE_NODE = 103,
+    PM_MODULE_NODE = 104,
 
     /** MultiTargetNode */
-    PM_MULTI_TARGET_NODE = 104,
+    PM_MULTI_TARGET_NODE = 105,
 
     /** MultiWriteNode */
-    PM_MULTI_WRITE_NODE = 105,
+    PM_MULTI_WRITE_NODE = 106,
 
     /** NextNode */
-    PM_NEXT_NODE = 106,
+    PM_NEXT_NODE = 107,
 
     /** NilNode */
-    PM_NIL_NODE = 107,
+    PM_NIL_NODE = 108,
 
     /** NoKeywordsParameterNode */
-    PM_NO_KEYWORDS_PARAMETER_NODE = 108,
+    PM_NO_KEYWORDS_PARAMETER_NODE = 109,
 
     /** NumberedParametersNode */
-    PM_NUMBERED_PARAMETERS_NODE = 109,
+    PM_NUMBERED_PARAMETERS_NODE = 110,
 
     /** NumberedReferenceReadNode */
-    PM_NUMBERED_REFERENCE_READ_NODE = 110,
+    PM_NUMBERED_REFERENCE_READ_NODE = 111,
 
     /** OptionalKeywordParameterNode */
-    PM_OPTIONAL_KEYWORD_PARAMETER_NODE = 111,
+    PM_OPTIONAL_KEYWORD_PARAMETER_NODE = 112,
 
     /** OptionalParameterNode */
-    PM_OPTIONAL_PARAMETER_NODE = 112,
+    PM_OPTIONAL_PARAMETER_NODE = 113,
 
     /** OrNode */
-    PM_OR_NODE = 113,
+    PM_OR_NODE = 114,
 
     /** ParametersNode */
-    PM_PARAMETERS_NODE = 114,
+    PM_PARAMETERS_NODE = 115,
 
     /** ParenthesesNode */
-    PM_PARENTHESES_NODE = 115,
+    PM_PARENTHESES_NODE = 116,
 
     /** PinnedExpressionNode */
-    PM_PINNED_EXPRESSION_NODE = 116,
+    PM_PINNED_EXPRESSION_NODE = 117,
 
     /** PinnedVariableNode */
-    PM_PINNED_VARIABLE_NODE = 117,
+    PM_PINNED_VARIABLE_NODE = 118,
 
     /** PostExecutionNode */
-    PM_POST_EXECUTION_NODE = 118,
+    PM_POST_EXECUTION_NODE = 119,
 
     /** PreExecutionNode */
-    PM_PRE_EXECUTION_NODE = 119,
+    PM_PRE_EXECUTION_NODE = 120,
 
     /** ProgramNode */
-    PM_PROGRAM_NODE = 120,
+    PM_PROGRAM_NODE = 121,
 
     /** RangeNode */
-    PM_RANGE_NODE = 121,
+    PM_RANGE_NODE = 122,
 
     /** RationalNode */
-    PM_RATIONAL_NODE = 122,
+    PM_RATIONAL_NODE = 123,
 
     /** RedoNode */
-    PM_REDO_NODE = 123,
+    PM_REDO_NODE = 124,
 
     /** RegularExpressionNode */
-    PM_REGULAR_EXPRESSION_NODE = 124,
+    PM_REGULAR_EXPRESSION_NODE = 125,
 
     /** RequiredKeywordParameterNode */
-    PM_REQUIRED_KEYWORD_PARAMETER_NODE = 125,
+    PM_REQUIRED_KEYWORD_PARAMETER_NODE = 126,
 
     /** RequiredParameterNode */
-    PM_REQUIRED_PARAMETER_NODE = 126,
+    PM_REQUIRED_PARAMETER_NODE = 127,
 
     /** RescueModifierNode */
-    PM_RESCUE_MODIFIER_NODE = 127,
+    PM_RESCUE_MODIFIER_NODE = 128,
 
     /** RescueNode */
-    PM_RESCUE_NODE = 128,
+    PM_RESCUE_NODE = 129,
 
     /** RestParameterNode */
-    PM_REST_PARAMETER_NODE = 129,
+    PM_REST_PARAMETER_NODE = 130,
 
     /** RetryNode */
-    PM_RETRY_NODE = 130,
+    PM_RETRY_NODE = 131,
 
     /** ReturnNode */
-    PM_RETURN_NODE = 131,
+    PM_RETURN_NODE = 132,
 
     /** SelfNode */
-    PM_SELF_NODE = 132,
+    PM_SELF_NODE = 133,
 
     /** ShareableConstantNode */
-    PM_SHAREABLE_CONSTANT_NODE = 133,
+    PM_SHAREABLE_CONSTANT_NODE = 134,
 
     /** SingletonClassNode */
-    PM_SINGLETON_CLASS_NODE = 134,
+    PM_SINGLETON_CLASS_NODE = 135,
 
     /** SourceEncodingNode */
-    PM_SOURCE_ENCODING_NODE = 135,
+    PM_SOURCE_ENCODING_NODE = 136,
 
     /** SourceFileNode */
-    PM_SOURCE_FILE_NODE = 136,
+    PM_SOURCE_FILE_NODE = 137,
 
     /** SourceLineNode */
-    PM_SOURCE_LINE_NODE = 137,
+    PM_SOURCE_LINE_NODE = 138,
 
     /** SplatNode */
-    PM_SPLAT_NODE = 138,
+    PM_SPLAT_NODE = 139,
 
     /** StatementsNode */
-    PM_STATEMENTS_NODE = 139,
+    PM_STATEMENTS_NODE = 140,
 
     /** StringNode */
-    PM_STRING_NODE = 140,
+    PM_STRING_NODE = 141,
 
     /** SuperNode */
-    PM_SUPER_NODE = 141,
+    PM_SUPER_NODE = 142,
 
     /** SymbolNode */
-    PM_SYMBOL_NODE = 142,
+    PM_SYMBOL_NODE = 143,
 
     /** TrueNode */
-    PM_TRUE_NODE = 143,
+    PM_TRUE_NODE = 144,
 
     /** UndefNode */
-    PM_UNDEF_NODE = 144,
+    PM_UNDEF_NODE = 145,
 
     /** UnlessNode */
-    PM_UNLESS_NODE = 145,
+    PM_UNLESS_NODE = 146,
 
     /** UntilNode */
-    PM_UNTIL_NODE = 146,
+    PM_UNTIL_NODE = 147,
 
     /** WhenNode */
-    PM_WHEN_NODE = 147,
+    PM_WHEN_NODE = 148,
 
     /** WhileNode */
-    PM_WHILE_NODE = 148,
+    PM_WHILE_NODE = 149,
 
     /** XStringNode */
-    PM_X_STRING_NODE = 149,
+    PM_X_STRING_NODE = 150,
 
     /** YieldNode */
-    PM_YIELD_NODE = 150,
+    PM_YIELD_NODE = 151,
 
     /** A special kind of node used for compilation. */
     PM_SCOPE_NODE
@@ -1235,6 +1238,7 @@ typedef struct pm_and_node {
  *
  * Type: PM_ARGUMENTS_NODE
  * Flags:
+ *    PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORDS
  *    PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORD_SPLAT
  *
  * @extends pm_node_t
@@ -1817,14 +1821,14 @@ typedef struct pm_call_operator_write_node {
     pm_constant_id_t write_name;
 
     /**
-     * CallOperatorWriteNode#operator
+     * CallOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 
     /**
-     * CallOperatorWriteNode#operator_loc
+     * CallOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * CallOperatorWriteNode#value
@@ -2128,9 +2132,9 @@ typedef struct pm_class_variable_operator_write_node {
     pm_location_t name_loc;
 
     /**
-     * ClassVariableOperatorWriteNode#operator_loc
+     * ClassVariableOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * ClassVariableOperatorWriteNode#value
@@ -2138,9 +2142,9 @@ typedef struct pm_class_variable_operator_write_node {
     struct pm_node *value;
 
     /**
-     * ClassVariableOperatorWriteNode#operator
+     * ClassVariableOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 } pm_class_variable_operator_write_node_t;
 
 /**
@@ -2325,9 +2329,9 @@ typedef struct pm_constant_operator_write_node {
     pm_location_t name_loc;
 
     /**
-     * ConstantOperatorWriteNode#operator_loc
+     * ConstantOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * ConstantOperatorWriteNode#value
@@ -2335,9 +2339,9 @@ typedef struct pm_constant_operator_write_node {
     struct pm_node *value;
 
     /**
-     * ConstantOperatorWriteNode#operator
+     * ConstantOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 } pm_constant_operator_write_node_t;
 
 /**
@@ -2427,21 +2431,11 @@ typedef struct pm_constant_path_node {
     struct pm_node *parent;
 
     /**
-     * ConstantPathNode#child
+     * ConstantPathNode#name
      *
-     * The right-hand node of the path. Always a `ConstantReadNode` in a
-     * valid Ruby syntax tree.
-     *
-     *     ::Foo
-     *       ^^^
-     *
-     *     self::Test
-     *           ^^^^
-     *
-     *     a.b::C
-     *          ^
+     * The name of the constant being accessed. This could be `nil` in the event of a syntax error.
      */
-    struct pm_node *child;
+    pm_constant_id_t name;
 
     /**
      * ConstantPathNode#delimiter_loc
@@ -2455,6 +2449,19 @@ typedef struct pm_constant_path_node {
      *        ^^
      */
     pm_location_t delimiter_loc;
+
+    /**
+     * ConstantPathNode#name_loc
+     *
+     * The location of the name of the constant.
+     *
+     *     ::Foo
+     *       ^^^
+     *
+     *     One::Two
+     *          ^^^
+     */
+    pm_location_t name_loc;
 } pm_constant_path_node_t;
 
 /**
@@ -2474,9 +2481,9 @@ typedef struct pm_constant_path_operator_write_node {
     struct pm_constant_path_node *target;
 
     /**
-     * ConstantPathOperatorWriteNode#operator_loc
+     * ConstantPathOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * ConstantPathOperatorWriteNode#value
@@ -2484,9 +2491,9 @@ typedef struct pm_constant_path_operator_write_node {
     struct pm_node *value;
 
     /**
-     * ConstantPathOperatorWriteNode#operator
+     * ConstantPathOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 } pm_constant_path_operator_write_node_t;
 
 /**
@@ -2533,14 +2540,19 @@ typedef struct pm_constant_path_target_node {
     struct pm_node *parent;
 
     /**
-     * ConstantPathTargetNode#child
+     * ConstantPathTargetNode#name
      */
-    struct pm_node *child;
+    pm_constant_id_t name;
 
     /**
      * ConstantPathTargetNode#delimiter_loc
      */
     pm_location_t delimiter_loc;
+
+    /**
+     * ConstantPathTargetNode#name_loc
+     */
+    pm_location_t name_loc;
 } pm_constant_path_target_node_t;
 
 /**
@@ -3006,36 +3018,73 @@ typedef struct pm_for_node {
 
     /**
      * ForNode#index
+     *
+     * The index expression for `for` loops.
+     *
+     *     for i in a end
+     *         ^
      */
     struct pm_node *index;
 
     /**
      * ForNode#collection
+     *
+     * The collection to iterate over.
+     *
+     *     for i in a end
+     *              ^
      */
     struct pm_node *collection;
 
     /**
      * ForNode#statements
+     *
+     * Represents the body of statements to execute for each iteration of the loop.
+     *
+     *     for i in a
+     *       foo(i)
+     *       ^^^^^^
+     *     end
      */
     struct pm_statements_node *statements;
 
     /**
      * ForNode#for_keyword_loc
+     *
+     * The location of the `for` keyword.
+     *
+     *     for i in a end
+     *     ^^^
      */
     pm_location_t for_keyword_loc;
 
     /**
      * ForNode#in_keyword_loc
+     *
+     * The location of the `in` keyword.
+     *
+     *     for i in a end
+     *           ^^
      */
     pm_location_t in_keyword_loc;
 
     /**
      * ForNode#do_keyword_loc
+     *
+     * The location of the `do` keyword, if present.
+     *
+     *     for i in a do end
+     *                ^^
      */
     pm_location_t do_keyword_loc;
 
     /**
      * ForNode#end_keyword_loc
+     *
+     * The location of the `end` keyword.
+     *
+     *     for i in a end
+     *                ^^^
      */
     pm_location_t end_keyword_loc;
 } pm_for_node_t;
@@ -3135,9 +3184,9 @@ typedef struct pm_global_variable_operator_write_node {
     pm_location_t name_loc;
 
     /**
-     * GlobalVariableOperatorWriteNode#operator_loc
+     * GlobalVariableOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * GlobalVariableOperatorWriteNode#value
@@ -3145,9 +3194,9 @@ typedef struct pm_global_variable_operator_write_node {
     struct pm_node *value;
 
     /**
-     * GlobalVariableOperatorWriteNode#operator
+     * GlobalVariableOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 } pm_global_variable_operator_write_node_t;
 
 /**
@@ -3642,14 +3691,14 @@ typedef struct pm_index_operator_write_node {
     struct pm_node *block;
 
     /**
-     * IndexOperatorWriteNode#operator
+     * IndexOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 
     /**
-     * IndexOperatorWriteNode#operator_loc
+     * IndexOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * IndexOperatorWriteNode#value
@@ -3810,9 +3859,9 @@ typedef struct pm_instance_variable_operator_write_node {
     pm_location_t name_loc;
 
     /**
-     * InstanceVariableOperatorWriteNode#operator_loc
+     * InstanceVariableOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * InstanceVariableOperatorWriteNode#value
@@ -3820,9 +3869,9 @@ typedef struct pm_instance_variable_operator_write_node {
     struct pm_node *value;
 
     /**
-     * InstanceVariableOperatorWriteNode#operator
+     * InstanceVariableOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 } pm_instance_variable_operator_write_node_t;
 
 /**
@@ -4140,6 +4189,18 @@ typedef struct pm_interpolated_x_string_node {
 } pm_interpolated_x_string_node_t;
 
 /**
+ * ItLocalVariableReadNode
+ *
+ * Type: PM_IT_LOCAL_VARIABLE_READ_NODE
+ *
+ * @extends pm_node_t
+ */
+typedef struct pm_it_local_variable_read_node {
+    /** The embedded base node. */
+    pm_node_t base;
+} pm_it_local_variable_read_node_t;
+
+/**
  * ItParametersNode
  *
  * Type: PM_IT_PARAMETERS_NODE
@@ -4295,9 +4356,9 @@ typedef struct pm_local_variable_operator_write_node {
     pm_location_t name_loc;
 
     /**
-     * LocalVariableOperatorWriteNode#operator_loc
+     * LocalVariableOperatorWriteNode#binary_operator_loc
      */
-    pm_location_t operator_loc;
+    pm_location_t binary_operator_loc;
 
     /**
      * LocalVariableOperatorWriteNode#value
@@ -4310,9 +4371,9 @@ typedef struct pm_local_variable_operator_write_node {
     pm_constant_id_t name;
 
     /**
-     * LocalVariableOperatorWriteNode#operator
+     * LocalVariableOperatorWriteNode#binary_operator
      */
-    pm_constant_id_t operator;
+    pm_constant_id_t binary_operator;
 
     /**
      * LocalVariableOperatorWriteNode#depth
@@ -4380,10 +4441,6 @@ typedef struct pm_local_variable_read_node {
      * Note that this can also be an underscore followed by a number for the default block parameters.
      *
      *     _1     # name `:_1`
-     *
-     * Finally, for the default `it` block parameter, the name is `0it`. This is to distinguish it from an `it` local variable that is explicitly declared.
-     *
-     *     it     # name `:0it`
      */
     pm_constant_id_t name;
 
@@ -5229,6 +5286,11 @@ typedef struct pm_range_node {
  * RationalNode
  *
  * Type: PM_RATIONAL_NODE
+ * Flags:
+ *    PM_INTEGER_BASE_FLAGS_BINARY
+ *    PM_INTEGER_BASE_FLAGS_DECIMAL
+ *    PM_INTEGER_BASE_FLAGS_OCTAL
+ *    PM_INTEGER_BASE_FLAGS_HEXADECIMAL
  *
  * @extends pm_node_t
  */
@@ -5237,9 +5299,22 @@ typedef struct pm_rational_node {
     pm_node_t base;
 
     /**
-     * RationalNode#numeric
+     * RationalNode#numerator
+     *
+     * The numerator of the rational number.
+     *
+     *     1.5r # numerator 3
      */
-    struct pm_node *numeric;
+    pm_integer_t numerator;
+
+    /**
+     * RationalNode#denominator
+     *
+     * The denominator of the rational number.
+     *
+     *     1.5r # denominator 2
+     */
+    pm_integer_t denominator;
 } pm_rational_node_t;
 
 /**
@@ -5455,6 +5530,8 @@ typedef struct pm_retry_node {
  * ReturnNode
  *
  * Type: PM_RETURN_NODE
+ * Flags:
+ *    PM_RETURN_NODE_FLAGS_REDUNDANT
  *
  * @extends pm_node_t
  */
@@ -5822,7 +5899,9 @@ typedef struct pm_unless_node {
      * UnlessNode#then_keyword_loc
      *
      * The location of the `then` keyword, if present.
-     * unless cond then bar end ^^^^
+     *
+     *     unless cond then bar end
+     *                 ^^^^
      */
     pm_location_t then_keyword_loc;
 
@@ -6029,8 +6108,11 @@ typedef struct pm_yield_node {
  * Flags for arguments nodes.
  */
 typedef enum pm_arguments_node_flags {
+    /** if arguments contain keywords */
+    PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORDS = 1,
+
     /** if arguments contain keyword splat */
-    PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORD_SPLAT = 1,
+    PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORD_SPLAT = 2,
 } pm_arguments_node_flags_t;
 
 /**
@@ -6166,6 +6248,14 @@ typedef enum pm_regular_expression_flags {
     /** internal bytes forced the encoding to US-ASCII */
     PM_REGULAR_EXPRESSION_FLAGS_FORCED_US_ASCII_ENCODING = 1024,
 } pm_regular_expression_flags_t;
+
+/**
+ * Flags for return nodes.
+ */
+typedef enum pm_return_node_flags {
+    /** a return statement that is redundant because it is the last statement in a method */
+    PM_RETURN_NODE_FLAGS_REDUNDANT = 1,
+} pm_return_node_flags_t;
 
 /**
  * Flags for shareable constant nodes.

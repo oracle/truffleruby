@@ -47,7 +47,6 @@ import org.truffleruby.core.regexp.MatchDataNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rescue.AssignRescueVariableNode;
-import org.truffleruby.core.string.ConvertBytes;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.InterpolatedStringNode;
@@ -866,7 +865,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         short readFlags = (short) (node.flags & ~Nodes.CallNodeFlags.SAFE_NAVIGATION);
 
         final Nodes.Node read = callNode(node, readFlags, readReceiver, node.read_name, Nodes.Node.EMPTY_ARRAY);
-        final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
+        final Nodes.Node executeOperator = callNode(node, read, node.binary_operator, node.value);
         final Nodes.Node write = callNode(node, writeFlags, readReceiver, node.write_name,
                 executeOperator);
         final RubyNode writeNode = write.accept(this);
@@ -1193,7 +1192,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var readNode = new Nodes.ClassVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.ClassVariableWriteNode(node.name,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -1270,7 +1269,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
         final var readNode = new Nodes.ConstantReadNode(node.name, startOffset, length);
-        final var operatorNode = callNode(node, readNode, node.operator, node.value);
+        final var operatorNode = callNode(node, readNode, node.binary_operator, node.value);
         final var writeNode = new Nodes.ConstantWriteNode(node.name, operatorNode, startOffset, length);
 
         return writeNode.accept(this);
@@ -1305,7 +1304,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // A::B &&= 1
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
-            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+            target = new Nodes.ConstantPathNode(readParent, node.target.name, node.target.startOffset,
                     node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
@@ -1336,12 +1335,6 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitConstantPathNode(Nodes.ConstantPathNode node) {
-        // The child field should always be ConstantReadNode if there are no syntax errors.
-        // MissingNode could be assigned as well as an error recovery means,
-        // but we don't handle this case as far as it means there is a syntax error and translation is skipped at all.
-        assert node.child instanceof Nodes.ConstantReadNode;
-
-        final String name = ((Nodes.ConstantReadNode) node.child).name;
         final RubyNode moduleNode;
 
         if (node.parent != null) {
@@ -1352,7 +1345,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        final RubyNode rubyNode = new ReadConstantNode(moduleNode, name);
+        final RubyNode rubyNode = new ReadConstantNode(moduleNode, node.name);
 
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1370,7 +1363,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // A::B += 1
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
-            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+            target = new Nodes.ConstantPathNode(readParent, node.target.name, node.target.startOffset,
                     node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
@@ -1384,7 +1377,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         int length = node.length;
 
         // Use Nodes.CallNode and translate it to produce inlined operator nodes
-        final var operatorNode = callNode(node, target, node.operator, node.value);
+        final var operatorNode = callNode(node, target, node.binary_operator, node.value);
         final var writeNode = new Nodes.ConstantPathWriteNode(target, operatorNode, startOffset, length);
 
         final RubyNode rubyNode;
@@ -1415,7 +1408,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // A::B ||= 1
             var parentExpression = new YARPExecutedOnceExpression("value", node.target.parent, this);
             Nodes.Node readParent = parentExpression.getReadYARPNode();
-            target = new Nodes.ConstantPathNode(readParent, node.target.child, node.target.startOffset,
+            target = new Nodes.ConstantPathNode(readParent, node.target.name, node.target.startOffset,
                     node.target.length);
 
             writeParentNode = parentExpression.getWriteNode();
@@ -1458,9 +1451,8 @@ public class YARPTranslator extends YARPBaseTranslator {
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        final String name = ((Nodes.ConstantReadNode) constantPathNode.child).name;
         final RubyNode value = node.value.accept(this);
-        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, value);
+        final RubyNode rubyNode = new WriteConstantNode(constantPathNode.name, moduleNode, value);
 
         return assignPositionAndFlags(node, rubyNode);
     }
@@ -1476,9 +1468,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             moduleNode = new ObjectClassLiteralNode();
         }
 
-        final String name = ((Nodes.ConstantReadNode) node.child).name;
-        final RubyNode rubyNode = new WriteConstantNode(name, moduleNode, null);
-
+        final RubyNode rubyNode = new WriteConstantNode(node.name, moduleNode, null);
         return assignPositionAndFlags(node, rubyNode);
     }
 
@@ -1738,7 +1728,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         } else if (node.index instanceof Nodes.ConstantTargetNode target) {
             writeIndex = new Nodes.ConstantWriteNode(target.name, readParameter, 0, 0);
         } else if (node.index instanceof Nodes.ConstantPathTargetNode target) {
-            final var constantPath = new Nodes.ConstantPathNode(target.parent, target.child, 0, 0);
+            final var constantPath = new Nodes.ConstantPathNode(target.parent, target.name, 0, 0);
             writeIndex = new Nodes.ConstantPathWriteNode(constantPath, readParameter, 0, 0);
         } else if (node.index instanceof Nodes.CallTargetNode target) {
             final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ readParameter }, 0, 0);
@@ -1887,7 +1877,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var readNode = new Nodes.GlobalVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.GlobalVariableWriteNode(node.name,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -2132,7 +2122,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final Nodes.Node read = new Nodes.CallNode(node.flags, readReceiver, "[]",
                 new Nodes.ArgumentsNode(NO_FLAGS, readArguments, 0, 0), blockArgument, 0, 0);
-        final Nodes.Node executeOperator = callNode(node, read, node.operator, node.value);
+        final Nodes.Node executeOperator = callNode(node, read, node.binary_operator, node.value);
 
         final Nodes.Node[] readArgumentsAndResult = new Nodes.Node[argumentsCount + 1];
         System.arraycopy(readArguments, 0, readArgumentsAndResult, 0, argumentsCount);
@@ -2313,7 +2303,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         var readNode = new Nodes.InstanceVariableReadNode(node.name, startOffset, length);
         var desugared = new Nodes.InstanceVariableWriteNode(node.name,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -2355,19 +2345,20 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitIntegerNode(Nodes.IntegerNode node) {
-        Object value = node.value;
-        final RubyNode rubyNode;
+        final RubyNode rubyNode = translateNumericValue(node.value);
+        return assignPositionAndFlags(node, rubyNode);
+    }
+
+    private RubyNode translateNumericValue(Object value) {
         if (value instanceof Integer i) {
-            rubyNode = new IntegerFixnumLiteralNode(i);
+            return new IntegerFixnumLiteralNode(i);
         } else if (value instanceof Long l) {
-            rubyNode = new LongFixnumLiteralNode(l);
+            return new LongFixnumLiteralNode(l);
         } else if (value instanceof BigInteger bigInteger) {
-            rubyNode = new ObjectLiteralNode(new RubyBignum(bigInteger));
+            return new ObjectLiteralNode(new RubyBignum(bigInteger));
         } else {
             throw CompilerDirectives.shouldNotReachHere(value.getClass().getName());
         }
-
-        return assignPositionAndFlags(node, rubyNode);
     }
 
     @Override
@@ -2563,6 +2554,11 @@ public class YARPTranslator extends YARPBaseTranslator {
     }
 
     @Override
+    public RubyNode visitItLocalVariableReadNode(Nodes.ItLocalVariableReadNode node) {
+        throw CompilerDirectives.shouldNotReachHere("ItLocalVariableReadNode is only from Ruby 3.4");
+    }
+
+    @Override
     public RubyNode visitItParametersNode(Nodes.ItParametersNode node) {
         throw CompilerDirectives.shouldNotReachHere("ItParametersNode is only from Ruby 3.4");
     }
@@ -2621,7 +2617,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         int length = node.length;
         var readNode = new Nodes.LocalVariableReadNode(node.name, node.depth, startOffset, length);
         var desugared = new Nodes.LocalVariableWriteNode(node.name, node.depth,
-                callNode(node, readNode, node.operator, node.value), startOffset, length);
+                callNode(node, readNode, node.binary_operator, node.value), startOffset, length);
         return desugared.accept(this);
     }
 
@@ -2903,7 +2899,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         // Create Prism CallNode to avoid duplication block literal related logic
         final var receiver = new Nodes.ConstantPathNode(
                 new Nodes.ConstantReadNode("Truffle", 0, 0),
-                new Nodes.ConstantReadNode("KernelOperations", 0, 0), 0, 0);
+                "KernelOperations", 0, 0);
         final var arguments = new Nodes.ArgumentsNode(NO_FLAGS, new Nodes.Node[]{ new Nodes.FalseNode(0, 0) }, 0, 0);
         final var block = new Nodes.BlockNode(StringUtils.EMPTY_STRING_ARRAY, null, node.statements, 0, 0);
 
@@ -2958,63 +2954,12 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         final RubyNode objectClassNode = new ObjectClassLiteralNode();
         final ReadConstantNode rationalModuleNode = new ReadConstantNode(objectClassNode, "Rational");
-        final RubyNode numeratorNode;
-        final RubyNode denominatorNode;
-
-        // Handle rational float literals differently and avoid Java float/double types to not lose precision.
-        // So normalize numerator and denominator, e.g 3.14r literal is translated into Rational(314, 100).
-        // The other option is to represent rational float literals as a String and rely on parsing String literals in
-        // the Kernel#Rational() method. The downside is worse performance due to repeated runtime calls vs once at
-        // translation time.
-        if (node.numeric instanceof Nodes.FloatNode floatNode) {
-            // Translate as Rational.convert(numerator, denominator).
-
-            // Assume float literal is in the ddd.ddd format and
-            // scientific format (e.g. 1.23e10) is not valid in Rational literals.
-            // Also assume a Float literal could be only decimal (so 0x1.2r literal is invalid).
-            String string = toString(floatNode).replaceAll("_", ""); // remove '_' characters
-            int pointIndex = string.indexOf('.');
-            assert pointIndex != -1; // float literal in Ruby must contain '.'
-
-            int fractionLength = string.length() - pointIndex - 1;
-            assert fractionLength > 0;
-
-            String numerator = string.replace(".", ""); // remove float point
-            numeratorNode = translateIntegerLiteralString(numerator); // string literal may have leading "0" (e.g. for 0.1r) so specify base explicitly
-
-            String denominator = "1" + "0".repeat(fractionLength);
-            denominatorNode = translateIntegerLiteralString(denominator);
-        } else {
-            // Translate as Rational.convert(n, 1)
-            numeratorNode = node.numeric.accept(this);
-            denominatorNode = new IntegerFixnumLiteralNode(1);
-        }
+        final RubyNode numeratorNode = translateNumericValue(node.numerator);
+        final RubyNode denominatorNode = translateNumericValue(node.denominator);
 
         RubyNode[] arguments = new RubyNode[]{ numeratorNode, denominatorNode };
-
         RubyNode rubyNode = createCallNode(rationalModuleNode, "convert", arguments);
         return assignPositionAndFlags(node, rubyNode);
-    }
-
-    /** Parse Integer literal ourselves. */
-    private RubyNode translateIntegerLiteralString(String string) {
-        final RubyNode rubyNode;
-        TruffleString tstring = toTString(string);
-
-        Object numeratorInteger = ConvertBytes.bytesToInum(RubyLanguage.getCurrentContext(), null, tstring,
-                sourceEncoding, 10, true);
-
-        if (numeratorInteger instanceof Integer i) {
-            rubyNode = new IntegerFixnumLiteralNode(i);
-        } else if (numeratorInteger instanceof Long l) {
-            rubyNode = new LongFixnumLiteralNode(l);
-        } else if (numeratorInteger instanceof RubyBignum bignum) {
-            rubyNode = new ObjectLiteralNode(bignum);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere(numeratorInteger.getClass().getName());
-        }
-
-        return rubyNode;
     }
 
     @Override

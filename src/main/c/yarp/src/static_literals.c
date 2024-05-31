@@ -1,5 +1,21 @@
 #include "prism/static_literals.h"
 
+/**
+ * A small struct used for passing around a subset of the information that is
+ * stored on the parser. We use this to avoid having static literals explicitly
+ * depend on the parser struct.
+ */
+typedef struct {
+    /** The list of newline offsets to use to calculate line numbers. */
+    const pm_newline_list_t *newline_list;
+
+    /** The line number that the parser starts on. */
+    int32_t start_line;
+
+    /** The name of the encoding that the parser is using. */
+    const char *encoding_name;
+} pm_static_literals_metadata_t;
+
 static inline uint32_t
 murmur_scramble(uint32_t value) {
     value *= 0xcc9e2d51;
@@ -43,32 +59,40 @@ murmur_hash(const uint8_t *key, size_t length) {
 }
 
 /**
+ * Hash the value of an integer and return it.
+ */
+static uint32_t
+integer_hash(const pm_integer_t *integer) {
+    uint32_t hash;
+    if (integer->values) {
+        hash = murmur_hash((const uint8_t *) integer->values, sizeof(uint32_t) * integer->length);
+    } else {
+        hash = murmur_hash((const uint8_t *) &integer->value, sizeof(uint32_t));
+    }
+
+    if (integer->negative) {
+        hash ^= murmur_scramble((uint32_t) 1);
+    }
+
+    return hash;
+}
+
+/**
  * Return the hash of the given node. It is important that nodes that have
  * equivalent static literal values have the same hash. This is because we use
  * these hashes to look for duplicates.
  */
 static uint32_t
-node_hash(const pm_parser_t *parser, const pm_node_t *node) {
+node_hash(const pm_static_literals_metadata_t *metadata, const pm_node_t *node) {
     switch (PM_NODE_TYPE(node)) {
         case PM_INTEGER_NODE: {
             // Integers hash their value.
-            const pm_integer_t *integer = &((const pm_integer_node_t *) node)->value;
-            uint32_t hash;
-            if (integer->values) {
-                hash = murmur_hash((const uint8_t *) integer->values, sizeof(uint32_t) * integer->length);
-            } else {
-                hash = murmur_hash((const uint8_t *) &integer->value, sizeof(uint32_t));
-            }
-
-            if (integer->negative) {
-                hash ^= murmur_scramble((uint32_t) 1);
-            }
-
-            return hash;
+            const pm_integer_node_t *cast = (const pm_integer_node_t *) node;
+            return integer_hash(&cast->value);
         }
         case PM_SOURCE_LINE_NODE: {
             // Source lines hash their line number.
-            const pm_line_column_t line_column = pm_newline_list_line_column(&parser->newline_list, node->location.start, parser->start_line);
+            const pm_line_column_t line_column = pm_newline_list_line_column(metadata->newline_list, node->location.start, metadata->start_line);
             const int32_t *value = &line_column.line;
             return murmur_hash((const uint8_t *) value, sizeof(int32_t));
         }
@@ -78,18 +102,16 @@ node_hash(const pm_parser_t *parser, const pm_node_t *node) {
             return murmur_hash((const uint8_t *) value, sizeof(double));
         }
         case PM_RATIONAL_NODE: {
-            // Rationals hash their numeric value. Because their numeric value
-            // is stored as a subnode, we hash that node and then mix in the
-            // fact that this is a rational node.
-            const pm_node_t *numeric = ((const pm_rational_node_t *) node)->numeric;
-            return node_hash(parser, numeric) ^ murmur_scramble((uint32_t) node->type);
+            // Rationals hash their numerator and denominator.
+            const pm_rational_node_t *cast = (const pm_rational_node_t *) node;
+            return integer_hash(&cast->numerator) ^ integer_hash(&cast->denominator) ^ murmur_scramble((uint32_t) cast->base.type);
         }
         case PM_IMAGINARY_NODE: {
             // Imaginaries hash their numeric value. Because their numeric value
             // is stored as a subnode, we hash that node and then mix in the
             // fact that this is an imaginary node.
             const pm_node_t *numeric = ((const pm_imaginary_node_t *) node)->numeric;
-            return node_hash(parser, numeric) ^ murmur_scramble((uint32_t) node->type);
+            return node_hash(metadata, numeric) ^ murmur_scramble((uint32_t) node->type);
         }
         case PM_STRING_NODE: {
             // Strings hash their value and mix in their flags so that different
@@ -132,7 +154,7 @@ node_hash(const pm_parser_t *parser, const pm_node_t *node) {
  * and must be able to compare all node types that will be stored in this hash.
  */
 static pm_node_t *
-pm_node_hash_insert(pm_node_hash_t *hash, const pm_parser_t *parser, pm_node_t *node, int (*compare)(const pm_parser_t *parser, const pm_node_t *left, const pm_node_t *right)) {
+pm_node_hash_insert(pm_node_hash_t *hash, const pm_static_literals_metadata_t *metadata, pm_node_t *node, bool replace, int (*compare)(const pm_static_literals_metadata_t *metadata, const pm_node_t *left, const pm_node_t *right)) {
     // If we are out of space, we need to resize the hash. This will cause all
     // of the nodes to be rehashed and reinserted into the new hash.
     if (hash->size * 2 >= hash->capacity) {
@@ -152,7 +174,7 @@ pm_node_hash_insert(pm_node_hash_t *hash, const pm_parser_t *parser, pm_node_t *
             pm_node_t *node = hash->nodes[index];
 
             if (node != NULL) {
-                uint32_t index = node_hash(parser, node) & mask;
+                uint32_t index = node_hash(metadata, node) & mask;
                 new_nodes[index] = node;
             }
         }
@@ -165,14 +187,14 @@ pm_node_hash_insert(pm_node_hash_t *hash, const pm_parser_t *parser, pm_node_t *
 
     // Now, insert the node into the hash.
     uint32_t mask = hash->capacity - 1;
-    uint32_t index = node_hash(parser, node) & mask;
+    uint32_t index = node_hash(metadata, node) & mask;
 
     // We use linear probing to resolve collisions. This means that if the
     // current index is occupied, we will move to the next index and try again.
     // We are guaranteed that this will eventually find an empty slot because we
     // resize the hash when it gets too full.
     while (hash->nodes[index] != NULL) {
-        if (compare(parser, hash->nodes[index], node) == 0) break;
+        if (compare(metadata, hash->nodes[index], node) == 0) break;
         index = (index + 1) & mask;
     }
 
@@ -180,9 +202,14 @@ pm_node_hash_insert(pm_node_hash_t *hash, const pm_parser_t *parser, pm_node_t *
     // already in the hash. Otherwise, we can just increment the size and insert
     // the new node.
     pm_node_t *result = hash->nodes[index];
-    if (result == NULL) hash->size++;
 
-    hash->nodes[index] = node;
+    if (result == NULL) {
+        hash->size++;
+        hash->nodes[index] = node;
+    } else if (replace) {
+        hash->nodes[index] = node;
+    }
+
     return result;
 }
 
@@ -203,7 +230,7 @@ pm_node_hash_free(pm_node_hash_t *hash) {
  * Return the integer value of the given node as an int64_t.
  */
 static int64_t
-pm_int64_value(const pm_parser_t *parser, const pm_node_t *node) {
+pm_int64_value(const pm_static_literals_metadata_t *metadata, const pm_node_t *node) {
     switch (PM_NODE_TYPE(node)) {
         case PM_INTEGER_NODE: {
             const pm_integer_t *integer = &((const pm_integer_node_t *) node)->value;
@@ -213,7 +240,7 @@ pm_int64_value(const pm_parser_t *parser, const pm_node_t *node) {
             return integer->negative ? -value : value;
         }
         case PM_SOURCE_LINE_NODE:
-            return (int64_t) pm_newline_list_line_column(&parser->newline_list, node->location.start, parser->start_line).line;
+            return (int64_t) pm_newline_list_line_column(metadata->newline_list, node->location.start, metadata->start_line).line;
         default:
             assert(false && "unreachable");
             return 0;
@@ -225,10 +252,10 @@ pm_int64_value(const pm_parser_t *parser, const pm_node_t *node) {
  * instances.
  */
 static int
-pm_compare_integer_nodes(const pm_parser_t *parser, const pm_node_t *left, const pm_node_t *right) {
+pm_compare_integer_nodes(const pm_static_literals_metadata_t *metadata, const pm_node_t *left, const pm_node_t *right) {
     if (PM_NODE_TYPE_P(left, PM_SOURCE_LINE_NODE) || PM_NODE_TYPE_P(right, PM_SOURCE_LINE_NODE)) {
-        int64_t left_value = pm_int64_value(parser, left);
-        int64_t right_value = pm_int64_value(parser, right);
+        int64_t left_value = pm_int64_value(metadata, left);
+        int64_t right_value = pm_int64_value(metadata, right);
         return PM_NUMERIC_COMPARISON(left_value, right_value);
     }
 
@@ -241,7 +268,7 @@ pm_compare_integer_nodes(const pm_parser_t *parser, const pm_node_t *left, const
  * A comparison function for comparing two FloatNode instances.
  */
 static int
-pm_compare_float_nodes(PRISM_ATTRIBUTE_UNUSED const pm_parser_t *parser, const pm_node_t *left, const pm_node_t *right) {
+pm_compare_float_nodes(PRISM_ATTRIBUTE_UNUSED const pm_static_literals_metadata_t *metadata, const pm_node_t *left, const pm_node_t *right) {
     const double left_value = ((const pm_float_node_t *) left)->value;
     const double right_value = ((const pm_float_node_t *) right)->value;
     return PM_NUMERIC_COMPARISON(left_value, right_value);
@@ -251,20 +278,27 @@ pm_compare_float_nodes(PRISM_ATTRIBUTE_UNUSED const pm_parser_t *parser, const p
  * A comparison function for comparing two nodes that have attached numbers.
  */
 static int
-pm_compare_number_nodes(const pm_parser_t *parser, const pm_node_t *left, const pm_node_t *right) {
+pm_compare_number_nodes(const pm_static_literals_metadata_t *metadata, const pm_node_t *left, const pm_node_t *right) {
     if (PM_NODE_TYPE(left) != PM_NODE_TYPE(right)) {
         return PM_NUMERIC_COMPARISON(PM_NODE_TYPE(left), PM_NODE_TYPE(right));
     }
 
     switch (PM_NODE_TYPE(left)) {
         case PM_IMAGINARY_NODE:
-            return pm_compare_number_nodes(parser, ((const pm_imaginary_node_t *) left)->numeric, ((const pm_imaginary_node_t *) right)->numeric);
-        case PM_RATIONAL_NODE:
-            return pm_compare_number_nodes(parser, ((const pm_rational_node_t *) left)->numeric, ((const pm_rational_node_t *) right)->numeric);
+            return pm_compare_number_nodes(metadata, ((const pm_imaginary_node_t *) left)->numeric, ((const pm_imaginary_node_t *) right)->numeric);
+        case PM_RATIONAL_NODE: {
+            const pm_rational_node_t *left_rational = (const pm_rational_node_t *) left;
+            const pm_rational_node_t *right_rational = (const pm_rational_node_t *) right;
+
+            int result = pm_integer_compare(&left_rational->denominator, &right_rational->denominator);
+            if (result != 0) return result;
+
+            return pm_integer_compare(&left_rational->numerator, &right_rational->numerator);
+        }
         case PM_INTEGER_NODE:
-            return pm_compare_integer_nodes(parser, left, right);
+            return pm_compare_integer_nodes(metadata, left, right);
         case PM_FLOAT_NODE:
-            return pm_compare_float_nodes(parser, left, right);
+            return pm_compare_float_nodes(metadata, left, right);
         default:
             assert(false && "unreachable");
             return 0;
@@ -293,7 +327,7 @@ pm_string_value(const pm_node_t *node) {
  * A comparison function for comparing two nodes that have attached strings.
  */
 static int
-pm_compare_string_nodes(PRISM_ATTRIBUTE_UNUSED const pm_parser_t *parser, const pm_node_t *left, const pm_node_t *right) {
+pm_compare_string_nodes(PRISM_ATTRIBUTE_UNUSED const pm_static_literals_metadata_t *metadata, const pm_node_t *left, const pm_node_t *right) {
     const pm_string_t *left_string = pm_string_value(left);
     const pm_string_t *right_string = pm_string_value(right);
     return pm_string_compare(left_string, right_string);
@@ -303,7 +337,7 @@ pm_compare_string_nodes(PRISM_ATTRIBUTE_UNUSED const pm_parser_t *parser, const 
  * A comparison function for comparing two RegularExpressionNode instances.
  */
 static int
-pm_compare_regular_expression_nodes(PRISM_ATTRIBUTE_UNUSED const pm_parser_t *parser, const pm_node_t *left, const pm_node_t *right) {
+pm_compare_regular_expression_nodes(PRISM_ATTRIBUTE_UNUSED const pm_static_literals_metadata_t *metadata, const pm_node_t *left, const pm_node_t *right) {
     const pm_regular_expression_node_t *left_regexp = (const pm_regular_expression_node_t *) left;
     const pm_regular_expression_node_t *right_regexp = (const pm_regular_expression_node_t *) right;
 
@@ -319,41 +353,101 @@ pm_compare_regular_expression_nodes(PRISM_ATTRIBUTE_UNUSED const pm_parser_t *pa
  * Add a node to the set of static literals.
  */
 pm_node_t *
-pm_static_literals_add(const pm_parser_t *parser, pm_static_literals_t *literals, pm_node_t *node) {
+pm_static_literals_add(const pm_newline_list_t *newline_list, int32_t start_line, pm_static_literals_t *literals, pm_node_t *node, bool replace) {
     switch (PM_NODE_TYPE(node)) {
         case PM_INTEGER_NODE:
         case PM_SOURCE_LINE_NODE:
-            return pm_node_hash_insert(&literals->integer_nodes, parser, node, pm_compare_integer_nodes);
+            return pm_node_hash_insert(
+                &literals->integer_nodes,
+                &(pm_static_literals_metadata_t) {
+                    .newline_list = newline_list,
+                    .start_line = start_line,
+                    .encoding_name = NULL
+                },
+                node,
+                replace,
+                pm_compare_integer_nodes
+            );
         case PM_FLOAT_NODE:
-            return pm_node_hash_insert(&literals->float_nodes, parser, node, pm_compare_float_nodes);
+            return pm_node_hash_insert(
+                &literals->float_nodes,
+                &(pm_static_literals_metadata_t) {
+                    .newline_list = newline_list,
+                    .start_line = start_line,
+                    .encoding_name = NULL
+                },
+                node,
+                replace,
+                pm_compare_float_nodes
+            );
         case PM_RATIONAL_NODE:
         case PM_IMAGINARY_NODE:
-            return pm_node_hash_insert(&literals->number_nodes, parser, node, pm_compare_number_nodes);
+            return pm_node_hash_insert(
+                &literals->number_nodes,
+                &(pm_static_literals_metadata_t) {
+                    .newline_list = newline_list,
+                    .start_line = start_line,
+                    .encoding_name = NULL
+                },
+                node,
+                replace,
+                pm_compare_number_nodes
+            );
         case PM_STRING_NODE:
         case PM_SOURCE_FILE_NODE:
-            return pm_node_hash_insert(&literals->string_nodes, parser, node, pm_compare_string_nodes);
+            return pm_node_hash_insert(
+                &literals->string_nodes,
+                &(pm_static_literals_metadata_t) {
+                    .newline_list = newline_list,
+                    .start_line = start_line,
+                    .encoding_name = NULL
+                },
+                node,
+                replace,
+                pm_compare_string_nodes
+            );
         case PM_REGULAR_EXPRESSION_NODE:
-            return pm_node_hash_insert(&literals->regexp_nodes, parser, node, pm_compare_regular_expression_nodes);
+            return pm_node_hash_insert(
+                &literals->regexp_nodes,
+                &(pm_static_literals_metadata_t) {
+                    .newline_list = newline_list,
+                    .start_line = start_line,
+                    .encoding_name = NULL
+                },
+                node,
+                replace,
+                pm_compare_regular_expression_nodes
+            );
         case PM_SYMBOL_NODE:
-            return pm_node_hash_insert(&literals->symbol_nodes, parser, node, pm_compare_string_nodes);
+            return pm_node_hash_insert(
+                &literals->symbol_nodes,
+                &(pm_static_literals_metadata_t) {
+                    .newline_list = newline_list,
+                    .start_line = start_line,
+                    .encoding_name = NULL
+                },
+                node,
+                replace,
+                pm_compare_string_nodes
+            );
         case PM_TRUE_NODE: {
             pm_node_t *duplicated = literals->true_node;
-            literals->true_node = node;
+            if ((duplicated == NULL) || replace) literals->true_node = node;
             return duplicated;
         }
         case PM_FALSE_NODE: {
             pm_node_t *duplicated = literals->false_node;
-            literals->false_node = node;
+            if ((duplicated == NULL) || replace) literals->false_node = node;
             return duplicated;
         }
         case PM_NIL_NODE: {
             pm_node_t *duplicated = literals->nil_node;
-            literals->nil_node = node;
+            if ((duplicated == NULL) || replace) literals->nil_node = node;
             return duplicated;
         }
         case PM_SOURCE_ENCODING_NODE: {
             pm_node_t *duplicated = literals->source_encoding_node;
-            literals->source_encoding_node = node;
+            if ((duplicated == NULL) || replace) literals->source_encoding_node = node;
             return duplicated;
         }
         default:
@@ -386,7 +480,7 @@ pm_static_literal_positive_p(const pm_node_t *node) {
         case PM_INTEGER_NODE:
             return !((const pm_integer_node_t *) node)->value.negative;
         case PM_RATIONAL_NODE:
-            return pm_static_literal_positive_p(((const pm_rational_node_t *) node)->numeric);
+            return !((const pm_rational_node_t *) node)->numerator.negative;
         case PM_IMAGINARY_NODE:
             return pm_static_literal_positive_p(((const pm_imaginary_node_t *) node)->numeric);
         default:
@@ -396,47 +490,10 @@ pm_static_literal_positive_p(const pm_node_t *node) {
 }
 
 /**
- * Inspect a rational node that wraps a float node. This is going to be a
- * poor-man's version of the Ruby `Rational#to_s` method, because we're not
- * going to try to reduce the rational by finding the GCD. We'll leave that for
- * a future improvement.
- */
-static void
-pm_rational_inspect(pm_buffer_t *buffer, pm_rational_node_t *node) {
-    const uint8_t *start = node->base.location.start;
-    const uint8_t *end = node->base.location.end - 1; // r
-
-    while (start < end && *start == '0') start++; // 0.1 -> .1
-    while (end > start && end[-1] == '0') end--; // 1.0 -> 1.
-    size_t length = (size_t) (end - start);
-
-    const uint8_t *point = memchr(start, '.', length);
-    assert(point && "should have a decimal point");
-
-    uint8_t *digits = malloc(length - 1);
-    if (digits == NULL) return;
-
-    memcpy(digits, start, (unsigned long) (point - start));
-    memcpy(digits + (point - start), point + 1, (unsigned long) (end - point - 1));
-
-    pm_integer_t numerator = { 0 };
-    pm_integer_parse(&numerator, PM_INTEGER_BASE_DECIMAL, digits, digits + length - 1);
-
-    pm_buffer_append_byte(buffer, '(');
-    pm_integer_string(buffer, &numerator);
-    pm_buffer_append_string(buffer, "/1", 2);
-    for (size_t index = 0; index < (size_t) (end - point - 1); index++) pm_buffer_append_byte(buffer, '0');
-    pm_buffer_append_byte(buffer, ')');
-
-    pm_integer_free(&numerator);
-    free(digits);
-}
-
-/**
  * Create a string-based representation of the given static literal.
  */
-PRISM_EXPORTED_FUNCTION void
-pm_static_literal_inspect(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *node) {
+static inline void
+pm_static_literal_inspect_node(pm_buffer_t *buffer, const pm_static_literals_metadata_t *metadata, const pm_node_t *node) {
     switch (PM_NODE_TYPE(node)) {
         case PM_FALSE_NODE:
             pm_buffer_append_string(buffer, "false", 5);
@@ -473,8 +530,10 @@ pm_static_literal_inspect(pm_buffer_t *buffer, const pm_parser_t *parser, const 
             const pm_node_t *numeric = ((const pm_imaginary_node_t *) node)->numeric;
             pm_buffer_append_string(buffer, "(0", 2);
             if (pm_static_literal_positive_p(numeric)) pm_buffer_append_byte(buffer, '+');
-            pm_static_literal_inspect(buffer, parser, numeric);
-            if (PM_NODE_TYPE_P(numeric, PM_RATIONAL_NODE)) pm_buffer_append_byte(buffer, '*');
+            pm_static_literal_inspect_node(buffer, metadata, numeric);
+            if (PM_NODE_TYPE_P(numeric, PM_RATIONAL_NODE)) {
+                pm_buffer_append_byte(buffer, '*');
+            }
             pm_buffer_append_string(buffer, "i)", 2);
             break;
         }
@@ -485,22 +544,12 @@ pm_static_literal_inspect(pm_buffer_t *buffer, const pm_parser_t *parser, const 
             pm_buffer_append_string(buffer, "nil", 3);
             break;
         case PM_RATIONAL_NODE: {
-            const pm_node_t *numeric = ((const pm_rational_node_t *) node)->numeric;
-
-            switch (PM_NODE_TYPE(numeric)) {
-                case PM_INTEGER_NODE:
-                    pm_buffer_append_byte(buffer, '(');
-                    pm_static_literal_inspect(buffer, parser, numeric);
-                    pm_buffer_append_string(buffer, "/1)", 3);
-                    break;
-                case PM_FLOAT_NODE:
-                    pm_rational_inspect(buffer, (pm_rational_node_t *) node);
-                    break;
-                default:
-                    assert(false && "unreachable");
-                    break;
-            }
-
+            const pm_rational_node_t *rational = (const pm_rational_node_t *) node;
+            pm_buffer_append_byte(buffer, '(');
+            pm_integer_string(buffer, &rational->numerator);
+            pm_buffer_append_byte(buffer, '/');
+            pm_integer_string(buffer, &rational->denominator);
+            pm_buffer_append_byte(buffer, ')');
             break;
         }
         case PM_REGULAR_EXPRESSION_NODE: {
@@ -517,7 +566,7 @@ pm_static_literal_inspect(pm_buffer_t *buffer, const pm_parser_t *parser, const 
             break;
         }
         case PM_SOURCE_ENCODING_NODE:
-            pm_buffer_append_format(buffer, "#<Encoding:%s>", parser->encoding->name);
+            pm_buffer_append_format(buffer, "#<Encoding:%s>", metadata->encoding_name);
             break;
         case PM_SOURCE_FILE_NODE: {
             const pm_string_t *filepath = &((const pm_source_file_node_t *) node)->filepath;
@@ -527,7 +576,7 @@ pm_static_literal_inspect(pm_buffer_t *buffer, const pm_parser_t *parser, const 
             break;
         }
         case PM_SOURCE_LINE_NODE:
-            pm_buffer_append_format(buffer, "%d", pm_newline_list_line_column(&parser->newline_list, node->location.start, parser->start_line).line);
+            pm_buffer_append_format(buffer, "%d", pm_newline_list_line_column(metadata->newline_list, node->location.start, metadata->start_line).line);
             break;
         case PM_STRING_NODE: {
             const pm_string_t *unescaped = &((const pm_string_node_t *) node)->unescaped;
@@ -549,4 +598,20 @@ pm_static_literal_inspect(pm_buffer_t *buffer, const pm_parser_t *parser, const 
             assert(false && "unreachable");
             break;
     }
+}
+
+/**
+ * Create a string-based representation of the given static literal.
+ */
+void
+pm_static_literal_inspect(pm_buffer_t *buffer, const pm_newline_list_t *newline_list, int32_t start_line, const char *encoding_name, const pm_node_t *node) {
+    pm_static_literal_inspect_node(
+        buffer,
+        &(pm_static_literals_metadata_t) {
+            .newline_list = newline_list,
+            .start_line = start_line,
+            .encoding_name = encoding_name
+        },
+        node
+    );
 }

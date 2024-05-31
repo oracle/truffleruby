@@ -362,7 +362,7 @@ const char *
 pm_token_type_human(pm_token_type_t token_type) {
     switch (token_type) {
         case PM_TOKEN_EOF:
-            return "end of file";
+            return "end-of-input";
         case PM_TOKEN_MISSING:
             return "missing token";
         case PM_TOKEN_NOT_PROVIDED:
@@ -422,9 +422,9 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_DOT:
             return "'.'";
         case PM_TOKEN_DOT_DOT:
-            return "'..'";
+            return "..";
         case PM_TOKEN_DOT_DOT_DOT:
-            return "'...'";
+            return "...";
         case PM_TOKEN_EMBDOC_BEGIN:
             return "'=begin'";
         case PM_TOKEN_EMBDOC_END:
@@ -462,9 +462,9 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_GREATER_EQUAL:
             return "'>='";
         case PM_TOKEN_GREATER_GREATER:
-            return "'>>'";
+            return ">>";
         case PM_TOKEN_GREATER_GREATER_EQUAL:
-            return "'>>='";
+            return ">>=";
         case PM_TOKEN_HEREDOC_END:
             return "heredoc ending";
         case PM_TOKEN_HEREDOC_START:
@@ -590,9 +590,9 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_LESS_EQUAL_GREATER:
             return "'<=>'";
         case PM_TOKEN_LESS_LESS:
-            return "'<<'";
+            return "<<";
         case PM_TOKEN_LESS_LESS_EQUAL:
-            return "'<<='";
+            return "<<=";
         case PM_TOKEN_METHOD_NAME:
             return "method name";
         case PM_TOKEN_MINUS:
@@ -684,7 +684,7 @@ pm_token_type_human(pm_token_type_t token_type) {
         case PM_TOKEN_USTAR:
             return "*";
         case PM_TOKEN_USTAR_STAR:
-            return "'**'";
+            return "**";
         case PM_TOKEN_WORDS_SEP:
             return "string separator";
         case PM_TOKEN___END__:

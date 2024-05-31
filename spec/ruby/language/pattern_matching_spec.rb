@@ -273,7 +273,7 @@ describe "Pattern matching" do
           true
         end
       RUBY
-    }.should raise_error(SyntaxError, /unexpected|expected a delimiter after the predicates of a `when` clause/)
+    }.should raise_error(SyntaxError, /unexpected|expected a delimiter after the patterns of an `in` clause/)
   end
 
   it "evaluates the case expression once for multiple patterns, caching the result" do

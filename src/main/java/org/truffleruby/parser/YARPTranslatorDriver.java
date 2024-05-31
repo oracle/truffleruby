@@ -347,7 +347,7 @@ public final class YARPTranslatorDriver {
         final byte[] filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
         int line = rubySource.getLineOffset() + 1;
         byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
-        var version = ParsingOptions.SyntaxVersion.V3_3_0;
+        var version = ParsingOptions.SyntaxVersion.V3_3;
 
         // Prism handles command line options (-n, -l, -a, -p) on its own
         final EnumSet<ParsingOptions.CommandLine> commandline;
