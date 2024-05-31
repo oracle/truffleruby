@@ -348,7 +348,7 @@ END
       case 0
       in a..b
       end
-    }, /unexpected|expected a delimiter after the predicates of a `when` clause/)
+    }, /unexpected|expected a delimiter after the patterns of an `in` clause/)
 
     assert_block do
       case 'abc'
