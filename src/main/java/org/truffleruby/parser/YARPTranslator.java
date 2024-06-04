@@ -1963,8 +1963,10 @@ public class YARPTranslator extends YARPBaseTranslator {
 
                 keyValues.add(keyNode);
 
+                // when value is omitted, e.g. `a = 1; {a: }`
                 if (assocNode.value instanceof Nodes.ImplicitNode implicit) {
                     if (implicit.value instanceof Nodes.CallNode call) {
+                        // a special case for a method call because
                         // Prism doesn't set VARIABLE_CALL flag
                         int flags = call.flags | Nodes.CallNodeFlags.VARIABLE_CALL;
                         final var copy = new Nodes.CallNode((short) flags, call.receiver, call.name, call.arguments,
@@ -1972,11 +1974,10 @@ public class YARPTranslator extends YARPBaseTranslator {
 
                         final RubyNode valueNode = copy.accept(this);
                         keyValues.add(valueNode);
-                    } else if (implicit.value instanceof Nodes.LocalVariableReadNode localVariableRead) {
-                        final RubyNode valueNode = localVariableRead.accept(this);
-                        keyValues.add(valueNode);
                     } else {
-                        throw CompilerDirectives.shouldNotReachHere();
+                        // expect here Nodes.LocalVariableReadNode or Nodes.ConstantReadNode
+                        final RubyNode valueNode = implicit.value.accept(this);
+                        keyValues.add(valueNode);
                     }
                 } else {
                     keyValues.add(assocNode.value.accept(this));
