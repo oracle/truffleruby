@@ -34,7 +34,7 @@ public final class TruffleRuby {
         }
 
         return String.format(
-                "%s%s %s%s, like ruby %s, %s %s [%s-%s]",
+                "%s%s %s%s, like ruby %s, %s %s [%s-%s%s]",
                 ENGINE_ID,
                 nameExtra,
                 getEngineVersion(),
@@ -43,7 +43,8 @@ public final class TruffleRuby {
                 implementationName,
                 ImageInfo.inImageCode() ? "Native" : "JVM",
                 Platform.getArchName(),
-                Platform.getOSName());
+                Platform.getOSName(),
+                Platform.getKernelMajorVersion());
     }
 
     public static String getEngineVersion() {

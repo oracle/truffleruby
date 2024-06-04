@@ -123,3 +123,32 @@ describe "RbConfig::TOPDIR" do
     end
   end
 end
+
+describe "RUBY_PLATFORM" do
+  it "RUBY_PLATFORM contains a proper CPU architecture" do
+    RUBY_PLATFORM.should.include? RbConfig::CONFIG['host_cpu']
+  end
+
+  guard -> { platform_is(:linux) || platform_is(:darwin) } do
+    it "RUBY_PLATFORM contains OS name" do
+      # don't use RbConfig::CONFIG['host_os'] as far as it could be slightly different, e.g. linux-gnu
+      platform_is(:linux) do
+        RUBY_PLATFORM.should.include? 'linux'
+      end
+
+      platform_is(:darwin) do
+        RUBY_PLATFORM.should.include? 'darwin'
+      end
+    end
+  end
+end
+
+describe "RUBY_DESCRIPTION" do
+  it "contains version" do
+    RUBY_DESCRIPTION.should.include? RUBY_VERSION
+  end
+
+  it "contains RUBY_PLATFORM" do
+    RUBY_DESCRIPTION.should.include? RUBY_PLATFORM
+  end
+end
