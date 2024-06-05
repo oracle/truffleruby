@@ -2,6 +2,8 @@
 
 New features:
 
+* Add `--reuse-precompiled-gems` option (@andrykonchin).
+
 Bug fixes:
 
 * Add missing thread-safe objects write barriers for `TruffleRuby::ConcurrentMap` (#3179, @eregon).
@@ -26,6 +28,7 @@ Compatibility:
 * Support `:buffer` keyword argument to `Array#pack` (#3559, @andrykonchyn).
 
 Performance:
+
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
 * Optimize `Integer#pow` method for small modulus values (#3544, @andrykonchin).
 

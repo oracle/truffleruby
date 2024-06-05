@@ -135,6 +135,8 @@ public final class Options {
     public final boolean WARN_TRUFFLE_REGEX_MATCH_FALLBACK;
     /** --truffle-regex-ignore-atomic-groups=false */
     public final boolean TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS;
+    /** --reuse-precompiled-gems=StringArrayOptionType.EMPTY_STRING_ARRAY */
+    public final String[] REUSE_PRECOMPILED_GEMS;
     /** --argv-globals=false */
     public final boolean ARGV_GLOBALS;
     /** --chomp-loop=false */
@@ -262,6 +264,7 @@ public final class Options {
         WARN_TRUFFLE_REGEX_COMPILE_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY);
         WARN_TRUFFLE_REGEX_MATCH_FALLBACK = options.get(OptionsCatalog.WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY);
         TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS = options.get(OptionsCatalog.TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS_KEY);
+        REUSE_PRECOMPILED_GEMS = options.get(OptionsCatalog.REUSE_PRECOMPILED_GEMS_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         CHOMP_LOOP = options.get(OptionsCatalog.CHOMP_LOOP_KEY);
         GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
@@ -411,6 +414,8 @@ public final class Options {
                 return WARN_TRUFFLE_REGEX_MATCH_FALLBACK;
             case "ruby.truffle-regex-ignore-atomic-groups":
                 return TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS;
+            case "ruby.reuse-precompiled-gems":
+                return REUSE_PRECOMPILED_GEMS;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
