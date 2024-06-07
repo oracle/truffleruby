@@ -104,11 +104,11 @@ describe 'RbConfig::CONFIG' do
   guard -> { platform_is(:linux) || platform_is(:darwin) } do
     it "['host_os'] returns a proper OS name or platform" do
       platform_is :darwin do
-        RbConfig::CONFIG['host_os'].should.match? /darwin/
+        RbConfig::CONFIG['host_os'].should.match?(/darwin/)
       end
 
       platform_is :linux do
-        RbConfig::CONFIG['host_os'].should.match? /linux/
+        RbConfig::CONFIG['host_os'].should.match?(/linux/)
       end
     end
   end
