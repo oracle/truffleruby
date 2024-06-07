@@ -20,7 +20,7 @@ describe "IO#wait_writable" do
   end
 
   it "can be interrupted" do
-    _rd, wr = IO.pipe
+    rd, wr = IO.pipe
     IOSpec.exhaust_write_buffer(wr)
     start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
@@ -35,7 +35,7 @@ describe "IO#wait_writable" do
     finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     (finish - start).should < 9
   ensure
-    _rd.close unless _rd.closed?
+    rd.close unless rd.closed?
     wr.close unless wr.closed?
   end
 end
