@@ -16,12 +16,9 @@ import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.nodes.NodeInfo;
 
 /** This node has a pair of children. One has side effects and the other returns the result. If the result isn't needed
  * all we execute is the side effects. */
-@NodeInfo(cost = NodeCost.NONE)
 public final class ElidableResultNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Child private RubyNode required;
