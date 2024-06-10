@@ -8,7 +8,7 @@
 
 #include "prism/diagnostic.h"
 
-#define PM_DIAGNOSTIC_ID_MAX 305
+#define PM_DIAGNOSTIC_ID_MAX 306
 
 /** This struct holds the data for each diagnostic. */
 typedef struct {
@@ -326,6 +326,7 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_REGEXP_INCOMPAT_CHAR_ENCODING]      = { "incompatible character encoding: /%.*s/", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_REGEXP_NON_ESCAPED_MBC]             = { "/.../n has a non escaped non ASCII character in non ASCII-8BIT script: /%.*s/", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_REGEXP_INVALID_UNICODE_RANGE]       = { "invalid Unicode range: /%.*s/", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_REGEXP_PARSE_ERROR]                 = { "%s", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_REGEXP_UNKNOWN_OPTIONS]             = { "unknown regexp %s: %.*s", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_REGEXP_TERM]                        = { "unterminated regexp meets end of file; expected a closing delimiter", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_REGEXP_UTF8_CHAR_NON_UTF8_REGEXP]   = { "UTF-8 character in non UTF-8 regexp: /%s/", PM_ERROR_LEVEL_SYNTAX },
@@ -352,8 +353,8 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_UNDEF_ARGUMENT]                     = { "invalid argument being passed to `undef`; expected a bare word, constant, or symbol argument", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNARY_RECEIVER]                     = { "unexpected %s, expected a receiver for unary `%c`", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_BLOCK_ARGUMENT]          = { "block argument should not be given", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_UNEXPECTED_INDEX_BLOCK]             = { "unexpected block arg given in index; blocks are not allowed in index expressions", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_UNEXPECTED_INDEX_KEYWORDS]          = { "unexpected keyword arg given in index; keywords are not allowed in index expressions", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_UNEXPECTED_INDEX_BLOCK]             = { "unexpected block arg given in index assignment; blocks are not allowed in index assignment expressions", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_UNEXPECTED_INDEX_KEYWORDS]          = { "unexpected keyword arg given in index assignment; keywords are not allowed in index assignment expressions", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_SAFE_NAVIGATION]         = { "&. inside multiple assignment destination", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_TOKEN_CLOSE_CONTEXT]     = { "unexpected %s, assuming it is closing the parent %s", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_TOKEN_IGNORE]            = { "unexpected %s, ignoring it", PM_ERROR_LEVEL_SYNTAX },
@@ -610,8 +611,8 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_PARAMETER_SPLAT_MULTI: return "parameter_splat_multi";
         case PM_ERR_PARAMETER_STAR: return "parameter_star";
         case PM_ERR_PARAMETER_UNEXPECTED_FWD: return "parameter_unexpected_fwd";
-        case PM_ERR_PARAMETER_WILD_LOOSE_COMMA: return "parameter_wild_loose_comma";
         case PM_ERR_PARAMETER_UNEXPECTED_NO_KW: return "parameter_unexpected_no_kw";
+        case PM_ERR_PARAMETER_WILD_LOOSE_COMMA: return "parameter_wild_loose_comma";
         case PM_ERR_PATTERN_CAPTURE_DUPLICATE: return "pattern_capture_duplicate";
         case PM_ERR_PATTERN_EXPRESSION_AFTER_BRACKET: return "pattern_expression_after_bracket";
         case PM_ERR_PATTERN_EXPRESSION_AFTER_COMMA: return "pattern_expression_after_comma";
@@ -640,6 +641,7 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_REGEXP_INCOMPAT_CHAR_ENCODING: return "regexp_incompat_char_encoding";
         case PM_ERR_REGEXP_INVALID_UNICODE_RANGE: return "regexp_invalid_unicode_range";
         case PM_ERR_REGEXP_NON_ESCAPED_MBC: return "regexp_non_escaped_mbc";
+        case PM_ERR_REGEXP_PARSE_ERROR: return "regexp_parse_error";
         case PM_ERR_REGEXP_TERM: return "regexp_term";
         case PM_ERR_REGEXP_UNKNOWN_OPTIONS: return "regexp_unknown_options";
         case PM_ERR_REGEXP_UTF8_CHAR_NON_UTF8_REGEXP: return "regexp_utf8_char_non_utf8_regexp";
