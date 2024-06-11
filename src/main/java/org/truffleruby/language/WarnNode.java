@@ -11,7 +11,6 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.DenyReplace;
-import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.Encodings;
@@ -88,11 +87,6 @@ public class WarnNode extends RubyBaseNode {
                     getContext(), sourceSection, message, this,
                     TruffleString.FromJavaStringNode.getUncached(),
                     DispatchNode.getUncached());
-        }
-
-        @Override
-        public NodeCost getCost() {
-            return NodeCost.MEGAMORPHIC;
         }
 
         @Override

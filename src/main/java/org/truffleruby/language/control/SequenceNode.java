@@ -15,10 +15,7 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(cost = NodeCost.NONE)
 public final class SequenceNode extends RubyContextSourceNodeCustomExecuteVoid {
 
     @Children private final RubyNode[] body;
