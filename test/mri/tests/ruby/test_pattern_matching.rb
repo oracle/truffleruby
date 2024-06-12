@@ -240,11 +240,11 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     }, /no such local variable/)
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a, a
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case 0
+      in a, a
+      end
+    }, /duplicated variable name/)
 
     assert_block do
       case [0, 1, 2, 3]
@@ -253,17 +253,17 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a, {a:}
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case 0
+      in a, {a:}
+      end
+    }, /duplicated variable name/)
 
-    # assert_syntax_error(%q{
-    #   case 0
-    #   in a, {"a":}
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case 0
+      in a, {"a":}
+      end
+    }, /duplicated variable name/)
 
     assert_block do
       case [0, "1"]
@@ -272,11 +272,11 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case [0, "1"]
-    #   in a, "#{case 1; in a; a; end}", a
-    #   end
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      case [0, "1"]
+      in a, "#{case 1; in a; a; end}", a
+      end
+    }, /duplicated variable name/)
 
     assert_block do
       case 0
@@ -288,9 +288,9 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    # assert_syntax_error(%q{
-    #   0 => [a, a]
-    # }, /duplicated variable name/)
+    assert_syntax_error(%q{
+      0 => [a, a]
+    }, /duplicated variable name/)
   end
 
   def test_literal_value_pattern
@@ -1179,17 +1179,17 @@ END
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case _
-    #   in a:, a:
-    #   end
-    # }, /duplicated key name/)
+    assert_syntax_error(%q{
+      case _
+      in a:, a:
+      end
+    }, /duplicated key name/)
 
-    # assert_syntax_error(%q{
-    #   case _
-    #   in a?:
-    #   end
-    # }, /key must be valid as local variables/)
+    assert_syntax_error(%q{
+      case _
+      in a?:
+      end
+    }, /key must be valid as local variables/)
 
     assert_block do
       case {a?: true}
@@ -1226,11 +1226,11 @@ END
       end
     end
 
-    # assert_syntax_error(%q{
-    #   case _
-    #   in "a-b":
-    #   end
-    # }, /key must be valid as local variables/)
+    assert_syntax_error(%q{
+      case _
+      in "a-b":
+      end
+    }, /key must be valid as local variables/)
 
     assert_block do
       case {"a-b": true}
