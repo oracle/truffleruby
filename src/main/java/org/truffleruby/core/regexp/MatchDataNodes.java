@@ -78,9 +78,9 @@ public abstract class MatchDataNodes {
 
     private static int getStart(Node node, RubyMatchData matchData, int index, InlinedConditionProfile lazyProfile,
             InteropLibrary interop) {
-        int start = matchData.region.beg[index];
+        int start = matchData.region.getBeg(index);
         if (lazyProfile.profile(node, start == RubyMatchData.LAZY)) {
-            return matchData.region.beg[index] = getGroupBound(interop, matchData, "getStart", index);
+            return matchData.region.setBeg(index, getGroupBound(interop, matchData, "getStart", index));
         } else {
             return start;
         }
@@ -88,16 +88,16 @@ public abstract class MatchDataNodes {
 
     private static int getEnd(Node node, RubyMatchData matchData, int index, InlinedConditionProfile lazyProfile,
             InteropLibrary interop) {
-        int end = matchData.region.end[index];
+        int end = matchData.region.getEnd(index);
         if (lazyProfile.profile(node, end == RubyMatchData.LAZY)) {
-            return matchData.region.end[index] = getGroupBound(interop, matchData, "getEnd", index);
+            return matchData.region.setEnd(index, getGroupBound(interop, matchData, "getEnd", index));
         } else {
             return end;
         }
     }
 
     private static void forceLazyMatchData(RubyMatchData matchData, InteropLibrary interop) {
-        for (int i = 0; i < matchData.region.numRegs; i++) {
+        for (int i = 0; i < matchData.region.getNumRegs(); i++) {
             getStart(null, matchData, i, InlinedConditionProfile.getUncached(), interop);
             getEnd(null, matchData, i, InlinedConditionProfile.getUncached(), interop);
         }
@@ -111,13 +111,13 @@ public abstract class MatchDataNodes {
         assert !encoding.isSingleByte : "Should be checked by callers";
 
         final Region regs = matchData.region;
-        int numRegs = regs.numRegs;
+        int numRegs = regs.getNumRegs();
 
         if (matchData.tRegexResult != null) {
             forceLazyMatchData(matchData, InteropLibrary.getUncached(matchData.tRegexResult));
         }
 
-        final Region charOffsets = new Region(numRegs);
+        final Region charOffsets = Region.newRegion(numRegs);
 
         final Pair[] pairs = new Pair[numRegs * 2];
         for (int i = 0; i < pairs.length; i++) {
@@ -126,23 +126,24 @@ public abstract class MatchDataNodes {
 
         int numPos = 0;
         for (int i = 0; i < numRegs; i++) {
-            if (regs.beg[i] != RubyMatchData.MISSING) {
-                pairs[numPos++].bytePos = regs.beg[i];
-                pairs[numPos++].bytePos = regs.end[i];
+            if (regs.getBeg(i) != RubyMatchData.MISSING) {
+                pairs[numPos++].bytePos = regs.getBeg(i);
+                pairs[numPos++].bytePos = regs.getEnd(i);
             }
         }
 
         updatePairs(source, encoding, pairs);
 
         Pair key = new Pair();
-        for (int i = 0; i < regs.numRegs; i++) {
-            if (regs.beg[i] == RubyMatchData.MISSING) {
-                charOffsets.beg[i] = charOffsets.end[i] = RubyMatchData.MISSING;
+        for (int i = 0; i < regs.getNumRegs(); i++) {
+            if (regs.getBeg(i) == RubyMatchData.MISSING) {
+                charOffsets.setBeg(i, RubyMatchData.MISSING);
+                charOffsets.setEnd(i, RubyMatchData.MISSING);
             } else {
-                key.bytePos = regs.beg[i];
-                charOffsets.beg[i] = pairs[Arrays.binarySearch(pairs, key)].charPos;
-                key.bytePos = regs.end[i];
-                charOffsets.end[i] = pairs[Arrays.binarySearch(pairs, key)].charPos;
+                key.bytePos = regs.getBeg(i);
+                charOffsets.setBeg(i, pairs[Arrays.binarySearch(pairs, key)].charPos);
+                key.bytePos = regs.getEnd(i);
+                charOffsets.setEnd(i, pairs[Arrays.binarySearch(pairs, key)].charPos);
             }
         }
 
@@ -189,12 +190,12 @@ public abstract class MatchDataNodes {
     private static void fixupMatchDataForStart(RubyMatchData matchData, int startPos) {
         assert startPos != 0;
         Region regs = matchData.region;
-        for (int i = 0; i < regs.beg.length; i++) {
-            assert regs.beg[i] != RubyMatchData.LAZY &&
-                    regs.end[i] != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
-            if (regs.beg[i] >= 0) {
-                regs.beg[i] += startPos;
-                regs.end[i] += startPos;
+        for (int i = 0; i < regs.getNumRegs(); i++) {
+            assert regs.getBeg(i) != RubyMatchData.LAZY && regs
+                    .getEnd(i) != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
+            if (regs.getBeg(i) >= 0) {
+                regs.setBeg(i, regs.getBeg(i) + startPos);
+                regs.setEnd(i, regs.getEnd(i) + startPos);
             }
         }
     }
@@ -222,7 +223,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         Object create(Object regexp, Object string, int start, int end) {
-            final Region region = new Region(start, end);
+            final Region region = Region.newRegion(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
@@ -256,10 +257,10 @@ public abstract class MatchDataNodes {
 
             final Region region = matchData.region;
             if (normalizedIndexProfile.profile(this, index < 0)) {
-                index += region.numRegs;
+                index += region.getNumRegs();
             }
 
-            if (indexOutOfBoundsProfile.profile(this, index < 0 || index >= region.numRegs)) {
+            if (indexOutOfBoundsProfile.profile(this, index < 0 || index >= region.getNumRegs())) {
                 return nil;
             } else {
                 final int start = getStart(this, matchData, index, lazyProfile, libInterop);
@@ -505,7 +506,7 @@ public abstract class MatchDataNodes {
 
             if (multiByteCharacterProfile.profile(this,
                     !singleByteOptimizableNode.execute(this, matchDataSource, encoding))) {
-                return getCharOffsets(matchData, matchDataSource, encoding).beg[index];
+                return getCharOffsets(matchData, matchDataSource, encoding).getBeg(index);
             }
 
             return begin;
@@ -520,7 +521,7 @@ public abstract class MatchDataNodes {
         }
 
         protected boolean inBounds(RubyMatchData matchData, int index) {
-            return index >= 0 && index < matchData.region.numRegs;
+            return index >= 0 && index < matchData.region.getNumRegs();
         }
     }
 
@@ -544,11 +545,11 @@ public abstract class MatchDataNodes {
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             final Object source = matchData.source;
             final Region region = matchData.region;
-            final Object[] values = new Object[region.numRegs];
+            final Object[] values = new Object[region.getNumRegs()];
 
             int n = 0;
             try {
-                for (; loopProfile.inject(this, n < region.numRegs); n++) {
+                for (; loopProfile.inject(this, n < region.getNumRegs()); n++) {
                     final int start = getStart(this, matchData, n, lazyProfile, interop);
                     final int end = getEnd(this, matchData, n, lazyProfile, interop);
 
@@ -591,7 +592,7 @@ public abstract class MatchDataNodes {
 
             if (multiByteCharacterProfile.profile(this,
                     !singleByteOptimizableNode.execute(this, matchDataSource, encoding))) {
-                return getCharOffsets(matchData, matchDataSource, encoding).end[index];
+                return getCharOffsets(matchData, matchDataSource, encoding).getEnd(index);
             }
 
             return end;
@@ -606,7 +607,7 @@ public abstract class MatchDataNodes {
         }
 
         protected boolean inBounds(RubyMatchData matchData, int index) {
-            return index >= 0 && index < matchData.region.numRegs;
+            return index >= 0 && index < matchData.region.getNumRegs();
         }
     }
 
@@ -635,7 +636,7 @@ public abstract class MatchDataNodes {
         }
 
         protected boolean inBounds(RubyMatchData matchData, int index) {
-            return index >= 0 && index < matchData.region.numRegs;
+            return index >= 0 && index < matchData.region.getNumRegs();
         }
     }
 
@@ -664,7 +665,7 @@ public abstract class MatchDataNodes {
         }
 
         protected boolean inBounds(RubyMatchData matchData, int index) {
-            return index >= 0 && index < matchData.region.numRegs;
+            return index >= 0 && index < matchData.region.getNumRegs();
         }
     }
 
@@ -673,7 +674,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         int length(RubyMatchData matchData) {
-            return matchData.region.numRegs;
+            return matchData.region.getNumRegs();
         }
 
     }

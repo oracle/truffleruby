@@ -984,12 +984,12 @@ public abstract class TruffleRegexpNodes {
                     final int groupCount = groupCountProfile
                             .profile(node, (int) InteropNodes.readMember(node, regexInterop, tRegex, "groupCount",
                                     translateInteropExceptionNode));
-                    final Region region = new Region(groupCount);
+                    final Region region = Region.newRegion(groupCount);
 
                     try {
                         for (int group = 0; loopProfile.inject(node, group < groupCount); group++) {
-                            region.beg[group] = RubyMatchData.LAZY;
-                            region.end[group] = RubyMatchData.LAZY;
+                            region.setBeg(group, RubyMatchData.LAZY);
+                            region.setEnd(group, RubyMatchData.LAZY);
                             TruffleSafepoint.poll(node);
                         }
                     } finally {
@@ -1144,9 +1144,9 @@ public abstract class TruffleRegexpNodes {
         }
 
         private boolean assertValidRegion(Region region) {
-            for (int i = 0; i < region.numRegs; i++) {
-                assert region.beg[i] >= 0 || region.beg[i] == RubyMatchData.MISSING;
-                assert region.end[i] >= 0 || region.end[i] == RubyMatchData.MISSING;
+            for (int i = 0; i < region.getNumRegs(); i++) {
+                assert region.getBeg(i) >= 0 || region.getBeg(i) == RubyMatchData.MISSING;
+                assert region.getEnd(i) >= 0 || region.getEnd(i) == RubyMatchData.MISSING;
             }
             return true;
         }
