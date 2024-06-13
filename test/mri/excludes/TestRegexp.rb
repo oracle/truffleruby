@@ -19,7 +19,6 @@ exclude :test_bug_19467, "NoMethodError: undefined method `timeout=' for Regexp:
 exclude :test_cache_optimization_exponential, "NoMethodError: undefined method `timeout=' for Regexp:Class"
 exclude :test_cache_optimization_square, "NoMethodError: undefined method `timeout=' for Regexp:Class"
 exclude :test_invalid_free_at_parse_depth_limit_over, "NameError: uninitialized constant Bug"
-exclude :test_match_aref, "throws internal exception"
 exclude :test_match_without_regexp, "Encoding::CompatibilityError: incompatible encoding regexp match (Shift_JIS regexp with UTF-8 string)"
 exclude :test_parse, "Polyglot::ForeignException: invalid group reference 80"
 exclude :test_parse_kg, "Polyglot::ForeignException: undefined name <-1> reference"
