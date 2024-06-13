@@ -279,6 +279,7 @@ public abstract class MatchDataNodes {
                 @Cached @Exclusive InlinedConditionProfile negativeLengthProfile,
                 @Cached @Shared InlinedConditionProfile normalizedIndexProfile,
                 @Cached @Exclusive InlinedConditionProfile negativeIndexProfile,
+                @Cached @Exclusive InlinedConditionProfile tooLargeIndexProfile,
                 @Cached @Exclusive InlinedConditionProfile tooLargeTotalProfile) {
             final Object[] values = getValuesNode.execute(matchData);
 
@@ -292,6 +293,10 @@ public abstract class MatchDataNodes {
                 if (negativeIndexProfile.profile(this, index < 0)) {
                     return nil;
                 }
+            }
+
+            if (tooLargeIndexProfile.profile(this, index > values.length)) {
+                return nil;
             }
 
             int endIndex = index + length;
