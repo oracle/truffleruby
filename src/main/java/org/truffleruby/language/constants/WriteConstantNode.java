@@ -112,7 +112,7 @@ public final class WriteConstantNode extends RubyContextSourceAssignableNode {
         var copy = new WriteConstantNode(
                 name,
                 moduleNode.cloneUninitialized(),
-                valueNode.cloneUninitialized());
+                cloneUninitialized(valueNode));
         return copy.copyFlags(this);
     }
 
