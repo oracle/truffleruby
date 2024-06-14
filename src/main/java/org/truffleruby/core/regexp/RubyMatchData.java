@@ -11,7 +11,7 @@ package org.truffleruby.core.regexp;
 
 import java.util.Set;
 
-import org.graalvm.shadowed.org.joni.Region;
+import org.graalvm.shadowed.org.joni.MultiRegion;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -30,10 +30,12 @@ public final class RubyMatchData extends RubyDynamicObject implements ObjectGrap
     /** Either a Regexp or a String for the case of String#gsub(String) */
     public Object regexp;
     public Object source;
-    /** Group bounds as byte offsets */
-    public Region region;
-    /** Group bounds as character offsets */
-    public Region charOffsets = null;
+    /** Group bounds as byte offsets. We avoid the abstract Region class because it has virtual methods calls which
+     * cannot be inlined by PE. */
+    public MultiRegion region;
+    /** Group bounds as character offsets. We avoid the abstract Region class because it has virtual methods calls which
+     * cannot be inlined by PE. */
+    public MultiRegion charOffsets = null;
     public Object tRegexResult = null;
 
     public RubyMatchData(
@@ -41,7 +43,7 @@ public final class RubyMatchData extends RubyDynamicObject implements ObjectGrap
             Shape shape,
             Object regexp,
             Object source,
-            Region region) {
+            MultiRegion region) {
         super(rubyClass, shape);
         assert regexp instanceof RubyRegexp || regexp instanceof RubyString || regexp instanceof ImmutableRubyString ||
                 regexp == null;

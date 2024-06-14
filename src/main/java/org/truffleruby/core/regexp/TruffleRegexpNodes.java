@@ -39,9 +39,11 @@ import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import org.graalvm.shadowed.org.joni.Matcher;
+import org.graalvm.shadowed.org.joni.MultiRegion;
 import org.graalvm.shadowed.org.joni.Option;
 import org.graalvm.shadowed.org.joni.Regex;
 import org.graalvm.shadowed.org.joni.Region;
+import org.graalvm.shadowed.org.joni.SingleRegion;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
@@ -984,7 +986,7 @@ public abstract class TruffleRegexpNodes {
                     final int groupCount = groupCountProfile
                             .profile(node, (int) InteropNodes.readMember(node, regexInterop, tRegex, "groupCount",
                                     translateInteropExceptionNode));
-                    final Region region = Region.newRegion(groupCount);
+                    final MultiRegion region = new MultiRegion(groupCount);
 
                     try {
                         for (int group = 0; loopProfile.inject(node, group < groupCount); group++) {
@@ -1028,7 +1030,7 @@ public abstract class TruffleRegexpNodes {
                     .executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos, createMatchData);
         }
 
-        private static Object createMatchData(Node node, RubyRegexp regexp, Object string, Region region,
+        private static Object createMatchData(Node node, RubyRegexp regexp, Object string, MultiRegion region,
                 Object tRegexResult) {
             final RubyMatchData matchData = new RubyMatchData(
                     coreLibrary(node).matchDataClass,
@@ -1115,7 +1117,7 @@ public abstract class TruffleRegexpNodes {
 
                 assert match >= 0;
 
-                final Region region = matcher.getEagerRegion();
+                final MultiRegion region = getMatcherEagerRegion(matcher);
                 assert assertValidRegion(region);
                 final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
                 RubyMatchData result = new RubyMatchData(
@@ -1143,7 +1145,21 @@ public abstract class TruffleRegexpNodes {
             }
         }
 
-        private boolean assertValidRegion(Region region) {
+        /** Is equivalent to {@link org.graalvm.shadowed.org.joni.Matcher#getEagerRegion()} but returns MultiRegion
+         * instead of abstract Region class */
+        private MultiRegion getMatcherEagerRegion(Matcher matcher) {
+            Region eagerRegion = matcher.getEagerRegion();
+
+            if (eagerRegion instanceof SingleRegion singleRegion) {
+                return new MultiRegion(singleRegion.getBeg(0), singleRegion.getEnd(0));
+            } else if (eagerRegion instanceof MultiRegion multiRegion) {
+                return multiRegion;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        private boolean assertValidRegion(MultiRegion region) {
             for (int i = 0; i < region.getNumRegs(); i++) {
                 assert region.getBeg(i) >= 0 || region.getBeg(i) == RubyMatchData.MISSING;
                 assert region.getEnd(i) >= 0 || region.getEnd(i) == RubyMatchData.MISSING;

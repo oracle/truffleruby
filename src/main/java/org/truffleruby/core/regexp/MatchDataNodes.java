@@ -22,9 +22,9 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.graalvm.shadowed.org.joni.MultiRegion;
 import org.graalvm.shadowed.org.joni.NameEntry;
 import org.graalvm.shadowed.org.joni.Regex;
-import org.graalvm.shadowed.org.joni.Region;
 import org.graalvm.shadowed.org.joni.exception.ValueException;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -104,20 +104,20 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    private static Region getCharOffsetsManyRegs(RubyMatchData matchData, AbstractTruffleString source,
+    private static MultiRegion getCharOffsetsManyRegs(RubyMatchData matchData, AbstractTruffleString source,
             RubyEncoding encoding) {
         // Taken from org.jruby.RubyMatchData
 
         assert !encoding.isSingleByte : "Should be checked by callers";
 
-        final Region regs = matchData.region;
+        final MultiRegion regs = matchData.region;
         int numRegs = regs.getNumRegs();
 
         if (matchData.tRegexResult != null) {
             forceLazyMatchData(matchData, InteropLibrary.getUncached(matchData.tRegexResult));
         }
 
-        final Region charOffsets = Region.newRegion(numRegs);
+        final MultiRegion charOffsets = new MultiRegion(numRegs);
 
         final Pair[] pairs = new Pair[numRegs * 2];
         for (int i = 0; i < pairs.length; i++) {
@@ -170,15 +170,16 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    private static Region createCharOffsets(RubyMatchData matchData, AbstractTruffleString source,
+    private static MultiRegion createCharOffsets(RubyMatchData matchData, AbstractTruffleString source,
             RubyEncoding encoding) {
-        final Region charOffsets = getCharOffsetsManyRegs(matchData, source, encoding);
+        final MultiRegion charOffsets = getCharOffsetsManyRegs(matchData, source, encoding);
         matchData.charOffsets = charOffsets;
         return charOffsets;
     }
 
-    private static Region getCharOffsets(RubyMatchData matchData, AbstractTruffleString source, RubyEncoding encoding) {
-        final Region charOffsets = matchData.charOffsets;
+    private static MultiRegion getCharOffsets(RubyMatchData matchData, AbstractTruffleString source,
+            RubyEncoding encoding) {
+        final MultiRegion charOffsets = matchData.charOffsets;
         if (charOffsets != null) {
             return charOffsets;
         } else {
@@ -189,7 +190,7 @@ public abstract class MatchDataNodes {
     @TruffleBoundary
     private static void fixupMatchDataForStart(RubyMatchData matchData, int startPos) {
         assert startPos != 0;
-        Region regs = matchData.region;
+        MultiRegion regs = matchData.region;
         for (int i = 0; i < regs.getNumRegs(); i++) {
             assert regs.getBeg(i) != RubyMatchData.LAZY && regs
                     .getEnd(i) != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
@@ -223,7 +224,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         Object create(Object regexp, Object string, int start, int end) {
-            final Region region = Region.newRegion(start, end);
+            final MultiRegion region = new MultiRegion(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
                     getLanguage().matchDataShape,
@@ -255,7 +256,7 @@ public abstract class MatchDataNodes {
                 @Cached @Exclusive InlinedConditionProfile hasValueProfile,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
 
-            final Region region = matchData.region;
+            final MultiRegion region = matchData.region;
             if (normalizedIndexProfile.profile(this, index < 0)) {
                 index += region.getNumRegs();
             }
@@ -544,7 +545,7 @@ public abstract class MatchDataNodes {
                 @Cached InlinedLoopConditionProfile loopProfile,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             final Object source = matchData.source;
-            final Region region = matchData.region;
+            final MultiRegion region = matchData.region;
             final Object[] values = new Object[region.getNumRegs()];
 
             int n = 0;
