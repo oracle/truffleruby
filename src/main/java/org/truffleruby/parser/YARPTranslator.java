@@ -2654,8 +2654,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public WriteLocalNode visitLocalVariableTargetNode(Nodes.LocalVariableTargetNode node) {
         final String name = node.name;
         final ReadLocalNode lhs = environment.findLocalVarNode(name);
-        final RubyNode rhs = new DeadNode("YARPTranslator#visitLocalVariableTargetNode");
-        final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
+        final WriteLocalNode rubyNode = lhs.makeWriteNode(null);
 
         assignPositionAndFlags(node, rubyNode);
         return rubyNode;

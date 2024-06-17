@@ -229,8 +229,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
     public AssignableNode visitRequiredParameterNode(Nodes.RequiredParameterNode node) {
         final String name = node.name;
         final ReadLocalNode lhs = yarpTranslator.getEnvironment().findLocalVarNode(name);
-        final RubyNode rhs = new DeadNode("YARPMultiTargetNodeTranslator#visitRequiredParameterNode");
-        final WriteLocalNode rubyNode = lhs.makeWriteNode(rhs);
+        final WriteLocalNode rubyNode = lhs.makeWriteNode(null);
 
         return rubyNode.toAssignableNode();
     }
