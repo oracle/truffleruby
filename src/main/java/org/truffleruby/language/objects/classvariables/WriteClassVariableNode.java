@@ -79,7 +79,7 @@ public final class WriteClassVariableNode extends RubyContextSourceAssignableNod
         var copy = new WriteClassVariableNode(
                 lexicalScopeNode.cloneUninitialized(),
                 name,
-                rhs.cloneUninitialized());
+                cloneUninitialized(rhs));
         return copy.copyFlags(this);
     }
 
