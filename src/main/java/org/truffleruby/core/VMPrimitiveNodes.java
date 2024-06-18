@@ -674,4 +674,14 @@ public abstract class VMPrimitiveNodes {
         }
     }
 
+    @Primitive(name = "vm_splitting_enabled?")
+    public abstract static class VMSplittingEnabledNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        boolean isSplittingEnabled() {
+            return getContext().getCoreLibrary().isSplittingEnabled();
+        }
+    }
+
 }

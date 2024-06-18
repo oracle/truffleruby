@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.DirectCallNode;
 import org.graalvm.shadowed.org.jcodings.transcode.EConvFlags;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -252,6 +253,8 @@ public final class CoreLibrary {
      * required without the patch. That way it is possible to require the original file from the patch, even it was
      * using require_relative and the patch location is not enough to find the correct file. */
     private final ConcurrentMap<String, String> originalRequires;
+
+    private DirectCallNode callNodeToCheckSplittingEnabled;
 
     @TruffleBoundary
     private static SourceSection initCoreSourceSection() {
@@ -931,6 +934,15 @@ public final class CoreLibrary {
 
     public boolean isTruffleBootMainMethod(SharedMethodInfo info) {
         return info == truffleBootMainInfo;
+    }
+
+    public boolean isSplittingEnabled() {
+        if (callNodeToCheckSplittingEnabled == null) {
+            callNodeToCheckSplittingEnabled = DirectCallNode.create(getMethod(arrayClass, "[]").getCallTarget());
+            callNodeToCheckSplittingEnabled.cloneCallTarget();
+        }
+
+        return callNodeToCheckSplittingEnabled.isCallTargetCloned();
     }
 
     private static final String POST_BOOT_FILE = "/post-boot/post-boot.rb";
