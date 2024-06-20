@@ -29,6 +29,7 @@ Compatibility:
 * Support `:buffer` keyword argument to `Array#pack` (#3559, @andrykonchyn).
 * Set `RbConfig::CONFIG['host_cpu']` to `arm64` on darwin platform (#3571, @andrykonchin).
 * Fix `RegexpError` messages to match CRuby better (#3398, @andrykonchin).
+* Fix `RangeError` message to match CRuby for `Integer#chr` called with invalid codepoint argument (#2795, @andrykonchin).
 
 Performance:
 

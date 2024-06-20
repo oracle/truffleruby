@@ -1065,9 +1065,9 @@ public final class CoreExceptions {
     // RangeError
 
     @TruffleBoundary
-    public RubyException rangeError(long code, RubyEncoding encoding, Node currentNode) {
+    public RubyException rangeError(long code, Node currentNode) {
         return rangeError(
-                StringUtils.format("invalid codepoint %x in %s", code, encoding),
+                StringUtils.format("%d out of char range", code),
                 currentNode);
     }
 
