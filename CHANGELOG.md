@@ -30,6 +30,7 @@ Compatibility:
 * Set `RbConfig::CONFIG['host_cpu']` to `arm64` on darwin platform (#3571, @andrykonchin).
 * Fix `RegexpError` messages to match CRuby better (#3398, @andrykonchin).
 * Fix `Enumerable#reduce` to handle non-Symbol method name parameter (#2931, @andrykonchin).
+* Fix `RangeError` message to match CRuby for `Integer#chr` called with invalid codepoint argument (#2795, @andrykonchin).
 
 Performance:
 

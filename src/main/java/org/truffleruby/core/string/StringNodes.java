@@ -3638,7 +3638,7 @@ public abstract class StringNodes {
             var tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
             if (tstring == null) {
                 errorProfile.enter(this);
-                throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, this));
             }
 
             return createString(tstring, encoding);
@@ -3651,7 +3651,7 @@ public abstract class StringNodes {
             var tstring = fromCodePointNode.execute((int) code, encoding.tencoding, false);
             if (tstring == null) {
                 errorProfile.enter(this);
-                throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
+                throw new RaiseException(getContext(), coreExceptions().rangeError(code, this));
             }
 
             return createString(tstring, encoding);
@@ -3659,7 +3659,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isCodepoint(code)")
         RubyString tooBig(long code, RubyEncoding encoding) {
-            throw new RaiseException(getContext(), coreExceptions().rangeError(code, encoding, this));
+            throw new RaiseException(getContext(), coreExceptions().rangeError(code, this));
         }
 
         protected boolean isCodepoint(long code) {

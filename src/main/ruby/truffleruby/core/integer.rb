@@ -165,14 +165,16 @@ class Integer < Numeric
 
   def chr(enc = undefined)
     if self < 0 || (self & 0xffff_ffff) != self
-      raise RangeError, "#{self} is outside of the valid character range"
+      subject = Primitive.integer_fits_into_int(self) ? self : 'bignum'
+      raise RangeError, "#{subject} out of char range"
     end
 
     if Primitive.undefined? enc
       if 0xff < self
         enc = Encoding.default_internal
         if Primitive.nil? enc
-          raise RangeError, "#{self} is outside of the valid character range"
+          subject = Primitive.integer_fits_into_int(self) ? self : 'bignum'
+          raise RangeError, "#{subject} out of char range"
         end
       elsif self < 0x80
         enc = Encoding::US_ASCII
