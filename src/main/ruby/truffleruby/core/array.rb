@@ -120,7 +120,7 @@ class Array
   end
 
   def ==(other)
-    result = Primitive.array_equal self, other
+    result = Primitive.array_equal? self, other
     unless Primitive.undefined?(result)
       return result
     end
@@ -376,7 +376,7 @@ class Array
   end
 
   def eql?(other)
-    result = Primitive.array_eql self, other
+    result = Primitive.array_eql? self, other
     unless Primitive.undefined?(result)
       return result
     end
@@ -844,7 +844,7 @@ class Array
     # Check the result size will fit in an Array.
     sum = args.inject(size) { |n, x| n * x.size }
 
-    unless Primitive.integer_fits_into_long(sum)
+    unless Primitive.integer_fits_into_long?(sum)
       raise RangeError, 'product result is too large'
     end
 

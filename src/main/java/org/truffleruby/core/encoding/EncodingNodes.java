@@ -521,7 +521,7 @@ public abstract class EncodingNodes {
         }
     }
 
-    @Primitive(name = "encoding_is_unicode")
+    @Primitive(name = "encoding_is_unicode?")
     public abstract static class IsUnicodeNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         boolean isUnicode(RubyEncoding encoding) {

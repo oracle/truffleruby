@@ -136,7 +136,7 @@ class Integer < Numeric
     raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(m, Integer)
     raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
 
-    if Primitive.integer_fits_into_long(m)
+    if Primitive.integer_fits_into_long?(m)
       Truffle::IntegerOperations.modular_exponentiation(self, e, m)
     else
       Primitive.mod_pow(self, e, m)
@@ -165,7 +165,7 @@ class Integer < Numeric
 
   def chr(enc = undefined)
     if self < 0 || (self & 0xffff_ffff) != self
-      subject = Primitive.integer_fits_into_int(self) ? self : 'bignum'
+      subject = Primitive.integer_fits_into_int?(self) ? self : 'bignum'
       raise RangeError, "#{subject} out of char range"
     end
 
@@ -173,7 +173,7 @@ class Integer < Numeric
       if 0xff < self
         enc = Encoding.default_internal
         if Primitive.nil? enc
-          subject = Primitive.integer_fits_into_int(self) ? self : 'bignum'
+          subject = Primitive.integer_fits_into_int?(self) ? self : 'bignum'
           raise RangeError, "#{subject} out of char range"
         end
       elsif self < 0x80
