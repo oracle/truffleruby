@@ -831,7 +831,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "array_equal")
+    @Primitive(name = "array_equal?")
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
 
@@ -904,7 +904,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "array_eql")
+    @Primitive(name = "array_eql?")
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqlNode extends PrimitiveArrayArgumentsNode {
 

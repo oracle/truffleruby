@@ -161,7 +161,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_method_is_basic")
+    @Primitive(name = "vm_method_is_basic?")
     public abstract static class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

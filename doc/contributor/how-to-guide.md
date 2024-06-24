@@ -1011,8 +1011,8 @@ Use `Truffle::Debug.primitive_names` method:
 ```
 jt -q ruby -e 'puts Truffle::Debug.primitive_names.sort'
 ...
-array_eql
-array_equal
+array_eql?
+array_equal?
 array_flatten_helper
 array_inject
 ...

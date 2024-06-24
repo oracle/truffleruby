@@ -63,7 +63,7 @@ class String
         return if length < 0
       end
 
-      length = bytesize unless Primitive.integer_fits_into_int(index)
+      length = bytesize unless Primitive.integer_fits_into_int?(index)
       return if index < 0 or index > bytesize
     end
 
@@ -431,7 +431,7 @@ class String
 
     case options[:invalid]
     when :replace
-      replacement = options[:replace] || (Primitive.encoding_is_unicode(from_enc) ? "\ufffd" : '?')
+      replacement = options[:replace] || (Primitive.encoding_is_unicode?(from_enc) ? "\ufffd" : '?')
       self.scrub!(replacement)
     end
     case xml = options[:xml]
@@ -486,13 +486,13 @@ class String
 
     enc = encoding
     ascii = enc.ascii_compatible?
-    unicode = Primitive.encoding_is_unicode enc
+    unicode = Primitive.encoding_is_unicode? enc
 
     actual_encoding = Primitive.get_actual_encoding(self)
     if actual_encoding != enc
       enc = actual_encoding
       if unicode
-        unicode = Primitive.encoding_is_unicode enc
+        unicode = Primitive.encoding_is_unicode? enc
       end
     end
 

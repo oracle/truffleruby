@@ -64,7 +64,7 @@ module Truffle
   module Type
     def self.object_respond_to_no_built_in?(obj, name, include_private = false)
       meth = Primitive.vm_method_lookup obj, name
-      !Primitive.nil?(meth) && !Primitive.vm_method_is_basic(meth)
+      !Primitive.nil?(meth) && !Primitive.vm_method_is_basic?(meth)
     end
 
     def self.check_funcall_callable(obj, name)
@@ -123,7 +123,7 @@ module Truffle
       raise TypeError, 'no implicit conversion from nil to integer' if Primitive.nil? val
 
       if Primitive.is_a?(val, Integer)
-        if Primitive.integer_fits_into_long(val)
+        if Primitive.integer_fits_into_long?(val)
           val
         else
           rb_big2ulong(val)
@@ -192,21 +192,21 @@ module Truffle
     end
 
     def self.fits_into_int?(val)
-      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_int(val)
+      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_int?(val)
     end
 
     def self.fits_into_long?(val)
-      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_long(val)
+      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_long?(val)
     end
 
     def self.check_uint(val)
-      unless Primitive.integer_fits_into_uint(val)
+      unless Primitive.integer_fits_into_uint?(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint'"
       end
     end
 
     def self.check_ulong(val)
-      unless Primitive.integer_fits_into_ulong(val)
+      unless Primitive.integer_fits_into_ulong?(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong'"
       end
     end
