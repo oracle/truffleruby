@@ -319,7 +319,7 @@ module Kernel
   def extend(*modules)
     raise ArgumentError, 'wrong number of arguments (0 for 1+)' if modules.empty?
 
-    modules.reverse_each do |mod|
+    block = proc do |mod|
       if !Primitive.is_a?(mod, Module) or Primitive.is_a?(mod, Class)
         raise TypeError, "wrong argument type #{Primitive.class(mod)} (expected Module)"
       elsif Primitive.is_a?(mod, Refinement)
@@ -329,8 +329,16 @@ module Kernel
       mod.__send__ :extend_object, self
       mod.__send__ :extended, self
     end
+
+    # __send__ calls above report polymorphism because they see different singleton classes for each module instance.
+    # But these methods are called only once per object and module pair, so it is not worth to split for them.
+    Truffle::Graal.never_split block
+
+    modules.reverse_each(&block)
+
     self
   end
+  Truffle::Graal.never_split instance_method(:extend)
 
   def getc
     $stdin.getc

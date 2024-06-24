@@ -82,6 +82,7 @@ module Kernel
   def define_singleton_method(*args, &block)
     singleton_class.define_method(*args, &block)
   end
+  Truffle::Graal.never_split instance_method(:define_singleton_method)
 
   def extend(mod)
     mod.__send__ :extend_object, self

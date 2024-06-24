@@ -106,15 +106,17 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @CoreMethod(names = "!=", required = 1)
-    public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode equalNode = DispatchNode.create();
+    // Needed to split since it calls `==`. But seems a bit expensive to split, so it should be AlwaysInlinedMethodNode.
+    @GenerateUncached
+    @CoreMethod(names = "!=", required = 1, alwaysInlined = true)
+    public abstract static class NotEqualNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        boolean equal(VirtualFrame frame, Object a, Object b,
-                @Cached BooleanCastNode booleanCastNode) {
-            return !booleanCastNode.execute(this, equalNode.call(a, "==", b));
+        boolean equal(Frame frame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached BooleanCastNode booleanCastNode,
+                @Cached DispatchNode equalNode) {
+            final Object object = RubyArguments.getArgument(rubyArgs, 0);
+            return !booleanCastNode.execute(this, equalNode.call(self, "==", object));
         }
 
     }
@@ -125,7 +127,6 @@ public abstract class BasicObjectNodes {
     @GenerateNodeFactory
     @CoreMethod(names = { "equal?", "==" }, required = 1)
     public abstract static class BasicObjectEqualNode extends CoreMethodArrayArgumentsNode {
-
 
         @Specialization
         boolean equal(Object a, Object b,

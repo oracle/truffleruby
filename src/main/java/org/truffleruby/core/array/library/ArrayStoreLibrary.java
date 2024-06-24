@@ -34,7 +34,7 @@ public abstract class ArrayStoreLibrary extends Library {
     private static final Object INITIAL_STORE = ZeroLengthArrayStore.ZERO_LENGTH_STORE;
     private static final ArrayAllocator INITIAL_ALLOCATOR = ZeroLengthArrayStore.ZERO_LENGTH_ALLOCATOR;
 
-    private static final Object SHARED_INITIAL_STORE = new SharedArrayStorage(ZeroLengthArrayStore.ZERO_LENGTH_STORE);
+    public static final Object SHARED_INITIAL_STORE = new SharedArrayStorage(ZeroLengthArrayStore.ZERO_LENGTH_STORE);
     private static final ArrayAllocator SHARED_INITIAL_ALLOCATOR = SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
 
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
