@@ -1,4 +1,5 @@
 exclude :test_ar2st, "mutating Hash during key.hash"
+exclude :test_iterlevel_in_ivar_bug19589, "'SystemStackError: stack level too deep' - in ruby-test-mri-asserts only job on CI (e.g. builds #27957758, #27955816)"
 exclude :test_to_proc, "<true> expected but was"
 exclude :test_huge_iter_level, "RuntimeError expected but nothing was raised."
 exclude :test_merge!, "FrozenError expected but nothing was raised."

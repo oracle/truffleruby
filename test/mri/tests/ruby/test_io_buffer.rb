@@ -143,6 +143,24 @@ class TestIOBuffer < Test::Unit::TestCase
     assert_equal message, buffer.get_string(0, message.bytesize)
   end
 
+  def test_resize_zero_internal
+    buffer = IO::Buffer.new(1)
+
+    buffer.resize(0)
+    assert_equal 0, buffer.size
+
+    buffer.resize(1)
+    assert_equal 1, buffer.size
+  end
+
+  def test_resize_zero_external
+    buffer = IO::Buffer.for('1')
+
+    assert_raise IO::Buffer::AccessError do
+      buffer.resize(0)
+    end
+  end
+
   def test_compare_same_size
     buffer1 = IO::Buffer.new(1)
     assert_equal buffer1, buffer1
@@ -220,6 +238,14 @@ class TestIOBuffer < Test::Unit::TestCase
 
     chunk = buffer.get_string(0, message.bytesize, Encoding::BINARY)
     assert_equal Encoding::BINARY, chunk.encoding
+
+    assert_raise_with_message(ArgumentError, /exceeds buffer size/) do
+      buffer.get_string(0, 129)
+    end
+
+    assert_raise_with_message(ArgumentError, /exceeds buffer size/) do
+      buffer.get_string(129)
+    end
   end
 
   # We check that values are correctly round tripped.
@@ -331,10 +357,6 @@ class TestIOBuffer < Test::Unit::TestCase
   end
 
   def test_read
-    # This is currently a bug in IO:Buffer [#19084] which affects extended
-    # strings. On 32 bit machines, the example below becomes extended, so
-    # we omit this test until the bug is fixed.
-    omit if GC::INTERNAL_CONSTANTS[:SIZE_POOL_COUNT] == 1
     io = Tempfile.new
     io.write("Hello World")
     io.seek(0)

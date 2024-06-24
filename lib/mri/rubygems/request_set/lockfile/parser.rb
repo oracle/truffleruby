@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Gem::RequestSet::Lockfile::Parser
   ###
   # Parses lockfiles
@@ -331,7 +332,7 @@ class Gem::RequestSet::Lockfile::Parser
       set.find_all(requirement)
     end.compact.first
 
-    specification && specification.version
+    specification&.version
   end
 
   ##

@@ -18,7 +18,7 @@ class TestGemCommandsSetupCommand < Gem::TestCase
     @cmd.options[:document] = []
 
     filelist = %w[
-      bin/gem
+      exe/gem
       lib/rubygems.rb
       lib/rubygems/requirement.rb
       lib/rubygems/ssl_certs/rubygems.org/foo.pem
@@ -433,7 +433,7 @@ class TestGemCommandsSetupCommand < Gem::TestCase
       s.files = %W[lib/rubygems_plugin.rb]
     end
     write_file File.join @tempdir, "lib", "rubygems_plugin.rb" do |f|
-      f.puts "require '#{gem.plugins.first}'"
+      f.puts "# do nothing"
     end
     install_gem gem
 

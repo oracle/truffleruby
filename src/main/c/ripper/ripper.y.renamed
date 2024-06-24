@@ -1908,7 +1908,7 @@ command_asgn	: lhs '=' lex_ctxt command_rhs
 #if 0
 			$$ = new_attr_op_assign(p, $1, ID2VAL(idCOLON2), $3, $4, $6, &@$);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=dispatch3(field,v1,v2,v3);v5=v4;v6=$4;v7=$6;v8=dispatch3(opassign,v5,v6,v7);$$=v8;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=$1;v2=$2;v3=$3;v4=dispatch3(field,v1,v2,v3);v5=v4;v6=$4;v7=$6;v8=dispatch3(opassign,v5,v6,v7);$$=v8;}
 		    }
 		| defn_head f_opt_paren_args '=' command
 		    {
@@ -2188,14 +2188,14 @@ command		: fcall command_args       %prec tLOWEST
 #if 0
 			$$ = new_command_qcall(p, ID2VAL(idCOLON2), $1, $3, $4, Qnull, &@3, &@$);
 #endif
-			{VALUE v1,v2,v3,v4,v5;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=$4;v5=dispatch4(command_call,v1,v2,v3,v4);$$=v5;}
+			{VALUE v1,v2,v3,v4,v5;v1=$1;v2=$2;v3=$3;v4=$4;v5=dispatch4(command_call,v1,v2,v3,v4);$$=v5;}
 		    }
 		| primary_value tCOLON2 operation2 command_args cmd_brace_block
 		    {
 #if 0
 			$$ = new_command_qcall(p, ID2VAL(idCOLON2), $1, $3, $4, $5, &@3, &@$);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=$4;v5=dispatch4(command_call,v1,v2,v3,v4);v6=v5;v7=$5;v8=dispatch2(method_add_block,v6,v7);$$=v8;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=$1;v2=$2;v3=$3;v4=$4;v5=dispatch4(command_call,v1,v2,v3,v4);v6=v5;v7=$5;v8=dispatch2(method_add_block,v6,v7);$$=v8;}
 		   }
 		| keyword_super command_args
 		    {
@@ -2475,7 +2475,7 @@ lhs		: user_variable
 #if 0
 			$$ = attrset(p, $1, idCOLON2, $3, &@$);
 #endif
-			{VALUE v1,v2,v3,v4;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=dispatch3(field,v1,v2,v3);$$=v4;}
+			{VALUE v1,v2,v3,v4;v1=$1;v2=$2;v3=$3;v4=dispatch3(field,v1,v2,v3);$$=v4;}
 		    }
 		| primary_value call_op tCONSTANT
 		    {
@@ -2666,7 +2666,7 @@ arg		: lhs '=' lex_ctxt arg_rhs
 #if 0
 			$$ = new_attr_op_assign(p, $1, ID2VAL(idCOLON2), $3, $4, $6, &@$);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=dispatch3(field,v1,v2,v3);v5=v4;v6=$4;v7=$6;v8=dispatch3(opassign,v5,v6,v7);$$=v8;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7,v8;v1=$1;v2=$2;v3=$3;v4=dispatch3(field,v1,v2,v3);v5=v4;v6=$4;v7=$6;v8=dispatch3(opassign,v5,v6,v7);$$=v8;}
 		    }
 		| primary_value tCOLON2 tCONSTANT tOP_ASGN lex_ctxt arg_rhs
 		    {
@@ -4241,14 +4241,14 @@ method_call	: fcall paren_args
 			$$ = new_qcall(p, ID2VAL(idCOLON2), $1, $3, $4, &@3, &@$);
 			nd_set_line($$, @3.end_pos.lineno);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=dispatch3(call,v1,v2,v3);v5=v4;v6=$4;v7=dispatch2(method_add_arg,v5,v6);$$=v7;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$1;v2=$2;v3=$3;v4=dispatch3(call,v1,v2,v3);v5=v4;v6=$4;v7=dispatch2(method_add_arg,v5,v6);$$=v7;}
 		    }
 		| primary_value tCOLON2 operation3
 		    {
 #if 0
 			$$ = new_qcall(p, ID2VAL(idCOLON2), $1, $3, Qnull, &@3, &@$);
 #endif
-			{VALUE v1,v2,v3,v4;v1=$1;v2=ID2VAL(idCOLON2);v3=$3;v4=dispatch3(call,v1,v2,v3);$$=v4;}
+			{VALUE v1,v2,v3,v4;v1=$1;v2=$2;v3=$3;v4=dispatch3(call,v1,v2,v3);$$=v4;}
 		    }
 		| primary_value call_op paren_args
 		    {
@@ -4264,7 +4264,7 @@ method_call	: fcall paren_args
 			$$ = new_qcall(p, ID2VAL(idCOLON2), $1, ID2VAL(idCall), $3, &@2, &@$);
 			nd_set_line($$, @2.end_pos.lineno);
 #endif
-			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$1;v2=ID2VAL(idCOLON2);v3=ID2VAL(idCall);v4=dispatch3(call,v1,v2,v3);v5=v4;v6=$3;v7=dispatch2(method_add_arg,v5,v6);$$=v7;}
+			{VALUE v1,v2,v3,v4,v5,v6,v7;v1=$1;v2=$2;v3=ID2VAL(idCall);v4=dispatch3(call,v1,v2,v3);v5=v4;v6=$3;v7=dispatch2(method_add_arg,v5,v6);$$=v7;}
 		    }
 		| keyword_super paren_args
 		    {
@@ -7260,6 +7260,8 @@ tokadd_codepoint(struct parser_params *p, rb_encoding **encp,
     return TRUE;
 }
 
+static int tokadd_mbchar(struct parser_params *p, int c);
+
 /* return value is for ?\u3042 */
 static void
 tokadd_utf8(struct parser_params *p, rb_encoding **encp,
@@ -7277,44 +7279,71 @@ tokadd_utf8(struct parser_params *p, rb_encoding **encp,
     if (regexp_literal) { tokadd(p, '\\'); tokadd(p, 'u'); }
 
     if (peek(p, open_brace)) {  /* handle \u{...} form */
-	const char *second = NULL;
-	int c, last = nextc(p);
-	if (p->lex.pcur >= p->lex.pend) goto unterminated;
-	while (ISSPACE(c = *p->lex.pcur) && ++p->lex.pcur < p->lex.pend);
-	while (c != close_brace) {
-	    if (c == term) goto unterminated;
-	    if (second == multiple_codepoints)
-		second = p->lex.pcur;
-	    if (regexp_literal) tokadd(p, last);
-	    if (!tokadd_codepoint(p, encp, regexp_literal, TRUE)) {
-		break;
-	    }
-	    while (ISSPACE(c = *p->lex.pcur)) {
-		if (++p->lex.pcur >= p->lex.pend) goto unterminated;
-		last = c;
-	    }
-	    if (term == -1 && !second)
-		second = multiple_codepoints;
-	}
+        if (regexp_literal && p->lex.strterm->u.literal.u1.func == str_regexp) {
+            /*
+             * Skip parsing validation code and copy bytes as-is until term or
+             * closing brace, in order to correctly handle extended regexps where
+             * invalid unicode escapes are allowed in comments. The regexp parser
+             * does its own validation and will catch any issues.
+             */
+            tokadd(p, open_brace);
+            while (++p->lex.pcur < p->lex.pend) {
+                int c = peekc(p);
+                if (c == close_brace) {
+                    tokadd(p, c);
+                    ++p->lex.pcur;
+                    break;
+                }
+                else if (c == term) {
+                    break;
+                }
+                if (c == '\\' && p->lex.pcur + 1 < p->lex.pend) {
+                    tokadd(p, c);
+                    c = *++p->lex.pcur;
+                }
+                tokadd_mbchar(p, c);
+            }
+        }
+        else {
+            const char *second = NULL;
+            int c, last = nextc(p);
+            if (p->lex.pcur >= p->lex.pend) goto unterminated;
+            while (ISSPACE(c = *p->lex.pcur) && ++p->lex.pcur < p->lex.pend);
+            while (c != close_brace) {
+                if (c == term) goto unterminated;
+                if (second == multiple_codepoints)
+                    second = p->lex.pcur;
+                if (regexp_literal) tokadd(p, last);
+                if (!tokadd_codepoint(p, encp, regexp_literal, TRUE)) {
+                    break;
+                }
+                while (ISSPACE(c = *p->lex.pcur)) {
+                    if (++p->lex.pcur >= p->lex.pend) goto unterminated;
+                    last = c;
+                }
+                if (term == -1 && !second)
+                    second = multiple_codepoints;
+            }
 
-	if (c != close_brace) {
-	  unterminated:
-	    token_flush(p);
-	    yyerror0("unterminated Unicode escape");
-	    return;
-	}
-	if (second && second != multiple_codepoints) {
-	    const char *pcur = p->lex.pcur;
-	    p->lex.pcur = second;
-	    dispatch_scan_event(p, tSTRING_CONTENT);
-	    token_flush(p);
-	    p->lex.pcur = pcur;
-	    yyerror0(multiple_codepoints);
-	    token_flush(p);
-	}
+            if (c != close_brace) {
+              unterminated:
+                token_flush(p);
+                yyerror0("unterminated Unicode escape");
+                return;
+            }
+            if (second && second != multiple_codepoints) {
+                const char *pcur = p->lex.pcur;
+                p->lex.pcur = second;
+                dispatch_scan_event(p, tSTRING_CONTENT);
+                token_flush(p);
+                p->lex.pcur = pcur;
+                yyerror0(multiple_codepoints);
+                token_flush(p);
+            }
 
-	if (regexp_literal) tokadd(p, close_brace);
-	nextc(p);
+            if (regexp_literal) tokadd(p, close_brace);
+            nextc(p);
+        }
     }
     else {			/* handle \uxxxx form */
 	if (!tokadd_codepoint(p, encp, regexp_literal, FALSE)) {
@@ -7649,7 +7678,7 @@ tokadd_string(struct parser_params *p,
 	    --*nest;
 	}
 	else if ((func & STR_FUNC_EXPAND) && c == '#' && p->lex.pcur < p->lex.pend) {
-	    int c2 = *p->lex.pcur;
+	    unsigned char c2 = *p->lex.pcur;
 	    if (c2 == '$' || c2 == '@' || c2 == '{') {
 		pushback(p, c);
 		break;
@@ -9284,7 +9313,7 @@ parse_qmark(struct parser_params *p, int space_seen)
 	    enc = rb_utf8_encoding();
 	    tokadd_utf8(p, &enc, -1, 0, 0);
 	}
-	else if (!lex_eol_p(p) && !(c = *p->lex.pcur, ISASCII(c))) {
+        else if (!ISASCII(c = peekc(p))) {
 	    nextc(p);
 	    if (tokadd_mbchar(p, c) == -1) return 0;
 	}
@@ -9746,9 +9775,9 @@ parse_ident(struct parser_params *p, int c, int cmd_state)
     ident = tokenize_ident(p, last_state);
     if (result == tCONSTANT && is_local_id(ident)) result = tIDENTIFIER;
     if (!IS_lex_state_for(last_state, EXPR_DOT|EXPR_FNAME) &&
-	(result == tIDENTIFIER) && /* not EXPR_FNAME, not attrasgn */
-	lvar_defined(p, ident)) {
-	SET_LEX_STATE(EXPR_END|EXPR_LABEL);
+        (result == tIDENTIFIER) && /* not EXPR_FNAME, not attrasgn */
+        (lvar_defined(p, ident) || NUMPARAM_ID_P(ident))) {
+        SET_LEX_STATE(EXPR_END|EXPR_LABEL);
     }
     return result;
 }
@@ -13147,26 +13176,43 @@ local_push(struct parser_params *p, int toplevel_scope)
 }
 
 static void
+vtable_chain_free(struct parser_params *p, struct vtable *table)
+{
+    while (!DVARS_TERMINAL_P(table)) {
+        struct vtable *cur_table = table;
+        table = cur_table->prev;
+        vtable_free(cur_table);
+    }
+}
+
+static void
+local_free(struct parser_params *p, struct local_vars *local)
+{
+    vtable_chain_free(p, local->used);
+
+# if WARN_PAST_SCOPE
+    vtable_chain_free(p, local->past);
+# endif
+
+    vtable_chain_free(p, local->args);
+    vtable_chain_free(p, local->vars);
+
+    ruby_sized_xfree(local, sizeof(struct local_vars));
+}
+
+static void
 local_pop(struct parser_params *p)
 {
     struct local_vars *local = p->lvtbl->prev;
     if (p->lvtbl->used) {
-	warn_unused_var(p, p->lvtbl);
-	vtable_free(p->lvtbl->used);
+        warn_unused_var(p, p->lvtbl);
     }
-# if WARN_PAST_SCOPE
-    while (p->lvtbl->past) {
-	struct vtable *past = p->lvtbl->past;
-	p->lvtbl->past = past->prev;
-	vtable_free(past);
-    }
-# endif
-    vtable_free(p->lvtbl->args);
-    vtable_free(p->lvtbl->vars);
+
+    local_free(p, p->lvtbl);
+    p->lvtbl = local;
+
     CMDARG_POP();
     COND_POP();
-    ruby_sized_xfree(p->lvtbl, sizeof(*p->lvtbl));
-    p->lvtbl = local;
 }
 
 #ifndef RIPPER
@@ -13747,16 +13793,17 @@ parser_free(void *ptr)
     if (p->tokenbuf) {
         ruby_sized_xfree(p->tokenbuf, p->toksiz);
     }
+
     for (local = p->lvtbl; local; local = prev) {
-	if (local->vars) xfree(local->vars);
-	prev = local->prev;
-	xfree(local);
+        prev = local->prev;
+        local_free(p, local);
     }
+
     {
-	token_info *ptinfo;
-	while ((ptinfo = p->token_info) != 0) {
-	    p->token_info = ptinfo->next;
-	    xfree(ptinfo);
+        token_info *ptinfo;
+        while ((ptinfo = p->token_info) != 0) {
+            p->token_info = ptinfo->next;
+            xfree(ptinfo);
 	}
     }
     xfree(ptr);

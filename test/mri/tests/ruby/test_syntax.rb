@@ -1370,6 +1370,8 @@ eom
       begin raise; ensure return; end and self
       nil&defined?0--begin e=no_method_error(); return; 0;end
       return puts('ignored') #=> ignored
+      BEGIN {return}
+      END {return if false}
     end;
       .split(/\n/).map {|s|[(line+=1), *s.split(/#=> /, 2)]}
     failed = proc do |n, s|
@@ -1405,6 +1407,10 @@ eom
 
   def test_return_in_proc_in_class
     assert_in_out_err(['-e', 'class TestSyntax; proc{ return }.call; end'], "", [], /^-e:1:.*unexpected return \(LocalJumpError\)/)
+  end
+
+  def test_return_in_END
+    assert_normal_exit('END {return}')
   end
 
   def test_syntax_error_in_rescue
@@ -1671,6 +1677,8 @@ eom
         assert_raise(NameError) {eval("_1")},
       ]
     }
+
+    assert_valid_syntax("p { [_1 **2] }")
   end
 
   def test_value_expr_in_condition

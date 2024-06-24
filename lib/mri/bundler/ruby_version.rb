@@ -28,8 +28,8 @@ module Bundler
       end
 
       @gem_version        = Gem::Requirement.create(@versions.first).requirements.first.last
-      @input_engine       = engine && engine.to_s
-      @engine             = engine && engine.to_s || "ruby"
+      @input_engine       = engine&.to_s
+      @engine             = engine&.to_s || "ruby"
       @engine_versions    = (engine_version && Array(engine_version)) || @versions
       @engine_gem_version = Gem::Requirement.create(@engine_versions.first).requirements.first.last
       @patchlevel         = patchlevel || (@gem_version.prerelease? ? "-1" : nil)
@@ -107,7 +107,7 @@ module Bundler
       ruby_engine_version = RUBY_ENGINE == "ruby" ? ruby_version : RUBY_ENGINE_VERSION.dup
       patchlevel = RUBY_PATCHLEVEL.to_s
 
-      @ruby_version ||= RubyVersion.new(ruby_version, patchlevel, ruby_engine, ruby_engine_version)
+      @system ||= RubyVersion.new(ruby_version, patchlevel, ruby_engine, ruby_engine_version)
     end
 
     private

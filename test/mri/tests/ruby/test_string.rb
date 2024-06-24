@@ -301,6 +301,9 @@ CODE
     assert_raise(RangeError, bug) {S("a".force_encoding(Encoding::UTF_8)) << -1}
     assert_raise(RangeError, bug) {S("a".force_encoding(Encoding::UTF_8)) << 0x81308130}
     assert_nothing_raised {S("a".force_encoding(Encoding::GB18030)) << 0x81308130}
+
+    s = "\x95".force_encoding(Encoding::SJIS).tap(&:valid_encoding?)
+    assert_predicate(s << 0x5c, :valid_encoding?)
   end
 
   def test_MATCH # '=~'
@@ -1072,6 +1075,17 @@ CODE
     assert_equal("A", res[0])
     assert_equal("B", res[1])
     assert_equal("C", res[2])
+  end
+
+  def test_grapheme_clusters_memory_leak
+    assert_no_memory_leak([], "", "#{<<~"begin;"}\n#{<<~'end;'}", "[Bug #todo]", rss: true)
+    begin;
+      str = "hello world".encode(Encoding::UTF_32LE)
+
+      10_000.times do
+        str.grapheme_clusters
+      end
+    end;
   end
 
   def test_each_line
@@ -3376,6 +3390,9 @@ CODE
     assert_equal(6, S("にんにちは").byteindex(S("に"), 6))
     assert_equal(6, S("にんにちは").byteindex(/に./, 6))
     assert_raise(IndexError) { S("にんにちは").byteindex(?に, 7) }
+
+    s = S("foobarbarbaz")
+    assert !1000.times.any? {s.byteindex("", 100_000_000)}
   end
 
   def test_byterindex

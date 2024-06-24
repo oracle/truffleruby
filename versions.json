@@ -1,23 +1,23 @@
 {
   "gems": {
     "default": {
-      "bundler": "2.4.10",
+      "bundler": "2.4.19",
       "did_you_mean": "1.6.3",
       "erb": "4.0.2",
-      "gem": "3.4.10",
+      "gem": "3.4.19",
       "irb": "1.6.2",
       "racc": "1.6.2",
-      "rdoc": "6.5.0"
+      "rdoc": "6.5.1.1"
     },
 
     "bundled": {
       "debug": "1.7.1",
       "matrix": "0.4.2",
       "minitest": "5.16.3",
-      "net-ftp": "0.2.0",
-      "net-imap": "0.3.4",
+      "net-ftp": "0.2.1",
+      "net-imap": "0.3.4.1",
       "net-pop": "0.1.2",
-      "net-smtp": "0.3.3",
+      "net-smtp": "0.3.4",
       "power_assert": "2.0.3",
       "prime": "0.1.2",
       "rake": "13.0.6",

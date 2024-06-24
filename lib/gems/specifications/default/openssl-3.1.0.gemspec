@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.metadata = { "msys2_mingw_dependencies" => "openssl" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Martin Bosslet".freeze, "SHIBATA Hiroshi".freeze, "Zachary Scott".freeze, "Kazuki Yamaguchi".freeze]
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "It wraps the OpenSSL library.".freeze
   s.email = ["ruby-core@ruby-lang.org".freeze]
   s.extensions = ["ext/openssl/extconf.rb".freeze]
@@ -20,6 +20,6 @@ Gem::Specification.new do |s|
   s.licenses = ["Ruby".freeze]
   s.rdoc_options = ["--main".freeze, "README.md".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.6.0".freeze)
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "OpenSSL provides SSL, TLS and general purpose cryptography.".freeze
 end
