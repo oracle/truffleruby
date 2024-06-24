@@ -3,6 +3,7 @@
 New features:
 
 * Add `--reuse-precompiled-gems` option (@andrykonchin).
+* Update to Ruby 3.2.4 (@andrykonchin).
 
 Bug fixes:
 
