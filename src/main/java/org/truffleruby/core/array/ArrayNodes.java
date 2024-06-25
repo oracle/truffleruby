@@ -1806,7 +1806,6 @@ public abstract class ArrayNodes {
     @NodeChild(value = "array", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         @NeverDefault

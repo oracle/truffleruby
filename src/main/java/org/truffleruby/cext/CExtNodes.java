@@ -1050,7 +1050,6 @@ public abstract class CExtNodes {
     }
 
     @Primitive(name = "rb_gv_get")
-    @ReportPolymorphism
     public abstract static class RbGvGetNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         Object rbGvGet(VirtualFrame frame, String name,
@@ -1075,6 +1074,7 @@ public abstract class CExtNodes {
     }
 
 
+    @ReportPolymorphism
     @GenerateInline
     @GenerateCached(false)
     public abstract static class RbGvGetInnerNode extends RubyBaseNode {
