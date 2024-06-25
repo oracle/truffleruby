@@ -11,7 +11,6 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
@@ -42,7 +41,7 @@ public abstract class RubyBaseRootNode extends RootNode {
     }
 
     @Override
-    public boolean isCaptureFramesForTrace(Node currentNode) {
+    public boolean isCaptureFramesForTrace(boolean compiledFrame) {
         return false;
     }
 
