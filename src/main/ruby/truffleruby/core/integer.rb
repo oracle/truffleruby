@@ -129,19 +129,19 @@ class Integer < Numeric
     (self & mask) == 0
   end
 
-  def pow(e, m = undefined)
-    return self ** e if Primitive.undefined?(m)
+  def pow(exponent, modulus = undefined)
+    return self ** exponent if Primitive.undefined?(modulus)
 
-    raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.is_a?(e, Integer)
-    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(m, Integer)
-    raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
+    raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.is_a?(exponent, Integer)
+    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.is_a?(modulus, Integer)
+    raise RangeError, '1st argument cannot be negative when 2nd argument specified' if exponent.negative?
 
-    # Ruby implementation is much faster than Java implementation for modulus <= 2^16,
-    # is comparable for bigger numbers (2^16 < x <= 2^32) and slower for numbers > 2^32.
-    if Primitive.integer_fits_into_int?(m)
-      Truffle::IntegerOperations.modular_exponentiation(self, e, m)
+    # Ruby implementation is much faster than Java implementation for modulus <= 2^32,
+    # and Java is much faster for modulus > 2^32.
+    if Primitive.integer_fits_into_int?(modulus)
+      Truffle::IntegerOperations.modular_exponentiation(self, exponent, modulus)
     else
-      Primitive.mod_pow(self, e, m)
+      Primitive.mod_pow(self, exponent, modulus)
     end
   end
   Truffle::Graal.always_split instance_method(:pow)
