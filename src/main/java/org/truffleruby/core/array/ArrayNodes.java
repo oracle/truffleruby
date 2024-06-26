@@ -1156,7 +1156,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
                 @Cached @Shared IsSharedNode isSharedNode,
-                @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") @Exclusive ArrayStoreLibrary stores) {
             final Object store;
             if (isSharedNode.execute(this, array)) {
                 store = new SharedArrayStorage(new Object[size]);
@@ -1206,7 +1206,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         static Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores,
+                @CachedLibrary(limit = "storageStrategyLimit()") @Exclusive ArrayStoreLibrary stores,
                 // @Exclusive to fix truffle-interpreted-performance warning
                 @Cached @Exclusive IsSharedNode isSharedNode,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
@@ -1806,7 +1806,6 @@ public abstract class ArrayNodes {
     @NodeChild(value = "array", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         @NeverDefault
@@ -1821,7 +1820,7 @@ public abstract class ArrayNodes {
                 @Cached ToAryNode toAryNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached IsSharedNode isSharedNode,
-                @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             final var other = toAryNode.execute(this, otherObject);
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
@@ -2222,7 +2221,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "array != other")
         static RubyArray stealStorage(RubyArray array, RubyArray other,
-                @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
                 @Bind("this") Node node) {
             propagateSharingNode.execute(node, array, other);
