@@ -314,12 +314,13 @@ module Enumerable
   end
   alias_method :entries, :to_a
 
-  def to_h(*arg)
+  def to_h(*args)
     h = {}
-    each_with_index(*arg) do |elem, i|
+    each(*args) do
+      elem = Primitive.single_block_arg
       elem = yield(elem) if block_given?
       unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
+        raise TypeError, "wrong element type #{Primitive.class(elem)} (expected array)"
       end
 
       ary = elem.to_ary
