@@ -190,7 +190,15 @@ module Truffle::CExt
 
     init_functions = libtrampoline[:rb_tr_trampoline_init_functions]
     init_functions = Primitive.interop_eval_nfi('(env,(string):pointer):void').bind(init_functions)
-    init_functions.call(-> name { LIBTRUFFLERUBY[name] })
+    if Truffle::Boot.get_option 'cexts-panama' and Primitive.vm_java_version >= 22 and !TruffleRuby.native?
+      init_functions.call(-> name {
+        closure = LIBTRUFFLERUBY[name].createNativeClosure('panama')
+        keep_alive << closure
+        closure
+      })
+    else
+      init_functions.call(-> name { LIBTRUFFLERUBY[name] })
+    end
 
     init_constants = libtrampoline[:rb_tr_trampoline_init_global_constants]
     init_constants = Primitive.interop_eval_nfi('((string):pointer):void').bind(init_constants)
@@ -1782,6 +1790,14 @@ module Truffle::CExt
   def rb_f_notimplement
     function = caller(1, 1)
     raise NotImplementedError, "#{function}() function is unimplemented on this machine"
+  end
+
+  def rb_bug(message)
+    raise Exception, "rb_bug: #{message}"
+  end
+
+  def rb_fatal(message)
+    raise Exception, "rb_fatal: #{message}"
   end
 
   def test_kwargs(kwargs, raise_error)

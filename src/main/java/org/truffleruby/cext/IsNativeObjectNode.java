@@ -28,7 +28,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class IsNativeObjectNode extends RubyBaseNode {
 
     /** Returns true if handle was natively allocated. */
-    public abstract Object execute(Node node, Object handle);
+    public abstract boolean execute(Node node, Object handle);
 
     @Specialization
     static boolean isNativeObjectTaggedObject(long handle) {
