@@ -355,7 +355,21 @@ class Hash
 
   def to_h
     if block_given?
-      super
+      h = {}
+      each do |k, v|
+        elem = yield(k, v)
+        unless elem.respond_to?(:to_ary)
+          raise TypeError, "wrong element type #{Primitive.class(elem)} (expected array)"
+        end
+
+        ary = elem.to_ary
+        if ary.size != 2
+          raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
+        end
+
+        h[ary[0]] = ary[1]
+      end
+      h
     elsif instance_of? Hash
       self
     else
