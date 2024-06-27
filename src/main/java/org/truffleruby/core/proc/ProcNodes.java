@@ -17,6 +17,7 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -60,7 +61,7 @@ public abstract class ProcNodes {
         }
     }
 
-    @CoreMethod(names = "new", constructor = true, needsBlock = true, rest = true)
+    @CoreMethod(names = "new", constructor = true, needsBlock = true, rest = true, split = Split.HEURISTIC)
     public abstract static class ProcNewNode extends CoreMethodArrayArgumentsNode {
 
         @NeverDefault

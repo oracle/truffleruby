@@ -141,6 +141,28 @@ end
     assert_nothing_raised { Ripper.lex src }
   end
 
+  def test_no_memory_leak
+    assert_no_memory_leak(%w(-rripper), "", "#{<<~'end;'}", rss: true)
+      2_000_000.times do
+        Ripper.parse("")
+      end
+    end;
+
+    # [Bug #19835]
+    assert_no_memory_leak(%w(-rripper), "", "#{<<~'end;'}", rss: true)
+      1_000_000.times do
+        Ripper.parse("class Foo")
+      end
+    end;
+
+    # [Bug #19836]
+    assert_no_memory_leak(%w(-rripper), "", "#{<<~'end;'}", rss: true)
+      1_000_000.times do
+        Ripper.parse("-> {")
+      end
+    end;
+  end
+
   class TestInput < self
     Input = Struct.new(:lines) do
       def gets

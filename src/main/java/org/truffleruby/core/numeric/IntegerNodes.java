@@ -1614,7 +1614,7 @@ public abstract class IntegerNodes {
         }
     }
 
-    @Primitive(name = "integer_fits_into_int")
+    @Primitive(name = "integer_fits_into_int?")
     public abstract static class FixnumFitsIntoIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -1634,7 +1634,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "integer_fits_into_uint")
+    @Primitive(name = "integer_fits_into_uint?")
     public abstract static class IntegerFitsIntoUIntNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -1654,7 +1654,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "integer_fits_into_long")
+    @Primitive(name = "integer_fits_into_long?")
     public abstract static class IntegerFitsIntoLongNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -1674,7 +1674,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @Primitive(name = "integer_fits_into_ulong")
+    @Primitive(name = "integer_fits_into_ulong?")
     public abstract static class IntegerFitsIntoULongNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

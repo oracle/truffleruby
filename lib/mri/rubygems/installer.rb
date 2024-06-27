@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #--
 # Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
 # All rights reserved.
@@ -343,6 +344,8 @@ class Gem::Installer
 
     Gem::Specification.add_spec(spec)
 
+    load_plugin
+
     run_post_install_hooks
 
     spec
@@ -389,7 +392,7 @@ class Gem::Installer
   # we'll be installing into.
 
   def installed_specs
-    @specs ||= begin
+    @installed_specs ||= begin
       specs = []
 
       Gem::Util.glob_files_in_dir("*.gemspec", File.join(gem_home, "specifications")).each do |path|
@@ -1002,5 +1005,18 @@ TEXT
     else
       ""
     end
+  end
+
+  def load_plugin
+    specs = Gem::Specification.find_all_by_name(spec.name)
+    # If old version already exists, this plugin isn't loaded
+    # immediately. It's for avoiding a case that multiple versions
+    # are loaded at the same time.
+    return unless specs.size == 1
+
+    plugin_files = spec.plugins.map do |plugin|
+      File.join(@plugins_dir, "#{spec.name}_plugin#{File.extname(plugin)}")
+    end
+    Gem.load_plugin_files(plugin_files)
   end
 end

@@ -12,11 +12,8 @@ package org.truffleruby.language.literal;
 import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.nodes.NodeInfo;
 import org.truffleruby.language.RubyNode;
 
-@NodeInfo(cost = NodeCost.NONE)
 public final class FloatLiteralNode extends RubyContextSourceNode {
 
     private final double value;

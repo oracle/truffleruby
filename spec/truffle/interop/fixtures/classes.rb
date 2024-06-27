@@ -152,7 +152,7 @@ module TruffleInteropSpecs
 
     def polyglot_array_element_insertable?(index)
       @log << [__callee__, index]
-      index >= @storage.size && Primitive.integer_fits_into_int(index)
+      index >= @storage.size && Primitive.integer_fits_into_int?(index)
     end
 
     def polyglot_array_element_removable?(index)

@@ -574,6 +574,12 @@ st_init_table_with_size(const struct st_hash_type *type, st_index_t size)
     return tab;
 }
 
+size_t
+st_table_size(const struct st_table *tbl)
+{
+    return tbl->num_entries;
+}
+
 /* Create and return table with TYPE which can hold a minimal number
    of entries (see comments for get_power2).  */
 st_table *
@@ -701,6 +707,8 @@ count_collision(const struct st_hash_type *type)
 #error "REBUILD_THRESHOLD should be >= 2"
 #endif
 
+static void rebuild_table_with(st_table *new_tab, st_table *tab);
+
 /* Rebuild table TAB.  Rebuilding removes all deleted bins and entries
    and can change size of the table entries and bins arrays.
    Rebuilding is implemented by creation of a new table or by
@@ -708,14 +716,6 @@ count_collision(const struct st_hash_type *type)
 static void
 rebuild_table(st_table *tab)
 {
-    st_index_t i, ni;
-    unsigned int size_ind;
-    st_table *new_tab;
-    st_table_entry *new_entries;
-    st_table_entry *curr_entry_ptr;
-    st_index_t *bins;
-    st_index_t bin_ind;
-
     if ((2 * tab->num_entries <= get_allocated_entries(tab)
          && REBUILD_THRESHOLD * tab->num_entries > get_allocated_entries(tab))
         || tab->num_entries < (1 << MINIMAL_POWER2)) {
@@ -723,17 +723,30 @@ rebuild_table(st_table *tab)
         tab->num_entries = 0;
         if (tab->bins != NULL)
             initialize_bins(tab);
-        new_tab = tab;
-        new_entries = tab->entries;
+        rebuild_table_with(tab, tab);
     }
     else {
+        st_table *new_tab;
         /* This allocation could trigger GC and compaction. If tab is the
          * gen_iv_tbl, then tab could have changed in size due to objects being
          * freed and/or moved. Do not store attributes of tab before this line. */
         new_tab = st_init_table_with_size(tab->type,
                                           2 * tab->num_entries - 1);
-        new_entries = new_tab->entries;
+        rebuild_table_with(new_tab, tab);
     }
+}
+
+static void
+rebuild_table_with(st_table *new_tab, st_table *tab)
+{
+    st_index_t i, ni;
+    unsigned int size_ind;
+    st_table_entry *new_entries;
+    st_table_entry *curr_entry_ptr;
+    st_index_t *bins;
+    st_index_t bin_ind;
+
+    new_entries = new_tab->entries;
 
     ni = 0;
     bins = new_tab->bins;
@@ -1149,6 +1162,13 @@ st_add_direct_with_hash(st_table *tab,
         bin_ind = find_table_bin_ind_direct(tab, hash, key);
         set_bin(tab->bins, get_size_ind(tab), bin_ind, ind + ENTRY_BASE);
     }
+}
+
+void
+rb_st_add_direct_with_hash(st_table *tab,
+                           st_data_t key, st_data_t value, st_hash_t hash)
+{
+    st_add_direct_with_hash(tab, key, value, hash);
 }
 
 /* Insert (KEY, VALUE) into table TAB.  The table should not have
@@ -2248,6 +2268,17 @@ rb_st_nth_key(st_table *tab, st_index_t index)
     }
     else {
         rb_bug("unreachable");
+    }
+}
+
+void
+rb_st_compact_table(st_table *tab)
+{
+    st_index_t num = tab->num_entries;
+    if (REBUILD_THRESHOLD * num <= get_allocated_entries(tab)) {
+        /* Compaction: */
+        st_table *new_tab = st_init_table_with_size(tab->type, 2 * num);
+        rebuild_table_with(new_tab, tab);
     }
 }
 

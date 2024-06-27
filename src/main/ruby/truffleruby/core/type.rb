@@ -64,7 +64,7 @@ module Truffle
   module Type
     def self.object_respond_to_no_built_in?(obj, name, include_private = false)
       meth = Primitive.vm_method_lookup obj, name
-      !Primitive.nil?(meth) && !Primitive.vm_method_is_basic(meth)
+      !Primitive.nil?(meth) && !Primitive.vm_method_is_basic?(meth)
     end
 
     def self.check_funcall_callable(obj, name)
@@ -123,7 +123,7 @@ module Truffle
       raise TypeError, 'no implicit conversion from nil to integer' if Primitive.nil? val
 
       if Primitive.is_a?(val, Integer)
-        if Primitive.integer_fits_into_long(val)
+        if Primitive.integer_fits_into_long?(val)
           val
         else
           rb_big2ulong(val)
@@ -192,21 +192,21 @@ module Truffle
     end
 
     def self.fits_into_int?(val)
-      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_int(val)
+      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_int?(val)
     end
 
     def self.fits_into_long?(val)
-      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_long(val)
+      Primitive.is_a?(val, Integer) && Primitive.integer_fits_into_long?(val)
     end
 
     def self.check_uint(val)
-      unless Primitive.integer_fits_into_uint(val)
+      unless Primitive.integer_fits_into_uint?(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint'"
       end
     end
 
     def self.check_ulong(val)
-      unless Primitive.integer_fits_into_ulong(val)
+      unless Primitive.integer_fits_into_ulong?(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong'"
       end
     end
@@ -441,13 +441,18 @@ module Truffle
       path
     end
 
-    def self.coerce_to_symbol(obj)
-      if Primitive.is_a? obj, Symbol
-        obj
-      else
-        obj = obj.to_str if obj.respond_to?(:to_str)
-        coerce_to(obj, Symbol, :to_sym)
+    # Convert an object to Symbol (e.g. a method name).
+    # Non-Symbol values are converted to String with #to_str. If it couldn't be converted - TypeError is raised.
+    # Uses the logic of rb_check_id/rb_check_string_type/rb_check_convert_type_with_id
+    def self.coerce_to_symbol(object)
+      return object if Primitive.is_a?(object, Symbol)
+
+      string = Truffle::Type.rb_check_convert_type(object, String, :to_str)
+      if Primitive.nil?(string)
+        raise TypeError, "#{object} is not a symbol nor a string"
       end
+
+      string.to_sym
     end
 
     def self.symbol_or_string_to_symbol(obj)

@@ -85,6 +85,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_COMPILE_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> WARN_TRUFFLE_REGEX_MATCH_FALLBACK_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS_KEY = new OptionKey<>(false);
+    public static final OptionKey<String[]> REUSE_PRECOMPILED_GEMS_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
@@ -682,6 +683,14 @@ public final class OptionsCatalog {
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")
+            .build();
+
+    public static final OptionDescriptor REUSE_PRECOMPILED_GEMS = OptionDescriptor
+            .newBuilder(REUSE_PRECOMPILED_GEMS_KEY, "ruby.reuse-precompiled-gems")
+            .help("A list of gems we want to install precompiled (using the local platform) on TruffleRuby. Can only be used for gem extensions which do not depend on the Ruby C API.")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .usageSyntax("<gem>,<gem>,...")
             .build();
 
     public static final OptionDescriptor ARGV_GLOBALS = OptionDescriptor
@@ -1440,6 +1449,8 @@ public final class OptionsCatalog {
                 return WARN_TRUFFLE_REGEX_MATCH_FALLBACK;
             case "ruby.truffle-regex-ignore-atomic-groups":
                 return TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS;
+            case "ruby.reuse-precompiled-gems":
+                return REUSE_PRECOMPILED_GEMS;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
             case "ruby.chomp-loop":
@@ -1668,6 +1679,7 @@ public final class OptionsCatalog {
             WARN_TRUFFLE_REGEX_COMPILE_FALLBACK,
             WARN_TRUFFLE_REGEX_MATCH_FALLBACK,
             TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS,
+            REUSE_PRECOMPILED_GEMS,
             ARGV_GLOBALS,
             CHOMP_LOOP,
             GETS_LOOP,

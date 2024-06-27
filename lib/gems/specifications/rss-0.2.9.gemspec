@@ -8,15 +8,15 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Kouhei Sutou".freeze]
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "Family of libraries that support various formats of XML \"feeds\".".freeze
   s.email = ["kou@cozmixng.org".freeze]
   s.homepage = "https://github.com/ruby/rss".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "Family of libraries that support various formats of XML \"feeds\".".freeze
 
-  s.installed_by_version = "3.4.10" if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.4.19" if s.respond_to? :installed_by_version
 
   s.specification_version = 4
 

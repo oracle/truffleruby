@@ -182,12 +182,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String MIME_TYPE_MAIN_SCRIPT = "application/x-ruby;main-script=true";
     public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE, MIME_TYPE_MAIN_SCRIPT };
 
-    public static final String PLATFORM = String.format(
-            "%s-%s%s",
-            Platform.getArchName(),
-            Platform.getOSName(),
-            Platform.getKernelMajorVersion());
-
     public static final String LLVM_BITCODE_MIME_TYPE = "application/x-llvm-ir-bitcode";
 
     public static final String CEXT_EXTENSION = Platform.CEXT_SUFFIX;

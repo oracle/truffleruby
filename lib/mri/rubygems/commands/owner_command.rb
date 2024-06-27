@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require_relative "../command"
 require_relative "../local_remote_options"
 require_relative "../gemcutter_utilities"
@@ -98,8 +99,10 @@ permission to.
         action = method == :delete ? "Removing" : "Adding"
 
         with_response response, "#{action} #{owner}"
-      rescue
-        # ignore
+      rescue Gem::WebauthnVerificationError => e
+        raise e
+      rescue StandardError
+        # ignore early exits to allow for completing the iteration of all owners
       end
     end
   end

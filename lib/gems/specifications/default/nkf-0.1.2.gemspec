@@ -10,13 +10,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["NARUSE Yui".freeze]
   s.bindir = "exe".freeze
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "Ruby extension for Network Kanji Filter".freeze
   s.email = ["naruse@airemix.jp".freeze]
   s.files = ["lib/kconv.rb".freeze]
   s.homepage = "https://github.com/ruby/nkf".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "Ruby extension for Network Kanji Filter".freeze
 end

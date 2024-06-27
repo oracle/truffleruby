@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.metadata = { "homepage_uri" => "https://github.com/ruby/io-nonblock", "source_code_uri" => "https://github.com/ruby/io-nonblock" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Nobu Nakada".freeze]
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "Enables non-blocking mode with IO class".freeze
   s.email = ["nobu@ruby-lang.org".freeze]
   s.extensions = ["ext/io/nonblock/extconf.rb".freeze]
@@ -18,6 +18,6 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/io-nonblock".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "Enables non-blocking mode with IO class".freeze
 end

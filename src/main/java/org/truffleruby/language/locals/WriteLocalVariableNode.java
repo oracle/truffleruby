@@ -65,7 +65,7 @@ public final class WriteLocalVariableNode extends WriteLocalNode {
     public RubyNode cloneUninitialized() {
         var copy = new WriteLocalVariableNode(
                 frameSlot,
-                valueNode.cloneUninitialized());
+                cloneUninitialized(valueNode));
         return copy.copyFlags(this);
     }
 

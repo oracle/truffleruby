@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.DenyReplace;
-import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.core.kernel.KernelNodes.RespondToNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
@@ -104,11 +103,6 @@ public class InternalRespondToNode extends RubyBaseNode {
                     config,
                     MetaClassNodeGen.getUncached(),
                     LookupMethodNodeGen.getUncached());
-        }
-
-        @Override
-        public NodeCost getCost() {
-            return NodeCost.MEGAMORPHIC;
         }
 
         @Override

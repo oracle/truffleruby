@@ -50,6 +50,7 @@ import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.array.library.SharedArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
@@ -71,7 +72,6 @@ import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
@@ -831,7 +831,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "array_equal")
+    @Primitive(name = "array_equal?")
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
 
@@ -904,7 +904,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @Primitive(name = "array_eql")
+    @Primitive(name = "array_eql?")
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqlNode extends PrimitiveArrayArgumentsNode {
 
@@ -1156,7 +1156,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         RubyArray initializeWithSizeNoValue(RubyArray array, int size, NotProvided fillingValue, Nil block,
                 @Cached @Shared IsSharedNode isSharedNode,
-                @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") @Exclusive ArrayStoreLibrary stores) {
             final Object store;
             if (isSharedNode.execute(this, array)) {
                 store = new SharedArrayStorage(new Object[size]);
@@ -1206,7 +1206,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "size >= 0")
         static Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @CachedLibrary(limit = "2") @Exclusive ArrayStoreLibrary stores,
+                @CachedLibrary(limit = "storageStrategyLimit()") @Exclusive ArrayStoreLibrary stores,
                 // @Exclusive to fix truffle-interpreted-performance warning
                 @Cached @Exclusive IsSharedNode isSharedNode,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
@@ -1352,34 +1352,39 @@ public abstract class ArrayNodes {
 
         // Uses Symbol and no block
 
-        @Specialization(guards = { "isEmptyArray(array)" })
-        Object injectSymbolEmptyArrayNoInitial(
-                RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block) {
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
+        Object injectSymbolEmptyArrayNoInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, Nil block,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
+            nameToJavaStringNode.execute(this, initialOrSymbol); // ensure a method name is either a Symbol or could be converted to String
             return nil;
         }
 
         @Specialization(
                 guards = {
                         "isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)" })
-        Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block) {
+                        "wasProvided(initialOrSymbol)",
+                        "wasProvided(symbol)" })
+        Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, Object symbol, Nil block,
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
+            nameToJavaStringNode.execute(this, symbol); // ensure a method name is either a Symbol or could be converted to String
             return initialOrSymbol;
         }
 
         @Specialization(
-                guards = { "!isEmptyArray(array)" },
+                guards = { "!isEmptyArray(array)", "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
         Object injectSymbolNoInitial(
-                VirtualFrame frame, RubyArray array, RubySymbol initialOrSymbol, NotProvided symbol, Nil block,
+                VirtualFrame frame, RubyArray array, Object initialOrSymbol, NotProvided symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
-                @Cached @Shared ToJavaStringNode toJavaString) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
+            String methodName = nameToJavaStringNode.execute(this, initialOrSymbol); // ensure a method name is either a Symbol or could be converted to String
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.execute(this, initialOrSymbol),
+                    methodName,
                     stores,
                     store,
                     stores.read(store, 0),
@@ -1391,19 +1396,21 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = {
                         "!isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)" },
+                        "wasProvided(initialOrSymbol)",
+                        "wasProvided(symbol)" },
                 limit = "storageStrategyLimit()")
         Object injectSymbolWithInitial(
-                VirtualFrame frame, RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block,
+                VirtualFrame frame, RubyArray array, Object initialOrSymbol, Object symbol, Nil block,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
-                @Cached @Shared ToJavaStringNode toJavaString) {
+                @Cached @Shared NameToJavaStringNode nameToJavaStringNode) {
+            String methodName = nameToJavaStringNode.execute(this, symbol); // ensure a method name is either a Symbol or could be converted to String
             return injectSymbolHelper(
                     frame,
                     array,
-                    toJavaString.execute(this, symbol),
+                    methodName,
                     stores,
                     store,
                     initialOrSymbol,
@@ -1705,7 +1712,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "<<", raiseIfFrozenSelf = true, required = 1)
+    @CoreMethod(names = "<<", raiseIfFrozenSelf = true, required = 1, split = Split.ALWAYS)
     public abstract static class AppendNode extends ArrayCoreMethodNode {
 
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();
@@ -1799,7 +1806,6 @@ public abstract class ArrayNodes {
     @NodeChild(value = "array", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyBaseNodeWithExecute.class)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
     public abstract static class ReplaceNode extends CoreMethodNode {
 
         @NeverDefault
@@ -1814,7 +1820,7 @@ public abstract class ArrayNodes {
                 @Cached ToAryNode toAryNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached IsSharedNode isSharedNode,
-                @CachedLibrary(limit = "2") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             final var other = toAryNode.execute(this, otherObject);
             final int size = other.size;
             Object store = cowNode.execute(other, 0, size);
@@ -2215,7 +2221,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "array != other")
         static RubyArray stealStorage(RubyArray array, RubyArray other,
-                @CachedLibrary(limit = "2") ArrayStoreLibrary stores,
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
                 @Bind("this") Node node) {
             propagateSharingNode.execute(node, array, other);

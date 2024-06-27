@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #--
 # Copyright 2006 by Chad Fowler, Rich Kilmer, Jim Weirich and others.
 # All rights reserved.
@@ -8,7 +9,7 @@
 require "rbconfig"
 
 module Gem
-  VERSION = "3.4.10"
+  VERSION = "3.4.19"
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -855,8 +856,7 @@ An Array (#{env.inspect}) was passed in from #{caller[3]}
   # Returns the version of the latest release-version of gem +name+
 
   def self.latest_version_for(name)
-    spec = latest_spec_for name
-    spec && spec.version
+    latest_spec_for(name)&.version
   end
 
   ##

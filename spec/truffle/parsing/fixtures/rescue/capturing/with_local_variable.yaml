@@ -72,14 +72,6 @@ ast: |
                                                           frameSlot = 2 # error
                                                           sourceCharIndex = 37
                                                           sourceLength = 5
-                                                      children:
-                                                          valueNode =
-                                                              DeadNode
-                                                                  attributes:
-                                                                      flags = 0
-                                                                      reason = "YARPTranslator#visitLocalVariableTargetNode"
-                                                                      sourceCharIndex = -1
-                                                                      sourceLength = 0
                                       IntegerFixnumLiteralNode
                                           attributes:
                                               flags = 1
