@@ -166,6 +166,14 @@ class StringIO
       mode_from_string(string.frozen? ? 'r' : 'r+')
     end
 
+    if @writable && @__data__.string.frozen?
+      raise Errno::EACCES, 'Permission denied'
+    end
+
+    if @truncate
+      @__data__.string.replace(''.force_encoding(@__data__.string.encoding))
+    end
+
     self
   end
 
@@ -672,7 +680,7 @@ class StringIO
   end
 
   private def mode_from_string(mode)
-    @append = truncate = false
+    @append = @truncate = false
 
     if mode[0] == ?r
       @readable = true
@@ -680,7 +688,7 @@ class StringIO
     end
 
     if mode[0] == ?w
-      @writable = truncate = true
+      @writable = @truncate = true
       @readable = mode[-1] == ?+ ? true : false
     end
 
@@ -688,27 +696,21 @@ class StringIO
       @append = @writable = true
       @readable = mode[-1] == ?+ ? true : false
     end
-
-    d = @__data__ # no sync, only called from initialize
-    raise Errno::EACCES, 'Permission denied' if @writable && d.string.frozen?
-    d.string.replace(''.force_encoding(d.string.encoding)) if truncate
   end
 
   private def mode_from_integer(mode)
-    @readable = @writable = @append = false
-    d = @__data__ # no sync, only called from initialize
+    @readable = @writable = @append = @truncate = false
 
     if mode == 0 or mode & IO::RDWR != 0
       @readable = true
     end
 
     if mode & (IO::WRONLY | IO::RDWR) != 0
-      raise Errno::EACCES, 'Permission denied' if d.string.frozen?
       @writable = true
     end
 
     @append = true if (mode & IO::APPEND) != 0
-    d.string.replace(''.force_encoding(d.string.encoding)) if (mode & IO::TRUNC) != 0
+    @truncate = true if (mode & IO::TRUNC) != 0
   end
 
   private def getline(arg_error, sep, limit, chomp = false)
