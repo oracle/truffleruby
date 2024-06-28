@@ -130,6 +130,26 @@ describe "StringIO#initialize when passed [Object, mode]" do
     -> { @io.send(:initialize, str, "w") }.should raise_error(Errno::EACCES)
     -> { @io.send(:initialize, str, "a") }.should raise_error(Errno::EACCES)
   end
+
+  it "truncates all the content if passed w mode" do
+    io = StringIO.allocate
+    source = +"example".encode(Encoding::ISO_8859_1);
+
+    io.send(:initialize, source, "w")
+
+    io.string.should.empty?
+    io.string.encoding.should == Encoding::ISO_8859_1
+  end
+
+  it "truncates all the content if passed IO::TRUNC mode" do
+    io = StringIO.allocate
+    source = +"example".encode(Encoding::ISO_8859_1);
+
+    io.send(:initialize, source, IO::TRUNC)
+
+    io.string.should.empty?
+    io.string.encoding.should == Encoding::ISO_8859_1
+  end
 end
 
 describe "StringIO#initialize when passed [Object]" do

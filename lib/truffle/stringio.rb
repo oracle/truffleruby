@@ -691,7 +691,7 @@ class StringIO
 
     d = @__data__ # no sync, only called from initialize
     raise Errno::EACCES, 'Permission denied' if @writable && d.string.frozen?
-    d.string.replace('') if truncate
+    d.string.replace(''.force_encoding(d.string.encoding)) if truncate
   end
 
   private def mode_from_integer(mode)
@@ -708,7 +708,7 @@ class StringIO
     end
 
     @append = true if (mode & IO::APPEND) != 0
-    d.string.replace('') if (mode & IO::TRUNC) != 0
+    d.string.replace(''.force_encoding(d.string.encoding)) if (mode & IO::TRUNC) != 0
   end
 
   private def getline(arg_error, sep, limit, chomp = false)

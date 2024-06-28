@@ -33,6 +33,7 @@ Compatibility:
 * Fix `Enumerable#reduce` to handle non-Symbol method name parameter (#2931, @andrykonchin).
 * Fix `RangeError` message to match CRuby for `Integer#chr` called with invalid codepoint argument (#2795, @andrykonchin).
 * Joni has been updated from 2.1.44 to 2.2.1 (@andrykonchin).
+* Fix `StringIO#initialize` and preserve initial string's encoding when mode is `w` so the initial string is truncated (#3599, @andrykonchin).
 
 Performance:
 
