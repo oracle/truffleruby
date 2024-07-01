@@ -2,3 +2,5 @@ slow:Warning.warn has Warning as the method owner
 slow:Warning.warn can be overridden
 slow:Warning.warn does not add a newline
 slow:Warning.warn returns nil
+fails:Warning.warn isn't called by Kernel.warn when category is :deprecated but Warning[:deprecated] is false
+fails:Warning.warn isn't called by Kernel.warn when category is :experimental but Warning[:experimental] is false
