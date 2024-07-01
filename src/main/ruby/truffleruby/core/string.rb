@@ -419,6 +419,7 @@ class String
           (_, fallback_enc_from, fallback_enc_to, error_bytes, _) = ec.primitive_errinfo
           rep = fallback[error_bytes.force_encoding(fallback_enc_from)]
           raise ec.last_error unless rep
+          rep = Truffle::Type.rb_convert_type rep, String, :to_str
           dest << rep.encode(fallback_enc_to)
           status = ec.primitive_convert src, dest, nil, nil
         end

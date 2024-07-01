@@ -38,6 +38,7 @@ Compatibility:
 * Fix `IO#{autoclose=,autoclose?}` and raise `IOError` when io is closed (@andrykonchin).
 * Fix `Thread#{thread_variable_get,thread_variable_set,thread_variable?,key?,[],[]=,fetch}` and convert a non-String/Symbol thread-local variable name to String using `#to_str` (@andrykonchin).
 * Fix formatting in `Exception#full_message` when `RuntimeError` is not handled and `highlight` option is specified (@andrykonchin).
+* Fix `String#encode` and convert fallback values into String using `#to_str` (@andrykonchin).
 
 Performance:
 
