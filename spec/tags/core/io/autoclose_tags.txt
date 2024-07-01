@@ -1,0 +1,2 @@
+fails:IO#autoclose? cannot be queried on a closed IO object
+fails:IO#autoclose= cannot be set on a closed IO object
