@@ -355,7 +355,12 @@ class Hash
 
   def to_h
     if block_given?
-      super
+      h = {}
+      each do |k, v|
+        pair = yield(k, v)
+        Truffle::HashOperations.assoc_key_value_pair(h, pair)
+      end
+      h
     elsif instance_of? Hash
       self
     else

@@ -109,18 +109,9 @@ class Struct
 
   def to_h
     h = {}
-    each_pair.each_with_index do |elem, i|
-      elem = yield(elem) if block_given?
-      unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
-      end
-
-      ary = elem.to_ary
-      if ary.size != 2
-        raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
-      end
-
-      h[ary[0]] = ary[1]
+    each_pair do |k, v|
+      pair = block_given? ? yield(k, v) : [k, v]
+      Truffle::HashOperations.assoc_key_value_pair(h, pair)
     end
     h
   end

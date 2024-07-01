@@ -1296,19 +1296,10 @@ class Array
   end
 
   def to_h
-    h = Hash.new
+    h = {}
     each_with_index do |elem, i|
       elem = yield(elem) if block_given?
-      unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
-      end
-
-      ary = elem.to_ary
-      if ary.size != 2
-        raise ArgumentError, "wrong array length at #{i} (expected 2, was #{ary.size})"
-      end
-
-      h[ary[0]] = ary[1]
+      Truffle::HashOperations.assoc_key_value_pair_with_position(h, elem, i)
     end
     h
   end
