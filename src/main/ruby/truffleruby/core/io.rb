@@ -908,10 +908,12 @@ class IO
   # which is not really the owner of the fd should not actually close
   # the fd.
   def autoclose?
+    ensure_open
     @autoclose
   end
 
   def autoclose=(autoclose)
+    ensure_open
     @autoclose = Primitive.as_boolean(autoclose)
   end
 
@@ -2417,7 +2419,7 @@ class IO
       if fd >= 0
         # Need to set even if the instance is frozen
         Primitive.io_set_fd(self, -1)
-        if fd >= 3 && autoclose?
+        if fd >= 3 && @autoclose
           ret = Truffle::POSIX.close(fd)
           Errno.handle if ret < 0
         end

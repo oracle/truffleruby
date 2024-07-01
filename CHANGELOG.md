@@ -35,6 +35,7 @@ Compatibility:
 * Joni has been updated from 2.1.44 to 2.2.1 (@andrykonchin).
 * Fix `Hash#to_h` called with a block and pass key and value to the block as separate arguments (#3607, @andrykonchin).
 * Fix `StringIO#initialize` and preserve initial string's encoding when mode is `w` so the initial string is truncated (#3599, @andrykonchin).
+* Fix `IO#{autoclose=,autoclose?}` and raise `IOError` when io is closed (@andrykonchin).
 
 Performance:
 
