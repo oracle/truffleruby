@@ -1,2 +1,0 @@
-fails:Exception#detailed_message accepts highlight keyword argument and adds escape control sequences for an instance of RuntimeError with empty message
-fails:Exception#detailed_message accepts highlight keyword argument and adds escape control sequences for an instance other than RuntimeError with empty message

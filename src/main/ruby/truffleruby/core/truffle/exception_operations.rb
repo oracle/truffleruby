@@ -116,7 +116,7 @@ module Truffle
 
       if message.empty?
         message = Primitive.equal?(exception_class, RuntimeError) ? 'unhandled exception' : class_name
-        message = "\n\e[1m#{message}\e[m" if highlight
+        message = "\e[1;4m#{message}\e[m" if highlight
         return message
       end
 
