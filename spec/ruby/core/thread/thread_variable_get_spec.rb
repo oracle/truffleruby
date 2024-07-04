@@ -41,13 +41,15 @@ describe "Thread#thread_variable_get" do
     @t.thread_variable_get(:a).should be_nil
   end
 
-  it "does not raise a TypeError if the key is neither Symbol nor String, nor responds to #to_str" do
-    @t.thread_variable_get(123).should be_nil
-  end
+  ruby_bug "#20606", ""..."3.4" do
+    it "raises a TypeError if the key is neither Symbol nor String, nor responds to #to_str" do
+      -> { @t.thread_variable_get(123) }.should raise_error(TypeError, /123 is not a symbol/)
+    end
 
-  it "does not try to convert the key with #to_sym" do
-    key = mock('key')
-    key.should_not_receive(:to_sym)
-    @t.thread_variable_get(key).should be_nil
+    it "does not try to convert the key with #to_sym" do
+      key = mock('key')
+      key.should_not_receive(:to_sym)
+      -> { @t.thread_variable_get(key) }.should raise_error(TypeError)
+    end
   end
 end

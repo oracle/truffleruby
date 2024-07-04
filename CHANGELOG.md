@@ -35,6 +35,11 @@ Compatibility:
 * Joni has been updated from 2.1.44 to 2.2.1 (@andrykonchin).
 * Fix `Hash#to_h` called with a block and pass key and value to the block as separate arguments (#3607, @andrykonchin).
 * Fix `StringIO#initialize` and preserve initial string's encoding when mode is `w` so the initial string is truncated (#3599, @andrykonchin).
+* Fix `IO#{autoclose=,autoclose?}` and raise `IOError` when io is closed (@andrykonchin).
+* Fix `Thread#{thread_variable_get,thread_variable_set,thread_variable?,key?,[],[]=,fetch}` and convert a non-String/Symbol thread-local variable name to String using `#to_str` (@andrykonchin).
+* Fix formatting in `Exception#full_message` when `RuntimeError` is not handled and `highlight` option is specified (@andrykonchin).
+* Fix `String#encode` and convert fallback values into String using `#to_str` (@andrykonchin).
+* Fix `Kernel.warn` and don't call `Warning#warn` if a specified category is disabled (@andrykonchin).
 
 Performance:
 
