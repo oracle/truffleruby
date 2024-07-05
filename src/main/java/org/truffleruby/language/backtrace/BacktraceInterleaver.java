@@ -58,7 +58,7 @@ public final class BacktraceInterleaver {
         return (className.equals("com.oracle.truffle.runtime.OptimizedCallTarget") &&
                 methodName.equals("executeRootNode")) ||
                 (className.equals("com.oracle.truffle.api.impl.DefaultCallTarget") &&
-                        methodName.equals("callDirectOrIndirect"));
+                        (methodName.equals("callDirectOrIndirect") || methodName.equals("call")));
     }
 
     private static boolean isIntoRuby(StackTraceElement[] elements, int index) {

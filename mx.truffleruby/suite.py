@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "6.44.0",
+    "mxversion": "7.25.5",
     "name": "truffleruby",
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
@@ -20,7 +20,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "2d38cc78a3d8a3aa7a4d060973ff3f02fe6187fe",
+                "version": "b140d4020dea2c7f37e69c5be66adca41dbd3cb1",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +29,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "2d38cc78a3d8a3aa7a4d060973ff3f02fe6187fe",
+                "version": "b140d4020dea2c7f37e69c5be66adca41dbd3cb1",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -74,10 +74,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.joni",
                 "artifactId": "joni",
-                "version": "2.1.44"
+                "version": "2.2.1"
             },
-            "digest": "sha512:59b901333d93b8eaf0c28a2d269d159e6806701902505113148c4df6b2ade973e97f9b888b8b5b4dff4d3c667b4594eeee8133f4260e7f1f3d9af1a031b9cab4",
-            "sourceDigest": "sha512:773051c47893799ecc0b916b80c4dedac0efe2988743d455ce8529460aed2d7664d4b12cd51e449a8b20ac0c37e32ead89d72f6acf4f6a780268b55fdd67e3cf",
+            "digest": "sha512:e4fa4dda7478d5254b80aa77014d6df05317ac55d957da9ade6c9a80968aaf49d87d58930b8ddd44333270fa38984649858655b54c3aa8463602e0da8902d53a",
+            "sourceDigest": "sha512:90b9a5216c748cc170a17bf58289553e0fe7695b16e7cacefd126d506ee7700e4cd7739e2d2500442ae7077fb88fcd64621c5a005b1fc6909ea75c88ce8cb536",
             "license": ["MIT"],
         },
 

@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Koichi Sasada".freeze]
   s.bindir = "exe".freeze
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "Debugging functionality for Ruby. This is completely rewritten debug.rb which was contained by the ancient Ruby versions.".freeze
   s.email = ["ko1@atdot.net".freeze]
   s.executables = ["rdbg".freeze]
@@ -20,10 +20,10 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/debug".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.6.0".freeze)
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "Debugging functionality for Ruby".freeze
 
-  s.installed_by_version = "3.4.10" if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.4.19" if s.respond_to? :installed_by_version
 
   s.specification_version = 4
 

@@ -118,8 +118,8 @@ public class CommandLineParser {
                     value = null;
                 }
 
-                // Switches without values are stored separately in ARGV_GLOBAL_FLAGS. Otherwise it would not be
-                // possible to determine if the value is suppose to be `true` or `"true"`.
+                // Switches without values are stored separately in ARGV_GLOBAL_FLAGS. Otherwise, it would not be
+                // possible to determine if the value is supposed to be `true` or `"true"`.
                 final OptionDescriptor optionDescription = value != null
                         ? OptionsCatalog.ARGV_GLOBAL_VALUES
                         : OptionsCatalog.ARGV_GLOBAL_FLAGS;

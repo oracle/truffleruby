@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Masatoshi SEKI".freeze, "Takashi Kokubun".freeze]
   s.bindir = "libexec".freeze
-  s.date = "2023-03-30"
+  s.date = "2024-04-23"
   s.description = "An easy to use but powerful templating system for Ruby.".freeze
   s.email = ["seki@ruby-lang.org".freeze, "takashikkbn@gmail.com".freeze]
   s.executables = ["erb".freeze]
@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/erb".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.7.0".freeze)
-  s.rubygems_version = "3.4.10".freeze
+  s.rubygems_version = "3.4.19".freeze
   s.summary = "An easy to use but powerful templating system for Ruby.".freeze
 
   s.specification_version = 4

@@ -2,6 +2,9 @@
 
 New features:
 
+* Add `--reuse-precompiled-gems` option (@andrykonchin).
+* Update to Ruby 3.2.4 (@andrykonchin).
+
 Bug fixes:
 
 * Add missing thread-safe objects write barriers for `TruffleRuby::ConcurrentMap` (#3179, @eregon).
@@ -12,6 +15,8 @@ Bug fixes:
 * Fix parsing literal floats when the locale does not use `.` for the decimal separator (e.g. `LANG=fr_FR.UTF-8`) (#3512, @eregon).
 * Fix `IO#{read_nonblock,readpartial,sysread}`, `BasicSocket#{recv,recv_nonblock}`, `{Socket,UDPSocket}#recvfrom_nonblock`, `UnixSocket#recvfrom` and preserve a provided buffer's encoding (#3506, @andrykonchyn).
 * Repair `IO#{wait_readable,wait_writable,wait}` to be interruptible (#3504, @andrykonchin).
+* Fix Hash value omission for constant names (@andrykonchin).
+* Fix `MatchData#[index, length]` when index is larger than number of matched values (@andrykonchin).
 
 Compatibility:
 
@@ -23,8 +28,14 @@ Compatibility:
 * Allow anonymous memberless Struct (@simonlevasseur).
 * Set `$!` when a `Kernel#at_exit` hook raises an exception (#3535, @andrykonchin).
 * Support `:buffer` keyword argument to `Array#pack` (#3559, @andrykonchyn).
+* Set `RbConfig::CONFIG['host_cpu']` to `arm64` on darwin platform (#3571, @andrykonchin).
+* Fix `RegexpError` messages to match CRuby better (#3398, @andrykonchin).
+* Fix `Enumerable#reduce` to handle non-Symbol method name parameter (#2931, @andrykonchin).
+* Fix `RangeError` message to match CRuby for `Integer#chr` called with invalid codepoint argument (#2795, @andrykonchin).
+* Joni has been updated from 2.1.44 to 2.2.1 (@andrykonchin).
 
 Performance:
+
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
 * Optimize `Integer#pow` method for small modulus values (#3544, @andrykonchin).
 

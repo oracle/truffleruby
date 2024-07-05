@@ -200,6 +200,13 @@ class TestRegexp < Test::Unit::TestCase
     RUBY
   end
 
+  def test_utf8_comment_in_usascii_extended_regexp_bug_19455
+    assert_separately([], <<-RUBY)
+      assert_equal(Encoding::UTF_8, /(?#\u1000)/x.encoding)
+      assert_equal(Encoding::UTF_8, /#\u1000/x.encoding)
+    RUBY
+  end
+
   def test_union
     assert_equal :ok, begin
       Regexp.union(
@@ -1781,6 +1788,14 @@ class TestRegexp < Test::Unit::TestCase
 
       assert_nil(/^a*b?a*$/ =~ "a" * 1000000 + "x")
     end;
+  end
+
+  def test_cache_index_initialize
+    str = 'test1-test2-test3-test4-test_5'
+    re = '^([0-9a-zA-Z\-/]*){1,256}$'
+    100.times do
+      assert !Regexp.new(re).match?(str)
+    end
   end
 
   def test_bug_19273 # [Bug #19273]

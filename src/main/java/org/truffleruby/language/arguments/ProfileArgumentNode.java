@@ -23,14 +23,11 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
-import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.nodes.NodeInfo;
 
 import java.util.Objects;
 
 @TypeSystemReference(NoImplicitCastsToLong.class)
 @ImportStatic(CompilerDirectives.class)
-@NodeInfo(cost = NodeCost.NONE)
 @NodeChild(value = "childNode", type = RubyNode.class)
 public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 

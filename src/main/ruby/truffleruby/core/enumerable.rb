@@ -555,7 +555,7 @@ module Enumerable
       #   inject(initial_operand, symbol) -> object
 
       sym, initial = initial, undefined if Primitive.undefined?(sym)
-      sym = sym.to_sym
+      sym = Truffle::Type.coerce_to_symbol(sym)
 
       each do
         o = Primitive.single_block_arg

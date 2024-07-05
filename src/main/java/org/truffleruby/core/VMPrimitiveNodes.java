@@ -161,7 +161,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_method_is_basic")
+    @Primitive(name = "vm_method_is_basic?")
     public abstract static class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -671,6 +671,16 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         boolean singleContext() {
             return isSingleContext();
+        }
+    }
+
+    @Primitive(name = "vm_splitting_enabled?")
+    public abstract static class VMSplittingEnabledNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        boolean isSplittingEnabled() {
+            return getContext().getCoreLibrary().isSplittingEnabled();
         }
     }
 

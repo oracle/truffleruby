@@ -39,6 +39,7 @@ package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
+import com.oracle.truffle.api.utilities.MathUtils;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -82,16 +83,11 @@ public abstract class MathNodes {
 
         @Override
         protected double doFunction(double a) {
-            if (Double.isNaN(a)) {
-                return Double.NaN;
-            } else if (a < 1) {
+            if (a < 1) {
                 exceptionProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().mathDomainErrorAcosh(this));
-            } else if (a < 94906265.62) {
-                return Math.log(a + Math.sqrt(a * a - 1.0));
-            } else {
-                return 0.69314718055994530941723212145818 + Math.log(a);
             }
+            return MathUtils.acosh(a);
         }
 
     }
@@ -116,23 +112,7 @@ public abstract class MathNodes {
 
         @Override
         protected double doFunction(double a) {
-            final double y = Math.abs(a);
-
-            if (Double.isNaN(a)) {
-                return Double.NaN;
-            } else if (y <= 1.05367e-08) {
-                return a;
-            } else if (y <= 1.0) {
-                return a * (1.0 + chebylevSerie(2.0 * a * a - 1.0, ASINH_COEF));
-            } else if (y < 94906265.62) {
-                return Math.log(a + Math.sqrt(a * a + 1.0));
-            } else {
-                double result = 0.69314718055994530941723212145818 + Math.log(y);
-                if (a < 0) {
-                    result *= -1;
-                }
-                return result;
-            }
+            return MathUtils.asinh(a);
         }
 
     }
@@ -167,21 +147,7 @@ public abstract class MathNodes {
                 throw new RaiseException(getContext(), coreExceptions().mathDomainErrorAtanh(this));
             }
 
-            final double y = Math.abs(a);
-
-            if (Double.isNaN(a)) {
-                return Double.NaN;
-            } else if (y < 1.82501e-08) {
-                return a;
-            } else if (y <= 0.5) {
-                return a * (1.0 + chebylevSerie(8.0 * a * a - 1.0, ATANH_COEF));
-            } else if (y < 1.0) {
-                return 0.5 * Math.log((1.0 + a) / (1.0 - a));
-            } else if (y == 1.0) {
-                return a * Double.POSITIVE_INFINITY;
-            } else {
-                return Double.NaN;
-            }
+            return MathUtils.atanh(a);
         }
 
     }
@@ -780,49 +746,6 @@ public abstract class MathNodes {
         }
 
     }
-
-    public static final double[] ASINH_COEF = {
-            -.12820039911738186343372127359268e+0,
-            -.58811761189951767565211757138362e-1,
-            .47274654322124815640725249756029e-2,
-            -.49383631626536172101360174790273e-3,
-            .58506207058557412287494835259321e-4,
-            -.74669983289313681354755069217188e-5,
-            .10011693583558199265966192015812e-5,
-            -.13903543858708333608616472258886e-6,
-            .19823169483172793547317360237148e-7,
-            -.28847468417848843612747272800317e-8,
-            .42672965467159937953457514995907e-9,
-            -.63976084654366357868752632309681e-10,
-            .96991686089064704147878293131179e-11,
-            -.14844276972043770830246658365696e-11,
-            .22903737939027447988040184378983e-12,
-            -.35588395132732645159978942651310e-13,
-            .55639694080056789953374539088554e-14,
-            -.87462509599624678045666593520162e-15,
-            .13815248844526692155868802298129e-15,
-            -.21916688282900363984955142264149e-16,
-            .34904658524827565638313923706880e-17
-    };
-
-    public static final double[] ATANH_COEF = {
-            .9439510239319549230842892218633e-1,
-            .4919843705578615947200034576668e-1,
-            .2102593522455432763479327331752e-2,
-            .1073554449776116584640731045276e-3,
-            .5978267249293031478642787517872e-5,
-            .3505062030889134845966834886200e-6,
-            .2126374343765340350896219314431e-7,
-            .1321694535715527192129801723055e-8,
-            .8365875501178070364623604052959e-10,
-            .5370503749311002163881434587772e-11,
-            .3486659470157107922971245784290e-12,
-            .2284549509603433015524024119722e-13,
-            .1508407105944793044874229067558e-14,
-            .1002418816804109126136995722837e-15,
-            .6698674738165069539715526882986e-17,
-            .4497954546494931083083327624533e-18
-    };
 
     public static final double[] ERFC_COEF = {
             -.490461212346918080399845440334e-1,

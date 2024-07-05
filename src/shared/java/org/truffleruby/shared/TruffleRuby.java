@@ -17,11 +17,16 @@ public final class TruffleRuby {
     public static final String LANGUAGE_ID = "ruby";
     public static final String EXTENSION = ".rb";
     public static final String ENGINE_ID = "truffleruby";
-    public static final String LANGUAGE_VERSION = "3.2.2";
+    public static final String LANGUAGE_VERSION = "3.2.4";
     public static final String LANGUAGE_REVISION = BuildInformationImpl.INSTANCE.getFullRevision();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-" +
             BuildInformationImpl.INSTANCE.getCopyrightYear() + " Oracle and/or its affiliates";
+    public static final String RUBY_PLATFORM = String.format(
+            "%s-%s%s",
+            Platform.getArchName(),
+            Platform.getOSName(),
+            Platform.getKernelMajorVersion());
 
     public static String getVersionString(String implementationName) {
         final String buildName = BuildInformationImpl.INSTANCE.getBuildName();
@@ -34,7 +39,7 @@ public final class TruffleRuby {
         }
 
         return String.format(
-                "%s%s %s%s, like ruby %s, %s %s [%s-%s]",
+                "%s%s %s%s, like ruby %s, %s %s [%s]",
                 ENGINE_ID,
                 nameExtra,
                 getEngineVersion(),
@@ -42,8 +47,7 @@ public final class TruffleRuby {
                 LANGUAGE_VERSION,
                 implementationName,
                 ImageInfo.inImageCode() ? "Native" : "JVM",
-                Platform.getArchName(),
-                Platform.getOSName());
+                RUBY_PLATFORM);
     }
 
     public static String getEngineVersion() {

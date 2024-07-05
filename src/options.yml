@@ -155,6 +155,8 @@ EXPERT:
     WARN_TRUFFLE_REGEX_MATCH_FALLBACK: [warn-truffle-regex-match-fallback, boolean, false, 'Warn every time Truffle Regex cannot be used for a Regexp match (and instead Joni is used)']
     TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS: [truffle-regex-ignore-atomic-groups, boolean, false, 'Treat atomic groups (?>...) as ordinary groups (?:...) with Truffle Regex.']
 
+    REUSE_PRECOMPILED_GEMS: [reuse-precompiled-gems, string-array, '<gem>,<gem>,...', 'A list of gems we want to install precompiled (using the local platform) on TruffleRuby. Can only be used for gem extensions which do not depend on the Ruby C API.']
+
 INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:
     # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher

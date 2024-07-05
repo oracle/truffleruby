@@ -299,7 +299,6 @@ public abstract class BindingNodes {
         }
     }
 
-    @ReportPolymorphism
     @CoreMethod(names = "local_variable_set", required = 2)
     public abstract static class BindingLocalVariableSetNode extends CoreMethodArrayArgumentsNode {
 
@@ -313,6 +312,7 @@ public abstract class BindingNodes {
     }
 
 
+    @ReportPolymorphism
     @GenerateUncached
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @GenerateCached(false)

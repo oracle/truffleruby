@@ -39,17 +39,6 @@ module Bundler
   environment_preserver.replace_with_backup
   SUDO_MUTEX = Thread::Mutex.new
 
-  # TruffleRuby: FalseClass added because it is necessary for `jt test bundle`, and also done upstream since https://github.com/rubygems/rubygems/pull/6655
-  SAFE_MARSHAL_CLASSES = [Symbol, TrueClass, FalseClass, String, Array, Hash, Gem::Version, Gem::Specification].freeze
-  SAFE_MARSHAL_ERROR = "Unexpected class %s present in marshaled data. Only %s are allowed."
-  SAFE_MARSHAL_PROC = proc do |object|
-    object.tap do
-      unless SAFE_MARSHAL_CLASSES.include?(object.class)
-        raise TypeError, format(SAFE_MARSHAL_ERROR, object.class, SAFE_MARSHAL_CLASSES.join(", "))
-      end
-    end
-  end
-
   autoload :Definition,             File.expand_path("bundler/definition", __dir__)
   autoload :Dependency,             File.expand_path("bundler/dependency", __dir__)
   autoload :Deprecate,              File.expand_path("bundler/deprecate", __dir__)
@@ -87,10 +76,11 @@ module Bundler
   autoload :UI,                     File.expand_path("bundler/ui", __dir__)
   autoload :URICredentialsFilter,   File.expand_path("bundler/uri_credentials_filter", __dir__)
   autoload :URINormalizer,          File.expand_path("bundler/uri_normalizer", __dir__)
+  autoload :SafeMarshal,            File.expand_path("bundler/safe_marshal", __dir__)
 
   class << self
     def configure
-      @configured ||= configure_gem_home_and_path
+      @configure ||= configure_gem_home_and_path
     end
 
     def ui
@@ -220,9 +210,10 @@ module Bundler
     end
 
     def frozen_bundle?
-      frozen = settings[:deployment]
-      frozen ||= settings[:frozen]
-      frozen
+      frozen = settings[:frozen]
+      return frozen unless frozen.nil?
+
+      settings[:deployment]
     end
 
     def locked_gems
@@ -524,7 +515,7 @@ EOF
     end
 
     def safe_load_marshal(data)
-      load_marshal(data, :marshal_proc => SAFE_MARSHAL_PROC)
+      load_marshal(data, :marshal_proc => SafeMarshal.proc)
     end
 
     def load_gemspec(file, validate = false)
@@ -533,7 +524,7 @@ EOF
       @gemspec_cache[key] ||= load_gemspec_uncached(file, validate)
       # Protect against caching side-effected gemspecs by returning a
       # new instance each time.
-      @gemspec_cache[key].dup if @gemspec_cache[key]
+      @gemspec_cache[key]&.dup
     end
 
     def load_gemspec_uncached(file, validate = false)
@@ -582,7 +573,7 @@ EOF
       @bin_path = nil
       @bundler_major_version = nil
       @bundle_path = nil
-      @configured = nil
+      @configure = nil
       @configured_bundle_path = nil
       @definition = nil
       @load = nil

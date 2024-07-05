@@ -1,0 +1,50 @@
+subject: "Hash"
+description: "with omitted value and a constant"
+notes: >
+  treats name as a constant
+focused_on_node: "org.truffleruby.core.hash.library.PackedHashStoreLibrary$SmallHashLiteralNode"
+ruby: |
+  A = 100500
+  {A:, b: 42}
+ast: |
+  PackedHashStoreLibraryFactory$SmallHashLiteralNodeGen
+      attributes:
+          flags = 1
+          sourceCharIndex = 11
+          sourceLength = 11
+      children:
+          keyValues = [
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :A
+                      sourceCharIndex = 12
+                      sourceLength = 2
+              ReadConstantWithLexicalScopeNode
+                  attributes:
+                      flags = 0
+                      lexicalScope =  :: Object
+                      name = "A"
+                      sourceCharIndex = 12
+                      sourceLength = 2
+                  children:
+                      getConstantNode =
+                          GetConstantNodeGen
+                      lookupConstantNode =
+                          LookupConstantWithLexicalScopeNodeGen
+                              attributes:
+                                  lexicalScope =  :: Object
+                                  name = "A"
+              ObjectLiteralNode
+                  attributes:
+                      flags = 0
+                      object = :b
+                      sourceCharIndex = 16
+                      sourceLength = 2
+              IntegerFixnumLiteralNode
+                  attributes:
+                      flags = 0
+                      sourceCharIndex = 19
+                      sourceLength = 2
+                      value = 42
+          ]

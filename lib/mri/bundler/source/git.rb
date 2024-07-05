@@ -46,6 +46,14 @@ module Bundler
         out << "  specs:\n"
       end
 
+      def to_gemfile
+        specifiers = %w[ref branch tag submodules glob].map do |opt|
+          "#{opt}: #{options[opt]}" if options[opt]
+        end
+
+        uri_with_specifiers(specifiers)
+      end
+
       def hash
         [self.class, uri, ref, branch, name, version, glob, submodules].hash
       end
@@ -59,28 +67,32 @@ module Bundler
 
       alias_method :==, :eql?
 
+      def include?(other)
+        other.is_a?(Git) && uri == other.uri &&
+          name == other.name &&
+          glob == other.glob &&
+          submodules == other.submodules
+      end
+
       def to_s
         begin
-          at = if local?
-            path
-          elsif user_ref = options["ref"]
-            if /\A[a-z0-9]{4,}\z/i.match?(ref)
-              shortref_for_display(user_ref)
-            else
-              user_ref
-            end
-          elsif ref
-            ref
-          else
-            current_branch
-          end
+          at = humanized_ref || current_branch
 
           rev = "at #{at}@#{shortref_for_display(revision)}"
         rescue GitError
           ""
         end
 
-        specifiers = [rev, glob_for_display].compact
+        uri_with_specifiers([rev, glob_for_display])
+      end
+
+      def identifier
+        uri_with_specifiers([humanized_ref, cached_revision, glob_for_display])
+      end
+
+      def uri_with_specifiers(specifiers)
+        specifiers.compact!
+
         suffix =
           if specifiers.any?
             " (#{specifiers.join(", ")})"
@@ -242,6 +254,20 @@ module Bundler
       end
 
       private
+
+      def humanized_ref
+        if local?
+          path
+        elsif user_ref = options["ref"]
+          if /\A[a-z0-9]{4,}\z/i.match?(ref)
+            shortref_for_display(user_ref)
+          else
+            user_ref
+          end
+        elsif ref
+          ref
+        end
+      end
 
       def serialize_gemspecs_in(destination)
         destination = destination.expand_path(Bundler.root) if destination.relative?
