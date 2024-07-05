@@ -19,6 +19,7 @@ import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.KillException;
@@ -31,7 +32,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.language.methods.TranslateExceptionNode;
-import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 public abstract class TryNode extends RubyContextSourceNode {
 
@@ -122,14 +122,14 @@ public abstract class TryNode extends RubyContextSourceNode {
     }
 
     private Object setLastExceptionAndRunRescue(VirtualFrame frame, Object exceptionObject, RescueNode rescue) {
-        final ThreadLocalGlobals threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
-        final Object previousException = threadLocalGlobals.getLastException();
-        threadLocalGlobals.setLastException(exceptionObject);
+        final RubyFiber currentFiber = getLanguage().getCurrentFiber();
+        final Object previousException = currentFiber.getLastException();
+        currentFiber.setLastException(exceptionObject);
         try {
             CompilerAsserts.partialEvaluationConstant(rescue);
             return rescue.execute(frame);
         } finally {
-            threadLocalGlobals.setLastException(previousException);
+            currentFiber.setLastException(previousException);
         }
     }
 

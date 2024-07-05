@@ -33,18 +33,18 @@ import org.truffleruby.core.support.PRNGRandomizerNodes;
 import org.truffleruby.core.support.RubyPRNGRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
-import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.object.Shape;
+
+import static org.truffleruby.language.RubyBaseNode.nil;
 
 public final class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
     // Fields initialized here are initialized just after the super() call, and before the rest of the constructor
-    public final ThreadLocalGlobals threadLocalGlobals = new ThreadLocalGlobals();
+    public Object processStatus = nil; // thread-local variable $?
     public InterruptMode interruptMode = InterruptMode.IMMEDIATE; // only accessed by this Ruby Thread and its Fibers
     public volatile ThreadStatus status = ThreadStatus.RUN;
     public final List<ReentrantLock> ownedLocks = new ArrayList<>();
@@ -61,15 +61,15 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
     boolean abortOnException;
     public volatile Thread thread = null;
     /** Either nil or long */
-    public volatile Object nativeThreadId = Nil.INSTANCE;
+    public volatile Object nativeThreadId = nil;
     volatile RubyException exception = null;
-    volatile Object value = Nil.INSTANCE;
+    volatile Object value = nil;
     public final AtomicBoolean wakeUp = new AtomicBoolean(false);
     volatile int priority = Thread.NORM_PRIORITY;
     ThreadLocalBuffer ioBuffer;
     Object threadGroup;
     public String sourceLocation;
-    Object name = Nil.INSTANCE;
+    Object name = nil;
 
     // Decimal formats are not thread safe, so we'll create them on the thread as we need them.
 

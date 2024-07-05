@@ -949,40 +949,12 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_get_exception")
-    public abstract static class ThreadGetExceptionNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        Object getException() {
-            return getLastException(getLanguage().getCurrentThread());
-        }
-
-        private static Object getLastException(RubyThread currentThread) {
-            return currentThread.threadLocalGlobals.getLastException();
-        }
-
-        public static Object getLastException(RubyLanguage language) {
-            return getLastException(language.getCurrentThread());
-        }
-
-    }
-
     @Primitive(name = "thread_get_return_code")
     public abstract static class ThreadGetReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         Object getExitCode() {
-            return getLanguage().getCurrentThread().threadLocalGlobals.processStatus;
-        }
-    }
-
-    @Primitive(name = "thread_set_exception")
-    public abstract static class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        Object setException(Object exception) {
-            getLanguage().getCurrentThread().threadLocalGlobals.setLastException(exception);
-            return exception;
+            return getLanguage().getCurrentThread().processStatus;
         }
     }
 
@@ -991,7 +963,7 @@ public abstract class ThreadNodes {
 
         @Specialization
         Object getException(Object processStatus) {
-            return getLanguage().getCurrentThread().threadLocalGlobals.processStatus = processStatus;
+            return getLanguage().getCurrentThread().processStatus = processStatus;
         }
     }
 
