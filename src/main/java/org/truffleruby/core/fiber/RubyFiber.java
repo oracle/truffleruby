@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -23,15 +24,20 @@ import org.truffleruby.core.MarkingService;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.control.KillException;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
+
+import static org.truffleruby.language.RubyBaseNode.nil;
 
 public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
 
@@ -67,6 +73,8 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
 
     }
 
+    private Object lastException = nil; // fiber-local variable $!
+    public Object errorInfo = nil; // MRI: rb_errinfo
     public final RubyBasicObject fiberLocals;
     public final RubyArray catchTags;
     public final CountDownLatch initializedLatch = new CountDownLatch(1);
@@ -148,6 +156,18 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public void getAdjacentObjects(Set<Object> reachable) {
         reachable.add(fiberLocals);
         reachable.add(rubyThread);
+    }
+
+    public Object getLastException() {
+        return lastException;
+    }
+
+    public void setLastException(Object exception) {
+        assert !(exception instanceof KillException) : "$? should never be a KillException: " + exception;
+        assert !(exception instanceof RaiseException) : "$? should never be a RaiseException: " + exception;
+        assert exception == nil || exception instanceof RubyException ||
+                exception instanceof AbstractTruffleException : "Unexpected exception object for $!: " + exception;
+        this.lastException = exception;
     }
 
 }

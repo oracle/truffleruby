@@ -106,7 +106,7 @@ public final class AtExitManager {
     private static void handleAtExitException(RubyContext context, RubyLanguage language,
             AbstractTruffleException exception) {
         // Set $! for the next at_exit handlers
-        language.getCurrentThread().threadLocalGlobals.setLastException(ExceptionOperations
+        language.getCurrentFiber().setLastException(ExceptionOperations
                 .getExceptionObject(exception));
 
         if (!isSilentException(context, exception)) {
