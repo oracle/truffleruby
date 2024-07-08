@@ -633,8 +633,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-asciidoctor-svm-ce": shared + asciidoctor + svm_configurations["svm-ce"],
       "ruby-benchmarks-asciidoctor-svm-ee": shared + asciidoctor + svm_configurations["svm-ee"],
 
-      local warmup = $.benchmark.runner + $.benchmark.warmup + { timelimit: "01:05:00" },
-      "ruby-benchmarks-warmup-mri": shared + warmup + other_rubies.mri + { timelimit: "01:20:00" },
+      local warmup = $.benchmark.runner + $.benchmark.warmup + { timelimit: "01:15:00" },
+      "ruby-benchmarks-warmup-mri": shared + warmup + other_rubies.mri + { timelimit: "01:30:00" },
       "ruby-benchmarks-warmup-jruby": shared + warmup + other_rubies.jruby,
       "ruby-benchmarks-warmup-jvm-ce": shared + warmup + graal_configurations["jvm-ce"] + $.use.no_multi_tier,
       "ruby-benchmarks-warmup-jvm-ce-3threads": shared + warmup + graal_configurations["jvm-ce"] + $.use.no_multi_tier + $.use.three_threads,
