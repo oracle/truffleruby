@@ -42,6 +42,7 @@ Compatibility:
 * Fix `Kernel.warn` and don't call `Warning#warn` if a specified category is disabled (@andrykonchin).
 * Fix `$!` global variable and make it fiber-local (@andrykonchin).
 * Fix `rb_set_errinfo` and `rb_errinfo` and store an error separately from `$!` (#2890, @andrykonchin).
+* Fix `rb_mutex_synchronize` to not wrap/unwrap result value (#3624, @andrykonchin).
 
 Performance:
 

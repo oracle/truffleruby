@@ -1619,7 +1619,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Primitive.cext_unwrap(Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [func, arg]))
+      Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [func, arg])
     end
   end
   Truffle::Graal.always_split instance_method(:rb_mutex_synchronize)
