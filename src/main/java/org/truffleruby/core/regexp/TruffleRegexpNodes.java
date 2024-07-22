@@ -64,6 +64,7 @@ import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.string.ATStringWithEncoding;
+import org.truffleruby.core.string.StringHelperNodes.StringToTruffleStringInplaceNode;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -897,6 +898,7 @@ public abstract class TruffleRegexpNodes {
                 boolean atStart,
                 int startPos,
                 boolean createMatchData,
+                @Cached StringToTruffleStringInplaceNode stringToTruffleStringInplaceNode,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
                 @Cached InlinedConditionProfile createMatchDataProfile,
                 @Cached InlinedConditionProfile matchFoundProfile,
@@ -916,11 +918,12 @@ public abstract class TruffleRegexpNodes {
                 @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
                 @Bind("this") Node node) {
-            final Object tRegex;
+            stringToTruffleStringInplaceNode.execute(node, string);
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
             var tstring = switchEncodingNode.execute(libString.getTString(string), negotiatedEncoding.tencoding);
             final int byteLength = tstring.byteLength(negotiatedEncoding.tencoding);
 
+            final Object tRegex;
             if (tRegexIncompatibleProfile
                     .profile(node, toPos < fromPos || toPos != byteLength || fromPos < 0) ||
                     tRegexCouldNotCompileProfile.profile(node, (tRegex = tRegexCompileNode.executeTRegexCompile(

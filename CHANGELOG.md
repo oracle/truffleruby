@@ -47,6 +47,7 @@ Performance:
 
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
 * Optimize `Integer#pow` method for small modulus values (#3544, @andrykonchin).
+* Avoid repeated copies from native to managed string when matching Regexps on a native string (#2193, @eregon).
 
 Changes:
 
