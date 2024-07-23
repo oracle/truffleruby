@@ -131,7 +131,7 @@ public final class TruffleRubyEngineFactory implements ScriptEngineFactory {
 
         PolyglotEngine(ScriptEngineFactory factory) {
             this.factory = factory;
-            this.defaultContext = new PolyglotContext(factory);
+            this.defaultContext = new PolyglotContext();
         }
 
         @Override
@@ -289,14 +289,12 @@ public final class TruffleRubyEngineFactory implements ScriptEngineFactory {
 
     private static final class PolyglotContext implements ScriptContext {
         private Context context;
-        private final ScriptEngineFactory factory;
         private final PolyglotReader in;
         private final PolyglotWriter out;
         private final PolyglotWriter err;
         private Bindings globalBindings;
 
-        PolyglotContext(ScriptEngineFactory factory) {
-            this.factory = factory;
+        PolyglotContext() {
             this.in = new PolyglotReader(new InputStreamReader(System.in));
             this.out = new PolyglotWriter(new OutputStreamWriter(System.out));
             this.err = new PolyglotWriter(new OutputStreamWriter(System.err));
