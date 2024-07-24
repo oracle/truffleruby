@@ -1074,7 +1074,7 @@ public abstract class CExtNodes {
     }
 
 
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache
     @GenerateInline
     @GenerateCached(false)
     public abstract static class RbGvGetInnerNode extends RubyBaseNode {
@@ -1990,7 +1990,7 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_tr_sprintf_types", onSingleton = true, required = 1)
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache (but not working due to single call site in C)
     public abstract static class RBSprintfFormatNode extends CoreMethodArrayArgumentsNode {
 
         @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
@@ -2001,7 +2001,6 @@ public abstract class CExtNodes {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
                 limit = "2")
-
         static Object typesCached(VirtualFrame frame, Object format,
                 @Cached @Shared RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
@@ -2069,7 +2068,7 @@ public abstract class CExtNodes {
 
     @GenerateInline
     @GenerateCached(false)
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache, CallTarget cache (but not working due to single call site in C)
     public abstract static class RBSprintfInnerNode extends RubyBaseNode {
 
         public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,

@@ -24,12 +24,13 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
+// Splitting: naturally split
 public abstract class LookupSuperMethodNode extends RubyBaseNode {
 
     public abstract InternalMethod executeLookupSuperMethod(VirtualFrame frame, Object self);
 
     // The check for same metaClass is overly restrictive,
-    // but seems to be the only reasonable check in term of performance.
+    // but seems to be the only reasonable check in terms of performance.
     // The ideal condition would be to check if both ancestor lists starting at
     // the current method's module are identical, which is non-trivial
     // if the current method's module is an (included) module and not a class.

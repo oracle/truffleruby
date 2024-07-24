@@ -27,6 +27,7 @@ import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.annotations.CoreMethod;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -74,7 +75,9 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.source.Source;
 
-/** Specs for these methods are in spec/truffle/interop/matrix_spec.rb and in spec/truffle/interop/methods_spec.rb */
+/** Specs for these methods are in spec/truffle/interop/matrix_spec.rb and in spec/truffle/interop/methods_spec.rb.
+ * Splitting: we use {@code split = Split.ALWAYS} for all @CoreMethod using InteropLibrary because
+ * InteropLibrary/Library does not report polymorphism on its own. */
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
@@ -228,8 +231,8 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "eval", onSingleton = true, required = 2)
-    @ReportPolymorphism
+    @CoreMethod(names = "eval", onSingleton = true, required = 2, split = Split.ALWAYS)
+    @ReportPolymorphism // inline cache
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
@@ -323,7 +326,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Exception
-    @CoreMethod(names = "exception?", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -333,7 +336,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_exception_cause?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_exception_cause?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasExceptionCauseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -343,7 +346,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "exception_cause", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception_cause", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ExceptionCauseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -359,7 +362,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "exception_exit_status", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception_exit_status", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ExceptionExitStatusSourceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -375,7 +378,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "exception_incomplete_source?", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception_incomplete_source?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsExceptionIncompleteSourceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -391,7 +394,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_exception_message?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_exception_message?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasExceptionMessageNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -401,7 +404,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "exception_message", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception_message", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ExceptionMessageNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -417,7 +420,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_exception_stack_trace?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_exception_stack_trace?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasExceptionStackTraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -427,7 +430,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "exception_stack_trace", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception_stack_trace", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ExceptionStackTraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -443,7 +446,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "exception_type", onSingleton = true, required = 1)
+    @CoreMethod(names = "exception_type", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ExceptionTypeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -460,7 +463,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "throw_exception", onSingleton = true, required = 1)
+    @CoreMethod(names = "throw_exception", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ThrowExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -475,11 +478,10 @@ public abstract class InteropNodes {
             }
         }
     }
-
     // endregion
 
     // region Executable
-    @CoreMethod(names = "executable?", onSingleton = true, required = 1)
+    @CoreMethod(names = "executable?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsExecutableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -490,7 +492,7 @@ public abstract class InteropNodes {
     }
 
 
-    @CoreMethod(names = "has_executable_name?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_executable_name?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasExecutableNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -500,7 +502,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "executable_name", onSingleton = true, required = 1)
+    @CoreMethod(names = "executable_name", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ExecutableNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -516,7 +518,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "execute", onSingleton = true, required = 1, rest = true)
+    @CoreMethod(names = "execute", onSingleton = true, required = 1, rest = true, split = Split.ALWAYS)
     public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -530,7 +532,8 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true)
+    @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true,
+            split = Split.ALWAYS)
     public abstract static class ExecuteWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -544,7 +547,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Instantiable
-    @CoreMethod(names = "instantiable?", onSingleton = true, required = 1)
+    @CoreMethod(names = "instantiable?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class InstantiableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -554,7 +557,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "instantiate", onSingleton = true, required = 1, rest = true)
+    @CoreMethod(names = "instantiate", onSingleton = true, required = 1, rest = true, split = Split.ALWAYS)
     public abstract static class InstantiateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -576,7 +579,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Array elements
-    @CoreMethod(names = "has_array_elements?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_array_elements?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasArrayElementsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -587,7 +590,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "array_size", onSingleton = true, required = 1)
+    @CoreMethod(names = "array_size", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ArraySizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -605,7 +608,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
+    @CoreMethod(names = "read_array_element", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class ReadArrayElementNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -625,7 +628,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
+    @CoreMethod(names = "write_array_element", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class WriteArrayElementNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -643,7 +646,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
+    @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class RemoveArrayElementNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -661,7 +664,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsArrayElementReadableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
@@ -673,7 +676,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsArrayElementModifiableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
@@ -685,7 +688,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsArrayElementInsertableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
@@ -697,7 +700,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsArrayElementRemovableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
@@ -709,7 +712,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsArrayElementWritableNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
@@ -721,7 +724,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsArrayElementExistingNode extends CoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(Object receiver, long index);
@@ -735,7 +738,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region SourceLocation
-    @CoreMethod(names = "has_source_location?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_source_location?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasSourceLocationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasSourceLocation(Object receiver,
@@ -744,7 +747,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "source_location", onSingleton = true, required = 1)
+    @CoreMethod(names = "source_location", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetSourceLocationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static RubySourceLocation getSourceLocation(Object receiver,
@@ -766,7 +769,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region String
-    @CoreMethod(names = "string?", onSingleton = true, required = 1)
+    @CoreMethod(names = "string?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isString(Object receiver,
@@ -775,7 +778,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_string", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_string", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static String asString(Object receiver,
@@ -790,7 +793,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_truffle_string", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_truffle_string", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsTruffleStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static TruffleString asTruffleString(Object receiver,
@@ -827,7 +830,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "to_display_string", onSingleton = true, required = 1)
+    @CoreMethod(names = "to_display_string", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ToDisplayStringNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         Object toDisplayString(Object receiver,
@@ -850,7 +853,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Boolean
-    @CoreMethod(names = "boolean?", onSingleton = true, required = 1)
+    @CoreMethod(names = "boolean?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsBooleanNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isBoolean(Object receiver,
@@ -859,7 +862,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_boolean", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_boolean", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsBooleanNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean asBoolean(Object receiver,
@@ -876,7 +879,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region DateTime
-    @CoreMethod(names = "date?", onSingleton = true, required = 1)
+    @CoreMethod(names = "date?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsDateNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isDate(Object receiver,
@@ -885,7 +888,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_date", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_date", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsDateNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object asDate(Object receiver,
@@ -900,7 +903,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "duration?", onSingleton = true, required = 1)
+    @CoreMethod(names = "duration?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsDurationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isDuration(Object receiver,
@@ -909,7 +912,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_duration", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_duration", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsDurationNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object asDuration(Object receiver,
@@ -924,7 +927,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "instant?", onSingleton = true, required = 1)
+    @CoreMethod(names = "instant?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsInstantNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isInstant(Object receiver,
@@ -933,7 +936,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_instant", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_instant", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsInstantNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object asInstant(Object receiver,
@@ -948,7 +951,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "time?", onSingleton = true, required = 1)
+    @CoreMethod(names = "time?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsTimeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isTime(Object receiver,
@@ -957,7 +960,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_time", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_time", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsTimeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object asTime(Object receiver,
@@ -972,7 +975,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "time_zone?", onSingleton = true, required = 1)
+    @CoreMethod(names = "time_zone?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsTimeZoneNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isTimeZone(Object receiver,
@@ -981,7 +984,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_time_zone", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_time_zone", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsTimeZoneNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object asTimeZone(Object receiver,
@@ -998,7 +1001,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Number
-    @CoreMethod(names = "number?", onSingleton = true, required = 1)
+    @CoreMethod(names = "number?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsNumberNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isNumber(Object receiver,
@@ -1007,7 +1010,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_byte?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_byte?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInByteNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1016,7 +1019,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_short?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_short?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInShortNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1025,7 +1028,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_int?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_int?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInIntNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1034,7 +1037,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_long?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_long?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInLongNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1043,7 +1046,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_big_integer?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_big_integer?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInBigIntegerNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1052,7 +1055,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_float?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_float?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInFloatNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1061,7 +1064,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_double?", onSingleton = true, required = 1)
+    @CoreMethod(names = "fits_in_double?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class FitsInDoubleNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean fits(Object receiver,
@@ -1070,7 +1073,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_byte", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_byte", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsByteNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static int as(Object receiver,
@@ -1085,7 +1088,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_short", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_short", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsShortNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static int as(Object receiver,
@@ -1100,7 +1103,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_int", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_int", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsIntNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static int as(Object receiver,
@@ -1115,7 +1118,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_long", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_long", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsLongNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static long as(Object receiver,
@@ -1130,7 +1133,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_big_integer", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_big_integer", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsBigIntegerNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object as(Object receiver,
@@ -1146,7 +1149,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_float", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_float", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsFloatNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static double as(Object receiver,
@@ -1161,7 +1164,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_double", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_double", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsDoubleNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static double as(Object receiver,
@@ -1178,7 +1181,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Null
-    @CoreMethod(names = "null?", onSingleton = true, required = 1)
+    @CoreMethod(names = "null?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsNullNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1190,7 +1193,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Pointer
-    @CoreMethod(names = "pointer?", onSingleton = true, required = 1)
+    @CoreMethod(names = "pointer?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class PointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1201,7 +1204,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "as_pointer", onSingleton = true, required = 1)
+    @CoreMethod(names = "as_pointer", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class AsPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1217,7 +1220,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "to_native", onSingleton = true, required = 1)
+    @CoreMethod(names = "to_native", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class ToNativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1231,7 +1234,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Members
-    @CoreMethod(names = "has_members?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_members?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasMembersNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1241,7 +1244,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "members", onSingleton = true, required = 1, optional = 1)
+    @CoreMethod(names = "members", onSingleton = true, required = 1, optional = 1, split = Split.ALWAYS)
     public abstract static class GetMembersNode extends CoreMethodArrayArgumentsNode {
 
         protected abstract Object executeMembers(Object receiver, boolean internal);
@@ -1265,7 +1268,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_member", onSingleton = true, required = 2)
+    @CoreMethod(names = "read_member", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class InteropReadMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1294,7 +1297,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "read_member_without_conversion", onSingleton = true, required = 2)
+    @CoreMethod(names = "read_member_without_conversion", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class ReadMemberWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1308,7 +1311,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "write_member", onSingleton = true, required = 3)
+    @CoreMethod(names = "write_member", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class WriteMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1328,7 +1331,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "write_member_without_conversion", onSingleton = true, required = 3)
+    @CoreMethod(names = "write_member_without_conversion", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class InteropWriteMemberWithoutConversionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1361,7 +1364,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "remove_member", onSingleton = true, required = 2)
+    @CoreMethod(names = "remove_member", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class RemoveMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getInteropCacheLimit()")
@@ -1381,7 +1384,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true)
+    @CoreMethod(names = "invoke_member", onSingleton = true, required = 2, rest = true, split = Split.ALWAYS)
     public abstract static class InteropInvokeMemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1411,7 +1414,7 @@ public abstract class InteropNodes {
     }
 
 
-    @CoreMethod(names = "member_readable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_readable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberReadableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberReadable(Object receiver, Object name,
@@ -1422,7 +1425,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_modifiable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_modifiable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberModifiableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberModifiable(Object receiver, Object name,
@@ -1433,7 +1436,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_insertable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_insertable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberInsertableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberInsertable(Object receiver, Object name,
@@ -1444,7 +1447,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_removable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_removable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberRemovableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberRemovable(Object receiver, Object name,
@@ -1455,7 +1458,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_invocable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_invocable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberInvocableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberInvocable(Object receiver, Object name,
@@ -1466,7 +1469,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_internal?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_internal?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberInternalNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberInternal(Object receiver, Object name,
@@ -1477,7 +1480,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_writable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_writable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberWritableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberWritable(Object receiver, Object name,
@@ -1488,7 +1491,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "member_existing?", onSingleton = true, required = 2)
+    @CoreMethod(names = "member_existing?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMemberExistingNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMemberExisting(Object receiver, Object name,
@@ -1499,7 +1502,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2)
+    @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HasMemberReadSideEffectsNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean hasMemberReadSideEffects(Object receiver, Object name,
@@ -1510,7 +1513,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2)
+    @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HasMemberWriteSideEffectsNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean hasMemberWriteSideEffects(Object receiver, Object name,
@@ -1563,7 +1566,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Language
-    @CoreMethod(names = "has_language?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_language?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasLanguageNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasLanguage(Object receiver,
@@ -1572,7 +1575,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "language", onSingleton = true, required = 1)
+    @CoreMethod(names = "language", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetLanguageNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -1790,7 +1793,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region MetaObject
-    @CoreMethod(names = "meta_object?", onSingleton = true, required = 1)
+    @CoreMethod(names = "meta_object?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsMetaObjectNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isMetaObject(Object receiver,
@@ -1799,7 +1802,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_meta_object?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_meta_object?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasMetaObjectNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasMetaObject(Object receiver,
@@ -1808,7 +1811,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
+    @CoreMethod(names = "meta_object", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object metaObject(Object value,
@@ -1829,7 +1832,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_declaring_meta_object?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_declaring_meta_object?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasDeclaringMetaObjectNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasDeclaringMetaObject(Object receiver,
@@ -1838,7 +1841,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "declaring_meta_object", onSingleton = true, required = 1)
+    @CoreMethod(names = "declaring_meta_object", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class DeclaringMetaObjectNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object declaringMetaObject(Object value,
@@ -1853,7 +1856,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "meta_instance?", onSingleton = true, required = 2)
+    @CoreMethod(names = "meta_instance?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsMetaInstanceNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean isMetaInstance(Object metaObject, Object instance,
@@ -1868,7 +1871,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "meta_simple_name", onSingleton = true, required = 1)
+    @CoreMethod(names = "meta_simple_name", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetMetaSimpleNameNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object getMetaSimpleName(Object metaObject,
@@ -1883,7 +1886,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "meta_qualified_name", onSingleton = true, required = 1)
+    @CoreMethod(names = "meta_qualified_name", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetMetaQualifiedNameNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object getMetaQualifiedName(Object metaObject,
@@ -1898,7 +1901,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_meta_parents?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_meta_parents?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasMetaParentsNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasMetaParents(Object receiver,
@@ -1907,7 +1910,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "meta_parents", onSingleton = true, required = 1)
+    @CoreMethod(names = "meta_parents", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetMetaParentsNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object getMetaParents(Object value,
@@ -1924,7 +1927,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Hash entries
-    @CoreMethod(names = "has_hash_entries?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_hash_entries?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasHashEntriesNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasHashEntriesNode(Object receiver,
@@ -1934,7 +1937,7 @@ public abstract class InteropNodes {
     }
 
 
-    @CoreMethod(names = "hash_entries_iterator", onSingleton = true, required = 1)
+    @CoreMethod(names = "hash_entries_iterator", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HashEntriesIteratorNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object hashEntriesIterator(Object receiver,
@@ -1949,7 +1952,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_entry_existing?", onSingleton = true, required = 2)
+    @CoreMethod(names = "hash_entry_existing?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HashEntryExistingNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hashEntryExisting(Object receiver, Object key,
@@ -1958,7 +1961,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_entry_insertable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "hash_entry_insertable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HashEntryInsertableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hashEntryInsertable(Object receiver, Object key,
@@ -1967,7 +1970,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_entry_modifiable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "hash_entry_modifiable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HashEntryModifiableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hashEntryModifiable(Object receiver, Object key,
@@ -1976,7 +1979,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_entry_readable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "hash_entry_readable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HashEntryReadableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hashEntryReadable(Object receiver, Object key,
@@ -1985,7 +1988,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_entry_removable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "hash_entry_removable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HashEntryRemovableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hashEntryRemovable(Object receiver, Object key,
@@ -1995,7 +1998,7 @@ public abstract class InteropNodes {
     }
 
 
-    @CoreMethod(names = "hash_entry_writable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "hash_entry_writable?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class HashEntryWritableNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hashEntryWritable(Object receiver, Object key,
@@ -2004,7 +2007,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_keys_iterator", onSingleton = true, required = 1)
+    @CoreMethod(names = "hash_keys_iterator", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HashKeysIteratorNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object hashKeysIterator(Object receiver,
@@ -2019,7 +2022,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_size", onSingleton = true, required = 1)
+    @CoreMethod(names = "hash_size", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HashSizeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static long hashSize(Object receiver,
@@ -2034,7 +2037,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "hash_values_iterator", onSingleton = true, required = 1)
+    @CoreMethod(names = "hash_values_iterator", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HashValuesIteratorNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object hashValuesIterator(Object receiver,
@@ -2050,7 +2053,7 @@ public abstract class InteropNodes {
     }
 
 
-    @CoreMethod(names = "read_hash_value", onSingleton = true, required = 2)
+    @CoreMethod(names = "read_hash_value", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class ReadHashValueNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object readHashValue(Object receiver, Object key,
@@ -2065,7 +2068,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "read_hash_value_or_default", onSingleton = true, required = 3)
+    @CoreMethod(names = "read_hash_value_or_default", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class ReadHashValueOrDefaultNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object readHashValueOrDefault(Object receiver, Object key, Object defaultValue,
@@ -2080,7 +2083,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "remove_hash_entry", onSingleton = true, required = 2)
+    @CoreMethod(names = "remove_hash_entry", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class RemoveHashEntryNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object removeHashEntry(Object receiver, Object key,
@@ -2096,7 +2099,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "write_hash_entry", onSingleton = true, required = 3)
+    @CoreMethod(names = "write_hash_entry", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class WriteHashEntryNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object writeHashEntry(Object receiver, Object key, Object value,
@@ -2114,7 +2117,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Identity
-    @CoreMethod(names = "identical?", onSingleton = true, required = 2)
+    @CoreMethod(names = "identical?", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class IsIdenticalNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isIdentical(Object receiver, Object other,
@@ -2124,7 +2127,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_identity?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_identity?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasIdentityNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasIdentity(Object receiver,
@@ -2133,7 +2136,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1)
+    @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static int identityHashCode(Object value,
@@ -2154,7 +2157,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Scope
-    @CoreMethod(names = "scope?", onSingleton = true, required = 1)
+    @CoreMethod(names = "scope?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsScopeNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isScope(Object receiver,
@@ -2163,7 +2166,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_scope_parent?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_scope_parent?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasScopeParentNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasScopeParent(Object receiver,
@@ -2172,7 +2175,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "scope_parent", onSingleton = true, required = 1)
+    @CoreMethod(names = "scope_parent", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetScopeParentNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2217,7 +2220,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Buffer Messages
-    @CoreMethod(names = "has_buffer_elements?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_buffer_elements?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasBufferElementsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2228,7 +2231,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "buffer_writable?", onSingleton = true, required = 1)
+    @CoreMethod(names = "buffer_writable?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsBufferWritableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2245,7 +2248,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "buffer_size", onSingleton = true, required = 1)
+    @CoreMethod(names = "buffer_size", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetBufferSizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2262,7 +2265,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
+    @CoreMethod(names = "read_buffer", onSingleton = true, required = 3, lowerFixnum = { 2, 3 }, split = Split.ALWAYS)
     public abstract static class ReadBufferNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2283,7 +2286,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer_byte", onSingleton = true, required = 2)
+    @CoreMethod(names = "read_buffer_byte", onSingleton = true, required = 2, split = Split.ALWAYS)
     public abstract static class ReadBufferByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2300,7 +2303,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "write_buffer_byte", onSingleton = true, required = 3)
+    @CoreMethod(names = "write_buffer_byte", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class WriteBufferByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInByte(value)")
@@ -2320,7 +2323,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer_short", onSingleton = true, required = 3)
+    @CoreMethod(names = "read_buffer_short", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class ReadBufferShortNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2339,7 +2342,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "write_buffer_short", onSingleton = true, required = 4)
+    @CoreMethod(names = "write_buffer_short", onSingleton = true, required = 4, split = Split.ALWAYS)
     public abstract static class WriteBufferShortNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInShort(value)")
@@ -2361,7 +2364,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer_int", onSingleton = true, required = 3)
+    @CoreMethod(names = "read_buffer_int", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class ReadBufferIntNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2380,7 +2383,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "write_buffer_int", onSingleton = true, required = 4, lowerFixnum = 4)
+    @CoreMethod(names = "write_buffer_int", onSingleton = true, required = 4, lowerFixnum = 4, split = Split.ALWAYS)
     public abstract static class WriteBufferIntNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInInt(value)")
@@ -2402,7 +2405,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer_long", onSingleton = true, required = 3)
+    @CoreMethod(names = "read_buffer_long", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class ReadBufferLongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2421,7 +2424,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "write_buffer_long", onSingleton = true, required = 4)
+    @CoreMethod(names = "write_buffer_long", onSingleton = true, required = 4, split = Split.ALWAYS)
     public abstract static class WriteBufferLongNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInLong(value)")
@@ -2443,7 +2446,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer_float", onSingleton = true, required = 3)
+    @CoreMethod(names = "read_buffer_float", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class ReadBufferFloatNode extends CoreMethodArrayArgumentsNode {
 
         // must return double so Ruby nodes can deal with it
@@ -2463,7 +2466,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "write_buffer_float", onSingleton = true, required = 4)
+    @CoreMethod(names = "write_buffer_float", onSingleton = true, required = 4, split = Split.ALWAYS)
     public abstract static class WriteBufferFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
@@ -2485,7 +2488,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "read_buffer_double", onSingleton = true, required = 3)
+    @CoreMethod(names = "read_buffer_double", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class ReadBufferDoubleNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()")
@@ -2504,7 +2507,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "write_buffer_double", onSingleton = true, required = 4)
+    @CoreMethod(names = "write_buffer_double", onSingleton = true, required = 4, split = Split.ALWAYS)
     public abstract static class WriteBufferDoubleNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getInteropCacheLimit()", guards = "interopValue.fitsInDouble(value)")
@@ -2528,7 +2531,7 @@ public abstract class InteropNodes {
     // endregion
 
     // region Iterator
-    @CoreMethod(names = "has_iterator?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_iterator?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasIteratorNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean hasIterator(Object receiver,
@@ -2537,7 +2540,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "iterator?", onSingleton = true, required = 1)
+    @CoreMethod(names = "iterator?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class IsIteratorNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         boolean isIterator(Object receiver,
@@ -2546,7 +2549,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "iterator", onSingleton = true, required = 1)
+    @CoreMethod(names = "iterator", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetIteratorNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object getIterator(Object receiver,
@@ -2561,7 +2564,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_iterator_next_element?", onSingleton = true, required = 1)
+    @CoreMethod(names = "has_iterator_next_element?", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class HasIteratorNextElementNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static boolean hasIteratorNextElement(Object receiver,
@@ -2576,7 +2579,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "iterator_next_element", onSingleton = true, required = 1)
+    @CoreMethod(names = "iterator_next_element", onSingleton = true, required = 1, split = Split.ALWAYS)
     public abstract static class GetIteratorNextElementNode extends CoreMethodArrayArgumentsNode {
         @Specialization(limit = "getInteropCacheLimit()")
         static Object getIteratorNextElement(Object receiver,

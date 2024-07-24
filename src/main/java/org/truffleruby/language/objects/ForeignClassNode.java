@@ -28,7 +28,7 @@ import org.truffleruby.language.dispatch.DispatchNode;
 
 import java.util.ArrayList;
 
-@ReportPolymorphism
+@ReportPolymorphism // inline cache
 @GenerateUncached
 @GenerateCached(false)
 @GenerateInline

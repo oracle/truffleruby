@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -31,6 +32,7 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Specialization;
 
 /** Caches {@link ModuleOperations#lookupConstant} and checks visibility. */
+@ReportPolymorphism // inline cache
 public abstract class LookupConstantNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final boolean ignoreVisibility;

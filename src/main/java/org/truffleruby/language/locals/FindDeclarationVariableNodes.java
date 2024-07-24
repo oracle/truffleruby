@@ -76,11 +76,11 @@ public abstract class FindDeclarationVariableNodes {
         return null;
     }
 
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache
     @GenerateUncached
-    @ImportStatic(FindDeclarationVariableNodes.class)
     @GenerateInline
     @GenerateCached(false)
+    @ImportStatic(FindDeclarationVariableNodes.class)
     public abstract static class FindAndReadDeclarationVariableNode extends RubyBaseNode {
 
         public abstract Object execute(Frame frame, Node node, String name, Object defaultValue);

@@ -414,6 +414,7 @@ public abstract class KernelNodes {
     @ImportStatic(ShapeCachingGuards.class)
     @GenerateUncached
     @GenerateInline(inlineByDefault = true)
+    @ReportPolymorphism // inline cache
     public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
         public static final DynamicObjectLibrary[] EMPTY_DYNAMIC_OBJECT_LIBRARY_ARRAY = new DynamicObjectLibrary[0];
@@ -713,7 +714,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache
     @GenerateUncached
     public abstract static class EvalInternalNode extends RubyBaseNode {
 
@@ -970,7 +971,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "instance_variable_defined?", required = 1)
+    @CoreMethod(names = "instance_variable_defined?", required = 1, split = Split.ALWAYS)
     public abstract static class InstanceVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -989,7 +990,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "instance_variable_get", required = 1)
+    @CoreMethod(names = "instance_variable_get", required = 1, split = Split.ALWAYS)
     public abstract static class InstanceVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1012,7 +1013,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "instance_variable_set", required = 2)
+    @CoreMethod(names = "instance_variable_set", required = 2, split = Split.ALWAYS)
     public abstract static class InstanceVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1038,7 +1039,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "remove_instance_variable", required = 1)
+    @CoreMethod(names = "remove_instance_variable", required = 1, split = Split.ALWAYS)
     public abstract static class RemoveInstanceVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1665,7 +1666,7 @@ public abstract class KernelNodes {
 
     @GenerateInline
     @GenerateCached(false)
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache, CallTarget cache
     public abstract static class SprintfInnerNode extends RubyBaseNode {
 
         public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,

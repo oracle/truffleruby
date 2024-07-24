@@ -28,6 +28,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -204,7 +205,7 @@ public abstract class BindingNodes {
     }
 
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
-    @CoreMethod(names = "local_variable_defined?", required = 1)
+    @CoreMethod(names = "local_variable_defined?", required = 1, split = Split.ALWAYS)
     public abstract static class BindingLocalVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -220,6 +221,7 @@ public abstract class BindingNodes {
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @GenerateCached(false)
     @GenerateInline
+    @ReportPolymorphism // inline cache
     public abstract static class LocalVariableDefinedNode extends RubyBaseNode {
 
         public abstract boolean execute(Node node, RubyBinding binding, String name);
@@ -312,7 +314,7 @@ public abstract class BindingNodes {
     }
 
 
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache
     @GenerateUncached
     @ImportStatic({ BindingNodes.class, FindDeclarationVariableNodes.class })
     @GenerateCached(false)

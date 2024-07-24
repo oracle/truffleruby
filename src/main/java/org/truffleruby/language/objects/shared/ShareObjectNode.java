@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.PropertyGetter;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -36,6 +37,7 @@ import org.truffleruby.utils.RunTwiceBranchProfile;
 /** Share the object and all that is reachable from it (see {@link ObjectGraph#getAdjacentObjects}) */
 @ImportStatic(ShapeCachingGuards.class)
 @GenerateInline(inlineByDefault = true)
+@ReportPolymorphism // inline cache
 public abstract class ShareObjectNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;

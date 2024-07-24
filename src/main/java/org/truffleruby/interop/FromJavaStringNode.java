@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.Encodings;
@@ -25,6 +26,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @GenerateInline
 @GenerateCached(false)
 @GenerateUncached
+@ReportPolymorphism // inline cache
 public abstract class FromJavaStringNode extends RubyBaseNode {
 
     public abstract RubyString executeFromJavaString(Node node, String value);

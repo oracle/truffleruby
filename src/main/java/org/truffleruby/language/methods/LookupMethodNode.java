@@ -32,7 +32,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 
 /** Caches {@link ModuleOperations#lookupMethodCached(RubyModule, String, DeclarationContext)} on an actual instance. */
-@ReportPolymorphism
+@ReportPolymorphism // inline cache
 @GenerateUncached
 public abstract class LookupMethodNode extends RubyBaseNode {
 

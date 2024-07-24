@@ -11,6 +11,7 @@ package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.language.RubyBaseNode;
@@ -29,6 +30,7 @@ import com.oracle.truffle.api.object.Shape;
 @ImportStatic(ShapeCachingGuards.class)
 @GenerateUncached
 @GenerateInline(inlineByDefault = true)
+@ReportPolymorphism // inline cache
 public abstract class WriteBarrierNode extends RubyBaseNode {
 
     public static final WriteBarrierNode[] EMPTY_ARRAY = new WriteBarrierNode[0];

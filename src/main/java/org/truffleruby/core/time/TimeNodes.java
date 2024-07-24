@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
@@ -417,6 +418,7 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_strftime")
+    @ReportPolymorphism // inline cache
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(

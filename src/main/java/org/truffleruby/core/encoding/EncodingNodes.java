@@ -66,6 +66,7 @@ public abstract class EncodingNodes {
         }
     }
 
+    // TODO: [GR-53442] Splitting: seems too expensive to split, should try to simplify logic and remove inline caches
     // MRI: enc_compatible_str and enc_compatible_latter
     @ImportStatic(TruffleString.CodeRange.class)
     @GenerateCached(false)
@@ -220,6 +221,7 @@ public abstract class EncodingNodes {
     }
 
     // MRI: enc_compatible_latter
+    // TODO: [GR-53442] Splitting: seems too expensive to split, should try to simplify logic and remove inline caches
     /** Use {@link NegotiateCompatibleStringEncodingNode} instead if both arguments are always Strings, for footprint */
     @GenerateCached(false)
     @GenerateInline

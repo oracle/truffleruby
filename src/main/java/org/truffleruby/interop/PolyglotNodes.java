@@ -50,7 +50,7 @@ import org.truffleruby.utils.Utils;
 public abstract class PolyglotNodes {
 
     @CoreMethod(names = "eval", onSingleton = true, required = 2)
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
@@ -219,6 +219,7 @@ public abstract class PolyglotNodes {
 
     // Inlined profiles/nodes are @Exclusive to fix truffle-interpreted-performance warning
     @Primitive(name = "inner_context_eval")
+    @ReportPolymorphism // inline cache
     public abstract static class InnerContextEvalNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = {
                 "idLib.isRubyString(langId)",

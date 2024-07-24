@@ -24,7 +24,7 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import java.lang.invoke.VarHandle;
 
-@ReportPolymorphism
+@ReportPolymorphism // should probably be removed
 @GenerateUncached
 @GenerateInline(inlineByDefault = true)
 public abstract class WriteObjectFieldNode extends RubyBaseNode {
