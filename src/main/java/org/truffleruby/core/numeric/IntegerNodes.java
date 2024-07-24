@@ -41,11 +41,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
-import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
-import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
-import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
-import org.truffleruby.core.numeric.IntegerNodesFactory.PowNodeFactory;
-import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -233,7 +228,7 @@ public abstract class IntegerNodes {
 
         @NeverDefault
         public static MulNode create() {
-            return MulNodeFactory.create(null);
+            return IntegerNodesFactory.MulNodeFactory.create(null);
         }
 
         public abstract Object executeMul(Object a, Object b);
@@ -493,7 +488,7 @@ public abstract class IntegerNodes {
     @CoreMethod(names = "div", required = 1)
     public abstract static class IDivNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DivNode divNode = DivNodeFactory.create(null);
+        @Child private DivNode divNode = IntegerNodesFactory.DivNodeFactory.create(null);
 
         @Specialization
         Object idiv(Object a, Object b,
@@ -1197,7 +1192,7 @@ public abstract class IntegerNodes {
         static final long MAX_INT = Integer.MAX_VALUE;
 
         public static LeftShiftNode create() {
-            return LeftShiftNodeFactory.create(null);
+            return IntegerNodesFactory.LeftShiftNodeFactory.create(null);
         }
 
         public abstract Object executeLeftShift(Object a, Object b);
@@ -1301,7 +1296,7 @@ public abstract class IntegerNodes {
         private Object negateAndRightShift(Object a, Object b) {
             if (rightShiftNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                rightShiftNode = insert(RightShiftNodeFactory.create(null));
+                rightShiftNode = insert(IntegerNodesFactory.RightShiftNodeFactory.create(null));
             }
 
             if (negNode == null) {
@@ -1339,7 +1334,7 @@ public abstract class IntegerNodes {
         static final long MAX_INT = Integer.MAX_VALUE;
 
         public static RightShiftNode create() {
-            return RightShiftNodeFactory.create(null);
+            return IntegerNodesFactory.RightShiftNodeFactory.create(null);
         }
 
         public abstract Object executeRightShift(Object a, Object b);
@@ -1422,7 +1417,7 @@ public abstract class IntegerNodes {
         private Object negateAndLeftShift(Object a, Object b) {
             if (leftShiftNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                leftShiftNode = insert(LeftShiftNodeFactory.create(null));
+                leftShiftNode = insert(IntegerNodesFactory.LeftShiftNodeFactory.create(null));
             }
 
             if (negNode == null) {
@@ -1762,7 +1757,7 @@ public abstract class IntegerNodes {
         protected Object recursivePow(Object a, Object b) {
             if (recursivePowNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                recursivePowNode = insert(PowNodeFactory.create(null));
+                recursivePowNode = insert(IntegerNodesFactory.PowNodeFactory.create(null));
             }
 
             return recursivePowNode.executePow(a, b);
