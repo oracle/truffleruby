@@ -46,11 +46,10 @@ natively.
 
 ### Compilation
 
-We compile C extensions using the standard `mkmf` tool, and `clang` compilers
-which have flags set to generate bitcode alongside machine code.
+We compile C extensions using the standard `mkmf` tool, and `gcc`/`clang` compilers.
 
 We pipe C source code through a pre-processor `lib/cext/preprocess.rb` before it
-goes to `clang` to workaround some limitations.
+goes to `gcc`/`clang` to work around some limitations.
 
 ### API functions
 
