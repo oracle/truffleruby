@@ -2086,7 +2086,11 @@ class IO
       raise ArgumentError, "encoding is set to #{external_encoding} already"
     end
 
-    encoding = Truffle::IOOperations.strip_bom_for_regular_file(self)
+    if @mode & FMODE_READABLE == 0
+      return nil
+    end
+
+    encoding = Truffle::IOOperations.strip_bom(self)
     if encoding
       @external = encoding
     end
