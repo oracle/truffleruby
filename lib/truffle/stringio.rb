@@ -211,6 +211,22 @@ class StringIO
     self
   end
 
+  def set_encoding_by_bom
+    Primitive.check_frozen self
+    return nil unless @readable
+
+    encoding = Truffle::IOOperations.strip_bom(self)
+    return nil unless encoding
+
+    d = @__data__
+    TruffleRuby.synchronized(d) do
+      d.encoding = encoding
+      d.string.force_encoding(encoding) if @writable
+    end
+
+    encoding
+  end
+
   def external_encoding
     @__data__.encoding
   end
