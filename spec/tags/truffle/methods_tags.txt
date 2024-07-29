@@ -79,7 +79,6 @@ fails:Public methods on StringIO should not include inspect
 fails:Public methods on StringIO should not include marshal_dump
 fails:Public methods on StringIO should not include to_yaml_properties
 fails:Public methods on StringIO should not include yaml_initialize
-fails:Public methods on StringIO should include set_encoding_by_bom
 fails:Public methods on Process.singleton_class should include getsid
 fails:Public methods on GC.singleton_class should include using_rvargc?
 fails:Public methods on Class should include attached_object

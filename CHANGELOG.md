@@ -43,6 +43,7 @@ Compatibility:
 * Fix `$!` global variable and make it fiber-local (@andrykonchin).
 * Fix `rb_set_errinfo` and `rb_errinfo` and store an error separately from `$!` (#2890, @andrykonchin).
 * Fix `rb_mutex_synchronize` to not wrap/unwrap result value (#3624, @andrykonchin).
+* Add `StringIO#set_encoding_by_bom` method (#3632, @andrykonchin).
 
 Performance:
 

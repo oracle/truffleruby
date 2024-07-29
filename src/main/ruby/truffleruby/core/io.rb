@@ -2086,71 +2086,14 @@ class IO
       raise ArgumentError, "encoding is set to #{external_encoding} already"
     end
 
-    external = strip_bom
-    if external
-      @external = external
-    end
-  end
-
-  private def strip_bom
-    mode = Truffle::POSIX.truffleposix_fstat_mode(Primitive.io_fd(self))
-    return unless Truffle::StatOperations.file?(mode)
-
-    case b1 = getbyte
-    when 0x00
-      b2 = getbyte
-      if b2 == 0x00
-        b3 = getbyte
-        if b3 == 0xFE
-          b4 = getbyte
-          if b4 == 0xFF
-            return Encoding::UTF_32BE
-          end
-          ungetbyte b4
-        end
-        ungetbyte b3
-      end
-      ungetbyte b2
-
-    when 0xFF
-      b2 = getbyte
-      if b2 == 0xFE
-        b3 = getbyte
-        if b3 == 0x00
-          b4 = getbyte
-          if b4 == 0x00
-            return Encoding::UTF_32LE
-          end
-          ungetbyte b4
-        else
-          ungetbyte b3
-          return Encoding::UTF_16LE
-        end
-        ungetbyte b3
-      end
-      ungetbyte b2
-
-    when 0xFE
-      b2 = getbyte
-      if b2 == 0xFF
-        return Encoding::UTF_16BE
-      end
-      ungetbyte b2
-
-    when 0xEF
-      b2 = getbyte
-      if b2 == 0xBB
-        b3 = getbyte
-        if b3 == 0xBF
-          return Encoding::UTF_8
-        end
-        ungetbyte b3
-      end
-      ungetbyt b2
+    if @mode & FMODE_READABLE == 0
+      return nil
     end
 
-    ungetbyte b1
-    nil
+    encoding = Truffle::IOOperations.strip_bom(self)
+    if encoding
+      @external = encoding
+    end
   end
 
   ##
