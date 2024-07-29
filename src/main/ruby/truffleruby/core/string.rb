@@ -130,10 +130,6 @@ class String
     end
   end
 
-  def empty?
-    bytesize == 0
-  end
-
   def chomp(separator = $/)
     str = Primitive.dup_as_string_instance(self)
     str.chomp!(separator) || str
