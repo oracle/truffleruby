@@ -17,6 +17,7 @@ Bug fixes:
 * Repair `IO#{wait_readable,wait_writable,wait}` to be interruptible (#3504, @andrykonchin).
 * Fix Hash value omission for constant names (@andrykonchin).
 * Fix `MatchData#[index, length]` when index is larger than number of matched values (@andrykonchin).
+* Fix `#each` for a foreign iterator which is also iterable (#3630, @eregon).
 
 Compatibility:
 

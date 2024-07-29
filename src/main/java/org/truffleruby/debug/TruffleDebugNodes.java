@@ -934,6 +934,58 @@ public abstract class TruffleDebugNodes {
         }
     }
 
+    @CoreMethod(names = "foreign_iterator_iterable", onSingleton = true)
+    public abstract static class ForeignIteratorIterableNode extends CoreMethodArrayArgumentsNode {
+        @ExportLibrary(InteropLibrary.class)
+        public static final class ForeignIteratorIterable implements TruffleObject {
+            final int[] values = { 1, 2, 3 };
+            int index = 0;
+
+            @ExportMessage
+            protected boolean hasIterator() {
+                return true;
+            }
+
+            @ExportMessage
+            protected Object getIterator() {
+                return this;
+            }
+
+            @ExportMessage
+            protected boolean isIterator() {
+                return true;
+            }
+
+            @ExportMessage
+            protected boolean hasIteratorNextElement() {
+                return index < values.length;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected Object getIteratorNextElement() throws StopIterationException {
+                if (hasIteratorNextElement()) {
+                    Object value = values[index];
+                    index++;
+                    return value;
+                } else {
+                    throw StopIterationException.create();
+                }
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign iterator iterable]";
+            }
+        }
+
+        @TruffleBoundary
+        @Specialization
+        Object foreignIteratorIterable() {
+            return new ForeignIteratorIterable();
+        }
+    }
+
     @CoreMethod(names = "foreign_hash", onSingleton = true)
     public abstract static class ForeignHashNode extends CoreMethodArrayArgumentsNode {
 
