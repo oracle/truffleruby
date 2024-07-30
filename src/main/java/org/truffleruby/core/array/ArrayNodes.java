@@ -832,6 +832,15 @@ public abstract class ArrayNodes {
 
     }
 
+    @CoreMethod(names = "empty?")
+    public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        boolean isEmpty(RubyArray array) {
+            return array.size == 0;
+        }
+    }
+
     @Primitive(name = "array_equal?")
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
