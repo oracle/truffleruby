@@ -396,10 +396,6 @@ class Array
     true
   end
 
-  def empty?
-    size == 0
-  end
-
   def fetch(idx, default = undefined)
     orig = idx
     idx = Primitive.rb_num2int idx
