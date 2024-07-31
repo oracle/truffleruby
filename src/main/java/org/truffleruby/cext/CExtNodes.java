@@ -24,6 +24,7 @@ import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.MutableTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import org.graalvm.shadowed.org.jcodings.Config;
 import org.graalvm.shadowed.org.jcodings.Encoding;
@@ -45,6 +46,7 @@ import org.truffleruby.core.MarkingServiceNodes.RunMarkOnExitNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.cast.HashCastNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -71,9 +73,9 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
@@ -126,7 +128,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -135,7 +136,6 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -150,7 +150,7 @@ public abstract class CExtNodes {
 
     /* These tag values are derived from MRI source and from the Tk gem and are used to represent different control flow
      * states under which code may exit an `rb_protect` block. The fatal tag is defined but I could not find a point
-     * where it is assigned, and am not sure it maps to anything we would use in TruffleRuby. */
+     * where it is assigned, and am not sure if it maps to anything we would use in TruffleRuby. */
     public static final int RUBY_TAG_RETURN = 0x1;
     public static final int RUBY_TAG_BREAK = 0x2;
     public static final int RUBY_TAG_NEXT = 0x3;
@@ -158,7 +158,6 @@ public abstract class CExtNodes {
     public static final int RUBY_TAG_REDO = 0x5;
     public static final int RUBY_TAG_RAISE = 0x6;
     public static final int RUBY_TAG_THROW = 0x7;
-    public static final int RUBY_TAG_FATAL = 0x8;
 
     /** We need up to 4 \0 bytes for UTF-32. Always use 4 for speed rather than checking the encoding min length.
      * Corresponds to TERM_LEN() in MRI. */
@@ -1990,31 +1989,29 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "rb_tr_sprintf_types", onSingleton = true, required = 1)
-    @ReportPolymorphism // inline cache (but not working due to single call site in C)
     public abstract static class RBSprintfFormatNode extends CoreMethodArrayArgumentsNode {
 
         @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "libFormat.isRubyString(format)",
-                        "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)" },
-                limit = "2")
-        static Object typesCached(VirtualFrame frame, Object format,
-                @Cached @Shared RubyStringLibrary libFormat,
-                @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
-                @Cached("compileArgTypes(cachedFormat, cachedEncoding, byteArrayNode)") RubyArray cachedTypes,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
-                @Bind("this") Node node) {
-            return cachedTypes;
-        }
+        @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
+        @TruffleBoundary
+        RubyArray types(Object format,
+                @Cached RubyStringLibrary libFormat,
+                @Cached AsTruffleStringNode asTruffleStringNode) {
+            AbstractTruffleString tstring = libFormat.getTString(format);
+            RubyEncoding encoding = libFormat.getEncoding(format);
 
-        @Specialization(guards = "libFormat.isRubyString(format)")
-        RubyArray typesUncached(VirtualFrame frame, Object format,
-                @Cached @Shared RubyStringLibrary libFormat) {
-            return compileArgTypes(libFormat.getTString(format), libFormat.getEncoding(format), byteArrayNode);
+            var cacheKey = new TStringWithEncoding(asTruffleStringNode, tstring, encoding);
+            int[] cachedTypes = RubyLanguage.sprintfCompilerTypeLists.get(cacheKey);
+            if (cachedTypes != null) {
+                return createArray(cachedTypes);
+            }
+
+            RubyArray types = compileArgTypes(tstring, libFormat.getEncoding(format), byteArrayNode);
+            int[] typesIntArray = (int[]) ArrayStoreLibrary.getUncached().toJavaArrayCopy(types.getStore(), types.size);
+            RubyLanguage.sprintfCompilerTypeLists.putIfAbsent(cacheKey, typesIntArray);
+            return types;
         }
 
         @TruffleBoundary
@@ -2036,22 +2033,26 @@ public abstract class CExtNodes {
         static RubyString format(Object format, Object stringReader, RubyArray argArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached RubyStringLibrary libFormat,
+                @Cached AsTruffleStringNode asTruffleStringNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Cached RBSprintfInnerNode rbSprintfInnerNode,
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached InlinedConditionProfile resizeProfile,
+                @Cached(inline = false) IndirectCallNode formatNode,
                 @Bind("this") Node node) {
             var tstring = libFormat.getTString(format);
             var encoding = libFormat.getEncoding(format);
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
 
-            final BytesResult result;
+            RootCallTarget callTarget;
             try {
-                result = rbSprintfInnerNode.execute(node, tstring, encoding, stringReader, arguments);
+                callTarget = compileFormat(tstring, encoding, stringReader, asTruffleStringNode, node);
             } catch (FormatException e) {
                 exceptionProfile.enter(node);
                 throw FormatExceptionTranslator.translate(getContext(node), node, e);
             }
+
+            final BytesResult result = (BytesResult) formatNode.call(callTarget,
+                    new Object[]{ arguments, arguments.length, null });
 
             int formatLength = tstring.byteLength(encoding.tencoding);
             byte[] bytes = result.getOutput();
@@ -2064,46 +2065,27 @@ public abstract class CExtNodes {
                     result.getEncoding().getEncodingForLength(formatLength));
         }
 
-    }
-
-    @GenerateInline
-    @GenerateCached(false)
-    @ReportPolymorphism // inline cache, CallTarget cache (but not working due to single call site in C)
-    public abstract static class RBSprintfInnerNode extends RubyBaseNode {
-
-        public abstract BytesResult execute(Node node, AbstractTruffleString format, RubyEncoding encoding,
-                Object stringReader, Object[] arguments);
-
-        @Specialization(
-                guards = "equalNode.execute(node, format, encoding, cachedFormat, cachedEncoding)",
-                limit = "2")
-        static BytesResult formatCached(
-                Node node, AbstractTruffleString format, RubyEncoding encoding, Object stringReader, Object[] arguments,
-                @Cached("format.asTruffleStringUncached(encoding.tencoding)") TruffleString cachedFormat,
-                @Cached("encoding") RubyEncoding cachedEncoding,
-                @Cached(value = "create(compileFormat(cachedFormat, cachedEncoding, stringReader, node))",
-                        inline = false) DirectCallNode formatNode,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
-            return (BytesResult) formatNode.call(new Object[]{ arguments, arguments.length, null });
-        }
-
-        @Specialization(replaces = "formatCached")
-        static BytesResult formatUncached(
-                Node node, AbstractTruffleString format, RubyEncoding encoding, Object stringReader, Object[] arguments,
-                @Cached(inline = false) IndirectCallNode formatNode) {
-            return (BytesResult) formatNode.call(compileFormat(format, encoding, stringReader, node),
-                    new Object[]{ arguments, arguments.length, null });
-        }
-
         @TruffleBoundary
         protected static RootCallTarget compileFormat(AbstractTruffleString format, RubyEncoding encoding,
-                Object stringReader, Node node) {
+                Object stringReader, AsTruffleStringNode asTruffleStringNode, Node node) {
+            var cacheKey = new TStringWithEncoding(asTruffleStringNode, format, encoding);
+
+            RootCallTarget cachedCallTarget = RubyLanguage.sprintfCompilerCallTargets.get(cacheKey);
+            if (cachedCallTarget != null) {
+                return cachedCallTarget;
+            }
+
+            RootCallTarget callTarget;
             try {
-                return new RBSprintfCompiler(getLanguage(node), node).compile(format, encoding, stringReader);
+                callTarget = new RBSprintfCompiler(getLanguage(node), node).compile(format, encoding, stringReader);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
             }
+
+            RubyLanguage.sprintfCompilerCallTargets.putIfAbsent(cacheKey, callTarget);
+            return callTarget;
         }
+
     }
 
     @CoreMethod(names = "ruby_native_thread_p", onSingleton = true)

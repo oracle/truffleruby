@@ -89,6 +89,7 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyCustomRandomizer;
 import org.truffleruby.core.support.RubyIO;
@@ -194,6 +195,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
      * root nodes should should use either {@link TranslatorEnvironment#newFrameDescriptorBuilderForMethod()} or
      * {@link TranslatorEnvironment#newFrameDescriptorBuilderForBlock(BlockDescriptorInfo)}. */
     public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(nil);
+
+    /** Global cache of call targets that {@code RBSprintfCompiler.compile} returns */
+    public static final Map<TStringWithEncoding, RootCallTarget> sprintfCompilerCallTargets = new ConcurrentHashMap<>();
+
+    /** Global cache of type lists that {@code RBSprintfCompiler.typeList} returns */
+    public static final Map<TStringWithEncoding, int[]> sprintfCompilerTypeLists = new ConcurrentHashMap<>();
 
     private RubyThread getOrCreateForeignThread(RubyContext context, Thread thread) {
         RubyThread foreignThread = rubyThreadInitMap.remove(thread);
