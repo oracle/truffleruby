@@ -23,7 +23,6 @@ import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
@@ -33,7 +32,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 
 /** Share the plain Java fields which may contain objets for subclasses of RubyDynamicObject.
  * {@link RubyDynamicObject#metaClass} is handled by {@link ShareObjectNode}. */
-@ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
+@ImportStatic(ArrayGuards.class)
 @GenerateCached(false)
 @GenerateInline
 public abstract class ShareInternalFieldsNode extends RubyBaseNode {

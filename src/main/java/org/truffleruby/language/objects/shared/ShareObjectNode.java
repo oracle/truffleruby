@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.nodes.Node;
@@ -22,10 +23,8 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -35,8 +34,8 @@ import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.utils.RunTwiceBranchProfile;
 
 /** Share the object and all that is reachable from it (see {@link ObjectGraph#getAdjacentObjects}) */
-@ImportStatic(ShapeCachingGuards.class)
-@GenerateInline(inlineByDefault = true)
+@GenerateInline
+@GenerateCached(false)
 @ReportPolymorphism // inline cache
 public abstract class ShareObjectNode extends RubyBaseNode {
 
@@ -45,10 +44,6 @@ public abstract class ShareObjectNode extends RubyBaseNode {
     public final void execute(Node node, RubyDynamicObject object, int depth) {
         CompilerAsserts.partialEvaluationConstant(depth);
         executeInternal(node, object, depth);
-    }
-
-    public final void executeCached(RubyDynamicObject object, int depth) {
-        execute(this, object, depth);
     }
 
     protected abstract void executeInternal(Node node, RubyDynamicObject object, int depth);
@@ -99,13 +94,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization(guards = "updateShape(object)")
-    static void updateShapeAndShare(RubyDynamicObject object, int depth,
-            @Cached(inline = false) ShareObjectNode shareObjectNode) {
-        shareObjectNode.executeCached(object, depth);
-    }
-
-    @Specialization(replaces = { "shareCached", "updateShapeAndShare" })
+    @Specialization(replaces = "shareCached")
     static void shareUncached(Node node, RubyDynamicObject object, int depth) {
         SharedObjects.writeBarrier(getLanguage(node), object);
     }

@@ -27,7 +27,6 @@ import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
 
 public final class SharedObjects {
@@ -158,7 +157,7 @@ public final class SharedObjects {
             return false;
         }
 
-        ShapeCachingGuards.updateShape(object);
+        DynamicObjectLibrary.getUncached().updateShape(object);
         DynamicObjectLibrary.getUncached().markShared(object);
 
         onShareHook(object);

@@ -15,11 +15,9 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 
@@ -27,7 +25,6 @@ import com.oracle.truffle.api.object.Shape;
 @GenerateUncached
 @GenerateCached(false)
 @GenerateInline
-@ImportStatic(ShapeCachingGuards.class)
 public abstract class IsSharedNode extends RubyBaseNode {
 
     public abstract boolean execute(Node node, RubyDynamicObject object);
