@@ -63,6 +63,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
@@ -108,6 +109,7 @@ import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.SingletonClassNode;
+import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.classvariables.CheckClassVariableNameNode;
 import org.truffleruby.language.objects.classvariables.ClassVariableStorage;
@@ -1668,17 +1670,16 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "public_class_method", rest = true)
+    @CoreMethod(names = "public_class_method", rest = true, split = Split.NEVER)
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyModule publicClassMethod(RubyModule module, Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached SingletonClassNode singletonClassNode) {
-            final RubyClass singletonClass = singletonClassNode.execute(module);
+        @TruffleBoundary
+        RubyModule publicClassMethod(RubyModule module, Object[] names) {
+            final RubyClass singletonClass = SingletonClassNodeGen.getUncached().execute(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.execute(this, singletonClass, name, Visibility.PUBLIC);
+                SetMethodVisibilityNodeGen.getUncached().execute(this, singletonClass, name, Visibility.PUBLIC);
             }
 
             return module;
@@ -1727,17 +1728,16 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "private_class_method", rest = true)
+    @CoreMethod(names = "private_class_method", rest = true, split = Split.NEVER)
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached SingletonClassNode singletonClassNode) {
-            final RubyClass singletonClass = singletonClassNode.execute(module);
+        @TruffleBoundary
+        RubyModule privateClassMethod(RubyModule module, Object[] names) {
+            final RubyClass singletonClass = SingletonClassNodeGen.getUncached().execute(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.execute(this, singletonClass, name, Visibility.PRIVATE);
+                SetMethodVisibilityNodeGen.getUncached().execute(this, singletonClass, name, Visibility.PRIVATE);
             }
 
             return module;
