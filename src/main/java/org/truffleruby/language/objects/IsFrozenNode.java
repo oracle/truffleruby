@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyDynamicObject;
 
 import static org.truffleruby.Layouts.FROZEN_FLAG;
 
-// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
+// Specializations are ordered by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 public abstract class IsFrozenNode extends RubyBaseNode {
 

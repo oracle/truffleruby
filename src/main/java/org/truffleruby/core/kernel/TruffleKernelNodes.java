@@ -205,6 +205,7 @@ public abstract class TruffleKernelNodes {
         return count;
     }
 
+    // Splitting: naturally split by usages
     @ImportStatic(TruffleKernelNodes.class)
     @GenerateUncached
     @GenerateInline(inlineByDefault = true)
@@ -341,6 +342,7 @@ public abstract class TruffleKernelNodes {
         }
     }
 
+    // Splitting: naturally split as a Primitive
     @Primitive(name = "share_special_variables")
     @ImportStatic(TruffleKernelNodes.class)
     public abstract static class ShareSpecialVariableStorage extends PrimitiveArrayArgumentsNode {

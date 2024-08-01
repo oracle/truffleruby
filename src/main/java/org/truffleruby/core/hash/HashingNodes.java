@@ -59,7 +59,7 @@ public abstract class HashingNodes {
     /** Keep consistent with {@link org.truffleruby.core.kernel.KernelNodes.HashNode} */
     @GenerateUncached
     @GenerateInline(inlineByDefault = true)
-    @ReportPolymorphism
+    @ReportPolymorphism // calling #hash on the key and many specializations
     public abstract static class ToHashByHashCode extends RubyBaseNode {
 
         @NeverDefault

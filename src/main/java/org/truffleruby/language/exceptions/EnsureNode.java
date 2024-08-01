@@ -17,13 +17,13 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNodeCustomExecuteVoid;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.control.KillException;
-import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 public abstract class EnsureNode extends RubyContextSourceNodeCustomExecuteVoid {
 
@@ -80,20 +80,20 @@ public abstract class EnsureNode extends RubyContextSourceNodeCustomExecuteVoid 
             rethrowException = e;
         }
 
-        ThreadLocalGlobals threadLocalGlobals = null;
+        RubyFiber currentFiber = null;
         Object previousException = null;
 
         if (guestException != null) {
             var exceptionObject = ExceptionOperations.getExceptionObject(this, guestException, raiseExceptionProfile);
-            threadLocalGlobals = getLanguage().getCurrentThread().threadLocalGlobals;
-            previousException = threadLocalGlobals.getLastException();
-            threadLocalGlobals.setLastException(exceptionObject);
+            currentFiber = getLanguage().getCurrentFiber();
+            previousException = currentFiber.getLastException();
+            currentFiber.setLastException(exceptionObject);
         }
         try {
             ensurePart.executeVoid(frame);
         } finally {
             if (guestException != null) {
-                threadLocalGlobals.setLastException(previousException);
+                currentFiber.setLastException(previousException);
             }
         }
 

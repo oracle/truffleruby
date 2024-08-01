@@ -1702,7 +1702,6 @@ public abstract class StringNodes {
 
         public abstract RubyString execute(Node node, RubyString string, Object other);
 
-
         @Specialization(guards = "string == other")
         static RubyString replaceStringIsSameAsOther(RubyString string, RubyString other) {
             return string;
@@ -2755,7 +2754,7 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "string_unpack")
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache, CallTarget cache
     public abstract static class UnpackPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
 
@@ -2949,6 +2948,7 @@ public abstract class StringNodes {
 
     }
 
+
     @Primitive(name = "string_capitalize!", raiseIfNotMutable = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
@@ -3074,6 +3074,15 @@ public abstract class StringNodes {
                 @Cached RubyStringLibrary libString) {
             string.setTString(libString.getTEncoding(string).getEmpty());
             return string;
+        }
+    }
+
+    @CoreMethod(names = "empty?")
+    public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        boolean empty(Object self,
+                @Cached RubyStringLibrary libString) {
+            return libString.getTString(self).isEmpty();
         }
     }
 

@@ -129,7 +129,8 @@ public abstract class RegexpNodes {
         }
     }
 
-    @CoreMethod(names = "to_s")
+    // Splitting: inline cache
+    @CoreMethod(names = "to_s", split = Split.ALWAYS)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         public static ToSNode create() {

@@ -314,20 +314,12 @@ module Enumerable
   end
   alias_method :entries, :to_a
 
-  def to_h(*arg)
+  def to_h(*args)
     h = {}
-    each_with_index(*arg) do |elem, i|
+    each(*args) do
+      elem = Primitive.single_block_arg
       elem = yield(elem) if block_given?
-      unless elem.respond_to?(:to_ary)
-        raise TypeError, "wrong element type #{Primitive.class(elem)} at #{i} (expected array)"
-      end
-
-      ary = elem.to_ary
-      if ary.size != 2
-        raise ArgumentError, "element has wrong array length (expected 2, was #{ary.size})"
-      end
-
-      h[ary[0]] = ary[1]
+      Truffle::HashOperations.assoc_key_value_pair(h, elem)
     end
     h
   end

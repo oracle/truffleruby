@@ -449,7 +449,7 @@ module Truffle
 
       string = Truffle::Type.rb_check_convert_type(object, String, :to_str)
       if Primitive.nil?(string)
-        raise TypeError, "#{object} is not a symbol nor a string"
+        raise TypeError, "#{object.inspect} is not a symbol nor a string"
       end
 
       string.to_sym

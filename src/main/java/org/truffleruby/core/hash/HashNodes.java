@@ -196,7 +196,8 @@ public abstract class HashNodes {
         }
     }
 
-    @CoreMethod(names = "[]", required = 1)
+    // Splitting: calling #hash on the key
+    @CoreMethod(names = "[]", required = 1, split = Split.ALWAYS)
     @ImportStatic(HashGuards.class)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode implements PEBiFunction {
 

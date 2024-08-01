@@ -37,7 +37,7 @@ public final class SuperCallNode extends LiteralCallNode {
     }
 
     @Override
-    public final Object execute(VirtualFrame frame) {
+    public Object execute(VirtualFrame frame) {
         final Object self = RubyArguments.getSelf(frame);
 
         // Execute the arguments

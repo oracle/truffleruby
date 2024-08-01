@@ -20,7 +20,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 
 @GenerateUncached
-@ReportPolymorphism
+@ReportPolymorphism // inline cache (but not working due to single call site in C)
 public abstract class SymbolToIDNode extends RubyBaseNode {
 
     public abstract Object execute(Object value);

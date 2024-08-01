@@ -30,7 +30,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 
-@ReportPolymorphism
+@ReportPolymorphism // inline cache
 @GenerateUncached
 @GenerateInline(inlineByDefault = true)
 public abstract class CallBlockNode extends RubyBaseNode {

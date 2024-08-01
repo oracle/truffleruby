@@ -37,7 +37,7 @@ describe "Polyglot" do
     Truffle::Interop.proxy_foreign_object(String).class.should == Polyglot::ForeignClass
     Truffle::Interop.proxy_foreign_object(Enumerable).class.should == Polyglot::ForeignMetaObject
     Truffle::Interop.proxy_foreign_object((1..3)).class.should == Polyglot::ForeignIterable
-    Truffle::Interop.proxy_foreign_object((1..3).each).class.should == Polyglot::ForeignIterableIterator
+    Truffle::Interop.proxy_foreign_object((1..3).each).class.should == Polyglot::ForeignIteratorIterable
     Truffle::Interop.proxy_foreign_object(nil).class.should == Polyglot::ForeignNull
     Truffle::Interop.proxy_foreign_object(42).class.should == Polyglot::ForeignNumber
     Truffle::Interop.proxy_foreign_object(1 << 84).class.should == Polyglot::ForeignNumber

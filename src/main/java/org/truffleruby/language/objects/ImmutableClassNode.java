@@ -28,7 +28,7 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 
-// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
+// Specializations are ordered by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateInline
 @GenerateCached(false)
 @GenerateUncached

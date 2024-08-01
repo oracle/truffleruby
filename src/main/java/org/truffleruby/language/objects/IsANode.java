@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
@@ -23,7 +24,11 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
+/* Splitting: inline cache, much faster when `module` is not a Class.
+ * Also useful to split Ruby methods which do something like `if obj.is_a?(Foo) then foo else bar end`
+ * such as NoBorderImagePadded#index used by NoBorderImage#[] in the image-demo benchmarks. */
 @GenerateUncached
+@ReportPolymorphism // see commment above
 public abstract class IsANode extends RubyBaseNode {
 
     @NeverDefault

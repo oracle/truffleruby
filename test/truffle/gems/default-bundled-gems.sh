@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Generate a Gemfile.lock with all default and bundled gems. This way they are
+# automatically checked by GitHub for vulnerabilities that reminds us to update the
+# doc/user/known-cves.md document. Also it still seems valuable to check that
+# default + bundled gems are recognized by Bundler.
+
 source test/truffle/common.sh.inc
 
 cd "$truffle/gems/default-bundled-gems" || exit 1

@@ -414,6 +414,7 @@ public final class PackedHashStoreLibrary {
     // endregion
     // region Nodes
 
+    // Splitting: naturally split by usages
     @GenerateUncached
     @ImportStatic(HashGuards.class)
     public abstract static class LookupPackedEntryNode extends RubyBaseNode {

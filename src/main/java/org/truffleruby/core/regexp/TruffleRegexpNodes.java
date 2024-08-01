@@ -36,6 +36,7 @@ import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.profiles.InlinedIntValueProfile;
 import com.oracle.truffle.api.profiles.InlinedLoopConditionProfile;
+import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleString.AsTruffleStringNode;
 import org.graalvm.shadowed.org.joni.Matcher;
@@ -64,6 +65,7 @@ import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.string.ATStringWithEncoding;
+import org.truffleruby.core.string.StringHelperNodes.StringToTruffleStringInplaceNode;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
@@ -897,6 +899,7 @@ public abstract class TruffleRegexpNodes {
                 boolean atStart,
                 int startPos,
                 boolean createMatchData,
+                @Cached StringToTruffleStringInplaceNode stringToTruffleStringInplaceNode,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
                 @Cached InlinedConditionProfile createMatchDataProfile,
                 @Cached InlinedConditionProfile matchFoundProfile,
@@ -915,12 +918,14 @@ public abstract class TruffleRegexpNodes {
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
+                @Cached(value = "createIdentityProfile()", inline = false) ValueProfile regexpProfile,
                 @Bind("this") Node node) {
-            final Object tRegex;
+            stringToTruffleStringInplaceNode.execute(node, string);
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
             var tstring = switchEncodingNode.execute(libString.getTString(string), negotiatedEncoding.tencoding);
             final int byteLength = tstring.byteLength(negotiatedEncoding.tencoding);
 
+            Object tRegex;
             if (tRegexIncompatibleProfile
                     .profile(node, toPos < fromPos || toPos != byteLength || fromPos < 0) ||
                     tRegexCouldNotCompileProfile.profile(node, (tRegex = tRegexCompileNode.executeTRegexCompile(
@@ -940,6 +945,9 @@ public abstract class TruffleRegexpNodes {
                         warnOnFallbackNode,
                         fallbackMatchInRegionNode.get(node));
             }
+
+            // Try to make the RegexObject a PE constant to avoid a couple volatile reads to get the CallTarget
+            tRegex = regexpProfile.profile(tRegex);
 
             if (getContext(node).getOptions().REGEXP_INSTRUMENT_MATCH) {
                 TruffleRegexpNodes.instrumentMatch(
