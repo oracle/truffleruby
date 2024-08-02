@@ -107,6 +107,8 @@ public final class Options {
     public final boolean CEXTS;
     /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
+    /** --cexts-panama=false */
+    public final boolean CEXTS_PANAMA;
     /** --options-log=false */
     public final boolean OPTIONS_LOG;
     /** --log-load=false */
@@ -250,6 +252,7 @@ public final class Options {
         BACKTRACE_ON_NEW_FIBER = options.get(OptionsCatalog.BACKTRACE_ON_NEW_FIBER_KEY);
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
+        CEXTS_PANAMA = options.get(OptionsCatalog.CEXTS_PANAMA_KEY);
         OPTIONS_LOG = options.get(OptionsCatalog.OPTIONS_LOG_KEY);
         LOG_LOAD = options.get(OptionsCatalog.LOG_LOAD_KEY);
         LOG_AUTOLOAD = options.get(OptionsCatalog.LOG_AUTOLOAD_KEY);
@@ -386,6 +389,8 @@ public final class Options {
                 return CEXTS;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
+            case "ruby.cexts-panama":
+                return CEXTS_PANAMA;
             case "ruby.options-log":
                 return OPTIONS_LOG;
             case "ruby.log-load":

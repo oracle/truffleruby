@@ -85,7 +85,7 @@ VALUE rb_syserr_new_str(int n, VALUE mesg) {
   return RUBY_CEXT_INVOKE("rb_syserr_new", INT2FIX(n), mesg);
 }
 
-VALUE make_errno_exc_str(VALUE mesg) {
+static VALUE make_errno_exc_str(VALUE mesg) {
   int n = errno;
 
   errno = 0;
@@ -156,11 +156,19 @@ void rb_eof_error(void) {
 }
 
 void rb_tr_bug_va_list(const char *fmt, va_list args) {
-  rb_tr_not_implemented("rb_bug");
+  char buffer[1024];
+  vsnprintf(buffer, 1024, fmt, args);
+  VALUE message = rb_str_new_cstr(buffer);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_bug", message);
+  UNREACHABLE;
 }
 
 void rb_tr_fatal_va_list(const char *fmt, va_list args) {
-  rb_tr_not_implemented("rb_fatal");
+  char buffer[1024];
+  vsnprintf(buffer, 1024, fmt, args);
+  VALUE message = rb_str_new_cstr(buffer);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_fatal", message);
+  UNREACHABLE;
 }
 
 VALUE rb_make_exception(int argc, const VALUE *argv) {

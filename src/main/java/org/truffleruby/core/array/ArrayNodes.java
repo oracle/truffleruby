@@ -132,7 +132,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "+", required = 1)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class AddNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
@@ -160,7 +160,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_mul", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class MulNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "count < 0")
@@ -347,7 +347,6 @@ public abstract class ArrayNodes {
         // array[index] = object
 
         @Specialization
-        @ReportPolymorphism.Exclude
         Object set(RubyArray array, int index, Object value, NotProvided unused,
                 @Cached ArrayWriteNormalizedNode writeNode,
                 @Cached @Shared ConditionProfile negativeDenormalizedIndex,
@@ -484,9 +483,10 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "compact")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class CompactNode extends ArrayCoreMethodNode {
 
+        @ReportPolymorphism.Exclude
         @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         RubyArray compactPrimitive(RubyArray array,
                 @Bind("array.getStore()") Object store,
@@ -527,11 +527,11 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "compact!", raiseIfFrozenSelf = true)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class CompactBangNode extends ArrayCoreMethodNode {
 
-        @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         @ReportPolymorphism.Exclude
+        @Specialization(guards = "stores.isPrimitive(store)", limit = "storageStrategyLimit()")
         Object compactNotObjects(RubyArray array,
                 @Bind("array.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
@@ -582,6 +582,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "concat", optional = 1, rest = true, raiseIfFrozenSelf = true)
+    @ReportPolymorphism // inline cache
     @ImportStatic(ArrayGuards.class)
     public abstract static class ConcatNode extends CoreMethodArrayArgumentsNode {
 
@@ -751,7 +752,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class DeleteAtNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
@@ -829,6 +830,15 @@ public abstract class ArrayNodes {
             yieldNode.yield(node, block, element, index);
         }
 
+    }
+
+    @CoreMethod(names = "empty?")
+    public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        boolean isEmpty(RubyArray array) {
+            return array.size == 0;
+        }
     }
 
     @Primitive(name = "array_equal?")
@@ -1060,7 +1070,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "include?", required = 1)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
@@ -1513,7 +1523,7 @@ public abstract class ArrayNodes {
 
     @GenerateCached(false)
     @GenerateInline
-    @ReportPolymorphism
+    @ReportPolymorphism // inline cache, CallTarget cache
     public abstract static class PackNode extends RubyBaseNode {
 
         public abstract RubyString execute(Node node, RubyArray array, Object format, Object buffer);
@@ -1633,7 +1643,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "pop", raiseIfFrozenSelf = true, optional = 1, lowerFixnum = 1)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class PopNode extends ArrayCoreMethodNode {
 
         public abstract Object executePop(RubyArray array, Object n);
@@ -1835,7 +1845,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_rotate", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
@@ -1862,7 +1872,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_rotate_inplace", lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
@@ -2012,7 +2022,7 @@ public abstract class ArrayNodes {
 
     @CoreMethod(names = "shift", raiseIfFrozenSelf = true, optional = 1, lowerFixnum = 1)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
         public abstract Object executeShift(RubyArray array, Object n);
@@ -2238,7 +2248,7 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_zip")
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class ZipNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")

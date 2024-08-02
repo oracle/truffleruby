@@ -24,6 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.annotations.Split;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -139,7 +140,8 @@ public abstract class FloatNodes {
 
     }
 
-    @CoreMethod(names = "**", required = 1)
+    // Splitting: inline cache
+    @CoreMethod(names = "**", required = 1, split = Split.ALWAYS)
     public abstract static class PowNode extends CoreMethodArrayArgumentsNode {
 
         @Child private DispatchNode complexConvertNode;

@@ -434,7 +434,7 @@ public final class ValueWrapperManager {
         }
 
         @ExportMessage
-        protected Object execute(Object[] arguments,
+        protected ValueWrapper execute(Object[] arguments,
                 @Cached WrapNode wrapNode) {
             return wrapNode.execute(arguments[0]);
         }
@@ -450,7 +450,7 @@ public final class ValueWrapperManager {
         }
 
         @ExportMessage
-        protected Object execute(Object[] arguments,
+        protected boolean execute(Object[] arguments,
                 @Cached IsNativeObjectNode isNativeObjectNode,
                 @Bind("$node") Node node) {
             return isNativeObjectNode.execute(node, arguments[0]);
@@ -467,7 +467,7 @@ public final class ValueWrapperManager {
         }
 
         @ExportMessage
-        protected Object execute(Object[] arguments,
+        protected long execute(Object[] arguments,
                 @CachedLibrary(limit = "1") InteropLibrary values) throws UnsupportedMessageException {
             values.toNative(arguments[0]);
             return values.asPointer(arguments[0]);

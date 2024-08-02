@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-// Specializations are order by their frequency on railsbench using --engine.SpecializationStatistics
+// Specializations are ordered by their frequency on railsbench using --engine.SpecializationStatistics
 @GenerateUncached
 @TypeSystemReference(NoImplicitCastsToLong.class)
 public abstract class LogicalClassNode extends RubyBaseNode {

@@ -177,6 +177,7 @@ class Module
     end
     res
   end
+  Truffle::Graal.always_split instance_method(:const_get)
 
   private def remove_const(name)
     Primitive.module_remove_const(self, name)

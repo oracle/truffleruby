@@ -31,7 +31,7 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
+import org.truffleruby.core.fiber.FiberNodes.FiberGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -312,7 +312,7 @@ public final class CoreExceptions {
         RubyClass exceptionClass = context.getCoreLibrary().frozenErrorClass;
         RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, errorMessage, backtrace);
         return new RubyFrozenError(
                 exceptionClass,
@@ -845,7 +845,7 @@ public final class CoreExceptions {
         final RubyString messageString = StringOperations.createUTF8String(context, language, message);
         final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubyNameError(
                 context.getCoreLibrary().nameErrorClass,
@@ -862,7 +862,7 @@ public final class CoreExceptions {
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
 
         final RubyProc formatterProc = formatter.getProc(context);
         final String message = formatter.getMessage(formatterProc, name, receiver);
@@ -889,7 +889,7 @@ public final class CoreExceptions {
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
 
         final RubyProc formatterProc = formatter.getProc(context);
         final String message = formatter.getMessage(formatterProc, name, receiver);
@@ -915,7 +915,7 @@ public final class CoreExceptions {
         final RubyArray argsArray = createArray(context, language, args);
         final RubyClass exceptionClass = context.getCoreLibrary().noMethodErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
 
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
 
@@ -936,7 +936,7 @@ public final class CoreExceptions {
                 "super called outside of method");
         final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         return new RubyNoMethodError(
@@ -1026,7 +1026,7 @@ public final class CoreExceptions {
                 message);
         RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return new RubySyntaxError(
                 exceptionClass,
@@ -1263,7 +1263,7 @@ public final class CoreExceptions {
         final RubyString message = StringOperations.createUTF8String(context, language, "exit");
         final RubyClass exceptionClass = context.getCoreLibrary().systemExitClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         showExceptionIfDebug(exceptionClass, message, backtrace);
         return new RubySystemExit(
                 exceptionClass,

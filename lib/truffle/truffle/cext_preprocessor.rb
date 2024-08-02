@@ -11,7 +11,6 @@
 # rubocop:disable TruffleRuby/*
 
 require_relative 'patches/json_patches'
-require_relative 'patches/nokogiri_patches'
 require_relative 'patches/oci8_patches'
 require_relative 'patches/pg_patches'
 require_relative 'patches/tk_patches'
@@ -42,7 +41,6 @@ module Truffle
       end
 
       add_gem_patches(PATCHED_FILES, ::JsonPatches::PATCHES)
-      add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
       add_gem_patches(PATCHED_FILES, ::OCI8Patches::PATCHES)
       add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
       add_gem_patches(PATCHED_FILES, ::TkPatches::PATCHES)

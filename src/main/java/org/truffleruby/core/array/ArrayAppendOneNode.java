@@ -30,7 +30,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @NodeChild(value = "arrayNode", type = RubyNode.class)
 @NodeChild(value = "valueNode", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
-@ReportPolymorphism
+@ReportPolymorphism // for ArrayStoreLibrary
 public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
     @NeverDefault

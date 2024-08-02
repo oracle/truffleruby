@@ -621,4 +621,26 @@ public abstract class StringHelperNodes {
         }
     }
 
+    /** Stores the TruffleString back in the Ruby String to avoid repeated copies from native to managed */
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class StringToTruffleStringInplaceNode extends RubyBaseNode {
+
+        public abstract TruffleString execute(Node node, Object string);
+
+        @Specialization
+        static TruffleString immutable(ImmutableRubyString string) {
+            return string.tstring;
+        }
+
+        @Specialization
+        static TruffleString mutable(RubyString string,
+                @Cached RubyStringLibrary libString,
+                @Cached(inline = false) TruffleString.AsTruffleStringNode asTruffleStringNode) {
+            TruffleString tstring = asTruffleStringNode.execute(string.tstring, libString.getTEncoding(string));
+            string.setTString(tstring);
+            return tstring;
+        }
+    }
+
 }

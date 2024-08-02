@@ -154,6 +154,7 @@ class Time
   def strftime(format)
     Primitive.time_strftime self, StringValue(format)
   end
+  Truffle::Graal.always_split instance_method(:strftime)
 
   def asctime
     strftime('%a %b %e %H:%M:%S %Y')

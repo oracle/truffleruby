@@ -629,6 +629,12 @@ module Kernel
 
   def warn(*messages, uplevel: undefined, category: nil)
     if !Primitive.nil?($VERBOSE) && !messages.empty?
+      unless Primitive.nil?(category)
+        category = Truffle::Type.rb_convert_type(category, Symbol, :to_sym)
+        Truffle::WarningOperations.check_category(category)
+        return nil unless Warning[category]
+      end
+
       prefix = if Primitive.undefined?(uplevel)
                  ''
                else
@@ -662,7 +668,6 @@ module Kernel
         unless message.encoding.ascii_compatible?
           raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{message.encoding}"
         end
-        Truffle::WarningOperations.check_category(category) unless Primitive.nil?(category)
 
         $stderr.write message
       else
@@ -670,7 +675,6 @@ module Kernel
         if warning_warn.arity == 1
           warning_warn.call(message)
         else
-          category = Truffle::Type.rb_convert_type(category, Symbol, :to_sym) unless Primitive.nil?(category)
           warning_warn.call(message, category: category)
         end
       end
@@ -777,8 +781,8 @@ module Kernel
     Process._fork
   end
   module_function :fork
+  Primitive.method_unimplement instance_method(:fork)
   Primitive.method_unimplement method(:fork)
-  Primitive.method_unimplement nil.method(:fork)
 
   def clone(freeze: nil)
     unless Primitive.boolean_or_nil?(freeze)
@@ -787,6 +791,8 @@ module Kernel
 
     Primitive.kernel_clone self, freeze
   end
+  Truffle::Graal.always_split instance_method(:clone)
+  Truffle::Graal.always_split method(:clone)
 
   def initialize_clone(from, freeze: nil)
     initialize_copy(from)

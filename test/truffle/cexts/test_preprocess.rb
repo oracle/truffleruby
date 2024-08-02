@@ -13,20 +13,6 @@ def test_patch(file, directory, input, expected)
   abort "expected\n#{expected}\ngot\n#{got}" unless got == expected
 end
 
-original = <<-EOF
-static int dealloc_node_i(xmlNodePtr key, xmlNodePtr node, xmlDocPtr doc)
-{
-}
-EOF
-
-modified = <<-EOF
-static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
-{
-  xmlNodePtr key = (xmlNodePtr)a;
-  xmlNodePtr node = (xmlNodePtr)b;
-  xmlDocPtr doc = (xmlDocPtr)c;}
-EOF
-
 json_original = <<-EOF
 # else
 rb_str_resize(*result, RSTRING_LEN(*result));
@@ -39,10 +25,9 @@ json_patched = <<-EOF
 # endif
 EOF
 
-test_patch 'xml_document.c', 'ext/nokogiri', original, modified
-# Should not patch other files or other gems
-test_patch 'other_file.c', 'ext/nokogiri', original, original
-test_patch 'xml_sax_parser.c', 'ext/other_gem', original, original
-
 # Tests an empty replacement
 test_patch 'parser.c', 'ext/json/ext/parser', json_original, json_patched
+
+# Should not patch other files or other gems
+test_patch 'other_file.c', 'ext/json/ext/parser', json_original, json_original
+test_patch 'parser.c', 'ext/other_gem', json_original, json_original

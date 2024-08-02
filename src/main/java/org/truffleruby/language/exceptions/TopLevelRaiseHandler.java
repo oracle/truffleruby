@@ -49,7 +49,7 @@ public final class TopLevelRaiseHandler extends RubyBaseNode {
             caughtException = e;
             exitCode = statusFromException(caughtException);
             // Set $! for at_exit
-            getLanguage().getCurrentThread().threadLocalGlobals.setLastException(ExceptionOperations
+            getLanguage().getCurrentFiber().setLastException(ExceptionOperations
                     .getExceptionObject(caughtException));
             // printing the main script exception is delayed after at_exit hooks
         } catch (ThreadDeath e) { // Context#close(true)

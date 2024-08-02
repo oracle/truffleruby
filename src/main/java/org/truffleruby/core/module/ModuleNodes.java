@@ -26,6 +26,7 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -812,7 +813,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "class_variable_defined?", required = 1)
+    @CoreMethod(names = "class_variable_defined?", required = 1, split = Split.ALWAYS)
     public abstract static class ClassVariableDefinedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -827,7 +828,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "class_variable_get", required = 1)
+    @CoreMethod(names = "class_variable_get", required = 1, split = Split.ALWAYS)
     public abstract static class ClassVariableGetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -851,7 +852,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "class_variable_set", required = 2, raiseIfFrozenSelf = true)
+    @CoreMethod(names = "class_variable_set", required = 2, raiseIfFrozenSelf = true, split = Split.ALWAYS)
     public abstract static class ClassVariableSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -947,6 +948,7 @@ public abstract class ModuleNodes {
 
     @GenerateCached(false)
     @GenerateInline
+    @ReportPolymorphism // inline cache
     @SuppressWarnings("truffle-inlining") //TODO [GR-46266] - Remove it when other nodes are converted to DSL inlinable
     public abstract static class ConstGetNode extends RubyBaseNode {
 
@@ -1422,8 +1424,7 @@ public abstract class ModuleNodes {
                         coreExceptions().typeErrorWrongArgumentType(module, "Module", this));
             }
 
-            singletonClassNode.execute(object).fields
-                    .include(getContext(), this, module);
+            singletonClassNode.execute(object).fields.include(getContext(), this, module);
             return module;
         }
 
@@ -1985,7 +1986,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "remove_class_variable", required = 1)
+    @CoreMethod(names = "remove_class_variable", required = 1, split = Split.ALWAYS)
     public abstract static class RemoveClassVariableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

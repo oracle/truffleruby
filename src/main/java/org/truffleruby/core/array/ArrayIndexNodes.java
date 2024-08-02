@@ -31,7 +31,7 @@ public abstract class ArrayIndexNodes {
 
     @NodeChild(value = "arrayNode", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class ReadConstantIndexNode extends RubyContextSourceNode {
 
         private final int index;
@@ -71,7 +71,7 @@ public abstract class ArrayIndexNodes {
     }
 
     @ImportStatic(ArrayGuards.class)
-    @ReportPolymorphism
+    @ReportPolymorphism // for ArrayStoreLibrary
     public abstract static class ReadNormalizedNode extends PrimitiveArrayArgumentsNode {
 
         @NeverDefault

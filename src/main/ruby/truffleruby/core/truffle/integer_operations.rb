@@ -62,5 +62,6 @@ module Truffle
       result -= modulus if negative
       result
     end
+    Truffle::Graal.always_split method(:modular_exponentiation)
   end
 end

@@ -26,7 +26,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 @ImportStatic(ArrayGuards.class)
-@ReportPolymorphism
+@ReportPolymorphism // for ArrayStoreLibrary
 public abstract class ArrayWriteNormalizedNode extends RubyBaseNode {
 
     public abstract Object executeWrite(RubyArray array, int index, Object value);

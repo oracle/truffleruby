@@ -190,7 +190,15 @@ module Truffle::CExt
 
     init_functions = libtrampoline[:rb_tr_trampoline_init_functions]
     init_functions = Primitive.interop_eval_nfi('(env,(string):pointer):void').bind(init_functions)
-    init_functions.call(-> name { LIBTRUFFLERUBY[name] })
+    if Truffle::Boot.get_option 'cexts-panama' and Primitive.vm_java_version >= 22 and !TruffleRuby.native?
+      init_functions.call(-> name {
+        closure = LIBTRUFFLERUBY[name].createNativeClosure('panama')
+        keep_alive << closure
+        closure
+      })
+    else
+      init_functions.call(-> name { LIBTRUFFLERUBY[name] })
+    end
 
     init_constants = libtrampoline[:rb_tr_trampoline_init_global_constants]
     init_constants = Primitive.interop_eval_nfi('((string):pointer):void').bind(init_constants)
@@ -713,7 +721,7 @@ module Truffle::CExt
                nil
              end
     if err
-      Primitive.thread_set_exception(err)
+      Primitive.fiber_set_error_info(err)
       nil
     else
       result
@@ -1231,7 +1239,7 @@ module Truffle::CExt
     unless Primitive.nil?(e)
       store_exception(e)
       pos = extract_tag(e)
-      Primitive.thread_set_exception(extract_ruby_exception(e))
+      Primitive.fiber_set_error_info(extract_ruby_exception(e))
     end
 
     Truffle::Interop.execute_without_conversion(write_status, status, pos)
@@ -1244,7 +1252,7 @@ module Truffle::CExt
       e = retrieve_exception
       tag = extract_tag(e)
       raise RuntimeError, 'mismatch between jump tag and captured exception' unless pos == tag
-      Primitive.thread_set_exception(nil)
+      Primitive.fiber_set_error_info(nil)
       raise_exception(e)
     end
   end
@@ -1299,7 +1307,7 @@ module Truffle::CExt
 
   def rb_set_errinfo(error)
     if Primitive.nil?(error) || Primitive.is_a?(error, Exception)
-      Primitive.thread_set_exception(error)
+      Primitive.fiber_set_error_info(error)
     else
       raise TypeError, 'assigning non-exception to ?!'
     end
@@ -1310,7 +1318,7 @@ module Truffle::CExt
   end
 
   def rb_errinfo
-    $!
+    Primitive.fiber_get_error_info
   end
 
   def rb_arity_error_string(arg_count, min, max)
@@ -1486,7 +1494,7 @@ module Truffle::CExt
     begin
       allocate_method = ruby_class.method(:__allocate__).owner
     rescue NameError
-      nil
+      nil # it's fine to call this on a class that doesn't have an allocator
     else
       Primitive.object_hidden_var_get(allocate_method, ALLOCATOR_FUNC)
     end
@@ -1611,7 +1619,7 @@ module Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Primitive.cext_unwrap(Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [func, arg]))
+      Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [func, arg])
     end
   end
   Truffle::Graal.always_split instance_method(:rb_mutex_synchronize)
@@ -1784,6 +1792,14 @@ module Truffle::CExt
     raise NotImplementedError, "#{function}() function is unimplemented on this machine"
   end
 
+  def rb_bug(message)
+    raise Exception, "rb_bug: #{message}"
+  end
+
+  def rb_fatal(message)
+    raise Exception, "rb_fatal: #{message}"
+  end
+
   def test_kwargs(kwargs, raise_error)
     return false if Primitive.nil?(kwargs)
 
@@ -1821,7 +1837,13 @@ module Truffle::CExt
     begin
       Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [b_proc, data1])
     ensure
-      Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [e_proc, data2])
+      errinfo = Primitive.fiber_get_error_info
+      Primitive.fiber_set_error_info($!)
+      begin
+        Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [e_proc, data2])
+      ensure
+        Primitive.fiber_set_error_info(errinfo)
+      end
     end
   end
   Truffle::Graal.always_split instance_method(:rb_ensure)
@@ -1829,11 +1851,17 @@ module Truffle::CExt
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
       Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [b_proc, data1])
-    rescue StandardError => e
+    rescue StandardError => exc
       if Truffle::Interop.null?(r_proc)
         Primitive.cext_wrap(nil)
       else
-        Primitive.interop_execute(POINTER2_TO_POINTER_WRAPPER, [r_proc, data2, Primitive.cext_wrap(e)])
+        errinfo = Primitive.fiber_get_error_info
+        Primitive.fiber_set_error_info(exc)
+        begin
+          Primitive.interop_execute(POINTER2_TO_POINTER_WRAPPER, [r_proc, data2, Primitive.cext_wrap(exc)])
+        ensure
+          Primitive.fiber_set_error_info(errinfo)
+        end
       end
     end
   end
@@ -1842,8 +1870,14 @@ module Truffle::CExt
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
       Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [b_proc, data1])
-    rescue *rescued => e
-      Primitive.interop_execute(POINTER2_TO_POINTER_WRAPPER, [r_proc, data2, Primitive.cext_wrap(e)])
+    rescue *rescued => exc
+      errinfo = Primitive.fiber_get_error_info
+      Primitive.fiber_set_error_info(exc)
+      begin
+        Primitive.interop_execute(POINTER2_TO_POINTER_WRAPPER, [r_proc, data2, Primitive.cext_wrap(exc)])
+      ensure
+        Primitive.fiber_set_error_info(errinfo)
+      end
     end
   end
   Truffle::Graal.always_split instance_method(:rb_rescue2)

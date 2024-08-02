@@ -14,12 +14,12 @@ import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.fiber.FiberNodes.FiberGetExceptionNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -140,7 +140,7 @@ public abstract class ExceptionOperations {
     public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Backtrace backtrace) {
         final RubyLanguage language = context.getLanguageSlow();
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         final Shape shape = language.exceptionShape;
         return new RubyException(rubyClass, shape, message, backtrace, cause);
@@ -151,7 +151,7 @@ public abstract class ExceptionOperations {
             boolean showExceptionIfDebug) {
         final RubyLanguage language = context.getLanguageSlow();
         final RubyClass rubyClass = context.getCoreLibrary().systemStackErrorClass;
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         if (showExceptionIfDebug) {
             context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         }
@@ -163,7 +163,7 @@ public abstract class ExceptionOperations {
     public static RubySystemCallError createSystemCallError(RubyContext context, RubyClass rubyClass,
             Object message, int errno, Backtrace backtrace) {
         final RubyLanguage language = context.getLanguageSlow();
-        final Object cause = ThreadGetExceptionNode.getLastException(language);
+        final Object cause = FiberGetExceptionNode.getLastException(language);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         final Shape shape = language.systemCallErrorShape;
         return new RubySystemCallError(rubyClass, shape, message, backtrace, cause, errno);

@@ -17,6 +17,7 @@ Bug fixes:
 * Repair `IO#{wait_readable,wait_writable,wait}` to be interruptible (#3504, @andrykonchin).
 * Fix Hash value omission for constant names (@andrykonchin).
 * Fix `MatchData#[index, length]` when index is larger than number of matched values (@andrykonchin).
+* Fix `#each` for a foreign iterator which is also iterable (#3630, @eregon).
 
 Compatibility:
 
@@ -33,11 +34,23 @@ Compatibility:
 * Fix `Enumerable#reduce` to handle non-Symbol method name parameter (#2931, @andrykonchin).
 * Fix `RangeError` message to match CRuby for `Integer#chr` called with invalid codepoint argument (#2795, @andrykonchin).
 * Joni has been updated from 2.1.44 to 2.2.1 (@andrykonchin).
+* Fix `Hash#to_h` called with a block and pass key and value to the block as separate arguments (#3607, @andrykonchin).
+* Fix `StringIO#initialize` and preserve initial string's encoding when mode is `w` so the initial string is truncated (#3599, @andrykonchin).
+* Fix `IO#{autoclose=,autoclose?}` and raise `IOError` when io is closed (@andrykonchin).
+* Fix `Thread#{thread_variable_get,thread_variable_set,thread_variable?,key?,[],[]=,fetch}` and convert a non-String/Symbol thread-local variable name to String using `#to_str` (@andrykonchin).
+* Fix formatting in `Exception#full_message` when `RuntimeError` is not handled and `highlight` option is specified (@andrykonchin).
+* Fix `String#encode` and convert fallback values into String using `#to_str` (@andrykonchin).
+* Fix `Kernel.warn` and don't call `Warning#warn` if a specified category is disabled (@andrykonchin).
+* Fix `$!` global variable and make it fiber-local (@andrykonchin).
+* Fix `rb_set_errinfo` and `rb_errinfo` and store an error separately from `$!` (#2890, @andrykonchin).
+* Fix `rb_mutex_synchronize` to not wrap/unwrap result value (#3624, @andrykonchin).
+* Add `StringIO#set_encoding_by_bom` method (#3632, @andrykonchin).
 
 Performance:
 
 * Fix inline caching for Regexp creation from Strings (#3492, @andrykonchin, @eregon).
 * Optimize `Integer#pow` method for small modulus values (#3544, @andrykonchin).
+* Avoid repeated copies from native to managed string when matching Regexps on a native string (#2193, @eregon).
 
 Changes:
 
