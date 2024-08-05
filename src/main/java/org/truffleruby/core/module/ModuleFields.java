@@ -328,6 +328,14 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         performIncludes(context, inclusionPoint, modulesToInclude, currentNode);
 
+        // update ancestors chains of classes/modules that include current module
+        // and add a new included module (and its ancestors)
+        if (!(rubyModule instanceof RubyClass)) { // it should be RubyModule only
+            for (RubyModule child : includedBy) {
+                child.fields.include(context, currentNode, rubyModule);
+            }
+        }
+
         newHierarchyVersion();
     }
 
@@ -337,7 +345,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             RubyModule toInclude = moduleAncestors.pop();
             inclusionPoint.insertAfter(toInclude);
 
-            // Module#include only adds modules behind the current class/module,  so invalidating
+            // Module#include only adds modules behind the current class/module, so invalidating
             // the current class/module is enough as all affected lookups would go through the current class/module.
             toInclude.fields.includedBy.add(rubyModule);
             newConstantsVersion(toInclude.fields.getConstantNames());
