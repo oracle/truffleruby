@@ -32,9 +32,9 @@ import com.oracle.truffle.api.library.CachedLibrary;
 
 /** Share the plain Java fields which may contain objets for subclasses of RubyDynamicObject.
  * {@link RubyDynamicObject#metaClass} is handled by {@link ShareObjectNode}. */
-@ImportStatic(ArrayGuards.class)
-@GenerateCached(false)
 @GenerateInline
+@GenerateCached(false)
+@ImportStatic(ArrayGuards.class)
 public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
@@ -56,11 +56,13 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
     @Specialization
     static void shareCachedQueue(Node node, RubyQueue object, int depth,
             @Cached InlinedConditionProfile profileEmpty,
-            @Cached WriteBarrierNode writeBarrierNode) {
+            @Cached(inline = false) WriteBarrierNode writeBarrierNode) {
+        // WriteBarrierNode inline = false to fix recursive inlining:
+        // WriteBarrierNode->ShareObjectNode->ShareInternalFieldsNode->WriteBarrierNode
         final UnsizedQueue queue = object.queue;
         if (!profileEmpty.profile(node, queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {
-                writeBarrierNode.execute(node, e, depth);
+                writeBarrierNode.executeCached(e, depth);
             }
         }
     }

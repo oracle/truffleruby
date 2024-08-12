@@ -27,8 +27,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.Shape;
 
 @GenerateUncached
-@GenerateInline
-@GenerateCached(false)
+@GenerateInline(inlineByDefault = true)
+@GenerateCached // for ShareObjectNode#createWriteBarrierNodes, ShareInternalFieldsNode#shareCachedQueue
 @ReportPolymorphism // inline cache
 public abstract class WriteBarrierNode extends RubyBaseNode {
 
@@ -72,9 +72,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             limit = "1")
     static void writeBarrierCached(Node node, RubyDynamicObject value, int depth,
             @Cached("value.getShape()") Shape cachedShape,
-            // Recursive inlining is not supported. ShareObjectNode contains cached parameter ShareInternalFieldsNode
-            // which contains again WriteBarrierNode
-            @Cached(inline = false) ShareObjectNode shareObjectNode) {
+            @Cached ShareObjectNode shareObjectNode) {
         shareObjectNode.execute(node, value, depth + 1);
     }
 
