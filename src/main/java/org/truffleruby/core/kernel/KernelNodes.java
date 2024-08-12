@@ -129,7 +129,6 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LazySingletonClassNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
-import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -411,9 +410,9 @@ public abstract class KernelNodes {
 
     }
 
-    @ImportStatic(ShapeCachingGuards.class)
     @GenerateUncached
-    @GenerateInline(inlineByDefault = true)
+    @GenerateInline
+    @GenerateCached(false)
     @ReportPolymorphism // inline cache
     public abstract static class CopyInstanceVariablesNode extends RubyBaseNode {
 
@@ -421,10 +420,6 @@ public abstract class KernelNodes {
         public static final PropertyGetter[] EMPTY_PROPERTY_GETTER_ARRAY = new PropertyGetter[0];
 
         public abstract RubyDynamicObject execute(Node node, RubyDynamicObject newObject, RubyDynamicObject from);
-
-        public final RubyDynamicObject executeCached(RubyDynamicObject newObject, RubyDynamicObject from) {
-            return execute(this, newObject, from);
-        }
 
         @ExplodeLoop
         @Specialization(
@@ -443,13 +438,7 @@ public abstract class KernelNodes {
             return newObject;
         }
 
-        @Specialization(guards = "updateShape(from)")
-        static RubyDynamicObject updateShapeAndCopy(RubyDynamicObject newObject, RubyDynamicObject from,
-                @Cached(inline = false) CopyInstanceVariablesNode copyInstanceVariablesNode) {
-            return copyInstanceVariablesNode.executeCached(newObject, from);
-        }
-
-        @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
+        @Specialization(replaces = "copyCached")
         static RubyDynamicObject copyUncached(RubyDynamicObject newObject, RubyDynamicObject from) {
             copyInstanceVariables(from, newObject);
             return newObject;
