@@ -311,7 +311,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 if (isIncludedModuleBeforeSuperClass(ancestor)) {
                     // Include the modules at the appropriate inclusionPoint
                     performIncludes(context, inclusionPoint, modulesToInclude, currentNode);
-                    assert modulesToInclude.isEmpty();
+                    modulesToInclude.clear();
 
                     // We need to include the others after that module
                     inclusionPoint = parentModule;
@@ -328,22 +328,29 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         performIncludes(context, inclusionPoint, modulesToInclude, currentNode);
 
+        // update ancestors chains of classes/modules that include current module
+        // and add a new included module (and its ancestors)
+        if (!(rubyModule instanceof RubyClass)) { // it should be RubyModule only
+            for (RubyModule child : includedBy) {
+                child.fields.include(context, currentNode, rubyModule);
+            }
+        }
+
         newHierarchyVersion();
     }
 
-    private void performIncludes(RubyContext context, ModuleChain inclusionPoint, Deque<RubyModule> moduleAncestors,
+    private void performIncludes(RubyContext context, ModuleChain target, Deque<RubyModule> modules,
             Node node) {
-        while (!moduleAncestors.isEmpty()) {
-            RubyModule toInclude = moduleAncestors.pop();
-            inclusionPoint.insertAfter(toInclude);
+        for (RubyModule module : modules) {
+            target.insertAfter(module);
 
-            // Module#include only adds modules behind the current class/module,  so invalidating
+            // Module#include only adds modules behind the current class/module, so invalidating
             // the current class/module is enough as all affected lookups would go through the current class/module.
-            toInclude.fields.includedBy.add(rubyModule);
-            newConstantsVersion(toInclude.fields.getConstantNames());
+            module.fields.includedBy.add(rubyModule);
+            newConstantsVersion(module.fields.getConstantNames());
             if (rubyModule instanceof RubyClass) {
                 // M.include(N) just registers N but does nothing for methods until C.include/prepend(M)
-                newMethodsVersion(context, toInclude.fields.getMethodNames(), node);
+                newMethodsVersion(context, module.fields.getMethodNames(), node);
             }
         }
     }

@@ -1,3 +1,19 @@
+# 25.0.0
+
+New features:
+
+Bug fixes:
+
+Compatibility:
+
+* Fix `Module#include` so a module included into a reopened nested module is added into an ancestors chain (#3570, @andrykonchin).
+
+Performance:
+
+Changes:
+
+Memory Footprint:
+
 # 24.1.0
 
 New features:
