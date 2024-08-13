@@ -157,6 +157,7 @@ public final class SharedObjects {
             return false;
         }
 
+        // GR-49349: we must updateShape() before markShared()
         DynamicObjectLibrary.getUncached().updateShape(object);
         DynamicObjectLibrary.getUncached().markShared(object);
 
@@ -168,6 +169,7 @@ public final class SharedObjects {
         if (object instanceof RubyModule) {
             // We want to share ClassVariableStorage but not expose it to ObjectSpace.reachable_objects_from
             final ClassVariableStorage classVariables = ((RubyModule) object).fields.getClassVariables();
+            // GR-49349: we must updateShape() before markShared()
             DynamicObjectLibrary.getUncached().updateShape(classVariables);
             DynamicObjectLibrary.getUncached().markShared(classVariables);
         } else if (object instanceof RubyArray array) {
