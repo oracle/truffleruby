@@ -48,6 +48,9 @@ public abstract class ShareObjectNode extends RubyBaseNode {
 
     protected abstract void executeInternal(Node node, RubyDynamicObject object, int depth);
 
+    /* GR-49349: we use getValidAssumption() here to ensure the Shape is not obsolete, because if it is we would need to
+     * migrate first to the non-obsolete Shape and then to the shared Shape. That would be complicated, so we only use
+     * this inline cache if the Shape is not obsolete. */
     @ExplodeLoop
     @Specialization(
             guards = { "object.getShape() == cachedShape", "propertyGetters.length <= MAX_EXPLODE_SIZE" },
