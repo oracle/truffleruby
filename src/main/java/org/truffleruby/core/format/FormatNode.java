@@ -88,19 +88,19 @@ public abstract class FormatNode extends RubyBaseNode {
         return sourcePosition;
     }
 
-    protected Object getOutput(VirtualFrame frame) {
+    protected static Object getOutput(VirtualFrame frame) {
         return frame.getObject(FormatFrameDescriptor.OUTPUT_SLOT);
     }
 
-    protected void setOutput(VirtualFrame frame, Object output) {
+    protected static void setOutput(VirtualFrame frame, Object output) {
         frame.setObject(FormatFrameDescriptor.OUTPUT_SLOT, output);
     }
 
-    protected int getOutputPosition(VirtualFrame frame) {
+    protected static int getOutputPosition(VirtualFrame frame) {
         return frame.getInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT);
     }
 
-    protected void setOutputPosition(VirtualFrame frame, int position) {
+    protected static void setOutputPosition(VirtualFrame frame, int position) {
         frame.setInt(FormatFrameDescriptor.OUTPUT_POSITION_SLOT, position);
     }
 
@@ -111,11 +111,11 @@ public abstract class FormatNode extends RubyBaseNode {
         setOutputPosition(frame, outputPosition + 1);
     }
 
-    protected void writeBytes(VirtualFrame frame, byte[] values) {
+    protected static void writeBytes(VirtualFrame frame, byte[] values) {
         writeBytes(frame, values, 0, values.length);
     }
 
-    protected void writeBytes(VirtualFrame frame, byte[] values, int valuesOffset, int valuesLength) {
+    protected static void writeBytes(VirtualFrame frame, byte[] values, int valuesOffset, int valuesLength) {
         byte[] output = ensureCapacity(frame, valuesLength);
         final int outputPosition = getOutputPosition(frame);
         System.arraycopy(values, valuesOffset, output, outputPosition, valuesLength);
@@ -130,7 +130,7 @@ public abstract class FormatNode extends RubyBaseNode {
         }
     }
 
-    private byte[] ensureCapacity(VirtualFrame frame, int length) {
+    private static byte[] ensureCapacity(VirtualFrame frame, int length) {
         byte[] output = (byte[]) getOutput(frame);
         final int outputPosition = getOutputPosition(frame);
 
@@ -138,7 +138,8 @@ public abstract class FormatNode extends RubyBaseNode {
             // If we ran out of output byte[], deoptimize and next time we'll allocate more
 
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            output = Arrays.copyOf(output, ArrayUtils.capacity(getLanguage(), output.length, outputPosition + length));
+            output = Arrays.copyOf(output,
+                    ArrayUtils.capacity(getLanguage(null), output.length, outputPosition + length));
             setOutput(frame, output);
         }
 

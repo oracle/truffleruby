@@ -42,7 +42,7 @@ import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.regexp.ClassicRegexp;
-import org.truffleruby.core.regexp.InterpolatedRegexpNode;
+import org.truffleruby.core.regexp.InterpolatedRegexpNodeGen;
 import org.truffleruby.core.regexp.MatchDataNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -2417,7 +2417,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             }
         }
 
-        RubyNode rubyNode = new InterpolatedRegexpNode(children, encoding, options);
+        RubyNode rubyNode = InterpolatedRegexpNodeGen.create(encoding, options, children);
 
         if (node.isOnce()) {
             rubyNode = new OnceNode(rubyNode);

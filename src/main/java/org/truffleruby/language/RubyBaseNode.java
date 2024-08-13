@@ -55,15 +55,15 @@ public abstract class RubyBaseNode extends Node {
     public static final int MAX_EXPLODE_SIZE = 16;
 
     @Idempotent
-    public boolean isSingleContext() {
+    protected boolean isSingleContext() {
         return getLanguage().singleContext;
     }
 
-    public static Object nilToNull(Object value) {
+    protected static Object nilToNull(Object value) {
         return value == nil ? null : value;
     }
 
-    public static Object nullToNil(Object value) {
+    protected static Object nullToNil(Object value) {
         return value == null ? nil : value;
     }
 
@@ -126,19 +126,19 @@ public abstract class RubyBaseNode extends Node {
     }
 
 
-    public final RubyLanguage getLanguage() {
+    protected final RubyLanguage getLanguage() {
         return getLanguage(this);
     }
 
-    public static RubyLanguage getLanguage(Node node) {
+    protected static RubyLanguage getLanguage(Node node) {
         return RubyLanguage.get(node);
     }
 
-    public final RubyContext getContext() {
+    protected final RubyContext getContext() {
         return getContext(this);
     }
 
-    public static RubyContext getContext(Node node) {
+    protected static RubyContext getContext(Node node) {
         return RubyContext.get(node);
     }
 
@@ -170,6 +170,11 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubySymbol getSymbol(AbstractTruffleString name, RubyEncoding encoding, boolean preserveSymbol) {
         return getLanguage().getSymbol(name, encoding, preserveSymbol);
+    }
+
+    protected static RubySymbol getSymbol(Node node, AbstractTruffleString name, RubyEncoding encoding,
+            boolean preserveSymbol) {
+        return getLanguage(node).getSymbol(name, encoding, preserveSymbol);
     }
 
     protected final CoreStrings coreStrings() {
@@ -212,7 +217,7 @@ public abstract class RubyBaseNode extends Node {
         return ArrayHelpers.createArray(getContext(node), getLanguage(node), store);
     }
 
-    public final RubyArray createArray(Object[] store) {
+    protected final RubyArray createArray(Object[] store) {
         return createArray(this, store);
     }
 
@@ -228,11 +233,11 @@ public abstract class RubyBaseNode extends Node {
         return ArrayHelpers.createEmptyArray(getContext(node), getLanguage(node));
     }
 
-    public final RubyString createString(TruffleString tstring, RubyEncoding encoding) {
+    protected final RubyString createString(TruffleString tstring, RubyEncoding encoding) {
         return createString(this, tstring, encoding);
     }
 
-    public static RubyString createString(Node node, TruffleString tstring, RubyEncoding encoding) {
+    protected static RubyString createString(Node node, TruffleString tstring, RubyEncoding encoding) {
         final RubyString instance = new RubyString(
                 coreLibrary(node).stringClass,
                 getLanguage(node).stringShape,
@@ -243,12 +248,12 @@ public abstract class RubyBaseNode extends Node {
         return instance;
     }
 
-    public final RubyString createStringCopy(TruffleString.AsTruffleStringNode asTruffleStringNode,
+    protected final RubyString createStringCopy(TruffleString.AsTruffleStringNode asTruffleStringNode,
             AbstractTruffleString tstring, RubyEncoding encoding) {
         return createStringCopy(this, asTruffleStringNode, tstring, encoding);
     }
 
-    public static RubyString createStringCopy(Node node, TruffleString.AsTruffleStringNode asTruffleStringNode,
+    protected static RubyString createStringCopy(Node node, TruffleString.AsTruffleStringNode asTruffleStringNode,
             AbstractTruffleString tstring, RubyEncoding encoding) {
         final TruffleString copy = asTruffleStringNode.execute(tstring, encoding.tencoding);
         final RubyString instance = new RubyString(
@@ -261,7 +266,7 @@ public abstract class RubyBaseNode extends Node {
         return instance;
     }
 
-    public final RubyString createMutableString(MutableTruffleString tstring, RubyEncoding encoding) {
+    protected final RubyString createMutableString(MutableTruffleString tstring, RubyEncoding encoding) {
         final RubyString instance = new RubyString(
                 coreLibrary().stringClass,
                 getLanguage().stringShape,
@@ -272,8 +277,12 @@ public abstract class RubyBaseNode extends Node {
         return instance;
     }
 
-    public final RubyString createString(TStringWithEncoding tStringWithEncoding) {
-        return createString(tStringWithEncoding.tstring, tStringWithEncoding.encoding);
+    protected final RubyString createString(TStringWithEncoding tStringWithEncoding) {
+        return createString(this, tStringWithEncoding);
+    }
+
+    protected static RubyString createString(Node node, TStringWithEncoding tStringWithEncoding) {
+        return createString(node, tStringWithEncoding.tstring, tStringWithEncoding.encoding);
     }
 
     protected final RubyString createString(TruffleString.FromByteArrayNode fromByteArrayNode, byte[] bytes,
@@ -287,7 +296,7 @@ public abstract class RubyBaseNode extends Node {
         return createString(node, tstring, encoding);
     }
 
-    public final RubyString createString(TruffleString.FromJavaStringNode fromJavaStringNode, String javaString,
+    protected final RubyString createString(TruffleString.FromJavaStringNode fromJavaStringNode, String javaString,
             RubyEncoding encoding) {
         return createString(this, fromJavaStringNode, javaString, encoding);
     }
@@ -300,7 +309,8 @@ public abstract class RubyBaseNode extends Node {
 
     protected final RubyString createSubString(TruffleString.SubstringByteIndexNode substringNode,
             RubyStringLibrary strings, Object source, int byteOffset, int byteLength) {
-        return createSubString(substringNode, strings.getTString(source), strings.getEncoding(source), byteOffset,
+        return createSubString(substringNode, strings.getTString(this, source), strings.getEncoding(this, source),
+                byteOffset,
                 byteLength);
     }
 

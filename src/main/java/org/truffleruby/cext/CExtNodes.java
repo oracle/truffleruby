@@ -737,15 +737,15 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 1)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+        @Specialization
         static RubyArray rbEncCodePointLen(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached InlinedBranchProfile errorProfile,
                 @Bind("this") Node node) {
-            var tstring = strings.getTString(string);
-            var encoding = strings.getEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var encoding = strings.getEncoding(node, string);
             var tencoding = encoding.tencoding;
 
             final int r = byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
@@ -834,7 +834,7 @@ public abstract class CExtNodes {
                 @Cached InlinedConditionProfile minLengthOneProfile) {
             var pointer = stringToNativeNode.executeToNative(this, string, true);
 
-            var encoding = libString.getEncoding(string);
+            var encoding = libString.getEncoding(this, string);
             int minLength = encoding.jcoding.minLength();
             // Like MRI
             if (minLengthOneProfile.profile(this, minLength == 1)) {
@@ -863,7 +863,7 @@ public abstract class CExtNodes {
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             var pointer = stringToNativeNode.executeToNative(this, string, true);
-            var tencoding = libString.getTEncoding(string);
+            var tencoding = libString.getTEncoding(this, string);
             int byteLength = string.tstring.byteLength(tencoding);
 
             if (byteLength == newByteLength) {
@@ -892,7 +892,7 @@ public abstract class CExtNodes {
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached MutableTruffleString.FromNativePointerNode fromNativePointerNode) {
             var pointer = stringToNativeNode.executeToNative(this, string, true);
-            var tencoding = libString.getTEncoding(string);
+            var tencoding = libString.getTEncoding(this, string);
 
             if (getNativeStringCapacity(pointer) == newCapacity) {
                 return string;
@@ -1349,7 +1349,7 @@ public abstract class CExtNodes {
             CompilerAsserts.partialEvaluationConstant(inplace);
 
             var tstring = string.tstring;
-            var tencoding = libString.getTEncoding(string);
+            var tencoding = libString.getTEncoding(node, string);
 
             final Pointer pointer;
             if (convertProfile.profile(node, tstring.isNative())) {
@@ -1460,9 +1460,9 @@ public abstract class CExtNodes {
             for (Object object : objects) {
                 final String representation;
 
-                if (libString.isRubyString(object)) {
-                    var tstring = libString.getTString(object);
-                    final byte[] bytes = TStringUtils.getBytesOrCopy(tstring, libString.getEncoding(object));
+                if (libString.isRubyString(this, object)) {
+                    var tstring = libString.getTString(this, object);
+                    final byte[] bytes = TStringUtils.getBytesOrCopy(tstring, libString.getEncoding(this, object));
                     final StringBuilder builder = new StringBuilder();
 
                     for (int i = 0; i < bytes.length; i++) {
@@ -1636,7 +1636,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_tr_enc_mbc_case_fold", onSingleton = true, required = 4, lowerFixnum = 1)
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "getCacheLimit()")
+        @Specialization(limit = "getCacheLimit()")
         static Object rbTrEncMbcCaseFold(int flags, Object string, Object advance_p, Object p,
                 @Cached RubyStringLibrary strings,
                 @CachedLibrary("advance_p") InteropLibrary receivers,
@@ -1644,8 +1644,8 @@ public abstract class CExtNodes {
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Bind("this") Node node) {
-            var tstring = strings.getTString(string);
-            var encoding = strings.getEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var encoding = strings.getEncoding(node, string);
             var bytes = TStringUtils.getBytesOrFail(tstring, encoding, byteArrayNode);
 
             final byte[] to = new byte[bytes.length];
@@ -1676,9 +1676,9 @@ public abstract class CExtNodes {
         Object rbTrEncMbcPut(RubyEncoding enc, int code,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
             final Encoding encoding = enc.jcoding;
-            final byte buf[] = new byte[Config.ENC_CODE_TO_MBC_MAXLEN];
+            final byte[] buf = new byte[Config.ENC_CODE_TO_MBC_MAXLEN];
             final int resultLength = encoding.codeToMbc(code, buf, 0);
-            final byte result[] = new byte[resultLength];
+            final byte[] result = new byte[resultLength];
             if (resultLength > 0) {
                 System.arraycopy(buf, 0, result, 0, resultLength);
             }
@@ -1704,24 +1704,26 @@ public abstract class CExtNodes {
 
     @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 1)
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        Object rbEncMbLen(Object string,
+        @Specialization
+        static Object rbEncMbLen(Object string,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
-            var tstring = strings.getTString(string);
-            var tencoding = strings.getTEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var tencoding = strings.getTEncoding(node, string);
             return byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.BEST_EFFORT);
         }
     }
 
     @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 1)
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        int rbEncPreciseMbclen(Object string,
+        @Specialization
+        static int rbEncPreciseMbclen(Object string,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
-            var tstring = strings.getTString(string);
-            var tencoding = strings.getTEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var tencoding = strings.getTEncoding(node, string);
             return byteLengthOfCodePointNode.execute(tstring, 0, tencoding, ErrorHandling.RETURN_NEGATIVE);
         }
     }
@@ -1729,12 +1731,13 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_enc_strlen", onSingleton = true, required = 1)
     public abstract static class RbEncStrlen extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        int rbEncStrlen(Object string,
+        @Specialization
+        static int rbEncStrlen(Object string,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
-            var tstring = strings.getTString(string);
-            var tencoding = strings.getTEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var tencoding = strings.getTEncoding(node, string);
 
             return codePointLengthNode.execute(tstring, tencoding);
         }
@@ -1745,25 +1748,26 @@ public abstract class CExtNodes {
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+        @Specialization
         Object rbEncLeftCharHead(RubyEncoding enc, Object string, int p,
                 @Cached RubyStringLibrary strings) {
-            byte[] bytes = TStringUtils.getBytesOrFail(strings.getTString(string), strings.getEncoding(string));
+            byte[] bytes = TStringUtils.getBytesOrFail(strings.getTString(this, string),
+                    strings.getEncoding(this, string));
             return enc.jcoding.leftAdjustCharHead(bytes, 0, p, bytes.length);
         }
     }
 
     @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 1)
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+        @Specialization
         static int rbEncMbcToCodepoint(Object string,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached InlinedConditionProfile brokenProfile,
                 @Bind("this") Node node) {
-            var tstring = strings.getTString(string);
-            var encoding = strings.getEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var encoding = strings.getEncoding(node, string);
             int codepoint = codePointAtByteIndexNode.execute(tstring, 0, encoding.tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
             if (brokenProfile.profile(node, codepoint == -1)) {
@@ -1968,12 +1972,12 @@ public abstract class CExtNodes {
 
     @CoreMethod(names = "rb_check_symbol_cstr", onSingleton = true, required = 1)
     public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+        @Specialization
         Object checkSymbolCStr(Object string,
                 @Cached RubyStringLibrary strings) {
             final RubySymbol sym = getLanguage().symbolTable.getSymbolIfExists(
-                    strings.getTString(string),
-                    strings.getEncoding(string));
+                    strings.getTString(this, string),
+                    strings.getEncoding(this, string));
             return sym == null ? nil : sym;
         }
     }
@@ -1991,16 +1995,14 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_tr_sprintf_types", onSingleton = true, required = 1)
     public abstract static class RBSprintfFormatNode extends CoreMethodArrayArgumentsNode {
 
-        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
-                .create();
-
-        @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
+        @Specialization
         @TruffleBoundary
         RubyArray types(Object format,
                 @Cached RubyStringLibrary libFormat,
-                @Cached AsTruffleStringNode asTruffleStringNode) {
-            AbstractTruffleString tstring = libFormat.getTString(format);
-            RubyEncoding encoding = libFormat.getEncoding(format);
+                @Cached AsTruffleStringNode asTruffleStringNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
+            AbstractTruffleString tstring = libFormat.getTString(this, format);
+            RubyEncoding encoding = libFormat.getEncoding(this, format);
 
             var cacheKey = new TStringWithEncoding(asTruffleStringNode, tstring, encoding);
             int[] cachedTypes = RubyLanguage.sprintfCompilerTypeLists.get(cacheKey);
@@ -2008,7 +2010,7 @@ public abstract class CExtNodes {
                 return createArray(cachedTypes);
             }
 
-            RubyArray types = compileArgTypes(tstring, libFormat.getEncoding(format), byteArrayNode);
+            RubyArray types = compileArgTypes(tstring, libFormat.getEncoding(this, format), byteArrayNode);
             int[] typesIntArray = (int[]) ArrayStoreLibrary.getUncached().toJavaArrayCopy(types.getStore(), types.size);
             RubyLanguage.sprintfCompilerTypeLists.putIfAbsent(cacheKey, typesIntArray);
             return types;
@@ -2029,7 +2031,7 @@ public abstract class CExtNodes {
     @CoreMethod(names = "rb_tr_sprintf", onSingleton = true, required = 3, split = Split.ALWAYS)
     public abstract static class RBSprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "libFormat.isRubyString(format)", limit = "1")
+        @Specialization
         static RubyString format(Object format, Object stringReader, RubyArray argArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached RubyStringLibrary libFormat,
@@ -2037,10 +2039,10 @@ public abstract class CExtNodes {
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached InlinedConditionProfile resizeProfile,
-                @Cached(inline = false) IndirectCallNode formatNode,
+                @Cached IndirectCallNode formatNode,
                 @Bind("this") Node node) {
-            var tstring = libFormat.getTString(format);
-            var encoding = libFormat.getEncoding(format);
+            var tstring = libFormat.getTString(node, format);
+            var encoding = libFormat.getEncoding(node, format);
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
 
             RootCallTarget callTarget;

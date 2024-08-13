@@ -55,7 +55,7 @@ public abstract class ToStrNode extends FormatNode {
             }
         }
 
-        if (libString.isRubyString(coerced)) {
+        if (libString.isRubyString(this, coerced)) {
             return coerced;
         } else {
             errorProfile.enter(this);

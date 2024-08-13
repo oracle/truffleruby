@@ -4,24 +4,14 @@ focused_on_node: "org.truffleruby.core.regexp.InterpolatedRegexpNode"
 ruby: |
   /foo #$bar/
 ast: |
-  InterpolatedRegexpNode
+  InterpolatedRegexpNodeGen
       attributes:
           encoding = ASCII-8BIT
           flags = 0
-          rubyStringLibrary = org.truffleruby.language.library.RubyStringLibrary$Cached@...
+          options = RegexpOptions(kcode: NONE, kcodeDefault, literal)
           sourceCharIndex = 0
           sourceLength = 11
       children:
-          asTruffleStringNode =
-              TruffleStringFactory$AsTruffleStringNodeGen
-          builderNode =
-              InterpolatedRegexpNodeFactory$RegexpBuilderNodeGen
-                  attributes:
-                      encoding = ASCII-8BIT
-                      options = RegexpOptions(kcode: NONE, kcodeDefault, literal)
-                  children:
-                      equalNode =
-                          TruffleStringFactory$EqualNodeGen
           children = [
               ToSNodeGen
                   children:

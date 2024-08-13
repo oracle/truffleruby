@@ -36,7 +36,7 @@ public abstract class StringToPointerNode extends FormatNode {
     }
 
     @SuppressWarnings("unchecked")
-    @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+    @Specialization(guards = "strings.isRubyString(this, string)", limit = "1")
     static long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
             @Cached RubyStringLibrary strings,

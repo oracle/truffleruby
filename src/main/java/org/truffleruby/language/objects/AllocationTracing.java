@@ -44,8 +44,8 @@ public abstract class AllocationTracing {
 
     public static void traceInlined(RubyDynamicObject instance, String className, String allocatingMethod,
             AlwaysInlinedMethodNode node) {
-        final RubyLanguage language = node.getLanguage();
-        final RubyContext context = node.getContext();
+        final RubyLanguage language = RubyLanguage.get(node);
+        final RubyContext context = RubyContext.get(node);
 
         truffleTracing(language, instance);
 

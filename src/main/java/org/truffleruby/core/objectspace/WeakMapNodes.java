@@ -192,7 +192,7 @@ public abstract class WeakMapNodes {
         if (map.storage.size() == 0) {
             return map;
         }
-        final RubyContext context = node.getContext();
+        final RubyContext context = RubyContext.get(node);
         throw new RaiseException(context, context.getCoreExceptions().localJumpError("no block given", node));
     }
 }

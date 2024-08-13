@@ -237,7 +237,7 @@ public abstract class KernelNodes {
     @Primitive(name = "find_file")
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
+        @Specialization(guards = "libFeatureString.isRubyString(this, featureString)", limit = "1")
         static Object findFile(Object featureString,
                 @Cached InlinedBranchProfile notFoundProfile,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
@@ -258,9 +258,10 @@ public abstract class KernelNodes {
     @Primitive(name = "get_caller_path")
     public abstract static class GetCallerPathNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libFeature.isRubyString(feature)", limit = "1")
+        @Specialization(guards = "libFeature.isRubyString(node, feature)", limit = "1")
         @TruffleBoundary
-        RubyString getCallerPath(Object feature,
+        static RubyString getCallerPath(Object feature,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary libFeature,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String featureString = RubyGuards.getJavaString(feature);
@@ -268,28 +269,29 @@ public abstract class KernelNodes {
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
             } else {
-                final SourceSection sourceSection = getContext()
+                final SourceSection sourceSection = getContext(node)
                         .getCallStack()
                         .getCallerNode()
                         .getEncapsulatingSourceSection();
                 if (!BacktraceFormatter.isAvailable(sourceSection)) {
                     throw new RaiseException(
-                            getContext(),
-                            coreExceptions().loadError("cannot infer basepath", featureString, this));
+                            getContext(node),
+                            coreExceptions(node).loadError("cannot infer basepath", featureString, node));
                 }
 
                 Source source = sourceSection.getSource();
-                String sourcePath = getLanguage().getSourcePath(source);
-                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath, source);
+                String sourcePath = getLanguage(node).getSourcePath(source);
+                sourcePath = getContext(node).getFeatureLoader().canonicalize(sourcePath, source);
 
-                featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
+                featurePath = getContext(node).getFeatureLoader().dirname(sourcePath) + "/" + featureString;
             }
 
             // Normalize the path like File.expand_path() (e.g., remove "../"), but do not resolve
             // symlinks. MRI does this for #require_relative always, but not for #require, so we
             // need to do it to be compatible in the case the path does not exist, so the
             // LoadError's #path is the same as MRI's.
-            return createString(fromJavaStringNode, Paths.get(featurePath).normalize().toString(), Encodings.UTF_8);
+            return createString(node, fromJavaStringNode, Paths.get(featurePath).normalize().toString(),
+                    Encodings.UTF_8);
         }
 
     }
@@ -297,7 +299,7 @@ public abstract class KernelNodes {
     @Primitive(name = "load_feature")
     public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libFeatureString.isRubyString(featureString)", limit = "1")
+        @Specialization(guards = "libFeatureString.isRubyString(this, featureString)", limit = "1")
         static boolean loadFeature(Object featureString, Object expandedPathString,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -364,15 +366,16 @@ public abstract class KernelNodes {
     @Primitive(name = "canonicalize_path")
     public abstract static class CanonicalizePathNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(node, string)", limit = "1")
         @TruffleBoundary
-        RubyString canonicalPath(Object string,
+        static RubyString canonicalPath(Object string,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            final String expandedPath = getContext()
+            final String expandedPath = getContext(node)
                     .getFeatureLoader()
                     .canonicalize(RubyGuards.getJavaString(string), null);
-            return createString(fromJavaStringNode, expandedPath, Encodings.UTF_8);
+            return createString(node, fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 
     }
@@ -711,23 +714,21 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = {
-                        "libSource.isRubyString(source)",
-                        "libFile.isRubyString(file)",
                         "codeEqualNode.execute(node, libSource, source, cachedSource, cachedSourceEnc)",
                         "fileEqualNode.execute(libFile, file, cachedFile, cachedFileEnc)",
                         "line == cachedLine",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         static Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
-                @Cached @Shared RubyStringLibrary libSource,
-                @Cached @Shared RubyStringLibrary libFile,
+                @Bind("this") Node node,
+                @Cached @Exclusive RubyStringLibrary libSource,
+                @Cached @Exclusive RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
-                @Cached("libSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
+                @Cached("libSource.getEncoding(node, source)") RubyEncoding cachedSourceEnc,
                 @Cached("asTruffleStringUncached(file)") TruffleString cachedFile,
-                @Cached("libFile.getEncoding(file)") RubyEncoding cachedFileEnc,
+                @Cached("libFile.getEncoding(node, file)") RubyEncoding cachedFileEnc,
                 @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Bind("this") Node node,
                 @Cached("parse(node, cachedSource, cachedSourceEnc, binding.getFrame(), getJavaString(file), cachedLine)") RootCallTarget callTarget,
                 @Cached("assignsNewUserVariables(getDescriptor(callTarget))") boolean assignsNewUserVariables,
                 @Cached("create(callTarget)") DirectCallNode callNode,
@@ -737,16 +738,14 @@ public abstract class KernelNodes {
             return callNode.call(rubyArgs);
         }
 
-        @Specialization(guards = { "libSource.isRubyString(source)", "libFile.isRubyString(file)" },
-                replaces = "evalCached")
+        @Specialization(replaces = "evalCached")
         static Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
+                @Bind("this") Node node,
                 @Cached IndirectCallNode callNode,
-                @Cached @Shared RubyStringLibrary libFile,
-                @Cached @Shared RubyStringLibrary libSource,
-                @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
+                @Cached @Exclusive RubyStringLibrary libSource,
+                @Cached ToJavaStringNode toJavaStringNode) {
 
-            var callTarget = parse(node, libSource.getTString(source), libSource.getEncoding(source),
+            var callTarget = parse(node, libSource.getTString(node, source), libSource.getEncoding(node, source),
                     binding.getFrame(),
                     toJavaStringNode.execute(node, file), line);
             boolean assignsNewUserVariables = assignsNewUserVariables(getDescriptor(callTarget));
@@ -1612,7 +1611,7 @@ public abstract class KernelNodes {
 
         static final String GVAR_DEBUG = "$DEBUG";
 
-        @Specialization(guards = "libFormat.isRubyString(formatAsString)", limit = "1")
+        @Specialization(guards = "libFormat.isRubyString(this, formatAsString)", limit = "1")
         static RubyString sprintf(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached ToStrNode toStrNode,
                 @Bind("toStrNode.execute(this, format)") Object formatAsString,
@@ -1624,8 +1623,8 @@ public abstract class KernelNodes {
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached SprintfInnerNode sprintfInnerNode,
                 @Bind("this") Node node) {
-            var tstring = libFormat.getTString(formatAsString);
-            var encoding = libFormat.getEncoding(formatAsString);
+            var tstring = libFormat.getTString(node, formatAsString);
+            var encoding = libFormat.getEncoding(node, formatAsString);
 
             boolean isDebug = booleanCastNode.execute(node, readDebugGlobalNode.execute(frame));
 

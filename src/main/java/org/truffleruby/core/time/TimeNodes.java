@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -408,7 +409,7 @@ public abstract class TimeNodes {
 
     @Primitive(name = "time_set_zone")
     public abstract static class TimeSetZoneNode extends PrimitiveArrayArgumentsNode {
-        @Specialization(guards = "strings.isRubyString(zone)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, zone)", limit = "1")
         Object timeSetZone(RubyTime time, Object zone,
                 @Cached RubyStringLibrary strings) {
             time.zone = zone;
@@ -425,9 +426,9 @@ public abstract class TimeNodes {
                 guards = "equalNode.execute(node, libFormat, format, cachedFormat, cachedEncoding)",
                 limit = "getLanguage().options.TIME_FORMAT_CACHE")
         static RubyString timeStrftimeCached(RubyTime time, Object format,
-                @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Exclusive RubyStringLibrary libFormat,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(format)") RubyEncoding cachedEncoding,
+                @Cached("libFormat.getEncoding(this, format)") RubyEncoding cachedEncoding,
                 @Cached(value = "compilePattern(cachedFormat, cachedEncoding)", dimensions = 1) Token[] pattern,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
                 @Cached("formatCanBeFast(pattern)") boolean canUseFast,
@@ -449,16 +450,16 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libFormat.isRubyString(format)", replaces = "timeStrftimeCached")
+        @Specialization(replaces = "timeStrftimeCached")
         RubyString timeStrftime(RubyTime time, Object format,
-                @Cached @Shared RubyStringLibrary libFormat,
+                @Cached @Exclusive RubyStringLibrary libFormat,
                 @Cached @Shared TruffleString.ConcatNode concatNode,
                 @Cached @Shared TruffleString.FromLongNode fromLongNode,
                 @Cached @Shared TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared ErrnoErrorNode errnoErrorNode) {
-            final RubyEncoding rubyEncoding = libFormat.getEncoding(format);
-            final Token[] pattern = compilePattern(libFormat.getTString(format), rubyEncoding);
+            final RubyEncoding rubyEncoding = libFormat.getEncoding(this, format);
+            final Token[] pattern = compilePattern(libFormat.getTString(this, format), rubyEncoding);
             if (formatCanBeFast(pattern) && yearIsFast(time)) {
                 var tstring = RubyDateFormatter.formatToTStringFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);

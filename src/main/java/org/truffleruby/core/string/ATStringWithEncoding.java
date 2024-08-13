@@ -10,6 +10,7 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.language.library.RubyStringLibrary;
 
@@ -22,8 +23,8 @@ public final class ATStringWithEncoding extends TStringWithEncodingBase {
         super(tstring, encoding);
     }
 
-    public ATStringWithEncoding(RubyStringLibrary stringLib, Object string) {
-        super(stringLib.getTString(string), stringLib.getEncoding(string));
+    public ATStringWithEncoding(Node node, RubyStringLibrary stringLib, Object string) {
+        super(stringLib.getTString(node, string), stringLib.getEncoding(node, string));
     }
 
     @Override

@@ -273,7 +273,8 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "libSignalString.isRubyString(signalString)", "libAction.isRubyString(action)" },
+        @Specialization(
+                guards = { "libSignalString.isRubyString(this, signalString)", "libAction.isRubyString(this, action)" },
                 limit = "1")
         boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
                 @Cached @Shared RubyStringLibrary libSignalString,
@@ -294,7 +295,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "libSignalString.isRubyString(signalString)")
+        @Specialization(guards = "libSignalString.isRubyString(this, signalString)")
         boolean watchSignalProc(Object signalString, boolean isRubyDefaultHandler, RubyProc proc,
                 @Cached @Shared RubyStringLibrary libSignalString) {
             final RubyContext context = getContext();
@@ -571,7 +572,7 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "should_not_reach_here")
     public abstract static class ShouldNotReachHereNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(message)", limit = "1")
+        @Specialization(guards = "libString.isRubyString(this, message)", limit = "1")
         Object shouldNotReachHere(Object message,
                 @Cached RubyStringLibrary libString) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

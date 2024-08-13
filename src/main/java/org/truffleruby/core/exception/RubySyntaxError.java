@@ -49,7 +49,7 @@ public final class RubySyntaxError extends RubyException {
     @TruffleBoundary
     @ExportMessage
     public boolean isExceptionIncompleteSource() {
-        if (RubyStringLibrary.getUncached().isRubyString(message)) {
+        if (RubyStringLibrary.isRubyStringUncached(message)) {
             String messageString = RubyGuards.getJavaString(message);
             return messageString.endsWith(" unexpected end-of-file") ||
                     messageString.endsWith(" meets end of file");

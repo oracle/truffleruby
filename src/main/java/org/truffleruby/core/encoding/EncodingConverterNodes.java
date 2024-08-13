@@ -194,7 +194,7 @@ public abstract class EncodingConverterNodes {
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            var tencoding = libString.getTEncoding(source);
+            var tencoding = libString.getTEncoding(this, source);
             var tstring = source.tstring;
 
             final TStringBuilder outBytes = TStringBuilder.create(target);
@@ -446,7 +446,7 @@ public abstract class EncodingConverterNodes {
     @NodeChild(value = "replacement", type = RubyBaseNodeWithExecute.class)
     public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
 
-        @Specialization(guards = "libReplacement.isRubyString(replacement)", limit = "1")
+        @Specialization(guards = "libReplacement.isRubyString(this, replacement)", limit = "1")
         static Object setReplacement(RubyEncodingConverter encodingConverter, Object replacement,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
@@ -454,8 +454,8 @@ public abstract class EncodingConverterNodes {
                 @Cached ToStrNode toStrNode,
                 @Bind("this") Node node) {
             final var replacementAsString = toStrNode.execute(node, replacement);
-            var tstring = libReplacement.getTString(replacementAsString);
-            var encoding = libReplacement.getEncoding(replacementAsString);
+            var tstring = libReplacement.getTString(node, replacementAsString);
+            var encoding = libReplacement.getEncoding(node, replacementAsString);
 
             final InternalByteArray byteArray = bytesNode.execute(tstring, encoding.tencoding);
             int ret = setReplacement(encodingConverter.econv, byteArray.getArray(), byteArray.getOffset(),

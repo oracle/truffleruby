@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -61,7 +62,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -200,7 +200,7 @@ public abstract class InteropNodes {
     public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(mimeType)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, mimeType)", limit = "1")
         boolean isMimeTypeSupported(RubyString mimeType,
                 @Cached RubyStringLibrary strings) {
             return getContext().getEnv().isMimeTypeSupported(RubyGuards.getJavaString(mimeType));
@@ -212,7 +212,7 @@ public abstract class InteropNodes {
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(fileName)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, fileName)", limit = "1")
         Object importFile(Object fileName,
                 @Cached RubyStringLibrary strings) {
             try {
@@ -237,19 +237,19 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = {
-                        "stringsMimeType.isRubyString(mimeType)",
-                        "stringsSource.isRubyString(source)",
+                        "stringsMimeType.isRubyString(this, mimeType)",
+                        "stringsSource.isRubyString(this, source)",
                         "mimeTypeEqualNode.execute(stringsMimeType, mimeType, cachedMimeType, cachedMimeTypeEnc)",
                         "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
-        Object evalCached(Object mimeType, Object source,
-                @Cached @Shared RubyStringLibrary stringsMimeType,
-                @Cached @Shared RubyStringLibrary stringsSource,
-                @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
-                @Cached("stringsMimeType.getEncoding(mimeType)") RubyEncoding cachedMimeTypeEnc,
-                @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
-                @Cached("stringsSource.getEncoding(source)") RubyEncoding cachedSourceEnc,
+        static Object evalCached(Object mimeType, Object source,
                 @Bind("this") Node node,
+                @Cached @Exclusive RubyStringLibrary stringsMimeType,
+                @Cached @Exclusive RubyStringLibrary stringsSource,
+                @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
+                @Cached("stringsMimeType.getEncoding(this, mimeType)") RubyEncoding cachedMimeTypeEnc,
+                @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
+                @Cached("stringsSource.getEncoding(this, source)") RubyEncoding cachedSourceEnc,
                 @Cached("create(parse(node, getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
                 @Cached StringHelperNodes.EqualNode mimeTypeEqualNode,
                 @Cached StringHelperNodes.EqualNode sourceEqualNode) {
@@ -257,11 +257,11 @@ public abstract class InteropNodes {
         }
 
         @Specialization(
-                guards = { "stringsMimeType.isRubyString(mimeType)", "stringsSource.isRubyString(source)" },
-                replaces = "evalCached")
+                guards = { "stringsMimeType.isRubyString(this, mimeType)", "stringsSource.isRubyString(this, source)" },
+                replaces = "evalCached", limit = "1")
         static Object evalUncached(Object mimeType, RubyString source,
-                @Cached @Shared RubyStringLibrary stringsMimeType,
-                @Cached @Shared RubyStringLibrary stringsSource,
+                @Cached @Exclusive RubyStringLibrary stringsMimeType,
+                @Cached @Exclusive RubyStringLibrary stringsSource,
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode,
@@ -294,21 +294,22 @@ public abstract class InteropNodes {
     @Primitive(name = "interop_eval_nfi")
     public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "library.isRubyString(code)", limit = "1")
-        Object evalNFI(Object code,
+        @Specialization(guards = "library.isRubyString(node, code)", limit = "1")
+        static Object evalNFI(Object code,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(code), EMPTY_ARGUMENTS);
+            return callNode.call(parse(node, code), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(Object code) {
+        protected static CallTarget parse(Node node, Object code) {
             final Source source = Source.newBuilder("nfi", RubyGuards.getJavaString(code), "(eval)").build();
 
             try {
-                return getContext().getEnv().parseInternal(source);
+                return getContext(node).getEnv().parseInternal(source);
             } catch (IllegalStateException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
+                throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
             }
         }
 
@@ -1774,7 +1775,7 @@ public abstract class InteropNodes {
     public abstract static class JavaAddToClasspathNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(path)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, path)", limit = "1")
         boolean javaAddToClasspath(Object path,
                 @Cached RubyStringLibrary strings) {
             TruffleLanguage.Env env = getContext().getEnv();

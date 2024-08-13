@@ -24,7 +24,7 @@ public final class AutoloadConstant {
     private volatile ReentrantLock autoloadLock;
 
     AutoloadConstant(Object feature) {
-        assert RubyStringLibrary.getUncached().isRubyString(feature);
+        assert RubyStringLibrary.isRubyStringUncached(feature);
         this.feature = feature;
         this.autoloadPath = RubyGuards.getJavaString(this.feature);
     }

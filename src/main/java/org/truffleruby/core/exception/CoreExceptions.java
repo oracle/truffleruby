@@ -89,7 +89,7 @@ public final class CoreExceptions {
             if (backtrace != null && backtrace.getStackTrace().length > 0) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
-            if (RubyStringLibrary.getUncached().isRubyString(message)) {
+            if (RubyStringLibrary.isRubyStringUncached(message)) {
                 message = RubyGuards.getJavaString(message);
             }
             final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
@@ -128,7 +128,7 @@ public final class CoreExceptions {
     // ArgumentError
 
     public RubyException argumentErrorOneHashRequired(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().ONE_HASH_REQUIRED.createInstance(currentNode.getContext()), currentNode,
+        return argumentError(coreStrings().ONE_HASH_REQUIRED.createInstance(RubyContext.get(currentNode)), currentNode,
                 null);
     }
 
@@ -137,7 +137,7 @@ public final class CoreExceptions {
     }
 
     public RubyException argumentErrorProcWithoutBlock(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().PROC_WITHOUT_BLOCK.createInstance(currentNode.getContext()), currentNode,
+        return argumentError(coreStrings().PROC_WITHOUT_BLOCK.createInstance(RubyContext.get(currentNode)), currentNode,
                 null);
     }
 
@@ -153,24 +153,22 @@ public final class CoreExceptions {
 
     public RubyException argumentErrorXOutsideOfString(Node currentNode) {
         return argumentError(coreStrings().X_OUTSIDE_OF_STRING.createInstance(RubyContext.get(currentNode)),
-                currentNode,
-                null);
+                currentNode, null);
     }
 
     public RubyException argumentErrorCantCompressNegativeNumbers(Node currentNode) {
         return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.createInstance(RubyContext.get(currentNode)),
-                currentNode,
-                null);
+                currentNode, null);
     }
 
     public RubyException argumentErrorOutOfRange(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.createInstance(currentNode.getContext()), currentNode,
-                null);
+        return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.createInstance(RubyContext.get(currentNode)),
+                currentNode, null);
     }
 
     public RubyException argumentErrorNegativeArraySize(RubyBaseNode currentNode) {
-        return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.createInstance(currentNode.getContext()), currentNode,
-                null);
+        return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.createInstance(RubyContext.get(currentNode)),
+                currentNode, null);
     }
 
     public RubyException argumentErrorCharacterRequired(Node currentNode) {
@@ -387,7 +385,7 @@ public final class CoreExceptions {
 
     @TruffleBoundary
     public RubyException noMatchingPatternError(Object errorMessage, Node currentNode) {
-        assert RubyStringLibrary.getUncached().isRubyString(errorMessage);
+        assert RubyStringLibrary.isRubyStringUncached(errorMessage);
         RubyClass exceptionClass = context.getCoreLibrary().noMatchingPatternErrorClass;
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }

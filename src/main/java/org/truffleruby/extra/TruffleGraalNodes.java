@@ -183,7 +183,7 @@ public abstract class TruffleGraalNodes {
     @Primitive(name = "compiler_bailout")
     public abstract static class BailoutNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, message)", limit = "1")
         static Object bailout(Object message,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,

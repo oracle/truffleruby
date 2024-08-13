@@ -11,27 +11,26 @@ package org.truffleruby.language.library;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.InlineSupport;
+import com.oracle.truffle.api.dsl.InlineSupport.InlineTarget;
+import com.oracle.truffle.api.dsl.InlineSupport.RequiredField;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 
-/** It is important that all messages of this library can be trivially implemented without needing any @Cached state or
- * node. That way, the generated library classes are actually global immutable singletons.
- * <p>
- * Implemented by {@link org.truffleruby.core.string.RubyString} and
- * {@link org.truffleruby.core.string.ImmutableRubyString} */
+/** A profiling utility for {@link RubyString} and {@link ImmutableRubyString} and the encoding used. Profiling the
+ * encoding can help speedup {@link TruffleString} operations. Profiling the string classes helps to simplify PE code
+ * and avoid branches. */
 public abstract class RubyStringLibrary {
-
-    @NeverDefault
-    public static RubyStringLibrary create() {
-        return new Cached();
-    }
 
     public static RubyStringLibrary getUncached() {
         CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
@@ -39,69 +38,89 @@ public abstract class RubyStringLibrary {
     }
 
     /** Used to create separate specialization instances for RubyString and ImmutableRubyString */
-    public abstract boolean seen(Object object);
+    public abstract boolean seen(Node node, Object object);
 
-    public abstract boolean isRubyString(Object object);
-
-    @NeverDefault
-    public abstract AbstractTruffleString getTString(Object object);
+    public abstract boolean isRubyString(Node node, Object object);
 
     @NeverDefault
-    public abstract RubyEncoding getEncoding(Object object);
+    public abstract AbstractTruffleString getTString(Node node, Object object);
 
     @NeverDefault
-    public final TruffleString.Encoding getTEncoding(Object object) {
-        return getEncoding(object).tencoding;
+    public abstract RubyEncoding getEncoding(Node node, Object object);
+
+    @NeverDefault
+    public final TruffleString.Encoding getTEncoding(Node node, Object object) {
+        return getEncoding(node, object).tencoding;
     }
 
-    public abstract int byteLength(Object object);
+    public abstract int byteLength(Node node, Object object);
 
-    public abstract RubyEncoding profileEncoding(RubyEncoding encoding);
+    public abstract RubyEncoding profileEncoding(Node node, RubyEncoding encoding);
+
+    public static RubyStringLibrary inline(
+            @RequiredField(value = InlineSupport.StateField.class,
+                    bits = Cached.REQUIRED_STATE_BITS) InlineTarget target) {
+        return new Cached(target);
+    }
 
     static final class Cached extends RubyStringLibrary {
 
-        @CompilationFinal private boolean seenMutable, seenImmutable, seenOther;
-        @CompilationFinal private Object cachedEncoding;
+        private static final int REQUIRED_STATE_BITS = 6;
 
-        private static final Object GENERIC = new Object();
+        private static final int ENCODING_MASK = 0b111;
+        // 0b000 uninitialized 0b001 BINARY 0b010 UTF-8 0b011 US-ASCII
+        private static final int GENERIC = 0b100;
+
+        private static final int SEEN_MUTABLE = 0b1 << 3;
+        private static final int SEEN_IMMUTABLE = 0b10 << 3;
+        private static final int SEEN_OTHER = 0b100 << 3;
+
+        private final InlineSupport.StateField stateField;
+
+        Cached(InlineTarget target) {
+            this.stateField = target.getState(0, REQUIRED_STATE_BITS);
+        }
 
         @Override
-        public boolean seen(Object object) {
+        public boolean seen(Node node, Object object) {
             assert object instanceof RubyString || object instanceof ImmutableRubyString;
-            if (seenMutable) {
+            int state = stateField.get(node);
+            if ((state & SEEN_MUTABLE) != 0) {
                 return object instanceof RubyString;
-            } else if (seenImmutable) {
+            } else if ((state & SEEN_IMMUTABLE) != 0) {
                 return object instanceof ImmutableRubyString;
             } else {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                getTString(object); // specialize
+                getTString(node, object); // specialize
                 return true;
             }
         }
 
         @Override
-        public boolean isRubyString(Object object) {
-            if (seenMutable && object instanceof RubyString) {
+        public boolean isRubyString(Node node, Object object) {
+            int state = stateField.get(node);
+            if ((state & SEEN_MUTABLE) != 0 && object instanceof RubyString) {
                 return true;
-            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+            } else if ((state & SEEN_IMMUTABLE) != 0 && object instanceof ImmutableRubyString) {
                 return true;
-            } else if (seenOther && RubyGuards.isNotRubyString(object)) {
+            } else if ((state & SEEN_OTHER) != 0 && RubyGuards.isNotRubyString(object)) {
                 return false;
             }
 
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            return specializeIsRubyString(object);
+            return specializeIsRubyString(node, object);
         }
 
-        private boolean specializeIsRubyString(Object object) {
+        private boolean specializeIsRubyString(Node node, Object object) {
+            int state = stateField.get(node);
             if (object instanceof RubyString) {
-                seenMutable = true;
+                stateField.set(node, state | SEEN_MUTABLE);
                 return true;
             } else if (object instanceof ImmutableRubyString) {
-                seenImmutable = true;
+                stateField.set(node, state | SEEN_IMMUTABLE);
                 return true;
             } else if (RubyGuards.isNotRubyString(object)) {
-                seenOther = true;
+                stateField.set(node, state | SEEN_OTHER);
                 return false;
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
@@ -109,99 +128,114 @@ public abstract class RubyStringLibrary {
         }
 
         @Override
-        public AbstractTruffleString getTString(Object object) {
-            if (seenMutable && object instanceof RubyString) {
+        public AbstractTruffleString getTString(Node node, Object object) {
+            int state = stateField.get(node);
+            if ((state & SEEN_MUTABLE) != 0 && object instanceof RubyString) {
                 return ((RubyString) object).tstring;
-            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+            } else if ((state & SEEN_IMMUTABLE) != 0 && object instanceof ImmutableRubyString) {
                 return ((ImmutableRubyString) object).tstring;
             }
 
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            return specializeGetTString(object);
+            return specializeGetTString(node, object);
         }
 
-        private AbstractTruffleString specializeGetTString(Object object) {
+        private AbstractTruffleString specializeGetTString(Node node, Object object) {
+            int state = stateField.get(node);
             if (object instanceof RubyString) {
-                seenMutable = true;
+                stateField.set(node, state | SEEN_MUTABLE);
                 return ((RubyString) object).tstring;
             } else if (object instanceof ImmutableRubyString) {
-                seenImmutable = true;
+                stateField.set(node, state | SEEN_IMMUTABLE);
                 return ((ImmutableRubyString) object).tstring;
             } else {
-                throw CompilerDirectives.shouldNotReachHere();
+                var context = RubyContext.get(node);
+                throw new RaiseException(context,
+                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", node));
             }
         }
 
         @Override
-        public RubyEncoding profileEncoding(RubyEncoding encoding) {
-            var localCachedEncoding = this.cachedEncoding;
-            if (encoding == localCachedEncoding) {
-                return (RubyEncoding) localCachedEncoding;
-            } else if (localCachedEncoding == GENERIC) {
+        public RubyEncoding profileEncoding(Node node, RubyEncoding encoding) {
+            int localCachedEncoding = stateField.get(node) & ENCODING_MASK;
+
+            if (localCachedEncoding == GENERIC) {
                 return encoding;
+            } else if (encoding.index == localCachedEncoding - 1) {
+                return Encodings.STANDARD_ENCODINGS[localCachedEncoding - 1];
             } else {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                return specializeProfileEncoding(encoding);
+                return specializeProfileEncoding(node, encoding);
             }
         }
 
-        private RubyEncoding specializeProfileEncoding(RubyEncoding encoding) {
-            var localCachedEncoding = this.cachedEncoding;
-            if (localCachedEncoding == null) {
-                this.cachedEncoding = encoding;
-            } else if (encoding != localCachedEncoding) {
-                this.cachedEncoding = GENERIC;
+        private RubyEncoding specializeProfileEncoding(Node node, RubyEncoding encoding) {
+            int state = stateField.get(node);
+            int localCachedEncoding = state & ENCODING_MASK;
+
+            if (localCachedEncoding == 0) {
+                if (Encodings.isStandardEncoding(encoding)) {
+                    assert encoding.index >= 0 && encoding.index <= 2;
+                    this.stateField.set(node, state | (encoding.index + 1));
+                } else {
+                    this.stateField.set(node, state | GENERIC);
+                }
+            } else if (encoding.index != localCachedEncoding - 1) {
+                this.stateField.set(node, (state & ~ENCODING_MASK) | GENERIC);
             }
             return encoding;
         }
 
         @Override
-        public RubyEncoding getEncoding(Object object) {
+        public RubyEncoding getEncoding(Node node, Object object) {
+            int state = stateField.get(node);
             final RubyEncoding encoding;
-            if (seenMutable && object instanceof RubyString) {
+            if ((state & SEEN_MUTABLE) != 0 && object instanceof RubyString) {
                 encoding = ((RubyString) object).getEncodingUnprofiled();
-            } else if (seenImmutable && object instanceof ImmutableRubyString) {
+            } else if ((state & SEEN_IMMUTABLE) != 0 && object instanceof ImmutableRubyString) {
                 encoding = ((ImmutableRubyString) object).getEncodingUnprofiled();
             } else {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                return specializeGetEncoding(object);
+                return specializeGetEncoding(node, object);
             }
 
-            return profileEncoding(encoding);
+            return profileEncoding(node, encoding);
         }
 
-        private RubyEncoding specializeGetEncoding(Object object) {
+        private RubyEncoding specializeGetEncoding(Node node, Object object) {
+            int state = stateField.get(node);
             final RubyEncoding encoding;
             if (object instanceof RubyString) {
-                seenMutable = true;
+                stateField.set(node, state | SEEN_MUTABLE);
                 encoding = ((RubyString) object).getEncodingUnprofiled();
             } else if (object instanceof ImmutableRubyString) {
-                seenImmutable = true;
+                stateField.set(node, state | SEEN_IMMUTABLE);
                 encoding = ((ImmutableRubyString) object).getEncodingUnprofiled();
             } else {
-                throw CompilerDirectives.shouldNotReachHere();
+                var context = RubyContext.get(node);
+                throw new RaiseException(context,
+                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", node));
             }
 
-            return specializeProfileEncoding(encoding);
+            return specializeProfileEncoding(node, encoding);
         }
 
         @Override
-        public int byteLength(Object object) {
-            if (seenMutable && object instanceof RubyString) {
-                var mutable = (RubyString) object;
-                return getTString(mutable).byteLength(getTEncoding(mutable));
-            } else if (seenImmutable && object instanceof ImmutableRubyString) {
-                var immutable = (ImmutableRubyString) object;
-                return getTString(immutable).byteLength(getTEncoding(immutable));
+        public int byteLength(Node node, Object object) {
+            int state = stateField.get(node);
+            if ((state & SEEN_MUTABLE) != 0 && object instanceof RubyString mutable) {
+                return getTString(node, mutable).byteLength(getTEncoding(node, mutable));
+            } else if ((state & SEEN_IMMUTABLE) != 0 && object instanceof ImmutableRubyString immutable) {
+                return getTString(node, immutable).byteLength(getTEncoding(node, immutable));
             }
 
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            return specializeByteLength(object);
+            return specializeByteLength(node, object);
         }
 
-        private int specializeByteLength(Object object) {
+        private int specializeByteLength(Node node, Object object) {
             // getTString() and getTEncoding() will specialize as needed
-            return getTString(object).byteLength(getTEncoding(object));
+            return getTString(node, object).byteLength(getTEncoding(node, object));
         }
     }
 
@@ -211,52 +245,70 @@ public abstract class RubyStringLibrary {
 
         @TruffleBoundary
         @Override
-        public boolean seen(Object object) {
+        public boolean seen(Node node, Object object) {
             assert object instanceof RubyString || object instanceof ImmutableRubyString;
             return true;
         }
 
         @TruffleBoundary
         @Override
-        public boolean isRubyString(Object object) {
+        public boolean isRubyString(Node node, Object object) {
             return object instanceof RubyString || object instanceof ImmutableRubyString;
         }
 
         @TruffleBoundary
         @Override
-        public AbstractTruffleString getTString(Object object) {
+        public AbstractTruffleString getTString(Node node, Object object) {
             if (object instanceof RubyString) {
                 return ((RubyString) object).tstring;
             } else if (object instanceof ImmutableRubyString) {
                 return ((ImmutableRubyString) object).tstring;
             } else {
-                throw CompilerDirectives.shouldNotReachHere();
+                var context = RubyContext.get(node);
+                throw new RaiseException(context,
+                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", node));
             }
         }
 
         @TruffleBoundary
         @Override
-        public RubyEncoding profileEncoding(RubyEncoding encoding) {
+        public RubyEncoding profileEncoding(Node node, RubyEncoding encoding) {
             return encoding;
         }
 
         @TruffleBoundary
         @Override
-        public RubyEncoding getEncoding(Object object) {
+        public RubyEncoding getEncoding(Node node, Object object) {
             if (object instanceof RubyString) {
                 return ((RubyString) object).getEncodingUncached();
             } else if (object instanceof ImmutableRubyString) {
                 return ((ImmutableRubyString) object).getEncodingUncached();
             } else {
-                throw CompilerDirectives.shouldNotReachHere();
+                var context = RubyContext.get(node);
+                throw new RaiseException(context,
+                        context.getCoreExceptions().typeErrorNoImplicitConversion(object, "String", node));
             }
         }
 
         @TruffleBoundary
         @Override
-        public int byteLength(Object object) {
-            return getTString(object).byteLength(getTEncoding(object));
+        public int byteLength(Node node, Object object) {
+            return getTString(node, object).byteLength(getTEncoding(node, object));
         }
+    }
+
+    // Convenience static methods when there is no Node available.
+
+    public static boolean isRubyStringUncached(Object object) {
+        return getUncached().isRubyString(null, object);
+    }
+
+    public static AbstractTruffleString getTStringUncached(Object object) {
+        return getUncached().getTString(null, object);
+    }
+
+    public static RubyEncoding getEncodingUncached(Object object) {
+        return getUncached().getEncoding(null, object);
     }
 
 }

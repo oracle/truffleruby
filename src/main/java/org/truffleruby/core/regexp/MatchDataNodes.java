@@ -347,14 +347,15 @@ public abstract class MatchDataNodes {
                     NotProvided.INSTANCE);
         }
 
-        @Specialization(guards = "libIndex.isRubyString(index)", limit = "1")
+        @Specialization(guards = "libIndex.isRubyString(this, index)", limit = "1")
         Object getIndexString(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached @Exclusive RubyStringLibrary libIndex,
                 @Cached @Shared InlinedConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") @Shared InteropLibrary libInterop) {
             return executeGetIndex(
                     matchData,
-                    getBackRef(matchData, getRegexp(matchData), libIndex.getTString(index), libIndex.getEncoding(index),
+                    getBackRef(matchData, getRegexp(matchData), libIndex.getTString(this, index),
+                            libIndex.getEncoding(this, index),
                             lazyProfile, libInterop),
                     NotProvided.INSTANCE);
         }
@@ -509,8 +510,8 @@ public abstract class MatchDataNodes {
                 return nil;
             }
 
-            var matchDataSource = strings.getTString(matchData.source);
-            var encoding = strings.getEncoding(matchData.source);
+            var matchDataSource = strings.getTString(this, matchData.source);
+            var encoding = strings.getEncoding(this, matchData.source);
 
             if (multiByteCharacterProfile.profile(this,
                     !singleByteOptimizableNode.execute(this, matchDataSource, encoding))) {
@@ -595,8 +596,8 @@ public abstract class MatchDataNodes {
                 return nil;
             }
 
-            var matchDataSource = strings.getTString(matchData.source);
-            var encoding = strings.getEncoding(matchData.source);
+            var matchDataSource = strings.getTString(this, matchData.source);
+            var encoding = strings.getEncoding(this, matchData.source);
 
             if (multiByteCharacterProfile.profile(this,
                     !singleByteOptimizableNode.execute(this, matchDataSource, encoding))) {
@@ -716,8 +717,8 @@ public abstract class MatchDataNodes {
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.SubstringByteIndexNode substringNode) {
             Object source = matchData.source;
-            var tstring = strings.getTString(source);
-            var encoding = strings.getEncoding(source);
+            var tstring = strings.getTString(this, source);
+            var encoding = strings.getEncoding(this, source);
             final int start = getEnd(this, matchData, 0, lazyProfile, interop);
             int length = tstring.byteLength(encoding.tencoding) - start;
             return createSubString(substringNode, tstring, encoding, start, length);

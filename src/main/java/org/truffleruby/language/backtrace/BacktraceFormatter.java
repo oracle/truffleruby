@@ -136,10 +136,7 @@ public final class BacktraceFormatter {
                     context.getCoreLibrary().truffleExceptionOperationsModule,
                     "get_formatted_backtrace",
                     exceptionObject);
-            final String formatted = fullMessage != null
-                    // Use toJavaStringUncached() instead of RubyGuards.getJavaString() here so it still shows something if BINARY encoding and there are non-ASCII bytes
-                    ? RubyStringLibrary.getUncached().getTString(fullMessage).toJavaStringUncached()
-                    : "<no message>";
+            final String formatted = RubyStringLibrary.getTStringUncached(fullMessage).toJavaStringUncached();
             if (formatted.endsWith("\n")) {
                 printer.print(formatted);
             } else {

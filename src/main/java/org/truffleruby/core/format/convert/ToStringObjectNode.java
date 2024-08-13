@@ -32,7 +32,7 @@ public abstract class ToStringObjectNode extends FormatNode {
         return nil;
     }
 
-    @Specialization(guards = "strings.isRubyString(string)", limit = "1")
+    @Specialization(guards = "strings.isRubyString(this, string)", limit = "1")
     Object toStringString(Object string,
             @Cached RubyStringLibrary strings) {
         return string;

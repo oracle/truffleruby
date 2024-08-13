@@ -58,13 +58,13 @@ public abstract class ObjSpaceNodes {
         @Specialization
         int memsizeOfString(RubyString object,
                 @Cached @Exclusive RubyStringLibrary libString) {
-            return memsizeOfObject(object) + libString.byteLength(object);
+            return memsizeOfObject(object) + libString.byteLength(this, object);
         }
 
         @Specialization
         int memsizeOfString(ImmutableRubyString object,
                 @Cached @Exclusive RubyStringLibrary libString) {
-            return 1 + libString.byteLength(object);
+            return 1 + libString.byteLength(this, object);
         }
 
         @Specialization

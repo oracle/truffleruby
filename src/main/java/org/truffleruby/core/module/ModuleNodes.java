@@ -335,7 +335,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         static RubySymbol aliasMethod(RubyModule module, RubySymbol newName, RubySymbol oldName, RubyNode node) {
-            RubyContext context = node.getContext();
+            RubyContext context = RubyContext.get(node);
             module.fields.checkFrozen(context, node);
 
             final InternalMethod method = module.fields
@@ -610,7 +610,7 @@ public abstract class ModuleNodes {
     public abstract static class AutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "libFilename.isRubyString(filenameAsPath)", limit = "1")
+        @Specialization(guards = "libFilename.isRubyString(this, filenameAsPath)", limit = "1")
         static Object autoload(RubyModule module, Object nameObject, Object filename,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ToPathNode toPathNode,
@@ -628,7 +628,7 @@ public abstract class ModuleNodes {
                                 node));
             }
 
-            if (libFilename.getTString(filenameAsPath).isEmpty()) {
+            if (libFilename.getTString(node, filenameAsPath).isEmpty()) {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError("empty file name", node));
             }
 
@@ -743,8 +743,8 @@ public abstract class ModuleNodes {
                 IndirectCallNode callNode) {
             final RubySource source = EvalLoader.createEvalSource(
                     getContext(node),
-                    RubyStringLibrary.getUncached().getTString(sourceCode),
-                    RubyStringLibrary.getUncached().getEncoding(sourceCode),
+                    RubyStringLibrary.getUncached().getTString(node, sourceCode),
+                    RubyStringLibrary.getUncached().getEncoding(node, sourceCode),
                     "class/module_eval",
                     file,
                     line,
@@ -978,20 +978,20 @@ public abstract class ModuleNodes {
 
         @Specialization(
                 guards = {
-                        "stringsName.isRubyString(name)",
+                        "stringsName.isRubyString(node, name)",
                         "inherit",
                         "equalNode.execute(stringsName, name, cachedTString, cachedEncoding)",
                         "!scoped",
                         "checkName == cachedCheckName" },
                 limit = "getLimit()")
         static Object getConstantStringCached(
-                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
+                Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
                 @Cached @Shared GetConstantNode getConstantNode,
                 @Cached("create(true, false)") @Shared LookupConstantNode lookupConstantNode,
                 @Cached("create(true, true)") @Shared LookupConstantNode lookupConstantLookInObjectNode,
                 @Cached("asTruffleStringUncached(name)") TruffleString cachedTString,
-                @Cached("stringsName.getEncoding(name)") RubyEncoding cachedEncoding,
+                @Cached("stringsName.getEncoding(node, name)") RubyEncoding cachedEncoding,
                 @Cached("getJavaString(name)") String cachedString,
                 @Cached("checkName") boolean cachedCheckName,
                 @Cached StringHelperNodes.EqualNode equalNode,
@@ -1002,9 +1002,9 @@ public abstract class ModuleNodes {
 
         @Specialization(
                 guards = {
-                        "stringsName.isRubyString(name)",
+                        "stringsName.isRubyString(node, name)",
                         "inherit",
-                        "!isScoped(stringsName, name, byteIndexOfStringNode)" },
+                        "!isScoped(node, stringsName, name, byteIndexOfStringNode)" },
                 replaces = "getConstantStringCached")
         static Object getConstantString(
                 Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
@@ -1020,9 +1020,9 @@ public abstract class ModuleNodes {
 
         @Specialization(
                 guards = {
-                        "stringsName.isRubyString(name)",
+                        "stringsName.isRubyString(node, name)",
                         "!inherit",
-                        "!isScoped(stringsName, name, byteIndexOfStringNode)" })
+                        "!isScoped(node, stringsName, name, byteIndexOfStringNode)" })
         static Object getConstantNoInheritString(
                 Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared RubyStringLibrary stringsName,
@@ -1034,9 +1034,11 @@ public abstract class ModuleNodes {
 
         // Scoped String
         @Specialization(
-                guards = { "stringsName.isRubyString(name)", "isScoped(stringsName, name, byteIndexOfStringNode)" })
+                guards = {
+                        "stringsName.isRubyString(node, name)",
+                        "isScoped(node, stringsName, name, byteIndexOfStringNode)" })
         static Object getConstantScoped(
-                RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
+                Node node, RubyModule module, Object name, boolean inherit, boolean lookInObject, boolean checkName,
                 @Cached @Shared ByteIndexOfStringNode byteIndexOfStringNode,
                 @Cached @Shared RubyStringLibrary stringsName) {
             return FAILURE;
@@ -1071,10 +1073,10 @@ public abstract class ModuleNodes {
                     .getConstant();
         }
 
-        static boolean isScoped(RubyStringLibrary libString, Object string,
+        static boolean isScoped(Node node, RubyStringLibrary libString, Object string,
                 ByteIndexOfStringNode byteIndexOfStringNode) {
-            var tstring = libString.getTString(string);
-            var encoding = libString.getTEncoding(string);
+            var tstring = libString.getTString(node, string);
+            var encoding = libString.getTEncoding(node, string);
             int byteLength = tstring.byteLength(encoding);
             return byteIndexOfStringNode.execute(tstring, TStringConstants.COLON_COLON, 0, byteLength, encoding) >= 0;
         }
@@ -1121,7 +1123,7 @@ public abstract class ModuleNodes {
 
         public abstract Object execute(Node node, RubyModule module, Object name, boolean inherit);
 
-        @Specialization(guards = "strings.isRubyString(name)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, name)", limit = "1")
         @TruffleBoundary
         static Object constSourceLocation(Node node, RubyModule module, Object name, boolean inherit,
                 @Cached(inline = false) @Shared TruffleString.FromJavaStringNode fromJavaStringNode,

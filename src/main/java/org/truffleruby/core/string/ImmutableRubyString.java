@@ -156,9 +156,10 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable
     @ImportStatic(RubyBaseNode.class)
     public static final class AsString {
         @Specialization(
-                guards = "equalNode.execute(string.tstring, libString.getEncoding(string), cachedTString, cachedEncoding)",
+                guards = "equalNode.execute(string.tstring, libString.getEncoding(node, string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         static String asStringCached(ImmutableRubyString string,
+                @Bind("this") Node node,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
@@ -174,7 +175,7 @@ public final class ImmutableRubyString extends ImmutableRubyObjectCopyable
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
                 @Cached InlinedConditionProfile binaryNonAsciiProfile,
                 @Bind("this") Node node) {
-            var encoding = libString.getEncoding(string);
+            var encoding = libString.getEncoding(node, string);
             if (binaryNonAsciiProfile.profile(node, encoding == Encodings.BINARY &&
                     !StringGuards.is7Bit(string.tstring, encoding, codeRangeNode))) {
                 return getJavaStringBoundary(string);

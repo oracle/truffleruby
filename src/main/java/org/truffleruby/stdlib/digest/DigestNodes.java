@@ -11,9 +11,13 @@ package org.truffleruby.stdlib.digest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
@@ -41,8 +45,8 @@ public abstract class DigestNodes {
 
     private static RubyDigest createDigest(RubyBaseNode node, DigestAlgorithm algorithm) {
         final RubyDigest instance = new RubyDigest(
-                node.getContext().getCoreLibrary().digestClass,
-                node.getLanguage().digestShape,
+                RubyContext.get(node).getCoreLibrary().digestClass,
+                RubyLanguage.get(node).digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
         AllocationTracing.trace(instance, node);
@@ -102,20 +106,21 @@ public abstract class DigestNodes {
     @CoreMethod(names = "update", onSingleton = true, required = 2)
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
-        RubyDigest update(RubyDigest digestObject, Object message,
+        @Specialization(guards = "strings.isRubyString(node, message)", limit = "1")
+        static RubyDigest update(RubyDigest digestObject, Object message,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             final MessageDigest digest = digestObject.digest;
-            var tstring = strings.getTString(message);
-            var byteArray = getInternalByteArrayNode.execute(tstring, strings.getTEncoding(message));
+            var tstring = strings.getTString(node, message);
+            var byteArray = getInternalByteArrayNode.execute(tstring, strings.getTEncoding(node, message));
 
             update(digest, byteArray.getArray(), byteArray.getOffset(), byteArray.getLength());
             return digestObject;
         }
 
         @TruffleBoundary
-        private void update(MessageDigest digest, byte[] input, int offset, int len) {
+        private static void update(MessageDigest digest, byte[] input, int offset, int len) {
             digest.update(input, offset, len);
         }
     }
@@ -187,11 +192,11 @@ public abstract class DigestNodes {
         @Child private TruffleString.FromByteArrayNode fromByteArrayNode = TruffleString.FromByteArrayNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(message)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, message)", limit = "1")
         RubyString bubblebabble(Object message,
                 @Cached RubyStringLibrary strings) {
-            var tstring = strings.getTString(message);
-            var byteArray = tstring.getInternalByteArrayUncached(strings.getTEncoding(message));
+            var tstring = strings.getTString(this, message);
+            var byteArray = tstring.getInternalByteArrayUncached(strings.getTEncoding(this, message));
             final byte[] bubblebabbleBytes = bubblebabble(byteArray.getArray(), byteArray.getOffset(),
                     byteArray.getLength()).getBytes(); // CR_7BIT
 

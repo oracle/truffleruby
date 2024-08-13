@@ -297,7 +297,7 @@ public abstract class TruffleBootNodes {
         @Child private TruffleString.FromJavaStringNode fromJavaStringNode = TruffleString.FromJavaStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "libOptionName.isRubyString(optionName)", limit = "1")
+        @Specialization(guards = "libOptionName.isRubyString(this, optionName)", limit = "1")
         Object getOption(Object optionName,
                 @Cached RubyStringLibrary libOptionName) {
             final String optionNameString = RubyGuards.getJavaString(optionName);
