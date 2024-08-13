@@ -7,6 +7,7 @@ Bug fixes:
 Compatibility:
 
 * Fix `Module#include` so a module included into a reopened nested module is added into an ancestors chain (#3570, @andrykonchin).
+* Fix `Kernel#eval` to ignore shebang with non-Ruby interpreter (#3623, @andrykonchin).
 
 Performance:
 
