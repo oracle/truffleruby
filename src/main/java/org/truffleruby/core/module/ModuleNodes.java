@@ -1668,17 +1668,18 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "public_class_method", rest = true)
+    @CoreMethod(names = "public_class_method", rest = true, split = Split.NEVER)
     public abstract static class PublicClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyModule publicClassMethod(RubyModule module, Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached SingletonClassNode singletonClassNode) {
-            final RubyClass singletonClass = singletonClassNode.execute(module);
+        @TruffleBoundary
+        RubyModule publicClassMethod(RubyModule module, Object[] names) {
+            final RubyClass singletonClass = org.truffleruby.language.objects.SingletonClassNodeGen.getUncached()
+                    .execute(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.execute(this, singletonClass, name, Visibility.PUBLIC);
+                ModuleNodesFactory.SetMethodVisibilityNodeGen.getUncached().execute(this, singletonClass, name,
+                        Visibility.PUBLIC);
             }
 
             return module;
@@ -1727,17 +1728,18 @@ public abstract class ModuleNodes {
         }
     }
 
-    @CoreMethod(names = "private_class_method", rest = true)
+    @CoreMethod(names = "private_class_method", rest = true, split = Split.NEVER)
     public abstract static class PrivateClassMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyModule privateClassMethod(VirtualFrame frame, RubyModule module, Object[] names,
-                @Cached SetMethodVisibilityNode setMethodVisibilityNode,
-                @Cached SingletonClassNode singletonClassNode) {
-            final RubyClass singletonClass = singletonClassNode.execute(module);
+        @TruffleBoundary
+        RubyModule privateClassMethod(RubyModule module, Object[] names) {
+            final RubyClass singletonClass = org.truffleruby.language.objects.SingletonClassNodeGen.getUncached()
+                    .execute(module);
 
             for (Object name : names) {
-                setMethodVisibilityNode.execute(this, singletonClass, name, Visibility.PRIVATE);
+                ModuleNodesFactory.SetMethodVisibilityNodeGen.getUncached().execute(this, singletonClass, name,
+                        Visibility.PRIVATE);
             }
 
             return module;
