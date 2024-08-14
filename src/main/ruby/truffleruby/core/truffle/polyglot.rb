@@ -553,7 +553,7 @@ module Polyglot
     end
   end
 
-  class ForeignException < Exception # rubocop:disable Lint/InheritException
+  class ForeignException < StandardError
     include ObjectTrait
     include ExceptionTrait
 

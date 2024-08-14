@@ -134,14 +134,16 @@ Where boolean value is expected (e.g., in `if` conditions) the foreign value is 
 
 ### Rescuing Foreign Exceptions
 
-Foreign exceptions can be caught by `rescue Polyglot::ForeignException => e` or by `rescue foreign_meta_object`.
-It is possible to rescue any exception (Ruby or foreign) with `rescue Exception => e`.
+Foreign exceptions are represented by a `Polyglot::ForeignException` class so can be caught by `rescue Polyglot::ForeignException => e`.
+The `Polyglot::ForeignException` class inherits `StandardError` so `rescue => e` can be used instead.
 
-This naturally stems from the ancestors of a foreign exception:
+Any foreign exception has the following ancestors:
 ```ruby
 Java.type("java.lang.RuntimeException").new.class.ancestors
-# => [Polyglot::ForeignException, Polyglot::ExceptionTrait, Polyglot::ObjectTrait, Exception, Object, Kernel, BasicObject]
+# => [Polyglot::ForeignException, Polyglot::ExceptionTrait, Polyglot::ObjectTrait, StandardError, Exception, Object, Kernel, BasicObject]
 ```
+
+A specific foreign exception could be caught using a foreign exception class, e.g. `rescue Java.type("java.lang.NumberFormatException") => e`.
 
 ## Accessing Java Objects
 

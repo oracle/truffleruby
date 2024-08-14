@@ -12,6 +12,7 @@ Compatibility:
 Performance:
 
 Changes:
+* Inherit `Polyglot::ForeignException` from `StandardError` instead of `Exception` (#3620, @andrykonchin).
 
 Memory Footprint:
 

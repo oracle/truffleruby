@@ -13,9 +13,17 @@ describe "Polyglot::ForeignException" do
     @foreign = Truffle::Debug.foreign_exception("exception message")
   end
 
-  it "subclasses Exception" do
+  it "subclasses StandardError" do
     @foreign.class.should == Polyglot::ForeignException
-    @foreign.class.superclass.should == Exception
+    @foreign.class.superclass.should == StandardError
+  end
+
+  it "can be caught with rescue => e" do
+    begin
+      raise @foreign
+    rescue => e
+      e.should == @foreign
+    end
   end
 
   it "supports #message" do
