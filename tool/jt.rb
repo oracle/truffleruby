@@ -675,8 +675,10 @@ module Utilities
 
   def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', ENV['TRUFFLERUBY_MSPEC_CONFIG'] || 'spec/truffleruby.mspec']
+
     Dir.chdir(TRUFFLERUBY_DIR) do
-      ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
+      # always enable assertions with --ea to catch issues earlier
+      ruby env_vars, '--ea', *mspec_args, '-t', ruby_launcher, *args
     end
   end
 
@@ -1685,6 +1687,8 @@ module Commands
     options += %w[--timeout 600] if ci?
 
     args, ruby_args = args_split(args)
+
+    # always enable assertions (with jt's --reveal flag) to catch issues earlier
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
