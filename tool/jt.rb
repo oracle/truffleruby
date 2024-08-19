@@ -807,7 +807,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --reveal        enable assertions
+          --reveal, --ea  enable assertions
           --asm           show assembly
           --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
           --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2,TruffleHostInlining:0)
@@ -1300,7 +1300,7 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--reveal --experimental-options --testing-rubygems])
+      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--ea --experimental-options --testing-rubygems])
       truffle_args = vm_args + ruby_args
     end
 
@@ -1688,8 +1688,8 @@ module Commands
 
     args, ruby_args = args_split(args)
 
-    # always enable assertions (with jt's --reveal flag) to catch issues earlier
-    vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
+    # always enable assertions (with jt's --ea flag) to catch issues earlier
+    vm_args, ruby_args, parsed_options = ruby_options({}, ['--ea', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
       vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
