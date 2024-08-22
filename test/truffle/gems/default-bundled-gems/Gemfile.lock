@@ -86,7 +86,8 @@ GEM
     resolv (0.2.2)
     resolv-replace (0.1.1)
       resolv
-    rexml (3.2.5)
+    rexml (3.3.6)
+      strscan
     rinda (0.1.1)
       drb
       forwardable
@@ -184,7 +185,7 @@ DEPENDENCIES
   reline (= 0.3.2)
   resolv (= 0.2.2)
   resolv-replace (= 0.1.1)
-  rexml (= 3.2.5)
+  rexml (= 3.3.6)
   rinda (= 0.1.1)
   rss (= 0.2.9)
   ruby2_keywords (= 0.0.5)
