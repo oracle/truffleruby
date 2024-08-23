@@ -807,7 +807,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --reveal, --ea  enable assertions
+          --ea            enable assertions
           --asm           show assembly
           --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
           --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2,TruffleHostInlining:0)
@@ -1021,7 +1021,7 @@ module Commands
         vm_args << arg
       when '--no-core-load-path'
         core_load_path = false
-      when '--reveal', '--ea'
+      when '--ea'
         vm_args += %w[--vm.ea --vm.esa] if truffleruby_jvm?
       when '--check-compilation'
         add_experimental_options.call
