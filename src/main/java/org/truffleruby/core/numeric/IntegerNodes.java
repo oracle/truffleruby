@@ -13,12 +13,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -41,6 +43,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -48,6 +51,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -56,7 +60,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -789,8 +792,26 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = { "==", "===" }, required = 1)
-    public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
+    @GenerateUncached
+    @CoreMethod(names = { "==", "===" }, required = 1, alwaysInlined = true)
+    public abstract static class EqualNode extends AlwaysInlinedMethodNode {
+
+        @Specialization
+        static Object equal(Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached EqualInternalNode equalInternalNode,
+                @Bind("this") Node node) {
+            Object other = RubyArguments.getArgument(rubyArgs, 0);
+            return equalInternalNode.execute(node, self, other);
+        }
+
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    @GenerateUncached
+    public abstract static class EqualInternalNode extends RubyBaseNode {
+
+        public abstract Object execute(Node node, Object a, Object b);
 
         @Specialization
         boolean equal(int a, int b) {
@@ -833,10 +854,9 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        static Object equal(VirtualFrame frame, Object a, Object b,
-                @Cached DispatchNode reverseCallNode,
-                @Cached BooleanCastNode booleanCastNode,
-                @Bind("this") Node node) {
+        static Object equal(Node node, Object a, Object b,
+                @Cached(inline = false) DispatchNode reverseCallNode,
+                @Cached BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
             return booleanCastNode.execute(node, reversedResult);
         }
