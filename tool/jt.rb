@@ -675,8 +675,10 @@ module Utilities
 
   def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', ENV['TRUFFLERUBY_MSPEC_CONFIG'] || 'spec/truffleruby.mspec']
+
     Dir.chdir(TRUFFLERUBY_DIR) do
-      ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
+      # always enable assertions with --ea to catch issues earlier
+      ruby env_vars, '--ea', *mspec_args, '-t', ruby_launcher, *args
     end
   end
 
@@ -805,7 +807,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --reveal        enable assertions
+          --ea            enable assertions
           --asm           show assembly
           --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
           --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2,TruffleHostInlining:0)
@@ -1019,7 +1021,7 @@ module Commands
         vm_args << arg
       when '--no-core-load-path'
         core_load_path = false
-      when '--reveal', '--ea'
+      when '--ea'
         vm_args += %w[--vm.ea --vm.esa] if truffleruby_jvm?
       when '--check-compilation'
         add_experimental_options.call
@@ -1298,7 +1300,7 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--reveal --experimental-options --testing-rubygems])
+      vm_args, ruby_args, _parsed_options = ruby_options({}, %w[--ea --experimental-options --testing-rubygems])
       truffle_args = vm_args + ruby_args
     end
 
@@ -1685,7 +1687,9 @@ module Commands
     options += %w[--timeout 600] if ci?
 
     args, ruby_args = args_split(args)
-    vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
+
+    # always enable assertions (with jt's --ea flag) to catch issues earlier
+    vm_args, ruby_args, parsed_options = ruby_options({}, ['--ea', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
       vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
