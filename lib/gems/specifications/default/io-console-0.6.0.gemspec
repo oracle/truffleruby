@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.email = "nobu@ruby-lang.org".freeze
   s.extensions = ["ext/io/console/extconf.rb".freeze]
   s.files = ["ext/io/console/extconf.rb".freeze, "lib/console/size.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "lib/io/console.#{RbConfig::CONFIG["DLEXT"]}".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/io-console".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.6.0".freeze)

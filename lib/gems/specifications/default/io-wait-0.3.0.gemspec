@@ -16,6 +16,8 @@ Gem::Specification.new do |s|
   s.email = ["nobu@ruby-lang.org".freeze, "headius@headius.com".freeze]
   s.extensions = ["ext/io/wait/extconf.rb".freeze]
   s.files = ["ext/io/wait/extconf.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "io/wait.rb".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/io-wait".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.rubygems_version = "3.4.19".freeze

@@ -14,6 +14,8 @@ Gem::Specification.new do |s|
   s.email = [nil, "kou@cozmixng.org".freeze, "headius@headius.com".freeze]
   s.extensions = ["ext/strscan/extconf.rb".freeze]
   s.files = ["ext/strscan/extconf.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "strscan.rb".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/strscan".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.4.0".freeze)

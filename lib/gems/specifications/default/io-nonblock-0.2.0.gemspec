@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.email = ["nobu@ruby-lang.org".freeze]
   s.extensions = ["ext/io/nonblock/extconf.rb".freeze]
   s.files = ["ext/io/nonblock/extconf.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "io/nonblock.rb".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/io-nonblock".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

@@ -16,6 +16,8 @@ Gem::Specification.new do |s|
   s.extensions = ["ext/etc/extconf.rb".freeze]
   s.extra_rdoc_files = ["ChangeLog".freeze, "LICENSE.txt".freeze, "README.md".freeze, "ext/etc/constdefs.h".freeze, "ext/etc/etc.c".freeze, "ext/etc/extconf.rb".freeze, "ext/etc/mkconstants.rb".freeze, "test/etc/test_etc.rb".freeze]
   s.files = ["ChangeLog".freeze, "LICENSE.txt".freeze, "README.md".freeze, "ext/etc/constdefs.h".freeze, "ext/etc/etc.c".freeze, "ext/etc/extconf.rb".freeze, "ext/etc/mkconstants.rb".freeze, "test/etc/test_etc.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "etc.#{RbConfig::CONFIG["DLEXT"]}".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/etc".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.rdoc_options = ["--main".freeze, "README.md".freeze]
