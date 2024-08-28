@@ -25,7 +25,6 @@ public final class CoreMethods {
     public final InternalMethod KERNEL_KIND_OF;
     public final InternalMethod STRING_BYTESIZE;
     public final InternalMethod MODULE_CASE_EQUAL;
-    public final InternalMethod STRING_EQUAL;
     public final InternalMethod SYMBOL_TO_PROC;
     public final InternalMethod ARRAY_AT;
     public final InternalMethod ARRAY_INDEX_GET;
@@ -48,7 +47,6 @@ public final class CoreMethods {
         KERNEL_IS_A = getMethod(kernelModule, "is_a?");
         KERNEL_KIND_OF = getMethod(kernelModule, "kind_of?");
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
-        STRING_EQUAL = getMethod(stringClass, "==");
         SYMBOL_TO_PROC = getMethod(symbolClass, "to_proc");
         ARRAY_AT = getMethod(arrayClass, "at");
         ARRAY_INDEX_GET = getMethod(arrayClass, "[]");

@@ -11,8 +11,13 @@ package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -36,11 +41,14 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.FloatToIntegerNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.annotations.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -364,18 +372,34 @@ public abstract class FloatNodes {
         }
     }
 
-    @CoreMethod(names = { "==", "===" }, required = 1)
-    public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode fallbackCallNode;
+    @ImportStatic(RubyArguments.class)
+    @GenerateUncached
+    @CoreMethod(names = { "==", "===" }, required = 1, alwaysInlined = true)
+    public abstract static class EqualNode extends AlwaysInlinedMethodNode {
 
         @Specialization
-        boolean equal(double a, long b) {
+        Object equal(Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached EqualInternalNode equalInternalNode,
+                @Bind("this") Node node) {
+            Object other = RubyArguments.getArgument(rubyArgs, 0);
+            return equalInternalNode.execute(node, self, other);
+        }
+    }
+
+    @GenerateInline
+    @GenerateCached(false)
+    @GenerateUncached
+    public abstract static class EqualInternalNode extends RubyBaseNode {
+
+        public abstract Object execute(Node node, Object a, Object b);
+
+        @Specialization
+        boolean equal(double a, double b) {
             return a == b;
         }
 
         @Specialization
-        boolean equal(double a, double b) {
+        boolean equal(double a, long b) {
             return a == b;
         }
 
@@ -385,12 +409,8 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
-        Object equal(VirtualFrame frame, double a, Object b) {
-            if (fallbackCallNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(DispatchNode.create());
-            }
-
+        Object equal(double a, Object b,
+                @Cached(inline = false) DispatchNode fallbackCallNode) {
             return fallbackCallNode.call(a, "equal_fallback", b);
         }
     }

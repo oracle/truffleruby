@@ -79,6 +79,7 @@ import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NeverDefault;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -125,6 +126,7 @@ import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
+import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
@@ -143,6 +145,7 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
+import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -295,33 +298,37 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = { "==", "===", "eql?" }, required = 1)
-    public abstract static class EqualCoreMethodNode extends CoreMethodArrayArgumentsNode {
+    @ImportStatic(RubyArguments.class)
+    @GenerateUncached
+    @CoreMethod(names = { "==", "===", "eql?" }, required = 1, alwaysInlined = true)
+    public abstract static class EqualNode extends AlwaysInlinedMethodNode {
 
-        @Specialization(guards = "libB.isRubyString(b)", limit = "1")
-        static boolean equalString(Object a, Object b,
-                @Cached RubyStringLibrary libA,
-                @Cached RubyStringLibrary libB,
+        @Specialization(guards = "libOther.isRubyString(other)", limit = "1")
+        static boolean equalString(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
+                @Cached RubyStringLibrary libSelf,
+                @Cached RubyStringLibrary libOther,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode,
+                @Bind("getArgument(rubyArgs, 0)") Object other,
                 @Bind("this") Node node) {
-            var tstringA = libA.getTString(a);
-            var encA = libA.getEncoding(a);
-            var tstringB = libB.getTString(b);
-            var encB = libB.getEncoding(b);
-            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(node, tstringA, encA, tstringB,
-                    encB);
-            return stringEqualInternalNode.executeInternal(node, tstringA, tstringB, compatibleEncoding);
+            var tstringSelf = libSelf.getTString(self);
+            var encSelf = libSelf.getEncoding(self);
+            var tstringOther = libOther.getTString(other);
+            var encOther = libOther.getEncoding(other);
+            var compatibleEncoding = negotiateCompatibleStringEncodingNode.execute(node, tstringSelf, encSelf,
+                    tstringOther,
+                    encOther);
+            return stringEqualInternalNode.executeInternal(node, tstringSelf, tstringOther, compatibleEncoding);
         }
 
-        @Specialization(guards = "isNotRubyString(b)")
-        boolean equal(Object a, Object b,
+        @Specialization(guards = "isNotRubyString(other)")
+        boolean equal(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached KernelNodes.RespondToNode respondToNode,
                 @Cached DispatchNode objectEqualNode,
-                @Cached BooleanCastNode booleanCastNode) {
-            if (respondToNode.executeDoesRespondTo(b, coreSymbols().TO_STR, false)) {
-
-                return booleanCastNode.execute(this, objectEqualNode.call(b, "==", a));
+                @Cached BooleanCastNode booleanCastNode,
+                @Bind("getArgument(rubyArgs, 0)") Object other) {
+            if (respondToNode.executeDoesRespondTo(other, coreSymbols().TO_STR, false)) {
+                return booleanCastNode.execute(this, objectEqualNode.call(other, "==", self));
             }
 
             return false;
