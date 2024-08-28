@@ -80,7 +80,10 @@ public abstract class EncodingNodes {
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding,
                 @Cached InlinedConditionProfile equalEncodingsProfile,
+                @Cached InlinedConditionProfile firstAsciiCompatibleProfile,
                 @Cached InlinedConditionProfile firstStandardEncodingProfile,
+                @Cached InlinedConditionProfile secondAsciiCompatibleProfile,
+                @Cached InlinedConditionProfile secondStandardEncodingProfile,
                 @Cached(inline = false) TruffleString.GetByteCodeRangeNode codeRangeNode) {
             assert first.isCompatibleToUncached(firstEncoding.tencoding) &&
                     second.isCompatibleToUncached(secondEncoding.tencoding);
@@ -90,16 +93,27 @@ public abstract class EncodingNodes {
             }
 
             boolean second7Bit = StringGuards.is7Bit(second, secondEncoding, codeRangeNode);
-            if (firstStandardEncodingProfile.profile(node, Encodings.isStandardEncoding(firstEncoding) && second7Bit)) {
+            if (firstStandardEncodingProfile.profile(node, Encodings.isStandardEncoding(firstEncoding))) {
                 // Encoding negotiation of two strings is most often between strings with the same encoding. The next most
                 // frequent case is two strings with different encodings, but each being one of the standard/default runtime
                 // encodings. When the second string is CR_7BIT, we can short-circuit the full set of encoding negotiation
                 // rules and simply return the encoding of the first string.
 
-                return firstEncoding;
+                if (secondAsciiCompatibleProfile.profile(node, second7Bit)) {
+                    return firstEncoding;
+                } else if (secondStandardEncodingProfile.profile(node, Encodings.isStandardEncoding(secondEncoding))) {
+                    if (firstAsciiCompatibleProfile.profile(node,
+                            StringGuards.is7Bit(first, firstEncoding, codeRangeNode))) {
+                        return secondEncoding;
+                    } else {
+                        return null;
+                    }
+                }
             }
 
-            return compatibleEncodingForStrings(first, firstEncoding, second, secondEncoding, second7Bit, codeRangeNode);
+            // both encodings are non-standard (that's not US-ASCII, UTF-8 or ASCII-8BIT)
+            return compatibleEncodingForStrings(first, firstEncoding, second, secondEncoding, second7Bit,
+                    codeRangeNode);
         }
 
         /** This method returns non-null if either:
@@ -120,10 +134,7 @@ public abstract class EncodingNodes {
                 return firstEncoding;
             }
             if (first.isEmpty()) {
-                return (firstEncoding.isAsciiCompatible &&
-                        StringGuards.is7Bit(second, secondEncoding, codeRangeNode))
-                                ? firstEncoding
-                                : secondEncoding;
+                return (firstEncoding.isAsciiCompatible && second7Bit) ? firstEncoding : secondEncoding;
             }
 
             if (!firstEncoding.isAsciiCompatible || !secondEncoding.isAsciiCompatible) {
