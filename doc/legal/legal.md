@@ -179,16 +179,15 @@ copyright Shopify Inc. and is available under an MIT licence (see `src/main/c/ya
 TruffleRuby has Java dependencies on these modules, which are then included in
 the distribution:
 
-#### JONI
+#### JOni
 
-TruffleRuby uses JONI (version as described in `mx.truffleruby/suite.py`). JONI
-is copyright its authors and is released under an MIT licence (see `mit.txt`).
+TruffleRuby uses JOni, version as described in [mx.truffleruby/suite.py](../../mx.truffleruby/suite.py).
+JOni is copyright its authors and is released under an MIT licence (see `mit.txt`).
 
 #### JCodings
 
-TruffleRuby uses JCodings (version as described in `mx.truffleruby/suite.py`).
-JCodings is copyright its authors and is released under an MIT licence (see
-`mit.txt`).
+TruffleRuby uses JCodings, version as described in [Truffle's suite.py](https://github.com/oracle/graal/blob/master/truffle/mx.truffle/suite.py) (select the correct branch/tag for finding the version used in a release).
+JCodings is copyright its authors and is released under an MIT licence (see `mit.txt`).
 
 ## Patches
 
