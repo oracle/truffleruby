@@ -518,6 +518,8 @@ module Utilities
     end
 
     if status.success? || continue_on_failure
+      $LAST_SH_STATUS = status
+
       if capture
         out
       else
@@ -1407,12 +1409,17 @@ module Commands
         next
       end
 
-      puts '1. Tagging tests'
-      output_file = 'mri_tests.txt'
-      run_mri_tests(options, [test_file], [], out: output_file, continue_on_failure: true)
+      process_tests = true
+      while process_tests
+        puts '1. Tagging tests'
+        output_file = 'mri_tests.txt'
+        run_mri_tests(options, [test_file], [], [:err, :out] => output_file, continue_on_failure: true)
 
-      puts '2. Parsing errors'
-      sh 'ruby', 'tool/parse_mri_errors.rb', output_file
+        puts '2. Parsing errors'
+        sh 'ruby', 'tool/parse_mri_errors.rb', output_file, continue_on_failure: true
+
+        process_tests = $LAST_SH_STATUS.exitstatus == 2
+      end
 
       puts '3. Verifying tests pass'
       run_mri_tests(options, [test_file], [], use_exec: test_files.size == 1)
@@ -1469,7 +1476,7 @@ module Commands
         script = "#{dir}/bin/#{test_name}"
         # bin/backtraces relies on being run with an absolute path for __FILE__
         script = "#{TRUFFLERUBY_DIR}/#{script}" if test_name == 'backtraces'
-        run_ruby "-I#{dir}/lib", script, out: output_file
+        run_ruby "-I#{dir}/lib", script, out: output_file, continue_on_failure: true
         begin
           actual = File.read(output_file)
           expected_file = "#{dir}/expected.txt"

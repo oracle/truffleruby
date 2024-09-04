@@ -64,6 +64,16 @@ def exclude_test!(class_name, test_method, error_display)
   File.write(file, lines.sort.join)
 end
 
+# If we have an exception escape the interpreter, it will have caused the TruffleRuby process to abort. The test
+# results will likely be truncate. We'll attempt to figure out what test was running when the exception occurred
+# and tag it. Then we'll let the caller know that they should retry tagging by exiting with a particular status code.
+t = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\n.*?```\n(.*?\n.*?)\n/m
+contents.scan(t) do |class_name, test_method, exception_message|
+  exclude_test!(class_name, test_method, exception_message.sub(/\n\s+/, ' '))
+
+  exit 2
+end
+
 t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*?)\n$/m
 contents.scan(t) do |class_name, test_method, error|
   error_lines = error.split("\n")
