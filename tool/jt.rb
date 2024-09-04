@@ -1380,7 +1380,7 @@ module Commands
 
     test_files.each do |test_file|
       puts '', test_file
-      test_classes = File.read(test_file).scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
+      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
       raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
       found_excludes = false
       test_classes.each do |test_class|
