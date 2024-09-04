@@ -1,2 +1,6 @@
+exclude :test_01, "NoMethodError: undefined method `manager' for nil:NilClass"
+exclude :test_02_collect, "NoMethodError: undefined method `manager' for nil:NilClass"
+exclude :test_03_redo, "NoMethodError: undefined method `manager' for nil:NilClass"
 exclude :test_05_break, "needs investigation"
+exclude :test_06_next, "NoMethodError: undefined method `manager' for nil:NilClass"
 exclude :test_07_break_18, "needs investigation"

@@ -1,3 +1,3 @@
-exclude :test_sleep, "needs investigation"
-exclude :test_sleep_returns_seconds_slept, "needs investigation"
-exclude :test_broken_sleep, "needs investigation"
+exclude :test_broken_sleep, "[RuntimeError] exception expected, not #<NoMethodError: undefined method `scheduler' for Fiber:Class>."
+exclude :test_sleep, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
+exclude :test_sleep_returns_seconds_slept, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"

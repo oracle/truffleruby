@@ -1,1 +1,1 @@
-exclude :test_path_tmpfile, "NoMethodError expected but nothing was raised."
+exclude :test_path_tmpfile, "Expected \"/tmp/d20240907-1506763-z5tipz\" to be nil."

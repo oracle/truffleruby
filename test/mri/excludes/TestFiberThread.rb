@@ -2,5 +2,5 @@ exclude :test_broken_unblock, "[RuntimeError] exception expected, not #<NoMethod
 exclude :test_thread_join, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_thread_join_blocking, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_thread_join_hang, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
+exclude :test_thread_join_implicit, "spurious; hangs"
 exclude :test_thread_join_timeout, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
-exclude :test_thread_join_implicit, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"

@@ -1,1 +1,1 @@
-exclude :test_unicode, "needs investigation"
+exclude :test_unicode, "Expected file \"[a-あ]*\" not to be fnmatch(\"ぃ\")"

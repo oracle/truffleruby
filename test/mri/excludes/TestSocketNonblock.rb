@@ -1,1 +1,1 @@
-exclude :test_accept_nonblock, "needs investigation"
+exclude :test_accept_nonblock, "accepted socket is non-blocking."

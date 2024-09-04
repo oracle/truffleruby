@@ -1,1 +1,1 @@
-exclude :test_recursive_outer, "needs investigation"
+exclude :test_recursive_outer, "undefined symbol: rb_exec_recursive_outer"

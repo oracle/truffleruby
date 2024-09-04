@@ -1,2 +1,2 @@
-exclude :test_my_integer_cmp, "needs investigation"
-exclude :test_my_integer_to_f, "needs investigation"
+exclude :test_my_integer_cmp, "[NotImplementedError] exception expected, not #<TypeError: TruffleRuby doesn't have a case for the org.truffleruby.core.numeric.IntegerNodesFactory$CompareNodeFactory$CompareNodeGen node with values of type Bug::Integer::MyInteger(org.truffleruby.core.basicobject.RubyBasicObject) java.lang.Integer=0"
+exclude :test_my_integer_to_f, "[NotImplementedError] exception expected, not #<TypeError: TruffleRuby doesn't have a case for the org.truffleruby.core.numeric.IntegerNodesFactory$ToFNodeFactory$ToFNodeGen node with values of type Bug::Integer::MyInteger(org.truffleruby.core.basicobject.RubyBasicObject)"

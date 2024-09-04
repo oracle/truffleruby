@@ -1,1 +1,1 @@
-exclude :test_frozen_thgroup, "needs investigation"
+exclude :test_frozen_thgroup, "ThreadError expected but nothing was raised."

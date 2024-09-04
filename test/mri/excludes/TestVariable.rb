@@ -1,4 +1,4 @@
-exclude :test_cloned_allows_setting_cvar, "<\"Athena\"> expected but was"
+exclude :test_cloned_allows_setting_cvar, "<\"Athena\"> expected but was <\"Cronus\">."
 exclude :test_cvar_overtaken_by_module, "RuntimeError expected but nothing was raised."
 exclude :test_cvar_overtaken_by_parent_class, "RuntimeError expected but nothing was raised."
 exclude :test_global_variables, "Expected [] to include :$1."

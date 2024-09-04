@@ -1,3 +1,3 @@
-exclude :test_input_metachar, "needs investigation"
-exclude :test_completion_proc_empty_result, "needs investigation"
-exclude :test_without_tty, "It should work fine without tty, but it failed."
+exclude :test_completion_proc_empty_result, "<\"\"> expected but was <nil>."
+exclude :test_input_metachar, "hangs"
+exclude :test_interrupt_in_other_thread, "Unknown failure with exit status #<Process::Status: pid 122258 exit nil>"

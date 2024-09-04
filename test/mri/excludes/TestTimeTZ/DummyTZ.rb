@@ -6,7 +6,6 @@ exclude :"test_dst?@Africa/Ndjamena", "NoMethodError: undefined method `name' fo
 exclude :"test_dst?@America/Los_Angeles", "NoMethodError: undefined method `name' for \"UTC\":String"
 exclude :"test_dst?@Asia/Tokyo", "NoMethodError: undefined method `name' for \"UTC\":String"
 exclude :"test_dst?@Etc/UTC", "NoMethodError: undefined method `name' for \"UTC\":String"
-exclude :test_fractional_second, "TypeError: wrong argument type Object (expected Integer)"
 exclude :"test_fractional_second@Africa/Ndjamena", "NoMethodError: undefined method `name' for \"UTC\":String"
 exclude :"test_fractional_second@America/Los_Angeles", "NoMethodError: undefined method `name' for \"UTC\":String"
 exclude :"test_fractional_second@Asia/Tokyo", "NoMethodError: undefined method `name' for \"UTC\":String"
@@ -43,3 +42,4 @@ exclude :"test_to_a@Africa/Ndjamena", "NoMethodError: undefined method `name' fo
 exclude :"test_to_a@America/Los_Angeles", "NoMethodError: undefined method `name' for \"UTC\":String"
 exclude :"test_to_a@Asia/Tokyo", "NoMethodError: undefined method `name' for \"UTC\":String"
 exclude :"test_to_a@Etc/UTC", "NoMethodError: undefined method `name' for \"UTC\":String"
+exclude :test_fractional_second, "TypeError: wrong argument type Object (expected Integer)"
