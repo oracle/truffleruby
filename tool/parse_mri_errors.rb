@@ -9,7 +9,7 @@
 
 REASON = ENV['REASON']
 
-contents = ARGF.read
+contents = ARGF.read.scrub
 
 load_error_output = "0 tests, 0 assertions, 0 failures, 0 errors, 0 skips"
 
