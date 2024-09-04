@@ -75,6 +75,11 @@ contents.scan(t) do |class_name, test_method, error|
     error_display << ' ' + error_lines[index + 1]
   end
 
+  # Mismatched exception messages span three lines. It's much more useful if they're combined into one message.
+  if error_display =~ /but the message doesn't match/
+    error_display << ' ' + error_lines[index + 1] + ' ' + error_lines[index + 2]
+  end
+
   # Assertion errors are more useful with the first line of the backtrace.
   if error_display&.include?('java.lang.AssertionError')
     error_display << ' ' << error_lines[index + 1]
