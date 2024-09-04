@@ -8,44 +8,17 @@
 #     jt test mri test/mri/tests/rdoc/test_rdoc_token_stream.rb | tool/parse_mri_errors.rb
 
 REASON = ENV['REASON']
+SLOW_TEST_THRESHOLD = 30
+VERY_SLOW_TEST_THRESHOLD = 60
 
 contents = ARGF.read.scrub
-
 load_error_output = "0 tests, 0 assertions, 0 failures, 0 errors, 0 skips"
 
-summary_regex = /\d+\stests,\s\d+\sassertions,\s\d+\sfailures,\s\d+\serrors,\s\d+\sskips/
-split_errors = contents.split(load_error_output)
-if split_errors.size > 1
-  puts "split_errors #{split_errors.size}"
-  err_files = split_errors.map { |e| e.scan(/filesf \[\"(.*)\"\]/).last[0] }
-  patt = err_files.map { |err| err.split("/mri/")[1] }
-
-  all_tests = contents.scan(/filesf \[\"(.*)\"\]/)
-  all_tests_patt = all_tests.map { |err| err[0].split("/mri/")[1] }
-
-  non_excluded = all_tests_patt - patt
-
-  puts "# Test index"
-
-  i_hash = Hash[non_excluded.map { |v| [v, true] }]
-  e_hash = Hash[patt.map { |v| [v, false] }]
-
-  all_hash = i_hash.merge(e_hash)
-  all_hash = Hash[all_hash.sort_by{ |k,v| k }]
-  all_hash.each do |k,v|
-    if v
-      puts k
-    else
-      puts "# #{k}"
-    end
-  end
-
-end
-
+require 'etc'
 require 'fileutils'
 
-repo_root = File.expand_path("../..", __FILE__)
-excludes = "#{repo_root}/test/mri/excludes"
+REPO_ROOT = File.expand_path("../..", __FILE__)
+EXCLUDES_DIR = "#{REPO_ROOT}/test/mri/excludes"
 
 # Usually the first line in the error message gives us enough context to quickly identify what caused the failure.
 # Sometimes, the first line isn't helpful and we need to look further down. This filter helps us discard unhelpful data.
@@ -57,6 +30,38 @@ def should_skip_error?(message)
     /pid \d+ exit \d/i,    # PID and exit status upon failure.
     /^Exception raised:$/i # Heading for exception trace.
   ).match(message)
+end
+
+def platform_info
+  if RUBY_PLATFORM.include?('darwin')
+    cpu_model = `sysctl -n machdep.cpu.brand_string`.strip
+  elsif RUBY_PLATFORM.include?('linux')
+    cpu_model = `cat /proc/cpuinfo | grep 'model name' | uniq`.split(':').last.strip
+  else
+    cpu_model = 'unknown'
+  end
+
+  "#{cpu_model}: (#{Etc.nprocessors} vCPUs)"
+end
+
+def exclude_test!(class_name, test_method, error_display)
+  file = EXCLUDES_DIR + "/" + class_name.split("::").join('/') + ".rb"
+  prefix = "exclude #{test_method.strip.to_sym.inspect},"
+  new_line = "#{prefix} #{(REASON || error_display).inspect}\n"
+
+  FileUtils.mkdir_p(File.dirname(file))
+  lines = File.exist?(file) ? File.readlines(file) : []
+
+  # we need the ',' to handle a case when one test name is a substring of another test name
+  if i = lines.index { |line| line.start_with?(prefix) }
+    puts "already excluded: #{class_name}##{test_method}"
+    lines[i] = new_line
+  else
+    puts "adding exclude: #{class_name}##{test_method}"
+    lines << new_line
+  end
+
+  File.write(file, lines.sort.join)
 end
 
 t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*?)\n$/m
@@ -105,20 +110,20 @@ contents.scan(t) do |class_name, test_method, error|
     error_display = "needs investigation"
   end
 
-  file = excludes + "/" + class_name.split("::").join('/') + ".rb"
-  prefix = "exclude #{test_method.strip.to_sym.inspect},"
-  new_line = "#{prefix} #{(REASON || error_display).inspect}\n"
+  exclude_test!(class_name, test_method, error_display)
+end
 
-  FileUtils.mkdir_p(File.dirname(file))
-  lines = File.exist?(file) ? File.readlines(file) : []
 
-  # we need the ',' to handle a case when one test name is a substring of another test name
-  if i = lines.index { |line| line.start_with?(prefix + ",") }
-    puts "already excluded: #{class_name}##{test_method}"
-    lines[i] = new_line
-  else
-    puts "adding exclude: #{class_name}##{test_method}"
-    lines << new_line
+# Tag slow tests.
+
+test_ruby_version = contents.match(/ruby -v: (.*)/)[1].strip
+
+t = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(.+?) = (\d+\.\d+) s/
+contents.scan(t) do |class_name, test_method, execution_time|
+  if execution_time.to_f > SLOW_TEST_THRESHOLD
+    prefix =  execution_time.to_f > VERY_SLOW_TEST_THRESHOLD ? "very slow" : "slow"
+    message = "#{prefix}: #{execution_time}s on #{test_ruby_version} with #{platform_info}"
+
+    exclude_test!(class_name, test_method, message)
   end
-  File.write(file, lines.sort.join)
 end
