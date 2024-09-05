@@ -7,18 +7,16 @@
 # or
 #     jt test mri test/mri/tests/rdoc/test_rdoc_token_stream.rb | tool/parse_mri_errors.rb
 
-REASON = ENV['REASON']
-SLOW_TEST_THRESHOLD = 30
-VERY_SLOW_TEST_THRESHOLD = 60
-
-contents = ARGF.read.scrub
-load_error_output = "0 tests, 0 assertions, 0 failures, 0 errors, 0 skips"
-
 require 'etc'
 require 'fileutils'
 
+REASON = ENV['REASON']
+SLOW_TEST_THRESHOLD = 30
+VERY_SLOW_TEST_THRESHOLD = 60
 REPO_ROOT = File.expand_path("../..", __FILE__)
 EXCLUDES_DIR = "#{REPO_ROOT}/test/mri/excludes"
+
+contents = ARGF.read.scrub.gsub("[ruby] WARNING StackOverflowError\n", '')
 
 # Usually the first line in the error message gives us enough context to quickly identify what caused the failure.
 # Sometimes, the first line isn't helpful and we need to look further down. This filter helps us discard unhelpful data.
@@ -28,7 +26,6 @@ def should_skip_error?(message)
     /\[Bug #?\d+\]/i,      # MRI bug IDs.
     /\[bug:\d+\]/i,        # MRI bug IDs.
     /pid \d+ exit \d/i,    # PID and exit status upon failure.
-    /^Exception raised:$/i # Heading for exception trace.
   ).match(message)
 end
 
@@ -41,7 +38,7 @@ def platform_info
     cpu_model = 'unknown'
   end
 
-  "#{cpu_model}: (#{Etc.nprocessors} vCPUs)"
+  "#{cpu_model}: ( #{Etc.nprocessors} vCPUs)"
 end
 
 def exclude_test!(class_name, test_method, error_display)
@@ -86,18 +83,31 @@ contents.scan(t) do |class_name, test_method, error|
   error_display = error_lines[index]
 
   # Mismatched expectations span two lines. It's much more useful if they're combined into one message.
-  if error_display =~ /expected but was/ || error_display =~ /expected:/
-    error_display << ' ' + error_lines[index + 1]
-  end
+  if error_display =~ /expected but was/
+    index += 1
+    error_display << ' ' + error_lines[index]
 
   # Mismatched exception messages span three lines. It's much more useful if they're combined into one message.
-  if error_display =~ /but the message doesn't match/
-    error_display << ' ' + error_lines[index + 1] + ' ' + error_lines[index + 2]
-  end
+  elsif error_display =~ /but the message doesn't match/
+    error_display << ' ' + error_lines[index + 1..].join(' ')
+    index = error_lines.size
+
+  # Handle exceptions by reading the message up until the backtrace.
+  elsif error_display =~ /Exception raised:/
+    while (line = error_lines[index + 1]) !~ /Backtrace:/
+      index += 1
+      error_display << ' ' << line.strip
+    end
 
   # Assertion errors are more useful with the first line of the backtrace.
-  if error_display&.include?('java.lang.AssertionError')
-    error_display << ' ' << error_lines[index + 1]
+  elsif error_display&.include?('java.lang.AssertionError')
+    index += 1
+    error_display << ' ' << error_lines[index ]
+
+  # As a catch-all, any message ending with a colon likely has more context on the next line.
+  elsif error_display&.end_with?(':')
+    index += 1
+    error_display << ' ' << error_lines[index]
   end
 
   # Generated Markdown code blocks span multiple lines. It's much more useful if they're combined into one message.
