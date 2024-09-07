@@ -70,6 +70,16 @@ contents.scan(t) do |class_name, test_method, exception_message|
   exit 2
 end
 
+# In rare cases a bug in TruffleRuby or GraalVM can result in the process crashing. We'll attempt to parse out the
+# signal type and the problematic frame to write the exclusion message, and then retry tagging so any other tests
+# have the opportunity to run.
+t = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\s*#\n# A fatal error has been detected.*?(?:\n#)+\s+(SIG\w+).*?Problematic frame:\n#\s+(.+?)\n/m
+contents.scan(t) do |class_name, test_method, error_type, source|
+  exclude_test!(class_name, test_method, "JVM crash; #{error_type}: #{source}")
+
+  exit 2
+end
+
 # If we're running a test that relies on a C symbol we haven't implemented, the process will exit informing us that
 # the symbol was undefined. We want to parse that out, tag the associated test, and then retry tagging so any other
 # tests have the opportunity to run.
