@@ -6,7 +6,6 @@
 #     tool/parse_mri_errors.rb output.txt
 # or
 #     jt test mri test/mri/tests/rdoc/test_rdoc_token_stream.rb | tool/parse_mri_errors.rb
-
 require 'etc'
 require 'fileutils'
 
@@ -70,6 +69,45 @@ contents.scan(t) do |class_name, test_method, exception_message|
 
   exit 2
 end
+
+# If we're running a test that relies on a C symbol we haven't implemented, the process will exit informing us that
+# the symbol was undefined. We want to parse that out, tag the associated test, and then retry tagging so any other
+# tests have the opportunity to run.
+#
+# Sample input(s):
+#
+# [19/21] TestSH#test_strftimetest/mri/tests/runner.rb: TestSH#test_strftime: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/lib/mri/date_core.so: undefined symbol: rb_str_format
+#
+# [1/3] TestBignum_Big2str#test_big2str_generictest/mri/tests/runner.rb: TestBignum_Big2str#test_big2str_generic: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/bignum.so: undefined symbol: rb_big2str_generic
+
+t = / ((?:\w+::)*\w+)#(\w+): symbol lookup error.*? undefined symbol: (\w+)/
+contents.scan(t) do |class_name, test_method, missing_symbol|
+  exclude_test!(class_name, test_method, "undefined symbol: #{missing_symbol}")
+
+  exit 2
+end
+
+# In some cases the output format is a little different when an undefined symbol is encountered. We treat this as a
+# separate case to keep the regular expression simpler. Since this could overlap with the other symbol lookup error
+# case, this one must appear second. Otherwise, the extracted method could be incorrect.
+#
+# In this case, the interpreter path is printed instead of the path to the runner. And it is attached to the test
+# method name with no space between them. Additionally, the method name isn't printed twice as it is when the runner
+# path is printed, so we're forced to have to extract the method name that's joined to the interpreter path3.
+# Fortunately, the path is absolute so we do have a delimiter character we can use.
+#
+# Sample input(s):
+#
+# [1/4] TestThreadInstrumentation#test_join_counters/home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/bin/ruby: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/thread/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook
+
+t = / ((?:\w+::)*\w+)#(\w+?)(?:\/.*?)?: symbol lookup error.*? undefined symbol: (\w+)/
+contents.scan(t) do |class_name, test_method, missing_symbol|
+  exclude_test!(class_name, test_method, "undefined symbol: #{missing_symbol}")
+
+  exit 2
+end
+
+
 
 t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*?)\n$/m
 contents.scan(t) do |class_name, test_method, error|
