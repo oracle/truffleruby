@@ -55,7 +55,8 @@ MRI_TEST_RETAG_RETAIN_PATTERNS = [
   /flaky/,
   /spurious/,
   /transient/,
-  /if RUBY_PLATFORM/
+  /if RUBY_PLATFORM/,
+  /pid \d+ killed/,
 ]
 
 RUBOCOP_INCLUDE_LIST = %w[
