@@ -40,10 +40,11 @@ def platform_info
   "#{cpu_model}: ( #{Etc.nprocessors} vCPUs)"
 end
 
-def exclude_test!(class_name, test_method, error_display)
+def exclude_test!(class_name, test_method, error_display, platform = nil)
   file = EXCLUDES_DIR + "/" + class_name.split("::").join('/') + ".rb"
   prefix = "exclude #{test_method.strip.to_sym.inspect},"
-  new_line = "#{prefix} #{(REASON || error_display).inspect}\n"
+  platform_guard = platform ? " if RUBY_PLATFORM.include?('#{platform}')" : ''
+  new_line = "#{prefix} #{(REASON || error_display).inspect}#{platform_guard}\n"
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
@@ -117,7 +118,20 @@ contents.scan(t) do |class_name, test_method, missing_symbol|
   exit 2
 end
 
+# We've observed on macOS that encountering undefined symbols presents yet another format to parse. Unfortunately, in
+# this situation the message may not include what the symbol is. But, we can still extract the error message and tag
+# the test for reprocessing.
+#
+# Sample input(s):
+#
+# [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
 
+t = / ((?:\w+::)*\w+)#(\w+?)dyld\[\d+\]: (.*)/
+contents.scan(t) do |class_name, test_method, dyld_message|
+  exclude_test!(class_name, test_method, "dyld: #{dyld_message}", 'darwin')
+
+  exit 2
+end
 
 t = /^\s+\d+\) (Error|Failure|Timeout):\n((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:?\n(.*?)\n$/m
 contents.scan(t) do |error_type, class_name, test_method, error|
