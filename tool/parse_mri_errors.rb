@@ -119,8 +119,13 @@ end
 
 
 
-t = /^((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:\n(.*?)\n$/m
-contents.scan(t) do |class_name, test_method, error|
+t = /^\s+\d+\) (Error|Failure|Timeout):\n((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:?\n(.*?)\n$/m
+contents.scan(t) do |error_type, class_name, test_method, error|
+  if error_type == 'Timeout'
+    exclude_test!(class_name, test_method, "retain-on-retag; test timed out")
+    next
+  end
+
   error_lines = error.split("\n")
   index = 0
 
