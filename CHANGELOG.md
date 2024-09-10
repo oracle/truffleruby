@@ -12,6 +12,7 @@ Compatibility:
 * Fix `Env#update` and accept multiple hashes (@andrykonchin).
 * Add `MAJOR`, `MINOR`, `TEENY`, `PATCHLEVEL`, `RUBY_API_VERSION`, and `RUBY_PROGRAM_VERSION` to `RbConfig::CONFIG` (#3396, @rwstauner).
 * Set `RbConfig::CONFIG['archincludedir']` (#3396, @andrykonchin).
+* Support the index/length arguments for the string argument to `String#bytesplice` added in 3.3 (#3656, @rwstauner).
 
 Performance:
 
