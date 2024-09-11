@@ -43,6 +43,11 @@ end
 def exclude_test!(class_name, test_method, error_display, platform = nil)
   file = EXCLUDES_DIR + "/" + class_name.split("::").join('/') + ".rb"
   prefix = "exclude #{test_method.strip.to_sym.inspect},"
+
+  if test_method =~ /(linux|darwin)/
+    platform = $1
+  end
+
   platform_guard = platform ? " if RUBY_PLATFORM.include?('#{platform}')" : ''
   new_line = "#{prefix} #{(REASON || error_display).inspect}#{platform_guard}\n"
 
