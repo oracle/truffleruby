@@ -63,7 +63,13 @@ def exclude_test!(class_name, test_method, error_display, platform = nil)
     lines << new_line
   end
 
-  File.write(file, lines.sort.join)
+  # The test method name in the tag may have characters that can't appear in a symbol literal without quoting. However,
+  # the presence of the quotation marks causes the sorting to look a little funny. Such tags will appear at the front
+  # of the list because of lexicographic ordering. However, we'd prefer to have an alphabetic ordering based on the
+  # name of the method. So, we extract the name from each symbol and sort them that way.
+  lines.sort_by! { |line| line.match(/^exclude :"?(.*?)"?,/)[1] }
+
+  File.write(file, lines.join)
 end
 
 # If we have an exception escape the interpreter, it will have caused the TruffleRuby process to abort. The test
