@@ -809,9 +809,9 @@ module Commands
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --ea            enable assertions
           --asm           show assembly
-          --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
-          --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2,TruffleHostInlining:0)
-          --igv-network   dump to IGV directly through the network (-Dgraal.PrintGraph=Network)
+          --igv           dump select Graal graphs to graal_dumps/ (-Djdk.graal.Dump=Truffle:1)
+          --igv-full      dump all Graal graphs to graal_dumps/ (-Djdk.graal.Dump=Truffle:2,TruffleHostInlining:0)
+          --igv-network   dump to IGV directly through the network (-Djdk.graal.PrintGraph=Network)
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
@@ -1055,14 +1055,14 @@ module Commands
       when '--igv', '--igv-full'
         truffleruby_compiler!
         if arg == '--igv-full'
-          vm_args << '--vm.Dgraal.Dump=Truffle:2,TruffleHostInlining:0,TruffleInjectImmutableFrameFields:0'
+          vm_args << '--vm.Djdk.graal.Dump=Truffle:2,TruffleHostInlining:0,TruffleInjectImmutableFrameFields:0'
         else
-          vm_args << '--vm.Dgraal.Dump=Truffle:1'
+          vm_args << '--vm.Djdk.graal.Dump=Truffle:1'
         end
-        vm_args << '--vm.Dgraal.PrintBackendCFG=false'
+        vm_args << '--vm.Djdk.graal.PrintBackendCFG=false'
       when '--igv-network'
         truffleruby_compiler!
-        vm_args << '--vm.Dgraal.PrintGraph=Network'
+        vm_args << '--vm.Djdk.graal.PrintGraph=Network'
       when '--exec'
         options[:use_exec] = true
       when /^--vm\./
@@ -2228,19 +2228,19 @@ module Commands
       "--engine.CompileOnly=#{method}",
       '--engine.MultiTier=false',
       '--compiler.NodeSourcePositions',
-      '--vm.Dgraal.PrintGraphWithSchedule=true',
-      *('--vm.Dgraal.PrintBackendCFG=true' if cfg2asm),
-      '--vm.Dgraal.Dump=Truffle:1',
+      '--vm.Djdk.graal.PrintGraphWithSchedule=true',
+      *('--vm.Djdk.graal.PrintBackendCFG=true' if cfg2asm),
+      '--vm.Djdk.graal.Dump=Truffle:1',
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
 
     # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
     # GR-36849: needs #truffleruby_native_built? instead of #truffleruby_native?
     simplify_vm_args = [
-      *('--vm.Dgraal.PartialUnroll=false' unless truffleruby_native_built?),
-      *('--vm.Dgraal.LoopPeeling=false' unless truffleruby_native_built?),
-      *('--vm.Dgraal.LoopUnswitch=false' unless truffleruby_native_built?),
-      '--vm.Dgraal.OptScheduleOutOfLoops=false',
+      *('--vm.Djdk.graal.PartialUnroll=false' unless truffleruby_native_built?),
+      *('--vm.Djdk.graal.LoopPeeling=false' unless truffleruby_native_built?),
+      *('--vm.Djdk.graal.LoopUnswitch=false' unless truffleruby_native_built?),
+      '--vm.Djdk.graal.OptScheduleOutOfLoops=false',
     ]
 
     base_vm_args += simplify_vm_args if simplify

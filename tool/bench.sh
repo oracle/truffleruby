@@ -63,7 +63,7 @@ bench() {
     if [[ $bench_mode == igv ]]; then
         local dump_path=graal_dumps/$bench_name-$config
         mkdir -p "$dump_path"
-        jt -u "$config" benchmark "$file" --time "$BENCH_TIME" -- --igv --vm.Dgraal.DumpPath="$dump_path"
+        jt -u "$config" benchmark "$file" --time "$BENCH_TIME" -- --igv --vm.Djdk.graal.DumpPath="$dump_path"
     elif [[ $bench_mode == time ]]; then
         jt -u "$config" benchmark "$file" --time "$BENCH_TIME" | tee /dev/tty | tail -n "$BENCH_TAIL" | \
             datamash mean 1 median 1 | format_time "$bench_name-$config" >> perf.txt
