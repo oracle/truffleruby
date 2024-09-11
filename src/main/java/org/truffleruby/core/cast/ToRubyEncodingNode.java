@@ -34,15 +34,15 @@ public abstract class ToRubyEncodingNode extends RubyBaseNode {
     public abstract RubyEncoding execute(Node node, Object value);
 
     @Specialization
-    static RubyEncoding stringToEncoding(RubyString value,
+    static RubyEncoding stringToEncoding(Node node, RubyString value,
             @Cached @Exclusive RubyStringLibrary libString) {
-        return libString.getEncoding(value);
+        return libString.getEncoding(node, value);
     }
 
     @Specialization
-    static RubyEncoding immutableStringToEncoding(ImmutableRubyString value,
+    static RubyEncoding immutableStringToEncoding(Node node, ImmutableRubyString value,
             @Cached @Exclusive RubyStringLibrary libString) {
-        return libString.getEncoding(value);
+        return libString.getEncoding(node, value);
     }
 
     @Specialization

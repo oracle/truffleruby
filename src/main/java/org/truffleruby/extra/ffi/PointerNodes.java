@@ -335,7 +335,7 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
     public abstract static class PointerWriteBytesNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+        @Specialization
         static Object writeBytes(long address, Object string, int index, int length,
                 @Cached InlinedConditionProfile nonZeroProfile,
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
@@ -343,8 +343,8 @@ public abstract class PointerNodes {
                 @Cached CheckNullPointerNode checkNullPointerNode,
                 @Bind("this") Node node) {
             Pointer ptr = new Pointer(getContext(node), address);
-            var tstring = libString.getTString(string);
-            var encoding = libString.getTEncoding(string);
+            var tstring = libString.getTString(node, string);
+            var encoding = libString.getTEncoding(node, string);
 
             assert index + length <= tstring.byteLength(encoding);
 

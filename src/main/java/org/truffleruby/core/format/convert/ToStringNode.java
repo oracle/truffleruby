@@ -105,14 +105,14 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization(guards = "argLibString.isRubyString(string)", limit = "1")
+    @Specialization(guards = "argLibString.isRubyString(this, string)", limit = "1")
     Object toStringString(Object string,
             @Cached @Shared RubyStringLibrary libString,
             @Cached @Exclusive RubyStringLibrary argLibString) {
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(PRIVATE_RETURN_MISSING, string, conversionMethod);
 
-            if (libString.isRubyString(value)) {
+            if (libString.isRubyString(this, value)) {
                 return value;
             } else {
                 throw new NoImplicitConversionException(string, "String");
@@ -131,7 +131,7 @@ public abstract class ToStringNode extends FormatNode {
 
         final Object value = toSNode.call(PRIVATE_RETURN_MISSING, array, "to_s");
 
-        if (libString.isRubyString(value)) {
+        if (libString.isRubyString(this, value)) {
             return value;
         } else {
             throw new NoImplicitConversionException(array, "String");
@@ -144,7 +144,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached @Shared RubyStringLibrary libString) {
         final Object value = getToStrNode().call(PRIVATE_RETURN_MISSING, object, conversionMethod);
 
-        if (libString.isRubyString(value)) {
+        if (libString.isRubyString(this, value)) {
             return value;
         }
 

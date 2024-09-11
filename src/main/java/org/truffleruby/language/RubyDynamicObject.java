@@ -22,13 +22,14 @@ import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.TranslateInteropRubyExceptionNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.InternalRespondToNode;
-import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.GetMethodObjectNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
@@ -112,11 +113,10 @@ public abstract class RubyDynamicObject extends DynamicObject {
     @ExportMessage
     public Object toDisplayString(boolean allowSideEffects,
             @Cached @Exclusive DispatchNode dispatchNode,
-            @Cached RubyStringLibrary libString,
             @Cached KernelNodes.ToSNode kernelToSNode) {
         if (allowSideEffects) {
             Object inspect = dispatchNode.call(this, "inspect");
-            if (libString.isRubyString(inspect)) {
+            if (inspect instanceof RubyString || inspect instanceof ImmutableRubyString) {
                 return inspect;
             } else {
                 return kernelToSNode.execute(this);

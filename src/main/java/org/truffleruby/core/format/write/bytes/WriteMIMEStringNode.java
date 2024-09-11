@@ -41,6 +41,8 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.ByteArrayBuilder;
@@ -59,7 +61,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @NodeChild("value")
 public abstract class WriteMIMEStringNode extends FormatNode {
 
-    private final int length;
+    final int length;
 
     public WriteMIMEStringNode(int length) {
         this.length = length;
@@ -70,20 +72,22 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
-    Object write(VirtualFrame frame, Object string,
+    @Specialization(guards = "libString.isRubyString(node, string)", limit = "1")
+    static Object write(VirtualFrame frame, Object string,
+            @Bind("this") Node node,
+            @Bind("length") int boundLength,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
-        var tstring = libString.getTString(string);
-        var encoding = libString.getTEncoding(string);
+        var tstring = libString.getTString(node, string);
+        var encoding = libString.getTEncoding(node, string);
 
-        writeBytes(frame, encode(byteArrayNode.execute(tstring, encoding)));
+        writeBytes(frame, encode(byteArrayNode.execute(tstring, encoding), boundLength));
 
         return null;
     }
 
     @TruffleBoundary
-    private byte[] encode(InternalByteArray byteArray) {
+    private static byte[] encode(InternalByteArray byteArray, int length) {
         // TODO CS 30-Mar-15 should write our own optimizable version of MIME
 
         final ByteArrayBuilder output = new ByteArrayBuilder();

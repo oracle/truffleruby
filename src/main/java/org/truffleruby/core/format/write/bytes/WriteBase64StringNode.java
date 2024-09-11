@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.collections.ByteArrayBuilder;
@@ -32,12 +34,13 @@ public abstract class WriteBase64StringNode extends FormatNode {
         this.ignoreStar = ignoreStar;
     }
 
-    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+    @Specialization
     Object write(VirtualFrame frame, Object string,
+            @Bind("this") Node node,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
-        var tstring = libString.getTString(string);
-        var encoding = libString.getTEncoding(string);
+        var tstring = libString.getTString(node, string);
+        var encoding = libString.getTEncoding(node, string);
 
         writeBytes(frame, encode(byteArrayNode.execute(tstring, encoding)));
 

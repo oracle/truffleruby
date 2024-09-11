@@ -282,7 +282,8 @@ public class CoreModuleChecks {
         for (String guard : guards) {
             if (guard.equals("wasProvided(" + name + ")") ||
                     guard.equals("wasNotProvided(" + name + ")") ||
-                    (!guard.startsWith("!") && guard.endsWith(".isRubyString(" + name + ")"))) {
+                    (!guard.startsWith("!") && (guard.endsWith(".isRubyString(this, " + name + ")") ||
+                            guard.endsWith(".isRubyString(node, " + name + ")")))) {
                 return true;
             }
         }

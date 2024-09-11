@@ -10,6 +10,7 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
@@ -77,14 +78,15 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(string)", limit = "1")
-        RubyByteArray prepend(RubyByteArray byteArray, Object string,
+        @Specialization(guards = "strings.isRubyString(node, string)", limit = "1")
+        static RubyByteArray prepend(RubyByteArray byteArray, Object string,
+                @Bind("this") Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             final byte[] bytes = byteArray.bytes;
 
-            var tstring = strings.getTString(string);
-            var encoding = strings.getTEncoding(string);
+            var tstring = strings.getTString(node, string);
+            var encoding = strings.getTEncoding(node, string);
 
             final int prependLength = tstring.byteLength(encoding);
             final int originalLength = bytes.length;
@@ -95,11 +97,11 @@ public abstract class ByteArrayNodes {
             System.arraycopy(bytes, 0, prependedBytes, prependLength, originalLength);
 
             final RubyByteArray instance = new RubyByteArray(
-                    coreLibrary().byteArrayClass,
-                    getLanguage().byteArrayShape,
+                    coreLibrary(node).byteArrayClass,
+                    getLanguage(node).byteArrayShape,
                     prependedBytes);
 
-            AllocationTracing.trace(instance, this);
+            AllocationTracing.trace(instance, node);
             return instance;
         }
 
@@ -131,7 +133,7 @@ public abstract class ByteArrayNodes {
                 @Cached RubyStringLibrary libString,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             var tstring = source.tstring;
-            var encoding = libString.getTEncoding(source);
+            var encoding = libString.getTEncoding(this, source);
             copyToByteArrayNode.execute(tstring, srcStart, destByteArray.bytes, dstStart, length, encoding);
             return source;
         }
@@ -161,8 +163,8 @@ public abstract class ByteArrayNodes {
                 @Cached InlinedBranchProfile tooSmallStartProfile,
                 @Cached InlinedBranchProfile tooLargeStartProfile,
                 @Cached @Shared RubyStringLibrary libPattern,
-                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
-                @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
+                @Bind("libPattern.getTString(this, pattern)") AbstractTruffleString patternTString,
+                @Bind("libPattern.getTEncoding(this, pattern)") TruffleString.Encoding patternEncoding) {
 
             byte[] bytes = byteArray.bytes;
             int searchByte = readByteNode.execute(patternTString, 0, patternEncoding);
@@ -189,8 +191,8 @@ public abstract class ByteArrayNodes {
                 @Cached InlinedConditionProfile noCopyProfile,
                 @Cached InlinedConditionProfile notFoundProfile,
                 @Cached @Shared RubyStringLibrary libPattern,
-                @Bind("libPattern.getTString(pattern)") AbstractTruffleString patternTString,
-                @Bind("libPattern.getTEncoding(pattern)") TruffleString.Encoding patternEncoding) {
+                @Bind("libPattern.getTString(this, pattern)") AbstractTruffleString patternTString,
+                @Bind("libPattern.getTEncoding(this, pattern)") TruffleString.Encoding patternEncoding) {
             // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils.indexOfWithOrMask does not accept an offset or length for the needle.
             // Another possibility would be to create a MutableTruffleString for the RubyByteArray and use ByteIndexOfStringNode, but that would force computation of the coderange of the byte[]
             final byte[] patternBytes = TStringUtils.getBytesOrCopy(this, patternTString, patternEncoding,

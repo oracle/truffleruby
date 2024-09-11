@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -68,26 +69,25 @@ public abstract class RegexpNodes {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
 
-        @SuppressWarnings("truffle-static-method")
         @Specialization(
                 guards = {
-                        "libString.isRubyString(raw)",
+                        "libString.isRubyString(this, raw)",
                         "equalNode.execute(node, libString, raw, cachedString, cachedEnc)" },
                 limit = "getDefaultCacheLimit()")
-        RubyString quoteStringCached(Object raw,
-                @Cached @Shared RubyStringLibrary libString,
+        static RubyString quoteStringCached(Object raw,
+                @Cached @Exclusive RubyStringLibrary libString,
                 @Cached("asTruffleStringUncached(raw)") TruffleString cachedString,
-                @Cached("libString.getEncoding(raw)") RubyEncoding cachedEnc,
+                @Cached("libString.getEncoding(this, raw)") RubyEncoding cachedEnc,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
-                @Bind("this") Node node,
-                @Cached("quote(libString, raw)") TStringWithEncoding quotedString) {
-            return createString(quotedString);
+                @Cached("quote(this, libString, raw)") TStringWithEncoding quotedString,
+                @Bind("this") Node node) {
+            return createString(node, quotedString);
         }
 
-        @Specialization(replaces = "quoteStringCached", guards = "libString.isRubyString(raw)")
+        @Specialization(replaces = "quoteStringCached", guards = "libString.isRubyString(this, raw)", limit = "1")
         RubyString quoteString(Object raw,
-                @Cached @Shared RubyStringLibrary libString) {
-            return createString(quote(libString, raw));
+                @Cached @Exclusive RubyStringLibrary libString) {
+            return createString(quote(this, libString, raw));
         }
 
         @Specialization(guards = "raw == cachedSymbol", limit = "getDefaultCacheLimit()")
@@ -102,17 +102,17 @@ public abstract class RegexpNodes {
             return createString(quote(raw));
         }
 
-        @Specialization(guards = { "!libString.isRubyString(raw)", "!isRubySymbol(raw)" })
+        @Specialization(guards = { "!libString.isRubyString(this, raw)", "!isRubySymbol(raw)" }, limit = "1")
         static RubyString quoteGeneric(Object raw,
-                @Cached @Shared RubyStringLibrary libString,
+                @Cached @Exclusive RubyStringLibrary libString,
                 @Cached ToStrNode toStrNode,
                 @Cached QuoteNode recursive,
                 @Bind("this") Node node) {
             return recursive.execute(toStrNode.execute(node, raw));
         }
 
-        TStringWithEncoding quote(RubyStringLibrary strings, Object string) {
-            return ClassicRegexp.quote19(new ATStringWithEncoding(strings, string));
+        TStringWithEncoding quote(Node node, RubyStringLibrary strings, Object string) {
+            return ClassicRegexp.quote19(new ATStringWithEncoding(node, strings, string));
         }
 
         TStringWithEncoding quote(RubySymbol symbol) {
@@ -215,15 +215,14 @@ public abstract class RegexpNodes {
 
         @Specialization(
                 guards = {
-                        "libPattern.isRubyString(pattern)",
                         "patternEqualNode.execute(node, libPattern, pattern, cachedPattern, cachedPatternEnc)",
                         "options == cachedOptions" },
                 limit = "getDefaultCacheLimit()")
         static RubyRegexp fastCompiling(Object pattern, int options,
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
-                @Cached @Shared RubyStringLibrary libPattern,
+                @Cached @Exclusive RubyStringLibrary libPattern,
                 @Cached("asTruffleStringUncached(pattern)") TruffleString cachedPattern,
-                @Cached("libPattern.getEncoding(pattern)") RubyEncoding cachedPatternEnc,
+                @Cached("libPattern.getEncoding(this, pattern)") RubyEncoding cachedPatternEnc,
                 @Cached("options") int cachedOptions,
                 @Cached StringHelperNodes.EqualSameEncodingNode patternEqualNode,
                 @Bind("this") Node node,
@@ -231,24 +230,24 @@ public abstract class RegexpNodes {
             return regexp;
         }
 
-        @Specialization(replaces = "fastCompiling", guards = "libPattern.isRubyString(pattern)")
+        @Specialization(replaces = "fastCompiling")
         RubyRegexp slowCompiling(Object pattern, int options,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
-                @Cached @Shared RubyStringLibrary libPattern,
+                @Cached @Exclusive RubyStringLibrary libPattern,
                 @Cached PerformanceWarningNode performanceWarningNode) {
             performanceWarningNode.warn(
                     "unbounded creation of regexps causes deoptimization loops which hurt performance significantly, avoid creating regexps dynamically where possible or cache them to fix this");
             return compile(pattern, options, this, libPattern, asTruffleStringNode, errorProfile);
         }
 
-        public RubyRegexp compile(Object pattern, int options, Node node, RubyStringLibrary libPattern,
+        static RubyRegexp compile(Object pattern, int options, Node node, RubyStringLibrary libPattern,
                 TruffleString.AsTruffleStringNode asTruffleStringNode, InlinedBranchProfile errorProfile) {
-            var encoding = libPattern.getEncoding(pattern);
+            var encoding = libPattern.getEncoding(node, pattern);
             try {
                 return RubyRegexp.create(
                         getLanguage(node),
-                        asTruffleStringNode.execute(libPattern.getTString(pattern), encoding.tencoding),
+                        asTruffleStringNode.execute(libPattern.getTString(node, pattern), encoding.tencoding),
                         encoding,
                         RegexpOptions.fromEmbeddedOptions(options),
                         node);

@@ -49,6 +49,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
     public final boolean isUnicode;
 
     public RubyEncoding(Encoding jcoding, ImmutableRubyString name, int index) {
+        assert index >= 0;
         assert name.getEncodingUncached() == Encodings.US_ASCII;
         this.jcoding = Objects.requireNonNull(jcoding);
 

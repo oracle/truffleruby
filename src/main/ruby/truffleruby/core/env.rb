@@ -83,6 +83,7 @@ class << ENV
   end
 
   def delete(key)
+    key = StringValue(key)
     existing_value = lookup(key)
     if existing_value
       Truffle::POSIX.unsetenv(key)

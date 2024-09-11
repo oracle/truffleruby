@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.thread;
 
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -53,9 +54,9 @@ public abstract class ThreadBacktraceLocationNodes {
         }
 
         @TruffleBoundary
-        public static Object getAbsolutePath(SourceSection sourceSection, RubyBaseNode node) {
-            var context = node.getContext();
-            var language = node.getLanguage();
+        public static Object getAbsolutePath(SourceSection sourceSection, Node node) {
+            var context = RubyContext.get(node);
+            var language = RubyLanguage.get(node);
 
             if (sourceSection == null) {
                 return language.coreStrings.UNKNOWN.createInstance(context);
@@ -68,10 +69,10 @@ public abstract class ThreadBacktraceLocationNodes {
                     final String canonicalPath = context.getFeatureLoader().canonicalize(path, source);
                     var cachedTString = language.tstringCache.getTString(TStringUtils.utf8TString(canonicalPath),
                             Encodings.UTF_8);
-                    return node.createString(cachedTString, Encodings.UTF_8);
+                    return createString(node, cachedTString, Encodings.UTF_8);
                 } else { // eval()
                     var cachedPath = language.getPathToTStringCache().getCachedPath(source);
-                    return node.createString(cachedPath, Encodings.UTF_8);
+                    return createString(node, cachedPath, Encodings.UTF_8);
                 }
             }
         }

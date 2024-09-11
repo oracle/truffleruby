@@ -104,11 +104,10 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     public static String messageFieldToString(RubyException exception) {
         Object message = exception.message;
-        RubyStringLibrary strings = RubyStringLibrary.getUncached();
         if (message == null || message == Nil.INSTANCE) {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
-        } else if (strings.isRubyString(message)) {
+        } else if (RubyStringLibrary.isRubyStringUncached(message)) {
             return RubyGuards.getJavaString(message);
         } else {
             return message.toString();
@@ -123,7 +122,7 @@ public abstract class ExceptionOperations {
         } catch (RaiseException e) {
             // Fall back to the internal message field
         }
-        if (messageObject != null && RubyStringLibrary.getUncached().isRubyString(messageObject)) {
+        if (messageObject != null && RubyStringLibrary.isRubyStringUncached(messageObject)) {
             return RubyGuards.getJavaString(messageObject);
         } else {
             return messageFieldToString(exception);

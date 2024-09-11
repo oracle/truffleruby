@@ -49,7 +49,7 @@ public abstract class ToSNode extends RubyBaseNodeWithExecute {
             @Cached RubyStringLibrary libString) {
         final Object value = callToSNode.callWithFrame(frame, object, "to_s");
 
-        if (libString.isRubyString(value)) {
+        if (libString.isRubyString(this, value)) {
             return value;
         } else {
             return kernelToS(object);

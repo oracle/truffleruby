@@ -35,7 +35,7 @@ public abstract class TrufflePosixNodes {
     public abstract static class InvalidateEnvNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "libEnvVar.isRubyString(envVar)", limit = "1")
+        @Specialization(guards = "libEnvVar.isRubyString(this, envVar)", limit = "1")
         Object invalidate(Object envVar,
                 @Cached RubyStringLibrary libEnvVar) {
             invalidateENV(RubyGuards.getJavaString(envVar));

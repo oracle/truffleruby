@@ -321,8 +321,8 @@ public abstract class BasicObjectNodes {
                     node,
                     callerFrame.materialize(),
                     self,
-                    strings.getTString(sourceCode),
-                    strings.getEncoding(sourceCode),
+                    strings.getTString(node, sourceCode),
+                    strings.getEncoding(node, sourceCode),
                     fileName,
                     line,
                     callNode);

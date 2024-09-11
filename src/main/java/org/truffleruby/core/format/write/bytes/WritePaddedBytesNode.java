@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
+import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -37,8 +39,9 @@ public abstract class WritePaddedBytesNode extends FormatNode {
         this.leftJustified = leftJustified;
     }
 
-    @Specialization(guards = "libString.isRubyString(string)", limit = "1")
+    @Specialization
     Object write(VirtualFrame frame, int padding, int precision, Object string,
+            @Bind("this") Node node,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.CodePointLengthNode codePointLengthNode,
             @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
@@ -47,8 +50,8 @@ public abstract class WritePaddedBytesNode extends FormatNode {
             padding = 0;
         }
 
-        var tstring = libString.getTString(string);
-        var encoding = libString.getEncoding(string);
+        var tstring = libString.getTString(node, string);
+        var encoding = libString.getEncoding(node, string);
         if (leftJustifiedProfile.profile(leftJustified || padding < 0)) {
             writeStringBytes(frame, precision, tstring, encoding, codePointIndexToByteIndexNode, byteArrayNode);
             writePaddingBytes(frame, Math.abs(padding), precision, tstring, encoding, codePointLengthNode);

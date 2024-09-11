@@ -769,8 +769,7 @@ public abstract class RubyDateFormatter {
     }
 
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
-        RubyStringLibrary strings = RubyStringLibrary.getUncached();
-        if (strings.isRubyString(zone)) {
+        if (RubyStringLibrary.isRubyStringUncached(zone)) {
             return RubyGuards.getJavaString(zone);
         } else {
             return "";

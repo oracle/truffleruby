@@ -40,7 +40,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
         return NameToJavaStringNodeGen.getUncached().execute(null, name);
     }
 
-    @Specialization(guards = "libString.isRubyString(value)", limit = "1")
+    @Specialization(guards = "libString.isRubyString(this, value)", limit = "1")
     static String stringNameToJavaString(Node node, Object value,
             @Cached @Exclusive RubyStringLibrary libString,
             @Cached @Shared ToJavaStringNode toJavaStringNode) {
@@ -78,7 +78,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
             }
         }
 
-        if (libString.isRubyString(coerced)) {
+        if (libString.isRubyString(node, coerced)) {
             return toJavaStringNode.execute(node, coerced);
         } else {
             errorProfile.enter(node);

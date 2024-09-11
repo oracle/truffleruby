@@ -77,7 +77,7 @@ public abstract class ReadlineNodes {
     public abstract static class SetBasicWordBreakCharactersNode extends CoreMethodNode {
 
         @TruffleBoundary
-        @Specialization(guards = "strings.isRubyString(charactersAsString)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, charactersAsString)", limit = "1")
         static Object setBasicWordBreakCharacters(Object characters,
                 @Cached ToStrNode toStrNode,
                 @Cached RubyStringLibrary strings,

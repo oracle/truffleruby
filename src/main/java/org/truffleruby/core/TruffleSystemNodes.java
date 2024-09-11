@@ -100,7 +100,7 @@ public abstract class TruffleSystemNodes {
     @Primitive(name = "java_get_env")
     public abstract static class JavaGetEnv extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(name)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, name)", limit = "1")
         static Object javaGetEnv(Object name,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -128,7 +128,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class SetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "stringsDir.isRubyString(dir)", limit = "1")
+        @Specialization(guards = "stringsDir.isRubyString(this, dir)", limit = "1")
         Object setTruffleWorkingDir(Object dir,
                 @Cached RubyStringLibrary stringsDir) {
             TruffleFile truffleFile = getContext()
@@ -182,7 +182,7 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "get_java_property", onSingleton = true, required = 1)
     public abstract static class GetJavaPropertyNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "strings.isRubyString(property)", limit = "1")
+        @Specialization(guards = "strings.isRubyString(this, property)", limit = "1")
         static Object getJavaProperty(Object property,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,

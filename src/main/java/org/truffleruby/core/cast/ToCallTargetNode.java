@@ -54,7 +54,7 @@ public abstract class ToCallTargetNode extends RubyBaseNode {
     @Specialization
     static RootCallTarget string(Node node, Object string) {
         var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(string),
-                RubyStringLibrary.getUncached().getEncoding(string));
+                RubyStringLibrary.getEncodingUncached(string));
         Source source = Source.newBuilder("ruby", new ByteBasedCharSequence(code), "<parse_ast>").build();
         TranslatorEnvironment.resetTemporaryVariablesIndex();
         var parserContext = ParserContext.TOP_LEVEL;

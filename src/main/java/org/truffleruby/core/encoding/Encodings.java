@@ -13,7 +13,9 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Idempotent;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.jcodings.Encoding;
 import org.graalvm.shadowed.org.jcodings.EncodingDB;
@@ -55,6 +57,18 @@ public final class Encodings {
     public static final RubyEncoding UTF32_DUMMY = getBuiltInEncoding(
             EncodingDB.getEncodings().get(StringOperations.encodeAsciiBytes("UTF-32")).getEncoding());
 
+    @CompilationFinal(dimensions = 1) public static final RubyEncoding[] STANDARD_ENCODINGS = new RubyEncoding[3];
+    static {
+        if (Encodings.BINARY.index >= 3 || Encodings.UTF_8.index >= 3 || Encodings.US_ASCII.index >= 3) {
+            throw new Error("Expected standard encoding indices to be 0, 1 or 2");
+        }
+
+        STANDARD_ENCODINGS[BINARY.index] = BINARY;
+        STANDARD_ENCODINGS[UTF_8.index] = UTF_8;
+        STANDARD_ENCODINGS[US_ASCII.index] = US_ASCII;
+    }
+    public static final int NUMBER_OF_STANDARD_ENCODINGS = STANDARD_ENCODINGS.length;
+
     /** On Linux and macOS the filesystem encoding is always UTF-8 */
     public static final RubyEncoding FILESYSTEM = UTF_8;
     public static final Charset FILESYSTEM_CHARSET = StandardCharsets.UTF_8;
@@ -62,6 +76,14 @@ public final class Encodings {
     static final Encoding DUMMY_ENCODING_BASE = createDummyEncoding();
 
     public Encodings() {
+    }
+
+    /** Indicates whether the encoding is one of the runtime-default encodings. Many (most?) applications do not
+     * override the default encodings and as such, this set of encodings is used very frequently in real-world Ruby
+     * applications. */
+    @Idempotent
+    public static boolean isStandardEncoding(RubyEncoding encoding) {
+        return encoding.index < STANDARD_ENCODINGS.length;
     }
 
     private static int getUsAsciiIndex() {
