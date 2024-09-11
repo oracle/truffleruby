@@ -425,14 +425,14 @@ public final class FiberManager {
                 builder.append(" (root)");
             }
 
-            if (fiber.isActive()) {
+            if (fiber == rubyThread.getCurrentFiberRacy()) {
                 builder.append(" (current)");
             }
 
             builder.append("\n");
         }
 
-        if (builder.length() == 0) {
+        if (builder.isEmpty()) {
             return "  no fibers\n";
         } else {
             return builder.toString();
