@@ -76,10 +76,11 @@ jobs:
         mv "$(jt -u jvm ruby-home)" "${{ github.workspace }}/truffleruby-jvm"
         cd ${{ github.workspace }}
         tar cf ${{ github.workspace }}/truffleruby-jvm.tar truffleruby-jvm
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: truffleruby-jvm
         path: ${{ github.workspace }}/truffleruby-jvm.tar
+        include-hidden-files: true
 
   build_native:
     name: build native
@@ -118,10 +119,11 @@ jobs:
           mv "$(jt -u native ruby-home)" "${{ github.workspace }}/truffleruby-native"
           cd ${{ github.workspace }}
           tar cf ${{ github.workspace }}/truffleruby-native.tar truffleruby-native
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: truffleruby-native
           path: ${{ github.workspace }}/truffleruby-native.tar
+          include-hidden-files: true
 
   fast_specs:
     name: fast specs
@@ -135,7 +137,7 @@ jobs:
     - name: Setup jt
       run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: truffleruby-jvm
     - uses: ./.github/actions/setup-truffleruby
@@ -162,7 +164,7 @@ jobs:
       - name: Setup jt
         run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: truffleruby-jvm
       - uses: ./.github/actions/setup-truffleruby
@@ -181,7 +183,7 @@ jobs:
       - name: Setup jt
         run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: truffleruby-jvm
       - uses: ./.github/actions/setup-truffleruby
@@ -200,7 +202,7 @@ jobs:
       - name: Setup jt
         run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: truffleruby-native
       - uses: ./.github/actions/setup-truffleruby
@@ -226,7 +228,7 @@ jobs:
       - name: Setup jt
         run: echo "SYSTEM_RUBY=$(which ruby)" >> $GITHUB_ENV && echo "$PWD/bin" >> $GITHUB_PATH
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: truffleruby-native
       - uses: ./.github/actions/setup-truffleruby
