@@ -73,10 +73,21 @@ def exclude_test!(class_name, test_method, error_display, platform = nil)
 end
 
 # If we have an exception escape the interpreter, it will have caused the TruffleRuby process to abort. The test
-# results will likely be truncate. We'll attempt to figure out what test was running when the exception occurred
+# results will likely be truncated. We'll attempt to figure out what test was running when the exception occurred
 # and tag it. Then we'll let the caller know that they should retry tagging by exiting with a particular status code.
-t = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\n.*?```\n(.*?\n.*?)\n/m
-contents.scan(t) do |class_name, test_method, exception_message|
+
+# Sample:
+#
+# [101/125] TestM17N#test_string_inspect_encoding
+# truffleruby: an internal exception escaped out of the interpreter,
+# please report it to https://github.com/oracle/truffleruby/issues
+#
+# ```
+# <no message> (java.lang.AssertionError)
+# 	from org.truffleruby.core.string.StringNodes$CharacterPrintablePrimitiveNode.isCharacterPrintable(StringNodes.java:3102)
+ESCAPED_EXCEPTION = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\n.*?```\n(.*?\n.*?)\n/m
+
+contents.scan(ESCAPED_EXCEPTION) do |class_name, test_method, exception_message|
   exclude_test!(class_name, test_method, exception_message.sub(/\n\s+/, ' '))
 
   exit 2
@@ -85,8 +96,8 @@ end
 # In rare cases a bug in TruffleRuby or GraalVM can result in the process crashing. We'll attempt to parse out the
 # signal type and the problematic frame to write the exclusion message, and then retry tagging so any other tests
 # have the opportunity to run.
-t = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\s*#\n# A fatal error has been detected.*?(?:\n#)+\s+(SIG\w+).*?Problematic frame:\n#\s+(.+?)\n/m
-contents.scan(t) do |class_name, test_method, error_type, source|
+JVM_CRASH = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\s*#\n# A fatal error has been detected.*?(?:\n#)+\s+(SIG\w+).*?Problematic frame:\n#\s+(.+?)\n/m
+contents.scan(JVM_CRASH) do |class_name, test_method, error_type, source|
   exclude_test!(class_name, test_method, "JVM crash; #{error_type}: #{source}")
 
   exit 2
@@ -95,15 +106,14 @@ end
 # If we're running a test that relies on a C symbol we haven't implemented, the process will exit informing us that
 # the symbol was undefined. We want to parse that out, tag the associated test, and then retry tagging so any other
 # tests have the opportunity to run.
-#
-# Sample input(s):
-#
-# [19/21] TestSH#test_strftimetest/mri/tests/runner.rb: TestSH#test_strftime: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/lib/mri/date_core.so: undefined symbol: rb_str_format
-#
-# [1/3] TestBignum_Big2str#test_big2str_generictest/mri/tests/runner.rb: TestBignum_Big2str#test_big2str_generic: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/bignum.so: undefined symbol: rb_big2str_generic
 
-t = / ((?:\w+::)*\w+)#(\w+): symbol lookup error.*? undefined symbol: (\w+)/
-contents.scan(t) do |class_name, test_method, missing_symbol|
+
+# Samples:
+# [19/21] TestSH#test_strftimetest/mri/tests/runner.rb: TestSH#test_strftime: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/lib/mri/date_core.so: undefined symbol: rb_str_format
+# [1/3] TestBignum_Big2str#test_big2str_generictest/mri/tests/runner.rb: TestBignum_Big2str#test_big2str_generic: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/bignum.so: undefined symbol: rb_big2str_generic
+MISSING_SYMBOL = / ((?:\w+::)*\w+)#(\w+): symbol lookup error.*? undefined symbol: (\w+)/
+
+contents.scan(MISSING_SYMBOL) do |class_name, test_method, missing_symbol|
   exclude_test!(class_name, test_method, "undefined symbol: #{missing_symbol}")
 
   exit 2
@@ -117,13 +127,11 @@ end
 # method name with no space between them. Additionally, the method name isn't printed twice as it is when the runner
 # path is printed, so we're forced to have to extract the method name that's joined to the interpreter path3.
 # Fortunately, the path is absolute so we do have a delimiter character we can use.
-#
-# Sample input(s):
-#
-# [1/4] TestThreadInstrumentation#test_join_counters/home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/bin/ruby: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/thread/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook
 
-t = / ((?:\w+::)*\w+)#(\w+?)(?:\/.*?)?: symbol lookup error.*? undefined symbol: (\w+)/
-contents.scan(t) do |class_name, test_method, missing_symbol|
+# Sample:  [1/4] TestThreadInstrumentation#test_join_counters/home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/bin/ruby: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/thread/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook
+SYMBOL_LOOKUP_ERROR = / ((?:\w+::)*\w+)#(\w+?)(?:\/.*?)?: symbol lookup error.*? undefined symbol: (\w+)/
+
+contents.scan(SYMBOL_LOOKUP_ERROR) do |class_name, test_method, missing_symbol|
   exclude_test!(class_name, test_method, "undefined symbol: #{missing_symbol}")
 
   exit 2
@@ -132,20 +140,18 @@ end
 # We've observed on macOS that encountering undefined symbols presents yet another format to parse. Unfortunately, in
 # this situation the message may not include what the symbol is. But, we can still extract the error message and tag
 # the test for reprocessing.
-#
-# Sample input(s):
-#
-# [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
 
-t = / ((?:\w+::)*\w+)#(\w+?)dyld\[\d+\]: (.*)/
-contents.scan(t) do |class_name, test_method, dyld_message|
+# Sample: [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
+DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#(\w+?)dyld\[\d+\]: (.*)/
+
+contents.scan(DYLD_MISSING_SYMBOL) do |class_name, test_method, dyld_message|
   exclude_test!(class_name, test_method, "dyld: #{dyld_message}", 'darwin')
 
   exit 2
 end
 
-t = /^\s+\d+\) (Error|Failure|Timeout):\n((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:?\n(.*?)\n$/m
-contents.scan(t) do |error_type, class_name, test_method, error|
+TEST_FAILURE = /^\s+\d+\) (Error|Failure|Timeout):\n((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:?\n(.*?)\n$/m
+contents.scan(TEST_FAILURE) do |error_type, class_name, test_method, error|
   if error_type == 'Timeout'
     exclude_test!(class_name, test_method, "retain-on-retag; test timed out")
     next
@@ -216,8 +222,10 @@ end
 
 test_ruby_version = contents.match(/ruby -v: (.*)/)[1].strip
 
-t = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(.+?) = (\d+\.\d+) s/
-contents.scan(t) do |class_name, test_method, execution_time|
+# Sample: [ 6/39] TestSocket_UNIXSocket#test_addr = 0.02 s
+TEST_EXECUTION_TIME = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(.+?) = (\d+\.\d+) s/
+
+contents.scan(TEST_EXECUTION_TIME) do |class_name, test_method, execution_time|
   if execution_time.to_f > SLOW_TEST_THRESHOLD
     prefix =  execution_time.to_f > VERY_SLOW_TEST_THRESHOLD ? "very slow" : "slow"
     message = "#{prefix}: #{execution_time}s on #{test_ruby_version} with #{platform_info}"
