@@ -40,6 +40,23 @@ typedef struct pm_options_scope {
     pm_string_t *locals;
 } pm_options_scope_t;
 
+// Forward declaration needed by the callback typedef.
+struct pm_options;
+
+/**
+ * The callback called when additional switches are found in a shebang comment
+ * that need to be processed by the runtime.
+ *
+ * @param options The options struct that may be updated by this callback.
+ *   Certain fields will be checked for changes, specifically encoding,
+ *   command_line, and frozen_string_literal.
+ * @param source The source of the shebang comment.
+ * @param length The length of the source.
+ * @param shebang_callback_data Any additional data that should be passed along
+ *   to the callback.
+ */
+typedef void (*pm_options_shebang_callback_t)(struct pm_options *options, const uint8_t *source, size_t length, void *shebang_callback_data);
+
 /**
  * The version of Ruby syntax that we should be parsing with. This is used to
  * allow consumers to specify which behavior they want in case they need to
@@ -56,7 +73,19 @@ typedef enum {
 /**
  * The options that can be passed to the parser.
  */
-typedef struct {
+typedef struct pm_options {
+    /**
+     * The callback to call when additional switches are found in a shebang
+     * comment.
+     */
+    pm_options_shebang_callback_t shebang_callback;
+
+    /**
+     * Any additional data that should be passed along to the shebang callback
+     * if one was set.
+     */
+    void *shebang_callback_data;
+
     /** The name of the file that is currently being parsed. */
     pm_string_t filepath;
 
@@ -103,6 +132,13 @@ typedef struct {
     *  - PM_OPTIONS_FROZEN_STRING_LITERAL_UNSET
     */
     int8_t frozen_string_literal;
+
+    /**
+     * Whether or not the encoding magic comments should be respected. This is a
+     * niche use-case where you want to parse a file with a specific encoding
+     * but ignore any encoding magic comments at the top of the file.
+     */
+    bool encoding_locked;
 } pm_options_t;
 
 /**
@@ -143,6 +179,16 @@ static const uint8_t PM_OPTIONS_COMMAND_LINE_P = 0x10;
 static const uint8_t PM_OPTIONS_COMMAND_LINE_X = 0x20;
 
 /**
+ * Set the shebang callback option on the given options struct.
+ *
+ * @param options The options struct to set the shebang callback on.
+ * @param shebang_callback The shebang callback to set.
+ * @param shebang_callback_data Any additional data that should be passed along
+ *   to the callback.
+ */
+PRISM_EXPORTED_FUNCTION void pm_options_shebang_callback_set(pm_options_t *options, pm_options_shebang_callback_t shebang_callback, void *shebang_callback_data);
+
+/**
  * Set the filepath option on the given options struct.
  *
  * @param options The options struct to set the filepath on.
@@ -165,6 +211,14 @@ PRISM_EXPORTED_FUNCTION void pm_options_line_set(pm_options_t *options, int32_t 
  * @param encoding The encoding to set.
  */
 PRISM_EXPORTED_FUNCTION void pm_options_encoding_set(pm_options_t *options, const char *encoding);
+
+/**
+ * Set the encoding_locked option on the given options struct.
+ *
+ * @param options The options struct to set the encoding_locked value on.
+ * @param encoding_locked The encoding_locked value to set.
+ */
+PRISM_EXPORTED_FUNCTION void pm_options_encoding_locked_set(pm_options_t *options, bool encoding_locked);
 
 /**
  * Set the frozen string literal option on the given options struct.
