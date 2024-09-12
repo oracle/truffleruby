@@ -2580,7 +2580,7 @@ module Commands
     if args.empty?
       args = %w[--dy /substratevm,/tools,/vm]
     end
-    mx(*args, 'intellijinit')
+    mx(*args, 'intellijinit', '--import-inner-classes')
   end
 
   def command_format(changed_java_files = nil)
