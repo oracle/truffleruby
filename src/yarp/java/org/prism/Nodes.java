@@ -148,13 +148,13 @@ public abstract class Nodes {
     public static final class ArgumentsNodeFlags implements Comparable<ArgumentsNodeFlags> {
 
         // if arguments contain keywords
-        public static final short CONTAINS_KEYWORDS = 1 << 0;
+        public static final short CONTAINS_KEYWORDS = 1 << 2;
 
         // if arguments contain keyword splat
-        public static final short CONTAINS_KEYWORD_SPLAT = 1 << 1;
+        public static final short CONTAINS_KEYWORD_SPLAT = 1 << 3;
 
         // if arguments contain splat
-        public static final short CONTAINS_SPLAT = 1 << 2;
+        public static final short CONTAINS_SPLAT = 1 << 4;
 
         public static boolean isContainsKeywords(short flags) {
             return (flags & CONTAINS_KEYWORDS) != 0;
@@ -213,7 +213,7 @@ public abstract class Nodes {
     public static final class ArrayNodeFlags implements Comparable<ArrayNodeFlags> {
 
         // if array contains splat nodes
-        public static final short CONTAINS_SPLAT = 1 << 0;
+        public static final short CONTAINS_SPLAT = 1 << 2;
 
         public static boolean isContainsSplat(short flags) {
             return (flags & CONTAINS_SPLAT) != 0;
@@ -256,16 +256,16 @@ public abstract class Nodes {
     public static final class CallNodeFlags implements Comparable<CallNodeFlags> {
 
         // &. operator
-        public static final short SAFE_NAVIGATION = 1 << 0;
+        public static final short SAFE_NAVIGATION = 1 << 2;
 
         // a call that could have been a local variable
-        public static final short VARIABLE_CALL = 1 << 1;
+        public static final short VARIABLE_CALL = 1 << 3;
 
         // a call that is an attribute write, so the value being written should be returned
-        public static final short ATTRIBUTE_WRITE = 1 << 2;
+        public static final short ATTRIBUTE_WRITE = 1 << 4;
 
         // a call that ignores method visibility
-        public static final short IGNORE_VISIBILITY = 1 << 3;
+        public static final short IGNORE_VISIBILITY = 1 << 5;
 
         public static boolean isSafeNavigation(short flags) {
             return (flags & SAFE_NAVIGATION) != 0;
@@ -332,10 +332,10 @@ public abstract class Nodes {
     public static final class EncodingFlags implements Comparable<EncodingFlags> {
 
         // internal bytes forced the encoding to UTF-8
-        public static final short FORCED_UTF8_ENCODING = 1 << 0;
+        public static final short FORCED_UTF8_ENCODING = 1 << 2;
 
         // internal bytes forced the encoding to binary
-        public static final short FORCED_BINARY_ENCODING = 1 << 1;
+        public static final short FORCED_BINARY_ENCODING = 1 << 3;
 
         public static boolean isForcedUtf8Encoding(short flags) {
             return (flags & FORCED_UTF8_ENCODING) != 0;
@@ -386,16 +386,16 @@ public abstract class Nodes {
     public static final class IntegerBaseFlags implements Comparable<IntegerBaseFlags> {
 
         // 0b prefix
-        public static final short BINARY = 1 << 0;
+        public static final short BINARY = 1 << 2;
 
         // 0d or no prefix
-        public static final short DECIMAL = 1 << 1;
+        public static final short DECIMAL = 1 << 3;
 
         // 0o or 0 prefix
-        public static final short OCTAL = 1 << 2;
+        public static final short OCTAL = 1 << 4;
 
         // 0x prefix
-        public static final short HEXADECIMAL = 1 << 3;
+        public static final short HEXADECIMAL = 1 << 5;
 
         public static boolean isBinary(short flags) {
             return (flags & BINARY) != 0;
@@ -462,10 +462,10 @@ public abstract class Nodes {
     public static final class InterpolatedStringNodeFlags implements Comparable<InterpolatedStringNodeFlags> {
 
         // frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'`
-        public static final short FROZEN = 1 << 0;
+        public static final short FROZEN = 1 << 2;
 
         // mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`; only for adjacent string literals like `'a' 'b'`
-        public static final short MUTABLE = 1 << 1;
+        public static final short MUTABLE = 1 << 3;
 
         public static boolean isFrozen(short flags) {
             return (flags & FROZEN) != 0;
@@ -516,7 +516,7 @@ public abstract class Nodes {
     public static final class KeywordHashNodeFlags implements Comparable<KeywordHashNodeFlags> {
 
         // a keyword hash which only has `AssocNode` elements all with symbol keys, which means the elements can be treated as keyword arguments
-        public static final short SYMBOL_KEYS = 1 << 0;
+        public static final short SYMBOL_KEYS = 1 << 2;
 
         public static boolean isSymbolKeys(short flags) {
             return (flags & SYMBOL_KEYS) != 0;
@@ -559,7 +559,7 @@ public abstract class Nodes {
     public static final class LoopFlags implements Comparable<LoopFlags> {
 
         // a loop after a begin statement, so the body is executed first before the condition
-        public static final short BEGIN_MODIFIER = 1 << 0;
+        public static final short BEGIN_MODIFIER = 1 << 2;
 
         public static boolean isBeginModifier(short flags) {
             return (flags & BEGIN_MODIFIER) != 0;
@@ -602,7 +602,7 @@ public abstract class Nodes {
     public static final class ParameterFlags implements Comparable<ParameterFlags> {
 
         // a parameter name that has been repeated in the method signature
-        public static final short REPEATED_PARAMETER = 1 << 0;
+        public static final short REPEATED_PARAMETER = 1 << 2;
 
         public static boolean isRepeatedParameter(short flags) {
             return (flags & REPEATED_PARAMETER) != 0;
@@ -645,7 +645,7 @@ public abstract class Nodes {
     public static final class RangeFlags implements Comparable<RangeFlags> {
 
         // ... operator
-        public static final short EXCLUDE_END = 1 << 0;
+        public static final short EXCLUDE_END = 1 << 2;
 
         public static boolean isExcludeEnd(short flags) {
             return (flags & EXCLUDE_END) != 0;
@@ -688,37 +688,37 @@ public abstract class Nodes {
     public static final class RegularExpressionFlags implements Comparable<RegularExpressionFlags> {
 
         // i - ignores the case of characters when matching
-        public static final short IGNORE_CASE = 1 << 0;
+        public static final short IGNORE_CASE = 1 << 2;
 
         // x - ignores whitespace and allows comments in regular expressions
-        public static final short EXTENDED = 1 << 1;
+        public static final short EXTENDED = 1 << 3;
 
         // m - allows $ to match the end of lines within strings
-        public static final short MULTI_LINE = 1 << 2;
+        public static final short MULTI_LINE = 1 << 4;
 
         // o - only interpolates values into the regular expression once
-        public static final short ONCE = 1 << 3;
+        public static final short ONCE = 1 << 5;
 
         // e - forces the EUC-JP encoding
-        public static final short EUC_JP = 1 << 4;
+        public static final short EUC_JP = 1 << 6;
 
         // n - forces the ASCII-8BIT encoding
-        public static final short ASCII_8BIT = 1 << 5;
+        public static final short ASCII_8BIT = 1 << 7;
 
         // s - forces the Windows-31J encoding
-        public static final short WINDOWS_31J = 1 << 6;
+        public static final short WINDOWS_31J = 1 << 8;
 
         // u - forces the UTF-8 encoding
-        public static final short UTF_8 = 1 << 7;
+        public static final short UTF_8 = 1 << 9;
 
         // internal bytes forced the encoding to UTF-8
-        public static final short FORCED_UTF8_ENCODING = 1 << 8;
+        public static final short FORCED_UTF8_ENCODING = 1 << 10;
 
         // internal bytes forced the encoding to binary
-        public static final short FORCED_BINARY_ENCODING = 1 << 9;
+        public static final short FORCED_BINARY_ENCODING = 1 << 11;
 
         // internal bytes forced the encoding to US-ASCII
-        public static final short FORCED_US_ASCII_ENCODING = 1 << 10;
+        public static final short FORCED_US_ASCII_ENCODING = 1 << 12;
 
         public static boolean isIgnoreCase(short flags) {
             return (flags & IGNORE_CASE) != 0;
@@ -841,13 +841,13 @@ public abstract class Nodes {
     public static final class ShareableConstantNodeFlags implements Comparable<ShareableConstantNodeFlags> {
 
         // constant writes that should be modified with shareable constant value literal
-        public static final short LITERAL = 1 << 0;
+        public static final short LITERAL = 1 << 2;
 
         // constant writes that should be modified with shareable constant value experimental everything
-        public static final short EXPERIMENTAL_EVERYTHING = 1 << 1;
+        public static final short EXPERIMENTAL_EVERYTHING = 1 << 3;
 
         // constant writes that should be modified with shareable constant value experimental copy
-        public static final short EXPERIMENTAL_COPY = 1 << 2;
+        public static final short EXPERIMENTAL_COPY = 1 << 4;
 
         public static boolean isLiteral(short flags) {
             return (flags & LITERAL) != 0;
@@ -906,16 +906,16 @@ public abstract class Nodes {
     public static final class StringFlags implements Comparable<StringFlags> {
 
         // internal bytes forced the encoding to UTF-8
-        public static final short FORCED_UTF8_ENCODING = 1 << 0;
+        public static final short FORCED_UTF8_ENCODING = 1 << 2;
 
         // internal bytes forced the encoding to binary
-        public static final short FORCED_BINARY_ENCODING = 1 << 1;
+        public static final short FORCED_BINARY_ENCODING = 1 << 3;
 
         // frozen by virtue of a `frozen_string_literal: true` comment or `--enable-frozen-string-literal`
-        public static final short FROZEN = 1 << 2;
+        public static final short FROZEN = 1 << 4;
 
         // mutable by virtue of a `frozen_string_literal: false` comment or `--disable-frozen-string-literal`
-        public static final short MUTABLE = 1 << 3;
+        public static final short MUTABLE = 1 << 5;
 
         public static boolean isForcedUtf8Encoding(short flags) {
             return (flags & FORCED_UTF8_ENCODING) != 0;
@@ -982,13 +982,13 @@ public abstract class Nodes {
     public static final class SymbolFlags implements Comparable<SymbolFlags> {
 
         // internal bytes forced the encoding to UTF-8
-        public static final short FORCED_UTF8_ENCODING = 1 << 0;
+        public static final short FORCED_UTF8_ENCODING = 1 << 2;
 
         // internal bytes forced the encoding to binary
-        public static final short FORCED_BINARY_ENCODING = 1 << 1;
+        public static final short FORCED_BINARY_ENCODING = 1 << 3;
 
         // internal bytes forced the encoding to US-ASCII
-        public static final short FORCED_US_ASCII_ENCODING = 1 << 2;
+        public static final short FORCED_US_ASCII_ENCODING = 1 << 4;
 
         public static boolean isForcedUtf8Encoding(short flags) {
             return (flags & FORCED_UTF8_ENCODING) != 0;
