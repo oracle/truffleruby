@@ -8,6 +8,7 @@ Compatibility:
 
 * Fix `Module#include` so a module included into a reopened nested module is added into an ancestors chain (#3570, @andrykonchin).
 * Fix `Kernel#eval` to ignore shebang with non-Ruby interpreter (#3623, @andrykonchin).
+* Add `MAJOR`, `MINOR`, `TEENY`, `PATCHLEVEL`, `RUBY_API_VERSION`, and `RUBY_PROGRAM_VERSION` to `RbConfig::CONFIG` (#3396, @rwstauner).
 
 Performance:
 
