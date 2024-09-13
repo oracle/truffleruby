@@ -3235,8 +3235,8 @@ public class YARPTranslator extends YARPBaseTranslator {
 
     @Override
     public RubyNode visitShareableConstantNode(Nodes.ShareableConstantNode node) {
-        // is not implemented for now but the method is supposed to be overridden
-        throw fail(node);
+        // the shareable constants logic isn't supported yet, so treat shareable constants as regular
+        return node.write.accept(this);
     }
 
     @Override
