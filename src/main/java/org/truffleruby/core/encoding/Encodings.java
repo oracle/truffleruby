@@ -83,7 +83,7 @@ public final class Encodings {
      * applications. */
     @Idempotent
     public static boolean isStandardEncoding(RubyEncoding encoding) {
-        return encoding.index < STANDARD_ENCODINGS.length;
+        return encoding.index < NUMBER_OF_STANDARD_ENCODINGS;
     }
 
     private static int getUsAsciiIndex() {
