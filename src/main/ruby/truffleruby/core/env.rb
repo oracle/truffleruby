@@ -88,10 +88,10 @@ class << ENV
     if existing_value
       Truffle::POSIX.unsetenv(key)
       @variables.delete(key)
+      existing_value
     elsif block_given?
       yield key
     end
-    existing_value
   end
 
   def dup
@@ -294,20 +294,25 @@ class << ENV
     h
   end
 
-  def update(other)
-    return self if Primitive.equal?(self, other)
-    other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
-    if block_given?
-      other.each do |k, v|
-        if include?(k)
-          self[k] = yield(k, lookup(k), v)
-        else
-          self[k] = v
+  def update(*others)
+    others.each do |other|
+      next if Primitive.equal?(self, other)
+
+      other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
+
+      if block_given?
+        other.each do |k, v|
+          if include?(k)
+            self[k] = yield(k, lookup(k), v)
+          else
+            self[k] = v
+          end
         end
+      else
+        other.each { |k, v| self[k] = v }
       end
-    else
-      other.each { |k, v| self[k] = v }
     end
+
     self
   end
   alias_method :merge!, :update
