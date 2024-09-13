@@ -134,7 +134,6 @@ class StringIO
     ensure
       io.close
       io.__data__.string = nil
-      self
     end
   end
 
