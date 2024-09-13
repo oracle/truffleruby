@@ -88,10 +88,10 @@ class << ENV
     if existing_value
       Truffle::POSIX.unsetenv(key)
       @variables.delete(key)
+      existing_value
     elsif block_given?
       yield key
     end
-    existing_value
   end
 
   def dup

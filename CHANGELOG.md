@@ -1,4 +1,4 @@
-# 25.0.0
+# 24.2.0
 
 New features:
 
@@ -8,6 +8,7 @@ Compatibility:
 
 * Fix `Module#include` so a module included into a reopened nested module is added into an ancestors chain (#3570, @andrykonchin).
 * Fix `Kernel#eval` to ignore shebang with non-Ruby interpreter (#3623, @andrykonchin).
+* Fix `Env#delete` and return value returned by a block if variable doesn't exist (@andrykonchin).
 
 Performance:
 
