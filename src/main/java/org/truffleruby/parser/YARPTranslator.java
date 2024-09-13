@@ -400,7 +400,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                     rescueNodes.add(rescueNode);
                 }
 
-                rescueClause = rescueClause.consequent;
+                rescueClause = rescueClause.subsequent;
             }
 
             RubyNode elsePart;
@@ -966,10 +966,10 @@ public class YARPTranslator extends YARPBaseTranslator {
          * others in its else clause. */
 
         RubyNode elseNode;
-        if (node.consequent == null) {
+        if (node.else_clause == null) {
             elseNode = NoMatchingPatternNodeGen.create(readPredicateNode);
         } else {
-            elseNode = node.consequent.accept(this);
+            elseNode = node.else_clause.accept(this);
         }
 
         for (int n = node.conditions.length - 1; n >= 0; n--) {
@@ -1011,7 +1011,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
             // Build an if expression from `when` and `else` branches.
             // Work backwards to make the first if contain all the others in its `else` clause.
-            RubyNode elseNode = translateNodeOrNil(node.consequent);
+            RubyNode elseNode = translateNodeOrNil(node.else_clause);
 
             final Nodes.Node[] conditions = node.conditions;
 
@@ -1078,7 +1078,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             // Build an if expression from `when` and `else` branches.
             // Work backwards to make the first if contain all the others in its `else` clause.
 
-            RubyNode elseNode = translateNodeOrNil(node.consequent);
+            RubyNode elseNode = translateNodeOrNil(node.else_clause);
 
             final Nodes.Node[] conditions = node.conditions;
 
@@ -2010,7 +2010,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitIfNode(Nodes.IfNode node) {
         final RubyNode conditionNode = node.predicate.accept(this);
         final RubyNode thenNode = node.statements == null ? null : node.statements.accept(this);
-        final RubyNode elseNode = node.consequent == null ? null : node.consequent.accept(this);
+        final RubyNode elseNode = node.subsequent == null ? null : node.subsequent.accept(this);
         final RubyNode rubyNode;
 
         if (thenNode != null && elseNode != null) {
@@ -2023,7 +2023,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             rubyNode = UnlessNodeGen.create(conditionNode, elseNode);
             return assignPositionAndFlags(node, rubyNode);
         } else {
-            // empty then and else branches:
+            // when "then" and "else" branches are empty, e.g.
             //   if (condition)
             //   end
             return sequence(node, conditionNode, new NilLiteralNode());
@@ -3332,7 +3332,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     public RubyNode visitUnlessNode(Nodes.UnlessNode node) {
         final RubyNode conditionNode = node.predicate.accept(this);
         final RubyNode thenNode = node.statements == null ? null : node.statements.accept(this);
-        final RubyNode elseNode = node.consequent == null ? null : node.consequent.accept(this);
+        final RubyNode elseNode = node.else_clause == null ? null : node.else_clause.accept(this);
         final RubyNode rubyNode;
 
         if (thenNode != null && elseNode != null) {
