@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.email = ["matz@ruby-lang.org".freeze, nil]
   s.extensions = ["ext/zlib/extconf.rb".freeze]
   s.files = ["ext/zlib/extconf.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "zlib.#{RbConfig::CONFIG["DLEXT"]}".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/zlib".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

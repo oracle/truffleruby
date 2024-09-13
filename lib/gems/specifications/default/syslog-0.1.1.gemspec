@@ -16,6 +16,8 @@ Gem::Specification.new do |s|
   s.email = ["knu@idaemons.org".freeze]
   s.extensions = ["ext/syslog/extconf.rb".freeze]
   s.files = ["ext/syslog/extconf.rb".freeze, "lib/syslog/logger.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "lib/syslog.#{RbConfig::CONFIG["DLEXT"]}".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/syslog".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

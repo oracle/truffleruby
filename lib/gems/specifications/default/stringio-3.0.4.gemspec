@@ -14,6 +14,8 @@ Gem::Specification.new do |s|
   s.email = ["nobu@ruby-lang.org".freeze, "headius@headius.com".freeze]
   s.extensions = ["ext/stringio/extconf.rb".freeze]
   s.files = ["ext/stringio/extconf.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "stringio.rb".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/stringio".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5".freeze)

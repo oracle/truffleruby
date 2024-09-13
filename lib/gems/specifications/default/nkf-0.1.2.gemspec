@@ -14,6 +14,8 @@ Gem::Specification.new do |s|
   s.description = "Ruby extension for Network Kanji Filter".freeze
   s.email = ["naruse@airemix.jp".freeze]
   s.files = ["lib/kconv.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "lib/nkf.#{RbConfig::CONFIG["DLEXT"]}".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/nkf".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/fcntl/extconf.rb".freeze]
   s.files = ["ext/fcntl/extconf.rb".freeze]
+  # See https://github.com/rubygems/rubygems/issues/7937
+  s.files << "fcntl.rb".freeze if defined?(::TruffleRuby)
   s.homepage = "https://github.com/ruby/fcntl".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
