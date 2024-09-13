@@ -130,7 +130,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
         // store receiver in a local variable to evaluate before assigned value
         Nodes.Node readReceiver = stash(node.receiver, "receiver");
 
-        node = new Nodes.CallTargetNode(node.flags, readReceiver, node.name, node.startOffset, node.length);
+        node = new Nodes.CallTargetNode(node.startOffset, node.length, node.flags, readReceiver, node.name);
 
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();
@@ -142,7 +142,7 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
             // store parent lexical scope (e.g foo in foo::C = ...) in a local variable to evaluate before assigned value
             Nodes.Node readParent = stash(node.parent, "parent");
 
-            node = new Nodes.ConstantPathTargetNode(readParent, node.name, node.startOffset, node.length);
+            node = new Nodes.ConstantPathTargetNode(node.startOffset, node.length, readParent, node.name);
         }
 
         final RubyNode rubyNode = node.accept(yarpTranslator);
@@ -180,14 +180,14 @@ public final class YARPMultiTargetNodeTranslator extends AbstractNodeVisitor<Ass
                 argumentsReads[i] = stash(node.arguments.arguments[i], "argument");
             }
 
-            arguments = new Nodes.ArgumentsNode(node.arguments.flags, argumentsReads, node.arguments.startOffset,
-                    node.arguments.length);
+            arguments = new Nodes.ArgumentsNode(node.arguments.startOffset, node.arguments.length, node.arguments.flags,
+                    argumentsReads);
         } else {
             arguments = null;
         }
 
-        node = new Nodes.IndexTargetNode(node.flags, readReceiver, arguments, node.block, node.startOffset,
-                node.length);
+        node = new Nodes.IndexTargetNode(node.startOffset, node.length, node.flags, readReceiver, arguments,
+                node.block);
 
         final RubyNode rubyNode = node.accept(yarpTranslator);
         return ((AssignableNode) rubyNode).toAssignableNode();

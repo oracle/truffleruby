@@ -54,10 +54,10 @@ public final class YARPExecutedOnceExpression {
         if (node instanceof Nodes.SelfNode) {
             return node;
         } else if (node instanceof Nodes.SplatNode) {
-            var read = new Nodes.LocalVariableReadNode(name, 0, 0, 0);
-            return new Nodes.SplatNode(read, node.startOffset, node.length);
+            var read = new Nodes.LocalVariableReadNode(0, 0, name, 0);
+            return new Nodes.SplatNode(node.startOffset, node.length, read);
         } else {
-            return new Nodes.LocalVariableReadNode(name, 0, node.startOffset, node.length);
+            return new Nodes.LocalVariableReadNode(node.startOffset, node.length, name, 0);
         }
     }
 
