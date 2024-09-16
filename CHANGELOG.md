@@ -10,6 +10,7 @@ Compatibility:
 * Fix `Kernel#eval` to ignore shebang with non-Ruby interpreter (#3623, @andrykonchin).
 * Fix `Env#delete` and return value returned by a block if variable doesn't exist (@andrykonchin).
 * Fix `Env#update` and accept multiple hashes (@andrykonchin).
+* Add `MAJOR`, `MINOR`, `TEENY`, `PATCHLEVEL`, `RUBY_API_VERSION`, and `RUBY_PROGRAM_VERSION` to `RbConfig::CONFIG` (#3396, @rwstauner).
 
 Performance:
 

@@ -154,6 +154,8 @@ module RbConfig
 
   warnflags = warnflags.join(' ')
 
+  major, minor, teeny = RUBY_VERSION.split('.')
+
   # Sorted alphabetically using sort(1)
   CONFIG = {
     'AR'                => ar,
@@ -200,11 +202,14 @@ module RbConfig
     'libtruffleruby'    => libtruffleruby,
     'libtrufflerubytrampoline' => libtrufflerubytrampoline,
     'MAKEDIRS'          => 'mkdir -p',
+    'MAJOR'             => major,
     'MKDIR_P'           => 'mkdir -p',
+    'MINOR'             => minor,
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',
     'optflags'          => optflags,
     'OUTFLAG'           => '-o ',
+    'PATCHLEVEL'        => "#{RUBY_PATCHLEVEL}",
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR.dup,
     'PKG_CONFIG'        => 'pkg-config',
     'prefix'            => prefix,
@@ -214,9 +219,11 @@ module RbConfig
     'RMDIR'             => rmdir,
     'RMDIRS'            => "#{rmdir} -p",
     'RPATHFLAG'         => ' -Wl,-rpath,%1$-s',
+    'RUBY_API_VERSION'  => ruby_abi_version.dup,
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
+    'RUBY_PROGRAM_VERSION' => RUBY_VERSION.dup,
     'RUBYW_INSTALL_NAME'=> '',
     'ruby_version'      => ruby_abi_version.dup,
     'rubyarchhdrdir'    => rubyhdrdir.dup,
@@ -226,6 +233,7 @@ module RbConfig
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
+    'TEENY'             => teeny,
     'UNICODE_VERSION'   => Primitive.encoding_unicode_version,
     'UNICODE_EMOJI_VERSION' => Primitive.encoding_unicode_emoji_version,
     'warnflags'         => warnflags,
