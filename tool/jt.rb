@@ -1371,7 +1371,7 @@ module Commands
       test_classes.each do |test_class|
         prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
         ["#{prefix}.rb", prefix].each do |file|
-          if File.exist?(file)
+          if File.exist?(file) && File.file?(file)
             lines = File.readlines(file)
             FileUtils::Verbose.rm_r file
 
