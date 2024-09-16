@@ -1377,7 +1377,7 @@ module Commands
 
             # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
             # tests as excluded and manually inspect them later.
-            retain = lines.select { |line| line =~ /hangs/i || line =~ /java\.lang\./ }
+            retain = lines.select { |line| line =~ /hangs/i || line =~ /slow/i || line =~ /java\.lang\./ || line =~ /retain-on-retag/ || line =~ /OOM/ || line =~ /RubyVM/ }
             File.write(file, retain.sort.join)
 
             found_excludes = true

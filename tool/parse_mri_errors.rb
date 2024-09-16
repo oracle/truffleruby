@@ -53,6 +53,7 @@ def should_skip_error?(message)
   Regexp.union(
     /\[ruby-\w+:\d+\]/i,   # MRI bug IDs.
     /\[Bug #?\d+\]/i,      # MRI bug IDs.
+    /\[bug:\d+\]/i,        # MRI bug IDs.
     /pid \d+ exit \d/i,    # PID and exit status upon failure.
     /^Exception raised:$/i # Heading for exception trace.
   ).match(message)
@@ -74,9 +75,34 @@ contents.scan(t) do |class_name, test_method, error|
     error_display << ' ' + error_lines[index + 1]
   end
 
+  # Assertion errors are more useful with the first line of the backtrace.
+  if error_display&.include?('java.lang.AssertionError')
+    error_display << ' ' << error_lines[index + 1]
+  end
+
+  # Generated Markdown code blocks span multiple lines. It's much more useful if they're combined into one message.
+  if error_display =~ /```/
+    index += 1
+
+    begin
+      until (line = error_lines[index]) =~ /```/
+        error_display << line << "\n"
+        index += 1
+      end
+
+      error_display << line
+    rescue
+      error_display = "needs investigation; multi-line code block"
+    end
+  end
+
+  if error_display.to_s.strip.empty?
+    error_display = "needs investigation"
+  end
+
   file = excludes + "/" + class_name.split("::").join('/') + ".rb"
   prefix = "exclude #{test_method.strip.to_sym.inspect},"
-  new_line = "#{prefix} #{(REASON || error_display || "needs investigation").inspect}\n"
+  new_line = "#{prefix} #{(REASON || error_display).inspect}\n"
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
