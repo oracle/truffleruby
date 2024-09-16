@@ -51,8 +51,8 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
     public static final Nodes.OptionalParameterNode[] EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY = {};
     public static final Nodes.BlockLocalVariableNode[] EMPTY_BLOCK_LOCAL_VARIABLE_NODE_ARRAY = {};
 
-    public static final Nodes.ParametersNode ZERO_PARAMETERS_NODE = new Nodes.ParametersNode(EMPTY_NODE_ARRAY,
-            EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY, null, EMPTY_NODE_ARRAY, EMPTY_NODE_ARRAY, null, null, 0, 0);
+    public static final Nodes.ParametersNode ZERO_PARAMETERS_NODE = new Nodes.ParametersNode(0, 0, EMPTY_NODE_ARRAY,
+            EMPTY_OPTIONAL_PARAMETER_NODE_ARRAY, null, EMPTY_NODE_ARRAY, EMPTY_NODE_ARRAY, null, null);
 
     public static final short NO_FLAGS = 0;
 
@@ -133,9 +133,8 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
 
     protected static Nodes.CallNode callNode(Nodes.Node location, short flags, Nodes.Node receiver, String methodName,
             Nodes.Node... arguments) {
-        return new Nodes.CallNode(flags, receiver, methodName,
-                new Nodes.ArgumentsNode(NO_FLAGS, arguments, location.startOffset, location.length), null,
-                location.startOffset, location.length);
+        return new Nodes.CallNode(location.startOffset, location.length, flags, receiver, methodName,
+                new Nodes.ArgumentsNode(location.startOffset, location.length, NO_FLAGS, arguments), null);
     }
 
     protected final TruffleString toTString(Nodes.Node node) {

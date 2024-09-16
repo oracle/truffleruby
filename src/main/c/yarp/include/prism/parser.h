@@ -364,6 +364,9 @@ typedef enum {
     /** a rescue statement within a lambda expression */
     PM_CONTEXT_LAMBDA_RESCUE,
 
+    /** the predicate clause of a loop statement */
+    PM_CONTEXT_LOOP_PREDICATE,
+
     /** the top level context */
     PM_CONTEXT_MAIN,
 
@@ -505,9 +508,9 @@ typedef struct {
 /** The type of shareable constant value that can be set. */
 typedef uint8_t pm_shareable_constant_value_t;
 static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_NONE = 0x0;
-static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_LITERAL = 0x1;
-static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_EXPERIMENTAL_EVERYTHING = 0x2;
-static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_EXPERIMENTAL_COPY = 0x4;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_LITERAL = PM_SHAREABLE_CONSTANT_NODE_FLAGS_LITERAL;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_EXPERIMENTAL_EVERYTHING = PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_EVERYTHING;
+static const pm_shareable_constant_value_t PM_SCOPE_SHAREABLE_CONSTANT_EXPERIMENTAL_COPY = PM_SHAREABLE_CONSTANT_NODE_FLAGS_EXPERIMENTAL_COPY;
 
 /**
  * This tracks an individual local variable in a certain lexical context, as
@@ -622,6 +625,13 @@ typedef uint32_t pm_state_stack_t;
  * it's considering.
  */
 struct pm_parser {
+    /**
+     * The next node identifier that will be assigned. This is a unique
+     * identifier used to track nodes such that the syntax tree can be dropped
+     * but the node can be found through another parse.
+     */
+    uint32_t node_id;
+
     /** The current state of the lexer. */
     pm_lex_state_t lex_state;
 
@@ -858,6 +868,14 @@ struct pm_parser {
     bool recovering;
 
     /**
+     * This is very specialized behavior for when you want to parse in a context
+     * that does not respect encoding comments. Its main use case is translating
+     * into the whitequark/parser AST which re-encodes source files in UTF-8
+     * before they are parsed and ignores encoding comments.
+     */
+    bool encoding_locked;
+
+    /**
      * Whether or not the encoding has been changed by a magic comment. We use
      * this to provide a fast path for the lexer instead of going through the
      * function pointer.
@@ -884,6 +902,12 @@ struct pm_parser {
      * characters.
      */
     bool current_regular_expression_ascii_only;
+
+    /**
+     * By default, Ruby always warns about mismatched indentation. This can be
+     * toggled with a magic comment.
+     */
+    bool warn_mismatched_indentation;
 };
 
 #endif

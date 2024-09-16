@@ -348,6 +348,10 @@ public final class YARPTranslatorDriver {
         int line = rubySource.getLineOffset() + 1;
         byte[] encoding = StringOperations.encodeAsciiBytes(rubySource.getEncoding().toString()); // encoding name is supposed to contain only ASCII characters
         var version = ParsingOptions.SyntaxVersion.V3_3;
+        // Allow Prism to handle encoding magic comments.
+        // Magic comments are already detected and rubySource's encoding takes them into account,
+        // but encodingLocked is intended for a niche use-case and is supposed to be false in all other cases.
+        final boolean encodingLocked = false;
 
         // Prism handles command line options (-n, -l, -a, -p) on its own
         final EnumSet<ParsingOptions.CommandLine> commandline;
@@ -402,7 +406,7 @@ public final class YARPTranslatorDriver {
         }
 
         byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, commandline,
-                version, scopes);
+                version, encodingLocked, scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         return YARPLoader.load(serializedBytes, sourceBytes, rubySource);
