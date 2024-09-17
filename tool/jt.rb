@@ -46,12 +46,8 @@ DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=flamegraph]
 MRI_TEST_RETAG_RETAIN_PATTERNS = [
   /hangs/i,
   /slow/i,
-  /java\.lang\./,
   /retain-on-retag/,
   /OOM/,
-  /RubyVM/,
-  /ShouldNotReachHere/,
-  /LLVMLinkerException/,
   /flaky/,
   /spurious/,
   /transient/,
