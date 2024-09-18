@@ -2380,22 +2380,22 @@ module Commands
     if linux?
       eclipse_exe = 'eclipse/eclipse'
       if aarch64?
-        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-linux-gtk-aarch64.tar.gz'
-        sha256 = '148b5d3c46d7e5153ba580ec23913e5c003d0b075241c6a13c395b682b4309d6'
+        eclipse_url = 'https://github.com/eregon/eclipse-mirror/releases/download/eclipse-SDK-4.26/eclipse-4.26.0-linux-aarch64.tar.gz'
+        sha256 = '6cbf7ef69206739f1f11e2883b78ecb9b0a6254400bce51ce5c0c5c2cd550a43'
       elsif amd64?
-        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-linux-gtk-x86_64.tar.gz'
-        sha256 = 'e422548918a3ca1cb5b3990ee35fae7e29f9bcc926f18bfc859f7720ac5cf4d4'
+        eclipse_url = 'https://github.com/eregon/eclipse-mirror/releases/download/eclipse-SDK-4.26/eclipse-4.26.0-linux-amd64.tar.gz'
+        sha256 = '5a71af895af325de533e175289983a023167183ebdcc4cb7d8b3b01420d5b8c0'
       else
         raise 'Only AARCH64 and AMD64 are supported for Eclipse on Linux'
       end
     elsif darwin?
       eclipse_exe = 'Eclipse.app/Contents/MacOS/eclipse'
       if aarch64?
-        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-macosx-cocoa-aarch64.tar.gz'
-        sha256 = '3cae00ac3ff318882aeff11a02d3c5cacd7061ce31c1814184257ac9dd3aabd7'
+        eclipse_url = 'https://github.com/eregon/eclipse-mirror/releases/download/eclipse-SDK-4.26/eclipse-4.26.0-darwin-aarch64.dmg'
+        sha256 = 'fcabac1b5a7c49ac674bd0f6273f5a93007261d3f7a0296473be9295d9424e00'
       elsif amd64?
-        eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.23/eclipse-SDK-4.23-macosx-cocoa-x86_64.tar.gz'
-        sha256 = '34934bcbba8082a7691e68d7b9752d99c300ca74df2dfb5a616f57b84e2ac87c'
+        eclipse_url = 'https://github.com/eregon/eclipse-mirror/releases/download/eclipse-SDK-4.26/eclipse-4.26.0-darwin-amd64.dmg'
+        sha256 = '9f26d17e3633085aaac2b97212205492134ae4e5497cadb9957c2bb6c4b63a59'
       else
         raise 'Only AARCH64 and AMD64 are supported for Eclipse on macOS'
       end
@@ -2403,22 +2403,33 @@ module Commands
       raise 'Installing Eclipse is only available on Linux and macOS currently'
     end
 
-    eclipse_tar = eclipse_url.split('/').last
-    eclipse_name = File.basename(eclipse_tar, '.tar.gz')
+    eclipse_package = eclipse_url.split('/').last
+    eclipse_name = File.basename(eclipse_package, linux? ? '.tar.gz' : '.dmg')
     eclipse_path = "#{CACHE_EXTRA_DIR}/#{eclipse_name}/#{eclipse_exe}"
     return eclipse_path if File.exist?(eclipse_path)
 
     chdir(CACHE_EXTRA_DIR) do
-      unless File.exist?(eclipse_tar)
-        sh 'curl', '-L', eclipse_url, '-o', eclipse_tar
+      unless File.exist?(eclipse_package)
+        sh 'curl', '-L', eclipse_url, '-o', eclipse_package
       end
+
       unless File.exist?(eclipse_name)
-        computed = Digest::SHA256.file(eclipse_tar).hexdigest
+        computed = Digest::SHA256.file(eclipse_package).hexdigest
+
         if computed == sha256
           Dir.mkdir eclipse_name
-          sh 'tar', 'xf', eclipse_tar, '-C', eclipse_name
+
+          if linux?
+            # extract tar archive into eclipse_name directory
+            sh 'tar', 'xf', eclipse_package, '-C', eclipse_name
+          else # darwin
+            # mount macOS volume into /Volumes/Eclipse (default) and copy files into eclipse_name directory
+            sh 'hdiutil', 'attach', '-readonly', '-nobrowse', eclipse_package
+            sh 'cp', '-rf', '/Volumes/Eclipse/Eclipse.app', eclipse_name
+            sh 'hdiutil', 'detach', '/Volumes/Eclipse'
+          end
         else
-          raise "Incorrect sha256 for #{eclipse_tar}: #{computed} instead of expected #{sha256}"
+          raise "Incorrect sha256 for #{eclipse_package}: #{computed} instead of expected #{sha256}"
         end
       end
     end
