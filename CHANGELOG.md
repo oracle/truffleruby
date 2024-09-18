@@ -11,6 +11,7 @@ Compatibility:
 * Fix `Env#delete` and return value returned by a block if variable doesn't exist (@andrykonchin).
 * Fix `Env#update` and accept multiple hashes (@andrykonchin).
 * Add `MAJOR`, `MINOR`, `TEENY`, `PATCHLEVEL`, `RUBY_API_VERSION`, and `RUBY_PROGRAM_VERSION` to `RbConfig::CONFIG` (#3396, @rwstauner).
+* Set `RbConfig::CONFIG['archincludedir']` (#3396, @andrykonchin).
 
 Performance:
 
