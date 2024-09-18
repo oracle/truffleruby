@@ -61,6 +61,7 @@ module RbConfig
 
   prefix = ruby_home
   rubyhdrdir = "#{prefix}/lib/cext/include"
+  includedir = "#{prefix}/lib/cext" # the parent dir of rubyhdrdir
   cflags_pre = ''
 
   if sulong
@@ -185,7 +186,7 @@ module RbConfig
     'host_cpu'          => host_cpu,
     'host'              => host,
     'host_os'           => host_os_full,
-    'includedir'        => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
+    'includedir'        => includedir,
     'INSTALL'           => '/usr/bin/install -c',
     'LDFLAGS'           => ldflags,
     'libdirname'        => 'libdir',
@@ -269,6 +270,8 @@ module RbConfig
   archdir = \
   expanded['archdir'] = rubyarchdir
   mkconfig['archdir'] = '$(rubyarchdir)'
+  expanded['archincludedir'] = "#{includedir}/#{arch}"
+  mkconfig['archincludedir'] = '$(includedir)/$(arch)'
   sitearch = \
   expanded['sitearch'] = arch
   mkconfig['sitearch'] = '$(arch)'
