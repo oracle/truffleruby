@@ -64,6 +64,11 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
   return RUBY_CEXT_INVOKE("rb_gc_latest_gc_info", key);
 }
 
+void rb_gc_adjust_memory_usage(ssize_t diff) {
+  // No-op for now
+  (void) diff; // To silence -Wunused-parameter
+}
+
 void rb_gc_register_mark_object(VALUE obj) {
   // No rb_tr_unwrap() here as the caller actually wants a ValueWrapper or a handle
   polyglot_invoke(RUBY_CEXT, "rb_gc_register_mark_object", obj);
