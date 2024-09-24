@@ -1390,8 +1390,14 @@ module Commands
             FileUtils::Verbose.rm_r file
 
             # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
-            # tests as excluded and manually inspect them later.
-            retain = lines.select { |line| MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| line =~ pattern } }
+            # tests as excluded and manually inspect them later. We need to be careful that we're not checking for our
+            # retains pattern on the test name. Thus, we limit our checks to either the exclusion reason string or a
+            # conditional guard that applies to the exclusion.
+            retain = lines.select do |line|
+              reason_or_guard = line.split(',', 2).last
+
+              MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| reason_or_guard =~ pattern }
+            end
 
             puts 'Retaining:'
             puts retain
