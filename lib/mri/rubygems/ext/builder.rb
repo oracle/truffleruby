@@ -27,19 +27,17 @@ class Gem::Ext::Builder
     # try to find make program from Ruby configure arguments first
     RbConfig::CONFIG["configure_args"] =~ /with-make-prog\=(\w+)/
     make_program_name = ENV["MAKE"] || ENV["make"] || $1
-    unless make_program_name
-      make_program_name = (RUBY_PLATFORM.include?("mswin")) ? "nmake" : "make"
-    end
+    make_program_name ||= RUBY_PLATFORM.include?("mswin") ? "nmake" : "make"
     make_program = Shellwords.split(make_program_name)
 
     # The installation of the bundled gems is failed when DESTDIR is empty in mswin platform.
-    destdir = (/\bnmake/i !~ make_program_name || ENV["DESTDIR"] && ENV["DESTDIR"] != "") ? "DESTDIR=%s" % ENV["DESTDIR"] : ""
+    destdir = /\bnmake/i !~ make_program_name || ENV["DESTDIR"] && ENV["DESTDIR"] != "" ? format("DESTDIR=%s", ENV["DESTDIR"]) : ""
 
     env = [destdir]
 
     if sitedir
-      env << "sitearchdir=%s" % sitedir
-      env << "sitelibdir=%s" % sitedir
+      env << format("sitearchdir=%s", sitedir)
+      env << format("sitelibdir=%s", sitedir)
     end
 
     targets.each do |target|
@@ -77,7 +75,8 @@ class Gem::Ext::Builder
     verbose = Gem.configuration.really_verbose
 
     begin
-      rubygems_gemdeps, ENV["RUBYGEMS_GEMDEPS"] = ENV["RUBYGEMS_GEMDEPS"], nil
+      rubygems_gemdeps = ENV["RUBYGEMS_GEMDEPS"]
+      ENV["RUBYGEMS_GEMDEPS"] = nil
       if verbose
         puts("current directory: #{dir}")
         p(command)
@@ -89,13 +88,20 @@ class Gem::Ext::Builder
       # Set $SOURCE_DATE_EPOCH for the subprocess.
       build_env = { "SOURCE_DATE_EPOCH" => Gem.source_date_epoch_string }.merge(env)
       output, status = begin
-                         Open3.capture2e(build_env, *command, :chdir => dir)
-                       rescue => error
+                         Open3.popen2e(build_env, *command, chdir: dir) do |_stdin, stdouterr, wait_thread|
+                           output = String.new
+                           while line = stdouterr.gets
+                             output << line
+                             if verbose
+                               print line
+                             end
+                           end
+                           [output, wait_thread.value]
+                         end
+                       rescue StandardError => error
                          raise Gem::InstallError, "#{command_name || class_name} failed#{error.message}"
                        end
-      if verbose
-        puts output
-      else
+      unless verbose
         results << output
       end
     ensure
@@ -190,7 +196,7 @@ EOF
       verbose { results.join("\n") }
 
       write_gem_make_out results.join "\n"
-    rescue => e
+    rescue StandardError => e
       results << e.message
       build_error(results.join("\n"), $@)
     end
@@ -206,7 +212,7 @@ EOF
     if @build_args.empty?
       say "Building native extensions. This could take a while..."
     else
-      say "Building native extensions with: '#{@build_args.join ' '}'"
+      say "Building native extensions with: '#{@build_args.join " "}'"
       say "This could take a while..."
     end
 

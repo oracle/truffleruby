@@ -118,7 +118,7 @@ BT = Class.new(bt) do
             r = IO.for_fd($1.to_i(10), "rb", autoclose: false)
             w = IO.for_fd($2.to_i(10), "wb", autoclose: false)
           end
-        rescue => e
+        rescue
           r.close if r
         else
           r.close_on_exec = true
@@ -146,15 +146,10 @@ BT = Class.new(bt) do
   end
 end.new
 
-BT_STATE = Struct.new(:count, :error, :tagged).new
+BT_STATE = Struct.new(:count, :error).new
 
 def main
-  if defined?(::TruffleRuby)
-    require 'rbconfig'
-    BT.ruby = RbConfig.ruby
-  else
-    BT.ruby = File.expand_path('miniruby')
-  end
+  BT.ruby = File.expand_path('miniruby')
   BT.verbose = false
   $VERBOSE = false
   $stress = false
@@ -267,7 +262,6 @@ End
     end
     puts "Target is #{target_version}"
     puts
-    `#{@ruby} -e '$stderr.puts "WARNING: this test will take a long time unless you run in a native configuration" if defined?(::TruffleRuby) && !TruffleRuby.native?'`
     $stdout.flush
   end
 
@@ -340,7 +334,6 @@ def exec_test(pathes)
   load_test pathes
   BT_STATE.count = 0
   BT_STATE.error = 0
-  BT_STATE.tagged = 0
   BT.columns = 0
   BT.width = pathes.map {|path| File.basename(path).size}.max + 2
 
@@ -359,7 +352,6 @@ def exec_test(pathes)
       $stderr.puts if BT.verbose
       count = BT_STATE.count
       error = BT_STATE.error
-      tagged = BT_STATE.tagged
 
       assertions.each do |assertion|
         BT_STATE.count += 1
@@ -368,11 +360,11 @@ def exec_test(pathes)
 
       if BT.tty
         if BT_STATE.error == error
-          msg = "PASS #{(BT_STATE.count-count)-(BT_STATE.tagged-tagged)} (#{BT_STATE.tagged-tagged} tagged)"
+          msg = "PASS #{BT_STATE.count-count}"
           BT.columns += msg.size - 1
           $stderr.print "#{BT.progress_bs}#{BT.passed}#{msg}#{BT.reset}" unless BT.quiet
         else
-          msg = "FAIL #{BT_STATE.error-error}/#{(BT_STATE.count-count)-(BT_STATE.tagged-tagged)} (#{BT_STATE.tagged-tagged} tagged)"
+          msg = "FAIL #{BT_STATE.error-error}/#{BT_STATE.count-count}"
           $stderr.print "#{BT.progress_bs}#{BT.failed}#{msg}#{BT.reset}"
           BT.columns = 0
         end
@@ -399,11 +391,11 @@ def exec_test(pathes)
     if Assertion.count == 0
       out.puts "No tests, no problem" unless BT.quiet
     else
-      out.puts "#{BT.passed}PASS#{BT.reset} all #{Assertion.count-BT.tagged} tests (#{BT.tagged} tagged)"
+      out.puts "#{BT.passed}PASS#{BT.reset} all #{Assertion.count} tests"
     end
     true
   else
-    $stderr.puts "#{BT.failed}FAIL#{BT.reset} #{BT_STATE.error}/#{BT_STATE.count-BT.tagged} tests failed (#{BT.tagged} tagged)"
+    $stderr.puts "#{BT.failed}FAIL#{BT.reset} #{BT_STATE.error}/#{BT_STATE.count} tests failed"
     false
   end
 end
@@ -560,8 +552,13 @@ class Assertion < Struct.new(:src, :path, :lineno, :proc)
     filename = "bootstraptest.#{self.path}_#{self.lineno}_#{self.id}.rb"
     File.open(filename, 'w') {|f|
       f.puts "#frozen_string_literal:true" if frozen_string_literal
-      f.puts "GC.stress = true" if $stress
-      f.puts "print(begin; #{self.src}; end)"
+      if $stress
+        f.puts "GC.stress = true" if $stress
+      else
+        f.puts ""
+      end
+      f.puts "class BT_Skip < Exception; end; def skip(msg) = raise(BT_Skip, msg.to_s)"
+      f.puts "print(begin; #{self.src}; rescue BT_Skip; $!.message; end)"
     }
     filename
   end
@@ -677,7 +674,7 @@ end
 
 def assert_finish(timeout_seconds, testsrc, message = '')
   add_assertion testsrc, -> as do
-    if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # for --jit-wait
+    if defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled? # for --jit-wait
       timeout_seconds *= 3
     end
 
@@ -790,6 +787,11 @@ def check_coredump
       (BT.ruby and File.exist?(BT.ruby+'.stackdump'))
     raise CoreDumpError, "core dumped"
   end
+end
+
+def rjit_enabled?
+  # Don't check `RubyVM::RJIT.enabled?`. On btest-bruby, target Ruby != runner Ruby.
+  ENV.fetch('RUN_OPTS', '').include?('rjit')
 end
 
 exit main

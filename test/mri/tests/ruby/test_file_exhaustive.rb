@@ -3,7 +3,7 @@ require "test/unit"
 require "fileutils"
 require "tmpdir"
 require "socket"
-require 'c/file'
+require '-test-/file'
 
 class TestFileExhaustive < Test::Unit::TestCase
   DRIVE = Dir.pwd[%r'\A(?:[a-z]:|//[^/]+/[^/]+)'i]
@@ -1517,9 +1517,12 @@ class TestFileExhaustive < Test::Unit::TestCase
       assert_equal(File.zero?(f), test(?z, f), f)
 
       stat = File.stat(f)
-      assert_equal(stat.atime, File.atime(f), f)
-      assert_equal(stat.ctime, File.ctime(f), f)
-      assert_equal(stat.mtime, File.mtime(f), f)
+      unless stat.chardev?
+        # null device may be accessed by other processes
+        assert_equal(stat.atime, File.atime(f), f)
+        assert_equal(stat.ctime, File.ctime(f), f)
+        assert_equal(stat.mtime, File.mtime(f), f)
+      end
       assert_bool_equal(stat.blockdev?, File.blockdev?(f), f)
       assert_bool_equal(stat.chardev?, File.chardev?(f), f)
       assert_bool_equal(stat.directory?, File.directory?(f), f)

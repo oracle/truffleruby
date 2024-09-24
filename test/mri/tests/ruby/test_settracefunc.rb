@@ -358,18 +358,18 @@ class TestSetTraceFunc < Test::Unit::TestCase
 
   def test_thread_trace
     events = {:set => [], :add => []}
+    name = "#{self.class}\##{__method__}"
     prc = Proc.new { |event, file, lineno, mid, binding, klass|
-      events[:set] << [event, lineno, mid, klass, :set]
+      events[:set] << [event, lineno, mid, klass, :set] if file == name
     }
     prc = prc # suppress warning
     prc2 = Proc.new { |event, file, lineno, mid, binding, klass|
-      events[:add] << [event, lineno, mid, klass, :add]
+      events[:add] << [event, lineno, mid, klass, :add] if file == name
     }
     prc2 = prc2 # suppress warning
 
     th = Thread.new do
       th = Thread.current
-      name = "#{self.class}\##{__method__}"
       eval <<-EOF.gsub(/^.*?: /, ""), nil, name
        1: th.set_trace_func(prc)
        2: th.add_trace_func(prc2)
@@ -504,7 +504,7 @@ class TestSetTraceFunc < Test::Unit::TestCase
     1: trace = TracePoint.trace(*trace_events){|tp| next if !target_thread?
     2:   events << [tp.event, tp.lineno, tp.path, _defined_class.(tp), tp.method_id, tp.self, tp.binding&.eval("_local_var"), _get_data.(tp)] if tp.path == 'xyzzy'
     3: }
-    4: 1.times{|;_local_var| _local_var = :inner
+    4: [1].each{|;_local_var| _local_var = :inner
     5:   tap{}
     6: }
     7: class XYZZY
@@ -531,10 +531,10 @@ class TestSetTraceFunc < Test::Unit::TestCase
     answer_events = [
      #
      [:line,     4, 'xyzzy', self.class,  method,           self,        :outer, :nothing],
-     [:c_call,   4, 'xyzzy', Integer,     :times,           1,           nil, :nothing],
+     [:c_call,   4, 'xyzzy', Array,       :each,            [1],         nil,    :nothing],
      [:line,     4, 'xyzzy', self.class,  method,           self,        nil,    :nothing],
      [:line,     5, 'xyzzy', self.class,  method,           self,        :inner, :nothing],
-     [:c_return, 4, "xyzzy", Integer,     :times,           1,           nil, 1],
+     [:c_return, 4, "xyzzy", Array,       :each,            [1],         nil, [1]],
      [:line,     7, 'xyzzy', self.class,  method,           self,        :outer, :nothing],
      [:c_call,   7, "xyzzy", Module,      :const_added,     TestSetTraceFunc, nil, :nothing],
      [:c_return, 7, "xyzzy", Module,      :const_added,     TestSetTraceFunc, nil, nil],
@@ -652,7 +652,7 @@ CODE
     1: set_trace_func(lambda{|event, file, line, id, binding, klass|
     2:   events << [event, line, file, klass, id, binding&.eval('self'), binding&.eval("_local_var")] if file == 'xyzzy'
     3: })
-    4: 1.times{|;_local_var| _local_var = :inner
+    4: [1].map{|;_local_var| _local_var = :inner
     5:   tap{}
     6: }
     7: class XYZZY
@@ -968,6 +968,55 @@ CODE
     assert_equal(expected*2, events)
   end
 
+  def test_tracepoint_struct
+    c = Struct.new(:x) do
+      alias y x
+      alias y= x=
+    end
+    obj = c.new
+
+    ar_meth = obj.method(:x)
+    aw_meth = obj.method(:x=)
+    aar_meth = obj.method(:y)
+    aaw_meth = obj.method(:y=)
+    events = []
+    trace = TracePoint.new(:c_call, :c_return){|tp|
+      next if !target_thread?
+      next if tp.path != __FILE__
+      next if tp.method_id == :call
+      case tp.event
+      when :c_call
+        assert_raise(RuntimeError) {tp.return_value}
+        events << [tp.event, tp.method_id, tp.callee_id]
+      when :c_return
+        events << [tp.event, tp.method_id, tp.callee_id, tp.return_value]
+      end
+    }
+    test_proc = proc do
+      obj.x = 1
+      obj.x
+      obj.y = 2
+      obj.y
+      aw_meth.call(1)
+      ar_meth.call
+      aaw_meth.call(2)
+      aar_meth.call
+    end
+    test_proc.call # populate call caches
+    trace.enable(&test_proc)
+    expected = [
+      [:c_call, :x=, :x=],
+      [:c_return, :x=, :x=, 1],
+      [:c_call, :x, :x],
+      [:c_return, :x, :x, 1],
+      [:c_call, :x=, :y=],
+      [:c_return, :x=, :y=, 2],
+      [:c_call, :x, :y],
+      [:c_return, :x, :y, 2],
+    ]
+    assert_equal(expected*2, events)
+  end
+
   class XYZZYException < Exception; end
   def method_test_tracepoint_raised_exception err
     raise err
@@ -1007,7 +1056,7 @@ CODE
         /return/ =~ tp.event ? tp.return_value : nil
       ]
     }.enable{
-      1.times{
+      [1].map{
         3
       }
       method_for_test_tracepoint_block{
@@ -1017,10 +1066,10 @@ CODE
     # pp events
     # expected_events =
     [[:b_call, :test_tracepoint_block, TestSetTraceFunc, TestSetTraceFunc, nil],
-     [:c_call, :times, Integer, Integer, nil],
+     [:c_call, :map, Array, Array, nil],
      [:b_call, :test_tracepoint_block, TestSetTraceFunc, TestSetTraceFunc, nil],
      [:b_return, :test_tracepoint_block, TestSetTraceFunc, TestSetTraceFunc, 3],
-     [:c_return, :times, Integer, Integer, 1],
+     [:c_return, :map, Array, Array, [3]],
      [:call, :method_for_test_tracepoint_block, TestSetTraceFunc, TestSetTraceFunc, nil],
      [:b_call, :test_tracepoint_block, TestSetTraceFunc, TestSetTraceFunc, nil],
      [:b_return, :test_tracepoint_block, TestSetTraceFunc, TestSetTraceFunc, 4],
@@ -1323,7 +1372,7 @@ CODE
       next if !target_thread?
       events << tp.event
     }.enable{
-      1.times{
+      [1].map{
         3
       }
       method_for_test_tracepoint_block{
@@ -1345,7 +1394,7 @@ CODE
       next if !target_thread?
       events << tp.event
     }.enable{
-      1.times{
+      [1].map{
         3
       }
       method_for_test_tracepoint_block{
@@ -1704,7 +1753,7 @@ CODE
       Bug10724.new
     }
 
-    assert_equal([:call, :return], evs)
+    assert_equal([:call, :call, :return, :return], evs)
   end
 
   require 'fiber'
@@ -1936,7 +1985,11 @@ CODE
 
   def tp_return_value mid
     ary = []
-    TracePoint.new(:return, :b_return){|tp| next if !target_thread?; ary << [tp.event, tp.method_id, tp.return_value]}.enable{
+    TracePoint.new(:return, :b_return){|tp|
+      next if !target_thread?
+      next if tp.path != __FILE__
+      ary << [tp.event, tp.method_id, tp.return_value]
+    }.enable{
       send mid
     }
     ary.pop # last b_return event is not required.
@@ -2145,7 +2198,7 @@ CODE
     q = Thread::Queue.new
     t = Thread.new{
       Thread.current.add_trace_func proc{|ev, file, line, *args|
-        events << [ev, line]
+        events << [ev, line] if file == __FILE__
       } # do not stop trace. They will be stopped at Thread termination.
       q.push 1
       _x = 1
@@ -2181,9 +2234,9 @@ CODE
     }
     # it is dirty hack. usually we shouldn't use such technique
     Thread.pass until t.status == 'sleep'
-    # When MJIT thread exists, t.status becomes 'sleep' even if it does not reach m2t_q.pop.
+    # When RJIT thread exists, t.status becomes 'sleep' even if it does not reach m2t_q.pop.
     # This sleep forces it to reach m2t_q.pop for --jit-wait.
-    sleep 1 if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled?
+    sleep 1 if defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled?
 
     t.add_trace_func proc{|ev, file, line, *args|
       if file == __FILE__
@@ -2417,6 +2470,18 @@ CODE
       end
     end
     assert_equal [:tp1, 1, 2, :tp2, 3], events
+  end
+
+  def test_multiple_enable
+    ary = []
+    trace = TracePoint.new(:call) do |tp|
+      ary << tp.method_id
+    end
+    trace.enable
+    trace.enable
+    foo
+    trace.disable
+    assert_equal(1, ary.count(:foo), '[Bug #19114]')
   end
 
   def test_multiple_tracepoints_same_bmethod
@@ -2737,5 +2802,124 @@ CODE
 
       Foo.foo
     RUBY
+  end
+
+  def helper_cant_rescue
+    begin
+      raise SyntaxError
+    rescue
+      cant_rescue
+    end
+  end
+
+  def test_tp_rescue
+    lines = []
+    TracePoint.new(:line){|tp|
+      next unless target_thread?
+      lines << tp.lineno
+    }.enable{
+      begin
+        helper_cant_rescue
+      rescue SyntaxError
+      end
+    }
+    _call_line = lines.shift
+    _raise_line = lines.shift
+    assert_equal [], lines
+  end
+
+  def helper_can_rescue
+    begin
+      raise __LINE__.to_s
+    rescue SyntaxError
+      :ng
+    rescue
+      :ok
+    end
+  end
+
+  def helper_can_rescue_empty_body
+    begin
+      raise __LINE__.to_s
+    rescue SyntaxError
+      :ng
+    rescue
+    end
+  end
+
+  def test_tp_rescue_event
+    lines = []
+    TracePoint.new(:rescue){|tp|
+      next unless target_thread?
+      lines << [tp.lineno, tp.raised_exception]
+    }.enable{
+      helper_can_rescue
+    }
+
+    line, err, = lines.pop
+    assert_equal [], lines
+    assert err.kind_of?(RuntimeError)
+    assert_equal err.message.to_i + 4, line
+
+    lines = []
+    TracePoint.new(:rescue){|tp|
+      next unless target_thread?
+      lines << [tp.lineno, tp.raised_exception]
+    }.enable{
+      helper_can_rescue_empty_body
+    }
+
+    line, err, = lines.pop
+    assert_equal [], lines
+    assert err.kind_of?(RuntimeError)
+    assert_equal err.message.to_i + 3, line
+  end
+
+  def test_tracepoint_thread_begin
+    target_thread = nil
+
+    trace = TracePoint.new(:thread_begin) do |tp|
+      target_thread = tp.self
+    end
+
+    trace.enable(target_thread: nil) do
+      Thread.new{}.join
+    end
+
+    assert_kind_of(Thread, target_thread)
+  end
+
+  def test_tracepoint_thread_end
+    target_thread = nil
+
+    trace = TracePoint.new(:thread_end) do |tp|
+      target_thread = tp.self
+    end
+
+    trace.enable(target_thread: nil) do
+      Thread.new{}.join
+    end
+
+    assert_kind_of(Thread, target_thread)
+  end
+
+  def test_tracepoint_thread_end_with_exception
+    target_thread = nil
+
+    trace = TracePoint.new(:thread_end) do |tp|
+      target_thread = tp.self
+    end
+
+    trace.enable(target_thread: nil) do
+      thread = Thread.new do
+        Thread.current.report_on_exception = false
+        raise
+      end
+
+      # Ignore the exception raised by the thread:
+      thread.join rescue nil
+    end
+
+    assert_kind_of(Thread, target_thread)
   end
 end

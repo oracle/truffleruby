@@ -209,7 +209,7 @@ class TestRequire < Test::Unit::TestCase
       File.write(req, "p :ok\n")
       assert_file.exist?(req)
       req[/.rb$/i] = ""
-      assert_in_out_err(['--disable-gems'], <<-INPUT, %w(:ok), [])
+      assert_in_out_err([], <<-INPUT, %w(:ok), [])
         require "#{req}"
         require "#{req}"
       INPUT
@@ -221,12 +221,13 @@ class TestRequire < Test::Unit::TestCase
     Dir.mktmpdir do |tmp|
       req = File.join(tmp, "test.rb")
       File.write(req, ",\n")
-      e = assert_raise_with_message(SyntaxError, /unexpected|cannot parse the expression/) {
+      e = assert_raise_with_message(SyntaxError, /unexpected/) {
         yield req
       }
       assert_not_nil(bt = e.backtrace, "no backtrace")
       assert_not_empty(bt.find_all {|b| b.start_with? __FILE__}, proc {bt.inspect})
     end
+  ensure
     $LOADED_FEATURES.replace loaded_features
   end
 
@@ -236,7 +237,7 @@ class TestRequire < Test::Unit::TestCase
 
   def test_require_syntax_error_rescued
     assert_syntax_error_backtrace do |req|
-      assert_raise_with_message(SyntaxError, /unexpected|cannot parse the expression/) {require req}
+      assert_raise_with_message(SyntaxError, /unexpected/) {require req}
       require req
     end
   end
@@ -366,6 +367,26 @@ class TestRequire < Test::Unit::TestCase
         load path, true
         assert_instance_of(Class, Foo)
       end;
+    end
+  end
+
+  def test_public_in_wrapped_load
+    Tempfile.create(["test_public_in_wrapped_load", ".rb"]) do |t|
+      t.puts "def foo; end", "public :foo"
+      t.close
+      assert_warning(/main\.public/) do
+        assert load(t.path, true)
+      end
+    end
+  end
+
+  def test_private_in_wrapped_load
+    Tempfile.create(["test_private_in_wrapped_load", ".rb"]) do |t|
+      t.puts "def foo; end", "private :foo"
+      t.close
+      assert_warning(/main\.private/) do
+        assert load(t.path, true)
+      end
     end
   end
 
@@ -696,7 +717,7 @@ class TestRequire < Test::Unit::TestCase
     Dir.mktmpdir {|tmp|
       Dir.chdir(tmp) {
         open("foo.rb", "w") {}
-        assert_in_out_err([{"RUBYOPT"=>nil}, '--disable-gems'], "#{<<~"begin;"}\n#{<<~"end;"}", %w(:ok), [], bug7158)
+        assert_in_out_err([{"RUBYOPT"=>nil}], "#{<<~"begin;"}\n#{<<~"end;"}", %w(:ok), [], bug7158)
         begin;
           $:.replace([IO::NULL])
           a = Object.new
@@ -724,7 +745,7 @@ class TestRequire < Test::Unit::TestCase
     Dir.mktmpdir {|tmp|
       Dir.chdir(tmp) {
         open("foo.rb", "w") {}
-        assert_in_out_err([{"RUBYOPT"=>nil}, '--disable-gems'], "#{<<~"begin;"}\n#{<<~"end;"}", %w(:ok), [], bug7158)
+        assert_in_out_err([{"RUBYOPT"=>nil}], "#{<<~"begin;"}\n#{<<~"end;"}", %w(:ok), [], bug7158)
         begin;
           $:.replace([IO::NULL])
           a = Object.new
@@ -754,7 +775,7 @@ class TestRequire < Test::Unit::TestCase
         open("foo.rb", "w") {}
         Dir.mkdir("a")
         open(File.join("a", "bar.rb"), "w") {}
-        assert_in_out_err(['--disable-gems'], "#{<<~"begin;"}\n#{<<~"end;"}", %w(:ok), [], bug7383)
+        assert_in_out_err([], "#{<<~"begin;"}\n#{<<~"end;"}", %w(:ok), [], bug7383)
         begin;
           $:.replace([IO::NULL])
           $:.#{add} "#{tmp}"
@@ -978,7 +999,7 @@ class TestRequire < Test::Unit::TestCase
 
   def test_require_with_public_method_missing
     # [Bug #19793]
-    assert_separately(["-W0", "--disable-gems", "-rtempfile"], __FILE__, __LINE__, <<~RUBY)
+    assert_separately(["-W0", "-rtempfile"], __FILE__, __LINE__, <<~RUBY)
       GC.stress = true
 
       class Object

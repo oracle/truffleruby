@@ -14,28 +14,23 @@ end
 
 module EnvUtil
   def rubybin
-    if defined?(::TruffleRuby) # always be correct and do not search some random files on disk
-      return RbConfig.ruby
-    end
-
     if ruby = ENV["RUBY"]
-      return ruby
-    end
-    ruby = "ruby"
-    exeext = RbConfig::CONFIG["EXEEXT"]
-    rubyexe = (ruby + exeext if exeext and !exeext.empty?)
-    3.times do
-      if File.exist? ruby and File.executable? ruby and !File.directory? ruby
-        return File.expand_path(ruby)
-      end
-      if rubyexe and File.exist? rubyexe and File.executable? rubyexe
-        return File.expand_path(rubyexe)
-      end
-      ruby = File.join("..", ruby)
-    end
-    if defined?(RbConfig.ruby)
+      ruby
+    elsif defined?(RbConfig.ruby)
       RbConfig.ruby
     else
+      ruby = "ruby"
+      exeext = RbConfig::CONFIG["EXEEXT"]
+      rubyexe = (ruby + exeext if exeext and !exeext.empty?)
+      3.times do
+        if File.exist? ruby and File.executable? ruby and !File.directory? ruby
+          return File.expand_path(ruby)
+        end
+        if rubyexe and File.exist? rubyexe and File.executable? rubyexe
+          return File.expand_path(rubyexe)
+        end
+        ruby = File.join("..", ruby)
+      end
       "ruby"
     end
   end
@@ -60,11 +55,6 @@ module EnvUtil
       @original_warning = defined?(Warning.[]) ? %i[deprecated experimental].to_h {|i| [i, Warning[i]]} : nil
     end
   end
-
-  # TruffleRuby: startup can take longer, especially on highly loaded CI machines.
-  # Note that EnvUtil.invoke_ruby has a timeout of 10 seconds * the scale.
-  # We use 60 * 10 = 600s which is the same as the timeout for ruby/spec in jt.rb.
-  self.timeout_scale = 60 if defined?(::TruffleRuby)
 
   def apply_timeout_scale(t)
     if scale = EnvUtil.timeout_scale
@@ -164,7 +154,7 @@ module EnvUtil
 
     # remain env
     %w(ASAN_OPTIONS RUBY_ON_BUG).each{|name|
-      child_env[name] = ENV[name] if ENV[name]
+      child_env[name] = ENV[name] if !child_env.key?(name) and ENV.key?(name)
     }
 
     args = [args] if args.kind_of?(String)
@@ -196,7 +186,7 @@ module EnvUtil
       stderr = stderr_filter.call(stderr) if stderr_filter
       if timeout_error
         bt = caller_locations
-        msg = "execution of #{bt.shift.label} expired (took longer than #{timeout} seconds)"
+        msg = "execution of #{bt.shift.label} expired timeout (#{timeout} sec)"
         msg = failure_description(status, terminated, msg, [stdout, stderr].join("\n"))
         raise timeout_error, msg, bt.map(&:to_s)
       end
@@ -254,6 +244,24 @@ module EnvUtil
     GC.stress = stress
   end
   module_function :under_gc_stress
+
+  def under_gc_compact_stress(val = :empty, &block)
+    raise "compaction doesn't work well on s390x. Omit the test in the caller." if RUBY_PLATFORM =~ /s390x/ # https://github.com/ruby/ruby/pull/5077
+    auto_compact = GC.auto_compact
+    GC.auto_compact = val
+    under_gc_stress(&block)
+  ensure
+    GC.auto_compact = auto_compact
+  end
+  module_function :under_gc_compact_stress
+
+  def without_gc
+    prev_disabled = GC.disable
+    yield
+  ensure
+    GC.enable unless prev_disabled
+  end
+  module_function :without_gc
 
   def with_default_external(enc)
     suppress_warning { Encoding.default_external = enc }

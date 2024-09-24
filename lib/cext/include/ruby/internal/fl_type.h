@@ -36,9 +36,6 @@
 #include "ruby/internal/stdbool.h"
 #include "ruby/internal/value.h"
 #include "ruby/internal/value_type.h"
-#ifdef TRUFFLERUBY
-#include "ruby/internal/intern/object.h" /* for rb_obj_taint, etc */
-#endif
 #include "ruby/assert.h"
 #include "ruby/defines.h"
 
@@ -60,8 +57,7 @@
 
 #define FL_SINGLETON    RBIMPL_CAST((VALUE)RUBY_FL_SINGLETON)            /**< @old{RUBY_FL_SINGLETON} */
 #define FL_WB_PROTECTED RBIMPL_CAST((VALUE)RUBY_FL_WB_PROTECTED)         /**< @old{RUBY_FL_WB_PROTECTED} */
-#define FL_PROMOTED0    RBIMPL_CAST((VALUE)RUBY_FL_PROMOTED0)            /**< @old{RUBY_FL_PROMOTED0} */
-#define FL_PROMOTED1    RBIMPL_CAST((VALUE)RUBY_FL_PROMOTED1)            /**< @old{RUBY_FL_PROMOTED1} */
+#define FL_PROMOTED     RBIMPL_CAST((VALUE)RUBY_FL_PROMOTED)             /**< @old{RUBY_FL_PROMOTED} */
 #define FL_FINALIZE     RBIMPL_CAST((VALUE)RUBY_FL_FINALIZE)             /**< @old{RUBY_FL_FINALIZE} */
 #define FL_TAINT        RBIMPL_CAST((VALUE)RUBY_FL_TAINT)                /**< @old{RUBY_FL_TAINT} */
 #define FL_SHAREABLE    RBIMPL_CAST((VALUE)RUBY_FL_SHAREABLE)            /**< @old{RUBY_FL_SHAREABLE} */
@@ -94,11 +90,7 @@
 #define FL_USER19       RBIMPL_CAST((VALUE)(unsigned int)RUBY_FL_USER19) /**< @old{RUBY_FL_USER19} */
 
 #define ELTS_SHARED          RUBY_ELTS_SHARED     /**< @old{RUBY_ELTS_SHARED} */
-#ifdef TRUFFLERUBY
-#define RB_OBJ_FREEZE        rb_obj_freeze
-#else
 #define RB_OBJ_FREEZE        rb_obj_freeze_inline /**< @alias{rb_obj_freeze_inline} */
-#endif
 
 /** @cond INTERNAL_MACRO */
 #define RUBY_ELTS_SHARED     RUBY_ELTS_SHARED
@@ -118,13 +110,6 @@
 #define RB_OBJ_FREEZE_RAW    RB_OBJ_FREEZE_RAW
 #define RB_OBJ_FROZEN        RB_OBJ_FROZEN
 #define RB_OBJ_FROZEN_RAW    RB_OBJ_FROZEN_RAW
-#define RB_OBJ_INFECT        RB_OBJ_INFECT
-#define RB_OBJ_INFECT_RAW    RB_OBJ_INFECT_RAW
-#define RB_OBJ_TAINT         RB_OBJ_TAINT
-#define RB_OBJ_TAINTABLE     RB_OBJ_TAINTABLE
-#define RB_OBJ_TAINTED       RB_OBJ_TAINTED
-#define RB_OBJ_TAINTED_RAW   RB_OBJ_TAINTED_RAW
-#define RB_OBJ_TAINT_RAW     RB_OBJ_TAINT_RAW
 #define RB_OBJ_UNTRUST       RB_OBJ_TAINT
 #define RB_OBJ_UNTRUSTED     RB_OBJ_TAINTED
 /** @endcond */
@@ -214,12 +199,15 @@ ruby_fl_type {
     RUBY_FL_WB_PROTECTED = (1<<5),
 
     /**
-     * This flag  has something to do  with our garbage collector.   These days
-     * ruby  objects are  "generational".  There  are those  who are  young and
-     * those who are old.  Young objects are prone to die; monitored relatively
-     * extensively by  the garbage  collector.  OTOH old  objects tend  to live
-     * longer.  They are relatively rarely considered.  This flag is set when a
-     * object experienced promotion i.e. survived a garbage collection.
+     * Ruby objects are "generational".  There are young objects & old objects.
+     * Young objects are prone to die & monitored relatively extensively by the
+     * garbage collector.  Old objects tend to live longer & are monitored less
+     * frequently.  When an object survives a GC, its age is incremented.  When
+     * age is equal to RVALUE_OLD_AGE, the object becomes Old. This flag is set
+     * when an object becomes old, and is used by the write barrier to check if
+     * an old object should be considered for marking more frequently  - as old
+     * objects that have references added between major GCs need to be remarked
+     * to prevent the referred object being mistakenly swept.
      *
      * @internal
      *
@@ -227,41 +215,14 @@ ruby_fl_type {
      * 3rd parties.  It must be an implementation detail that they should never
      * know.  Might better be hidden.
      */
-    RUBY_FL_PROMOTED0    = (1<<5),
+    RUBY_FL_PROMOTED    = (1<<5),
 
     /**
-     * This flag  has something to do  with our garbage collector.   These days
-     * ruby  objects are  "generational".  There  are those  who are  young and
-     * those who are old.  Young objects are prone to die; monitored relatively
-     * extensively by  the garbage  collector.  OTOH old  objects tend  to live
-     * longer.  They are relatively rarely considered.  This flag is set when a
-     * object  experienced two  promotions  i.e.  survived garbage  collections
-     * twice.
+     * This flag is no longer in use
      *
      * @internal
-     *
-     * But honestly, @shyouhei  doesn't think this flag should  be visible from
-     * 3rd parties.  It must be an implementation detail that they should never
-     * know.  Might better be hidden.
      */
-    RUBY_FL_PROMOTED1    = (1<<6),
-
-    /**
-     * This flag  has something to do  with our garbage collector.   These days
-     * ruby  objects are  "generational".  There  are those  who are  young and
-     * those who are old.  Young objects are prone to die; monitored relatively
-     * extensively by  the garbage  collector.  OTOH old  objects tend  to live
-     * longer.  They are relatively rarely considered.  This flag is set when a
-     * object  experienced  promotions i.e.   survived  more  than one  garbage
-     * collections.
-     *
-     * @internal
-     *
-     * But honestly, @shyouhei  doesn't think this flag should  be visible from
-     * 3rd parties.  It must be an implementation detail that they should never
-     * know.  Might better be hidden.
-     */
-    RUBY_FL_PROMOTED     = RUBY_FL_PROMOTED0 | RUBY_FL_PROMOTED1,
+    RUBY_FL_UNUSED6    = (1<<6),
 
     /**
      * This flag has  something to do with finalisers.  A  ruby object can have
@@ -290,7 +251,7 @@ ruby_fl_type {
 # pragma deprecated(RUBY_FL_TAINT)
 #endif
 
-                         = (1<<8),
+                         = 0,
 
     /**
      * This flag has something to do with Ractor.  Multiple Ractors run without
@@ -317,7 +278,7 @@ ruby_fl_type {
 # pragma deprecated(RUBY_FL_UNTRUSTED)
 #endif
 
-                         = (1<<8),
+                         = 0,
 
     /**
      * This flag has something to do with  object IDs.  Unlike in the old days,
@@ -496,7 +457,7 @@ RB_FL_ABLE(VALUE obj)
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an implenentation detail of  RB_FL_TEST().  3rd parties need not use
+ * This is an implementation detail of  RB_FL_TEST().  3rd parties need not use
  * this.  Just always use RB_FL_TEST().
  *
  * @param[in]  obj    Object in question.
@@ -508,11 +469,7 @@ static inline VALUE
 RB_FL_TEST_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    return RBASIC_FLAGS(obj) & flags;
-#else
     return RBASIC(obj)->flags & flags;
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -548,7 +505,7 @@ RB_FL_TEST(VALUE obj, VALUE flags)
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_ANY().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_ANY().  3rd parties  need not use
  * this.  Just always use RB_FL_ANY().
  *
  * @param[in]  obj    Object in question.
@@ -582,7 +539,7 @@ RB_FL_ANY(VALUE obj, VALUE flags)
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_ALL().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_ALL().  3rd parties  need not use
  * this.  Just always use RB_FL_ALL().
  *
  * @param[in]  obj    Object in question.
@@ -613,13 +570,12 @@ RB_FL_ALL(VALUE obj, VALUE flags)
     return RB_FL_TEST(obj, flags) == flags;
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * @private
  *
- * This is an  implenentation detail of RB_FL_SET().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_SET().  3rd parties  need not use
  * this.  Just always use RB_FL_SET().
  *
  * @param[out]  obj    Object in question.
@@ -636,11 +592,10 @@ rbimpl_fl_set_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags |= flags;
 }
-#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_SET().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_SET().  3rd parties  need not use
  * this.  Just always use RB_FL_SET().
  *
  * @param[out]  obj    Object in question.
@@ -651,11 +606,7 @@ static inline void
 RB_FL_SET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) | flags);
-#else
     rbimpl_fl_set_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -679,13 +630,12 @@ RB_FL_SET(VALUE obj, VALUE flags)
     }
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * @private
  *
- * This is an implenentation detail of RB_FL_UNSET().  3rd parties need not use
+ * This is an implementation detail of RB_FL_UNSET().  3rd parties need not use
  * this.  Just always use RB_FL_UNSET().
  *
  * @param[out]  obj    Object in question.
@@ -702,11 +652,10 @@ rbimpl_fl_unset_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags &= ~flags;
 }
-#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an implenentation detail of RB_FL_UNSET().  3rd parties need not use
+ * This is an implementation detail of RB_FL_UNSET().  3rd parties need not use
  * this.  Just always use RB_FL_UNSET().
  *
  * @param[out]  obj    Object in question.
@@ -717,11 +666,7 @@ static inline void
 RB_FL_UNSET_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) & ~flags);
-#else
     rbimpl_fl_unset_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -740,13 +685,12 @@ RB_FL_UNSET(VALUE obj, VALUE flags)
     }
 }
 
-#ifndef TRUFFLERUBY
 RBIMPL_ATTR_NOALIAS()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
  * @private
  *
- * This is an  implenentation detail of RB_FL_REVERSE().  3rd  parties need not
+ * This is an  implementation detail of RB_FL_REVERSE().  3rd  parties need not
  * use this.  Just always use RB_FL_REVERSE().
  *
  * @param[out]  obj    Object in question.
@@ -763,11 +707,10 @@ rbimpl_fl_reverse_raw_raw(struct RBasic *obj, VALUE flags)
 {
     obj->flags ^= flags;
 }
-#endif
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_REVERSE().  3rd  parties need not
+ * This is an  implementation detail of RB_FL_REVERSE().  3rd  parties need not
  * use this.  Just always use RB_FL_REVERSE().
  *
  * @param[out]  obj    Object in question.
@@ -778,11 +721,7 @@ static inline void
 RB_FL_REVERSE_RAW(VALUE obj, VALUE flags)
 {
     RBIMPL_ASSERT_OR_ASSUME(RB_FL_ABLE(obj));
-#ifdef TRUFFLERUBY
-    rb_tr_set_flags(obj, RBASIC_FLAGS(obj) ^ flags);
-#else
     rbimpl_fl_reverse_raw_raw(RBASIC(obj), flags);
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
@@ -802,11 +741,6 @@ RB_FL_REVERSE(VALUE obj, VALUE flags)
     }
 }
 
-#ifdef TRUFFLERUBY
-RBIMPL_WARNING_PUSH()
-RBIMPL_WARNING_IGNORED(-Wunused-parameter)
-#endif
-
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
@@ -821,6 +755,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline bool
 RB_OBJ_TAINTABLE(VALUE obj)
 {
+    (void)obj;
     return false;
 }
 
@@ -838,6 +773,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline VALUE
 RB_OBJ_TAINTED_RAW(VALUE obj)
 {
+    (void)obj;
     return false;
 }
 
@@ -855,6 +791,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline bool
 RB_OBJ_TAINTED(VALUE obj)
 {
+    (void)obj;
     return false;
 }
 
@@ -870,6 +807,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_TAINT_RAW(VALUE obj)
 {
+    (void)obj;
     return;
 }
 
@@ -885,6 +823,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_TAINT(VALUE obj)
 {
+    (void)obj;
     return;
 }
 
@@ -901,6 +840,8 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_INFECT_RAW(VALUE dst, VALUE src)
 {
+    (void)dst;
+    (void)src;
     return;
 }
 
@@ -917,17 +858,15 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_INFECT(VALUE dst, VALUE src)
 {
+    (void)dst;
+    (void)src;
     return;
 }
-
-#ifdef TRUFFLERUBY
-RBIMPL_WARNING_POP()
-#endif
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_OBJ_FROZEN().  3rd  parties need not
+ * This is an  implementation detail of RB_OBJ_FROZEN().  3rd  parties need not
  * use this.  Just always use RB_OBJ_FROZEN().
  *
  * @param[in]  obj             Object in question.
@@ -943,11 +882,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline VALUE
 RB_OBJ_FROZEN_RAW(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_obj_frozen_p(obj);
-#else
     return RB_FL_TEST_RAW(obj, RUBY_FL_FREEZE);
-#endif
 }
 
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
@@ -962,21 +897,17 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline bool
 RB_OBJ_FROZEN(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    return rb_obj_frozen_p(obj);
-#else
     if (! RB_FL_ABLE(obj)) {
         return true;
     }
     else {
         return RB_OBJ_FROZEN_RAW(obj);
     }
-#endif
 }
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_OBJ_FREEZE().  3rd  parties need not
+ * This is an  implementation detail of RB_OBJ_FREEZE().  3rd  parties need not
  * use this.  Just always use RB_OBJ_FREEZE().
  *
  * @param[out]  obj  Object in question.
@@ -984,17 +915,11 @@ RBIMPL_ATTR_ARTIFICIAL()
 static inline void
 RB_OBJ_FREEZE_RAW(VALUE obj)
 {
-#ifdef TRUFFLERUBY
-    rb_obj_freeze(obj);
-#else
     RB_FL_SET_RAW(obj, RUBY_FL_FREEZE);
-#endif
 }
 
 RUBY_SYMBOL_EXPORT_BEGIN
-#ifndef TRUFFLERUBY
 void rb_obj_freeze_inline(VALUE obj);
-#endif
 RUBY_SYMBOL_EXPORT_END
 
 #endif /* RBIMPL_FL_TYPE_H */

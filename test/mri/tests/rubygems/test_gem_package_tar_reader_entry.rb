@@ -24,11 +24,11 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
   def test_open
     io = TempIO.new @tar
     header = Gem::Package::TarHeader.from io
-    retval = Gem::Package::TarReader::Entry.open header, io do |entry|
-      entry.getc
-    end
+    retval = Gem::Package::TarReader::Entry.open header, io, &:getc
     assert_equal "a", retval
     assert_equal @tar.size, io.pos, "should have read to end of entry"
+  ensure
+    io&.close!
   end
 
   def test_open_closes_entry
@@ -40,6 +40,8 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
     end
     assert entry.closed?
     assert_raise(IOError) { entry.getc }
+  ensure
+    io&.close!
   end
 
   def test_open_returns_entry
@@ -47,9 +49,11 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
     header = Gem::Package::TarHeader.from io
     entry = Gem::Package::TarReader::Entry.open header, io
     refute entry.closed?
-    assert_equal ?a, entry.getc
+    assert_equal "a", entry.getc
     assert_nil entry.close
     assert entry.closed?
+  ensure
+    io&.close!
   end
 
   def test_bytes_read
@@ -113,7 +117,7 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
   end
 
   def test_getc
-    assert_equal ?a, @entry.getc
+    assert_equal "a", @entry.getc
   end
 
   def test_directory_eh
@@ -177,8 +181,13 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
     assert_equal @contents[100..-1], @entry.read
   end
 
-  def test_read_partial
+  def test_readpartial
     assert_equal @contents[0...100], @entry.readpartial(100)
+  end
+
+  def test_readpartial_to_eof
+    assert_equal @contents, @entry.readpartial(4096)
+    assert @entry.eof?
   end
 
   def test_read_partial_buffer
@@ -189,9 +198,40 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
 
   def test_readpartial_past_eof
     @entry.readpartial(@contents.size)
+    assert @entry.eof?
     assert_raise(EOFError) do
       @entry.readpartial(1)
     end
+  end
+
+  def test_read_corrupted_tar
+    corrupt_tar = String.new
+    corrupt_tar << tar_file_header("lib/foo", "", 0, 100, Time.now)
+    corrupt_tar << tar_file_contents("")
+    corrupt_entry = util_entry corrupt_tar
+
+    assert_equal "", corrupt_entry.read(0)
+    assert_equal "", corrupt_entry.read, "IO.read without len should return empty string (even though it's at an unpexpected EOF)"
+
+    corrupt_entry.rewind
+
+    assert_nil corrupt_entry.read(100), "IO.read with len should return nil as per IO.read docs"
+  ensure
+    close_util_entry(corrupt_entry) if corrupt_entry
+  end
+
+  def test_readpartial_corrupted_tar
+    corrupt_tar = String.new
+    corrupt_tar << tar_file_header("lib/foo", "", 0, 100, Time.now)
+    corrupt_tar << tar_file_contents("")
+
+    corrupt_entry = util_entry corrupt_tar
+
+    assert_raise EOFError do
+      corrupt_entry.readpartial(100)
+    end
+  ensure
+    close_util_entry(corrupt_entry) if corrupt_entry
   end
 
   def test_rewind
@@ -233,12 +273,16 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
     zero_entry = util_entry(tar_file_header("foo", "", 0, 0, Time.now))
     expected = StringIO.new("")
     assert_equal expected.read, zero_entry.read
+  ensure
+    close_util_entry(zero_entry) if zero_entry
   end
 
   def test_zero_byte_file_readpartial
     zero_entry = util_entry(tar_file_header("foo", "", 0, 0, Time.now))
     expected = StringIO.new("")
     assert_equal expected.readpartial(0), zero_entry.readpartial(0)
+  ensure
+    close_util_entry(zero_entry) if zero_entry
   end
 
   def test_read_from_gzip_io
@@ -293,6 +337,22 @@ class TestGemPackageTarReaderEntry < Gem::Package::TarTestCase
       assert_equal contents2.size - 10, entry.pos
       assert_equal contents2[-10..-1], entry.read, "read from end"
       assert_equal contents2.size, entry.pos
+    end
+  end
+
+  def test_seek_in_gzip_io_corrupted
+    @tar << tar_file_header("lib/bar", "", 0, 100, Time.now)
+    @tar << tar_file_contents("")
+
+    tgz = util_gzip(@tar)
+
+    Zlib::GzipReader.wrap StringIO.new(tgz) do |gzio|
+      util_entry(gzio).close # skip the first entry so io.pos is not 0
+      entry = util_entry(gzio)
+
+      assert_raise EOFError do
+        entry.seek(50)
+      end
     end
   end
 end

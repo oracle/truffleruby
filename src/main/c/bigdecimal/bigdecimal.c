@@ -31,6 +31,8 @@
 #include "bits.h"
 #include "static_assert.h"
 
+#define BIGDECIMAL_VERSION "3.1.5"
+
 /* #define ENABLE_NUMERIC_STRING */
 
 #define SIGNED_VALUE_MAX INTPTR_MAX
@@ -313,7 +315,7 @@ static const rb_data_type_t BigDecimal_data_type = {
     "BigDecimal",
     { 0, BigDecimal_delete, BigDecimal_memsize, },
 #ifdef RUBY_TYPED_FREE_IMMEDIATELY
-    0, 0, RUBY_TYPED_FREE_IMMEDIATELY | RUBY_TYPED_FROZEN_SHAREABLE
+    0, 0, RUBY_TYPED_FREE_IMMEDIATELY | RUBY_TYPED_FROZEN_SHAREABLE | RUBY_TYPED_WB_PROTECTED
 #endif
 };
 
@@ -655,7 +657,7 @@ BigDecimal_precision(VALUE self)
  *  Returns the number of decimal digits following the decimal digits in +self+.
  *
  *    BigDecimal("0").scale         # => 0
- *    BigDecimal("1").scale         # => 1
+ *    BigDecimal("1").scale         # => 0
  *    BigDecimal("1.1").scale       # => 1
  *    BigDecimal("3.1415").scale    # => 4
  *    BigDecimal("-1e20").precision # => 0
@@ -2082,6 +2084,13 @@ BigDecimal_divremain(VALUE self, VALUE r, Real **dv, Real **rv)
     if (!b) return DoSomeOne(self, r, rb_intern("remainder"));
     SAVE(b);
 
+    if (VpIsPosInf(b) || VpIsNegInf(b)) {
+       GUARD_OBJ(*dv, NewZeroWrapLimited(1, 1));
+       VpSetZero(*dv, 1);
+       *rv = a;
+       return Qnil;
+    }
+
     mx = (a->MaxPrec + b->MaxPrec) *VpBaseFig();
     GUARD_OBJ(c,   NewZeroWrapLimited(1, mx));
     GUARD_OBJ(res, NewZeroWrapNolimit(1, (mx+1) * 2 + (VpBaseFig() + 1)));
@@ -2680,7 +2689,7 @@ BigDecimal_ceil(int argc, VALUE *argv, VALUE self)
  * A space at the start of s returns positive values with a leading space.
  *
  * If s contains a number, a space is inserted after each group of that many
- * fractional digits.
+ * digits, starting from '.' and counting outwards.
  *
  * If s ends with an 'E', engineering notation (0.xxxxEnn) is used.
  *
@@ -2688,14 +2697,14 @@ BigDecimal_ceil(int argc, VALUE *argv, VALUE self)
  *
  * Examples:
  *
- *   BigDecimal('-123.45678901234567890').to_s('5F')
- *     #=> '-123.45678 90123 45678 9'
+ *   BigDecimal('-1234567890123.45678901234567890').to_s('5F')
+ *     #=> '-123 45678 90123.45678 90123 45678 9'
  *
- *   BigDecimal('123.45678901234567890').to_s('+8F')
- *     #=> '+123.45678901 23456789'
+ *   BigDecimal('1234567890123.45678901234567890').to_s('+8F')
+ *     #=> '+12345 67890123.45678901 23456789'
  *
- *   BigDecimal('123.45678901234567890').to_s(' F')
- *     #=> ' 123.4567890123456789'
+ *   BigDecimal('1234567890123.45678901234567890').to_s(' F')
+ *     #=> ' 1234567890123.4567890123456789'
  */
 static VALUE
 BigDecimal_to_s(int argc, VALUE *argv, VALUE self)
@@ -3018,16 +3027,12 @@ BigDecimal_power(int argc, VALUE*argv, VALUE self)
       case T_FLOAT:
 	d = RFLOAT_VALUE(vexp);
 	if (d == round(d)) {
-#ifdef TRUFFLERUBY
-		vexp = rb_dbl2big(d);
-#else
 	    if (FIXABLE(d)) {
 		vexp = LONG2FIX((long)d);
 	    }
 	    else {
 		vexp = rb_dbl2big(d);
 	    }
-#endif
 	    goto retry;
 	}
         if (NIL_P(prec)) {
@@ -3717,7 +3722,7 @@ rb_convert_to_BigDecimal(VALUE val, size_t digs, int raise_exception)
  *  - Other type:
  *
  *    - Raises an exception if keyword argument +exception+ is +true+.
- *    - Returns +nil+ if keyword argument +exception+ is +true+.
+ *    - Returns +nil+ if keyword argument +exception+ is +false+.
  *
  *  Raises an exception if +value+ evaluates to a Float
  *  and +digits+ is larger than Float::DIG + 1.
@@ -4358,7 +4363,20 @@ BigDecimal_negative_zero(void)
  *      (2/3r).to_d(3)  # => 0.667e0
  *      "0.5".to_d      # => 0.5e0
  *
- * == License
+ * == Methods for Working with \JSON
+ *
+ * - {::json_create}[rdoc-ref:BigDecimal.json_create]:
+ *   Returns a new \BigDecimal object constructed from the given object.
+ * - {#as_json}[rdoc-ref:BigDecimal#as_json]:
+ *   Returns a 2-element hash representing +self+.
+ * - {#to_json}[rdoc-ref:BigDecimal#to_json]:
+ *   Returns a \JSON string representing +self+.
+ *
+ * These methods are provided by the {JSON gem}[https://github.com/flori/json]. To make these methods available:
+ *
+ *   require 'json/add/bigdecimal'
+ *
+ * * == License
  *
  * Copyright (C) 2002 by Shigeo Kobayashi <shigeo@tinyforest.gr.jp>.
  *
@@ -4406,13 +4424,10 @@ Init_bigdecimal(void)
 
     /* Constants definition */
 
-#ifndef RUBY_BIGDECIMAL_VERSION
-# error RUBY_BIGDECIMAL_VERSION is not defined
-#endif
     /*
      * The version of bigdecimal library
      */
-    rb_define_const(rb_cBigDecimal, "VERSION", rb_str_new2(RUBY_BIGDECIMAL_VERSION));
+    rb_define_const(rb_cBigDecimal, "VERSION", rb_str_new2(BIGDECIMAL_VERSION));
 
     /*
      * Base value used in internal calculations.  On a 32 bit system, BASE
@@ -6464,7 +6479,7 @@ VPrint(FILE *fp, const char *cntl_chr, Real *a)
                     }
                 }
                 nc += fprintf(fp, "E%"PRIdSIZE, VpExponent10(a));
-                nc += fprintf(fp, " (%"PRIdVALUE", %lu, %lu)", a->exponent, a->Prec, a->MaxPrec);
+                nc += fprintf(fp, " (%"PRIdVALUE", %"PRIuSIZE", %"PRIuSIZE")", a->exponent, a->Prec, a->MaxPrec);
             }
             else {
                 nc += fprintf(fp, "0.0");
@@ -6704,95 +6719,90 @@ VpToFString(Real *a, char *buf, size_t buflen, size_t fFmt, int fPlus)
 /* fPlus = 0: default, 1: set ' ' before digits, 2: set '+' before digits. */
 {
     size_t i, n;
-    DECDIG m, e, nn;
+    DECDIG m, e;
     char *p = buf;
-    size_t plen = buflen;
+    size_t plen = buflen, delim = fFmt;
     ssize_t ex;
 
     if (VpToSpecialString(a, buf, buflen, fPlus)) return;
 
-#define ADVANCE(n) do { \
-    if (plen < n) goto overflow; \
-    p += n; \
-    plen -= n; \
+#define APPEND(c, group) do { \
+    if (plen < 1) goto overflow; \
+    if (group && delim == 0) { \
+        *p = ' '; \
+        p += 1; \
+        plen -= 1; \
+    } \
+    if (plen < 1) goto overflow; \
+    *p = c; \
+    p += 1; \
+    plen -= 1; \
+    if (group) delim = (delim + 1) % fFmt; \
 } while (0)
 
 
     if (BIGDECIMAL_NEGATIVE_P(a)) {
-        *p = '-';
-        ADVANCE(1);
+        APPEND('-', false);
     }
     else if (fPlus == 1) {
-        *p = ' ';
-        ADVANCE(1);
+        APPEND(' ', false);
     }
     else if (fPlus == 2) {
-        *p = '+';
-        ADVANCE(1);
+        APPEND('+', false);
     }
 
     n  = a->Prec;
     ex = a->exponent;
     if (ex <= 0) {
-        *p = '0'; ADVANCE(1);
-        *p = '.'; ADVANCE(1);
-        while (ex < 0) {
-            for (i=0; i < BASE_FIG; ++i) {
-                *p = '0'; ADVANCE(1);
-            }
-            ++ex;
+        APPEND('0', false);
+        APPEND('.', false);
+    }
+    while (ex < 0) {
+        for (i=0; i < BASE_FIG; ++i) {
+            APPEND('0', fFmt > 0);
         }
-        ex = -1;
+        ++ex;
     }
 
     for (i = 0; i < n; ++i) {
-        --ex;
-        if (i == 0 && ex >= 0) {
-            size_t n = snprintf(p, plen, "%lu", (unsigned long)a->frac[i]);
-            if (n > plen) goto overflow;
-            ADVANCE(n);
-        }
-        else {
-            m = BASE1;
-            e = a->frac[i];
-            while (m) {
-                nn = e / m;
-                *p = (char)(nn + '0');
-                ADVANCE(1);
-                e = e - nn * m;
+        m = BASE1;
+        e = a->frac[i];
+        if (i == 0 && ex > 0) {
+            for (delim = 0; e / m == 0; delim++) {
                 m /= 10;
             }
+            if (fFmt > 0) {
+              delim = 2*fFmt - (ex * BASE_FIG - delim) % fFmt;
+            }
         }
-        if (ex == 0) {
-            *p = '.';
-            ADVANCE(1);
+        while (m && (e || (i < n - 1) || ex > 0)) {
+            APPEND((char)(e / m + '0'), fFmt > 0);
+            e %= m;
+            m /= 10;
+        }
+        if (--ex == 0) {
+            APPEND('.', false);
+            delim = fFmt;
         }
     }
-    while (--ex>=0) {
-        m = BASE;
-        while (m /= 10) {
-            *p = '0';
-            ADVANCE(1);
+
+    while (ex > 0) {
+        for (i=0; i < BASE_FIG; ++i) {
+            APPEND('0', fFmt > 0);
         }
-        if (ex == 0) {
-            *p = '.';
-            ADVANCE(1);
+        if (--ex == 0) {
+            APPEND('.', false);
         }
     }
 
     *p = '\0';
-    while (p - 1 > buf && p[-1] == '0') {
-        *(--p) = '\0';
-        ++plen;
-    }
     if (p - 1 > buf && p[-1] == '.') {
         snprintf(p, plen, "0");
     }
-    if (fFmt) VpFormatSt(buf, fFmt);
 
   overflow:
     return;
-#undef ADVANCE
+#undef APPEND
 }
 
 /*
@@ -7169,7 +7179,6 @@ VpSqrt(Real *y, Real *x)
     Real *r = NULL;
     size_t y_prec;
     SIGNED_VALUE n, e;
-    SIGNED_VALUE prec;
     ssize_t nr;
     double val;
 
@@ -7207,12 +7216,6 @@ VpSqrt(Real *y, Real *x)
 
     nr = 0;
     y_prec = y->MaxPrec;
-
-    prec = x->exponent - (ssize_t)y_prec;
-    if (x->exponent > 0)
-	++prec;
-    else
-	--prec;
 
     VpVtoD(&val, &e, x);    /* val <- x  */
     e /= (SIGNED_VALUE)BASE_FIG;

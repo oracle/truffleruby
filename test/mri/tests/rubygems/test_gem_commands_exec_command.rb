@@ -71,10 +71,10 @@ class TestGemCommandsExecCommand < Gem::TestCase
       assert_equal options, {
         args: ["install", "--no-color", "--help", "--verbose"],
         executable: "pod",
-        :explicit_prerelease => false,
+        explicit_prerelease: false,
         gem_name: "cocoapods",
         prerelease: false,
-        :version => Gem::Requirement.new(["> 1", "< 1.3"]),
+        version: Gem::Requirement.new(["> 1", "< 1.3"]),
         build_args: nil,
       }
     end
@@ -87,7 +87,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         args: [],
         executable: "rails",
         gem_name: "rails",
-        :version => Gem::Requirement.new([">= 0"]),
+        version: Gem::Requirement.new([">= 0"]),
         build_args: nil,
       }
     end
@@ -100,7 +100,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         args: [],
         executable: "rails",
         gem_name: "rails",
-        :version => Gem::Requirement.new(["= 7.1"]),
+        version: Gem::Requirement.new(["= 7.1"]),
         build_args: nil,
       }
     end
@@ -129,7 +129,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump}"
         end
       end
@@ -149,7 +149,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump}"
         end
       end
@@ -159,7 +159,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.files = %w[bin/a lib/a.rb]
         s.platform = "x86_64-darwin"
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump}"
         end
       end
@@ -182,9 +182,9 @@ class TestGemCommandsExecCommand < Gem::TestCase
       fetcher.download "a", 2 do |s|
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
-        s.add_runtime_dependency "with_platform"
+        s.add_dependency "with_platform"
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << 'require "with_platform"' << "\n"
           f << 'Gem.ui.say Gem.loaded_specs.each_value.map(&:original_name).sort.join("\n")'
         end
@@ -222,10 +222,10 @@ class TestGemCommandsExecCommand < Gem::TestCase
       fetcher.download "a", 2 do |s|
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
-        s.add_runtime_dependency "with_platform"
+        s.add_dependency "with_platform"
         s.platform = Gem::Platform.local.to_s
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << 'require "with_platform"' << "\n"
           f << 'Gem.ui.say Gem.loaded_specs.each_value.map(&:original_name).sort.join("\n")'
         end
@@ -234,15 +234,15 @@ class TestGemCommandsExecCommand < Gem::TestCase
       fetcher.download "a", 2 do |s|
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb extconf.rb]
-        s.add_runtime_dependency "with_platform"
+        s.add_dependency "with_platform"
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << 'require "with_platform"' << "\n"
           f << 'Gem.ui.say Gem.loaded_specs.each_value.map(&:original_name).sort.join("\n")'
         end
 
         s.extensions = %w[extconf.rb]
-        write_file File.join(*%W[gems #{s.original_name}      extconf.rb]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} extconf.rb]) do |f|
           f.write <<-RUBY
             gem('with_platform', '~> 2.0')
             require 'with_platform'
@@ -261,7 +261,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
 
       fetcher.download "with_platform", 2 do |s|
         s.files = %w[lib/with_platform.rb]
-        s.add_runtime_dependency "sometimes_used"
+        s.add_dependency "sometimes_used"
       end
 
       fetcher.download "sometimes_used", 2 do |s|
@@ -290,7 +290,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump}"
         end
       end
@@ -310,7 +310,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "raise #{s.original_name.dump}"
         end
       end
@@ -333,11 +333,11 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo a]
         s.files = %w[bin/foo bin/a lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -357,11 +357,11 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo bar]
         s.files = %w[bin/foo bin/bar lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
 
-        write_file File.join(*%W[gems #{s.original_name}      bin bar]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin bar]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -388,7 +388,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[bin/a lib/b.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -415,7 +415,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/b.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -445,7 +445,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[bin/a lib/b.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -504,15 +504,15 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
       fetcher.gem "a", "1.1.a" do |s|
-        s.executables = %w[foo ]
+        s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -532,15 +532,15 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
       fetcher.download "a", "1.1.a" do |s|
-        s.executables = %w[foo ]
+        s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -558,7 +558,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -585,7 +585,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -603,7 +603,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -612,7 +612,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -632,7 +632,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -648,7 +648,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -657,7 +657,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[foo]
         s.files = %w[bin/foo lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin foo]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin foo]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -677,14 +677,14 @@ class TestGemCommandsExecCommand < Gem::TestCase
       fetcher.gem "a", 1 do |s|
         s.executables = %w[]
         s.files = %w[lib/a.rb]
-        s.add_runtime_dependency "b"
+        s.add_dependency "b"
       end
 
       fetcher.gem "b", 1 do |s|
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -693,7 +693,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -711,9 +711,9 @@ class TestGemCommandsExecCommand < Gem::TestCase
       fetcher.download "a", 2 do |s|
         s.executables = %w[a]
         s.files = %w[bin/a lib/a.rb]
-        s.add_runtime_dependency "b"
+        s.add_dependency "b"
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump}"
         end
       end
@@ -731,7 +731,13 @@ class TestGemCommandsExecCommand < Gem::TestCase
       assert_includes @ui.output, "a (2)\n"
       assert_includes @ui.output, "b (2)\n"
 
-      invoke "gem", "uninstall", "--verbose", "-x", "a" rescue nil
+      begin
+        invoke "gem", "uninstall", "--verbose", "-x", "a"
+      rescue StandardError
+        nil
+      end
+
+      assert_empty @ui.error
       refute_includes @ui.output, "running gem exec with"
       assert_includes @ui.output, "Successfully uninstalled a-2\n"
 
@@ -753,7 +759,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[lib/a.rb bin/a]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -763,7 +769,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
       assert_raise Gem::MockGemUi::TermError do
         invoke "a"
       end
-      assert_equal "ERROR:  Could not find a valid gem 'a' (>= 0) in any repository\n" +
+      assert_equal "ERROR:  Could not find a valid gem 'a' (>= 0) in any repository\n" \
                    "ERROR:  Possible alternatives: a\n", @ui.error
       assert_empty @ui.output
       assert_empty @installed_specs
@@ -801,7 +807,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[lib/a.rb bin/a]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end
@@ -810,7 +816,7 @@ class TestGemCommandsExecCommand < Gem::TestCase
         s.executables = %w[a]
         s.files = %w[lib/a.rb bin/a]
 
-        write_file File.join(*%W[gems #{s.original_name}      bin a]) do |f|
+        write_file File.join(*%W[gems #{s.original_name} bin a]) do |f|
           f << "Gem.ui.say #{s.original_name.dump} + ' ' + File.basename(__FILE__)"
         end
       end

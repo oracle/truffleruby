@@ -21,7 +21,12 @@ module Bundler
         @locked_version = locked_specs[name].first&.version
         @unlock = unlock
         @dependency = dependency || Dependency.new(name, @locked_version)
+        @top_level = !dependency.nil?
         @prerelease = @dependency.prerelease? || @locked_version&.prerelease? || prerelease ? :consider_first : :ignore
+      end
+
+      def platform_specs(specs)
+        platforms.map {|platform| GemHelpers.select_best_platform_match(specs, platform, prefer_locked: !unlock?) }
       end
 
       def to_s
@@ -30,6 +35,10 @@ module Bundler
 
       def root?
         false
+      end
+
+      def top_level?
+        @top_level
       end
 
       def meta?

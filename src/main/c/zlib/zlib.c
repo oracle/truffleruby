@@ -25,7 +25,7 @@
 # define VALGRIND_MAKE_MEM_UNDEFINED(p, n) 0
 #endif
 
-#define RUBY_ZLIB_VERSION "3.0.0"
+#define RUBY_ZLIB_VERSION "3.1.1"
 
 #ifndef RB_PASS_CALLED_KEYWORDS
 # define rb_class_new_instance_kw(argc, argv, klass, kw_splat) rb_class_new_instance(argc, argv, klass)
@@ -44,7 +44,7 @@
 #endif
 #endif
 
-#if defined(HAVE_TYPE_Z_SIZE_T)
+#if defined(HAVE_ZLIB_SIZE_T_FUNCS)
 typedef uLong (*checksum_func)(uLong, const Bytef*, z_size_t);
 # define crc32 crc32_z
 # define adler32 adler32_z
@@ -388,7 +388,7 @@ rb_zlib_version(VALUE klass)
 # define mask32(x) (x)
 #endif
 
-#if SIZEOF_LONG > SIZEOF_INT && !defined(HAVE_TYPE_Z_SIZE_T)
+#if SIZEOF_LONG > SIZEOF_INT && !defined(HAVE_ZLIB_SIZE_T_FUNCS)
 static uLong
 checksum_long(uLong (*func)(uLong, const Bytef*, uInt), uLong sum, const Bytef *ptr, long len)
 {
@@ -535,11 +535,6 @@ rb_zlib_crc32_combine(VALUE klass, VALUE crc1, VALUE crc2, VALUE len2)
  *
  * Returns the table for calculating CRC checksum as an array.
  */
-#ifdef TRUFFLERUBY
-static VALUE rb_zlib_crc_table(VALUE obj) {
-    return rb_tr_zlib_crc_table();
-}
-#else
 static VALUE
 rb_zlib_crc_table(VALUE obj)
 {
@@ -559,7 +554,6 @@ rb_zlib_crc_table(VALUE obj)
     }
     return dst;
 }
-#endif
 
 
 
@@ -929,7 +923,7 @@ zstream_discard_input(struct zstream *z, long len)
 	    z->input = Qnil;
 	}
 	else {
-	    z->input = rb_str_substr(z->input, len,
+	    z->input = rb_str_subseq(z->input, len,
 				     RSTRING_LEN(z->input) - len);
 	}
     }
@@ -3506,6 +3500,9 @@ static VALUE
 rb_gzfile_eof_p(VALUE obj)
 {
     struct gzfile *gz = get_gzfile(obj);
+    while (!ZSTREAM_IS_FINISHED(&gz->z) && ZSTREAM_BUF_FILLED(&gz->z) == 0) {
+	gzfile_read_more(gz, Qnil);
+    }
     return GZFILE_IS_FINISHED(gz) ? Qtrue : Qfalse;
 }
 

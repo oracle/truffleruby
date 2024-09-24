@@ -22,7 +22,7 @@ if yaml_source
   args = [
     yaml_configure,
     "--enable-#{shared ? 'shared' : 'static'}",
-    "--host=#{RbConfig::CONFIG['host'].sub(/-unknown-/, '-')}",
+    "--host=#{RbConfig::CONFIG['host'].sub(/-unknown-/, '-').sub(/arm64/, 'arm')}",
     "CC=#{RbConfig::CONFIG['CC']}",
     *(["CFLAGS=-w"] if RbConfig::CONFIG["GCC"] == "yes"),
   ]
@@ -37,13 +37,8 @@ if yaml_source
   $cleanfiles << libyaml
   $LOCAL_LIBS.prepend("$(LIBYAML) ")
 else # default to pre-installed libyaml
-  if defined?(::TruffleRuby)
-    require 'truffle/libyaml-prefix'
-    dir_config('libyaml', ENV['LIBYAML_PREFIX'])
-  else
-    pkg_config('yaml-0.1')
-    dir_config('libyaml')
-  end
+  pkg_config('yaml-0.1')
+  dir_config('libyaml')
   find_header('yaml.h') or abort "yaml.h not found"
   find_library('yaml', 'yaml_get_version') or abort "libyaml not found"
 end

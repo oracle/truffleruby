@@ -14,6 +14,7 @@ class TestParse < Test::Unit::TestCase
 
   def test_error_line
     assert_syntax_error('------,,', /\n\z/, 'Message to pipe should end with a newline')
+    assert_syntax_error("{hello\n  world}", /hello/)
   end
 
   def test_else_without_rescue
@@ -26,7 +27,7 @@ class TestParse < Test::Unit::TestCase
   end
 
   def test_alias_backref
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /can't make alias|invalid argument being passed to `alias`/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /can't make alias/) do
       begin;
         alias $foo $1
       end;
@@ -84,7 +85,7 @@ class TestParse < Test::Unit::TestCase
     assert_equal([42, 42], [o.Foo, o.Bar])
     assert_equal([42, 42], [o::baz, o::qux])
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /Can't set variable|immutable variable as a write target/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /Can't set variable/) do
       begin;
         $1 ||= t.foo 42
       end;
@@ -192,13 +193,13 @@ class TestParse < Test::Unit::TestCase
   end
 
   def test_class_module
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /must be CONSTANT|expected a constant name/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /must be CONSTANT/) do
       begin;
         class foo; end
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /in method body|unexpected class definition in a method definition/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /in method body/) do
       begin;
         def foo
           class Foo; end
@@ -294,7 +295,7 @@ class TestParse < Test::Unit::TestCase
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /cannot be an instance variable|expected a local variable name in the block parameters/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /cannot be an instance variable/) do
       begin;
         o.foo {|; @a| @a = 42 }
       end;
@@ -377,10 +378,10 @@ class TestParse < Test::Unit::TestCase
 
   def assert_disallowed_variable(type, noname, invalid)
     noname.each do |name|
-      assert_syntax_error("proc{a = #{name} }", /(`|')#{Regexp.escape noname[0]}' without identifiers is not allowed as #{type} variable name|(`|')#{Regexp.escape noname[0]}' is not allowed as #{type} variable name/)
+      assert_syntax_error("proc{a = #{name} }", "`#{noname[0]}' without identifiers is not allowed as #{type} variable name")
     end
     invalid.each do |name|
-      assert_syntax_error("proc {a = #{name} }", /(`|')#{Regexp.escape name}' is not allowed as #{type} variable name|(`|')#{Regexp.escape noname[0]}' is not allowed as #{type} variable name/)
+      assert_syntax_error("proc {a = #{name} }", "`#{name}' is not allowed as #{type} variable name")
     end
   end
 
@@ -438,13 +439,13 @@ class TestParse < Test::Unit::TestCase
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument|repeated parameter name/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument/) do
       begin;
         1.times {|a, a|}
       end;
     end
 
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument|repeated parameter name/) do
+    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /duplicated argument/) do
       begin;
         def foo(a, a); end
       end;
@@ -452,10 +453,44 @@ class TestParse < Test::Unit::TestCase
   end
 
   def test_define_singleton_error
-    assert_syntax_error("#{<<~"begin;"}\n#{<<~'end;'}", /singleton method for literals/) do
-      begin;
-        def ("foo").foo; end
-      end;
+    msg = /singleton method for literals/
+    assert_parse_error(%q[def ("foo").foo; end], msg)
+    assert_parse_error(%q[def (1).foo; end], msg)
+    assert_parse_error(%q[def ((1;1)).foo; end], msg)
+    assert_parse_error(%q[def ((;1)).foo; end], msg)
+    assert_parse_error(%q[def ((1+1;1)).foo; end], msg)
+    assert_parse_error(%q[def ((%s();1)).foo; end], msg)
+    assert_parse_error(%q[def ((%w();1)).foo; end], msg)
+    assert_parse_error(%q[def ("#{42}").foo; end], msg)
+    assert_parse_error(%q[def (:"#{42}").foo; end], msg)
+  end
+
+  def test_flip_flop
+    all_assertions_foreach(nil,
+      ['(cond1..cond2)', true],
+      ['((cond1..cond2))', true],
+
+      # '(;;;cond1..cond2)', # don't care
+
+      '(1; cond1..cond2)',
+      '(%s(); cond1..cond2)',
+      '(%w(); cond1..cond2)',
+      '(1; (2; (3; 4; cond1..cond2)))',
+      '(1+1; cond1..cond2)',
+    ) do |code, pass|
+      code = code.sub("cond1", "n==4").sub("cond2", "n==5")
+      if pass
+        assert_equal([4,5], eval("(1..9).select {|n| true if #{code}}"))
+      else
+        assert_raise_with_message(ArgumentError, /bad value for range/, code) {
+          verbose_bak, $VERBOSE = $VERBOSE, nil # disable "warning: possibly useless use of a literal in void context"
+          begin
+            eval("[4].each {|n| true if #{code}}")
+          ensure
+            $VERBOSE = verbose_bak
+          end
+        }
+      end
     end
   end
 
@@ -577,6 +612,10 @@ class TestParse < Test::Unit::TestCase
     assert_equal(' ^~~~~'"\n", e.message.lines.last)
     e = assert_syntax_error('"\M-\U0000"', 'Invalid escape character syntax')
     assert_equal(' ^~~~~'"\n", e.message.lines.last)
+
+    e = assert_syntax_error(%["\\C-\u3042"], 'Invalid escape character syntax')
+    assert_match(/^\s \^(?# \\ ) ~(?# C ) ~(?# - ) ~+(?# U+3042 )$/x, e.message.lines.last)
+    assert_not_include(e.message, "invalid multibyte char")
   end
 
   def test_question
@@ -613,12 +652,12 @@ class TestParse < Test::Unit::TestCase
 
   def test_percent
     assert_equal(:foo, eval('%s(foo)'))
-    assert_syntax_error('%s', /unterminated quoted string|expected a closing delimiter for the dynamic symbol/)
-    assert_syntax_error('%ss', /unknown type|invalid `%` token/)
-    assert_syntax_error('%z()', /unknown type|invalid `%` token/)
-    assert_syntax_error("%\u3042", /unknown type|invalid `%` token/)
-    assert_syntax_error("%q\u3042", /unknown type|invalid `%` token/)
-    assert_syntax_error("%", /unterminated quoted string|invalid `%` token/)
+    assert_syntax_error('%s', /unterminated quoted string/)
+    assert_syntax_error('%ss', /unknown type/)
+    assert_syntax_error('%z()', /unknown type/)
+    assert_syntax_error("%\u3042", /unknown type/)
+    assert_syntax_error("%q\u3042", /unknown type/)
+    assert_syntax_error("%", /unterminated quoted string/)
   end
 
   def test_symbol
@@ -642,10 +681,11 @@ class TestParse < Test::Unit::TestCase
     assert_syntax_error(':@@1', /is not allowed/)
     assert_syntax_error(':@', /is not allowed/)
     assert_syntax_error(':@1', /is not allowed/)
+    assert_syntax_error(':$01234', /is not allowed/)
   end
 
   def test_parse_string
-    assert_syntax_error("/\n", /unterminated|expected a closing delimiter for the regular expression/)
+    assert_syntax_error("/\n", /unterminated/)
   end
 
   def test_here_document
@@ -682,6 +722,16 @@ FOO
       eval "x = <<""FOO\r\n1\r\nFOO"
     end
     assert_equal("1\n", x)
+
+    assert_nothing_raised do
+      x = eval "<<' FOO'\n""[Bug #19539]\n"" FOO\n"
+    end
+    assert_equal("[Bug #19539]\n", x)
+
+    assert_nothing_raised do
+      x = eval "<<-' FOO'\n""[Bug #19539]\n"" FOO\n"
+    end
+    assert_equal("[Bug #19539]\n", x)
   end
 
   def test_magic_comment
@@ -819,7 +869,7 @@ x = __ENCODING__
   end
 
   def test_set_backref
-    assert_syntax_error("$& = 1", /Can't set variable|immutable variable as a write target/)
+    assert_syntax_error("$& = 1", /Can't set variable/)
   end
 
   def test_arg_concat
@@ -839,7 +889,6 @@ x = __ENCODING__
   def test_void_expr_stmts_value
     x = 1
     useless_use = /useless use/
-    unused = /unused/
     assert_nil assert_warning(useless_use) {eval("x; nil")}
     assert_nil assert_warning(useless_use) {eval("1+1; nil")}
     assert_nil assert_warning('') {eval("1.+(1); nil")}
@@ -847,10 +896,10 @@ x = __ENCODING__
     assert_nil assert_warning(useless_use) {eval("::TestParse; nil")}
     assert_nil assert_warning(useless_use) {eval("x..x; nil")}
     assert_nil assert_warning(useless_use) {eval("x...x; nil")}
-    assert_nil assert_warning(unused) {eval("self; nil")}
-    assert_nil assert_warning(unused) {eval("nil; nil")}
-    assert_nil assert_warning(unused) {eval("true; nil")}
-    assert_nil assert_warning(unused) {eval("false; nil")}
+    assert_nil assert_warning(useless_use) {eval("self; nil")}
+    assert_nil assert_warning(useless_use) {eval("nil; nil")}
+    assert_nil assert_warning(useless_use) {eval("true; nil")}
+    assert_nil assert_warning(useless_use) {eval("false; nil")}
     assert_nil assert_warning(useless_use) {eval("defined?(1); nil")}
     assert_equal 1, x
 
@@ -858,12 +907,14 @@ x = __ENCODING__
   end
 
   def test_assign_in_conditional
+    # multiple assignment
     assert_warning(/`= literal' in conditional/) do
       eval <<-END, nil, __FILE__, __LINE__+1
         (x, y = 1, 2) ? 1 : 2
       END
     end
 
+    # instance variable assignment
     assert_warning(/`= literal' in conditional/) do
       eval <<-END, nil, __FILE__, __LINE__+1
         if @x = true
@@ -873,6 +924,71 @@ x = __ENCODING__
         end
       END
     end
+
+    # local variable assignment
+    assert_warning(/`= literal' in conditional/) do
+      eval <<-END, nil, __FILE__, __LINE__+1
+        def m
+          if x = true
+            1
+          else
+            2
+          end
+        end
+      END
+    end
+
+    # global variable assignment
+    assert_separately([], <<-RUBY)
+      assert_warning(/`= literal' in conditional/) do
+        eval <<-END, nil, __FILE__, __LINE__+1
+          if $x = true
+            1
+          else
+            2
+          end
+        END
+      end
+    RUBY
+
+    # dynamic variable assignment
+    assert_warning(/`= literal' in conditional/) do
+      eval <<-END, nil, __FILE__, __LINE__+1
+        y = 1
+
+        1.times do
+          if y = true
+            1
+          else
+            2
+          end
+        end
+      END
+    end
+
+    # class variable assignment
+    assert_warning(/`= literal' in conditional/) do
+      eval <<-END, nil, __FILE__, __LINE__+1
+        c = Class.new
+        class << c
+          if @@a = 1
+          end
+        end
+      END
+    end
+
+    # constant declaration
+    assert_separately([], <<-RUBY)
+      assert_warning(/`= literal' in conditional/) do
+        eval <<-END, nil, __FILE__, __LINE__+1
+          if Const = true
+            1
+          else
+            2
+          end
+        END
+      end
+    RUBY
   end
 
   def test_literal_in_conditional
@@ -954,6 +1070,30 @@ x = __ENCODING__
     assert_warning('') {eval("a = 1; /(?<a>)/ =~ ''")}
     a = "\u{3042}"
     assert_warning('') {eval("#{a} = 1; /(?<#{a}>)/ =~ ''")}
+  end
+
+  def test_named_capture_in_block
+    all_assertions_foreach(nil,
+      '(/(?<a>.*)/)',
+      '(;/(?<a>.*)/)',
+      '(%s();/(?<a>.*)/)',
+      '(%w();/(?<a>.*)/)',
+      '(1; (2; 3; (4; /(?<a>.*)/)))',
+      '(1+1; /(?<a>.*)/)',
+      '/#{""}(?<a>.*)/',
+    ) do |code, pass|
+      token = Random.bytes(4).unpack1("H*")
+      if pass
+        assert_equal(token, eval("#{code} =~ #{token.dump}; a"))
+      else
+        verbose_bak, $VERBOSE = $VERBOSE, nil # disable "warning: possibly useless use of a literal in void context"
+        begin
+          assert_nil(eval("#{code} =~ #{token.dump}; defined?(a)"), code)
+        ensure
+          $VERBOSE = verbose_bak
+        end
+      end
+    end
   end
 
   def test_rescue_in_command_assignment
@@ -1102,40 +1242,51 @@ x = __ENCODING__
     end;
   end
 
-    def test_heredoc_interpolation
-      var = 1
+  def test_heredoc_interpolation
+    var = 1
 
-      v1 = <<~HEREDOC
-        something
-        #{"/#{var}"}
-      HEREDOC
+    v1 = <<~HEREDOC
+      something
+      #{"/#{var}"}
+    HEREDOC
 
-      v2 = <<~HEREDOC
-        something
-        #{_other = "/#{var}"}
-      HEREDOC
+    v2 = <<~HEREDOC
+      something
+      #{_other = "/#{var}"}
+    HEREDOC
 
-      v3 = <<~HEREDOC
-        something
-        #{("/#{var}")}
-      HEREDOC
+    v3 = <<~HEREDOC
+      something
+      #{("/#{var}")}
+    HEREDOC
 
-      assert_equal "something\n/1\n", v1
-      assert_equal "something\n/1\n", v2
-      assert_equal "something\n/1\n", v3
-      assert_equal v1, v2
-      assert_equal v2, v3
-      assert_equal v1, v3
-    end
+    assert_equal "something\n/1\n", v1
+    assert_equal "something\n/1\n", v2
+    assert_equal "something\n/1\n", v3
+    assert_equal v1, v2
+    assert_equal v2, v3
+    assert_equal v1, v3
+  end
+
+  def test_heredoc_unterminated_interpolation
+    code = <<~'HEREDOC'
+    <<A+1
+    #{
+    HEREDOC
+
+    assert_syntax_error(code, /can't find string "A"/)
+  end
 
   def test_unexpected_token_error
-    assert_syntax_error('"x"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', /unexpected|expected a newline or semicolon after the statement/)
+    assert_syntax_error('"x"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', /unexpected/)
   end
 
   def test_unexpected_token_after_numeric
     assert_syntax_error('0000xyz', /^    \^~~\Z/)
     assert_syntax_error('1.2i1.1', /^    \^~~\Z/)
     assert_syntax_error('1.2.3', /^   \^~\Z/)
+    assert_syntax_error('1.', /unexpected end-of-input/)
+    assert_syntax_error('1e', /expecting end-of-input/)
   end
 
   def test_truncated_source_line
@@ -1147,7 +1298,7 @@ x = __ENCODING__
   end
 
   def test_unterminated_regexp_error
-    e = assert_syntax_error("/x", /unterminated regexp meets end of file|expected a closing delimiter for the regular expression/)
+    e = assert_syntax_error("/x", /unterminated regexp meets end of file/)
     assert_not_match(/unexpected tSTRING_END/, e.message)
   end
 
@@ -1179,9 +1330,9 @@ x = __ENCODING__
   end
 
   def test_eof_in_def
-    assert_syntax_error("def m\n\0""end", /unexpected|cannot parse the expression/)
-    assert_syntax_error("def m\n\C-d""end", /unexpected|cannot parse the expression/)
-    assert_syntax_error("def m\n\C-z""end", /unexpected|cannot parse the expression/)
+    assert_syntax_error("def m\n\0""end", /unexpected/)
+    assert_syntax_error("def m\n\C-d""end", /unexpected/)
+    assert_syntax_error("def m\n\C-z""end", /unexpected/)
   end
 
   def test_unexpected_eof
@@ -1324,6 +1475,21 @@ x = __ENCODING__
     assert !obj.equal?(a)
   end
 
+  def test_shareable_constant_value_literal_const_refs
+    a = eval_separately("#{<<~"begin;"}\n#{<<~'end;'}")
+    begin;
+      # shareable_constant_value: literal
+      # [Bug #20668]
+      SOME_CONST = {
+        'Object' => Object,
+        'String' => String,
+        'Array' => Array,
+      }
+      SOME_CONST
+    end;
+    assert_ractor_shareable(a)
+  end
+
   def test_shareable_constant_value_nested
     a, b = eval_separately("#{<<~"begin;"}\n#{<<~'end;'}")
     begin;
@@ -1423,9 +1589,29 @@ x = __ENCODING__
     assert_equal(expected, obj.arg)
   end
 
+  def test_ungettable_gvar
+    assert_syntax_error('$01234', /not allowed/)
+    assert_syntax_error('"#$01234"', /not allowed/)
+  end
+
 =begin
   def test_past_scope_variable
     assert_warning(/past scope/) {catch {|tag| eval("BEGIN{throw tag}; tap {a = 1}; a")}}
   end
 =end
+
+  def assert_parse(code)
+    assert_kind_of(RubyVM::AbstractSyntaxTree::Node, RubyVM::AbstractSyntaxTree.parse(code))
+  end
+
+  def assert_parse_error(code, message)
+    assert_raise_with_message(SyntaxError, message) do
+      $VERBOSE, verbose_bak = nil, $VERBOSE
+      begin
+        RubyVM::AbstractSyntaxTree.parse(code)
+      ensure
+        $VERBOSE = verbose_bak
+      end
+    end
+  end
 end
