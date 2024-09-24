@@ -16,7 +16,7 @@ class TestRipper::ParserEvents < Test::Unit::TestCase
   end
 
   def parse(str, nm = nil, &bl)
-    dp = DummyParser.new(str)
+    dp = TestRipper::DummyParser.new(str)
     dp.hook(*nm, &bl) if nm
     dp.parse.to_s
   end
@@ -152,6 +152,7 @@ class TestRipper::ParserEvents < Test::Unit::TestCase
       thru_args_forward = false
       parse(code, :on_args_forward) {thru_args_forward = true}
       assert_equal true, thru_args_forward, "no args_forward for: #{code}"
+      parse(code, :on_params) {|*, block| assert_nil(block)}
     end
   end
 
@@ -512,7 +513,7 @@ class TestRipper::ParserEvents < Test::Unit::TestCase
       end
     end
 
-    parser = DummyParser.new("a::b").extend(hook)
+    parser = TestRipper::DummyParser.new("a::b").extend(hook)
     assert_equal '[call(vcall((ident: "a")),(method: (op: "::")),(ident: "b"))]', parser.parse.to_s
   end
 

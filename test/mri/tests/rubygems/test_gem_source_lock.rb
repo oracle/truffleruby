@@ -40,9 +40,11 @@ class TestGemSourceLock < Gem::TestCase
     vendor = Gem::Source::Vendor.new "vendor/a"
     v_lock = Gem::Source::Lock.new vendor
 
+    # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
     assert_equal(0, g_lock.<=>(g_lock), "g_lock <=> g_lock")
     assert_equal(0, i_lock.<=>(i_lock), "i_lock <=> i_lock")
     assert_equal(0, v_lock.<=>(v_lock), "v_lock <=> v_lock")
+    # rubocop:enable Lint/BinaryOperatorWithIdenticalOperands
 
     assert_equal(1, g_lock.<=>(i_lock), "g_lock <=> i_lock")
     assert_equal(-1, i_lock.<=>(g_lock), "i_lock <=> g_lock")
@@ -108,6 +110,6 @@ class TestGemSourceLock < Gem::TestCase
     remote = Gem::Source.new @gem_repo
     lock   = Gem::Source::Lock.new remote
 
-    assert_equal URI(@gem_repo), lock.uri
+    assert_equal Gem::URI(@gem_repo), lock.uri
   end
 end

@@ -25,7 +25,7 @@
 
 /* rb_io_t is in ruby/io.h.  The header file has historically not been included
  * into ruby/ruby.h.  We follow that tradition. */
-struct rb_io_t;
+struct rb_io;
 
 /**
  * Ruby's File  and IO.  Ruby's  IO are not  just file descriptors.   They have
@@ -34,13 +34,11 @@ struct rb_io_t;
  */
 struct RFile {
 
-#ifndef TRUFFLERUBY
     /** Basic part, including flags and class. */
     struct RBasic basic;
-#endif
 
     /** IO's specific fields. */
-    struct rb_io_t *fptr;
+    struct rb_io *fptr;
 };
 
 /**
@@ -49,10 +47,5 @@ struct RFile {
  * @param   obj  An object, which is in fact an ::RFile.
  * @return  The passed object casted to ::RFile.
  */
-#ifdef TRUFFLERUBY
-struct RFile* rb_tr_io_get_rfile(VALUE io);
-#define RFILE(obj) rb_tr_io_get_rfile(obj)
-#else
 #define RFILE(obj) RBIMPL_CAST((struct RFile *)(obj))
-#endif
 #endif /* RBIMPL_RFILE_H */

@@ -315,7 +315,7 @@ class TestClass < Test::Unit::TestCase
   end
 
   def test_invalid_return_from_class_definition
-    assert_syntax_error("class C; return; end", /Invalid return|invalid `return`/)
+    assert_syntax_error("class C; return; end", /Invalid return/)
   end
 
   def test_invalid_yield_from_class_definition
@@ -360,6 +360,17 @@ class TestClass < Test::Unit::TestCase
       end
     END
     assert_equal(42, PrivateClass.new.foo)
+  end
+
+  def test_private_const_access
+    assert_raise_with_message NameError, /uninitialized/ do
+      begin
+        eval('class ::TestClass::PrivateClass; end')
+      rescue NameError
+      end
+
+      Object.const_get "NOT_AVAILABLE_CONST_NAME_#{__LINE__}"
+    end
   end
 
   StrClone = String.clone

@@ -10,6 +10,22 @@ module Fiddle
       Fiddle.dlwrap arg
     end
 
+    def test_can_read_write_memory
+      # Allocate some memory
+      address = Fiddle.malloc(Fiddle::SIZEOF_VOIDP)
+
+      bytes_to_write = Fiddle::SIZEOF_VOIDP.times.to_a.pack("C*")
+
+      # Write to the memory
+      Fiddle::Pointer.write(address, bytes_to_write)
+
+      # Read the bytes out again
+      bytes = Fiddle::Pointer.read(address, Fiddle::SIZEOF_VOIDP)
+      assert_equal bytes_to_write, bytes
+    ensure
+      Fiddle.free address
+    end
+
     def test_cptr_to_int
       null = Fiddle::NULL
       assert_equal(null.to_i, null.to_int)
@@ -283,8 +299,7 @@ module Fiddle
           end
         end
       else
-        # TruffleRuby - MRI was -rfiddle.so
-        assert_no_memory_leak(%w[-W0 -rfiddle], '', '100_000.times {Fiddle::Pointer.allocate}', rss: true)
+        assert_no_memory_leak(%w[-W0 -rfiddle.so], '', '100_000.times {Fiddle::Pointer.allocate}', rss: true)
       end
     end
   end

@@ -214,9 +214,11 @@ tests = [
     'true'.freeze
   },
 
-  [ 'opt_newarray_max', %q{ [ ].max.nil? }, ],
-  [ 'opt_newarray_max', %q{ [1, x = 2, 3].max == 3 }, ],
-  [ 'opt_newarray_max', <<-'},', ], # {
+  [ 'opt_newarray_send', %q{ ![ ].hash.nil? }, ],
+
+  [ 'opt_newarray_send', %q{ [ ].max.nil? }, ],
+  [ 'opt_newarray_send', %q{ [1, x = 2, 3].max == 3 }, ],
+  [ 'opt_newarray_send', <<-'},', ], # {
     class Array
       def max
         true
@@ -224,9 +226,9 @@ tests = [
     end
     [1, x = 2, 3].max
   },
-  [ 'opt_newarray_min', %q{ [ ].min.nil? }, ],
-  [ 'opt_newarray_min', %q{ [3, x = 2, 1].min == 1 }, ],
-  [ 'opt_newarray_min', <<-'},', ], # {
+  [ 'opt_newarray_send', %q{ [ ].min.nil? }, ],
+  [ 'opt_newarray_send', %q{ [3, x = 2, 1].min == 1 }, ],
+  [ 'opt_newarray_send', <<-'},', ], # {
     class Array
       def min
         true
@@ -277,7 +279,7 @@ tests = [
     x = once(128); x = once(7); x = once(16);
     x =~ "true" && $~
   },
-  [ 'once', <<-'},', {tagged: true}],         # {
+  [ 'once', <<-'},', ],         # {
     # inter-thread lockup situation
     def once n
       return Thread.start n do |m|

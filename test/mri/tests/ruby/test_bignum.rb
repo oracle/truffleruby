@@ -1,7 +1,7 @@
 # frozen_string_literal: false
 require 'test/unit'
 begin
-  # require '-test-/integer'
+  require '-test-/integer'
 rescue LoadError
 else
 
@@ -821,5 +821,11 @@ class TestBignum < Test::Unit::TestCase
     assert_nil(T1024P.infinite?)
     assert_nil((-T1024P).infinite?)
   end
+
+  def test_gmp_version
+    if RbConfig::CONFIG.fetch('configure_args').include?("'--with-gmp'")
+      assert_kind_of(String, Integer::GMP_VERSION)
+    end
+  end if ENV['GITHUB_WORKFLOW'] == 'Compilations'
 end
 end

@@ -3,14 +3,13 @@
 require 'tempfile'
 
 class TestIOBuffer < Test::Unit::TestCase
-  # TruffleRuby: no IO::Buffer yet
-  # experimental = Warning[:experimental]
-  # begin
-  #   Warning[:experimental] = false
-  #   IO::Buffer.new(0)
-  # ensure
-  #   Warning[:experimental] = experimental
-  # end
+  experimental = Warning[:experimental]
+  begin
+    Warning[:experimental] = false
+    IO::Buffer.new(0)
+  ensure
+    Warning[:experimental] = experimental
+  end
 
   def assert_negative(value)
     assert(value < 0, "Expected #{value} to be negative!")
@@ -81,7 +80,7 @@ class TestIOBuffer < Test::Unit::TestCase
   end
 
   def test_file_mapped_invalid
-    assert_raise NoMethodError do
+    assert_raise TypeError do
       IO::Buffer.map("foobar")
     end
   end
@@ -103,11 +102,6 @@ class TestIOBuffer < Test::Unit::TestCase
     IO::Buffer.for(string) do |buffer|
       refute buffer.readonly?
 
-      # Cannot modify string as it's locked by the buffer:
-      assert_raise RuntimeError do
-        string[0] = "h"
-      end
-
       buffer.set_value(:U8, 0, "h".ord)
 
       # Buffer releases it's ownership of the string:
@@ -117,11 +111,35 @@ class TestIOBuffer < Test::Unit::TestCase
     end
   end
 
+  def test_string_mapped_buffer_locked
+    string = "Hello World"
+    IO::Buffer.for(string) do |buffer|
+      # Cannot modify string as it's locked by the buffer:
+      assert_raise RuntimeError do
+        string[0] = "h"
+      end
+    end
+  end
+
   def test_non_string
     not_string = Object.new
 
     assert_raise TypeError do
       IO::Buffer.for(not_string)
+    end
+  end
+
+  def test_string
+    result = IO::Buffer.string(12) do |buffer|
+      buffer.set_string("Hello World!")
+    end
+
+    assert_equal "Hello World!", result
+  end
+
+  def test_string_negative
+    assert_raise ArgumentError do
+      IO::Buffer.string(-1)
     end
   end
 
@@ -176,6 +194,14 @@ class TestIOBuffer < Test::Unit::TestCase
   def test_compare_different_size
     buffer1 = IO::Buffer.new(3)
     buffer2 = IO::Buffer.new(5)
+
+    assert_negative buffer1 <=> buffer2
+    assert_positive buffer2 <=> buffer1
+  end
+
+  def test_compare_zero_length
+    buffer1 = IO::Buffer.new(0)
+    buffer2 = IO::Buffer.new(1)
 
     assert_negative buffer1 <=> buffer2
     assert_positive buffer2 <=> buffer1
@@ -239,13 +265,25 @@ class TestIOBuffer < Test::Unit::TestCase
     chunk = buffer.get_string(0, message.bytesize, Encoding::BINARY)
     assert_equal Encoding::BINARY, chunk.encoding
 
-    assert_raise_with_message(ArgumentError, /exceeds buffer size/) do
+    assert_raise_with_message(ArgumentError, /bigger than the buffer size/) do
       buffer.get_string(0, 129)
     end
 
-    assert_raise_with_message(ArgumentError, /exceeds buffer size/) do
+    assert_raise_with_message(ArgumentError, /bigger than the buffer size/) do
       buffer.get_string(129)
     end
+
+    assert_raise_with_message(ArgumentError, /Offset can't be negative/) do
+      buffer.get_string(-1)
+    end
+  end
+
+  def test_zero_length_get_string
+    buffer = IO::Buffer.new.slice(0, 0)
+    assert_equal "", buffer.get_string
+
+    buffer = IO::Buffer.new(0)
+    assert_equal "", buffer.get_string
   end
 
   # We check that values are correctly round tripped.
@@ -294,6 +332,13 @@ class TestIOBuffer < Test::Unit::TestCase
     end
   end
 
+  def test_zero_length_get_set_values
+    buffer = IO::Buffer.new(0)
+
+    assert_equal [], buffer.get_values([], 0)
+    assert_equal 0, buffer.set_values([], 0, [])
+  end
+
   def test_values
     buffer = IO::Buffer.new(128)
 
@@ -318,11 +363,23 @@ class TestIOBuffer < Test::Unit::TestCase
     end
   end
 
+  def test_zero_length_each
+    buffer = IO::Buffer.new(0)
+
+    assert_equal [], buffer.each(:U8).to_a
+  end
+
   def test_each_byte
     string = "The quick brown fox jumped over the lazy dog."
     buffer = IO::Buffer.for(string)
 
     assert_equal string.bytes, buffer.each_byte.to_a
+  end
+
+  def test_zero_length_each_byte
+    buffer = IO::Buffer.new(0)
+
+    assert_equal [], buffer.each_byte.to_a
   end
 
   def test_clear
@@ -356,17 +413,38 @@ class TestIOBuffer < Test::Unit::TestCase
     input.close
   end
 
-  def test_read
+  def hello_world_tempfile
     io = Tempfile.new
     io.write("Hello World")
     io.seek(0)
 
-    buffer = IO::Buffer.new(128)
-    buffer.read(io, 5)
-
-    assert_equal "Hello", buffer.get_string(0, 5)
+    yield io
   ensure
-    io.close! if io
+    io&.close!
+  end
+
+  def test_read
+    hello_world_tempfile do |io|
+      buffer = IO::Buffer.new(128)
+      buffer.read(io)
+      assert_equal "Hello", buffer.get_string(0, 5)
+    end
+  end
+
+  def test_read_with_with_length
+    hello_world_tempfile do |io|
+      buffer = IO::Buffer.new(128)
+      buffer.read(io, 5)
+      assert_equal "Hello", buffer.get_string(0, 5)
+    end
+  end
+
+  def test_read_with_with_offset
+    hello_world_tempfile do |io|
+      buffer = IO::Buffer.new(128)
+      buffer.read(io, nil, 6)
+      assert_equal "Hello", buffer.get_string(6, 5)
+    end
   end
 
   def test_write
@@ -374,7 +452,7 @@ class TestIOBuffer < Test::Unit::TestCase
 
     buffer = IO::Buffer.new(128)
     buffer.set_string("Hello")
-    buffer.write(io, 5)
+    buffer.write(io)
 
     io.seek(0)
     assert_equal "Hello", io.read(5)
@@ -473,5 +551,25 @@ class TestIOBuffer < Test::Unit::TestCase
     assert_equal message, string
   rescue NotImplementedError
     omit "Fork/shared memory is not supported."
+  end
+
+  def test_private
+    Tempfile.create(%w"buffer .txt") do |file|
+      file.write("Hello World")
+
+      buffer = IO::Buffer.map(file, nil, 0, IO::Buffer::PRIVATE)
+      begin
+        assert buffer.private?
+        refute buffer.readonly?
+
+        buffer.set_string("J")
+
+        # It was not changed because the mapping was private:
+        file.seek(0)
+        assert_equal "Hello World", file.read
+      ensure
+        buffer&.free
+      end
+    end
   end
 end

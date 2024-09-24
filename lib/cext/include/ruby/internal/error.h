@@ -50,7 +50,19 @@ typedef enum {
     /** Warning is for experimental features. */
     RB_WARN_CATEGORY_EXPERIMENTAL,
 
-    RB_WARN_CATEGORY_ALL_BITS = 0x6 /* no RB_WARN_CATEGORY_NONE bit */
+    /** Warning is for performance issues (not enabled by -w). */
+    RB_WARN_CATEGORY_PERFORMANCE,
+
+    RB_WARN_CATEGORY_DEFAULT_BITS = (
+        (1U << RB_WARN_CATEGORY_DEPRECATED) |
+        (1U << RB_WARN_CATEGORY_EXPERIMENTAL) |
+        0),
+
+    RB_WARN_CATEGORY_ALL_BITS = (
+        (1U << RB_WARN_CATEGORY_DEPRECATED) |
+        (1U << RB_WARN_CATEGORY_EXPERIMENTAL) |
+        (1U << RB_WARN_CATEGORY_PERFORMANCE) |
+        0)
 } rb_warning_category_t;
 
 /** for rb_readwrite_sys_fail first argument */
@@ -100,11 +112,6 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 3)
  */
 void rb_raise(VALUE exc, const char *fmt, ...);
 
-#ifdef TRUFFLERUBY
-RBIMPL_ATTR_NORETURN()
-void rb_tr_fatal_va_list(const char *fmt, va_list args);
-#endif
-
 RBIMPL_ATTR_NORETURN()
 RBIMPL_ATTR_NONNULL((1))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
@@ -117,21 +124,7 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  * @exception  rb_eFatal  An exception that you cannot rescue.
  * @note       It never returns.
  */
-#ifdef TRUFFLERUBY
-static inline void rb_fatal(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    rb_tr_fatal_va_list(fmt, args);
-    va_end(args);
-}
-#else
 void rb_fatal(const char *fmt, ...);
-#endif
-
-#ifdef TRUFFLERUBY
-RBIMPL_ATTR_NORETURN()
-void rb_tr_bug_va_list(const char *fmt, va_list args);
-#endif
 
 RBIMPL_ATTR_COLD()
 RBIMPL_ATTR_NORETURN()
@@ -153,16 +146,7 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
  * @note       It never returns.
  */
-#ifdef TRUFFLERUBY
-static inline void rb_bug(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    rb_tr_bug_va_list(fmt, args);
-    va_end(args);
-}
-#else
 void rb_bug(const char *fmt, ...);
-#endif
 
 RBIMPL_ATTR_NORETURN()
 RBIMPL_ATTR_NONNULL(())
@@ -497,11 +481,7 @@ VALUE *rb_ruby_debug_ptr(void);
  */
 #define ruby_debug   (*rb_ruby_debug_ptr())
 
-#ifdef TRUFFLERUBY
-void rb_tr_warn_va_list(const char *fmt, va_list args);
-#endif
-
-/* reports if `-W' specified */
+/* reports if $VERBOSE is true */
 RBIMPL_ATTR_NONNULL((1))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
 /**
@@ -516,25 +496,15 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  * default,  the method  just emits  its passed  contents to  ::rb_stderr using
  * rb_io_write().
  *
- * @note       This function is affected by the `-W` flag.
+ * @note       This function is affected by the value of $VERBOSE, it does
+ *             nothing unless $VERBOSE is true.
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
  *
  * @internal
  *
  * Above description is in fact inaccurate.  This API interfaces with Ractors.
  */
-#ifdef TRUFFLERUBY
-static inline void rb_warning(const char *fmt, ...) {
-    if (RTEST(ruby_verbose)) {
-        va_list args;
-        va_start(args, fmt);
-        rb_tr_warn_va_list(fmt, args);
-        va_end(args);
-    }
-}
-#else
 void rb_warning(const char *fmt, ...);
-#endif
 
 RBIMPL_ATTR_NONNULL((2))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 3)
@@ -552,7 +522,7 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 3, 4)
  * Issues a compile-time warning  that happens at `__file__:__line__`.  Purpose
  * of this function being exposed to CAPI is unclear.
  *
- * @note       This function is affected by the `-W` flag.
+ * @note       This function is affected by the value of $VERBOSE.
  * @param[in]  file  The path corresponding to Ruby level `__FILE__`.
  * @param[in]  line  The number corresponding to Ruby level `__LINE__`.
  * @param[in]  fmt   Format specifier string compatible with rb_sprintf().
@@ -565,40 +535,29 @@ RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
  * Identical to rb_sys_fail(), except it does  not raise an exception to render
  * a warning instead.
  *
- * @note       This function is affected by the `-W` flag.
+ * @note       This function is affected by the value of $VERBOSE.
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
  */
 void rb_sys_warning(const char *fmt, ...);
 
-/* reports always */
+/* reports if $VERBOSE is not nil (so if it is true or false) */
 RBIMPL_ATTR_COLD()
 RBIMPL_ATTR_NONNULL((1))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 1, 2)
 /**
- * Identical to  rb_warning(), except it  reports always regardless  of runtime
- * `-W` flag.
+ * Identical to rb_warning(), except it reports unless $VERBOSE is nil.
  *
+ * @note       This function is affected by the value of $VERBOSE, it does
+ *             nothing if $VERBOSE is nil.
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
  */
-#ifdef TRUFFLERUBY
-static inline void rb_warn(const char *fmt, ...) {
-    if (!NIL_P(ruby_verbose)) {
-        va_list args;
-        va_start(args, fmt);
-        rb_tr_warn_va_list(fmt, args);
-        va_end(args);
-    }
-}
-#else
 void rb_warn(const char *fmt, ...);
-#endif
 
 RBIMPL_ATTR_COLD()
 RBIMPL_ATTR_NONNULL((2))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 2, 3)
 /**
- * Identical to  rb_category_warning(), except it reports  always regardless of
- * runtime `-W` flag.
+ * Identical to rb_category_warning(), except it reports unless $VERBOSE is nil.
  *
  * @param[in]  cat  Category e.g. deprecated.
  * @param[in]  fmt  Format specifier string compatible with rb_sprintf().
@@ -608,8 +567,7 @@ void rb_category_warn(rb_warning_category_t cat, const char *fmt, ...);
 RBIMPL_ATTR_NONNULL((1, 3))
 RBIMPL_ATTR_FORMAT(RBIMPL_PRINTF_FORMAT, 3, 4)
 /**
- * Identical to  rb_compile_warning(), except  it reports always  regardless of
- * runtime `-W` flag.
+ * Identical to rb_compile_warning(), except  it reports unless $VERBOSE is nil.
  *
  * @param[in]  file  The path corresponding to Ruby level `__FILE__`.
  * @param[in]  line  The number corresponding to Ruby level `__LINE__`.

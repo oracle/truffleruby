@@ -17,48 +17,12 @@ end
 
 require_relative '../envutil'
 require_relative '../colorize'
-# require_relative '../leakchecker' # TruffleRuby: LeakChecker removed to avoid interferences
+require_relative '../leakchecker'
 require_relative '../test/unit/testcase'
 require 'optparse'
 
 # See Test::Unit
 module Test
-
-  class << self
-    ##
-    # Filter object for backtraces.
-
-    attr_accessor :backtrace_filter
-  end
-
-  class BacktraceFilter # :nodoc:
-    def filter bt
-      return ["No backtrace"] unless bt
-
-      new_bt = []
-      pattern = %r[/(?:lib\/test/|core_assertions\.rb:)]
-
-      unless $DEBUG then
-        bt.each do |line|
-          break if pattern.match?(line)
-          new_bt << line
-        end
-
-        new_bt = bt.reject { |line| pattern.match?(line) } if new_bt.empty?
-        new_bt = bt.dup if new_bt.empty?
-      else
-        new_bt = bt.dup
-      end
-
-      new_bt
-    end
-  end
-
-  self.backtrace_filter = BacktraceFilter.new
-
-  def self.filter_backtrace bt # :nodoc:
-    backtrace_filter.filter bt
-  end
 
   ##
   # Test::Unit is an implementation of the xUnit testing framework for Ruby.
@@ -89,17 +53,7 @@ module Test
         end
       end
 
-      module MJITFirst
-        def group(list)
-          # MJIT first
-          mjit, others = list.partition {|e| /test_mjit/ =~ e}
-          mjit + others
-        end
-      end
-
       class Alpha < NoSort
-        include MJITFirst
-
         def sort_by_name(list)
           list.sort_by(&:name)
         end
@@ -112,8 +66,6 @@ module Test
 
       # shuffle test suites based on CRC32 of their names
       Shuffle = Struct.new(:seed, :salt) do
-        include MJITFirst
-
         def initialize(seed)
           self.class::CRC_TBL ||= (0..255).map {|i|
             (0..7).inject(i) {|c,| (c & 1 == 1) ? (0xEDB88320 ^ (c >> 1)) : (c >> 1) }
@@ -129,6 +81,10 @@ module Test
 
         def sort_by_string(list)
           list.sort_by {|e| randomize_key(e)}
+        end
+
+        def group(list)
+          list
         end
 
         private
@@ -303,7 +259,7 @@ module Test
             r.close_on_exec = true
             w.close_on_exec = true
             @jobserver = [r, w]
-            options[:parallel] ||= 1
+            options[:parallel] ||= 256 # number of tokens to acquire first
           end
         end
         @worker_timeout = EnvUtil.apply_timeout_scale(options[:worker_timeout] || 180)
@@ -346,7 +302,8 @@ module Test
           options[:retry] = false
         end
 
-        opts.on '--ruby VAL', "Path to ruby which is used at -j option" do |a|
+        opts.on '--ruby VAL', "Path to ruby which is used at -j option",
+                "Also used as EnvUtil.rubybin by some assertion methods" do |a|
           options[:ruby] = a.split(/ /).reject(&:empty?)
         end
 
@@ -696,10 +653,18 @@ module Test
         @ios          = [] # Array of worker IOs
         @job_tokens   = String.new(encoding: Encoding::ASCII_8BIT) if @jobserver
         begin
-          [@tasks.size, @options[:parallel]].min.times {launch_worker}
-
           while true
-            timeout = [(@workers.filter_map {|w| w.response_at}.min&.-(Time.now) || 0) + @worker_timeout, 1].max
+            newjobs = [@tasks.size, @options[:parallel]].min - @workers.size
+            if newjobs > 0
+              if @jobserver
+                t = @jobserver[0].read_nonblock(newjobs, exception: false)
+                @job_tokens << t if String === t
+                newjobs = @job_tokens.size + 1 - @workers.size
+              end
+              newjobs.times {launch_worker}
+            end
+
+            timeout = [(@workers.filter_map {|w| w.response_at}.min&.-(Time.now) || 0), 0].max + @worker_timeout
 
             if !(_io = IO.select(@ios, nil, nil, timeout))
               timeout = Time.now - @worker_timeout
@@ -713,15 +678,9 @@ module Test
             }
               break
             end
-            break if @tasks.empty? and @workers.empty?
-            if @jobserver and @job_tokens and !@tasks.empty? and
-               ((newjobs = [@tasks.size, @options[:parallel]].min) > @workers.size or
-                !@workers.any? {|x| x.status == :ready})
-              t = @jobserver[0].read_nonblock(newjobs, exception: false)
-              if String === t
-                @job_tokens << t
-                t.size.times {launch_worker}
-              end
+            if @tasks.empty?
+              break if @workers.empty?
+              next # wait for all workers to finish
             end
           end
         rescue Interrupt => ex
@@ -813,6 +772,7 @@ module Test
             warn ""
             @warnings.uniq! {|w| w[1].message}
             @warnings.each do |w|
+              @errors += 1
               warn "#{w[0]}: #{w[1].message} (#{w[1].class})"
             end
             warn ""
@@ -980,7 +940,7 @@ module Test
       end
 
       def _prepare_run(suites, type)
-        options[:job_status] ||= :replace if @tty && !@verbose
+        options[:job_status] ||= @tty ? :replace : :normal unless @verbose
         case options[:color]
         when :always
           color = true
@@ -996,11 +956,14 @@ module Test
         @output = Output.new(self) unless @options[:testing]
         filter = options[:filter]
         type = "#{type}_methods"
-        total = if filter
-                  suites.inject(0) {|n, suite| n + suite.send(type).grep(filter).size}
-                else
-                  suites.inject(0) {|n, suite| n + suite.send(type).size}
-                end
+        total = suites.sum {|suite|
+          methods = suite.send(type)
+          if filter
+            methods.count {|method| filter === "#{suite}##{method}"}
+          else
+            methods.size
+          end
+        }
         @test_count = 0
         @total_tests = total.to_s(10)
       end
@@ -1094,7 +1057,7 @@ module Test
             runner.add_status(" = #$1")
           when /\A\.+\z/
             runner.succeed
-          when /\A\.*[EFS][EFS.]*\z/
+          when /\A\.*[EFST][EFST.]*\z/
             runner.failed(s)
           else
             $stdout.print(s)
@@ -1282,7 +1245,12 @@ module Test
             puts "#{f}: #{$!}"
           end
         }
+        @load_failed = errors.size.nonzero?
         result
+      end
+
+      def run(*)
+        super or @load_failed
       end
     end
 
@@ -1562,7 +1530,7 @@ module Test
         end
         all_test_methods = @order.sort_by_name(all_test_methods)
 
-        # leakchecker = LeakChecker.new # TruffleRuby: LeakChecker removed to avoid interferences
+        leakchecker = LeakChecker.new
         if ENV["LEAK_CHECKER_TRACE_OBJECT_ALLOCATION"]
           require "objspace"
           trace = true
@@ -1574,7 +1542,7 @@ module Test
           _start_method(inst)
           inst._assertions = 0
 
-          print "#{suite}##{method} = " if @verbose
+          print "#{suite}##{method.inspect.sub(/\A:/, '')} = " if @verbose
 
           start_time = Time.now if @verbose
           result =
@@ -1589,8 +1557,8 @@ module Test
           puts if @verbose
           $stdout.flush
 
-          unless defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # compiler process is wrongly considered as leak
-            # leakchecker.check("#{inst.class}\##{inst.__name__}") # TruffleRuby: LeakChecker removed to avoid interferences
+          unless defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled? # compiler process is wrongly considered as leak
+            leakchecker.check("#{inst.class}\##{inst.__name__}")
           end
 
           _end_method(inst)
@@ -1603,15 +1571,6 @@ module Test
       def _start_method(inst)
       end
       def _end_method(inst)
-        if defined?(::TruffleRuby)
-          unless ENV['HOME']
-            abort "#{inst.class}\##{inst.__name__} unset HOME"
-          end
-
-          if $stdout.external_encoding
-            abort "#{inst.class}\##{inst.__name__} set $stdout.external_encoding to #{$stdout.external_encoding}"
-          end
-        end
       end
 
       ##
@@ -1689,7 +1648,7 @@ module Test
           break unless report.empty?
         end
 
-        return failures + errors if self.test_count > 0 # or return nil...
+        return (failures + errors).nonzero? # or return nil...
       rescue Interrupt
         abort 'Interrupted'
       end

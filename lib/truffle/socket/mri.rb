@@ -1,66 +1,6 @@
 # frozen_string_literal: true
 
-# Everything below is copied from the MRI codebase. The Ruby license is
-# attached below.
-#
-# Ruby is copyrighted free software by Yukihiro Matsumoto <matz@netlab.jp>.
-# You can redistribute it and/or modify it under either the terms of the
-# 2-clause BSDL (see the file BSDL), or the conditions below:
-#
-#   1. You may make and give away verbatim copies of the source form of the
-#      software without restriction, provided that you duplicate all of the
-#      original copyright notices and associated disclaimers.
-#
-#   2. You may modify your copy of the software in any way, provided that
-#      you do at least ONE of the following:
-#
-#        a) place your modifications in the Public Domain or otherwise
-#           make them Freely Available, such as by posting said
-#           modifications to Usenet or an equivalent medium, or by allowing
-#           the author to include your modifications in the software.
-#
-#        b) use the modified software only within your corporation or
-#           organization.
-#
-#        c) give non-standard binaries non-standard names, with
-#           instructions on where to get the original software distribution.
-#
-#        d) make other distribution arrangements with the author.
-#
-#   3. You may distribute the software in object code or binary form,
-#      provided that you do at least ONE of the following:
-#
-#        a) distribute the binaries and library files of the software,
-#           together with instructions (in the manual page or equivalent)
-#           on where to get the original distribution.
-#
-#        b) accompany the distribution with the machine-readable source of
-#           the software.
-#
-#        c) give non-standard binaries non-standard names, with
-#           instructions on where to get the original software distribution.
-#
-#        d) make other distribution arrangements with the author.
-#
-#   4. You may modify and include the part of the software into any other
-#      software (possibly commercial).  But some files in the distribution
-#      are not written by the author, so that they are not under these terms.
-#
-#      For the list of those files and their copying conditions, see the
-#      file LEGAL.
-#
-#   5. The scripts and library files supplied as input to or produced as
-#      output from the software do not automatically fall under the
-#      copyright of the software, but belong to whomever generated them,
-#      and may be sold commercially, and may be aggregated with this
-#      software.
-#
-#   6. THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR
-#      IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-#      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-#      PURPOSE.
-
-require 'socket.so' unless defined?(::TruffleRuby)
+require 'socket.so'
 
 unless IO.method_defined?(:wait_writable, false)
   # It's only required on older Rubies < v3.2:
@@ -393,9 +333,10 @@ class BasicSocket < IO
   # _flags_ is zero or more of the +MSG_+ options.
   # The result, _mesg_, is the data received.
   #
-  # When recvfrom(2) returns 0, Socket#recv_nonblock returns
-  # an empty string as data.
-  # The meaning depends on the socket: EOF on TCP, empty packet on UDP, etc.
+  # When recvfrom(2) returns 0, Socket#recv_nonblock returns nil.
+  # In most cases it means the connection was closed, but for UDP connections
+  # it may mean an empty packet was received, as the underlying API makes
+  # it impossible to distinguish these two cases.
   #
   # === Parameters
   # * +maxlen+ - the number of bytes to receive from the socket
@@ -511,7 +452,7 @@ class BasicSocket < IO
   # Linux-specific optimizations to avoid fcntl for IO#read_nonblock
   # and IO#write_nonblock using MSG_DONTWAIT
   # Do other platforms support MSG_DONTWAIT reliably?
-  if RUBY_PLATFORM =~ /linux/ && Socket.const_defined?(:MSG_DONTWAIT) && !defined?(::TruffleRuby)
+  if RUBY_PLATFORM =~ /linux/ && Socket.const_defined?(:MSG_DONTWAIT)
     def read_nonblock(len, str = nil, exception: true) # :nodoc:
       __read_nonblock(len, str, exception)
     end
@@ -540,9 +481,10 @@ class Socket < BasicSocket
   # The second element, _sender_addrinfo_, contains protocol-specific address
   # information of the sender.
   #
-  # When recvfrom(2) returns 0, Socket#recvfrom_nonblock returns
-  # an empty string as data.
-  # The meaning depends on the socket: EOF on TCP, empty packet on UDP, etc.
+  # When recvfrom(2) returns 0, Socket#recv_nonblock returns nil.
+  # In most cases it means the connection was closed, but for UDP connections
+  # it may mean an empty packet was received, as the underlying API makes
+  # it impossible to distinguish these two cases.
   #
   # === Parameters
   # * +maxlen+ - the maximum number of bytes to receive from the socket
@@ -1289,9 +1231,10 @@ class UDPSocket < IPSocket
   # The first element of the results, _mesg_, is the data received.
   # The second element, _sender_inet_addr_, is an array to represent the sender address.
   #
-  # When recvfrom(2) returns 0,
-  # Socket#recvfrom_nonblock returns an empty string as data.
-  # It means an empty packet.
+  # When recvfrom(2) returns 0, Socket#recv_nonblock returns nil.
+  # In most cases it means the connection was closed, but it may also mean
+  # an empty packet was received, as the underlying API makes
+  # it impossible to distinguish these two cases.
   #
   # === Parameters
   # * +maxlen+ - the number of bytes to receive from the socket

@@ -30,7 +30,7 @@
 RBIMPL_SYMBOL_EXPORT_BEGIN()
 
 /**
- * Identical to rb_enc_str_new(), except it additionally takes an encoding.
+ * Identical to rb_str_new(), except it additionally takes an encoding.
  *
  * @param[in]  ptr             A memory region of `len` bytes length.
  * @param[in]  len             Length  of `ptr`,  in bytes,  not including  the
@@ -194,10 +194,6 @@ VALUE rb_enc_str_buf_cat(VALUE str, const char *ptr, long len, rb_encoding *enc)
  * to another one; not via a code point array.
  */
 VALUE rb_enc_uint_chr(unsigned int code, rb_encoding *enc);
-
-VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc);
-rb_encoding *get_encoding(VALUE string);
-#define STR_ENC_GET(string) get_encoding(string)
 
 /**
  * Identical  to   rb_external_str_new(),  except  it  additionally   takes  an
