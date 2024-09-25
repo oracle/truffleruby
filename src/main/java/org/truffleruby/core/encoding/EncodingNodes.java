@@ -154,7 +154,8 @@ public abstract class EncodingNodes {
     }
 
     // MRI: enc_compatible_latter
-    /** Use {@link NegotiateCompatibleStringEncodingNode} instead if both arguments are always Strings, for footprint */
+    /** Use {@link NegotiateCompatibleStringEncodingNode} instead, this should only be used for
+     * {@code Encoding.compatible?} */
     @GenerateCached(false)
     @GenerateInline
     public abstract static class NegotiateCompatibleEncodingNode extends RubyBaseNode {
@@ -173,6 +174,9 @@ public abstract class EncodingNodes {
                 @Cached InlinedConditionProfile objectStringProfile,
                 @Cached(inline = false) TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateForStringsNode) {
+            assert firstEncoding != null;
+            assert secondEncoding != null;
+
             if (equalEncodingsProfile.profile(node, firstEncoding == secondEncoding)) {
                 return firstEncoding;
             }
@@ -186,7 +190,7 @@ public abstract class EncodingNodes {
                         libSecond.getTString(node, second), secondEncoding);
             }
 
-            if (incompatibleProfile.profile(node, firstEncoding == null || secondEncoding == null ||
+            if (incompatibleProfile.profile(node,
                     !firstEncoding.isAsciiCompatible || !secondEncoding.isAsciiCompatible)) {
                 return null;
             }
@@ -241,10 +245,17 @@ public abstract class EncodingNodes {
         Object isCompatible(Object first, Object second,
                 @Cached NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode,
                 @Cached ToRubyEncodingNode toRubyEncodingNode,
+                @Cached InlinedConditionProfile nullEncodingProfile,
                 @Cached InlinedConditionProfile noNegotiatedEncodingProfile) {
-            final var firstEncoding = toRubyEncodingNode.execute(this, first);
-            final var secondEncoding = toRubyEncodingNode.execute(this, second);
-            final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.execute(this, first,
+
+            var firstEncoding = toRubyEncodingNode.execute(this, first);
+            var secondEncoding = toRubyEncodingNode.execute(this, second);
+
+            if (nullEncodingProfile.profile(this, firstEncoding == null || secondEncoding == null)) {
+                return nil;
+            }
+
+            RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.execute(this, first,
                     firstEncoding, second, secondEncoding);
 
             if (noNegotiatedEncodingProfile.profile(this, negotiatedEncoding == null)) {

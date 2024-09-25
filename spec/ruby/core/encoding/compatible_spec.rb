@@ -752,3 +752,9 @@ describe "Encoding.compatible? Object, Object" do
     Encoding.compatible?(:sym, Object.new).should be_nil
   end
 end
+
+describe "Encoding.compatible? nil, nil" do
+  it "returns nil" do
+    Encoding.compatible?(nil, nil).should be_nil
+  end
+end
