@@ -282,7 +282,10 @@ class Dir
 
       patterns.each do |pat|
         pat = Truffle::Type.coerce_to_path pat
-        enc = Primitive.encoding_ensure_compatible pat, Encoding::US_ASCII
+        enc = Primitive.encoding_compatible? pat, Encoding::US_ASCII
+        unless enc
+          raise Encoding::CompatibilityError, "incompatible character encodings: #{pat.encoding.name} and US-ASCII"
+        end
         Dir::Glob.glob normalized_base, pat, flags, matches
 
         total = matches.size

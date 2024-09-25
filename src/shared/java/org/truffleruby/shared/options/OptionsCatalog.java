@@ -126,7 +126,6 @@ public final class OptionsCatalog {
     public static final OptionKey<Integer> PACK_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> UNPACK_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> EVAL_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
-    public static final OptionKey<Integer> ENCODING_COMPATIBLE_QUERY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> ENCODING_LOADED_CLASSES_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> INTEROP_CONVERT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> TIME_FORMAT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -1014,14 +1013,6 @@ public final class OptionsCatalog {
             .usageSyntax("8")
             .build();
 
-    public static final OptionDescriptor ENCODING_COMPATIBLE_QUERY_CACHE = OptionDescriptor
-            .newBuilder(ENCODING_COMPATIBLE_QUERY_CACHE_KEY, "ruby.encoding-compatible-query-cache")
-            .help("Encoding.compatible? cache size")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .usageSyntax("8")
-            .build();
-
     public static final OptionDescriptor ENCODING_LOADED_CLASSES_CACHE = OptionDescriptor
             .newBuilder(ENCODING_LOADED_CLASSES_CACHE_KEY, "ruby.encoding-loaded-classes-cache")
             .help("Cache size of encoding operations based on anticipated number of total active encodings")
@@ -1540,8 +1531,6 @@ public final class OptionsCatalog {
                 return UNPACK_CACHE;
             case "ruby.eval-cache":
                 return EVAL_CACHE;
-            case "ruby.encoding-compatible-query-cache":
-                return ENCODING_COMPATIBLE_QUERY_CACHE;
             case "ruby.encoding-loaded-classes-cache":
                 return ENCODING_LOADED_CLASSES_CACHE;
             case "ruby.interop-convert-cache":
@@ -1731,7 +1720,6 @@ public final class OptionsCatalog {
             PACK_CACHE,
             UNPACK_CACHE,
             EVAL_CACHE,
-            ENCODING_COMPATIBLE_QUERY_CACHE,
             ENCODING_LOADED_CLASSES_CACHE,
             INTEROP_CONVERT_CACHE,
             TIME_FORMAT_CACHE,

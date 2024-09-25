@@ -87,8 +87,6 @@ public final class LanguageOptions {
     public final int UNPACK_CACHE;
     /** --eval-cache=DEFAULT_CACHE */
     public final int EVAL_CACHE;
-    /** --encoding-compatible-query-cache=DEFAULT_CACHE */
-    public final int ENCODING_COMPATIBLE_QUERY_CACHE;
     /** --encoding-loaded-classes-cache=DEFAULT_CACHE */
     public final int ENCODING_LOADED_CLASSES_CACHE;
     /** --interop-convert-cache=DEFAULT_CACHE */
@@ -163,7 +161,6 @@ public final class LanguageOptions {
         PACK_CACHE = options.hasBeenSet(OptionsCatalog.PACK_CACHE_KEY) ? options.get(OptionsCatalog.PACK_CACHE_KEY) : DEFAULT_CACHE;
         UNPACK_CACHE = options.hasBeenSet(OptionsCatalog.UNPACK_CACHE_KEY) ? options.get(OptionsCatalog.UNPACK_CACHE_KEY) : DEFAULT_CACHE;
         EVAL_CACHE = options.hasBeenSet(OptionsCatalog.EVAL_CACHE_KEY) ? options.get(OptionsCatalog.EVAL_CACHE_KEY) : DEFAULT_CACHE;
-        ENCODING_COMPATIBLE_QUERY_CACHE = options.hasBeenSet(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY) ? options.get(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY) : DEFAULT_CACHE;
         ENCODING_LOADED_CLASSES_CACHE = options.hasBeenSet(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY) ? options.get(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY) : DEFAULT_CACHE;
         INTEROP_CONVERT_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY) : DEFAULT_CACHE;
         TIME_FORMAT_CACHE = options.hasBeenSet(OptionsCatalog.TIME_FORMAT_CACHE_KEY) ? options.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY) : DEFAULT_CACHE;
@@ -252,8 +249,6 @@ public final class LanguageOptions {
                 return UNPACK_CACHE;
             case "ruby.eval-cache":
                 return EVAL_CACHE;
-            case "ruby.encoding-compatible-query-cache":
-                return ENCODING_COMPATIBLE_QUERY_CACHE;
             case "ruby.encoding-loaded-classes-cache":
                 return ENCODING_LOADED_CLASSES_CACHE;
             case "ruby.interop-convert-cache":
@@ -332,7 +327,6 @@ public final class LanguageOptions {
                one.get(OptionsCatalog.PACK_CACHE_KEY).equals(two.get(OptionsCatalog.PACK_CACHE_KEY)) &&
                one.get(OptionsCatalog.UNPACK_CACHE_KEY).equals(two.get(OptionsCatalog.UNPACK_CACHE_KEY)) &&
                one.get(OptionsCatalog.EVAL_CACHE_KEY).equals(two.get(OptionsCatalog.EVAL_CACHE_KEY)) &&
-               one.get(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY).equals(two.get(OptionsCatalog.ENCODING_COMPATIBLE_QUERY_CACHE_KEY)) &&
                one.get(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY).equals(two.get(OptionsCatalog.ENCODING_LOADED_CLASSES_CACHE_KEY)) &&
                one.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY).equals(two.get(OptionsCatalog.INTEROP_CONVERT_CACHE_KEY)) &&
                one.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY).equals(two.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY)) &&
@@ -580,13 +574,6 @@ public final class LanguageOptions {
         newValue = newOptions.EVAL_CACHE;
         if (!newValue.equals(oldValue)) {
             logger.fine("not reusing pre-initialized context: --eval-cache differs, was: " + oldValue + " and is now: " + newValue);
-            return false;
-        }
-
-        oldValue = oldOptions.ENCODING_COMPATIBLE_QUERY_CACHE;
-        newValue = newOptions.ENCODING_COMPATIBLE_QUERY_CACHE;
-        if (!newValue.equals(oldValue)) {
-            logger.fine("not reusing pre-initialized context: --encoding-compatible-query-cache differs, was: " + oldValue + " and is now: " + newValue);
             return false;
         }
 
