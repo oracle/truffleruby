@@ -37,7 +37,6 @@ LANGUAGE_OPTIONS:
 - PACK_CACHE
 - UNPACK_CACHE
 - EVAL_CACHE
-- ENCODING_COMPATIBLE_QUERY_CACHE
 - ENCODING_LOADED_CLASSES_CACHE
 - INTEROP_CONVERT_CACHE
 - TIME_FORMAT_CACHE
@@ -212,7 +211,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     PACK_CACHE: [pack-cache, integer, DEFAULT_CACHE, Array#pack cache size]
     UNPACK_CACHE: [unpack-cache, integer, DEFAULT_CACHE, String#unpack cache size]
     EVAL_CACHE: [eval-cache, integer, DEFAULT_CACHE, eval cache size]
-    ENCODING_COMPATIBLE_QUERY_CACHE: [encoding-compatible-query-cache, integer, DEFAULT_CACHE, 'Encoding.compatible? cache size']
     ENCODING_LOADED_CLASSES_CACHE: [encoding-loaded-classes-cache, integer, DEFAULT_CACHE, Cache size of encoding operations based on anticipated number of total active encodings]
     INTEROP_CONVERT_CACHE: [interop-convert-cache, integer, DEFAULT_CACHE, Cache size for converting values for interop]
     TIME_FORMAT_CACHE: [time-format-cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
