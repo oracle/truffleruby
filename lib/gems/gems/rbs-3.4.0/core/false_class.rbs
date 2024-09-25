@@ -1,0 +1,82 @@
+# <!-- rdoc-file=object.c -->
+# The global value `false` is the only instance of class FalseClass and
+# represents a logically false value in boolean expressions. The class provides
+# operators allowing `false` to participate correctly in logical expressions.
+#
+class FalseClass
+  def !: () -> true
+
+  # <!--
+  #   rdoc-file=object.c
+  #   - false & object -> false
+  #   - nil & object   -> false
+  # -->
+  # Returns `false`:
+  #
+  #     false & true       # => false
+  #     false & Object.new # => false
+  #
+  # Argument `object` is evaluated:
+  #
+  #     false & raise # Raises RuntimeError.
+  #
+  def &: (untyped obj) -> false
+
+  # <!--
+  #   rdoc-file=object.c
+  #   - true === other -> true or false
+  #   - false === other -> true or false
+  #   - nil === other -> true or false
+  # -->
+  # Returns `true` or `false`.
+  #
+  # Like Object#==, if `object` is an instance of Object (and not an instance of
+  # one of its many subclasses).
+  #
+  # This method is commonly overridden by those subclasses, to provide meaningful
+  # semantics in `case` statements.
+  #
+  def ===: (false) -> true
+         | (untyped obj) -> bool
+
+  # <!--
+  #   rdoc-file=object.c
+  #   - false ^ object -> true or false
+  #   - nil ^ object   -> true or false
+  # -->
+  # Returns `false` if `object` is `nil` or `false`, `true` otherwise:
+  #
+  #     nil ^ nil        # => false
+  #     nil ^ false      # => false
+  #     nil ^ Object.new # => true
+  #
+  def ^: (false | nil) -> false
+       | (untyped obj) -> bool
+
+  # <!-- rdoc-file=object.c -->
+  # The string representation of `false` is "false".
+  #
+  alias inspect to_s
+
+  # <!--
+  #   rdoc-file=object.c
+  #   - false.to_s   ->  "false"
+  # -->
+  # The string representation of `false` is "false".
+  #
+  def to_s: () -> "false"
+
+  # <!--
+  #   rdoc-file=object.c
+  #   - false | object -> true or false
+  #   - nil   | object -> true or false
+  # -->
+  # Returns `false` if `object` is `nil` or `false`, `true` otherwise:
+  #
+  #     nil | nil        # => false
+  #     nil | false      # => false
+  #     nil | Object.new # => true
+  #
+  def |: (nil | false) -> false
+       | (untyped obj) -> bool
+end

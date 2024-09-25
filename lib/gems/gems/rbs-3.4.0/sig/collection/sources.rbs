@@ -1,0 +1,214 @@
+module RBS
+  module Collection
+    module Sources
+      def self.from_config_entry: (Git::source_entry, base_directory: Pathname) -> Git
+                                | (source_entry, base_directory: Pathname) -> t
+
+      interface _Source
+        def has?: (String name, String? version) -> boolish
+        def versions: (String name) -> Array[String]
+        def install: (dest: Pathname, name: String, version: String, stdout: CLI::_IO) -> void
+        def to_lockfile: () -> source_entry
+        def manifest_of: (String name, String version) -> manifest_entry?
+        def dependencies_of: (String name, String version) -> Array[manifest_dependency]?
+      end
+
+      type t = Git | Stdlib | Rubygems | Local
+
+      type source_entry = Git::source_entry
+                        | Stdlib::source_entry
+                        | Rubygems::source_entry
+                        | Local::source_entry
+
+      type manifest_entry = {
+        "dependencies" => Array[manifest_dependency]?,
+      }
+
+      type manifest_dependency = { "name" => String }
+
+      module Base : _Source
+        def dependencies_of: (String name, String version) -> Array[manifest_dependency]?
+      end
+
+      class Git
+        include Base
+
+        METADATA_FILENAME: String
+
+        type source_entry = {
+          'type' => 'git',
+          'name' => String,
+          'remote' => String,
+          'revision' => String,
+          'repo_dir' => String?,
+        }
+
+        class CommandError < StandardError
+        end
+
+        attr_reader name: String
+        attr_reader remote: String
+        attr_reader repo_dir: String
+        attr_reader revision: String
+
+        def initialize: (name: String, revision: String, remote: String, repo_dir: String?) -> untyped
+
+        def has?: (String name, String? version) -> boolish
+
+        def versions: (String name) -> Array[String]
+
+        def install: (dest: Pathname, name: String, version: String, stdout: CLI::_IO) -> void
+
+        def to_lockfile: () -> source_entry
+
+        def manifest_of: (String name, String version) -> manifest_entry?
+
+        def resolved_revision: () -> String
+
+        private
+
+        @need_setup: bool
+
+        @git_dir: Pathname?
+
+        @resolved_revision: String?
+
+        @gems_versions: Hash[String, Set[String]]?
+
+        def _install: (dest: Pathname , name: String, version: String) -> void
+
+        def cp_r: (Pathname, Pathname) -> void
+
+        # Ensure the git repository exists, and
+        #
+        # * When `revision` is a commit hash, the commit exists in the local repository, or
+        # * When `revision` is a branch name, the latest version is fetched from `origin`
+        #
+        # It may require a network connection to fetch or clone the repository from remote.
+        #
+        # * If `revision` is a commit hash and the commit doesn't exists in the local repository, it runs `git fetch`
+        # * If `revision` is a branch name, it runs `git fetch` once per instance
+        #
+        def setup!: [T] () { () -> T } -> T
+                  | () -> void
+
+        def need_to_fetch?: (String revision) -> bool
+
+        # The full path of local git repository
+        def git_dir: () -> Pathname
+
+        # The full path of `repo_dir` in the local git repository
+        def gem_repo_dir: () -> Pathname
+
+        # Returns `true` if `revision` looks like a commit hash
+        def commit_hash?: () -> bool
+
+        # Executes a git command, raises an error if failed
+        def git: (*String cmd, **untyped opt) -> String
+
+        # Executes a git command, returns `nil` if failed
+        def git?: (*String cmd, **untyped opt) -> String?
+
+        def sh!: (*String cmd, **untyped opt) -> String
+
+        def format_config_entry: (String name, String version) -> String
+
+        type metadata = { 'name' => String, 'version' => String, 'source' => source_entry }
+
+        def metadata_content: (name: String, version: String) -> metadata
+
+        # Write `.rbs_meta.yaml`
+        def write_metadata: (dir: Pathname, name: String, version: String) -> void
+
+        # Load `.rbs_meta.yaml` from the `dir`, where is the destination of the RBS file installation, and return the cleaned up content
+        #
+        def load_metadata: (dir: Pathname) -> metadata
+
+        def gems_versions: () -> Hash[String, Set[String]]
+      end
+
+      class Local
+        include Base
+
+        type source_entry = {
+          'type' => 'local',
+          'path' => String,
+        }
+
+        attr_reader path: Pathname
+        attr_reader full_path: Pathname
+
+        def initialize: (path: String, base_directory: Pathname) -> void
+
+        def has?: (String name, String? version) -> boolish
+
+        def versions: (String name) -> Array[String]
+
+        def install: (dest: Pathname, name: String, version: String, stdout: CLI::_IO) -> void
+
+        def to_lockfile: () -> source_entry
+
+        def manifest_of: (String name, String version) -> manifest_entry?
+
+        private
+
+        def _install: (Pathname src, Pathname dest) -> void
+      end
+
+      # signatures that are bundled in rbs gem under the stdlib/ directory
+      class Stdlib
+
+        REPO: Repository
+
+        include Base
+
+        type source_entry =  {
+          'type' => 'stdlib',
+        }
+
+        # polyfill of singleton module
+        def self.instance: () -> instance
+
+        def has?: (String name, String? version) -> boolish
+
+        def versions: (String name) -> Array[String]
+
+        def install: (dest: Pathname, name: String, version: String, stdout: CLI::_IO) -> void
+
+        def to_lockfile: () -> source_entry
+
+        def manifest_of: (String name, String version) -> manifest_entry?
+
+        private
+
+        def lookup: (String name, String? version) -> Pathname?
+      end
+
+      # sig/ directory
+      class Rubygems
+        include Base
+
+        type source_entry = {
+          'type' => 'rubygems',
+        }
+
+        # polyfill of singleton module
+        def self.instance: () -> instance
+
+        def has?: (String name, String? version) -> boolish
+
+        def versions: (String name) -> Array[String]
+
+        def install: (dest: Pathname, name: String, version: String, stdout: CLI::_IO) -> void
+
+        def to_lockfile: () -> source_entry
+
+        def manifest_of: (String name, String version) -> manifest_entry?
+
+        private
+
+        def gem_sig_path: (String name, String? version) -> [Gem::Specification, Pathname]?
+      end
+    end
+  end
+end

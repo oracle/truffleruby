@@ -1,0 +1,9 @@
+module RBS
+  module Test
+    module Guaranteed
+      module Inspect
+        def self?.guaranteed_inspect: (untyped) -> String
+      end
+    end
+  end
+end

@@ -1,0 +1,117 @@
+PATH
+  remote: .
+  specs:
+    rbs (3.4.0)
+      abbrev
+
+PATH
+  remote: test/assets/test-gem
+  specs:
+    rbs-amber (1.0.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    abbrev (0.1.2)
+    addressable (2.8.5)
+      public_suffix (>= 2.0.2, < 6.0)
+    ast (2.4.2)
+    dbm (1.1.0)
+    diff-lcs (1.5.0)
+    digest (3.1.1)
+    goodcheck (3.1.0)
+      marcel (>= 1.0, < 2.0)
+      psych (>= 3.1, < 5.0)
+      rainbow (>= 3.0, < 4.0)
+      strong_json (>= 1.1, < 2.2)
+    json (2.7.1)
+    json-schema (4.1.1)
+      addressable (>= 2.8)
+    language_server-protocol (3.17.0.3)
+    marcel (1.0.2)
+    minitest (5.20.0)
+    net-protocol (0.2.1)
+      timeout
+    net-smtp (0.4.0)
+      net-protocol
+    parallel (1.23.0)
+    parser (3.2.2.4)
+      ast (~> 2.4.1)
+      racc
+    power_assert (2.0.3)
+    psych (4.0.6)
+      stringio
+    public_suffix (5.0.3)
+    racc (1.7.3)
+    rainbow (3.1.1)
+    rake (13.1.0)
+    rake-compiler (1.2.5)
+      rake
+    rdoc (6.6.2)
+      psych (>= 4.0.0)
+    regexp_parser (2.8.3)
+    rexml (3.2.6)
+    rspec (3.12.0)
+      rspec-core (~> 3.12.0)
+      rspec-expectations (~> 3.12.0)
+      rspec-mocks (~> 3.12.0)
+    rspec-core (3.12.0)
+      rspec-support (~> 3.12.0)
+    rspec-expectations (3.12.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-mocks (3.12.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-support (3.12.0)
+    rubocop (1.59.0)
+      json (~> 2.3)
+      language_server-protocol (>= 3.17.0)
+      parallel (~> 1.10)
+      parser (>= 3.2.2.4)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.30.0, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 2.4.0, < 3.0)
+    rubocop-ast (1.30.0)
+      parser (>= 3.2.1.0)
+    rubocop-rubycw (0.1.6)
+      rubocop (~> 1.0)
+    ruby-progressbar (1.13.0)
+    stackprof (0.2.25)
+    stringio (3.1.0)
+    strong_json (2.1.2)
+    tempfile (0.2.1)
+    test-unit (3.6.1)
+      power_assert
+    timeout (0.4.0)
+    unicode-display_width (2.5.0)
+
+PLATFORMS
+  ruby
+  x86_64-darwin-20
+
+DEPENDENCIES
+  dbm
+  digest
+  goodcheck
+  json
+  json-schema
+  minitest
+  net-smtp
+  rake
+  rake-compiler
+  rbs!
+  rbs-amber!
+  rdoc
+  rspec
+  rubocop
+  rubocop-rubycw
+  stackprof
+  tempfile
+  test-unit
+
+BUNDLED WITH
+   2.4.18

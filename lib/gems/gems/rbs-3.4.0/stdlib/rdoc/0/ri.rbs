@@ -1,0 +1,17 @@
+%a{annotate:rdoc:skip}
+module RDoc
+  # <!-- rdoc-file=lib/rdoc/ri.rb -->
+  # Namespace for the ri command line tool's implementation.
+  #
+  # See `ri --help` for details.
+  #
+  module RI
+    module Paths
+      type path_type = :system | :site | :home | :gem | :extra
+
+      type gem_filter = :latest | :all
+
+      def self.each: (?bool system, ?bool site, ?bool home, ?gem_filter | false gems, *String extra_dirs) { (String, path_type) -> void } -> void
+    end
+  end
+end
