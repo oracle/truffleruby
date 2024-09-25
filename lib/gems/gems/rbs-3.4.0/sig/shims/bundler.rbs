@@ -1,0 +1,38 @@
+module Bundler
+  class LockfileParser
+    def initialize: (String) -> void
+
+    def specs: () -> Array[LazySpecification]
+  end
+
+  class LazySpecification
+    def name: () -> String
+
+    def version: () -> String
+
+    def dependencies: () -> Array[Gem::Dependency]
+  end
+
+  class Dependency < Gem::Dependency
+    attr_reader autorequire: Array[String]?
+
+    attr_reader source: untyped
+  end
+
+  class Definition
+    def lockfile: () -> Pathname
+
+    def locked_gems: () -> LockfileParser
+
+    def dependencies: () -> Array[Dependency]
+  end
+
+  def self.default_lockfile: () -> Pathname
+
+  def self.definition: () -> Definition
+
+  module Source
+    class Gemspec
+    end
+  end
+end

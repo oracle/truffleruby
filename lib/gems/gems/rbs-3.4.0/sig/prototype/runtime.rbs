@@ -1,0 +1,182 @@
+module RBS
+  module Prototype
+    class Runtime
+      module Reflection
+        self.@object_class: UnboundMethod
+        def self.object_class: (Module value) -> Class
+
+        self.@constants_of: UnboundMethod
+        def self.constants_of: (Module mod, ?bool inherit) -> Array[Symbol]
+      end
+
+      module Helpers
+        @module_name_method: UnboundMethod
+        @untyped: Types::Bases::Any
+
+        private
+
+        def const_name: (Module const) -> String?
+
+        def const_name!: (Module const) -> String
+
+        # Returns the exact name & not compactly declared name
+        def only_name: (Module mod) -> String
+
+        def to_type_name: (String name, ?full_name: bool) -> TypeName
+
+        def untyped: () -> Types::Bases::Any
+      end
+
+      class ValueObjectBase
+        include Helpers
+
+        # @target_class stores the singleton object of `Data` or `Struct` subclass
+        @target_class: untyped
+
+        def build_decl: () -> AST::Declarations::Class
+
+        private
+
+        def build_member_accessors: (untyped ast_members_class) -> untyped
+
+        def build_s_members: () -> Array[AST::Members::MethodDefinition]
+
+        def build_super_class: () -> AST::Declarations::Class::Super
+
+        def add_decl_members: (AST::Declarations::Class) -> void
+
+        def initialize: (Class target_class) -> void
+      end
+
+      class StructGenerator < ValueObjectBase
+        def self.generatable?: (Class target) -> bool
+
+        private
+
+        def add_decl_members: (AST::Declarations::Class decl) -> void
+
+        def build_overload_for_keyword_arguments: () -> AST::Members::MethodDefinition::Overload
+
+        def build_overload_for_positional_arguments: () -> AST::Members::MethodDefinition::Overload
+
+        def build_s_keyword_init_p: () -> Array[AST::Members::MethodDefinition]
+
+        def build_s_new: () -> Array[AST::Members::MethodDefinition]
+
+        def build_super_class: () -> AST::Declarations::Class::Super
+
+        CAN_CALL_KEYWORD_INIT_P: bool
+      end
+
+      class DataGenerator < ValueObjectBase
+        def self.generatable?: (Class target) -> bool
+
+        private
+
+        def add_decl_members: (AST::Declarations::Class decl) -> void
+
+        def build_s_new: () -> Array[AST::Members::MethodDefinition]
+
+        def build_super_class: () -> AST::Declarations::Class::Super
+      end
+
+      class Todo
+        @builder: DefinitionBuilder
+
+        @mixin_decls_cache: Hash[TypeName, Array[untyped]]
+
+        def initialize: (builder: DefinitionBuilder) -> void
+
+        def skip_mixin?: (type_name: TypeName, module_name: TypeName, mixin_class: mixin_class) -> bool
+
+        def skip_singleton_method?: (module_name: TypeName, method: UnboundMethod, accessibility: Definition::accessibility) -> bool
+
+        def skip_instance_method?: (module_name: TypeName, method: UnboundMethod, accessibility: Definition::accessibility) -> bool
+
+        def skip_constant?: (module_name: String, name: Symbol) -> bool
+
+        private def mixin_decls: (TypeName type_name) -> Array[AST::Members::Include | AST::Members::Extend | AST::Members::Prepend]
+      end
+
+      type mixin_class = singleton(AST::Members::Include) | singleton(AST::Members::Prepend) | singleton(AST::Members::Extend)
+
+      @decls: Array[AST::Declarations::t]?
+
+      @modules: Hash[String, Module]
+
+      @builder: DefinitionBuilder
+
+      @module_name_method: UnboundMethod
+      @object_class: UnboundMethod
+
+      @todo_object: Todo?
+
+      include Helpers
+
+      attr_reader patterns: Array[String]
+
+      attr_reader env: Environment
+
+      attr_reader merge: bool
+
+      attr_reader todo: bool
+
+      attr_accessor outline: bool
+
+      attr_reader owners_included: Array[Module]
+
+      def initialize: (patterns: Array[String], env: Environment, merge: bool, ?todo: bool, ?owners_included: Array[Symbol]) -> void
+
+      def target?: (Module const) -> bool
+
+      def todo_object: () -> Todo?
+
+      def builder: () -> DefinitionBuilder
+
+      def parse: (String file) -> void
+
+      def decls: () -> Array[AST::Declarations::t]
+
+      def each_mixined_module: (TypeName type_name, Module mod) { (TypeName, TypeName, mixin_class) -> void } -> void
+
+      def each_mixined_module_one: (TypeName type_name, Module mod) { (TypeName, TypeName, bool) -> void } -> void
+
+      def method_type: (UnboundMethod method) -> MethodType
+
+      def merge_rbs: [A] (TypeName module_name, Array[AST::Declarations::Class::member] members, singleton: Symbol) { () -> A } -> A?
+                   | [A] (TypeName module_name, Array[AST::Declarations::Class::member] members, instance: Symbol) { () -> A } -> A?
+
+      def target_method?: (Module mod, instance: Symbol) -> bool
+                        | (Module mod, singleton: Symbol) -> bool
+
+      def generate_methods: (Module mod, TypeName module_name, Array[AST::Declarations::Class::member] members) -> void
+
+      def generate_constants: (Module mod, Array[AST::Declarations::Class::member] decls) -> void
+
+      def generate_super_class: (Class mod) -> AST::Declarations::Class::Super?
+
+      def generate_class: (Class mod) -> void
+
+      def generate_module: (Module mod) -> void
+
+      def generate_mixin: (Module mod, AST::Declarations::Class | AST::Declarations::Module, TypeName, TypeName) -> void
+
+      # Generate/find outer module declarations
+      # This is broken down into another method to comply with `DRY`
+      # This generates/finds declarations in nested form & returns the last array of declarations
+      def ensure_outer_module_declarations: (Module mod) -> Array[AST::Declarations::Class::member]
+
+      def object_class: (untyped) -> untyped
+
+      def type_args: (TypeName type_name) -> Array[Types::t]
+
+      def block_from_ast_of: (UnboundMethod method) -> Types::Block?
+
+      def block_from_body: (RubyVM::AbstractSyntaxTree::Node) -> Types::Block?
+
+      def can_alias?: (Module, UnboundMethod) -> bool
+
+      def type_params: (Module) -> Array[AST::TypeParam]
+    end
+  end
+end
