@@ -441,7 +441,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
      * To update this:
      *   - run `ruby --help | ruby -e 'puts STDIN.readlines.map { |line| "out.println(#{line.chomp.inspect});" }'`
      *   - replace "ruby" by "truffleruby" in the first line
-     *   - remove unsupported flags (--*jit, --dump)
+     *   - remove unsupported flags (--*jit, --dump, --parser, --crash-report, -y, --yydebug)
      *   - add an extra `out.println();` before:
      *     - `out.println("Features:");` and
      *     - `out.println("Warning categories:");`
@@ -451,6 +451,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\\0, if no argument)");
+        out.println("                  (-00 for paragraph mode, -0777 for slurp mode)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
         out.println("  -Cdirectory     cd to directory before executing your script");
@@ -473,9 +474,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("                  set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
         out.println("  --copyright     print the copyright");
-        out.println("  --enable={jit|rubyopt|...}[,...], --disable={jit|rubyopt|...}[,...]");
+        out.println("  --enable={rubyopt|...}[,...]");
+        out.println("  --disable={rubyopt|...}[,...]");
         out.println("                  enable or disable features. see below for available features");
-        out.println("  --external-encoding=encoding, --internal-encoding=encoding");
+        out.println("  --external-encoding=encoding");
+        out.println("  --internal-encoding=encoding");
         out.println("                  specify the default external or internal character encoding");
         out.println("  --backtrace-limit=num");
         out.println("                  limit the maximum length of backtrace");
