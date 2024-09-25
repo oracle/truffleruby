@@ -43,18 +43,24 @@ import org.truffleruby.language.library.RubyStringLibrary;
 public abstract class StringHelperNodes {
 
     @TruffleBoundary
-    static Object trTransHelper(Node node, EncodingNodes.CheckEncodingNode checkEncodingNode, RubyString self,
+    static Object trTransHelper(Node node, EncodingNodes.CheckStringEncodingNode checkEncodingNode, RubyString self,
             RubyStringLibrary libFromStr, Object fromStr,
             RubyStringLibrary libToStr, Object toStr, boolean sFlag) {
-        final RubyEncoding e1 = checkEncodingNode.execute(node, self, fromStr);
-        final RubyEncoding e2 = checkEncodingNode.execute(node, self, toStr);
-        final RubyEncoding enc = e1 == e2 ? e1 : checkEncodingNode.execute(node, fromStr, toStr);
+        var selfWithEnc = new ATStringWithEncoding(self.tstring, self.getEncodingUncached());
+        var fromWithEnc = new ATStringWithEncoding(node, libFromStr, fromStr);
+        var toWithEnc = new ATStringWithEncoding(node, libToStr, toStr);
 
-        var selfTStringWithEnc = new ATStringWithEncoding(self.tstring, self.getEncodingUncached());
-        var fromStrTStringWithEnc = new ATStringWithEncoding(node, libFromStr, fromStr);
-        var toStrTStringWithEnc = new ATStringWithEncoding(node, libToStr, toStr);
-        final TruffleString ret = StringSupport.trTransHelper(selfTStringWithEnc, fromStrTStringWithEnc,
-                toStrTStringWithEnc, e1.jcoding, enc, sFlag, node);
+        final RubyEncoding e1 = checkEncodingNode.execute(node, selfWithEnc.tstring, selfWithEnc.encoding,
+                fromWithEnc.tstring, fromWithEnc.encoding);
+        final RubyEncoding e2 = checkEncodingNode.execute(node, selfWithEnc.tstring, selfWithEnc.encoding,
+                toWithEnc.tstring, toWithEnc.encoding);
+        final RubyEncoding enc = e1 == e2
+                ? e1
+                : checkEncodingNode.execute(node, fromWithEnc.tstring, fromWithEnc.encoding, toWithEnc.tstring,
+                        toWithEnc.encoding);
+
+        final TruffleString ret = StringSupport.trTransHelper(selfWithEnc, fromWithEnc,
+                toWithEnc, e1.jcoding, enc, sFlag, node);
         if (ret == null) {
             return Nil.INSTANCE;
         }
@@ -245,11 +251,11 @@ public abstract class StringHelperNodes {
 
         protected static RubyEncoding findEncoding(Node node, AbstractTruffleString tstring, RubyEncoding encoding,
                 TStringWithEncoding[] tstringsWithEncs, EncodingNodes.CheckStringEncodingNode checkEncodingNode) {
-            RubyEncoding enc = checkEncodingNode.executeCheckEncoding(node, tstring, encoding,
+            RubyEncoding enc = checkEncodingNode.execute(node, tstring, encoding,
                     tstringsWithEncs[0].tstring,
                     tstringsWithEncs[0].encoding);
             for (int i = 1; i < tstringsWithEncs.length; i++) {
-                enc = checkEncodingNode.executeCheckEncoding(node, tstring, encoding, tstringsWithEncs[i].tstring,
+                enc = checkEncodingNode.execute(node, tstring, encoding, tstringsWithEncs[i].tstring,
                         tstringsWithEncs[i].encoding);
             }
             return enc;
@@ -613,7 +619,7 @@ public abstract class StringHelperNodes {
             var right = libOther.getTString(node, other);
             var rightEncoding = libOther.getEncoding(node, other);
 
-            final RubyEncoding compatibleEncoding = checkEncodingNode.executeCheckEncoding(node, left, leftEncoding,
+            final RubyEncoding compatibleEncoding = checkEncodingNode.execute(node, left, leftEncoding,
                     right, rightEncoding);
 
             var result = concatNode.execute(left, right, compatibleEncoding.tencoding, true);

@@ -115,9 +115,9 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.encoding.EncodingNodes.CheckStringEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleStringEncodingNode;
 import org.truffleruby.core.encoding.IsCharacterHeadNode;
-import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.GetActualEncodingNode;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -2363,8 +2363,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!string.tstring.isEmpty()", "!noArguments(args)" })
-        static Object squeezeBang(VirtualFrame frame, RubyString string, Object[] args,
-                @Cached CheckEncodingNode checkEncodingNode,
+        static Object squeezeBang(RubyString string, Object[] args,
+                @Cached CheckStringEncodingNode checkEncodingNode,
                 @Cached ToStrNode toStrNode,
                 @Bind("this") Node node) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
@@ -2380,14 +2380,15 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         private static Object performSqueezeBang(Node node, RubyString string, Object[] otherStrings,
-                CheckEncodingNode checkEncodingNode) {
+                CheckStringEncodingNode checkEncodingNode) {
 
             final TStringBuilder buffer = TStringBuilder.create(string);
 
             Object otherStr = otherStrings[0];
             var otherTString = RubyStringLibrary.getUncached().getTString(node, otherStr);
             var otherEncoding = RubyStringLibrary.getUncached().getEncoding(node, otherStr);
-            RubyEncoding enc = checkEncodingNode.execute(node, string, otherStr);
+            RubyEncoding enc = checkEncodingNode.execute(node, string.tstring, string.getEncodingUncached(),
+                    otherTString, otherEncoding);
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE + 1];
 
             boolean singlebyte = TStringUtils.isSingleByteOptimizable(string.tstring, string.getEncodingUncached()) &&
@@ -2410,7 +2411,8 @@ public abstract class StringNodes {
                 otherStr = otherStrings[i];
                 otherTString = RubyStringLibrary.getUncached().getTString(node, otherStr);
                 otherEncoding = RubyStringLibrary.getUncached().getEncoding(node, otherStr);
-                enc = checkEncodingNode.execute(node, string, otherStr);
+                enc = checkEncodingNode.execute(node, string.tstring, string.getEncodingUncached(), otherTString,
+                        otherEncoding);
                 singlebyte = singlebyte && TStringUtils.isSingleByteOptimizable(otherTString, otherEncoding);
                 tables = StringSupport.trSetupTable(otherTString, otherEncoding, squeeze, tables, false, enc.jcoding,
                         node);
@@ -2733,7 +2735,7 @@ public abstract class StringNodes {
                         "!libToStr.getTString(node, toStr).isEmpty()" },
                 limit = "1")
         static Object trBangNoEmpty(Node node, RubyString self, Object fromStr, Object toStr,
-                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached CheckStringEncodingNode checkEncodingNode,
                 @Cached @Exclusive RubyStringLibrary libFromStr,
                 @Cached @Exclusive RubyStringLibrary libToStr) {
             return StringHelperNodes.trTransHelper(node, checkEncodingNode, self, libFromStr, fromStr, libToStr, toStr,
@@ -2763,7 +2765,7 @@ public abstract class StringNodes {
                 @Bind("this") Node node,
                 @Bind("fromStrNode.execute(node, fromStr)") Object fromStrAsString,
                 @Bind("toStrNode.execute(node, toStr)") Object toStrAsString,
-                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached CheckStringEncodingNode checkEncodingNode,
                 @Cached DeleteBangNode deleteBangNode,
                 @Cached RubyStringLibrary libFromStr,
                 @Cached RubyStringLibrary libToStr) {
@@ -3777,17 +3779,20 @@ public abstract class StringNodes {
                 @Bind("this") Node node,
                 @Cached @Exclusive RubyStringLibrary libString,
                 @Cached @Exclusive RubyStringLibrary libPattern,
-                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached CheckStringEncodingNode checkEncodingNode,
                 @Cached TruffleString.ByteIndexOfStringNode indexOfStringNode,
                 @Cached InlinedConditionProfile offsetTooLargeProfile,
                 @Cached InlinedConditionProfile notFoundProfile,
                 @Bind("libPattern.getTString(node, rubyPattern)") AbstractTruffleString patternTString) {
             assert byteOffset >= 0;
 
-            var compatibleEncoding = checkEncodingNode.execute(node, rubyString, rubyPattern);
-
             var string = libString.getTString(node, rubyString);
-            int stringByteLength = string.byteLength(libString.getTEncoding(node, rubyString));
+            var encoding = libString.getEncoding(node, rubyString);
+            var patternEncoding = libPattern.getEncoding(node, rubyPattern);
+
+            var compatibleEncoding = checkEncodingNode.execute(node, string, encoding, patternTString, patternEncoding);
+
+            int stringByteLength = string.byteLength(encoding.tencoding);
 
             if (offsetTooLargeProfile.profile(node, byteOffset >= stringByteLength)) {
                 return nil;
@@ -4040,23 +4045,23 @@ public abstract class StringNodes {
         Object stringRindex(Object rubyString, Object rubyPattern, int byteOffset,
                 @Cached RubyStringLibrary libPattern,
                 @Cached RubyStringLibrary libString,
-                @Cached CheckEncodingNode checkEncodingNode,
+                @Cached CheckStringEncodingNode checkEncodingNode,
                 @Cached TruffleString.LastByteIndexOfStringNode lastByteIndexOfStringNode,
                 @Cached InlinedBranchProfile startOutOfBoundsProfile,
                 @Cached InlinedBranchProfile startTooCloseToEndProfile,
                 @Cached InlinedBranchProfile noMatchProfile) {
             assert byteOffset >= 0;
 
-            // Throw an exception if the encodings are not compatible.
-            var compatibleEncoding = checkEncodingNode.execute(this, rubyString, rubyPattern);
-
             var string = libString.getTString(this, rubyString);
-            var stringEncoding = libString.getEncoding(this, rubyString).tencoding;
-            int stringByteLength = string.byteLength(stringEncoding);
+            var stringEncoding = libString.getEncoding(this, rubyString);
+            int stringByteLength = string.byteLength(stringEncoding.tencoding);
 
             var pattern = libPattern.getTString(this, rubyPattern);
-            var patternEncoding = libPattern.getEncoding(this, rubyPattern).tencoding;
-            int patternByteLength = pattern.byteLength(patternEncoding);
+            var patternEncoding = libPattern.getEncoding(this, rubyPattern);
+            int patternByteLength = pattern.byteLength(patternEncoding.tencoding);
+
+            // Throw an exception if the encodings are not compatible.
+            var compatibleEncoding = checkEncodingNode.execute(this, string, stringEncoding, pattern, patternEncoding);
 
             int normalizedStart = byteOffset;
 

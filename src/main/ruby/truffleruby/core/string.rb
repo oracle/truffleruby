@@ -605,7 +605,7 @@ class String
     stop = StringValue(stop)
 
     if stop.bytesize == 1 && bytesize == 1 && self.ascii_only? && stop.ascii_only?
-      enc = Primitive.encoding_ensure_compatible(self.encoding, stop.encoding)
+      enc = Primitive.encoding_ensure_compatible_str(self, stop)
 
       return self if self > stop
       after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
@@ -616,7 +616,7 @@ class String
       end
     else
       unless stop.size < size
-        Primitive.encoding_ensure_compatible(self.encoding, stop.encoding)
+        Primitive.encoding_ensure_compatible_str(self, stop)
 
         after_stop = exclusive ? stop : stop.succ
         current = self

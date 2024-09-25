@@ -648,7 +648,7 @@ public abstract class EncodingNodes {
     @GenerateUncached
     public abstract static class CheckStringEncodingNode extends RubyBaseNode {
 
-        public abstract RubyEncoding executeCheckEncoding(Node node, AbstractTruffleString first,
+        public abstract RubyEncoding execute(Node node, AbstractTruffleString first,
                 RubyEncoding firstEncoding, AbstractTruffleString second, RubyEncoding secondEncoding);
 
         @Specialization
@@ -673,45 +673,6 @@ public abstract class EncodingNodes {
             return negotiatedEncoding;
         }
 
-    }
-
-    // MRI: rb_enc_check / rb_encoding_check
-    @Primitive(name = "encoding_ensure_compatible")
-    public abstract static class EncodingCheckEncodingNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        RubyEncoding checkEncoding(Object first, Object second,
-                @Cached CheckEncodingNode checkEncodingNode) {
-            return checkEncodingNode.execute(this, first, second);
-        }
-    }
-
-    @GenerateInline
-    @GenerateCached(false)
-    public abstract static class CheckEncodingNode extends RubyBaseNode {
-
-        public abstract RubyEncoding execute(Node node, Object first, Object second);
-
-        @Specialization
-        static RubyEncoding checkEncoding(Node node, Object first, Object second,
-                @Cached ToRubyEncodingNode toRubyEncodingNode,
-                @Cached NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode,
-                @Cached InlinedBranchProfile errorProfile) {
-            final var firstEncoding = toRubyEncodingNode.execute(node, first);
-            final var secondEncoding = toRubyEncodingNode.execute(node, second);
-            final RubyEncoding negotiatedEncoding = negotiateCompatibleEncodingNode.execute(node, first,
-                    firstEncoding, second, secondEncoding);
-
-            if (negotiatedEncoding == null) {
-                errorProfile.enter(node);
-                throw new RaiseException(getContext(node), coreExceptions(node).encodingCompatibilityErrorIncompatible(
-                        firstEncoding,
-                        secondEncoding,
-                        node));
-            }
-
-            return negotiatedEncoding;
-        }
     }
 
     @Primitive(name = "encoding_unicode_version")
