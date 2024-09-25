@@ -27,6 +27,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
+import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1588,23 +1589,21 @@ public abstract class InteropNodes {
                 return nil;
             }
 
-            final Class<? extends TruffleLanguage<?>> language;
+            final Class<? extends TruffleLanguage<?>> languageClass;
             try {
-                language = receivers.getLanguage(receiver);
+                languageClass = receivers.getLanguage(receiver);
             } catch (UnsupportedMessageException e) {
                 return nil;
             }
 
-            final String name = languageClassToLanguageName(language);
+            final String name = languageClassToLanguageName(getContext(node), languageClass);
             return fromJavaStringNode.executeFromJavaString(node, name);
         }
 
         @TruffleBoundary
-        private static String languageClassToLanguageName(Class<? extends TruffleLanguage<?>> language) {
-            String name = language.getSimpleName();
-            if (name.endsWith("Language")) {
-                name = name.substring(0, name.length() - "Language".length());
-            }
+        private static String languageClassToLanguageName(RubyContext context,
+                Class<? extends TruffleLanguage<?>> languageClass) {
+            String name = context.getEnv().getLanguageInfo(languageClass).getName();
             if (name.equals("Host")) {
                 name = "Java";
             }
