@@ -13,6 +13,11 @@
 
 require "mkmf"
 
+if defined?(::TruffleRuby)
+  # Needed with libssl 3.0.0 and -Werror from building core C extensions
+  $warnflags += ' -Wno-deprecated-declarations'
+end
+
 ssl_dirs = nil
 if defined?(::TruffleRuby)
   # Always respect the openssl prefix chosen by truffle/openssl-prefix
@@ -124,6 +129,14 @@ if !pkg_config_found && !find_openssl_library
     "is installed."
 end
 
+# TruffleRuby: do not perform all checks again if extconf.h already exists
+extconf_h = "#{__dir__}/extconf.h"
+in_development = ENV.key?('MX_HOME')
+if in_development && File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__)
+  $extconf_h = extconf_h
+else
+### START of checks
+
 version_ok = if have_macro("LIBRESSL_VERSION_NUMBER", "openssl/opensslv.h")
   is_libressl = true
   checking_for("LibreSSL version >= 3.1.0") {
@@ -219,5 +232,9 @@ extldflags = ENV["RUBY_OPENSSL_EXTLDFLAGS"]
 append_ldflags(extldflags.split) if extldflags
 
 create_header
+
+### END of checks
+end
+
 create_makefile("openssl")
 Logging::message "Done.\n"

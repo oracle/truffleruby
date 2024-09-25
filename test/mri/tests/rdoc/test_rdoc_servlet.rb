@@ -5,6 +5,12 @@ begin
 rescue LoadError
 end
 
+# Load those eagerly, otherwise require 'json' inside fails due to `Gem::Specification.all = [@spec]`, also on CRuby
+_load_eagerly = [
+  RDoc::Servlet,
+  RDoc::Generator::JsonIndex
+]
+
 class TestRDocServlet < RDoc::TestCase
 
   def setup

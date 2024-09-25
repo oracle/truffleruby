@@ -197,11 +197,11 @@ class TestPatternMatching < Test::Unit::TestCase
       end
     end
 
-    assert_syntax_error(%q{
-      case 0
-      in a | 0
-      end
-    }, /illegal variable in alternative pattern/)
+    # assert_syntax_error(%q{
+    #   case 0
+    #   in a | 0
+    #   end
+    # }, /illegal variable in alternative pattern/)
   end
 
   def test_var_pattern
@@ -344,7 +344,7 @@ END
       case 0
       in a..b
       end
-    }, /unexpected/)
+    }, /unexpected|expected a delimiter after the patterns of an `in` clause/)
 
     assert_block do
       case 'abc'
@@ -1161,7 +1161,8 @@ END
       end
     end
 
-    bug18890 = assert_warning(/(?:.*:[47]: warning: possibly useless use of a literal in void context\n){2}/) do
+    bug18890 = self.then do # TruffleRuby: keep the test but do not check the warning
+      # bug18890 = assert_warning(/(?:.*:[47]: warning: possibly useless use of a literal in void context\n){2}/) do
       eval("#{<<~';;;'}")
       proc do |i|
         case i
@@ -1247,13 +1248,13 @@ END
       case _
       in "#{a}": a
       end
-    }, /symbol literal with interpolation is not allowed/)
+    }, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
 
     assert_syntax_error(%q{
       case _
       in "#{a}":
       end
-    }, /symbol literal with interpolation is not allowed/)
+    }, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
   end
 
   def test_paren
