@@ -169,56 +169,51 @@ public abstract class EncodingNodes {
                 @Cached RubyStringLibrary libSecond,
                 @Cached InlinedConditionProfile equalEncodingsProfile,
                 @Cached InlinedConditionProfile stringStringProfile,
-                @Cached InlinedConditionProfile stringObjectProfile,
+                @Cached InlinedConditionProfile incompatibleProfile,
                 @Cached InlinedConditionProfile objectStringProfile,
                 @Cached(inline = false) TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateForStringsNode) {
-            if (equalEncodingsProfile.profile(node, firstEncoding == secondEncoding && firstEncoding != null)) {
+            if (equalEncodingsProfile.profile(node, firstEncoding == secondEncoding)) {
                 return firstEncoding;
             }
 
+            boolean firstIsString = libFirst.isRubyString(node, first);
+            boolean secondIsString = libSecond.isRubyString(node, second);
+
             // String, String
-            if (stringStringProfile.profile(node,
-                    libFirst.isRubyString(node, first) && libSecond.isRubyString(node, second))) {
+            if (stringStringProfile.profile(node, firstIsString && secondIsString)) {
                 return negotiateForStringsNode.execute(node, libFirst.getTString(node, first), firstEncoding,
                         libSecond.getTString(node, second), secondEncoding);
             }
 
-            // String, Object
-            if (stringObjectProfile.profile(node, libFirst.isRubyString(node, first) &&
-                    !libSecond.isRubyString(node, second) && firstEncoding != secondEncoding)) {
-                return compatibleEncoding(node, first, firstEncoding, secondEncoding, codeRangeNode, libFirst);
+            if (incompatibleProfile.profile(node, firstEncoding == null || secondEncoding == null ||
+                    !firstEncoding.isAsciiCompatible || !secondEncoding.isAsciiCompatible)) {
+                return null;
             }
 
             // Object, String
-            if (objectStringProfile.profile(node, libSecond.isRubyString(node, second) &&
-                    !libFirst.isRubyString(node, first) && firstEncoding != secondEncoding)) {
-                return compatibleEncoding(node, second, secondEncoding, firstEncoding, codeRangeNode, libSecond);
+            if (objectStringProfile.profile(node, secondIsString && !firstIsString)) {
+                return compatibleEncoding(node, second, secondEncoding, secondIsString, firstEncoding, codeRangeNode,
+                        libSecond);
             }
 
-            // Object, Object
-            return compatibleEncoding(node, first, firstEncoding, secondEncoding, codeRangeNode, libFirst);
+            // String, Object or Object, Object
+            return compatibleEncoding(node, first, firstEncoding, firstIsString, secondEncoding, codeRangeNode,
+                    libFirst);
         }
 
         protected static RubyEncoding compatibleEncoding(Node node,
-                Object first, RubyEncoding firstEncoding, RubyEncoding secondEncoding,
+                Object first, RubyEncoding firstEncoding, boolean firstIsString,
+                RubyEncoding secondEncoding,
                 TruffleString.GetByteCodeRangeNode codeRangeNode,
                 RubyStringLibrary libFirst) {
             assert firstEncoding != secondEncoding;
-
-            if (firstEncoding == null || secondEncoding == null) {
-                return null;
-            }
-
-            if (!firstEncoding.isAsciiCompatible || !secondEncoding.isAsciiCompatible) {
-                return null;
-            }
 
             if (secondEncoding == Encodings.US_ASCII) {
                 return firstEncoding;
             }
 
-            if (libFirst.isRubyString(node, first)) {
+            if (firstIsString) {
                 if (codeRangeNode.execute(libFirst.getTString(node, first),
                         libFirst.getTEncoding(node, first)) == ASCII) {
                     return secondEncoding;
