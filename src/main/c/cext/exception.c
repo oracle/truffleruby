@@ -66,6 +66,7 @@ void rb_syserr_fail(int eno, const char *message) {
   UNREACHABLE;
 }
 
+#undef rb_sys_fail
 void rb_sys_fail(const char *message) {
   int n = errno;
   errno = 0;
@@ -97,6 +98,7 @@ static VALUE make_errno_exc_str(VALUE mesg) {
   return rb_syserr_new_str(n, mesg);
 }
 
+#undef rb_sys_fail_str
 void rb_sys_fail_str(VALUE mesg) {
   rb_exc_raise(make_errno_exc_str(mesg));
 }

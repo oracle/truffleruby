@@ -221,7 +221,7 @@ class TestRequire < Test::Unit::TestCase
     Dir.mktmpdir do |tmp|
       req = File.join(tmp, "test.rb")
       File.write(req, ",\n")
-      e = assert_raise_with_message(SyntaxError, /unexpected/) {
+      e = assert_raise_with_message(SyntaxError, /unexpected|cannot parse the expression/) {
         yield req
       }
       assert_not_nil(bt = e.backtrace, "no backtrace")
@@ -237,7 +237,7 @@ class TestRequire < Test::Unit::TestCase
 
   def test_require_syntax_error_rescued
     assert_syntax_error_backtrace do |req|
-      assert_raise_with_message(SyntaxError, /unexpected/) {require req}
+      assert_raise_with_message(SyntaxError, /unexpected|cannot parse the expression/) {require req}
       require req
     end
   end

@@ -339,7 +339,7 @@ line,5,jkl
 
   def assert_parse_errors_out(data, timeout: PARSE_ERROR_TIMEOUT, **options)
     assert_raise(CSV::MalformedCSVError) do
-      Timeout.timeout(timeout) do
+    EnvUtil.timeout(timeout) do
         CSV.parse(data, **options)
         fail("Parse didn't error out")
       end

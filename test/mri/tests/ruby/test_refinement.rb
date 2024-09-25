@@ -1816,20 +1816,24 @@ class TestRefinement < Test::Unit::TestCase
   end
 
   def test_target
+    int_refinement = nil
+    str_refinement = nil
     refinements = Module.new {
       refine Integer do
+        int_refinement = self
       end
 
       refine String do
+        str_refinement = self
       end
     }.refinements
-    assert_equal(Integer, refinements[0].target)
+    assert_equal(Integer, int_refinement.target)
     assert_warn(/Refinement#refined_class is deprecated and will be removed in Ruby 3.4; use Refinement#target instead/) do
-      assert_equal(Integer, refinements[0].refined_class)
+      assert_equal(Integer, int_refinement.refined_class)
     end
-    assert_equal(String, refinements[1].target)
+    assert_equal(String, str_refinement.target)
     assert_warn(/Refinement#refined_class is deprecated and will be removed in Ruby 3.4; use Refinement#target instead/) do
-      assert_equal(String, refinements[1].refined_class)
+      assert_equal(String, str_refinement.refined_class)
     end
   end
 
@@ -2568,11 +2572,15 @@ class TestRefinement < Test::Unit::TestCase
   class Bug17822
     module Ext
       refine(Bug17822) do
-        def foo = :refined
+        def foo
+          :refined
+        end
       end
     end
 
-    private(def foo = :not_refined)
+    private def foo
+      :not_refined
+    end
 
     module Client
       using Ext

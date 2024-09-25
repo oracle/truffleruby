@@ -37,8 +37,13 @@ if yaml_source
   $cleanfiles << libyaml
   $LOCAL_LIBS.prepend("$(LIBYAML) ")
 else # default to pre-installed libyaml
-  pkg_config('yaml-0.1')
-  dir_config('libyaml')
+  if defined?(::TruffleRuby)
+    require 'truffle/libyaml-prefix'
+    dir_config('libyaml', ENV['LIBYAML_PREFIX'])
+  else
+    pkg_config('yaml-0.1')
+    dir_config('libyaml')
+  end
   find_header('yaml.h') or abort "yaml.h not found"
   find_library('yaml', 'yaml_get_version') or abort "libyaml not found"
 end
