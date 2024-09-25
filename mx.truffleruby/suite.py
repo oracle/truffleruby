@@ -748,12 +748,12 @@ suite = {
                     "dependency:org.truffleruby.librubysignal",
                 ],
                 # Create the complete files to let RubyGems know the gems are fully built
-                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.7.1/gem.build_complete": "string:",
-                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-2.8.2/gem.build_complete": "string:",
-                "lib/gems/gems/debug-1.7.1/lib/debug/": [
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.9.1/gem.build_complete": "string:",
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-3.4.0/gem.build_complete": "string:",
+                "lib/gems/gems/debug-1.9.1/lib/debug/": [
                     "dependency:org.truffleruby.cext/src/main/c/debug/<extsuffix:debug>",
                 ],
-                "lib/gems/gems/rbs-2.8.2/lib/": [
+                "lib/gems/gems/rbs-3.4.0/lib/": [
                     "dependency:org.truffleruby.cext/src/main/c/rbs/<extsuffix:rbs_extension>",
                 ],
                 "lib/mri/": [
