@@ -80,10 +80,10 @@ public abstract class EncodingNodes {
                 AbstractTruffleString second,
                 RubyEncoding secondEncoding,
                 @Cached InlinedConditionProfile equalEncodingsProfile,
-                @Cached InlinedConditionProfile firstAsciiCompatibleProfile,
-                @Cached InlinedConditionProfile firstStandardEncodingProfile,
-                @Cached InlinedConditionProfile secondAsciiCompatibleProfile,
-                @Cached InlinedConditionProfile secondStandardEncodingProfile,
+                @Cached InlinedConditionProfile first7BitProfile,
+                @Cached InlinedConditionProfile firstAsciiCompatProfile,
+                @Cached InlinedConditionProfile second7BitProfile,
+                @Cached InlinedConditionProfile secondAsciiCompatProfile,
                 @Cached(inline = false) TruffleString.GetByteCodeRangeNode codeRangeNode) {
             assert first.isCompatibleToUncached(firstEncoding.tencoding) &&
                     second.isCompatibleToUncached(secondEncoding.tencoding);
@@ -92,18 +92,14 @@ public abstract class EncodingNodes {
                 return firstEncoding;
             }
 
+            // We handle encoding negotiation for all ASCII-compatible encodings on the fast path.
+            // We also noticed that in yjit-bench only the 3 standard encodings are ever seen here.
             boolean second7Bit = StringGuards.is7Bit(second, secondEncoding, codeRangeNode);
-            if (firstStandardEncodingProfile.profile(node, Encodings.isStandardEncoding(firstEncoding))) {
-                // Encoding negotiation of two strings is most often between strings with the same encoding. The next most
-                // frequent case is two strings with different encodings, but each being one of the standard/default runtime
-                // encodings. When the second string is CR_7BIT, we can short-circuit the full set of encoding negotiation
-                // rules and simply return the encoding of the first string.
-
-                if (secondAsciiCompatibleProfile.profile(node, second7Bit)) {
+            if (firstAsciiCompatProfile.profile(node, firstEncoding.isAsciiCompatible)) {
+                if (second7BitProfile.profile(node, second7Bit)) {
                     return firstEncoding;
-                } else if (secondStandardEncodingProfile.profile(node, Encodings.isStandardEncoding(secondEncoding))) {
-                    if (firstAsciiCompatibleProfile.profile(node,
-                            StringGuards.is7Bit(first, firstEncoding, codeRangeNode))) {
+                } else if (secondAsciiCompatProfile.profile(node, secondEncoding.isAsciiCompatible)) {
+                    if (first7BitProfile.profile(node, StringGuards.is7Bit(first, firstEncoding, codeRangeNode))) {
                         return secondEncoding;
                     } else {
                         return null;
