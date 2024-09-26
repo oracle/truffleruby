@@ -19,6 +19,8 @@
 #define LIKELY(x) RB_LIKELY(x)
 #define UNLIKELY(x) RB_UNLIKELY(x)
 
+#define numberof(array) ((int)(sizeof(array) / sizeof((array)[0])))
+
 #include "ruby/ruby.h"
 
 #define RBOOL(v) ((v) ? Qtrue : Qfalse)

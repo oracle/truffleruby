@@ -82,11 +82,18 @@ cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 
 # Ripper
+rm -rf src/main/c/ripper
+mkdir -p src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/{id.h,symbol.h} lib/cext/include/truffleruby/internal
 cp "$RUBY_BUILD_DIR"/{node.c,parse.c,lex.c} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/ripper.y src/main/c/ripper/ripper.y.renamed
-cp "$RUBY_BUILD_DIR"/{node.h,parse.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/{node.h,node_name.inc,parse.h,parser_node.h,parser_st.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/ext/ripper/{eventids1.h,eventids2.h,ripper_init.h} src/main/c/ripper
+cp ../ruby/rubyparser.h src/main/c/ripper
+mkdir src/main/c/ripper/internal
+cp ../ruby/internal/ruby_parser.h src/main/c/ripper/internal
+cp ../ruby/internal/parse.h src/main/c/ripper/internal
 
 # test/
 rm -rf test/mri/tests
@@ -128,7 +135,7 @@ cp -R ../ruby/include/. lib/cext/include
 rm -rf lib/cext/include/ccan
 cp -R ../ruby/ccan lib/cext/include
 
-internal_headers=({bignum,bits,compile,compilers,complex,error,fixnum,imemo,numeric,parse,rational,re,static_assert,util}.h)
+internal_headers=({bignum,bits,compile,compilers,complex,error,fixnum,imemo,numeric,rational,re,static_assert,util}.h)
 rm -f "${internal_headers[@]/#/lib/cext/include/internal/}"
 cp -R "${internal_headers[@]/#/../ruby/internal/}" lib/cext/include/internal
 

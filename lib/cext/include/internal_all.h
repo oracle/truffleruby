@@ -13,7 +13,6 @@
 #include <internal/fixnum.h>
 #include <internal/imemo.h>
 #include <internal/numeric.h>
-#include <internal/parse.h>
 #include <internal/rational.h>
 #include <internal/re.h>
 #include <internal/static_assert.h>
