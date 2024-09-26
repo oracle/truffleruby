@@ -257,6 +257,30 @@ module Truffle
       end
     end
 
+    def self.validate_bytesplice_bounds(str, start, len, index_or_range, is_range)
+      bytesize = str.bytesize
+
+      if bytesize < start || start < 0
+        if is_range
+          raise RangeError, "#{index_or_range} out of range"
+        else
+          raise IndexError, "index #{index_or_range} out of string"
+        end
+      end
+
+      encoding = str.encoding
+
+      if start < bytesize && !Primitive.string_is_character_head?(encoding, str, start)
+        raise IndexError, "offset #{start} does not land on character boundary"
+      end
+
+      finish = start + len
+
+      if finish < bytesize && !Primitive.string_is_character_head?(encoding, str, finish)
+        raise IndexError, "offset #{finish} does not land on character boundary"
+      end
+    end
+
     def self.validate_case_mapping_options(options, downcasing)
       if options.size > 2
         raise ArgumentError, 'too many options'

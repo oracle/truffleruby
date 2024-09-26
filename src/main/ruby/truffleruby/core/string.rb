@@ -70,8 +70,26 @@ class String
     byteslice index, length
   end
 
-  def bytesplice(index_or_range, length = undefined, str)
+  def bytesplice(index_or_range, *args)
     is_range = Primitive.is_a?(index_or_range, Range)
+
+    length = undefined
+    str_index_or_range = undefined
+    str_length = undefined
+    case args.size
+    when 1
+      str = args[0]
+    when 2
+      if is_range
+        str, str_index_or_range = args
+      else
+        length, str = args
+      end
+    when 4
+      length, str, str_index_or_range, str_length = args
+    else
+      raise ArgumentError, "wrong number of arguments (given #{args.size + 1}, expected 2, 3, or 5)"
+    end
 
     if Primitive.undefined?(length)
       raise TypeError, "wrong argument type #{Primitive.class(index_or_range)} (expected Range)" unless is_range
@@ -86,27 +104,38 @@ class String
 
     str = StringValue(str)
 
+    if !Primitive.undefined?(str_index_or_range)
+      if Primitive.undefined?(str_length)
+        if !Primitive.is_a?(str_index_or_range, Range)
+          raise TypeError, "wrong argument type #{Primitive.class(str_index_or_range)} (expected Range)"
+        end
+
+        str_start, str_len = Primitive.range_normalized_start_length(str_index_or_range, str.bytesize)
+        str_len = Primitive.max(0, str_len)
+        str_arg_is_range = true
+      else
+        str_start = Primitive.rb_to_int(str_index_or_range)
+        str_start += str.bytesize if str_start < 0
+        str_len = Primitive.rb_to_int(str_length)
+        str_arg_is_range = false
+      end
+
+      if str_len < 0
+        raise IndexError, "negative length #{str_length}"
+      end
+
+      str_len = Primitive.min(str.bytesize - str_start, str_len)
+      Truffle::StringOperations.validate_bytesplice_bounds(str, str_start, str_len, str_index_or_range, str_arg_is_range)
+
+      str = str.byteslice(str_start, str_len)
+    end
+
     if len < 0
       raise IndexError, "negative length #{len}"
     end
 
-    if bytesize < start || start < 0
-      if is_range
-        raise RangeError, "#{index_or_range} out of range"
-      else
-        raise IndexError, "index #{index_or_range} out of string"
-      end
-    end
-
     len = Primitive.min(bytesize - start, len)
-    finish = start + len
-
-    if start < bytesize && !Primitive.string_is_character_head?(encoding, self, start)
-      raise IndexError, "offset #{start} does not land on character boundary"
-    end
-    if finish < bytesize && !Primitive.string_is_character_head?(encoding, self, finish)
-      raise IndexError, "offset #{finish} does not land on character boundary"
-    end
+    Truffle::StringOperations.validate_bytesplice_bounds(self, start, len, index_or_range, is_range)
 
     Primitive.check_mutable_string(self)
     enc = Primitive.encoding_ensure_compatible_str(self, str)
