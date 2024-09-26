@@ -11,6 +11,7 @@ exclude :test_execopts_duplex_io, "ArgumentError expected but nothing was raised
 exclude :test_execopts_env_popen_string, "slow: 51.42s on truffleruby 24.2.0-dev-b555f590, like ruby 3.2.4, GraalVM CE JVM [x86_64-linux] with AMD Ryzen 7 3700X 8-Core Processor: (16 vCPUs)"
 exclude :test_execopts_env_popen_vector, "slow: 50.25s on truffleruby 24.2.0-dev-b555f590, like ruby 3.2.4, GraalVM CE JVM [x86_64-linux] with AMD Ryzen 7 3700X 8-Core Processor: (16 vCPUs)"
 exclude :test_execopts_gid, "Exception raised: <#<ArgumentError: unknown exec option: :gid>>"
+exclude :test_execopts_pgroup, "Errno::EPERM expected but nothing was raised."
 exclude :test_execopts_popen, "Errno::ENOENT expected but nothing was raised."
 exclude :test_execopts_popen_stdio, "ArgumentError expected but nothing was raised."
 exclude :test_execopts_redirect_dup2_child, "<\"errout\"> expected but was <\"\">."

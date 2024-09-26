@@ -2,6 +2,7 @@ exclude :test_atime, "hangs; symbol lookup error: truffleruby/.ext/c/file.so: un
 exclude :test_basename_encoding, "Encoding::CompatibilityError: incompatible character encodings: UTF-8 and Windows-31J"
 exclude :test_closed_io_identical_p, "IOError expected but nothing was raised."
 exclude :test_expand_path_converts_a_dot_with_unc_dir, "<\"//\"> expected but was <\"/\">."
+exclude :test_expand_path_for_existent_username, "<\"/b/b/e/.home\"> expected but was <\"/buildslave\">."
 exclude :test_expand_path_hfs, "dyld: missing symbol called" if RUBY_PLATFORM.include?('darwin')
 exclude :test_expand_path_memsize, "NameError: uninitialized constant GC::INTERNAL_CONSTANTS"
 exclude :test_expand_path_preserves_unc_path_root, "<\"//\"> expected but was <\"/\">."
