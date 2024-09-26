@@ -134,6 +134,16 @@
 #include "symbol.h"
 #endif
 
+/* The following gc.h's declarations are used here - ruby_sized_xfree, and SIZED_REALLOC_N */
+#ifdef TRUFFLERUBY
+#include "internal/gc.h"
+#endif
+
+/* TruffleRuby Parse is compiled as part of ripper so we undefine RIPPER.  */
+#ifdef TRUFFLERUBY
+#undef RIPPER
+#endif
+
 #ifndef RIPPER
 static void
 bignum_negate(VALUE b)
@@ -347,9 +357,6 @@ RBIMPL_WARNING_POP()
 #define NO_LEX_CTXT (struct lex_context){0}
 
 #define AREF(ary, i) RARRAY_AREF(ary, i)
-
-/* TruffleRuby Parse is compiled as part of ripper so we undefine RIPPER.  */
-#undef RIPPER
 
 #ifndef WARN_PAST_SCOPE
 # define WARN_PAST_SCOPE 0

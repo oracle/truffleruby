@@ -134,6 +134,8 @@
 #include "symbol.h"
 #endif
 
+#include "internal/gc.h"
+
 #ifndef RIPPER
 static void
 bignum_negate(VALUE b)
