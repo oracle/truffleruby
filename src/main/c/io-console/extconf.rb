@@ -1,10 +1,9 @@
 # frozen_string_literal: false
 require 'mkmf'
 
-version = ["../../..", "."].find do |dir|
-  break File.read(File.join(__dir__, dir, "io-console.gemspec"))[/^_VERSION\s*=\s*"(.*?)"/, 1]
-rescue
-end
+require "json"
+versions_filename = File.expand_path("../../../../versions.json", __dir__)
+version = JSON.load(File.read(versions_filename)).dig("gems", "default", "io-console")
 
 have_func("rb_io_path")
 have_func("rb_io_descriptor")
