@@ -1,3 +1,4 @@
+chdir
 children
 close
 each
