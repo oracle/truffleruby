@@ -4,5 +4,4 @@ dummy?
 inspect
 name
 names
-replicate
 to_s
