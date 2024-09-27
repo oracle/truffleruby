@@ -18,7 +18,7 @@ See `epl-2.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 ## MRI
 
 The standard implementation of Ruby is MRI. TruffleRuby contains code from MRI
-version 3.2.4, including:
+version 3.3.5, including:
 
 * the standard library in `lib/mri`, 
 * Ruby C extension API in `lib/cext/include` and `src/main/c/cext`, 
@@ -123,6 +123,10 @@ power_assert is copyright Kazuki Tsujimoto and is available under the same licen
 #### prime
 
 prime is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
+
+#### racc
+
+racc is under the same copyright and licence as MRI (see `ruby-bsdl.txt`).
 
 #### rake
 
