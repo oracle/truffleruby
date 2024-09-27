@@ -1,1 +1,2 @@
 fails:Keyword arguments raises ArgumentError for missing keyword arguments even if there are extra ones
+fails:Keyword arguments ** copies a non-empty Hash for a method taking (*args)

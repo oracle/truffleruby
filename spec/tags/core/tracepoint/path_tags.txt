@@ -1,1 +1,2 @@
 fails:TracePoint#path equals (eval) inside an eval for :end event
+fails:TracePoint#path equals "(eval at __FILE__:__LINE__)" inside an eval for :end event
