@@ -1,2 +1,2 @@
-exclude :test_key, "needs investigation"
-exclude :test_receiver, "needs investigation"
+exclude :test_key, "ArgumentError expected but nothing was raised."
+exclude :test_receiver, "ArgumentError expected but nothing was raised."

@@ -1,1 +1,1 @@
-exclude :test_exit, "<2> expected but was"
+exclude :test_exit, "<2> expected but was <1>."

@@ -1,1 +1,2 @@
-exclude :test_getch_timeout, "Expected \"\\n\" to be nil."
+exclude :test_close, "Exception raised: <#<IOError: closed stream>>"
+exclude :test_sync, "console should be unbuffered"

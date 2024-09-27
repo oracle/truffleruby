@@ -1,4 +1,1 @@
-exclude :test_message_change_issue_6085, "needs investigation"
-exclude :test_method_err_mess, "needs investigation"
-exclude :test_message_change_issue_6085, "needs investigation"
-exclude :test_method_err_mess, "needs investigation"
+exclude :test_message_change_issue_6085, "Expected Exception(ArgumentError) was raised, but the message doesn't match. Expected /wrong number of arguments \\(.*\\b(\\d+)\\b.* (\\d\\S*?)\\)/ to match \"method 'sub!': given 1, expected 2\"."

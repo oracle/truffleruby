@@ -1,1 +1,1 @@
-exclude :test_to_time__from_datetime, "needs investigation"
+exclude :test_to_time__from_datetime, "<[2004, 9, 19, 1, 2, 3, (456789123456789123/1000000000000000000)]> expected but was <[2004, 9, 19, 1, 2, 3, (456789123/1000000000)]>."

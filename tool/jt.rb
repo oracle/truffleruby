@@ -43,6 +43,18 @@ JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
 DEFAULT_PROFILE_OPTIONS = %w[--cpusampler --cpusampler.Output=flamegraph]
 
+MRI_TEST_RETAG_RETAIN_PATTERNS = [
+  /hangs/i,
+  /slow/i,
+  /retain-on-retag/,
+  /OOM/,
+  /flaky/,
+  /spurious/,
+  /transient/,
+  /if RUBY_PLATFORM/,
+  /pid \d+ (exit|killed)/,
+]
+
 RUBOCOP_INCLUDE_LIST = %w[
   lib/cext
   lib/truffle
@@ -503,6 +515,8 @@ module Utilities
     end
 
     if status.success? || continue_on_failure
+      $LAST_SH_STATUS = status
+
       if capture
         out
       else
@@ -1365,14 +1379,30 @@ module Commands
 
     test_files.each do |test_file|
       puts '', test_file
-      test_classes = File.read(test_file).scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
+      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
       raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
       found_excludes = false
       test_classes.each do |test_class|
         prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
         ["#{prefix}.rb", prefix].each do |file|
-          if File.exist?(file)
+          if File.exist?(file) && File.file?(file)
+            lines = File.readlines(file)
             FileUtils::Verbose.rm_r file
+
+            # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
+            # tests as excluded and manually inspect them later. We need to be careful that we're not checking for our
+            # retains pattern on the test name. Thus, we limit our checks to either the exclusion reason string or a
+            # conditional guard that applies to the exclusion.
+            retain = lines.select do |line|
+              reason_or_guard = line.split(',', 2).last
+
+              MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| reason_or_guard =~ pattern }
+            end
+
+            puts 'Retaining:'
+            puts retain
+            File.write(file, retain.sort.join)
+
             found_excludes = true
           end
         end
@@ -1382,12 +1412,17 @@ module Commands
         next
       end
 
-      puts '1. Tagging tests'
-      output_file = 'mri_tests.txt'
-      run_mri_tests(options, [test_file], [], out: output_file, continue_on_failure: true)
+      process_tests = true
+      while process_tests
+        puts '1. Tagging tests'
+        output_file = 'mri_tests.txt'
+        run_mri_tests(options, [test_file], [], [:err, :out] => output_file, continue_on_failure: true)
 
-      puts '2. Parsing errors'
-      sh 'ruby', 'tool/parse_mri_errors.rb', output_file
+        puts '2. Parsing errors'
+        sh 'ruby', 'tool/parse_mri_errors.rb', output_file, continue_on_failure: true
+
+        process_tests = $LAST_SH_STATUS.exitstatus == 2
+      end
 
       puts '3. Verifying tests pass'
       run_mri_tests(options, [test_file], [], use_exec: test_files.size == 1)
@@ -1444,7 +1479,7 @@ module Commands
         script = "#{dir}/bin/#{test_name}"
         # bin/backtraces relies on being run with an absolute path for __FILE__
         script = "#{TRUFFLERUBY_DIR}/#{script}" if test_name == 'backtraces'
-        run_ruby "-I#{dir}/lib", script, out: output_file
+        run_ruby "-I#{dir}/lib", script, out: output_file, continue_on_failure: true
         begin
           actual = File.read(output_file)
           expected_file = "#{dir}/expected.txt"

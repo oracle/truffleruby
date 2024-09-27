@@ -1,3 +1,3 @@
-exclude :test_darwin_invalid_access, "needs investigation"
-exclude :test_darwin_invalid_call, "needs investigation"
-exclude :test_darwin_segv_in_syscall, "needs investigation"
+exclude :test_darwin_invalid_access, "| /Users/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/lib/truffle/truffle/fiddle_backend.rb:229:in `dlunwrap': NotImplementedError (NotImplementedError)" if RUBY_PLATFORM.include?('darwin')
+exclude :test_darwin_invalid_call, "| <internal:core> core/truffle/ffi/pointer.rb:54:in `address=': TruffleRuby doesn't have a case for the org.truffleruby.extra.ffi.PointerNodesFactory$PointerSetAddressNodeFactory$PointerSetAddressNodeGen node with values of type Truffle::FFI::Pointer(org.truffleruby.extra.ffi.RubyPointer) Fiddle::Pointer(org.truffleruby.core.basicobject.RubyBasicObject) (TypeError)" if RUBY_PLATFORM.include?('darwin')
+exclude :test_darwin_segv_in_syscall, "pid 86668 killed by SIGABRT (signal 6)." if RUBY_PLATFORM.include?('darwin')

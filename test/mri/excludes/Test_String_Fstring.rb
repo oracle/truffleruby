@@ -1,0 +1,5 @@
+exclude :test_rb_enc_interned_str_autoloaded_encoding, "Expected \"#<Encoding:Windows-31J>\" to include \"autoload\"."
+exclude :test_rb_enc_str_new_autoloaded_encoding, "Expected \"#<Encoding:Windows-31J>\" to include \"autoload\"."
+exclude :test_singleton_class, "undefined symbol: rb_check_symbol"
+exclude :test_singleton_method, "Expected \"test_singleton_methodtest_singleton_methodtest_singleton_method\".respond_to?(:foo) to return true."
+exclude :test_subclass, "Expected \"test_subclasstest_subclasstest_subclass\" to be an instance of Test_String_Fstring::S, not String."

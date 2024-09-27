@@ -1,3 +1,1 @@
-exclude :test_alias_class_method_added, "needs investigation"
-exclude :test_alias_module_method_added, "needs investigation"
-exclude :test_alias_inspect, "needs investigation"
+exclude :test_alias_inspect, "<\"TestAlias::Alias4(TestAlias::Alias0)#foo1(foo)()\"> expected but was <\"TestAlias::Alias4#foo1()\">."

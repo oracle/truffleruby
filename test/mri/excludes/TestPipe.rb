@@ -1,3 +1,1 @@
-exclude :test_eof_0, "needs investigation"
-exclude :test_eof_1, "needs investigation"
-exclude :test_stdout_epipe, "needs investigation"
+exclude :test_stdout_epipe, "[Errno::EPIPE] exception expected, not #<SignalException: SIGPIPE>."

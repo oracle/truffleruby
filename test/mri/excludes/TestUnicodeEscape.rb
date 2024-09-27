@@ -1,2 +1,1 @@
-exclude :test_fail, "needs investigation"
-exclude :test_regexp, "needs investigation"
+exclude :test_regexp, "</Yukihiro Matsumoto - 松本行弘/> expected to be != to"

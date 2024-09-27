@@ -1,1 +1,1 @@
-exclude :test_clamp_with_range, "needs investigation"
+exclude :test_clamp_with_range, "ArgumentError: min argument must be smaller than max argument"
