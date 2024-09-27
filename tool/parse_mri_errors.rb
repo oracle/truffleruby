@@ -244,6 +244,10 @@ def process_test_failures!(contents)
 end
 
 def process_slow_tests!(contents)
+  if !contents.include?('ruby -v:')
+    raise "Tests output doesn't contain a line with Ruby version (that looks like 'ruby -v: ...'). Please include it to proceed further."
+  end
+
   test_ruby_version = contents.match(/ruby -v: (.*)/)[1].strip
 
   contents.scan(Patterns::TEST_EXECUTION_TIME) do |class_name, test_method, execution_time|
