@@ -90,3 +90,13 @@ fails:Public methods on UnboundMethod should not include private?
 fails:Public methods on UnboundMethod should not include protected?
 fails:Public methods on UnboundMethod should not include public?
 fails:Public methods on StringScanner should include named_captures
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include ==
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include deconstruct
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include deconstruct_keys
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include eql?
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include hash
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include inspect
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include members
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include to_h
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include to_s
+fails(we defined these methods on the generated Data subclasses):Public methods on Data should include with
