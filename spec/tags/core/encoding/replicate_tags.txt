@@ -1,1 +1,2 @@
 slow:Encoding#replicate raises EncodingError if too many encodings
+fails:Encoding#replicate has been removed

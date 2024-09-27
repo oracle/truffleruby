@@ -1,0 +1,3 @@
+fails:ObjectSpace::WeakKeyMap#key? recognizes keys in use
+fails:ObjectSpace::WeakKeyMap#key? matches using equality semantics
+fails:ObjectSpace::WeakKeyMap#key? reports true if the pair exists and the value is nil

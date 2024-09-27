@@ -1,0 +1,1 @@
+fails:RBasic support should raise an ArgumentError for unsupported flags

@@ -100,3 +100,18 @@ fails(we defined these methods on the generated Data subclasses):Public methods 
 fails(we defined these methods on the generated Data subclasses):Public methods on Data should include to_h
 fails(we defined these methods on the generated Data subclasses):Public methods on Data should include to_s
 fails(we defined these methods on the generated Data subclasses):Public methods on Data should include with
+fails:Public methods on Dir should include chdir
+fails:Public methods on Encoding should not include replicate
+fails:Public methods on Fiber should include kill
+fails:Public methods on Method should include dup
+fails:Public methods on Module should include set_temporary_name
+fails:Public methods on Process.singleton_class should include warmup
+fails:Public methods on Queue should include freeze
+fails:Public methods on Range should include overlap?
+fails:Public methods on Range should include reverse_each
+fails:Public methods on SizedQueue should include freeze
+fails:Public methods on String should include dup
+fails:Public methods on UnboundMethod should include dup
+fails:Public methods on Pathname should not include taint
+fails:Public methods on Pathname should not include untaint
+fails:Public methods on StringIO should include pread

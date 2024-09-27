@@ -1,2 +1,3 @@
 slow:IRB supports using arrow keys first
 aarch64:IRB supports using arrow keys first
+fails:IRB supports using arrow keys first
