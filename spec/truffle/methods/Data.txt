@@ -1,0 +1,10 @@
+==
+deconstruct
+deconstruct_keys
+eql?
+hash
+inspect
+members
+to_h
+to_s
+with
