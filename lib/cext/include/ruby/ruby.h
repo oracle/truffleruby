@@ -278,6 +278,7 @@ int ruby_vsnprintf(char *str, size_t n, char const *fmt, va_list ap);
 
 #include <errno.h>
 
+#ifndef TRUFFLERUBY
 /**
  * @name  Errno handling routines for userland threads
  * @note  POSIX chapter 2 section 3 states  that for each thread  of a process,
@@ -391,6 +392,7 @@ rb_orig_errno_ptr(void)
 #undef errno
 #define errno (*rb_errno_ptr()) /**< Ractor-aware version of `errno`. */
 
+#endif // TRUFFLERUBY
 /** @} */
 
 
