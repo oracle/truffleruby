@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
-require_relative "../lib/syntax_suggest/api"
+if defined?(::TruffleRuby)
+  require "syntax_suggest/api"
+else
+  require_relative "../lib/syntax_suggest/api"
+end
 
 SyntaxSuggest::Cli.new(
   argv: ARGV

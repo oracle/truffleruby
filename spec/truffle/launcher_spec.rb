@@ -30,6 +30,7 @@ describe "The launcher" do
     rdoc: escape[@default_gems['rdoc']],
     ri: escape["ri #{@default_gems['rdoc']}"],
     ruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    syntax_suggest: escape["syntax_suggest #{@default_gems['syntax_suggest']}"],
     truffleruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
   }
 
