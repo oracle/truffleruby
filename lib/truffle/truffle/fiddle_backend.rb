@@ -131,6 +131,7 @@ module Fiddle
   class DLError < StandardError
   end
 
+  # based on https://github.com/ruby/fiddle/blob/5e1578aed2b6d01e9d5c37aa9b360d1848e8fcd5/ext/fiddle/fiddle.h
   module Types
     VOID         = 0
     VOIDP        = 1
@@ -141,6 +142,7 @@ module Fiddle
     LONG_LONG    = 6
     FLOAT        = 7
     DOUBLE       = 8
+    BOOL         = 11
 
     UCHAR = -CHAR
     USHORT = -SHORT
@@ -173,6 +175,7 @@ module Fiddle
   SIZEOF_LONG_LONG  = Primitive.pointer_find_type_size(:long_long)
   SIZEOF_FLOAT      = Primitive.pointer_find_type_size(:float)
   SIZEOF_DOUBLE     = Primitive.pointer_find_type_size(:double)
+  SIZEOF_BOOL       = Primitive.pointer_find_type_size(:bool)
 
   SIZEOF_UCHAR = SIZEOF_CHAR
   SIZEOF_USHORT = SIZEOF_SHORT
@@ -206,6 +209,7 @@ module Fiddle
   ALIGN_LONG_LONG   = SIZEOF_LONG_LONG
   ALIGN_FLOAT       = SIZEOF_FLOAT
   ALIGN_DOUBLE      = SIZEOF_DOUBLE
+  ALIGN_BOOL        = SIZEOF_BOOL
 
   ALIGN_INT8_T      = SIZEOF_INT8_T
   ALIGN_INT16_T     = SIZEOF_INT16_T

@@ -39,6 +39,9 @@ static VALUE sulong_get_constant(const char* name) {
 
 void rb_tr_init_exception(void);
 
+// ensure it for the fiddle gem and its TruffleRuby-specific implementation
+RBIMPL_STATIC_ASSERT("sizeof(bool) is 1", sizeof(bool) == 1);
+
 // Run when loading C-extension support
 void rb_tr_init(void *ruby_cext) {
   rb_tr_cext = ruby_cext;
