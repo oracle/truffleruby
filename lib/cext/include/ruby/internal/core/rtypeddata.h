@@ -363,14 +363,22 @@ struct RTypedData {
      * data.   This roughly  resembles a  Ruby level  class (apart  from method
      * definition etc.)
      */
+#ifndef TRUFFLERUBY
     const rb_data_type_t *const type;
+#else
+    const rb_data_type_t *type;
+#endif
 
     /**
      * This has to be always 1.
      *
      * @internal
      */
+#ifndef TRUFFLERUBY
     const VALUE typed_flag;
+#else
+    VALUE typed_flag;
+#endif
 
     /** Pointer to the actual C level struct that you want to wrap. */
     void *data;
