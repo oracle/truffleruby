@@ -747,8 +747,9 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                     "dependency:org.truffleruby.librubysignal",
                 ],
-                # Create the complete files to let RubyGems know the gems are fully built
+                # Create the complete files to let RubyGems know the gems are fully built and can be activated
                 "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.9.1/gem.build_complete": "string:",
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/racc-1.7.3/gem.build_complete": "string:", # actually we do not build the C extension because the pure-Ruby fallback is enough
                 "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-3.4.0/gem.build_complete": "string:",
                 "lib/gems/gems/debug-1.9.1/lib/debug/": [
                     "dependency:org.truffleruby.cext/src/main/c/debug/<extsuffix:debug>",

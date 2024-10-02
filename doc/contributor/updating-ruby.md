@@ -162,7 +162,7 @@ Update all of these:
   * with bundled gem versions provided by `cat ../ruby/gems/bundled_gems | sort`,
   * default gem versions provided by `ls -l lib/gems/specifications/default`
   * and `gem` gem version provided by `grep 'VERSION =' lib/mri/rubygems.rb`
-* Also update version numbers for `debug` and `rbs` in `src/main/c/Makefile`, `mx.truffleruby/suite.py` and `lib/gems/gems/debug-*/ext/debug/extconf.rb`.
+* Also update version numbers for `debug`, `racc`, and `rbs` in `src/main/c/Makefile`, `mx.truffleruby/suite.py` and `lib/gems/gems/debug-*/ext/debug/extconf.rb`.
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
 * This is a good time to get `jt build` working.
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
