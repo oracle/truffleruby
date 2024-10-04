@@ -973,7 +973,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         for (int n = node.conditions.length - 1; n >= 0; n--) {
-            Nodes.InNode inNode = (Nodes.InNode) node.conditions[n];
+            Nodes.InNode inNode = node.conditions[n];
             Nodes.Node patternNode = inNode.pattern;
 
             final RubyNode conditionNode = translator.translatePatternNode(patternNode, readPredicateNode);
@@ -1013,15 +1013,11 @@ public class YARPTranslator extends YARPBaseTranslator {
             // Work backwards to make the first if contain all the others in its `else` clause.
             RubyNode elseNode = translateNodeOrNil(node.else_clause);
 
-            final Nodes.Node[] conditions = node.conditions;
+            final Nodes.WhenNode[] whenNodes = node.conditions;
 
-            for (int n = conditions.length - 1; n >= 0; n--) {
-                // condition is either WhenNode or InNode
-                // don't handle InNode for now
-                assert conditions[n] instanceof Nodes.WhenNode;
-
-                final Nodes.WhenNode when = (Nodes.WhenNode) conditions[n];
-                final Nodes.Node[] whenConditions = when.conditions;
+            for (int n = whenNodes.length - 1; n >= 0; n--) {
+                final Nodes.WhenNode whenNode = whenNodes[n];
+                final Nodes.Node[] whenConditions = whenNode.conditions;
                 boolean containSplatOperator = containYARPSplatNode(whenConditions);
 
                 if (containSplatOperator) {
@@ -1033,7 +1029,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                     final RubyNode predicateNode = createCallNode(receiver, "when_splat", arguments);
 
                     // create `if` node
-                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final RubyNode thenNode = translateNodeOrNil(whenNode.statements);
                     final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
 
                     // this `if` becomes `else` branch of the outer `if`
@@ -1060,7 +1056,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                     }
 
                     // create `if` node
-                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final RubyNode thenNode = translateNodeOrNil(whenNode.statements);
                     final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
 
                     // this `if` becomes `else` branch of the outer `if`
@@ -1080,15 +1076,11 @@ public class YARPTranslator extends YARPBaseTranslator {
 
             RubyNode elseNode = translateNodeOrNil(node.else_clause);
 
-            final Nodes.Node[] conditions = node.conditions;
+            final Nodes.WhenNode[] whenNodes = node.conditions;
 
             for (int n = node.conditions.length - 1; n >= 0; n--) {
-                // condition is either WhenNode or InNode
-                // don't handle InNode for now
-                assert conditions[n] instanceof Nodes.WhenNode;
-
-                final Nodes.WhenNode when = (Nodes.WhenNode) conditions[n];
-                final Nodes.Node[] whenConditions = when.conditions;
+                final Nodes.WhenNode whenNode = whenNodes[n];
+                final Nodes.Node[] whenConditions = whenNode.conditions;
                 boolean containSplatOperator = containYARPSplatNode(whenConditions);
 
                 if (!containSplatOperator) {
@@ -1111,7 +1103,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                     }
 
                     // create `if` node
-                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final RubyNode thenNode = translateNodeOrNil(whenNode.statements);
                     final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
 
                     // this `if` becomes `else` branch of the outer `if`
@@ -1125,7 +1117,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                     final RubyNode predicateNode = createCallNode(receiver, "any?", RubyNode.EMPTY_ARRAY);
 
                     // create `if` node
-                    final RubyNode thenNode = translateNodeOrNil(when.statements);
+                    final RubyNode thenNode = translateNodeOrNil(whenNode.statements);
                     final IfElseNode ifNode = IfElseNodeGen.create(predicateNode, thenNode, elseNode);
 
                     // this `if` becomes `else` branch of the outer `if`
