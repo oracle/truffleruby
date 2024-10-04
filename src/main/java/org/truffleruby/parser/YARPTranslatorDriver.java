@@ -169,7 +169,7 @@ public final class YARPTranslatorDriver {
                     "parsing",
                     source.getName(),
                     () -> parseToYARPAST(rubySource, sourcePath, sourceBytes, localsInScopes,
-                            language.options.FROZEN_STRING_LITERALS, options));
+                            language.options.FROZEN_STRING_LITERALS, options, parserContext));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -341,7 +341,8 @@ public final class YARPTranslatorDriver {
     }
 
     public static ParseResult parseToYARPAST(RubySource rubySource, String sourcePath, byte[] sourceBytes,
-            List<List<String>> localsInScopes, boolean frozenStringLiteral, Options cliOptions) {
+            List<List<String>> localsInScopes, boolean frozenStringLiteral, Options cliOptions,
+            ParserContext parserContext) {
         TruffleSafepoint.poll(DummyNode.INSTANCE);
 
         final byte[] filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
@@ -352,6 +353,8 @@ public final class YARPTranslatorDriver {
         // Magic comments are already detected and rubySource's encoding takes them into account,
         // but encodingLocked is intended for a niche use-case and is supposed to be false in all other cases.
         final boolean encodingLocked = false;
+        final boolean mainScript = parserContext == ParserContext.TOP_LEVEL_FIRST;
+        final boolean partialScript = false;
 
         // Prism handles command line options (-n, -l, -a, -p) on its own
         final EnumSet<ParsingOptions.CommandLine> commandline;
@@ -406,7 +409,7 @@ public final class YARPTranslatorDriver {
         }
 
         byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, commandline,
-                version, encodingLocked, scopes);
+                version, encodingLocked, mainScript, partialScript, scopes);
         byte[] serializedBytes = Parser.parseAndSerialize(sourceBytes, parsingOptions);
 
         return YARPLoader.load(serializedBytes, sourceBytes, rubySource);
