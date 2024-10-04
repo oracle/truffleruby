@@ -3125,6 +3125,11 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             pm_buffer_append_string(buffer, "\"ArgumentsNodeFlags\":", 21);
             size_t flags = 0;
             pm_buffer_append_byte(buffer, '[');
+            if (PM_NODE_FLAG_P(cast, PM_ARGUMENTS_NODE_FLAGS_CONTAINS_FORWARDING)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"CONTAINS_FORWARDING\"", 21);
+                flags++;
+            }
             if (PM_NODE_FLAG_P(cast, PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORDS)) {
                 if (flags != 0) pm_buffer_append_byte(buffer, ',');
                 pm_buffer_append_string(buffer, "\"CONTAINS_KEYWORDS\"", 19);
@@ -3138,6 +3143,11 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             if (PM_NODE_FLAG_P(cast, PM_ARGUMENTS_NODE_FLAGS_CONTAINS_SPLAT)) {
                 if (flags != 0) pm_buffer_append_byte(buffer, ',');
                 pm_buffer_append_string(buffer, "\"CONTAINS_SPLAT\"", 16);
+                flags++;
+            }
+            if (PM_NODE_FLAG_P(cast, PM_ARGUMENTS_NODE_FLAGS_CONTAINS_MULTIPLE_SPLATS)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"CONTAINS_MULTIPLE_SPLATS\"", 26);
                 flags++;
             }
             pm_buffer_append_byte(buffer, ']');

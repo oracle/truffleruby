@@ -8,7 +8,7 @@
 
 #include "prism/diagnostic.h"
 
-#define PM_DIAGNOSTIC_ID_MAX 314
+#define PM_DIAGNOSTIC_ID_MAX 318
 
 /** This struct holds the data for each diagnostic. */
 typedef struct {
@@ -108,7 +108,6 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_ARGUMENT_FORMAL_GLOBAL]             = { "invalid formal argument; formal argument cannot be a global variable", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARGUMENT_FORMAL_IVAR]               = { "invalid formal argument; formal argument cannot be an instance variable", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARGUMENT_FORWARDING_UNBOUND]        = { "unexpected `...` in an non-parenthesized call", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_ARGUMENT_IN]                        = { "unexpected `in` keyword in arguments", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARGUMENT_NO_FORWARDING_AMPERSAND]   = { "unexpected `&`; no anonymous block parameter", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARGUMENT_NO_FORWARDING_ELLIPSES]    = { "unexpected ... when the parent method is not forwarding", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARGUMENT_NO_FORWARDING_STAR]        = { "unexpected `*`; no anonymous rest parameter", PM_ERROR_LEVEL_SYNTAX },
@@ -121,7 +120,7 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_ARRAY_EXPRESSION]                   = { "expected an expression for the array element", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARRAY_EXPRESSION_AFTER_STAR]        = { "expected an expression after `*` in the array", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ARRAY_SEPARATOR]                    = { "unexpected %s; expected a `,` separator for the array elements", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_ARRAY_TERM]                         = { "expected a `]` to close the array", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_ARRAY_TERM]                         = { "unexpected %s; expected a `]` to close the array", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_BEGIN_LONELY_ELSE]                  = { "unexpected `else` in `begin` block; else without rescue is useless", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_BEGIN_TERM]                         = { "expected an `end` to close the `begin` statement", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_BEGIN_UPCASE_BRACE]                 = { "expected a `{` after `BEGIN`", PM_ERROR_LEVEL_SYNTAX },
@@ -178,7 +177,7 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_ESCAPE_INVALID_UNICODE_LONG]        = { "invalid Unicode escape sequence; maximum length is 6 digits", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ESCAPE_INVALID_UNICODE_SHORT]       = { "too short escape sequence: %.*s", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_ESCAPE_INVALID_UNICODE_TERM]        = { "unterminated Unicode escape", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_EXPECT_ARGUMENT]                    = { "expected an argument", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_EXPECT_ARGUMENT]                    = { "unexpected %s; expected an argument", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_EOL_AFTER_STATEMENT]         = { "unexpected %s, expecting end-of-input", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_EXPRESSION_AFTER_AMPAMPEQ]   = { "expected an expression after `&&=`", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_EXPRESSION_AFTER_PIPEPIPEEQ] = { "expected an expression after `||=`", PM_ERROR_LEVEL_SYNTAX },
@@ -190,6 +189,7 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_EXPECT_EXPRESSION_AFTER_SPLAT]      = { "expected an expression after `*` splat in an argument", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_EXPRESSION_AFTER_SPLAT_HASH] = { "expected an expression after `**` in a hash", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_EXPRESSION_AFTER_STAR]       = { "expected an expression after `*`", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_EXPECT_FOR_DELIMITER]               = { "unexpected %s; expected a 'do', newline, or ';' after the 'for' loop collection", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_IDENT_REQ_PARAMETER]         = { "expected an identifier for the required parameter", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_IN_DELIMITER]                = { "expected a delimiter after the patterns of an `in` clause", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_LPAREN_REQ_PARAMETER]        = { "expected a `(` to start a required parameter", PM_ERROR_LEVEL_SYNTAX },
@@ -198,6 +198,7 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_EXPECT_RPAREN]                      = { "expected a matching `)`", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_RPAREN_AFTER_MULTI]          = { "expected a `)` after multiple assignment", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_RPAREN_REQ_PARAMETER]        = { "expected a `)` to end a required parameter", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_EXPECT_SINGLETON_CLASS_DELIMITER]   = { "unexpected %s; expected a newline or a ';' after the singleton class", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_STRING_CONTENT]              = { "expected string content after opening string delimiter", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPECT_WHEN_DELIMITER]              = { "expected a delimiter after the predicates of a `when` clause", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_EXPRESSION_BARE_HASH]               = { "unexpected bare hash in expression", PM_ERROR_LEVEL_SYNTAX },
@@ -275,8 +276,10 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_MODULE_TERM]                        = { "expected an `end` to close the `module` statement", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_MULTI_ASSIGN_MULTI_SPLATS]          = { "multiple splats in multiple assignment", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_MULTI_ASSIGN_UNEXPECTED_REST]       = { "unexpected '%.*s' resulting in multiple splats in multiple assignment", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_NOT_EXPRESSION]                     = { "expected an expression after `not`", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_NESTING_TOO_DEEP]                   = { "nesting too deep", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_NO_LOCAL_VARIABLE]                  = { "%.*s: no such local variable", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_NON_ASSOCIATIVE_OPERATOR]           = { "unexpected %s; %s is a non-associative operator", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_NOT_EXPRESSION]                     = { "expected an expression after `not`", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_NUMBER_LITERAL_UNDERSCORE]          = { "number literal ending with a `_`", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_NUMBERED_PARAMETER_INNER_BLOCK]     = { "numbered parameter is already used in inner block", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_NUMBERED_PARAMETER_IT]              = { "numbered parameters are not allowed when 'it' is already used", PM_ERROR_LEVEL_SYNTAX },
@@ -354,12 +357,13 @@ static const pm_diagnostic_data_t diagnostic_messages[PM_DIAGNOSTIC_ID_MAX] = {
     [PM_ERR_TERNARY_COLON]                      = { "expected a `:` after the true expression of a ternary operator", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_TERNARY_EXPRESSION_FALSE]           = { "expected an expression after `:` in the ternary operator", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_TERNARY_EXPRESSION_TRUE]            = { "expected an expression after `?` in the ternary operator", PM_ERROR_LEVEL_SYNTAX },
-    [PM_ERR_UNDEF_ARGUMENT]                     = { "invalid argument being passed to `undef`; expected a bare word, constant, or symbol argument", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNARY_RECEIVER]                     = { "unexpected %s, expected a receiver for unary `%c`", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNARY_DISALLOWED]                   = { "unexpected %s; unary calls are not allowed in this context", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_UNDEF_ARGUMENT]                     = { "invalid argument being passed to `undef`; expected a bare word, constant, or symbol argument", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_BLOCK_ARGUMENT]          = { "block argument should not be given", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_INDEX_BLOCK]             = { "unexpected block arg given in index assignment; blocks are not allowed in index assignment expressions", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_INDEX_KEYWORDS]          = { "unexpected keyword arg given in index assignment; keywords are not allowed in index assignment expressions", PM_ERROR_LEVEL_SYNTAX },
+    [PM_ERR_UNEXPECTED_LABEL]                   = { "unexpected label", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_MULTI_WRITE]             = { "unexpected multiple assignment; multiple assignment is not allowed in this context", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_RANGE_OPERATOR]          = { "unexpected range operator; .. and ... are non-associative and cannot be chained", PM_ERROR_LEVEL_SYNTAX },
     [PM_ERR_UNEXPECTED_SAFE_NAVIGATION]         = { "&. inside multiple assignment destination", PM_ERROR_LEVEL_SYNTAX },
@@ -428,7 +432,6 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_ARGUMENT_FORMAL_GLOBAL: return "argument_formal_global";
         case PM_ERR_ARGUMENT_FORMAL_IVAR: return "argument_formal_ivar";
         case PM_ERR_ARGUMENT_FORWARDING_UNBOUND: return "argument_forwarding_unbound";
-        case PM_ERR_ARGUMENT_IN: return "argument_in";
         case PM_ERR_ARGUMENT_NO_FORWARDING_AMPERSAND: return "argument_no_forwarding_ampersand";
         case PM_ERR_ARGUMENT_NO_FORWARDING_ELLIPSES: return "argument_no_forwarding_ellipses";
         case PM_ERR_ARGUMENT_NO_FORWARDING_STAR: return "argument_no_forwarding_star";
@@ -512,6 +515,7 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_EXPECT_EXPRESSION_AFTER_SPLAT: return "expect_expression_after_splat";
         case PM_ERR_EXPECT_EXPRESSION_AFTER_SPLAT_HASH: return "expect_expression_after_splat_hash";
         case PM_ERR_EXPECT_EXPRESSION_AFTER_STAR: return "expect_expression_after_star";
+        case PM_ERR_EXPECT_FOR_DELIMITER: return "expect_for_delimiter";
         case PM_ERR_EXPECT_IDENT_REQ_PARAMETER: return "expect_ident_req_parameter";
         case PM_ERR_EXPECT_IN_DELIMITER: return "expect_in_delimiter";
         case PM_ERR_EXPECT_LPAREN_REQ_PARAMETER: return "expect_lparen_req_parameter";
@@ -520,6 +524,7 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_EXPECT_RPAREN: return "expect_rparen";
         case PM_ERR_EXPECT_RPAREN_AFTER_MULTI: return "expect_rparen_after_multi";
         case PM_ERR_EXPECT_RPAREN_REQ_PARAMETER: return "expect_rparen_req_parameter";
+        case PM_ERR_EXPECT_SINGLETON_CLASS_DELIMITER: return "expect_singleton_class_delimiter";
         case PM_ERR_EXPECT_STRING_CONTENT: return "expect_string_content";
         case PM_ERR_EXPECT_WHEN_DELIMITER: return "expect_when_delimiter";
         case PM_ERR_EXPRESSION_BARE_HASH: return "expression_bare_hash";
@@ -598,7 +603,9 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_MODULE_TERM: return "module_term";
         case PM_ERR_MULTI_ASSIGN_MULTI_SPLATS: return "multi_assign_multi_splats";
         case PM_ERR_MULTI_ASSIGN_UNEXPECTED_REST: return "multi_assign_unexpected_rest";
+        case PM_ERR_NESTING_TOO_DEEP: return "nesting_too_deep";
         case PM_ERR_NO_LOCAL_VARIABLE: return "no_local_variable";
+        case PM_ERR_NON_ASSOCIATIVE_OPERATOR: return "non_associative_operator";
         case PM_ERR_NOT_EXPRESSION: return "not_expression";
         case PM_ERR_NUMBER_LITERAL_UNDERSCORE: return "number_literal_underscore";
         case PM_ERR_NUMBERED_PARAMETER_INNER_BLOCK: return "numbered_parameter_inner_block";
@@ -684,6 +691,7 @@ pm_diagnostic_id_human(pm_diagnostic_id_t diag_id) {
         case PM_ERR_UNEXPECTED_BLOCK_ARGUMENT: return "unexpected_block_argument";
         case PM_ERR_UNEXPECTED_INDEX_BLOCK: return "unexpected_index_block";
         case PM_ERR_UNEXPECTED_INDEX_KEYWORDS: return "unexpected_index_keywords";
+        case PM_ERR_UNEXPECTED_LABEL: return "unexpected_label";
         case PM_ERR_UNEXPECTED_MULTI_WRITE: return "unexpected_multi_write";
         case PM_ERR_UNEXPECTED_RANGE_OPERATOR: return "unexpected_range_operator";
         case PM_ERR_UNEXPECTED_SAFE_NAVIGATION: return "unexpected_safe_navigation";

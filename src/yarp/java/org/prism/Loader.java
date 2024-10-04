@@ -102,7 +102,7 @@ public class Loader {
         expect((byte) 'M', "incorrect prism header");
 
         expect((byte) 1, "prism major version does not match");
-        expect((byte) 0, "prism minor version does not match");
+        expect((byte) 1, "prism minor version does not match");
         expect((byte) 0, "prism patch version does not match");
 
         expect((byte) 1, "Loader.java requires no location fields in the serialized output");
@@ -126,16 +126,21 @@ public class Loader {
         int constantPoolLength = loadVarUInt();
         this.constantPool = new ConstantPool(this, source.bytes, constantPoolBufferOffset, constantPoolLength);
 
-        Nodes.Node node = loadNode();
+        Nodes.Node node;
+        if (errors.length == 0) {
+            node = loadNode();
 
-        int left = constantPoolBufferOffset - buffer.position();
-        if (left != 0) {
-            throw new Error("Expected to consume all bytes while deserializing but there were " + left + " bytes left");
+            int left = constantPoolBufferOffset - buffer.position();
+            if (left != 0) {
+                throw new Error("Expected to consume all bytes while deserializing but there were " + left + " bytes left");
+            }
+
+            boolean[] newlineMarked = new boolean[1 + source.getLineCount()];
+            MarkNewlinesVisitor visitor = new MarkNewlinesVisitor(source, newlineMarked);
+            node.accept(visitor);
+        } else {
+            node = null;
         }
-
-        boolean[] newlineMarked = new boolean[1 + source.getLineCount()];
-        MarkNewlinesVisitor visitor = new MarkNewlinesVisitor(source, newlineMarked);
-        node.accept(visitor);
 
         return new ParseResult(node, magicComments, dataLocation, errors, warnings, source);
     }
@@ -211,7 +216,7 @@ public class Loader {
 
         // warning messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
-            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 284];
+            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 288];
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
@@ -401,11 +406,11 @@ public class Loader {
             case 22:
                 return new Nodes.CallTargetNode(startOffset, length, loadFlags(), loadNode(), loadConstant());
             case 23:
-                return new Nodes.CapturePatternNode(startOffset, length, loadNode(), loadNode());
+                return new Nodes.CapturePatternNode(startOffset, length, loadNode(), (Nodes.LocalVariableTargetNode) loadNode());
             case 24:
-                return new Nodes.CaseMatchNode(startOffset, length, loadOptionalNode(), loadNodes(), (Nodes.ElseNode) loadOptionalNode());
+                return new Nodes.CaseMatchNode(startOffset, length, loadOptionalNode(), loadInNodes(), (Nodes.ElseNode) loadOptionalNode());
             case 25:
-                return new Nodes.CaseNode(startOffset, length, loadOptionalNode(), loadNodes(), (Nodes.ElseNode) loadOptionalNode());
+                return new Nodes.CaseNode(startOffset, length, loadOptionalNode(), loadWhenNodes(), (Nodes.ElseNode) loadOptionalNode());
             case 26:
                 return new Nodes.ClassNode(startOffset, length, loadConstants(), loadNode(), loadOptionalNode(), loadOptionalNode(), loadConstant());
             case 27:
@@ -459,7 +464,7 @@ public class Loader {
             case 51:
                 return new Nodes.FalseNode(startOffset, length);
             case 52:
-                return new Nodes.FindPatternNode(startOffset, length, loadOptionalNode(), loadNode(), loadNodes(), loadNode());
+                return new Nodes.FindPatternNode(startOffset, length, loadOptionalNode(), (Nodes.SplatNode) loadNode(), loadNodes(), (Nodes.SplatNode) loadNode());
             case 53:
                 return new Nodes.FlipFlopNode(startOffset, length, loadFlags(), loadOptionalNode(), loadOptionalNode());
             case 54:
@@ -499,13 +504,13 @@ public class Loader {
             case 71:
                 return new Nodes.InNode(startOffset, length, loadNode(), (Nodes.StatementsNode) loadOptionalNode());
             case 72:
-                return new Nodes.IndexAndWriteNode(startOffset, length, loadFlags(), loadOptionalNode(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalNode(), loadNode());
+                return new Nodes.IndexAndWriteNode(startOffset, length, loadFlags(), loadOptionalNode(), (Nodes.ArgumentsNode) loadOptionalNode(), (Nodes.BlockArgumentNode) loadOptionalNode(), loadNode());
             case 73:
-                return new Nodes.IndexOperatorWriteNode(startOffset, length, loadFlags(), loadOptionalNode(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalNode(), loadConstant(), loadNode());
+                return new Nodes.IndexOperatorWriteNode(startOffset, length, loadFlags(), loadOptionalNode(), (Nodes.ArgumentsNode) loadOptionalNode(), (Nodes.BlockArgumentNode) loadOptionalNode(), loadConstant(), loadNode());
             case 74:
-                return new Nodes.IndexOrWriteNode(startOffset, length, loadFlags(), loadOptionalNode(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalNode(), loadNode());
+                return new Nodes.IndexOrWriteNode(startOffset, length, loadFlags(), loadOptionalNode(), (Nodes.ArgumentsNode) loadOptionalNode(), (Nodes.BlockArgumentNode) loadOptionalNode(), loadNode());
             case 75:
-                return new Nodes.IndexTargetNode(startOffset, length, loadFlags(), loadNode(), (Nodes.ArgumentsNode) loadOptionalNode(), loadOptionalNode());
+                return new Nodes.IndexTargetNode(startOffset, length, loadFlags(), loadNode(), (Nodes.ArgumentsNode) loadOptionalNode(), (Nodes.BlockArgumentNode) loadOptionalNode());
             case 76:
                 return new Nodes.InstanceVariableAndWriteNode(startOffset, length, loadConstant(), loadNode());
             case 77:
@@ -687,6 +692,34 @@ public class Loader {
         Nodes.BlockLocalVariableNode[] nodes = new Nodes.BlockLocalVariableNode[length];
         for (int i = 0; i < length; i++) {
             nodes[i] = (Nodes.BlockLocalVariableNode) loadNode();
+        }
+        return nodes;
+    }
+
+    private static final Nodes.InNode[] EMPTY_InNode_ARRAY = {};
+
+    private Nodes.InNode[] loadInNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_InNode_ARRAY;
+        }
+        Nodes.InNode[] nodes = new Nodes.InNode[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = (Nodes.InNode) loadNode();
+        }
+        return nodes;
+    }
+
+    private static final Nodes.WhenNode[] EMPTY_WhenNode_ARRAY = {};
+
+    private Nodes.WhenNode[] loadWhenNodes() {
+        int length = loadVarUInt();
+        if (length == 0) {
+            return EMPTY_WhenNode_ARRAY;
+        }
+        Nodes.WhenNode[] nodes = new Nodes.WhenNode[length];
+        for (int i = 0; i < length; i++) {
+            nodes[i] = (Nodes.WhenNode) loadNode();
         }
         return nodes;
     }

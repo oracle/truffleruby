@@ -7,6 +7,7 @@
 #define PRISM_OPTIONS_H
 
 #include "prism/defines.h"
+#include "prism/util/pm_char.h"
 #include "prism/util/pm_string.h"
 
 #include <stdbool.h>
@@ -139,6 +140,23 @@ typedef struct pm_options {
      * but ignore any encoding magic comments at the top of the file.
      */
     bool encoding_locked;
+
+    /**
+     * When the file being parsed is the main script, the shebang will be
+     * considered for command-line flags (or for implicit -x). The caller needs
+     * to pass this information to the parser so that it can behave correctly.
+     */
+    bool main_script;
+
+    /**
+     * When the file being parsed is considered a "partial" script, jumps will
+     * not be marked as errors if they are not contained within loops/blocks.
+     * This is used in the case that you're parsing a script that you know will
+     * be embedded inside another script later, but you do not have that context
+     * yet. For example, when parsing an ERB template that will be evaluated
+     * inside another script.
+     */
+    bool partial_script;
 } pm_options_t;
 
 /**
@@ -249,6 +267,22 @@ PRISM_EXPORTED_FUNCTION void pm_options_command_line_set(pm_options_t *options, 
 PRISM_EXPORTED_FUNCTION bool pm_options_version_set(pm_options_t *options, const char *version, size_t length);
 
 /**
+ * Set the main script option on the given options struct.
+ *
+ * @param options The options struct to set the main script value on.
+ * @param main_script The main script value to set.
+ */
+PRISM_EXPORTED_FUNCTION void pm_options_main_script_set(pm_options_t *options, bool main_script);
+
+/**
+ * Set the partial script option on the given options struct.
+ *
+ * @param options The options struct to set the partial script value on.
+ * @param partial_script The partial script value to set.
+ */
+PRISM_EXPORTED_FUNCTION void pm_options_partial_script_set(pm_options_t *options, bool partial_script);
+
+/**
  * Allocate and zero out the scopes array on the given options struct.
  *
  * @param options The options struct to initialize the scopes array on.
@@ -315,6 +349,9 @@ PRISM_EXPORTED_FUNCTION void pm_options_free(pm_options_t *options);
  * | `1`     | -l command line option     |
  * | `1`     | -a command line option     |
  * | `1`     | the version                |
+ * | `1`     | encoding locked            |
+ * | `1`     | main script                |
+ * | `1`     | partial script             |
  * | `4`     | the number of scopes       |
  * | ...     | the scopes                 |
  *
@@ -347,8 +384,8 @@ PRISM_EXPORTED_FUNCTION void pm_options_free(pm_options_t *options);
  * * The encoding can have a length of 0, in which case we'll use the default
  *   encoding (UTF-8). If it's not 0, it should correspond to a name of an
  *   encoding that can be passed to `Encoding.find` in Ruby.
- * * The frozen string literal and suppress warnings fields are booleans, so
- *   their values should be either 0 or 1.
+ * * The frozen string literal, encoding locked, main script, and partial script
+ *   fields are booleans, so their values should be either 0 or 1.
  * * The number of scopes can be 0.
  *
  * @param options The options struct to deserialize into.
