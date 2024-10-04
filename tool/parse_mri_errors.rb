@@ -113,7 +113,7 @@ module Patterns
 
   # Sample: [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
   # Extracts: ['TestFileExhaustive', 'test_expand_path_hfs', 'missing symbol called']
-  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#(\w+?)dyld\[\d+\]: (.*)/
+  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#((\w|\?)+?)dyld\[\d+\]: (.*)/
 
   # Sample: [ 6/39] TestSocket_UNIXSocket#test_addr = 0.02 s
   # Extracts: ['TestSocket_UNIXSocket', 'test_addr', '0.02']
