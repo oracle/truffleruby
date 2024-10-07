@@ -1,4 +1,4 @@
-exclude :test_accessing_new_index, "accesses a public web site at runtime"
-exclude :test_accessing_rubygems, "accesses a public web site at runtime"
-exclude :test_accessing_staging, "accesses a public web site at runtime"
-exclude :test_accessing_www_rubygems, "accesses a public web site at runtime"
+exclude :test_accessing_new_index, "very slow: 60.32s on truffleruby 24.2.0-dev-76574fc8*, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
+exclude :test_accessing_rubygems, "very slow: 60.06s on truffleruby 24.2.0-dev-76574fc8*, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
+exclude :test_accessing_staging, "very slow: 60.06s on truffleruby 24.2.0-dev-76574fc8*, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
+exclude :test_accessing_www_rubygems, "very slow: 60.07s on truffleruby 24.2.0-dev-76574fc8*, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
