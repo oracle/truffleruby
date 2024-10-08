@@ -20,7 +20,6 @@ import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 
 /** A literal call site in Ruby code: one of foo(), super or yield. */
 public abstract class LiteralCallNode extends RubyContextSourceNode {
@@ -58,7 +57,7 @@ public abstract class LiteralCallNode extends RubyContextSourceNode {
                 RubyHash hash = (RubyHash) lastArgument;
                 if (hash.ruby2_keywords) { // both branches profiled
                     copyRuby2KeywordsHashBoundary(args, hash);
-                    return KeywordArgumentsDescriptorManager.EMPTY;
+                    return KeywordArgumentsDescriptor.EMPTY;
                 } else {
                     if (!notRuby2KeywordsHashProfile) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();

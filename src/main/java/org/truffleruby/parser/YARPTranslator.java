@@ -61,7 +61,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubyTopLevelRootNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -809,7 +809,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         Nodes.Node last = ArrayUtils.getLast(arguments);
         // if `...` then we know there are no literal keyword arguments, only **kwrest
         if (last instanceof Nodes.ForwardingArgumentsNode) {
-            return KeywordArgumentsDescriptorManager.EMPTY;
+            return KeywordArgumentsDescriptor.EMPTY;
         }
         // if there are no keywords the descriptor is NoKeywordArgumentsDescriptor.INSTANCE
         if (!(last instanceof Nodes.KeywordHashNode keywords)) {
@@ -1826,7 +1826,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         final RubyNode[] reloadSequence = reloadTranslator.reload(parametersNode);
 
         var descriptor = (parametersNode.keywords.length > 0 || parametersNode.keyword_rest != null)
-                ? KeywordArgumentsDescriptorManager.EMPTY
+                ? KeywordArgumentsDescriptor.EMPTY
                 : NoKeywordArgumentsDescriptor.INSTANCE;
         final int restParamIndex = reloadTranslator.getRestParameterIndex();
         final RubyNode arguments = new ReadZSuperArgumentsNode(restParamIndex, reloadSequence);

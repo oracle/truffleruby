@@ -16,13 +16,10 @@ import java.util.Arrays;
 
 public final class KeywordArgumentsDescriptorManager {
 
-    public static final KeywordArgumentsDescriptor EMPTY = new KeywordArgumentsDescriptor(
-            StringUtils.EMPTY_STRING_ARRAY);
-
     private final WeakValueCache<Key, KeywordArgumentsDescriptor> CANONICAL_KEYWORD_DESCRIPTORS = new WeakValueCache<>();
 
     public KeywordArgumentsDescriptorManager() {
-        CANONICAL_KEYWORD_DESCRIPTORS.put(new Key(StringUtils.EMPTY_STRING_ARRAY), EMPTY);
+        CANONICAL_KEYWORD_DESCRIPTORS.put(new Key(StringUtils.EMPTY_STRING_ARRAY), KeywordArgumentsDescriptor.EMPTY);
     }
 
     public KeywordArgumentsDescriptor getArgumentsDescriptor(String[] keywords) {
