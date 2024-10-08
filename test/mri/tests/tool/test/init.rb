@@ -6,13 +6,17 @@ ENV.delete("RUBY_CODESIGN")
 
 Warning[:experimental] = false
 
-$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+if defined? ::TruffleRuby
+  $LOAD_PATH.unshift File.expand_path("../../lib", __dir__)
+else
+  $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+end
 
 require 'test/unit'
 
 require "profile_test_all" if ENV.key?('RUBY_TEST_ALL_PROFILE')
-require "tracepointchecker"
+require "tracepointchecker" unless defined?(::TruffleRuby)
 require "zombie_hunter"
-require "iseq_loader_checker"
+require "iseq_loader_checker" unless defined?(::TruffleRuby)
 require "gc_checker"
 require_relative "../test-coverage.rb" if ENV.key?('COVERAGE')
