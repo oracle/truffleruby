@@ -809,8 +809,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         Nodes.Node last = ArrayUtils.getLast(arguments);
         // if `...` then we know there are no literal keyword arguments, only **kwrest
         if (last instanceof Nodes.ForwardingArgumentsNode) {
-            return language.keywordArgumentsDescriptorManager
-                    .getArgumentsDescriptor(StringUtils.EMPTY_STRING_ARRAY);
+            return KeywordArgumentsDescriptorManager.EMPTY;
         }
         // if there are no keywords the descriptor is NoKeywordArgumentsDescriptor.INSTANCE
         if (!(last instanceof Nodes.KeywordHashNode keywords)) {
