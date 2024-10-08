@@ -606,6 +606,10 @@ module Process
     alias_method :waitpid2, :wait2
   end
 
+  def warmup
+    true
+  end
+
   def daemon(*args)
     raise NotImplementedError, 'Process.daemon is not available'
   end
