@@ -112,6 +112,4 @@ fails:Public methods on Range should include reverse_each
 fails:Public methods on SizedQueue should include freeze
 fails:Public methods on String should include dup
 fails:Public methods on UnboundMethod should include dup
-fails:Public methods on Pathname should not include taint
-fails:Public methods on Pathname should not include untaint
 fails:Public methods on StringIO should include pread
