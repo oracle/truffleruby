@@ -27,8 +27,8 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SpecialVariablesSendingNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
+import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -149,7 +149,7 @@ public abstract class DispatchNode extends SpecialVariablesSendingNode {
         final Object[] rubyArgs = RubyArguments.allocate(2);
         RubyArguments.setSelf(rubyArgs, receiver);
         RubyArguments.setBlock(rubyArgs, nil);
-        RubyArguments.setDescriptor(rubyArgs, KeywordArgumentsDescriptorManager.EMPTY);
+        RubyArguments.setDescriptor(rubyArgs, KeywordArgumentsDescriptor.EMPTY);
         RubyArguments.setArgument(rubyArgs, 0, arg1);
         RubyArguments.setArgument(rubyArgs, 1, keywords);
         return execute(null, receiver, method, rubyArgs, PRIVATE);

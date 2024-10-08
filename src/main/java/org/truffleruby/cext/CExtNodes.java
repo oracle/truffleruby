@@ -95,7 +95,6 @@ import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
 import org.truffleruby.language.arguments.KeywordArgumentsDescriptor;
-import org.truffleruby.language.arguments.KeywordArgumentsDescriptorManager;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -396,7 +395,7 @@ public abstract class CExtNodes {
                         dispatchNode, PRIVATE, ownedProfile);
             } else {
                 return sendWithoutCExtLock(frame, receiver, method, block,
-                        KeywordArgumentsDescriptorManager.EMPTY, args,
+                        KeywordArgumentsDescriptor.EMPTY, args,
                         dispatchNode, PRIVATE, ownedProfile);
             }
         }
@@ -434,7 +433,7 @@ public abstract class CExtNodes {
                         dispatchNode, PUBLIC, ownedProfile);
             } else {
                 return sendWithoutCExtLock(frame, receiver, method, block,
-                        KeywordArgumentsDescriptorManager.EMPTY, args,
+                        KeywordArgumentsDescriptor.EMPTY, args,
                         dispatchNode, PUBLIC, ownedProfile);
             }
         }

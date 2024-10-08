@@ -1,5 +1,5 @@
 subject: "||="
-description: "Assign an element referenced with splatted argument (a[*b] &&= c)"
+description: "Assign an element referenced with splatted argument (a[*b] ||= c)"
 notes: >
   Splatting should be specified explicitly for `[]` and `[]=` method calls.
   

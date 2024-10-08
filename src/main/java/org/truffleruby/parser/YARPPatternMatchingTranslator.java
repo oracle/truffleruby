@@ -219,7 +219,7 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 }
             }
 
-            Nodes.SplatNode leftSplat = (Nodes.SplatNode) node.left;
+            Nodes.SplatNode leftSplat = node.left;
             int leftSlot = environment.declareLocalTemp("pattern_find_left");
             var readLeftSlot = environment.readNode(leftSlot, node);
             var writeLeftSlot = readLeftSlot.makeWriteNode(null);
@@ -233,7 +233,7 @@ public final class YARPPatternMatchingTranslator extends YARPBaseTranslator {
                 currentValueToMatch = prev;
             }
 
-            Nodes.SplatNode rightSplat = (Nodes.SplatNode) node.right;
+            Nodes.SplatNode rightSplat = node.right;
             int rightSlot = environment.declareLocalTemp("pattern_find_right");
             var readRightSlot = environment.readNode(rightSlot, node);
             var writeRightSlot = readRightSlot.makeWriteNode(null);

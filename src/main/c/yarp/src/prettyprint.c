@@ -231,6 +231,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_concat(output_buffer, prefix_buffer);
                 pm_buffer_append_string(output_buffer, "+-- ArgumentsNodeFlags:", 23);
                 bool found = false;
+                if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_FORWARDING) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " contains_forwarding", 20);
+                    found = true;
+                }
                 if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_KEYWORDS) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " contains_keywords", 18);
@@ -244,6 +249,11 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_SPLAT) {
                     if (found) pm_buffer_append_byte(output_buffer, ',');
                     pm_buffer_append_string(output_buffer, " contains_splat", 15);
+                    found = true;
+                }
+                if (cast->base.flags & PM_ARGUMENTS_NODE_FLAGS_CONTAINS_MULTIPLE_SPLATS) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " contains_multiple_splats", 25);
                     found = true;
                 }
                 if (!found) pm_buffer_append_string(output_buffer, " nil", 4);

@@ -18,6 +18,9 @@ import org.truffleruby.core.string.StringUtils;
  * arguments were passed. The callee must handle that for now. */
 public final class KeywordArgumentsDescriptor extends ArgumentsDescriptor {
 
+    public static final KeywordArgumentsDescriptor EMPTY = new KeywordArgumentsDescriptor(
+            StringUtils.EMPTY_STRING_ARRAY);
+
     @CompilationFinal(dimensions = 1) private final String[] keywords;
 
     /** Use {@link KeywordArgumentsDescriptorManager} to get an instance. */
