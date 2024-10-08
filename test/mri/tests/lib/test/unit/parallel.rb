@@ -1,13 +1,7 @@
 # frozen_string_literal: true
 
-if defined?(::TruffleRuby)
-  # the settings were moved into a single file https://github.com/ruby/ruby/blob/v3_3_5/tool/test/init.rb
-  # that isn't imported
-  require_relative '../../profile_test_all' if ENV.key?('RUBY_TEST_ALL_PROFILE')
-  require_relative '../../tracepointchecker' unless defined?(::TruffleRuby)
-  require_relative '../../zombie_hunter'
-  require_relative '../../iseq_loader_checker' unless defined?(::TruffleRuby)
-  require_relative '../../gc_checker'
+if defined? ::TruffleRuby
+  require_relative "../../../tool/test/init"
 else
   require_relative "../../../test/init"
 end
