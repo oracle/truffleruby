@@ -805,16 +805,14 @@ public class YARPTranslator extends YARPBaseTranslator {
             return NoKeywordArgumentsDescriptor.INSTANCE;
         }
 
-        // Fast path.
-        // Keyword arguments definitely present in method call arguments if the last argument is
-        // either a Hash or `...`.
+        // fast path to compute the descriptor without looking at all arguments
         Nodes.Node last = ArrayUtils.getLast(arguments);
-
+        // if `...` then we know there are no literal keyword arguments, only **kwrest
         if (last instanceof Nodes.ForwardingArgumentsNode) {
             return language.keywordArgumentsDescriptorManager
                     .getArgumentsDescriptor(StringUtils.EMPTY_STRING_ARRAY);
         }
-
+        // if there are no keywords the descriptor is NoKeywordArgumentsDescriptor.INSTANCE
         if (!(last instanceof Nodes.KeywordHashNode keywords)) {
             return NoKeywordArgumentsDescriptor.INSTANCE;
         }
