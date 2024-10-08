@@ -113,9 +113,15 @@ find test/mri/tests/cext-ruby -name '*.backup' -delete
 rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
 
-# Copy from tool/lib to test/lib
+# Copy from tool/lib to tests/lib
 cp -R ../ruby/tool/lib/* test/mri/tests/lib
 rm -f test/mri/tests/lib/leakchecker.rb
+
+# Copy from tool/test to tests/tool
+rm -rf test/mri/tests/tool
+mkdir -p test/mri/tests/tool/test
+cp -R ../ruby/tool/test/runner.rb test/mri/tests/tool/test
+cp -R ../ruby/tool/test/init.rb test/mri/tests/tool/test
 
 # basictest/ and bootstraptest/
 rm -rf test/basictest
