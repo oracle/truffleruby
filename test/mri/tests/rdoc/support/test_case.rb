@@ -13,11 +13,7 @@ require 'tempfile'
 require 'tmpdir'
 require 'stringio'
 
-if defined?(::TruffleRuby)
-  require_relative '../../../../../lib/mri/rdoc'
-else
-  require_relative '../../../lib/rdoc'
-end
+require_relative '../../../../../lib/mri/rdoc'
 
 ##
 # RDoc::TestCase is an abstract TestCase to provide common setup and teardown
