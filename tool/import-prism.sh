@@ -3,21 +3,51 @@
 set -x
 set -e
 
-YARP=../../prism
+PRISM=../../prism
+
+function create_generated_files() {
+  pushd $PRISM
+  bundle
+  bundle exec rake clobber
+  bundle exec rake templates
+  popd
+}
+
+# Copy C files and Makefile
+function copy_c_files_and_makefile() {
+  to="$1"
+  rm -rf "$to"
+  mkdir "$to"
+  cp -R $PRISM/{include,src} "$to"
+  cp $PRISM/{LICENSE.md,Makefile} "$to"
+}
+
+# 1. Copy Prism files for the TruffleRuby parser
 
 export PRISM_SERIALIZE_ONLY_SEMANTICS_FIELDS=1
+create_generated_files
+copy_c_files_and_makefile src/main/c/yarp
 
-# Create generated files
-pushd $YARP
-bundle
-bundle exec rake clobber
-bundle exec rake templates
+# Copy .java files
+rm -rf src/yarp/java
+cp -R $PRISM/java src/yarp/java
+
+# 2. Copy Prism files for the default gem
+
+unset PRISM_SERIALIZE_ONLY_SEMANTICS_FIELDS
+create_generated_files
+copy_c_files_and_makefile src/main/c/prism-gem
+
+# Copy .rb files
+cp -R $PRISM/lib/* lib/mri
+
+# Create and copy default gem gemspec
+pushd $PRISM
+gem build prism.gemspec -o prism.gem
+gem spec prism.gem --ruby > prism.generated.gemspec
+VERSION=$(ruby -e 'puts File.read("prism.generated.gemspec")[/stub: prism ([\d\.]+)/, 1]')
 popd
 
-rm -rf src/main/c/yarp
-mkdir src/main/c/yarp
-cp -R $YARP/{include,src} src/main/c/yarp
-cp $YARP/{LICENSE.md,Makefile} src/main/c/yarp
-
-rm -rf src/yarp/java
-cp -R $YARP/java src/yarp/java
+cp $PRISM/prism.generated.gemspec "lib/gems/specifications/default/prism-$VERSION.gemspec"
+rm $PRISM/prism.generated.gemspec
+rm $PRISM/prism.gem

@@ -225,7 +225,15 @@ suite = {
             "dir": "src/main/c/yarp",
             # "makeTarget": "all-no-debug", # Can use this to build without asserts
             "results": ["build/libprism.a"],
-            "description": "YARP used as a static library"
+            "description": "YARP used as a static library with only semantics fields"
+        },
+
+        "org.prism.libprism.for.gem": {
+            "class": "YARPNativeProject",
+            "dir": "src/main/c/prism-gem",
+            # "makeTarget": "all-no-debug", # Can use this to build without asserts
+            "results": ["build/<lib:prism>"],
+            "description": "YARP used as a dynamic library with all fields"
         },
 
         "org.truffleruby.yarp.bindings": {
@@ -722,6 +730,9 @@ suite = {
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
                 ],
+                "lib/prism/": [
+                    "file:src/main/c/prism-gem/include",
+                ],
             },
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -740,6 +751,9 @@ suite = {
             "layout": {
                 "lib/": [
                     "dependency:org.truffleruby.yarp.bindings",
+                ],
+                "lib/prism/": [
+                    "dependency:org.prism.libprism.for.gem/build/<lib:prism>",
                 ],
                 "lib/cext/": [
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
