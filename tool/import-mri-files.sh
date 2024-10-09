@@ -95,11 +95,6 @@ mkdir src/main/c/ripper/internal
 cp ../ruby/internal/ruby_parser.h src/main/c/ripper/internal
 cp ../ruby/internal/parse.h src/main/c/ripper/internal
 
-# Prism
-# Copy all the generated files (e.g. nodes.rb) that are missing in the CRuby source code
-cp -R "$RUBY_BUILD_DIR"/lib/prism/* lib/mri/prism
-rm lib/mri/prism/prism.gemspec
-
 # test/
 rm -rf test/mri/tests
 cp -R ../ruby/test test/mri/tests
