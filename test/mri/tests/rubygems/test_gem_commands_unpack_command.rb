@@ -16,7 +16,7 @@ class TestGemCommandsUnpackCommand < Gem::TestCase
     util_make_gems
 
     assert_equal(
-      @cmd.find_in_cache(File.basename @a1.cache_file),
+      @cmd.find_in_cache(File.basename(@a1.cache_file)),
       @a1.cache_file,
       "found a-1.gem in the cache"
     )
@@ -152,11 +152,11 @@ class TestGemCommandsUnpackCommand < Gem::TestCase
   end
 
   def test_execute_sudo
-    pend "Cannot perform this test on windows (chmod)" if win_platform?
+    pend "Cannot perform this test on windows (chmod)" if Gem.win_platform?
 
     util_make_gems
 
-    FileUtils.chmod 0555, @gemhome
+    FileUtils.chmod 0o555, @gemhome
 
     @cmd.options[:args] = %w[b]
 
@@ -168,7 +168,7 @@ class TestGemCommandsUnpackCommand < Gem::TestCase
 
     assert File.exist?(File.join(@tempdir, "b-2")), "b should be unpacked"
   ensure
-    FileUtils.chmod 0755, @gemhome
+    FileUtils.chmod 0o755, @gemhome
   end
 
   def test_execute_with_target_option

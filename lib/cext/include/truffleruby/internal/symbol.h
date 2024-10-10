@@ -112,7 +112,7 @@ sym_type(VALUE sym)
 #define is_class_sym(sym) (sym_type(sym)==ID_CLASS)
 #define is_junk_sym(sym) (sym_type(sym)==ID_JUNK)
 
-RUBY_FUNC_EXPORTED const unsigned int ruby_global_name_punct_bits[(0x7e - 0x20 + 31) / 32];
+RUBY_FUNC_EXPORTED const uint_least32_t ruby_global_name_punct_bits[(0x7e - 0x20 + 31) / 32];
 
 #ifdef TRUFFLERUBY
 // We need to define ruby_global_name_punct_bits to link it correctly
@@ -143,10 +143,9 @@ is_global_name_punct(const int c)
     return (ruby_global_name_punct_bits[(c - 0x20) / 32] >> (c % 32)) & 1;
 }
 
-int rb_enc_symname_type(const char *name, long len, rb_encoding *enc, unsigned int allowed_attrset);
-
 RUBY_SYMBOL_EXPORT_BEGIN
 
+int rb_enc_symname_type(const char *name, long len, rb_encoding *enc, unsigned int allowed_attrset);
 size_t rb_sym_immortal_count(void);
 
 RUBY_SYMBOL_EXPORT_END

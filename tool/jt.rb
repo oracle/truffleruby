@@ -1379,7 +1379,7 @@ module Commands
 
     test_files.each do |test_file|
       puts '', test_file
-      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
+      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+Test/).map(&:first) # see test/mri/tests/mkmf/test_config.rb, test/mri/tests/rdoc/test_rdoc_alias.rb...
       raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
       found_excludes = false
       test_classes.each do |test_class|
@@ -1407,7 +1407,8 @@ module Commands
           end
         end
       end
-      unless found_excludes
+
+      if !found_excludes && !ENV['TAG_NEW_TESTS']
         puts "Found no excludes for #{test_classes.join(', ')}"
         next
       end

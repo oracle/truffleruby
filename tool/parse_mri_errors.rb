@@ -72,6 +72,17 @@ def exclude_test!(class_name, test_method, error_display, platform = nil)
 end
 
 module Patterns
+  # NOTE: a pattern for a method name is a bit complicated and isn't as simple as `\w+`.
+  # By convention a method can be terminated with '?' or '!' character. Moreover it's
+  # allowed to terminate with any non-space character/characters, e.g. with '>>', '==' or '[]'.
+  #
+  # Examples:
+  # - TestBignum_BigZero#test_zero?
+  # - TestRDocCrossReference#"test_resolve_method:!" (generated with `define_method`)
+  #
+  # In case a method name contains characters that don't allowed by a parser a method in the output is wrapped with "".
+  # So the pattern should look like `#"?\w+\S*"?`
+
   # Sample:
   #
   # [101/125] TestM17N#test_string_inspect_encoding
@@ -113,7 +124,11 @@ module Patterns
 
   # Sample: [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
   # Extracts: ['TestFileExhaustive', 'test_expand_path_hfs', 'missing symbol called']
-  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#(\w+?)dyld\[\d+\]: (.*)/
+  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#"?(\w+?[^"\s]*)"?dyld\[\d+\]: (.*)/
+
+  # Sample: [29/39] TestDir#test_instance_chdircannot return the original directory: /Users/andrykonchin/projects/truffleruby-ws/truffleruby
+  # Extracts: ['TestDir', 'test_instance_chdircannot', 'cannot return the original directory']
+  CUSTOM_FATAL_ERROR = / ((?:\w+::)*\w+)#(\w+?\??)(cannot return the original directory)/
 
   # Sample: [ 6/39] TestSocket_UNIXSocket#test_addr = 0.02 s
   # Extracts: ['TestSocket_UNIXSocket', 'test_addr', '0.02']
@@ -170,6 +185,12 @@ def process_fatal_errors!(contents)
   # the test for reprocessing.
   contents.scan(Patterns::DYLD_MISSING_SYMBOL) do |class_name, test_method, dyld_message|
     exclude_test!(class_name, test_method, "dyld: #{dyld_message}", 'darwin')
+
+    exit RETRY_EXIT_STATUS
+  end
+
+  contents.scan(Patterns::CUSTOM_FATAL_ERROR) do |class_name, test_method|
+    exclude_test!(class_name, test_method, "cannot return the original directory")
 
     exit RETRY_EXIT_STATUS
   end
@@ -244,6 +265,10 @@ def process_test_failures!(contents)
 end
 
 def process_slow_tests!(contents)
+  if !contents.include?('ruby -v:')
+    raise "Tests output doesn't contain a line with Ruby version (that looks like 'ruby -v: ...'). Please include it to proceed further."
+  end
+
   test_ruby_version = contents.match(/ruby -v: (.*)/)[1].strip
 
   contents.scan(Patterns::TEST_EXECUTION_TIME) do |class_name, test_method, execution_time|

@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.8.2.  */
+/* A Bison parser, made by Lrama 0.5.12.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -34,16 +34,16 @@
 /* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
-
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+#ifndef YY_YY_PARSE_H_INCLUDED
+# define YY_YY_PARSE_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
 #endif
-#if YYDEBUG
+#if YYDEBUG && !defined(yydebug)
 extern int yydebug;
 #endif
+
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -190,9 +190,19 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
+#line 1962 "parse.y"
 
     VALUE val;
     NODE *node;
+    rb_node_fcall_t *node_fcall;
+    rb_node_args_t *node_args;
+    rb_node_args_aux_t *node_args_aux;
+    rb_node_opt_arg_t *node_opt_arg;
+    rb_node_kw_arg_t *node_kw_arg;
+    rb_node_block_pass_t *node_block_pass;
+    rb_node_masgn_t *node_masgn;
+    rb_node_def_temp_t *node_def_temp;
+    rb_node_exits_t *node_exits;
     ID id;
     int num;
     st_table *tbl;
@@ -200,6 +210,7 @@ union YYSTYPE
     struct rb_strterm_struct *strterm;
     struct lex_context ctxt;
 
+#line 214 "parse.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -227,4 +238,6 @@ struct YYLTYPE
 int yyparse (struct parser_params *p);
 
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+
+#endif /* !YY_YY_PARSE_H_INCLUDED  */
+

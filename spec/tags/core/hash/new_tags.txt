@@ -1,0 +1,1 @@
+fails:Hash.new emits a deprecation warning if keyword arguments are passed

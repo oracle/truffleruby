@@ -6,3 +6,5 @@ fails(cannot store constant with name in binary encoding):Kernel#eval with a mag
 fails:Kernel#eval with a magic encoding comment ignores the frozen_string_literal magic comment if it appears after a token and warns if $VERBOSE is true
 fails:Kernel#eval returns from the method calling #eval when evaluating 'return'
 fails:Kernel#eval returns from the method calling #eval when evaluating 'return' in BEGIN
+fails:Kernel#eval uses (eval at __FILE__:__LINE__) if none is provided
+fails:Kernel#eval uses (eval at __FILE__:__LINE__) for __FILE__ and 1 for __LINE__ with a binding argument

@@ -1,0 +1,21 @@
+module RBS
+  class CLI
+    class Diff
+      @format: String
+      @stdout: _IO
+      @stderr: _IO
+      @diff: RBS::Diff
+
+      def initialize: (
+        argv: Array[String],
+        library_options: RBS::CLI::LibraryOptions,
+        ?stdout: _IO,
+        ?stderr: _IO,
+      ) -> void
+
+      def run: () -> void
+      def run_diff: () -> void
+      def run_markdown: () -> void
+    end
+  end
+end

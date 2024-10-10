@@ -1,0 +1,82 @@
+module RBS
+  module Test
+    # Object#class
+    CLASS: UnboundMethod
+
+    # Module#define_method
+    DEFINE_METHOD: UnboundMethod
+
+    # Kernel#inspect
+    INSPECT: UnboundMethod
+
+    # BasicObject#instance_eval
+    INSTANCE_EVAL: UnboundMethod
+
+    # BasicObject#instance_exec
+    INSTANCE_EXEC: UnboundMethod
+
+    # Kernel#is_a?
+    IS_AP: UnboundMethod
+
+    # Kernel#method
+    METHOD: UnboundMethod
+
+    # Kernel#methods
+    METHODS: UnboundMethod
+
+    # Kernel#pp
+    PP: UnboundMethod
+
+    # Kernel#singleton_class
+    SINGLETON_CLASS: UnboundMethod
+
+    # Kernel#respond_to?
+    RESPOND_TOP: UnboundMethod
+
+    class ArgumentsReturn
+      type exit_type = :return | :exception | :break
+
+      attr_reader arguments: Array[untyped]
+
+      attr_reader exit_value: untyped
+
+      attr_reader exit_type: exit_type
+
+      def initialize: (arguments: Array[untyped], exit_value: untyped, exit_type: exit_type) -> void
+
+      def self.return: (arguments: Array[untyped], value: untyped) -> ArgumentsReturn
+
+      def self.exception: (arguments: Array[untyped], exception: untyped) -> ArgumentsReturn
+
+      def self.break: (arguments: Array[untyped]) -> ArgumentsReturn
+
+      def return_value: () -> untyped
+
+      def exception: () -> untyped
+
+      def return?: () -> bool
+
+      def exception?: () -> bool
+
+      def break?: () -> bool
+    end
+
+    class CallTrace
+      attr_reader method_name: Symbol
+
+      attr_reader method_call: ArgumentsReturn
+
+      attr_reader block_calls: Array[ArgumentsReturn]
+
+      attr_reader block_given: bool
+
+      def initialize: (method_name: Symbol, method_call: ArgumentsReturn, block_calls: Array[ArgumentsReturn], block_given: bool) -> void
+    end
+
+    attr_accessor self.suffix: String
+
+    def self.reset_suffix: () -> String
+
+    def self.call: (untyped receiver, UnboundMethod, *untyped) ?{ () -> void } -> void
+  end
+end

@@ -13,7 +13,6 @@
 #include <internal/fixnum.h>
 #include <internal/imemo.h>
 #include <internal/numeric.h>
-#include <internal/parse.h>
 #include <internal/rational.h>
 #include <internal/re.h>
 #include <internal/static_assert.h>
@@ -21,6 +20,7 @@
 
 // ls lib/cext/include/stubs/internal | ruby -e 'puts STDIN.readlines.map { |l| "#include <internal/#{l.chomp}>" }'
 #include <internal/array.h>
+#include <internal/encoding.h>
 #include <internal/file.h>
 #include <internal/gc.h>
 #include <internal/hash.h>

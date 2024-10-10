@@ -19,8 +19,6 @@ class Gem::Source::Vendor < Gem::Source::Installed
       0
     when Gem::Source then
       1
-    else
-      nil
     end
   end
 end

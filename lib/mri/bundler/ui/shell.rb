@@ -130,7 +130,7 @@ module Bundler
       def tell_err(message, color = nil, newline = nil)
         return if @shell.send(:stderr).closed?
 
-        newline ||= message.to_s !~ /( |\t)\Z/
+        newline ||= !message.to_s.match?(/( |\t)\Z/)
         message = word_wrap(message) if newline.is_a?(Hash) && newline[:wrap]
 
         color = nil if color && !$stderr.tty?
@@ -147,7 +147,7 @@ module Bundler
         spaces ? text.gsub(/#{spaces}/, "") : text
       end
 
-      def word_wrap(text, line_width = @shell.terminal_width)
+      def word_wrap(text, line_width = Thor::Terminal.terminal_width)
         strip_leading_spaces(text).split("\n").collect do |line|
           line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
         end * "\n"

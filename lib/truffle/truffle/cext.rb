@@ -655,9 +655,6 @@ module Truffle::CExt
   def rb_ivar_foreach(object, func, arg)
     keys_and_vals = []
     if Primitive.is_a?(object, Module)
-      keys_and_vals << :__classpath__
-      keys_and_vals << object.name
-
       object.class_variables.each do |key|
         keys_and_vals << key
         keys_and_vals << object.class_variable_get(key)

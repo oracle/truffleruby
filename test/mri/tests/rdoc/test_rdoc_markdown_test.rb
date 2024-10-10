@@ -2,8 +2,8 @@
 require_relative 'helper'
 require 'pp'
 
-require_relative '../../lib/rdoc'
-require_relative '../../lib/rdoc/markdown'
+require_relative '../../../../lib/mri/rdoc'
+require_relative '../../../../lib/mri/rdoc/markdown'
 
 class TestRDocMarkdownTest < RDoc::TestCase
 

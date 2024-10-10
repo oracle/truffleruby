@@ -1,0 +1,136 @@
+module RBS
+  module UnitTest
+    # WithAliases module provides `with_***` methods that helps writing tests which passes convertible objects
+    #
+    # ```ruby
+    # include WithAliases
+    #
+    # with_int do |i|
+    #   # Yields Integer and RBS::UnitTest::Convertibles::ToInt
+    # end
+    #
+    # with_string.and_nil do |s|
+    #   # Yields String, RBS::UnitTest::Convertibles::ToStr, and nil
+    # end
+    # ```
+    #
+    module WithAliases
+      include Convertibles
+
+      class WithEnum[T]
+        @enum: _Each[T]
+
+        include Enumerable[T]
+
+        def initialize: (_Each[T] enum) -> void
+
+        def each: () { (T) -> void } -> void
+
+        # Yield `nil` in addition to original `enum` elements
+        #
+        # ```ruby
+        # e = WithEnum.new([1, 2])
+        # e.and_nil do |i|
+        #   pp i     # => 1, 2, and nil
+        # end
+        # ```
+        #
+        def and_nil: () { (T?) -> void } -> void
+                   | () -> WithEnum[T?]
+
+        # Skip yielding objects in `cases`
+        #
+        # ```ruby
+        # e = WithEnum.new([1, 2, 3])
+        # e.but(2) do |i|
+        #   pp i     # => 1 and 3
+        # end
+        # ```
+        #
+        def but: (*T cases) { (T) -> void } -> void
+               | (*T cases) -> WithEnum[T]
+
+        # Yield objects in `args` in addition to original `enum` elements
+        #
+        # ```ruby
+        # e = WithEnum.new([1, 2])
+        # e.and(3) do |i|
+        #   pp i     # => 1, 2, and 3
+        # end
+        # ```
+        #
+        def and: [S] (*S args) { (T | S) -> void } -> void
+               | [S] (*S args) -> WithEnum[T | S]
+      end
+
+      # Yields `args` objects
+      #
+      def with: (*untyped args) -> void
+              | (*untyped args) { (untyped) -> void } -> void
+
+      # Yields `::int` objects
+      #
+      def with_int: (?Integer value) { (int) -> void } -> void
+                  | (?Integer value) -> WithEnum[int]
+
+      # Yields `::float` objects
+      #
+      def with_float: (?Float value) { (float) -> void } -> void
+                    | (?Float value) -> WithEnum[float]
+
+      # Yields `::string` objects
+      #
+      def with_string: (?String value) { (string) -> void } -> void
+                     | (?String value) -> WithEnum[string]
+
+      # Yields `::array` objects
+      #
+      def with_array: [T] (*T elements) { (array[T]) -> void } -> void
+                    | [T] (*T elements) -> WithEnum[array[T]]
+
+      # Yields `::hash` objects
+      #
+      def with_hash: [K, V] (?Hash[K, V] hash) { (hash[K, V]) -> void } -> void
+                   | [K, V] (?Hash[K, V] hash) -> WithEnum[hash[K, V]]
+
+      # Yields `::io` objects
+      #
+      def with_io: (?untyped io) { (io) -> void } -> void
+                 | (?untyped io) -> WithEnum[io]
+
+      # Yields `::path` objects
+      #
+      def with_path: (?String path) { (path) -> void } -> void
+                   | (?String path) -> WithEnum[path]
+
+      # Yields `::encoding` objects
+      #
+      def with_encoding: (?untyped encoding) { (encoding) -> void } -> void
+                       | (?untyped encoding) -> WithEnum[encoding]
+
+      # Yields `::interned` objects
+      #
+      def with_interned: (?Symbol value) { (interned) -> void } -> void
+                       | (?Symbol value) -> WithEnum[interned]
+
+      # Yields `::bool` objects
+      #
+      def with_bool: () { (bool) -> void } -> void
+                   | () -> WithEnum[bool]
+
+      # Yields `::boolish` objects
+      #
+      def with_boolish: () { (boolish) -> void } -> void
+                      | () -> WithEnum[boolish]
+
+      # Yields `::untyped` objects
+      #
+      def with_untyped: () { (untyped) -> void } -> void
+                      | () -> WithEnum[untyped]
+
+      # Yields `::range` objects
+      #
+      def with_range: (WithEnum[untyped] start, WithEnum[untyped] stop, ?bool exclude_end) { (range[untyped]) -> void } -> void
+    end
+  end
+end
