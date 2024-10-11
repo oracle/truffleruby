@@ -172,19 +172,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             Node currentNode) {
         assert name != null;
 
-        RubyConstant previous = lexicalParent.fields.setConstantInternal(
-                context,
-                currentNode,
-                name,
-                rubyModule,
-                false);
-
         if (!hasFullName()) {
-            // Tricky, we need to compare with the Object class, but we only have a Class at hand.
-            final RubyClass classClass = getLogicalClass().getLogicalClass();
-            final RubyClass objectClass = (RubyClass) ((RubyClass) classClass.superclass).superclass;
-
-            if (lexicalParent == objectClass) {
+            if (lexicalParent == getObjectClass()) {
                 this.setFullName(name);
                 updateAnonymousChildrenModules(context);
             } else if (lexicalParent.fields.hasFullName()) {
@@ -196,6 +185,17 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 // or we'll compute an anonymous name on #getName() if needed
             }
         }
+
+        // A module correct final name should be assigned by this time (by #setFullName() method call).
+        // So a temporary anonymous module name isn't visible in the Module#const_added callback, that
+        // is called inside #setConstantInternal().
+        RubyConstant previous = lexicalParent.fields.setConstantInternal(
+                context,
+                currentNode,
+                name,
+                rubyModule,
+                false);
+
         return previous;
     }
 
@@ -792,7 +792,11 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     @TruffleBoundary
     private String createAnonymousName() {
         if (givenBaseName != null) {
-            return lexicalParent.fields.getName() + "::" + givenBaseName;
+            if (lexicalParent == getObjectClass()) {
+                return givenBaseName;
+            } else {
+                return lexicalParent.fields.getName() + "::" + givenBaseName;
+            }
         } else if (getLogicalClass() == rubyModule) { // For the case of class Class during initialization
             return "#<cyclic>";
         } else if (RubyGuards.isSingletonClass(rubyModule)) {
@@ -1179,6 +1183,14 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     StringUtils.format("Refining '%s' disables interpreter and JIT optimizations", moduleAndMethodName),
                     currentNode);
         }
+    }
+
+    private RubyClass getObjectClass() {
+        // Tricky, we need to compare with the Object class, but we only have a Module at hand.
+        final RubyClass classClass = getLogicalClass().getLogicalClass();
+        final RubyClass objectClass = (RubyClass) ((RubyClass) classClass.superclass).superclass;
+        assert objectClass.fields.givenBaseName == "Object";
+        return objectClass;
     }
 
 }
