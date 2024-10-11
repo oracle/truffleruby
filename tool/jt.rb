@@ -1256,8 +1256,7 @@ module Commands
     end
 
     mri_args = []
-    excluded_files = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
-      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
+    excluded_files = load_excluded_file_names
     patterns = []
 
     args.each do |arg|
@@ -1378,7 +1377,14 @@ module Commands
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
 
-    test_files.each do |test_file|
+    excluded_files = load_excluded_file_names.map { |path| MRI_TEST_RELATIVE_PREFIX + '/' + path }
+    files_to_skip = test_files & excluded_files
+    files_to_retag = test_files - excluded_files
+
+    puts 'The following files are excluded in test/mri/failing.exclude:'
+    puts files_to_skip.map { |s| '- ' + s }
+
+    files_to_retag.each do |test_file|
       puts '', test_file
       test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
       raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
@@ -3207,6 +3213,13 @@ module Commands
     raise 'Ruby 3+ needed for "jt docker"' unless RUBY_VERSION.start_with?('3.')
     require_relative 'docker'
     JT::Docker.new.docker(*args)
+  end
+
+  private
+
+  def load_excluded_file_names
+    File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
+      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
   end
 end
 
