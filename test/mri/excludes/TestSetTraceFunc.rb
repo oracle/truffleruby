@@ -26,6 +26,7 @@ exclude :test_non_local_return_across_multiple_define_methods, "ArgumentError: u
 exclude :test_raise, "<[\"c-return\", 1, :set_trace_func, Kernel]> expected but was <nil>."
 exclude :test_rb_rescue, "ArgumentError: unknown event: a_call"
 exclude :test_recursive, "| <internal:core> core/tracepoint.rb:24:in `block in initialize': unknown event: c_call (ArgumentError)"
+exclude :test_remove_in_trace, "transient: [ruby-dev:42350]. <#<TestSetTraceFunc:...> expected but was <false>"
 exclude :test_rescue_and_ensure_should_not_cause_b_return, "ArgumentError: unknown event: a_call"
 exclude :test_return, "<[\"c-return\", 1, :set_trace_func, Kernel]> expected but was <nil>."
 exclude :test_return2, "<[\"c-return\", 1, :set_trace_func, Kernel]> expected but was <nil>."
