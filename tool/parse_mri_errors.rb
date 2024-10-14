@@ -41,7 +41,21 @@ end
 
 def exclude_test!(class_name, test_method, error_display, platform = nil)
   file = EXCLUDES_DIR + "/" + class_name.split("::").join('/') + ".rb"
-  prefix = "exclude #{test_method.strip.to_sym.inspect},"
+
+  # A method name can contain escape sequences e.g. \t, \v etc (when a method is created
+  # with #define_method method call). Such method name is escaped when being printed in
+  # the test output. So it should be unescaped to match an actual Ruby method name.
+  #
+  # Example:
+  #   output contains:
+  #     '[ 1/13] Prism::MagicCommentTest#"test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v"dyld[88292]: missing symbol called'
+  #   captured method name:
+  #     'test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v'
+  #   unescaped (with #undump):
+  #     "test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v"
+  name_dumped = test_method
+  name_undumped = ('"'+test_method+'"').undump
+  prefix = "exclude #{name_undumped.to_sym.inspect}," # don't strip a method name as far as some test names are defined with #define_method and contain terminating whitespaces
 
   if test_method =~ /(linux|darwin)/
     platform = $1
@@ -72,6 +86,18 @@ def exclude_test!(class_name, test_method, error_display, platform = nil)
 end
 
 module Patterns
+  # NOTE: a pattern for a method name is a bit complicated and isn't as simple as `\w+`.
+  # By convention a method can be terminated with '?' or '!' character. Moreover it's
+  # allowed to terminate with any non-space character/characters, e.g. with '>>', '==' or '[]'.
+  #
+  # Examples:
+  # - TestBignum_BigZero#test_zero?
+  # - TestRDocCrossReference#"test_resolve_method:!" (generated with `define_method`)
+  # - Prism::MagicCommentTest#"test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v"
+  #
+  # In case a method name contains characters that don't allowed by a parser a method in the output is wrapped with "".
+  # So the pattern should look like `#"?\w+[^"\n]*"?`
+
   # Sample:
   #
   # [101/125] TestM17N#test_string_inspect_encoding
