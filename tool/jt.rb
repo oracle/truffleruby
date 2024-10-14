@@ -857,7 +857,7 @@ module Commands
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
           --fast                                     skip MRI tests using subprocesses
-      jt retag FILE                                  Remove MRI excludes and re-add as necessary for MRI tests
+      jt retag [FILES]                               Remove MRI excludes and re-add as necessary for MRI tests. If FILES are omitted - all the test files are processed
       ---
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
@@ -1377,12 +1377,19 @@ module Commands
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
 
+    if test_files.empty?
+      test_files = Dir.glob('test/mri/tests/**/*test*.rb', sort: true)
+    end
+
     excluded_files = load_excluded_file_names.map { |path| MRI_TEST_RELATIVE_PREFIX + '/' + path }
     files_to_skip = test_files & excluded_files
     files_to_retag = test_files - excluded_files
 
     puts 'The following files are excluded in test/mri/failing.exclude:'
     puts files_to_skip.map { |s| '- ' + s }
+
+    puts 'The following files will be retagged:'
+    puts files_to_retag.map { |s| '- ' + s }
 
     files_to_retag.each do |test_file|
       puts '', test_file
