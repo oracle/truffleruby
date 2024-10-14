@@ -1386,7 +1386,7 @@ module Commands
 
     files_to_retag.each do |test_file|
       puts '', test_file
-      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
+      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+Test/).map(&:first) # see test/mri/tests/mkmf/test_config.rb, test/mri/tests/rdoc/test_rdoc_alias.rb...
       raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
       found_excludes = false
       test_classes.each do |test_class|
