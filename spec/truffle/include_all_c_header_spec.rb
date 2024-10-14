@@ -13,6 +13,8 @@ describe 'lib/cext/include/internal_all.h' do
     filenames = Dir.glob('internal/**/*.h', base: 'lib/cext/include', sort: true)
     content = File.read('lib/cext/include/internal_all.h')
 
+    filenames.should_not be_empty
+
     missing = filenames.reject { |filename| content.include? "#include <#{filename}>" }
     missing.should be_empty
   end
@@ -20,6 +22,8 @@ describe 'lib/cext/include/internal_all.h' do
   it 'includes each *.h file from lib/cext/include/stubs/internal/' do
     filenames = Dir.glob('internal/**/*.h', base: 'lib/cext/include/stubs', sort: true)
     content = File.read('lib/cext/include/internal_all.h')
+
+    filenames.should_not be_empty
 
     missing = filenames.reject { |filename| content.include? "#include <#{filename}>" }
     missing.should be_empty

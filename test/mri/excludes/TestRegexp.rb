@@ -15,7 +15,7 @@ exclude :test_match_without_regexp, "Encoding::CompatibilityError: incompatible 
 exclude :test_matchdata, "<42> expected but was <nil>."
 exclude :test_named_capture, "<\"#<MatchData \\\"&amp; y\\\" foo:\\\"amp\\\" foo:\\\"y\\\">\"> expected but was <\"#<MatchData \\\"&amp; y\\\" foo:\\\"amp\\\" 2:\\\"y\\\">\">."
 exclude :test_named_capture_nonascii, "IndexError expected but nothing was raised."
-exclude :test_once_multithread, "TypeError: TruffleRuby doesn't have a case for the org.truffleruby.core.array.ArrayAppendOneNodeGen node with values of type Array(org.truffleruby.core.array.RubyArray)[org.truffleruby.core.array.library.SharedArrayStorage,1] org.truffleruby.core.regexp.RubyRegexp"
+exclude :test_once_multithread, "transient(fails on CI): <[/1/, /1/]> expected but was <[/1/]>."
 exclude :test_parse, "Polyglot::ForeignException: invalid group reference 80"
 exclude :test_parse_kg, "Polyglot::ForeignException: undefined name <-1> reference"
 exclude :test_posix_bracket, "expected: /duplicated range/"
