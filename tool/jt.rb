@@ -1413,7 +1413,8 @@ module Commands
           end
         end
       end
-      unless found_excludes
+
+      if !found_excludes && !ENV['TAG_NEW_TESTS']
         puts "Found no excludes for #{test_classes.join(', ')}"
         next
       end
