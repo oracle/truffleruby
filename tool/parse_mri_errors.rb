@@ -113,7 +113,11 @@ module Patterns
 
   # Sample: [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
   # Extracts: ['TestFileExhaustive', 'test_expand_path_hfs', 'missing symbol called']
-  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#((\w|\?)+?)dyld\[\d+\]: (.*)/
+  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#"?(\w+?[^"\n]*)"?dyld\[\d+\]: (.*)/
+
+  # Sample: [29/39] TestDir#test_instance_chdircannot return the original directory: /Users/andrykonchin/projects/truffleruby-ws/truffleruby
+  # Extracts: ['TestDir', 'test_instance_chdircannot', 'cannot return the original directory']
+  CUSTOM_FATAL_ERROR = / ((?:\w+::)*\w+)#(\w+?\??)(cannot return the original directory)/
 
   # Sample: [ 6/39] TestSocket_UNIXSocket#test_addr = 0.02 s
   # Extracts: ['TestSocket_UNIXSocket', 'test_addr', '0.02']
@@ -170,6 +174,12 @@ def process_fatal_errors!(contents)
   # the test for reprocessing.
   contents.scan(Patterns::DYLD_MISSING_SYMBOL) do |class_name, test_method, dyld_message|
     exclude_test!(class_name, test_method, "dyld: #{dyld_message}", 'darwin')
+
+    exit RETRY_EXIT_STATUS
+  end
+
+  contents.scan(Patterns::CUSTOM_FATAL_ERROR) do |class_name, test_method|
+    exclude_test!(class_name, test_method, "cannot return the original directory")
 
     exit RETRY_EXIT_STATUS
   end
