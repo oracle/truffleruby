@@ -1413,10 +1413,6 @@ module Commands
           end
         end
       end
-      unless found_excludes
-        puts "Found no excludes for #{test_classes.join(', ')}"
-        next
-      end
 
       process_tests = true
       while process_tests
