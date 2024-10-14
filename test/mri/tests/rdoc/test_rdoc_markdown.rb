@@ -2,8 +2,8 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
-require_relative '../../lib/rdoc/markup/block_quote'
-require_relative '../../lib/rdoc/markdown'
+require_relative '../../../../lib/mri/rdoc/markup/block_quote'
+require_relative '../../../../lib/mri/rdoc/markdown'
 
 class TestRDocMarkdown < RDoc::TestCase
 
