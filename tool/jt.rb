@@ -79,6 +79,7 @@ JT_SPECS_SPLITTING = ENV['JT_SPECS_SPLITTING'] == 'true' ? true : JT_SPECS_COMPI
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 JDK_VERSIONS = %w[latest 21]
+LTS_JDK_VERSION = '21'
 DEFAULT_JDK_VERSION = 'latest'
 
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
@@ -2367,6 +2368,7 @@ module Commands
 
   def igv
     compiler = "#{GRAAL_DIR}/compiler"
+    @jdk_version = LTS_JDK_VERSION
     mx('igv', chdir: compiler)
   end
 

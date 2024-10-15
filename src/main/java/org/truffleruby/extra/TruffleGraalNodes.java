@@ -228,6 +228,26 @@ public abstract class TruffleGraalNodes {
 
     }
 
+    @CoreMethod(names = "boundary", onSingleton = true)
+    public abstract static class BoundaryNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary(allowInlining = false)
+        @Specialization
+        Object boundary() {
+            return nil;
+        }
+    }
+
+    @CoreMethod(names = "boundary_allow_inlining", onSingleton = true)
+    public abstract static class BoundaryAllowInliningNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary(allowInlining = true)
+        @Specialization
+        Object boundaryAllowInlining() {
+            return nil;
+        }
+    }
+
     @CoreMethod(names = "total_compilation_time", onSingleton = true)
     public abstract static class TotalCompilationTimeNode extends CoreMethodArrayArgumentsNode {
 
@@ -236,7 +256,7 @@ public abstract class TruffleGraalNodes {
         @SuppressFBWarnings("LI_LAZY_INIT_STATIC")
         @TruffleBoundary
         @Specialization
-        final long totalCompilationTime() {
+        long totalCompilationTime() {
             if (bean == null) {
                 var compilationMXBean = ManagementFactory.getCompilationMXBean();
                 VarHandle.storeStoreFence();
