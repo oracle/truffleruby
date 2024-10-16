@@ -72,6 +72,8 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
 
     @Override
     public Collection<? extends Snippet> createValueConstructors(Context context) {
+        var emptyArrayType = TypeDescriptor.forValue(context.eval(Source.create(getId(), "[]")));
+
         final List<Snippet> vals = new ArrayList<>();
         // Interop Primitives
         vals.add(createValueConstructor(context, "nil", NULL)); // should also be OBJECT?
@@ -92,9 +94,9 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
         vals.add(createValueConstructor(context, "[1, 2]", NUMBER_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[1.2, 3.4]", NUMBER_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[1<<33, 1<<34]", NUMBER_ARRAY_OBJECT));
-        vals.add(createValueConstructor(context, "[]", ARRAY_OBJECT));
+        vals.add(createValueConstructor(context, "[]", emptyArrayType));
         vals.add(createValueConstructor(context, "[Object.new]", ARRAY_OBJECT));
-        vals.add(createValueConstructor(context, "[true, false]", ARRAY_OBJECT));
+        vals.add(createValueConstructor(context, "[true, false]", BOOLEAN_ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "[Object.new, 65]", ARRAY_OBJECT));
         vals.add(createValueConstructor(context, "{ 'name' => 'test' }", HASH_ITERABLE_OBJECT));
         vals.add(createValueConstructor(context, "Struct.new(:foo, :bar).new(1, 'two')", ITERABLE_OBJECT));
@@ -297,6 +299,7 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
     private static final TypeDescriptor DATE_TIME_ZONE_OBJECT = intersection(OBJECT, DATE, TIME, TIME_ZONE);
     private static final TypeDescriptor ARRAY_OBJECT = intersection(OBJECT, ARRAY);
     private static final TypeDescriptor NUMBER_ARRAY_OBJECT = intersection(OBJECT, array(NUMBER));
+    private static final TypeDescriptor BOOLEAN_ARRAY_OBJECT = intersection(OBJECT, array(BOOLEAN));
     private static final TypeDescriptor ITERABLE_OBJECT = intersection(ITERABLE, OBJECT);
     private static final TypeDescriptor HASH_ITERABLE_OBJECT = intersection(HASH, ITERABLE, OBJECT);
 }
