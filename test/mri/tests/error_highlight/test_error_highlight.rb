@@ -854,7 +854,7 @@ uninitialized constant ErrorHighlightTest::NotDefined
     end
   end
 
-  if ErrorHighlight.const_get(:Spotter).const_get(:OPT_GETCONSTANT_PATH)
+  if ErrorHighlight.const_get(:Spotter).const_defined?(:OPT_GETCONSTANT_PATH)
     def test_COLON2_5
       # Unfortunately, we cannot identify which `NotDefined` caused the NameError
       assert_error_message(NameError, <<~END) do
@@ -1268,7 +1268,7 @@ undefined method `foo' for #{ NIL_RECV_MESSAGE }
 
       nil.foo + 1
     rescue NoMethodError => exc
-      def exc.backtrace_locations; []; end
+      def exc.backtrace_locations = []
       raise
     end
   end
