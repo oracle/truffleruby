@@ -1,5 +1,0 @@
-exclude :test_ancestors, "dyld: missing symbol called"
-exclude :test_ancestors_multilevel, "dyld: missing symbol called"
-exclude :test_aref, "dyld: missing symbol called"
-exclude :test_definition, "dyld: missing symbol called"
-exclude :test_direct_ancestors, "dyld: missing symbol called"

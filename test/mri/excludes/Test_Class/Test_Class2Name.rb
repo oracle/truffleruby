@@ -1,1 +1,1 @@
-exclude :test_singleton_class, "needs investigation"
+exclude :test_singleton_class, "<\"Object\"> expected but was <\"#<Class:#<Object:0x398>>\">."

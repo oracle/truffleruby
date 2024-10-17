@@ -1,3 +1,4 @@
+exclude :test_backquote, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_epipe_on_read, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_heavy_read, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_puts_empty, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"

@@ -1,2 +1,1 @@
-exclude :test_expand, "needs investigation"
-exclude :test_expand, "needs investigation"
+exclude :test_expand, "undefined symbol: rb_ary_resize"

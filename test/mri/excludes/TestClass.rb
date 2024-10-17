@@ -4,6 +4,6 @@ exclude :test_constant_access_from_method_in_cloned_class, "NameError: uninitial
 exclude :test_invalid_superclass, "Expected Exception(TypeError) was raised, but the message doesn't match. Expected /M🗿/ to match \"superclass must be a Class\"."
 exclude :test_method_redefinition, "Expected /:190: warning: method redefined; discarding old foo/ to match \"\"."
 exclude :test_redefine_private_class, "NameError expected but nothing was raised."
-exclude :test_redefinition_mismatch, "Expected \"1:Integer is not a class\" to include \"/home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/test/mri/tests/ruby/test_class.rb:698: previous definition\"."
+exclude :test_redefinition_mismatch, "Expected \"1:Integer is not a class\" to include \"/b/b/e/main/test/mri/tests/ruby/test_class.rb:709: previous definition\"."
 exclude :test_uninitialized, "Exception(TypeError) with message matches to /prohibited/."
 exclude :test_visibility_inside_method, "expected: /calling private without arguments inside a method may not have the intended effect/"

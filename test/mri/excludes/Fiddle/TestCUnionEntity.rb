@@ -1,1 +1,1 @@
-exclude :test_set_ctypes, "needs investigation"
+exclude :test_set_ctypes, "NotImplementedError: NotImplementedError"
