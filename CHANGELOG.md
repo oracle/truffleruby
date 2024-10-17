@@ -5,6 +5,7 @@ New features:
 Bug fixes:
 
 * Fix `Module#name` called inside the `Module#const_added` callback when the module is defined in the top-level scope (#3683, @andrykonchin).
+* Fix duplicated calls of a `Module#const_added` callback when a module with nested modules is assigned to a constant (@andrykonchin).
 
 Compatibility:
 

@@ -165,53 +165,34 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         getName();
     }
 
-    public RubyConstant getAdoptedByLexicalParent(
+    private void nameModule(
             RubyContext context,
             RubyModule lexicalParent,
-            String name,
-            Node currentNode) {
+            String name) {
         assert name != null;
 
         if (!hasFullName()) {
             if (lexicalParent == getObjectClass()) {
                 this.setFullName(name);
-                updateAnonymousChildrenModules(context);
+                nameChildrenModules(context);
             } else if (lexicalParent.fields.hasFullName()) {
                 this.setFullName(lexicalParent.fields.getName() + "::" + name);
-                updateAnonymousChildrenModules(context);
+                nameChildrenModules(context);
             } else {
                 // Our lexicalParent is also an anonymous module
                 // and will name us when it gets named via updateAnonymousChildrenModules(),
                 // or we'll compute an anonymous name on #getName() if needed
             }
         }
-
-        // A module correct final name should be assigned by this time (by #setFullName() method call).
-        // So a temporary anonymous module name isn't visible in the Module#const_added callback, that
-        // is called inside #setConstantInternal().
-        RubyConstant previous = lexicalParent.fields.setConstantInternal(
-                context,
-                currentNode,
-                name,
-                rubyModule,
-                false);
-
-        return previous;
     }
 
-    public void updateAnonymousChildrenModules(RubyContext context) {
+    private void nameChildrenModules(RubyContext context) {
         for (Map.Entry<String, ConstantEntry> entry : constants.entrySet()) {
             ConstantEntry constantEntry = entry.getValue();
             RubyConstant constant = constantEntry.getConstant();
-            if (constant != null && constant.hasValue() && constant.getValue() instanceof RubyModule) {
-                RubyModule module = (RubyModule) constant.getValue();
-                if (!module.fields.hasFullName()) {
-                    module.fields.getAdoptedByLexicalParent(
-                            context,
-                            rubyModule,
-                            entry.getKey(),
-                            null);
-                }
+
+            if (constant != null && constant.hasValue() && constant.getValue() instanceof RubyModule childModule) {
+                childModule.fields.nameModule(context, rubyModule, entry.getKey());
             }
         }
     }
@@ -429,15 +410,13 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     /** Set the value of a constant, possibly redefining it. */
     @TruffleBoundary
     public RubyConstant setConstant(RubyContext context, Node currentNode, String name, Object value) {
-        if (value instanceof RubyModule) {
-            return ((RubyModule) value).fields.getAdoptedByLexicalParent(
-                    context,
-                    rubyModule,
-                    name,
-                    currentNode);
-        } else {
-            return setConstantInternal(context, currentNode, name, value, false);
+        // A module fully qualified name should replace a temporary one before assigning a constant,
+        // and before calling in the #const_added callback.
+        if (value instanceof RubyModule childModule) {
+            childModule.fields.nameModule(context, rubyModule, name);
         }
+
+        return setConstantInternal(context, currentNode, name, value, false);
     }
 
     @TruffleBoundary
