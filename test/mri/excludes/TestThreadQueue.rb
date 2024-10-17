@@ -1,5 +1,6 @@
 exclude :test_dump, "TypeError expected but nothing was raised."
 exclude :test_dup, "NoMethodError expected but nothing was raised."
-exclude :test_queue_initialized, "TypeError expected but nothing was raised."
+exclude :test_freeze, "TypeError expected but nothing was raised."
+exclude :test_queue_initialized, "Exception(TypeError) with message matches to /\\bQueue.* not initialized/."
 exclude :test_sized_queue_assign_max, "hangs"
-exclude :test_sized_queue_initialized, "Cannot invoke \"org.truffleruby.core.queue.SizedQueue.put(Object)\" because \"queue\" is null (java.lang.NullPointerException) from org.truffleruby.core.queue.SizedQueueNodes$PushNode.lambda$doPushBlocking$0(SizedQueueNodes.java:137)"
+exclude :test_sized_queue_initialized, "<no message> (java.lang.NullPointerException) from org.truffleruby.core.queue.SizedQueueNodes$PushNode.lambda$doPushBlocking$0(SizedQueueNodes.java:137)"

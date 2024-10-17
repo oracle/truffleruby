@@ -1,10 +1,12 @@
 @ ProgramNode (location: (1,0)-(4,3))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(4,3))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(4,3))
-            ├── flags: ∅
+            ├── flags: newline, ignore_visibility
             ├── receiver: ∅
             ├── call_operator_loc: ∅
             ├── name: :blah
@@ -14,24 +16,27 @@
             ├── closing_loc: ∅
             └── block:
                 @ BlockNode (location: (1,5)-(4,3))
+                ├── flags: ∅
                 ├── locals: []
-                ├── locals_body_index: 0
                 ├── parameters: ∅
                 ├── body:
-                │   @ BeginNode (location: (2,0)-(4,3))
+                │   @ BeginNode (location: (1,5)-(4,3))
+                │   ├── flags: ∅
                 │   ├── begin_keyword_loc: ∅
                 │   ├── statements: ∅
                 │   ├── rescue_clause:
                 │   │   @ RescueNode (location: (2,0)-(3,7))
+                │   │   ├── flags: ∅
                 │   │   ├── keyword_loc: (2,0)-(2,6) = "rescue"
                 │   │   ├── exceptions: (length: 0)
                 │   │   ├── operator_loc: ∅
                 │   │   ├── reference: ∅
                 │   │   ├── statements:
                 │   │   │   @ StatementsNode (location: (3,2)-(3,7))
+                │   │   │   ├── flags: ∅
                 │   │   │   └── body: (length: 1)
                 │   │   │       └── @ CallNode (location: (3,2)-(3,7))
-                │   │   │           ├── flags: variable_call
+                │   │   │           ├── flags: newline, variable_call, ignore_visibility
                 │   │   │           ├── receiver: ∅
                 │   │   │           ├── call_operator_loc: ∅
                 │   │   │           ├── name: :stuff
@@ -40,7 +45,7 @@
                 │   │   │           ├── arguments: ∅
                 │   │   │           ├── closing_loc: ∅
                 │   │   │           └── block: ∅
-                │   │   └── consequent: ∅
+                │   │   └── subsequent: ∅
                 │   ├── else_clause: ∅
                 │   ├── ensure_clause: ∅
                 │   └── end_keyword_loc: (4,0)-(4,3) = "end"

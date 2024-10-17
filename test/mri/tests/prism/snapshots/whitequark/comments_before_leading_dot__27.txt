@@ -1,13 +1,15 @@
 @ ProgramNode (location: (1,0)-(18,4))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(18,4))
+    ├── flags: ∅
     └── body: (length: 4)
         ├── @ CallNode (location: (1,0)-(3,5))
-        │   ├── flags: safe_navigation
+        │   ├── flags: newline, safe_navigation
         │   ├── receiver:
         │   │   @ CallNode (location: (1,0)-(1,1))
-        │   │   ├── flags: variable_call
+        │   │   ├── flags: variable_call, ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :a
@@ -24,10 +26,10 @@
         │   ├── closing_loc: ∅
         │   └── block: ∅
         ├── @ CallNode (location: (6,0)-(8,4))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (6,0)-(6,1))
-        │   │   ├── flags: variable_call
+        │   │   ├── flags: variable_call, ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :a
@@ -44,10 +46,10 @@
         │   ├── closing_loc: ∅
         │   └── block: ∅
         ├── @ CallNode (location: (11,0)-(13,5))
-        │   ├── flags: safe_navigation
+        │   ├── flags: newline, safe_navigation
         │   ├── receiver:
         │   │   @ CallNode (location: (11,0)-(11,1))
-        │   │   ├── flags: variable_call
+        │   │   ├── flags: variable_call, ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :a
@@ -64,10 +66,10 @@
         │   ├── closing_loc: ∅
         │   └── block: ∅
         └── @ CallNode (location: (16,0)-(18,4))
-            ├── flags: ∅
+            ├── flags: newline
             ├── receiver:
             │   @ CallNode (location: (16,0)-(16,1))
-            │   ├── flags: variable_call
+            │   ├── flags: variable_call, ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :a

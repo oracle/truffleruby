@@ -1,13 +1,15 @@
 @ ProgramNode (location: (1,0)-(13,23))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(13,23))
+    ├── flags: ∅
     └── body: (length: 7)
         ├── @ CallNode (location: (1,0)-(1,21))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (1,0)-(1,13))
-        │   │   ├── flags: ∅
+        │   │   ├── flags: ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :meth
@@ -18,12 +20,13 @@
         │   │   │   ├── flags: ∅
         │   │   │   └── arguments: (length: 1)
         │   │   │       └── @ IntegerNode (location: (1,5)-(1,6))
-        │   │   │           └── flags: decimal
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
         │   │   ├── closing_loc: ∅
         │   │   └── block:
         │   │       @ BlockNode (location: (1,7)-(1,13))
+        │   │       ├── flags: ∅
         │   │       ├── locals: []
-        │   │       ├── locals_body_index: 0
         │   │       ├── parameters: ∅
         │   │       ├── body: ∅
         │   │       ├── opening_loc: (1,7)-(1,9) = "do"
@@ -37,7 +40,7 @@
         │   │   ├── flags: ∅
         │   │   └── arguments: (length: 1)
         │   │       └── @ CallNode (location: (1,18)-(1,21))
-        │   │           ├── flags: variable_call
+        │   │           ├── flags: variable_call, ignore_visibility
         │   │           ├── receiver: ∅
         │   │           ├── call_operator_loc: ∅
         │   │           ├── name: :bar
@@ -49,10 +52,10 @@
         │   ├── closing_loc: ∅
         │   └── block: ∅
         ├── @ CallNode (location: (3,0)-(3,28))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (3,0)-(3,13))
-        │   │   ├── flags: ∅
+        │   │   ├── flags: ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :meth
@@ -63,12 +66,13 @@
         │   │   │   ├── flags: ∅
         │   │   │   └── arguments: (length: 1)
         │   │   │       └── @ IntegerNode (location: (3,5)-(3,6))
-        │   │   │           └── flags: decimal
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
         │   │   ├── closing_loc: ∅
         │   │   └── block:
         │   │       @ BlockNode (location: (3,7)-(3,13))
+        │   │       ├── flags: ∅
         │   │       ├── locals: []
-        │   │       ├── locals_body_index: 0
         │   │       ├── parameters: ∅
         │   │       ├── body: ∅
         │   │       ├── opening_loc: (3,7)-(3,9) = "do"
@@ -82,7 +86,7 @@
         │   │   ├── flags: ∅
         │   │   └── arguments: (length: 1)
         │   │       └── @ CallNode (location: (3,18)-(3,21))
-        │   │           ├── flags: variable_call
+        │   │           ├── flags: variable_call, ignore_visibility
         │   │           ├── receiver: ∅
         │   │           ├── call_operator_loc: ∅
         │   │           ├── name: :bar
@@ -94,17 +98,17 @@
         │   ├── closing_loc: ∅
         │   └── block:
         │       @ BlockNode (location: (3,22)-(3,28))
+        │       ├── flags: ∅
         │       ├── locals: []
-        │       ├── locals_body_index: 0
         │       ├── parameters: ∅
         │       ├── body: ∅
         │       ├── opening_loc: (3,22)-(3,24) = "do"
         │       └── closing_loc: (3,25)-(3,28) = "end"
         ├── @ CallNode (location: (5,0)-(5,20))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (5,0)-(5,13))
-        │   │   ├── flags: ∅
+        │   │   ├── flags: ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :meth
@@ -115,12 +119,13 @@
         │   │   │   ├── flags: ∅
         │   │   │   └── arguments: (length: 1)
         │   │   │       └── @ IntegerNode (location: (5,5)-(5,6))
-        │   │   │           └── flags: decimal
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
         │   │   ├── closing_loc: ∅
         │   │   └── block:
         │   │       @ BlockNode (location: (5,7)-(5,13))
+        │   │       ├── flags: ∅
         │   │       ├── locals: []
-        │   │       ├── locals_body_index: 0
         │   │       ├── parameters: ∅
         │   │       ├── body: ∅
         │   │       ├── opening_loc: (5,7)-(5,9) = "do"
@@ -133,17 +138,17 @@
         │   ├── closing_loc: ∅
         │   └── block:
         │       @ BlockNode (location: (5,18)-(5,20))
+        │       ├── flags: ∅
         │       ├── locals: []
-        │       ├── locals_body_index: 0
         │       ├── parameters: ∅
         │       ├── body: ∅
         │       ├── opening_loc: (5,18)-(5,19) = "{"
         │       └── closing_loc: (5,19)-(5,20) = "}"
         ├── @ CallNode (location: (7,0)-(7,22))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (7,0)-(7,13))
-        │   │   ├── flags: ∅
+        │   │   ├── flags: ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :meth
@@ -154,12 +159,13 @@
         │   │   │   ├── flags: ∅
         │   │   │   └── arguments: (length: 1)
         │   │   │       └── @ IntegerNode (location: (7,5)-(7,6))
-        │   │   │           └── flags: decimal
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
         │   │   ├── closing_loc: ∅
         │   │   └── block:
         │   │       @ BlockNode (location: (7,7)-(7,13))
+        │   │       ├── flags: ∅
         │   │       ├── locals: []
-        │   │       ├── locals_body_index: 0
         │   │       ├── parameters: ∅
         │   │       ├── body: ∅
         │   │       ├── opening_loc: (7,7)-(7,9) = "do"
@@ -173,7 +179,7 @@
         │   │   ├── flags: ∅
         │   │   └── arguments: (length: 1)
         │   │       └── @ CallNode (location: (7,18)-(7,21))
-        │   │           ├── flags: variable_call
+        │   │           ├── flags: variable_call, ignore_visibility
         │   │           ├── receiver: ∅
         │   │           ├── call_operator_loc: ∅
         │   │           ├── name: :bar
@@ -185,10 +191,10 @@
         │   ├── closing_loc: (7,21)-(7,22) = ")"
         │   └── block: ∅
         ├── @ CallNode (location: (9,0)-(9,25))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (9,0)-(9,13))
-        │   │   ├── flags: ∅
+        │   │   ├── flags: ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :meth
@@ -199,12 +205,13 @@
         │   │   │   ├── flags: ∅
         │   │   │   └── arguments: (length: 1)
         │   │   │       └── @ IntegerNode (location: (9,5)-(9,6))
-        │   │   │           └── flags: decimal
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
         │   │   ├── closing_loc: ∅
         │   │   └── block:
         │   │       @ BlockNode (location: (9,7)-(9,13))
+        │   │       ├── flags: ∅
         │   │       ├── locals: []
-        │   │       ├── locals_body_index: 0
         │   │       ├── parameters: ∅
         │   │       ├── body: ∅
         │   │       ├── opening_loc: (9,7)-(9,9) = "do"
@@ -218,7 +225,7 @@
         │   │   ├── flags: ∅
         │   │   └── arguments: (length: 1)
         │   │       └── @ CallNode (location: (9,18)-(9,21))
-        │   │           ├── flags: variable_call
+        │   │           ├── flags: variable_call, ignore_visibility
         │   │           ├── receiver: ∅
         │   │           ├── call_operator_loc: ∅
         │   │           ├── name: :bar
@@ -230,17 +237,17 @@
         │   ├── closing_loc: (9,21)-(9,22) = ")"
         │   └── block:
         │       @ BlockNode (location: (9,23)-(9,25))
+        │       ├── flags: ∅
         │       ├── locals: []
-        │       ├── locals_body_index: 0
         │       ├── parameters: ∅
         │       ├── body: ∅
         │       ├── opening_loc: (9,23)-(9,24) = "{"
         │       └── closing_loc: (9,24)-(9,25) = "}"
         ├── @ CallNode (location: (11,0)-(11,22))
-        │   ├── flags: ∅
+        │   ├── flags: newline
         │   ├── receiver:
         │   │   @ CallNode (location: (11,0)-(11,13))
-        │   │   ├── flags: ∅
+        │   │   ├── flags: ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :meth
@@ -251,12 +258,13 @@
         │   │   │   ├── flags: ∅
         │   │   │   └── arguments: (length: 1)
         │   │   │       └── @ IntegerNode (location: (11,5)-(11,6))
-        │   │   │           └── flags: decimal
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
         │   │   ├── closing_loc: ∅
         │   │   └── block:
         │   │       @ BlockNode (location: (11,7)-(11,13))
+        │   │       ├── flags: ∅
         │   │       ├── locals: []
-        │   │       ├── locals_body_index: 0
         │   │       ├── parameters: ∅
         │   │       ├── body: ∅
         │   │       ├── opening_loc: (11,7)-(11,9) = "do"
@@ -270,7 +278,7 @@
         │   │   ├── flags: ∅
         │   │   └── arguments: (length: 1)
         │   │       └── @ CallNode (location: (11,19)-(11,22))
-        │   │           ├── flags: variable_call
+        │   │           ├── flags: variable_call, ignore_visibility
         │   │           ├── receiver: ∅
         │   │           ├── call_operator_loc: ∅
         │   │           ├── name: :bar
@@ -282,10 +290,10 @@
         │   ├── closing_loc: ∅
         │   └── block: ∅
         └── @ CallNode (location: (13,0)-(13,23))
-            ├── flags: ∅
+            ├── flags: newline
             ├── receiver:
             │   @ CallNode (location: (13,0)-(13,13))
-            │   ├── flags: ∅
+            │   ├── flags: ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :meth
@@ -296,12 +304,13 @@
             │   │   ├── flags: ∅
             │   │   └── arguments: (length: 1)
             │   │       └── @ IntegerNode (location: (13,5)-(13,6))
-            │   │           └── flags: decimal
+            │   │           ├── flags: static_literal, decimal
+            │   │           └── value: 1
             │   ├── closing_loc: ∅
             │   └── block:
             │       @ BlockNode (location: (13,7)-(13,13))
+            │       ├── flags: ∅
             │       ├── locals: []
-            │       ├── locals_body_index: 0
             │       ├── parameters: ∅
             │       ├── body: ∅
             │       ├── opening_loc: (13,7)-(13,9) = "do"
@@ -315,7 +324,7 @@
             │   ├── flags: ∅
             │   └── arguments: (length: 1)
             │       └── @ CallNode (location: (13,19)-(13,22))
-            │           ├── flags: variable_call
+            │           ├── flags: variable_call, ignore_visibility
             │           ├── receiver: ∅
             │           ├── call_operator_loc: ∅
             │           ├── name: :bar

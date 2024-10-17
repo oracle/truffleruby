@@ -17,7 +17,7 @@ exclude :test_sprintf_p, "<#<Encoding:UTF-8>> expected but was <#<Encoding:US-AS
 exclude :test_sprintf_s, "<#<Encoding:ASCII-8BIT>> expected but was <#<Encoding:US-ASCII>>."
 exclude :test_str_aref_substr, "<nil> expected but was <\"\\xA1\\xC2\">."
 exclude :test_str_dump, "<\"\\xFE\"> (EUC-JP) expected but was <\"\\xFE\"> (ASCII-8BIT)."
-exclude :test_string_inspect_encoding, "<no message> (java.lang.AssertionError) from org.truffleruby.core.string.StringNodes$CharacterPrintablePrimitiveNode.isCharacterPrintable"
+exclude :test_string_inspect_encoding, "ArgumentError: negative argument"
 exclude :test_true_to_s, "<#<Encoding:US-ASCII>> expected but was <#<Encoding:UTF-8>>."
 exclude :test_utf_dummy_are_like_regular_dummy_encodings, "<[0, 0, 254, 255]> expected but was <[0, 65279]>."
 exclude :test_valid_encoding, "<true> expected but was <false>."

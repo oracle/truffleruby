@@ -1,16 +1,18 @@
 @ ProgramNode (location: (1,0)-(1,31))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(1,31))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(1,31))
-            ├── flags: ∅
+            ├── flags: newline
             ├── receiver:
             │   @ CallNode (location: (1,0)-(1,16))
             │   ├── flags: ∅
             │   ├── receiver:
             │   │   @ CallNode (location: (1,0)-(1,1))
-            │   │   ├── flags: variable_call
+            │   │   ├── flags: variable_call, ignore_visibility
             │   │   ├── receiver: ∅
             │   │   ├── call_operator_loc: ∅
             │   │   ├── name: :a
@@ -28,7 +30,7 @@
             │   │   ├── flags: ∅
             │   │   └── arguments: (length: 1)
             │   │       └── @ CallNode (location: (1,4)-(1,7))
-            │   │           ├── flags: ∅
+            │   │           ├── flags: ignore_visibility
             │   │           ├── receiver: ∅
             │   │           ├── call_operator_loc: ∅
             │   │           ├── name: :c
@@ -40,14 +42,15 @@
             │   ├── closing_loc: ∅
             │   └── block:
             │       @ BlockNode (location: (1,8)-(1,16))
+            │       ├── flags: ∅
             │       ├── locals: []
-            │       ├── locals_body_index: 0
             │       ├── parameters: ∅
             │       ├── body:
             │       │   @ StatementsNode (location: (1,11)-(1,12))
+            │       │   ├── flags: ∅
             │       │   └── body: (length: 1)
             │       │       └── @ CallNode (location: (1,11)-(1,12))
-            │       │           ├── flags: variable_call
+            │       │           ├── flags: newline, variable_call, ignore_visibility
             │       │           ├── receiver: ∅
             │       │           ├── call_operator_loc: ∅
             │       │           ├── name: :d
@@ -66,14 +69,17 @@
             ├── closing_loc: ∅
             └── block:
                 @ BlockNode (location: (1,19)-(1,31))
+                ├── flags: ∅
                 ├── locals: [:f]
-                ├── locals_body_index: 1
                 ├── parameters:
                 │   @ BlockParametersNode (location: (1,22)-(1,25))
+                │   ├── flags: ∅
                 │   ├── parameters:
                 │   │   @ ParametersNode (location: (1,23)-(1,24))
+                │   │   ├── flags: ∅
                 │   │   ├── requireds: (length: 1)
                 │   │   │   └── @ RequiredParameterNode (location: (1,23)-(1,24))
+                │   │   │       ├── flags: ∅
                 │   │   │       └── name: :f
                 │   │   ├── optionals: (length: 0)
                 │   │   ├── rest: ∅
@@ -86,9 +92,10 @@
                 │   └── closing_loc: (1,24)-(1,25) = "|"
                 ├── body:
                 │   @ StatementsNode (location: (1,26)-(1,27))
+                │   ├── flags: ∅
                 │   └── body: (length: 1)
                 │       └── @ CallNode (location: (1,26)-(1,27))
-                │           ├── flags: variable_call
+                │           ├── flags: newline, variable_call, ignore_visibility
                 │           ├── receiver: ∅
                 │           ├── call_operator_loc: ∅
                 │           ├── name: :g
