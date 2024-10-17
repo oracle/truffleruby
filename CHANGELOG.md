@@ -4,6 +4,9 @@ New features:
 
 Bug fixes:
 
+* Fix `Module#name` called inside the `Module#const_added` callback when the module is defined in the top-level scope (#3683, @andrykonchin).
+* Fix duplicated calls of a `Module#const_added` callback when a module with nested modules is assigned to a constant (@andrykonchin).
+
 Compatibility:
 
 * Fix `Module#include` so a module included into a reopened nested module is added into an ancestors chain (#3570, @andrykonchin).

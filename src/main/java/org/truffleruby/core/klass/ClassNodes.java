@@ -119,7 +119,7 @@ public abstract class ClassNodes {
                 superclass);
 
         if (lexicalParent != null) {
-            rubyClass.fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
+            lexicalParent.fields.setConstant(context, currentNode, name, rubyClass);
         }
 
         return rubyClass;

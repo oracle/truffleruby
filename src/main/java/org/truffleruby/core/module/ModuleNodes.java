@@ -158,7 +158,7 @@ public abstract class ModuleNodes {
         module.fields.afterConstructed();
 
         if (lexicalParent != null) {
-            module.fields.getAdoptedByLexicalParent(context, lexicalParent, name, currentNode);
+            lexicalParent.fields.setConstant(context, currentNode, name, module);
         }
         return module;
     }
