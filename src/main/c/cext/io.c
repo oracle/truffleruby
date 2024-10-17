@@ -14,6 +14,10 @@
 
 // IO, rb_io_*
 
+// Ignore deprecated fields on rb_io_t, we still need to set them while the struct fields are exposed.
+RBIMPL_WARNING_PUSH()
+RBIMPL_WARNING_IGNORED(-Wdeprecated-declarations)
+
 typedef struct {
   struct RFile rfile;
   rb_io_t io_struct;
@@ -366,3 +370,5 @@ void rb_lastline_set(VALUE str) {
 VALUE rb_io_getbyte(VALUE io) {
   return RUBY_INVOKE(io, "getbyte");
 }
+
+RBIMPL_WARNING_POP()

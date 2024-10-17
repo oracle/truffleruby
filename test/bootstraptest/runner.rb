@@ -118,7 +118,7 @@ BT = Class.new(bt) do
             r = IO.for_fd($1.to_i(10), "rb", autoclose: false)
             w = IO.for_fd($2.to_i(10), "wb", autoclose: false)
           end
-        rescue => e
+        rescue
           r.close if r
         else
           r.close_on_exec = true
@@ -560,8 +560,13 @@ class Assertion < Struct.new(:src, :path, :lineno, :proc)
     filename = "bootstraptest.#{self.path}_#{self.lineno}_#{self.id}.rb"
     File.open(filename, 'w') {|f|
       f.puts "#frozen_string_literal:true" if frozen_string_literal
-      f.puts "GC.stress = true" if $stress
-      f.puts "print(begin; #{self.src}; end)"
+      if $stress
+        f.puts "GC.stress = true" if $stress
+      else
+        f.puts ""
+      end
+      f.puts "class BT_Skip < Exception; end; def skip(msg) = raise(BT_Skip, msg.to_s)"
+      f.puts "print(begin; #{self.src}; rescue BT_Skip; $!.message; end)"
     }
     filename
   end
@@ -677,7 +682,7 @@ end
 
 def assert_finish(timeout_seconds, testsrc, message = '')
   add_assertion testsrc, -> as do
-    if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # for --jit-wait
+    if defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled? # for --jit-wait
       timeout_seconds *= 3
     end
 
@@ -790,6 +795,11 @@ def check_coredump
       (BT.ruby and File.exist?(BT.ruby+'.stackdump'))
     raise CoreDumpError, "core dumped"
   end
+end
+
+def rjit_enabled?
+  # Don't check `RubyVM::RJIT.enabled?`. On btest-bruby, target Ruby != runner Ruby.
+  ENV.fetch('RUN_OPTS', '').include?('rjit')
 end
 
 exit main

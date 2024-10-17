@@ -1,0 +1,154 @@
+module RBS
+  module UnitTest
+    module Convertibles
+      # An object that doesn't have methods excepts `__send__` and `__id__`
+      #
+      # Other methods are `undef`ed.
+      #
+      class BlankSlate < BasicObject
+        # Add Object methods to `self`
+        #
+        def __with_object_methods: (*Symbol methods) -> self
+      end
+
+      # An object with `#to_io` method
+      class ToIO < BlankSlate
+        @io: untyped
+
+        def initialize: (?untyped io) -> void
+
+        def to_io: () -> untyped
+      end
+
+      # An object with `#to_i` method
+      class ToI < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_i: () -> untyped
+      end
+
+      # An object with `#to_int` method
+      class ToInt < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_int: () -> untyped
+      end
+
+      # An object with `#to_f` method
+      class ToF < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_f: () -> untyped
+      end
+
+      # An object with `#to_r` method
+      class ToR < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_r: () -> untyped
+      end
+
+      # An object with `#to_c` method
+      class ToC < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_c: () -> untyped
+      end
+
+      # An object with `#to_str` method
+      class ToStr < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_str: () -> untyped
+      end
+
+      # An object with `#to_s` method
+      class ToS < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_s: () -> untyped
+      end
+
+      # An object with `#to_sym` method
+      class ToSym < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_sym: () -> untyped
+      end
+
+      # An object with `#to_a` method
+      class ToA < BlankSlate
+        @args: untyped
+
+        def initialize: (*untyped args) -> void
+
+        def to_a: () -> Array[untyped]
+      end
+
+      # An object with `#to_ary` method
+      class ToArray < BlankSlate
+        @args: untyped
+
+        def initialize: (*untyped args) -> void
+
+        def to_ary: () -> Array[untyped]
+      end
+
+      # An object with `#to_hash` method
+      class ToHash < BlankSlate
+        @hash: untyped
+
+        def initialize: (?::Hash[untyped, untyped] hash) -> void
+
+        def to_hash: () -> Hash[untyped, untyped]
+      end
+
+      # An object with `#to_path` method
+      class ToPath < BlankSlate
+        @value: untyped
+
+        def initialize: (?untyped value) -> void
+
+        def to_path: () -> untyped
+      end
+
+      # An object with `#begin`, `#end`, and `#exclude_end`
+      class CustomRange < BlankSlate
+        @exclude_end: untyped
+
+        attr_reader begin: untyped
+
+        attr_reader end: untyped
+
+        def initialize: (untyped begin_, untyped end_, ?untyped exclude_end) -> void
+
+        def exclude_end?: () -> untyped
+      end
+
+      # An object with `#each` method
+      class Each < BlankSlate
+        @args: Array[untyped]
+
+        def initialize: (*untyped args) -> void
+
+        def each: () { (untyped) -> void } -> untyped
+      end
+    end
+  end
+end

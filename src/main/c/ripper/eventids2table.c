@@ -1,4 +1,8 @@
-static void
+#include "ruby/ruby.h"
+
+#define intern_sym(name) ID2SYM(rb_intern_const(name))
+
+void
 ripper_init_eventids2_table(VALUE self)
 {
     VALUE h = rb_hash_new();

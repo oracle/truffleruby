@@ -4,6 +4,7 @@ close
 deq
 empty?
 enq
+freeze
 length
 max
 max=

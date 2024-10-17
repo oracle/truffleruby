@@ -3,20 +3,20 @@
 
 Gem::Specification.new do |s|
   s.name = "matrix".freeze
-  s.version = "0.4.2"
+  s.version = "0.4.2".freeze
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Marc-Andre Lafortune".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-04-23"
+  s.date = "2024-09-03"
   s.description = "An implementation of Matrix and Vector classes.".freeze
   s.email = ["ruby-core@marc-andre.ca".freeze]
   s.homepage = "https://github.com/ruby/matrix".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.4.19".freeze
+  s.rubygems_version = "3.5.16".freeze
   s.summary = "An implementation of Matrix and Vector classes.".freeze
 
-  s.installed_by_version = "3.4.19" if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.5.16".freeze if s.respond_to? :installed_by_version
 end

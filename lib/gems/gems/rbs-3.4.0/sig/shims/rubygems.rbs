@@ -1,0 +1,19 @@
+module Gem
+  class Specification
+    attr_reader version (): Version
+
+    attr_reader gem_dir (): String
+
+    def self.find_by_name: (String name, *String requirements) -> instance
+
+    def dependencies: () -> Array[Dependency]
+  end
+
+  class Dependency
+    def name: () -> String
+  end
+
+  module ::Kernel
+    def self?.gem: (String, *String) -> void
+  end
+end

@@ -1,0 +1,20 @@
+module RBS
+  module Prototype
+    class NodeUsage
+      include Helpers
+      
+      type node = RubyVM::AbstractSyntaxTree::Node
+
+      attr_reader node: node
+
+      attr_reader conditional_nodes: Set[node]
+
+      def initialize: (node) -> void
+
+      def calculate: (node, conditional: bool) -> void
+
+      def each_conditional_node: () { (node) -> void } -> void
+                               | () -> Enumerator[node, void]
+    end
+  end
+end

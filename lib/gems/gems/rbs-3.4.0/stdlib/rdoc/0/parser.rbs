@@ -1,0 +1,56 @@
+%a{annotate:rdoc:skip}
+module RDoc
+  # <!-- rdoc-file=lib/rdoc/parser.rb -->
+  # A parser is simple a class that subclasses RDoc::Parser and implements #scan
+  # to fill in an RDoc::TopLevel with parsed data.
+  #
+  # The initialize method takes an RDoc::TopLevel to fill with parsed content, the
+  # name of the file to be parsed, the content of the file, an RDoc::Options
+  # object and an RDoc::Stats object to inform the user of parsed items.  The scan
+  # method is then called to parse the file and must return the RDoc::TopLevel
+  # object.  By calling super these items will be set for you.
+  #
+  # In order to be used by RDoc the parser needs to register the file extensions
+  # it can parse.  Use ::parse_files_matching to register extensions.
+  #
+  #     require 'rdoc'
+  #
+  #     class RDoc::Parser::Xyz < RDoc::Parser
+  #       parse_files_matching /\.xyz$/
+  #
+  #       def initialize top_level, file_name, content, options, stats
+  #         super
+  #
+  #         # extra initialization if needed
+  #       end
+  #
+  #       def scan
+  #         # parse file and fill in @top_level
+  #       end
+  #     end
+  #
+  class Parser
+    # <!--
+    #   rdoc-file=lib/rdoc/parser.rb
+    #   - parse_files_matching(regexp)
+    # -->
+    # Record which file types this parser can understand.
+    #
+    # It is ok to call this multiple times.
+    #
+    def self?.parse_files_matching: (Regexp path) -> void
+
+    # <!--
+    #   rdoc-file=lib/rdoc/parser.rb
+    #   - new(top_level, file_name, content, options, stats)
+    # -->
+    # Creates a new Parser storing `top_level`, `file_name`, `content`, `options`
+    # and `stats` in instance variables.  In +@preprocess+ an
+    # RDoc::Markup::PreProcess object is created which allows processing of
+    # directives.
+    #
+    def initialize: (RDoc::TopLevel top_level, String filename, String content, Hash[untyped, untyped] options, RDoc::Stats stats) -> void
+
+    def scan: () -> RDoc::TopLevel
+  end
+end

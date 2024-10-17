@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+# it's already fixed in
+# https://github.com/ruby/syntax_suggest/commit/88d3522da066f0b7e7eec9ea3cffafb0050b370a
+begin
+  require_relative "../lib/syntax_suggest/api"
+rescue LoadError
+  # for default gems
+  require "syntax_suggest/api"
+end
+
+SyntaxSuggest::Cli.new(
+  argv: ARGV
+).call

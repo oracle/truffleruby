@@ -43,6 +43,13 @@ module Bundler
         end
       end
 
+      class AmbiguousGitReference < GitError
+        def initialize(options)
+          msg = "Specification of branch or ref with tag is ambiguous. You specified #{options.inspect}"
+          super msg
+        end
+      end
+
       # The GitProxy is responsible to interact with git repositories.
       # All actions required by the Git source is encapsulated in this
       # object.
@@ -53,10 +60,15 @@ module Bundler
         def initialize(path, uri, options = {}, revision = nil, git = nil)
           @path     = path
           @uri      = uri
-          @branch   = options["branch"]
           @tag      = options["tag"]
+          @branch   = options["branch"]
           @ref      = options["ref"]
-          @explicit_ref = branch || tag || ref
+          if @tag
+            raise AmbiguousGitReference.new(options) if @branch || @ref
+            @explicit_ref = @tag
+          else
+            @explicit_ref = @ref || @branch
+          end
           @revision = revision
           @git      = git
           @commit_ref = nil
@@ -68,14 +80,14 @@ module Bundler
 
         def current_branch
           @current_branch ||= with_path do
-            git_local("rev-parse", "--abbrev-ref", "HEAD", :dir => path).strip
+            git_local("rev-parse", "--abbrev-ref", "HEAD", dir: path).strip
           end
         end
 
         def contains?(commit)
           allowed_with_path do
-            result, status = git_null("branch", "--contains", commit, :dir => path)
-            status.success? && result =~ /^\* (.*)$/
+            result, status = git_null("branch", "--contains", commit, dir: path)
+            status.success? && result.match?(/^\* (.*)$/)
           end
         end
 
@@ -118,15 +130,20 @@ module Bundler
             end
           end
 
-          git "fetch", "--force", "--quiet", *extra_fetch_args, :dir => destination if @commit_ref
+          ref = @commit_ref || (locked_to_full_sha? && @revision)
+          if ref
+            git "config", "uploadpack.allowAnySHA1InWant", "true", dir: path.to_s if @commit_ref.nil? && needs_allow_any_sha1_in_want?
 
-          git "reset", "--hard", @revision, :dir => destination
+            git "fetch", "--force", "--quiet", *extra_fetch_args(ref), dir: destination
+          end
+
+          git "reset", "--hard", @revision, dir: destination
 
           if submodules
-            git_retry "submodule", "update", "--init", "--recursive", :dir => destination
+            git_retry "submodule", "update", "--init", "--recursive", dir: destination
           elsif Gem::Version.create(version) >= Gem::Version.create("2.9.0")
             inner_command = "git -C $toplevel submodule deinit --force $sm_path"
-            git_retry "submodule", "foreach", "--quiet", inner_command, :dir => destination
+            git_retry "submodule", "foreach", "--quiet", inner_command, dir: destination
           end
         end
 
@@ -165,6 +182,14 @@ module Bundler
             if err.include?("Could not find remote branch")
               raise MissingGitRevisionError.new(command_with_no_credentials, nil, explicit_ref, credential_filtered_uri)
             else
+              idx = command.index("--depth")
+              if idx
+                command.delete_at(idx)
+                command.delete_at(idx)
+                command_with_no_credentials = check_allowed(command)
+
+                err += "Retrying without --depth argument."
+              end
               raise GitCommandError.new(command_with_no_credentials, path, err)
             end
           end
@@ -235,38 +260,46 @@ module Bundler
         end
 
         def pinned_to_full_sha?
-          ref =~ /\A\h{40}\z/
+          full_sha_revision?(ref)
+        end
+
+        def locked_to_full_sha?
+          full_sha_revision?(@revision)
+        end
+
+        def full_sha_revision?(ref)
+          ref&.match?(/\A\h{40}\z/)
         end
 
         def git_null(*command, dir: nil)
           check_allowed(command)
 
-          capture(command, dir, :ignore_err => true)
+          capture(command, dir, ignore_err: true)
         end
 
         def git_retry(*command, dir: nil)
           command_with_no_credentials = check_allowed(command)
 
           Bundler::Retry.new("`#{command_with_no_credentials}` at #{dir || SharedHelpers.pwd}").attempts do
-            git(*command, :dir => dir)
+            git(*command, dir: dir)
           end
         end
 
         def git(*command, dir: nil)
-          run_command(*command, :dir => dir) do |unredacted_command|
+          run_command(*command, dir: dir) do |unredacted_command|
             check_allowed(unredacted_command)
           end
         end
 
         def git_local(*command, dir: nil)
-          run_command(*command, :dir => dir) do |unredacted_command|
+          run_command(*command, dir: dir) do |unredacted_command|
             redact_and_check_presence(unredacted_command)
           end
         end
 
         def has_revision_cached?
           return unless @revision && path.exist?
-          git("cat-file", "-e", @revision, :dir => path)
+          git("cat-file", "-e", @revision, dir: path)
           true
         rescue GitError
           false
@@ -289,13 +322,13 @@ module Bundler
         end
 
         def verify(reference)
-          git("rev-parse", "--verify", reference, :dir => path).strip
+          git("rev-parse", "--verify", reference, dir: path).strip
         end
 
         # Adds credentials to the URI
         def configured_uri
           if /https?:/.match?(uri)
-            remote = Bundler::URI(uri)
+            remote = Gem::URI(uri)
             config_auth = Bundler.settings[remote.to_s] || Bundler.settings[remote.host]
             remote.userinfo ||= config_auth
             remote.to_s
@@ -373,7 +406,7 @@ module Bundler
           if Bundler.feature_flag.bundler_3_mode? || supports_minus_c?
             ["git", "-C", dir.to_s, *cmd]
           else
-            ["git", *cmd, { :chdir => dir.to_s }]
+            ["git", *cmd, { chdir: dir.to_s }]
           end
         end
 
@@ -399,9 +432,9 @@ module Bundler
           ["--depth", depth.to_s]
         end
 
-        def extra_fetch_args
+        def extra_fetch_args(ref)
           extra_args = [path.to_s, *depth_args]
-          extra_args.push(@commit_ref)
+          extra_args.push(ref)
           extra_args
         end
 
@@ -411,6 +444,10 @@ module Bundler
 
         def supports_minus_c?
           @supports_minus_c ||= Gem::Version.new(version) >= Gem::Version.new("1.8.5")
+        end
+
+        def needs_allow_any_sha1_in_want?
+          @needs_allow_any_sha1_in_want ||= Gem::Version.new(version) <= Gem::Version.new("2.13.7")
         end
 
         def supports_fetching_unreachable_refs?

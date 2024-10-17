@@ -1,2 +1,6 @@
-exclude :test_register, "undefined symbol: rb_gc_start"
-exclude :test_register_in_c_thread, "undefined symbol: rb_postponed_job_register_one"
+exclude :test_legacy_register, "pid 32827 killed by SIGABRT (signal 6)"
+exclude :test_legacy_register_in_c_thread, "pid 32828 killed by SIGABRT (signal 6)"
+exclude :test_legacy_register_one_same, "pid 32832 killed by SIGABRT (signal 6)"
+exclude :test_multiple_preregistration, "pid 32834 killed by SIGABRT (signal 6)"
+exclude :test_multiple_preregistration_with_new_data, "pid 32835 killed by SIGABRT (signal 6)"
+exclude :test_preregister_and_trigger, "pid 32837 killed by SIGABRT (signal 6)"

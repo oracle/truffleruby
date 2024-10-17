@@ -3,6 +3,7 @@
 require_relative "helper"
 require_relative "multifactor_auth_utilities"
 require "rubygems/commands/push_command"
+require "rubygems/config_file"
 
 class TestGemCommandsPushCommand < Gem::TestCase
   def setup
@@ -57,9 +58,9 @@ class TestGemCommandsPushCommand < Gem::TestCase
       @cmd.send_gem(@path)
     end
 
-    assert_match %r{Pushing gem to #{@host}...}, @ui.output
+    assert_match(/Pushing gem to #{@host}.../, @ui.output)
 
-    assert_equal Net::HTTP::Post, @fetcher.last_request.class
+    assert_equal Gem::Net::HTTP::Post, @fetcher.last_request.class
     assert_equal Gem.read_binary(@path), @fetcher.last_request.body
     assert_equal File.size(@path), @fetcher.last_request["Content-Length"].to_i
     assert_equal "application/octet-stream", @fetcher.last_request["Content-Type"]
@@ -76,7 +77,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
 
     @cmd.execute
 
-    assert_equal Net::HTTP::Post, @fetcher.last_request.class
+    assert_equal Gem::Net::HTTP::Post, @fetcher.last_request.class
     assert_equal Gem.read_binary(@path), @fetcher.last_request.body
     assert_equal "application/octet-stream",
                  @fetcher.last_request["Content-Type"]
@@ -95,7 +96,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
 
     @cmd.execute
 
-    assert_equal Net::HTTP::Post, @fetcher.last_request.class
+    assert_equal Gem::Net::HTTP::Post, @fetcher.last_request.class
     assert_equal Gem.read_binary(@path), @fetcher.last_request.body
     assert_equal "application/octet-stream",
                  @fetcher.last_request["Content-Type"]
@@ -107,7 +108,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     end
 
     @response = "Successfully registered gem: freewill (1.0.0)"
-    @fetcher.data["#{@spec.metadata['allowed_push_host']}/api/v1/gems"] = HTTPResponseFactory.create(body: @response, code: 200, msg: "OK")
+    @fetcher.data["#{@spec.metadata["allowed_push_host"]}/api/v1/gems"] = HTTPResponseFactory.create(body: @response, code: 200, msg: "OK")
     @fetcher.data["#{Gem.host}/api/v1/gems"] =
       ["fail", 500, "Internal Server Error"]
 
@@ -115,7 +116,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
 
     @cmd.execute
 
-    assert_equal Net::HTTP::Post, @fetcher.last_request.class
+    assert_equal Gem::Net::HTTP::Post, @fetcher.last_request.class
     assert_equal Gem.read_binary(@path), @fetcher.last_request.body
     assert_equal "application/octet-stream",
                  @fetcher.last_request["Content-Type"]
@@ -158,7 +159,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     }
 
     File.open Gem.configuration.credentials_path, "w" do |f|
-      f.write keys.to_yaml
+      f.write Gem::ConfigFile.dump_with_rubygems_yaml(keys)
     end
     Gem.configuration.load_api_keys
 
@@ -192,7 +193,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     }
 
     File.open Gem.configuration.credentials_path, "w" do |f|
-      f.write keys.to_yaml
+      f.write Gem::ConfigFile.dump_with_rubygems_yaml(keys)
     end
     Gem.configuration.load_api_keys
 
@@ -229,11 +230,11 @@ class TestGemCommandsPushCommand < Gem::TestCase
     @api_key = "DOESNTMATTER"
 
     keys = {
-      :rubygems_api_key => @api_key,
+      rubygems_api_key: @api_key,
     }
 
     File.open Gem.configuration.credentials_path, "w" do |f|
-      f.write keys.to_yaml
+      f.write Gem::ConfigFile.dump_with_rubygems_yaml(keys)
     end
     Gem.configuration.load_api_keys
 
@@ -274,7 +275,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     }
 
     File.open Gem.configuration.credentials_path, "w" do |f|
-      f.write keys.to_yaml
+      f.write Gem::ConfigFile.dump_with_rubygems_yaml(keys)
     end
     Gem.configuration.load_api_keys
 
@@ -304,7 +305,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     }
 
     File.open Gem.configuration.credentials_path, "w" do |f|
-      f.write keys.to_yaml
+      f.write Gem::ConfigFile.dump_with_rubygems_yaml(keys)
     end
     Gem.configuration.load_api_keys
 
@@ -316,9 +317,9 @@ class TestGemCommandsPushCommand < Gem::TestCase
     # do not set @host
     use_ui(@ui) { @cmd.send_gem(@path) }
 
-    assert_match %r{Pushing gem to #{host}...}, @ui.output
+    assert_match(/Pushing gem to #{host}.../, @ui.output)
 
-    assert_equal Net::HTTP::Post, @fetcher.last_request.class
+    assert_equal Gem::Net::HTTP::Post, @fetcher.last_request.class
     assert_equal Gem.read_binary(@path), @fetcher.last_request.body
     assert_equal File.size(@path), @fetcher.last_request["Content-Length"].to_i
     assert_equal "application/octet-stream", @fetcher.last_request["Content-Type"]
@@ -546,7 +547,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     access_notice = "The existing key doesn't have access of push_rubygem on https://rubygems.example. Please sign in to update access."
     assert_match mfa_notice, @ui.output
     assert_match access_notice, @ui.output
-    assert_match "Email:", @ui.output
+    assert_match "Username/email:", @ui.output
     assert_match "Password:", @ui.output
     assert_match "Added push_rubygem scope to the existing API key", @ui.output
     assert_match response_success, @ui.output
@@ -587,7 +588,7 @@ class TestGemCommandsPushCommand < Gem::TestCase
     mfa_notice = "You have enabled multi-factor authentication. Please enter OTP code."
     assert_match mfa_notice, @ui.output
     assert_match "Enter your https://rubygems.example credentials.", @ui.output
-    assert_match "Email:", @ui.output
+    assert_match "Username/email:", @ui.output
     assert_match "Password:", @ui.output
     assert_match "Signed in with API key:", @ui.output
     assert_match response_success, @ui.output

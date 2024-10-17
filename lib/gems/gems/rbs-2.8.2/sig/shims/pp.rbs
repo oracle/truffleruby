@@ -1,3 +1,0 @@
-class PP
-  def self.pp: (untyped obj, IO out, ?Integer width) -> void
-end
