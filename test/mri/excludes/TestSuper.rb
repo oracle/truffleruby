@@ -1,6 +1,6 @@
 exclude :test_define_method, "[RuntimeError] exception expected, not #<NoMethodError: super: no superclass method `a'>."
-exclude :test_double_include, "SystemStackError: stack level too deep"
-exclude :test_double_include2, "SystemStackError: stack level too deep"
+exclude :test_double_include, "<no message> (java.lang.IndexOutOfBoundsException) from com.oracle.svm.core.jni.functions.JNIFunctions$NewObjectWithObjectArrayArgFunctionPointer.invoke(JNIFunctions.java:-1)"
+exclude :test_double_include2, "<no message> (java.lang.IndexOutOfBoundsException) from com.oracle.svm.core.jni.functions.JNIFunctions$NewObjectWithObjectArrayArgFunctionPointer.invoke(JNIFunctions.java:-1)"
 exclude :test_super_in_instance_eval, "Exception(TypeError) with message matches to /Sub\\u{30af 30e9 30b9}/."
 exclude :test_super_in_instance_eval_in_module, "Exception(TypeError) with message matches to /Sub\\u{30af 30e9 30b9}/."
 exclude :test_super_in_instance_eval_with_define_method, "Exception(TypeError) with message matches to /Sub\\u{30af 30e9 30b9}/."

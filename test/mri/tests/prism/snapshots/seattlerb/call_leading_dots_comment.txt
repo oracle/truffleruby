@@ -1,16 +1,18 @@
 @ ProgramNode (location: (1,0)-(4,2))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(4,2))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(4,2))
-            ├── flags: ∅
+            ├── flags: newline
             ├── receiver:
             │   @ CallNode (location: (1,0)-(2,2))
             │   ├── flags: ∅
             │   ├── receiver:
             │   │   @ CallNode (location: (1,0)-(1,1))
-            │   │   ├── flags: variable_call
+            │   │   ├── flags: variable_call, ignore_visibility
             │   │   ├── receiver: ∅
             │   │   ├── call_operator_loc: ∅
             │   │   ├── name: :a

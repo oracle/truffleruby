@@ -1,3 +1,3 @@
-exclude :test_module, "dyld: missing symbol called"
-exclude :test_module_extended, "dyld: missing symbol called"
-exclude :test_store_equals, "dyld: missing symbol called"
+exclude :test_module, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"
+exclude :test_module_extended, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"
+exclude :test_store_equals, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"

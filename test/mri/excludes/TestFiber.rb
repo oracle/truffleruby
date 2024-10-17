@@ -1,8 +1,5 @@
 exclude :test_fatal_in_fiber, "| <internal:core> core/kernel.rb:269:in `require': cannot load such file -- -test-/fatal/rb_fatal (LoadError)"
-exclude :test_fiber_transfer_segv, "RubyVM-specific"
-exclude :test_gc_root_fiber, "RubyVM-specific"
 exclude :test_machine_stack_gc, "spurious"
 exclude :test_many_fibers, "OOM"
 exclude :test_no_valid_cfp, "transient; Caused by: java.lang.AssertionError: null element in Object[] at index 0: [null]"
 exclude :test_raise, "transient; <no message> (java.lang.AssertionError) from org.truffleruby.core.fiber.FiberManager.transferControlTo(FiberManager.java:289)"
-exclude :test_stack_size, "RubyVM-specific"

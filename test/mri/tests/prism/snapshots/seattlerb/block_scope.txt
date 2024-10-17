@@ -1,10 +1,12 @@
 @ ProgramNode (location: (1,0)-(1,10))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(1,10))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(1,10))
-            ├── flags: ∅
+            ├── flags: newline, ignore_visibility
             ├── receiver: ∅
             ├── call_operator_loc: ∅
             ├── name: :a
@@ -14,13 +16,15 @@
             ├── closing_loc: ∅
             └── block:
                 @ BlockNode (location: (1,2)-(1,10))
+                ├── flags: ∅
                 ├── locals: [:b]
-                ├── locals_body_index: 1
                 ├── parameters:
                 │   @ BlockParametersNode (location: (1,4)-(1,8))
+                │   ├── flags: ∅
                 │   ├── parameters: ∅
                 │   ├── locals: (length: 1)
                 │   │   └── @ BlockLocalVariableNode (location: (1,6)-(1,7))
+                │   │       ├── flags: ∅
                 │   │       └── name: :b
                 │   ├── opening_loc: (1,4)-(1,5) = "|"
                 │   └── closing_loc: (1,7)-(1,8) = "|"

@@ -1,18 +1,23 @@
 @ ProgramNode (location: (1,0)-(12,3))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(12,3))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ IfNode (location: (1,0)-(12,3))
+            ├── flags: newline
             ├── if_keyword_loc: (1,0)-(1,2) = "if"
             ├── predicate:
             │   @ TrueNode (location: (1,3)-(1,7))
+            │   └── flags: static_literal
             ├── then_keyword_loc: ∅
             ├── statements:
             │   @ StatementsNode (location: (2,2)-(11,11))
+            │   ├── flags: ∅
             │   └── body: (length: 10)
             │       ├── @ CallNode (location: (2,2)-(2,5))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline, ignore_visibility
             │       │   ├── receiver: ∅
             │       │   ├── call_operator_loc: ∅
             │       │   ├── name: :p
@@ -23,14 +28,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 1)
             │       │   │       └── @ IntegerNode (location: (2,4)-(2,5))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 1
             │       │   ├── closing_loc: ∅
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (3,2)-(3,7))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (3,2)-(3,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :a
@@ -48,14 +54,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 1)
             │       │   │       └── @ IntegerNode (location: (3,6)-(3,7))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 2
             │       │   ├── closing_loc: ∅
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (4,2)-(4,10))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (4,2)-(4,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :c
@@ -73,16 +80,18 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 2)
             │       │   │       ├── @ IntegerNode (location: (4,6)-(4,7))
-            │       │   │       │   └── flags: decimal
+            │       │   │       │   ├── flags: static_literal, decimal
+            │       │   │       │   └── value: 3
             │       │   │       └── @ IntegerNode (location: (4,9)-(4,10))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 4
             │       │   ├── closing_loc: ∅
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (5,2)-(5,7))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (5,2)-(5,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :e
@@ -100,14 +109,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 1)
             │       │   │       └── @ IntegerNode (location: (5,6)-(5,7))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 5
             │       │   ├── closing_loc: ∅
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (6,2)-(6,10))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (6,2)-(6,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :g
@@ -125,13 +135,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 2)
             │       │   │       ├── @ IntegerNode (location: (6,6)-(6,7))
-            │       │   │       │   └── flags: decimal
+            │       │   │       │   ├── flags: static_literal, decimal
+            │       │   │       │   └── value: 6
             │       │   │       └── @ IntegerNode (location: (6,9)-(6,10))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 7
             │       │   ├── closing_loc: ∅
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (7,2)-(7,6))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline, ignore_visibility
             │       │   ├── receiver: ∅
             │       │   ├── call_operator_loc: ∅
             │       │   ├── name: :p
@@ -142,14 +154,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 1)
             │       │   │       └── @ IntegerNode (location: (7,4)-(7,5))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 1
             │       │   ├── closing_loc: (7,5)-(7,6) = ")"
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (8,2)-(8,8))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (8,2)-(8,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :a
@@ -167,14 +180,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 1)
             │       │   │       └── @ IntegerNode (location: (8,6)-(8,7))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 2
             │       │   ├── closing_loc: (8,7)-(8,8) = ")"
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (9,2)-(9,11))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (9,2)-(9,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :c
@@ -192,16 +206,18 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 2)
             │       │   │       ├── @ IntegerNode (location: (9,6)-(9,7))
-            │       │   │       │   └── flags: decimal
+            │       │   │       │   ├── flags: static_literal, decimal
+            │       │   │       │   └── value: 3
             │       │   │       └── @ IntegerNode (location: (9,9)-(9,10))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 4
             │       │   ├── closing_loc: (9,10)-(9,11) = ")"
             │       │   └── block: ∅
             │       ├── @ CallNode (location: (10,2)-(10,8))
-            │       │   ├── flags: ∅
+            │       │   ├── flags: newline
             │       │   ├── receiver:
             │       │   │   @ CallNode (location: (10,2)-(10,3))
-            │       │   │   ├── flags: variable_call
+            │       │   │   ├── flags: variable_call, ignore_visibility
             │       │   │   ├── receiver: ∅
             │       │   │   ├── call_operator_loc: ∅
             │       │   │   ├── name: :e
@@ -219,14 +235,15 @@
             │       │   │   ├── flags: ∅
             │       │   │   └── arguments: (length: 1)
             │       │   │       └── @ IntegerNode (location: (10,6)-(10,7))
-            │       │   │           └── flags: decimal
+            │       │   │           ├── flags: static_literal, decimal
+            │       │   │           └── value: 5
             │       │   ├── closing_loc: (10,7)-(10,8) = ")"
             │       │   └── block: ∅
             │       └── @ CallNode (location: (11,2)-(11,11))
-            │           ├── flags: ∅
+            │           ├── flags: newline
             │           ├── receiver:
             │           │   @ CallNode (location: (11,2)-(11,3))
-            │           │   ├── flags: variable_call
+            │           │   ├── flags: variable_call, ignore_visibility
             │           │   ├── receiver: ∅
             │           │   ├── call_operator_loc: ∅
             │           │   ├── name: :g
@@ -244,10 +261,12 @@
             │           │   ├── flags: ∅
             │           │   └── arguments: (length: 2)
             │           │       ├── @ IntegerNode (location: (11,6)-(11,7))
-            │           │       │   └── flags: decimal
+            │           │       │   ├── flags: static_literal, decimal
+            │           │       │   └── value: 6
             │           │       └── @ IntegerNode (location: (11,9)-(11,10))
-            │           │           └── flags: decimal
+            │           │           ├── flags: static_literal, decimal
+            │           │           └── value: 7
             │           ├── closing_loc: (11,10)-(11,11) = ")"
             │           └── block: ∅
-            ├── consequent: ∅
+            ├── subsequent: ∅
             └── end_keyword_loc: (12,0)-(12,3) = "end"

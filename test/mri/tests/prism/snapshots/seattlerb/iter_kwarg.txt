@@ -1,10 +1,12 @@
 @ ProgramNode (location: (1,0)-(1,12))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(1,12))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(1,12))
-            ├── flags: ∅
+            ├── flags: newline, ignore_visibility
             ├── receiver: ∅
             ├── call_operator_loc: ∅
             ├── name: :a
@@ -14,23 +16,27 @@
             ├── closing_loc: ∅
             └── block:
                 @ BlockNode (location: (1,2)-(1,12))
+                ├── flags: ∅
                 ├── locals: [:b]
-                ├── locals_body_index: 1
                 ├── parameters:
                 │   @ BlockParametersNode (location: (1,4)-(1,10))
+                │   ├── flags: ∅
                 │   ├── parameters:
                 │   │   @ ParametersNode (location: (1,5)-(1,9))
+                │   │   ├── flags: ∅
                 │   │   ├── requireds: (length: 0)
                 │   │   ├── optionals: (length: 0)
                 │   │   ├── rest: ∅
                 │   │   ├── posts: (length: 0)
                 │   │   ├── keywords: (length: 1)
                 │   │   │   └── @ OptionalKeywordParameterNode (location: (1,5)-(1,9))
+                │   │   │       ├── flags: ∅
                 │   │   │       ├── name: :b
                 │   │   │       ├── name_loc: (1,5)-(1,7) = "b:"
                 │   │   │       └── value:
                 │   │   │           @ IntegerNode (location: (1,8)-(1,9))
-                │   │   │           └── flags: decimal
+                │   │   │           ├── flags: static_literal, decimal
+                │   │   │           └── value: 1
                 │   │   ├── keyword_rest: ∅
                 │   │   └── block: ∅
                 │   ├── locals: (length: 0)

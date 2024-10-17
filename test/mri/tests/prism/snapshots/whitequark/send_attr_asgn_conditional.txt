@@ -1,13 +1,15 @@
 @ ProgramNode (location: (1,0)-(1,8))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(1,8))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(1,8))
-            ├── flags: safe_navigation, attribute_write
+            ├── flags: newline, safe_navigation, attribute_write
             ├── receiver:
             │   @ CallNode (location: (1,0)-(1,1))
-            │   ├── flags: variable_call
+            │   ├── flags: variable_call, ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :a
@@ -25,6 +27,7 @@
             │   ├── flags: ∅
             │   └── arguments: (length: 1)
             │       └── @ IntegerNode (location: (1,7)-(1,8))
-            │           └── flags: decimal
+            │           ├── flags: static_literal, decimal
+            │           └── value: 1
             ├── closing_loc: ∅
             └── block: ∅
