@@ -1460,7 +1460,7 @@ class TestM17N < Test::Unit::TestCase
     # assert_regexp_usascii_literal('/\u1234#{%q"\x80"}/', nil, SyntaxError) # edge case failing since Prism translator
     assert_regexp_usascii_literal('/\u1234#{"\x80"}/', nil, SyntaxError)
     assert_regexp_usascii_literal('/\u1234\x80/', nil, SyntaxError)
-    # assert_regexp_usascii_literal('/\u1234#{ }\x80/', nil, RegexpError) # Prism detects this at parse time and a SyntaxError, vs CRuby a RegexpError at runtime
+    assert_regexp_usascii_literal('/\u1234#{ }\x80/', nil, RegexpError)
   end
 
   def test_gbk
@@ -1468,9 +1468,9 @@ class TestM17N < Test::Unit::TestCase
   end
 
   # GR-39354
-  # def test_euc_tw
-  #   assert_equal("a", "a\x8e\xa2\xa1\xa1".force_encoding("euc-tw").chop)
-  # end
+  def test_euc_tw
+    assert_equal("a", "a\x8e\xa2\xa1\xa1".force_encoding("euc-tw").chop)
+  end
 
   def test_valid_encoding
     s = "\xa1".force_encoding("euc-jp")

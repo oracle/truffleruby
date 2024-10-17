@@ -1161,8 +1161,7 @@ END
       end
     end
 
-    bug18890 = self.then do # TruffleRuby: keep the test but do not check the warning
-      # bug18890 = assert_warning(/(?:.*:[47]: warning: possibly useless use of a literal in void context\n){2}/) do
+    bug18890 = assert_warning(/(?:.*:[47]: warning: possibly useless use of a literal in void context\n){2}/) do
       eval("#{<<~';;;'}")
       proc do |i|
         case i
@@ -1248,13 +1247,13 @@ END
       case _
       in "#{a}": a
       end
-    }, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
+    }, /symbol literal with interpolation is not allowed/)
 
     assert_syntax_error(%q{
       case _
       in "#{a}":
       end
-    }, /symbol literal with interpolation is not allowed|expected a label as the key in the hash pattern/)
+    }, /symbol literal with interpolation is not allowed/)
   end
 
   def test_paren
