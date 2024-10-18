@@ -41,7 +41,6 @@ import org.truffleruby.language.control.TerminationException;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 /** Helps managing Ruby {@code Fiber} objects. Only one per {@link RubyContext}. */
@@ -56,14 +55,6 @@ public final class FiberManager {
     public FiberManager(RubyLanguage language, RubyContext context) {
         this.language = language;
         this.context = context;
-    }
-
-    public void initialize(RubyFiber fiber, boolean blocking, RubyProc block, Node currentNode) {
-        final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-        fiber.sourceLocation = context.fileLine(sourceSection);
-        fiber.body = block;
-        fiber.initializeNode = currentNode;
-        fiber.blocking = blocking;
     }
 
     private void createThreadToReceiveFirstMessage(RubyFiber fiber, Node currentNode) {
@@ -347,8 +338,10 @@ public final class FiberManager {
 
         final RubyThread rubyThread = fiber.rubyThread;
 
-        // share RubyFiber as its fiberLocals might be accessed by other threads with Thread#[]
-        SharedObjects.propagate(language, rubyThread, fiber);
+        // The RubyFiber has been shared in RubyFiber#initialize,
+        // or by ThreadManager#startSharing for the root Fiber of a RubyThread.
+        assert !SharedObjects.isShared(rubyThread) || SharedObjects.isShared(fiber);
+
         rubyThread.runningFibers.add(fiber);
     }
 

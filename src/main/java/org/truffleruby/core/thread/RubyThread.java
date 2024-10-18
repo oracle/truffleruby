@@ -147,6 +147,7 @@ public final class RubyThread extends RubyDynamicObject implements ObjectGraphNo
         ObjectGraph.addProperty(reachable, threadLocalVariables);
         ObjectGraph.addProperty(reachable, name);
         // share fibers of a thread as its fiberLocals might be accessed by other threads with Thread#[]
+        reachable.add(rootFiber);
         reachable.addAll(runningFibers);
     }
 

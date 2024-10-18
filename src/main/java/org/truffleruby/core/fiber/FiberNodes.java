@@ -121,7 +121,7 @@ public abstract class FiberNodes {
                         coreExceptions().securityError("fibers not allowed with allowCreateThread(false)", this));
             }
 
-            getContext().fiberManager.initialize(fiber, blocking, block, this);
+            fiber.initialize(getLanguage(), getContext(), blocking, block, this);
             return nil;
         }
 
