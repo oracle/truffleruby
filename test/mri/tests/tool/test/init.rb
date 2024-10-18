@@ -6,11 +6,7 @@ ENV.delete("RUBY_CODESIGN")
 
 Warning[:experimental] = false
 
-if defined? ::TruffleRuby
-  $LOAD_PATH.unshift File.expand_path("../../lib", __dir__)
-else
-  $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
-end
+$LOAD_PATH.unshift File.expand_path("../../lib", __dir__)
 
 require 'test/unit'
 
