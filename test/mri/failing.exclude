@@ -1,8 +1,11 @@
 # Explicitly unsupported
 
-ruby/test_ast.rb
+ruby/test_ast.rb # tests RubyVM::AbstractSyntaxTree
+ruby/test_compile_prism.rb # tests RubyVM::InstructionSequence
+ruby/test_iseq.rb # tests RubyVM::InstructionSequence
 ruby/test_mjit.rb
 ruby/test_mjit_debug.rb
+ruby/test_rubyvm.rb # tests RubyVM
 dbm/test_dbm.rb
 gdbm/test_gdbm.rb
 test_pty.rb
@@ -75,6 +78,4 @@ dtrace/test_singleton_function.rb
 dtrace/test_string.rb
 misc/test_ruby_mode.rb
 ruby/enc/test_windows_1251.rb
-ruby/test_iseq.rb # RubyVM
-ruby/test_rubyvm.rb
 ruby/test_bignum.rb # relies on Bignums on Fixnum range

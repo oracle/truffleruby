@@ -1,4 +1,9 @@
 # frozen_string_literal: true
+
+# TruffleRuby: require tsort explicitly to fix #test_documentation_page_page
+# and #test_documentation_page_page_with_nesting tests
+require 'tsort'
+
 require_relative 'helper'
 begin
   require 'webrick'

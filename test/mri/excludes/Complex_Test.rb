@@ -1,6 +1,6 @@
 exclude :test_Complex_with_invalid_exception, "ArgumentError expected but nothing was raised."
 exclude :test_Complex_without_exception, "RuntimeError: "
-exclude :test_add_with_redefining_int_plus, "| <internal:core> core/truffle/ffi/pointer.rb:145:in `check_bounds': Memory access offset=0 size=5 is out of bounds (IndexError)"
+exclude :test_add_with_redefining_int_plus, "very slow: 1645.20s on truffleruby 24.2.0-dev-76574fc8*, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
 exclude :test_canonicalize_internal, "NoMethodError: undefined method `+' for #<#<Class:0x538>:0x558 @real=false>"
 exclude :test_coerce2, "<=>."
 exclude :test_compsub, "Expected (1+0i) to be an instance of ComplexSub, not Complex."
