@@ -463,6 +463,18 @@ describe "Sharing is correctly propagated for" do
     end.join
   end
 
+  it "Fiber which refers to an Array via instance variables" do
+    a = [Object.new]
+    f = Fiber.new { 42 }
+    shared?(f).should == true
+
+    f.instance_variable_set(:@a, a)
+    shared?(a).should == true
+    shared?(a[0]).should == true
+
+    f.resume.should == 42
+  end
+
   it "Thread local variables which share the value (probably they should not)" do
     thread = Thread.current
     shared?(thread).should == true

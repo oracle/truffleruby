@@ -17,6 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -36,6 +37,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import static org.truffleruby.language.RubyBaseNode.nil;
 
@@ -129,6 +131,18 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
         this.sourceLocation = sourceLocation;
         extensionCallStack = new MarkingService.ExtensionCallStack(null, Nil.INSTANCE);
         handleData = new ValueWrapperManager.HandleBlockHolder();
+    }
+
+    public void initialize(RubyLanguage language, RubyContext context, boolean blocking, RubyProc block,
+            Node currentNode) {
+        final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
+        this.sourceLocation = context.fileLine(sourceSection);
+        this.body = block;
+        this.initializeNode = currentNode;
+        this.blocking = blocking;
+
+        // share RubyFiber as its fiberLocals might be accessed by other threads with Thread#[]
+        SharedObjects.propagate(language, this.rubyThread, this);
     }
 
     public boolean isRootFiber() {
