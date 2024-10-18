@@ -23,6 +23,15 @@ There are 2 variants of TruffleRuby and GraalVM:
 
 Oracle GraalVM is the GraalVM distribution from Oracle available under the [GraalVM Free Terms and Conditions](https://medium.com/graalvm/161527df3d76).
 
+### Advantages of TruffleRuby on Oracle GraalVM
+
+Oracle GraalVM includes all features of GraalVM Community Edition and provides advanced features such as:
+* Additional Graal JIT compiler optimizations, including [better inlining](https://www.graalvm.org/latest/reference-manual/embed-languages/#explanations) and extra compiler passes;
+* Additional Native Image features, including the [G1 garbage collector, compressed pointers](https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/MemoryManagement/), [profile-guided optimization](https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/), and [Software Bill of Materials](https://www.graalvm.org/latest/security-guide/native-image/#software-bill-of-materials);
+* Additional Truffle features, including [sandboxing, polyglot isolates, resource limits](https://www.graalvm.org/latest/security-guide/sandboxing/), [Auxiliary Engine Caching](https://www.graalvm.org/latest/graalvm-as-a-platform/language-implementation-framework/AuxiliaryEngineCachingEnterprise/), and a faster implementation of the Truffle Object Model.
+
+Thanks to these additional features, TruffleRuby runs [faster and more memory efficient](https://www.graalvm.org/ruby/) on Oracle GraalVM compared with GraalVM Community Edition.
+
 ## Download Links
 
 ### Native Standalone
