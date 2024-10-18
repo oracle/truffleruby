@@ -28,6 +28,7 @@ lineno=
 pid
 pos
 pos=
+pread
 putc
 read
 readlines

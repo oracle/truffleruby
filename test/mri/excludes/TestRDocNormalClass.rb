@@ -1,0 +1,5 @@
+exclude :test_ancestors, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"
+exclude :test_ancestors_multilevel, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"
+exclude :test_aref, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"
+exclude :test_definition, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"
+exclude :test_direct_ancestors, "undefined symbol: rb_parser_st_locale_insensitive_strncasecmp"

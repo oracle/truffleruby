@@ -68,3 +68,4 @@ slow:Default gems activation should activate a default gem uri by requiring uri
 slow:Default gems activation should activate a default gem weakref by requiring weakref
 slow:Default gems activation should activate a default gem yaml by requiring yaml
 slow:Default gems activation should activate a default gem zlib by requiring zlib
+slow:Default gems activation should activate a default gem prism by requiring prism

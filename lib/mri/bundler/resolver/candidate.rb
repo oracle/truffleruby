@@ -15,7 +15,7 @@ module Bundler
     # considered separately.
     #
     # Some candidates may also keep some information explicitly about the
-    # package the refer to. These candidates are referred to as "canonical" and
+    # package they refer to. These candidates are referred to as "canonical" and
     # are used when materializing resolution results back into RubyGems
     # specifications that can be installed, written to lock files, and so on.
     #
@@ -24,10 +24,10 @@ module Bundler
 
       attr_reader :version
 
-      def initialize(version, specs: [])
-        @spec_group = Resolver::SpecGroup.new(specs)
+      def initialize(version, group: nil, priority: -1)
+        @spec_group = group || SpecGroup.new([])
         @version = Gem::Version.new(version)
-        @ruby_only = specs.map(&:platform).uniq == [Gem::Platform::RUBY]
+        @priority = priority
       end
 
       def dependencies
@@ -40,18 +40,6 @@ module Bundler
         @spec_group.to_specs(package.force_ruby_platform?)
       end
 
-      def generic!
-        @ruby_only = true
-
-        self
-      end
-
-      def platform_specific!
-        @ruby_only = false
-
-        self
-      end
-
       def prerelease?
         @version.prerelease?
       end
@@ -61,7 +49,7 @@ module Bundler
       end
 
       def sort_obj
-        [@version, @ruby_only ? -1 : 1]
+        [@version, @priority]
       end
 
       def <=>(other)

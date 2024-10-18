@@ -84,12 +84,10 @@ sub
 sub_ext
 symlink?
 sysopen
-taint
 to_path
 to_s
 truncate
 unlink
-untaint
 utime
 world_readable?
 world_writable?

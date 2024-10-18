@@ -1606,18 +1606,35 @@ class TestRefinement < Test::Unit::TestCase
       end
 
       using R
+      def m
+        C.new.m
+      end
+
       assert_equal(:foo, C.new.m)
+      assert_equal(:foo, m)
 
       module R
         refine C do
+
+          assert_equal(:foo, C.new.m)
+          assert_equal(:foo, m)
+
           alias m m
+
+          assert_equal(:foo, C.new.m)
+          assert_equal(:foo, m)
+
           def m
             :bar
           end
+
+          assert_equal(:bar, C.new.m, "[ruby-core:71423] [Bug #11672]")
+          assert_equal(:bar, m, "[Bug #20285]")
         end
       end
 
       assert_equal(:bar, C.new.m, "[ruby-core:71423] [Bug #11672]")
+      assert_equal(:bar, m, "[Bug #20285]")
     end;
   end
 
@@ -1798,7 +1815,7 @@ class TestRefinement < Test::Unit::TestCase
     assert_equal([int_refinement, str_refinement], m.refinements)
   end
 
-  def test_refined_class
+  def test_target
     int_refinement = nil
     str_refinement = nil
     refinements = Module.new {
@@ -1810,8 +1827,14 @@ class TestRefinement < Test::Unit::TestCase
         str_refinement = self
       end
     }.refinements
-    assert_equal(Integer, int_refinement.refined_class)
-    assert_equal(String, str_refinement.refined_class)
+    assert_equal(Integer, int_refinement.target)
+    assert_warn(/Refinement#refined_class is deprecated and will be removed in Ruby 3.4; use Refinement#target instead/) do
+      assert_equal(Integer, int_refinement.refined_class)
+    end
+    assert_equal(String, str_refinement.target)
+    assert_warn(/Refinement#refined_class is deprecated and will be removed in Ruby 3.4; use Refinement#target instead/) do
+      assert_equal(String, str_refinement.refined_class)
+    end
   end
 
   def test_warn_setconst_in_refinmenet
@@ -2549,15 +2572,11 @@ class TestRefinement < Test::Unit::TestCase
   class Bug17822
     module Ext
       refine(Bug17822) do
-        def foo
-          :refined
-        end
+        def foo = :refined
       end
     end
 
-    private def foo
-      :not_refined
-    end
+    private(def foo = :not_refined)
 
     module Client
       using Ext
@@ -2632,6 +2651,46 @@ class TestRefinement < Test::Unit::TestCase
 
   def test_inherit_singleton_methods_of_module
     assert_equal([], Refinement.used_modules)
+  end
+
+  def test_inlinecache
+    assert_separately([], <<-"end;")
+      module R
+        refine String do
+          def to_s = :R
+        end
+      end
+
+      2.times{|i|
+        s = ''.to_s
+        assert_equal '', s if i == 0
+        assert_equal :R, s if i == 1
+        using R            if i == 0
+        assert_equal :R, ''.to_s
+      }
+    end;
+  end
+
+  def test_inline_cache_invalidation
+    klass = Class.new do
+      def cached_foo_callsite = foo
+
+      def foo = :v1
+
+      host = self
+      @refinement = Module.new do
+        refine(host) do
+          def foo = :unused
+        end
+      end
+    end
+
+    obj = klass.new
+    obj.cached_foo_callsite # prime cache
+    klass.class_eval do
+      def foo = :v2 # invalidate
+    end
+    assert_equal(:v2, obj.cached_foo_callsite)
   end
 
   private

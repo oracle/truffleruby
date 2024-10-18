@@ -73,6 +73,8 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
+#define HAVE_SYS_EPOLL_H 1
+#define HAVE_STDATOMIC_H 1
 #define __CHAR_UNSIGNED__ 1
 #define HAVE_TYPEOF 1
 #define restrict __restrict__
@@ -90,7 +92,8 @@
 #define SIZEOF_DOUBLE 8
 #define SIZEOF_TIME_T 8
 #define SIZEOF_CLOCK_T 8
-#define PACKED_STRUCT(x) x __attribute__((packed))
+#define RBIMPL_ATTR_PACKED_STRUCT_BEGIN()
+#define RBIMPL_ATTR_PACKED_STRUCT_END() __attribute__((packed))
 #define USE_UNALIGNED_MEMBER_ACCESS 1
 #define PRI_LL_PREFIX "ll"
 #define HAVE_PID_T 1
@@ -261,6 +264,7 @@
 #define HAVE__LONGJMP 1
 #define HAVE_ATAN2L 1
 #define HAVE_ATAN2F 1
+#define HAVE_DECL_ATOMIC_SIGNAL_FENCE 1
 #define HAVE_CHMOD 1
 #define HAVE_CHOWN 1
 #define HAVE_CHROOT 1
@@ -279,6 +283,7 @@
 #define HAVE_EXECLE 1
 #define HAVE_EXECV 1
 #define HAVE_EXECVE 1
+#define HAVE_FCHDIR 1
 #define HAVE_FCHMOD 1
 #define HAVE_FCHOWN 1
 #define HAVE_FCNTL 1
@@ -326,6 +331,7 @@
 #define HAVE_LSTAT 1
 #define HAVE_LUTIMES 1
 #define HAVE_MALLOC_USABLE_SIZE 1
+#define HAVE_MALLOC_TRIM 1
 #define HAVE_MBLEN 1
 #define HAVE_MEMALIGN 1
 #define HAVE_WRITEV 1
@@ -374,6 +380,7 @@
 #define HAVE_SIGALTSTACK 1
 #define HAVE_SIGPROCMASK 1
 #define HAVE_SINH 1
+#define HAVE_SNPRINTF 1
 #define HAVE_SYMLINK 1
 #define HAVE_SYSCALL 1
 #define HAVE_SYSCONF 1
@@ -415,6 +422,7 @@
 #define HAVE_BUILTIN___BUILTIN_TYPES_COMPATIBLE_P 1
 #define HAVE_BUILTIN___BUILTIN_TRAP 1
 #define HAVE_BUILTIN___BUILTIN_EXPECT 1
+#define USE___BUILTIN_MUL_OVERFLOW_LONG_LONG 1
 #define HAVE_GNU_QSORT_R 1
 #define ATAN2_INF_C99 1
 #define HAVE_CLOCK_GETRES 1
@@ -443,6 +451,7 @@
 #define HAVE_PTHREAD_GETATTR_NP 1
 #define SET_CURRENT_THREAD_NAME(name) pthread_setname_np(pthread_self(), name)
 #define SET_ANOTHER_THREAD_NAME(thid,name) pthread_setname_np(thid, name)
+#define RB_THREAD_LOCAL_SPECIFIER _Thread_local
 #define DEFINE_MCONTEXT_PTR(mc, uc) mcontext_t *mc = &(uc)->uc_mcontext
 #define HAVE_GETCONTEXT 1
 #define HAVE_SETCONTEXT 1
@@ -459,7 +468,7 @@
 #define HAVE__SETJMP 1
 #define RUBY_SETJMP(env) __builtin_setjmp((env))
 #define RUBY_LONGJMP(env,val) __builtin_longjmp((env),val)
-#define USE_MJIT 1
 #define USE_YJIT 0
+#define USE_RJIT 1
 #define RUBY_PLATFORM "aarch64-linux"
 #endif /* INCLUDE_RUBY_CONFIG_H */

@@ -1,0 +1,97 @@
+%a{annotate:rdoc:skip}
+module RDoc
+  # <!-- rdoc-file=lib/rdoc/top_level.rb -->
+  # A TopLevel context is a representation of the contents of a single file
+  #
+  class TopLevel < Context
+    MARSHAL_VERSION: 0
+
+    # <!-- rdoc-file=lib/rdoc/top_level.rb -->
+    # Relative name of this file
+    #
+    attr_accessor relative_name: String
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - new(absolute_name, relative_name = absolute_name)
+    # -->
+    # Creates a new TopLevel for the file at `absolute_name`.  If documentation is
+    # being generated outside the source dir `relative_name` is relative to the
+    # source directory.
+    #
+    def initialize: (String absolute_name, ?String relative_name) -> void
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - ==(other)
+    # -->
+    # An RDoc::TopLevel is equal to another with the same relative_name
+    #
+    def ==: (untyped other) -> bool
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - eql?(other)
+    # -->
+    #
+    alias eql? ==
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - add_alias(an_alias)
+    # -->
+    # Adds `an_alias` to `Object` instead of `self`.
+    #
+    def add_alias: (RDoc::Alias an_alias) -> RDoc::Alias
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - add_constant(constant)
+    # -->
+    # Adds `constant` to `Object` instead of `self`.
+    #
+    def add_constant: (RDoc::Constant constant) -> RDoc::Constant
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - add_include(include)
+    # -->
+    # Adds `include` to `Object` instead of `self`.
+    #
+    def add_include: (RDoc::Include `include`) -> RDoc::Include
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - add_method(method)
+    # -->
+    # Adds `method` to `Object` instead of `self`.
+    #
+    def add_method: (RDoc::AnyMethod method) -> RDoc::AnyMethod
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - find_class_or_module(name)
+    # -->
+    # See RDoc::TopLevel::find_class_or_module
+    #
+    def find_class_or_module: (::String name) -> RDoc::Context
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - find_module_named(name)
+    # -->
+    # Finds a module or class with `name`
+    #
+    def find_module_named: (String name) -> RDoc::Context
+
+    # <!--
+    #   rdoc-file=lib/rdoc/top_level.rb
+    #   - full_name()
+    # -->
+    # Returns the relative name of this file
+    #
+    def full_name: () -> String
+
+    def to_s: () -> ::String
+  end
+end

@@ -10,6 +10,7 @@
 
 VALUE rb_fstring(VALUE);
 VALUE rb_fstring_cstr(const char *str);
+VALUE rb_setup_fake_str(struct RString *fake_str, const char *name, long len, rb_encoding *enc);
 
 static inline const char* search_nonascii(const char *p, const char *e) {
   const uintptr_t *s, *t;

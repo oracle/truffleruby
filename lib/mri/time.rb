@@ -25,6 +25,9 @@ require 'date'
 # :startdoc:
 
 class Time
+
+  VERSION = "0.3.0"
+
   class << Time
 
     #

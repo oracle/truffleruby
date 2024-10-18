@@ -23,11 +23,11 @@ class Gem::Commands::InstallCommand < Gem::Command
 
   def initialize
     defaults = Gem::DependencyInstaller::DEFAULT_OPTIONS.merge({
-      :format_executable => false,
-      :lock => true,
-      :suggest_alternate => true,
-      :version => Gem::Requirement.default,
-      :without_groups => [],
+      format_executable: false,
+      lock: true,
+      suggest_alternate: true,
+      version: Gem::Requirement.default,
+      without_groups: [],
     })
 
     defaults.merge!(install_update_options)
@@ -48,7 +48,7 @@ class Gem::Commands::InstallCommand < Gem::Command
   end
 
   def defaults_str # :nodoc:
-    "--both --version '#{Gem::Requirement.default}' --no-force\n" +
+    "--both --version '#{Gem::Requirement.default}' --no-force\n" \
       "--install-dir #{Gem.dir} --lock\n" +
       install_update_defaults_str
   end
@@ -136,13 +136,6 @@ You can use `i` command instead of `install`.
     "#{program_name} [options] GEMNAME [GEMNAME ...] -- --build-flags"
   end
 
-  def check_install_dir # :nodoc:
-    if options[:install_dir] && options[:user_install]
-      alert_error "Use --install-dir or --user-install but not both"
-      terminate_interaction 1
-    end
-  end
-
   def check_version # :nodoc:
     if options[:version] != Gem::Requirement.default &&
        get_all_gem_names.size > 1
@@ -162,7 +155,6 @@ You can use `i` command instead of `install`.
 
     ENV.delete "GEM_PATH" if options[:install_dir].nil?
 
-    check_install_dir
     check_version
 
     load_hooks
@@ -171,7 +163,7 @@ You can use `i` command instead of `install`.
 
     show_installed
 
-    say update_suggestion if eglible_for_update?
+    say update_suggestion if eligible_for_update?
 
     terminate_interaction exit_code
   end
@@ -263,7 +255,7 @@ You can use `i` command instead of `install`.
     return unless errors
 
     errors.each do |x|
-      return unless Gem::SourceFetchProblem === x
+      next unless Gem::SourceFetchProblem === x
 
       require_relative "../uri"
       msg = "Unable to pull data from '#{Gem::Uri.redact(x.source.uri)}': #{x.error.message}"

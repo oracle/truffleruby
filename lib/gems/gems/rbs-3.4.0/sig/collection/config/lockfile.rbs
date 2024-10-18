@@ -1,0 +1,74 @@
+module RBS
+  module Collection
+    class Config
+      # Lockfile represents the `rbs_collection.lock.yaml`, that contains configurations and *resolved* gems with their sources
+      #
+      class Lockfile
+        # Data structure stored in `rbs_collection.lock.yaml`
+        #
+        type lockfile_data = {
+          "path" => String,
+          "gems" => Array[library_data]?,         # null if empty
+          "gemfile_lock_path" => String?          # gemfile_lock_path is optional because older versions doesn't have it
+        }
+
+        type library_data = {
+          'name' => String,
+          'version' => String,
+          'source' => Sources::source_entry
+        }
+
+        # In-memory data structure that represents a library
+        #
+        type library = {
+          name: String,
+          version: String,
+          source: Sources::t
+        }
+
+        attr_reader lockfile_path: Pathname
+
+        # Path of the directory where lockfile is saved in
+        #
+        # `lockfile_path.parent`
+        #
+        attr_reader lockfile_dir: Pathname
+
+        # Relative to lockfile_dir
+        #
+        attr_reader path: Pathname
+
+        # Relative to lockfile_dir
+        #
+        attr_reader gemfile_lock_path: Pathname?
+
+        attr_reader gems: Hash[String, library]
+
+        def initialize: (lockfile_path: Pathname, path: Pathname, gemfile_lock_path: Pathname?) -> void
+
+        # `lockfile_dir` + `path`
+        #
+        def fullpath: () -> Pathname
+
+        # `lockfile_dir` + `gemfile_lock_path`
+        #
+        %a{pure} def gemfile_lock_fullpath: () -> Pathname?
+
+        def to_lockfile: () -> lockfile_data
+
+        def self.from_lockfile: (lockfile_path: Pathname, data: lockfile_data) -> Lockfile
+
+        # Validates if directories are set up correctly
+        #
+        # * Ensures if `path` is a directory
+        # * Ensures if `git` sources are set up correctly
+        #
+        def check_rbs_availability!: () -> void
+
+        private
+
+        def library_data: (library) -> library_data
+      end
+    end
+  end
+end

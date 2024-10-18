@@ -9,13 +9,12 @@
 require "monitor"
 
 module Kernel
-
   RUBYGEMS_ACTIVATION_MONITOR = Monitor.new # :nodoc:
 
   # Make sure we have a reference to Ruby's original Kernel#require
   unless defined?(gem_original_require)
     # :stopdoc:
-    alias gem_original_require require
+    alias_method :gem_original_require, :require
     private :gem_original_require
     # :startdoc:
   end
@@ -37,53 +36,45 @@ module Kernel
   def require(path) # :doc:
     return gem_original_require(path) unless Gem.discover_gems_on_require
 
-    begin
-      RUBYGEMS_ACTIVATION_MONITOR.enter
+    RUBYGEMS_ACTIVATION_MONITOR.synchronize do
+      path = File.path(path)
 
-      path = path.to_path if path.respond_to? :to_path
+      # If +path+ belongs to a default gem, we activate it and then go straight
+      # to normal require
 
-      if spec = Gem.find_unresolved_default_spec(path)
+      if spec = Gem.find_default_spec(path)
+        name = spec.name
+
+        next if Gem.loaded_specs[name]
+
         # Ensure -I beats a default gem
         resolved_path = begin
           rp = nil
           load_path_check_index = Gem.load_path_insert_index - Gem.activated_gem_paths
-          Gem.suffixes.each do |s|
-            $LOAD_PATH[0...load_path_check_index].each do |lp|
-              safe_lp = lp.dup.tap(&Gem::UNTAINT)
-              begin
-                if File.symlink? safe_lp # for backward compatibility
-                  next
-                end
-              rescue SecurityError
-                RUBYGEMS_ACTIVATION_MONITOR.exit
-                raise
+          Gem.suffixes.find do |s|
+            $LOAD_PATH[0...load_path_check_index].find do |lp|
+              if File.symlink? lp # for backward compatibility
+                next
               end
 
-              full_path = File.expand_path(File.join(safe_lp, "#{path}#{s}"))
-              if File.file?(full_path)
-                rp = full_path
-                break
-              end
+              full_path = File.expand_path(File.join(lp, "#{path}#{s}"))
+              rp = full_path if File.file?(full_path)
             end
-            break if rp
           end
           rp
         end
 
-        begin
-          Kernel.send(:gem, spec.name, Gem::Requirement.default_prerelease)
-        rescue Exception
-          RUBYGEMS_ACTIVATION_MONITOR.exit
-          raise
-        end unless resolved_path
+        Kernel.send(:gem, name, Gem::Requirement.default_prerelease) unless
+          resolved_path
+
+        next
       end
 
       # If there are no unresolved deps, then we can use just try
       # normal require handle loading a gem from the rescue below.
 
       if Gem::Specification.unresolved_deps.empty?
-        RUBYGEMS_ACTIVATION_MONITOR.exit
-        return gem_original_require(path)
+        next
       end
 
       # If +path+ is for a gem that has already been loaded, don't
@@ -93,8 +84,7 @@ module Kernel
       # TODO request access to the C implementation of this to speed up RubyGems
 
       if Gem::Specification.find_active_stub_by_path(path)
-        RUBYGEMS_ACTIVATION_MONITOR.exit
-        return gem_original_require(path)
+        next
       end
 
       # Attempt to find +path+ in any unresolved gems...
@@ -114,9 +104,7 @@ module Kernel
       if found_specs.empty?
         found_specs = Gem::Specification.find_in_unresolved_tree path
 
-        found_specs.each do |found_spec|
-          found_spec.activate
-        end
+        found_specs.each(&:activate)
 
       # We found +path+ directly in an unresolved gem. Now we figure out, of
       # the possible found specs, which one we should activate.
@@ -127,8 +115,7 @@ module Kernel
         names = found_specs.map(&:name).uniq
 
         if names.size > 1
-          RUBYGEMS_ACTIVATION_MONITOR.exit
-          raise Gem::LoadError, "#{path} found in multiple gems: #{names.join ', '}"
+          raise Gem::LoadError, "#{path} found in multiple gems: #{names.join ", "}"
         end
 
         # Ok, now find a gem that has no conflicts, starting
@@ -138,26 +125,20 @@ module Kernel
         unless valid
           le = Gem::LoadError.new "unable to find a version of '#{names.first}' to activate"
           le.name = names.first
-          RUBYGEMS_ACTIVATION_MONITOR.exit
           raise le
         end
 
         valid.activate
       end
+    end
 
-      RUBYGEMS_ACTIVATION_MONITOR.exit
-      return gem_original_require(path)
+    begin
+      gem_original_require(path)
     rescue LoadError => load_error
-      if load_error.path == path
-        RUBYGEMS_ACTIVATION_MONITOR.enter
+      if load_error.path == path &&
+         RUBYGEMS_ACTIVATION_MONITOR.synchronize { Gem.try_activate(path) }
 
-        begin
-          require_again = Gem.try_activate(path)
-        ensure
-          RUBYGEMS_ACTIVATION_MONITOR.exit
-        end
-
-        return gem_original_require(path) if require_again
+        return gem_original_require(path)
       end
 
       raise load_error
@@ -165,5 +146,4 @@ module Kernel
   end
 
   private :require
-
 end

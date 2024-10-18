@@ -393,6 +393,19 @@ local part_definitions = {
       is_after+:: ["$.run.generate_native_config"],
       run+: jt(["check_native_configuration"]) + jt(["check_config_header"]),
     },
+
+    retag_mri_tests: {
+      run+: jt(["retag", "test/mri/tests/**/*test*.rb"]) + [
+        ["set-export", "DATE", ["date", "+%F"]],
+        ["set-export", "TRUFFLERUBY_BRANCH", "retag-mri-tests-$DATE"],
+        ["git", "checkout", "-b", "$TRUFFLERUBY_BRANCH"],
+        ["git", "config", "--local", "user.email", "you@example.com"],
+        ["git", "config", "--local", "user.name", "Retag MRI tests"],
+        ["git", "commit", "-a", "-m", "Retag MRI tests"],
+        ["git", "remote", "-v"],
+        ["git", "push", "-f", "origin", "HEAD"],
+      ],
+    },
   },
 
   benchmark: {
@@ -698,6 +711,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.latest + shared + native_config,
     "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.latest + shared + native_config,
     "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.latest + shared + native_config,
+
+    "ruby-retag-mri-tests-linux-amd64":           $.platform.linux + $.jdk.latest + shared + $.env.native + $.use.build + $.run.retag_mri_tests + { timelimit: "02:00:00" },
   },
 
   builds:

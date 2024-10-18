@@ -9,4 +9,5 @@ Gem::Specification.new do |spec|
   spec.bindir        = 'bin'
   spec.executables   = 'hello-world.rb'
   spec.require_paths = ['lib']
+  spec.required_ruby_version = ">= 3.0"
 end
