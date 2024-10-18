@@ -1,4 +1,5 @@
 exclude :test_abort_on_exception, "| Exception: `RuntimeError' at -:3:in `block in <main>' - "
+exclude :test_handle_interrupt, "transient: <[:on_blocking, :c1]> expected but was <[:on_blocking, :c2]>."
 exclude :test_handle_interrupt_and_io, "needs investigation"
 exclude :test_handle_interrupt_and_p, "transient"
 exclude :test_handle_interrupt_blocking, "<:ok> expected but was <nil>."
