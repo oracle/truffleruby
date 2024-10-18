@@ -13,7 +13,7 @@ require 'tempfile'
 require 'tmpdir'
 require 'stringio'
 
-require_relative '../../../lib/rdoc'
+require 'rdoc'
 
 ##
 # RDoc::TestCase is an abstract TestCase to provide common setup and teardown
