@@ -18,6 +18,8 @@ Bug fixes:
 * Fix Hash value omission for constant names (@andrykonchin).
 * Fix `MatchData#[index, length]` when index is larger than number of matched values (@andrykonchin).
 * Fix `#each` for a foreign iterator which is also iterable (#3630, @eregon).
+* Fix `Module#name` called inside the `Module#const_added` callback when the module is defined in the top-level scope (#3683, @andrykonchin).
+* Fix duplicated calls of a `Module#const_added` callback when a module with nested modules is assigned to a constant (@andrykonchin).
 
 Compatibility:
 
