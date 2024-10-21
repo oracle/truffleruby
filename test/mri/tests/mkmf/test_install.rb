@@ -3,7 +3,7 @@ require_relative 'base'
 
 class TestMkmfInstall < TestMkmf
   def test_install_dirs
-    skip 'does not work with !ALLOW_SUBPROCESSES' unless Test::Unit::CoreAssertions::ALLOW_SUBPROCESSES
+    omit 'does not work with !ALLOW_SUBPROCESSES' unless Test::Unit::CoreAssertions::ALLOW_SUBPROCESSES
 
     Dir.mktmpdir do |dir|
       File.write(dir+"/extconf.rb", "require 'mkmf'; create_makefile('test')")
