@@ -80,7 +80,7 @@ describe "The launcher" do
 
   it "all launchers are in @launchers" do
     known = @launchers.keys.map(&:to_s).sort
-    actual = Dir.children(File.dirname(RbConfig.ruby)).sort
+    actual = Dir.children(@bindir).sort
     actual.delete('truffleruby-polyglot-get')
     actual.should == known
   end
@@ -145,6 +145,14 @@ describe "The launcher" do
       `#{@bindir}/gem uninstall hello-world -x #{@redirect}`
       check_status_and_empty_stderr
       File.should_not.exist?(@bindir + '/hello-world.rb')
+
+      # TODO: remove this logic after upgrading RubyGems/bundler where the issue is fixed
+      # See https://github.com/rubygems/rubygems/issues/7997
+      # remove a shim file
+      shim_file_path = @bindir + '/hello-world.rb.lock'
+      if File.exist?(shim_file_path)
+        File.unlink(shim_file_path)
+      end
     end
   end
 
