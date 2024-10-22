@@ -14,7 +14,6 @@ exclude :test_float_hash_random, "very slow: 72.11s on truffleruby 24.2.0-dev-b5
 exclude :test_huge_iter_level, "RuntimeError expected but nothing was raised."
 exclude :test_integer_hash_random, "very slow: 70.44s on truffleruby 24.2.0-dev-b555f590, like ruby 3.2.4, GraalVM CE JVM [x86_64-linux] with AMD Ryzen 7 3700X 8-Core Processor: (16 vCPUs)"
 exclude :test_inverse_hash, "[ruby-core:34334]."
-exclude :test_iterlevel_in_ivar_bug19589, "SystemStackError: stack level too deep"
 exclude :test_merge!, "FrozenError expected but nothing was raised."
 exclude :test_recursive_hash_value_struct, "[ruby-core:58567] [Bug #9151]."
 exclude :test_rehash2, "RuntimeError expected but nothing was raised."

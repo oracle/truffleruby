@@ -9,4 +9,5 @@ exclude :test_ar2st_lookup, "org.truffleruby.core.hash.library.BucketsHashStore 
 exclude :test_compare_by_identity_during_iteration, "compare_by_identity during iteration."
 exclude :test_float_hash_random, "slow: 37.42s on truffleruby 24.2.0-dev-910e8f06, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
 exclude :test_integer_hash_random, "slow: 37.20s on truffleruby 24.2.0-dev-910e8f06, like ruby 3.3.5, Interpreted JVM [x86_64-darwin23] with Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz: ( 16 vCPUs)"
+exclude :test_iterlevel_in_ivar_bug19589, "transient: SystemStackError: stack level too deep"
 exclude :test_select_reject_will_not_rehash, "<1> expected but was <2>."
