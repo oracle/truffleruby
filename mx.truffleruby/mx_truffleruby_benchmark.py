@@ -10,7 +10,7 @@ from __future__ import division
 
 import os
 import json
-import pipes
+import shlex
 import signal
 import subprocess
 import sys
@@ -39,7 +39,7 @@ class BackgroundServerTask:
 
     def __enter__(self):
         if mx._opts.verbose:
-            mx.log(' '.join(['(background)'] + [pipes.quote(arg) for arg in self.args]))
+            mx.log(' '.join(['(background)'] + [shlex.quote(arg) for arg in self.args]))
         self.process = subprocess.Popen(self.args, start_new_session=True)
         mx._addSubprocess(self.process, self.args)
 

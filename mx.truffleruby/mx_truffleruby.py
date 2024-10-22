@@ -9,7 +9,7 @@
 from __future__ import print_function
 
 import os
-import pipes
+import shlex
 from os.path import join, exists, basename
 import re
 import shutil
@@ -137,7 +137,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
 
     def contents(self, result):
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
-        jvm_args = [pipes.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
+        jvm_args = [shlex.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
 
         debug_args = mx.java_debug_args()
         jvm_args.extend(debug_args)
