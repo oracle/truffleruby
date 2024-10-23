@@ -41,6 +41,10 @@ copy_c_files_and_makefile src/main/c/prism-gem
 # Copy .rb files
 cp -R $PRISM/lib/* lib/mri
 
+# Copy MRI tests (and override existing Prism's ones)
+rm -rf test/mri/tests/prism
+cp -R $PRISM/test/prism test/mri/tests/
+
 # Create and copy default gem gemspec
 pushd $PRISM
 gem build prism.gemspec -o prism.gem
