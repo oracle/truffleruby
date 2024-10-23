@@ -107,6 +107,8 @@ find test/mri/tests/cext-ruby -name '*.rb' -print0 | xargs -0 -n 1 sed -i.backup
 find test/mri/tests/cext-ruby -name '*.backup' -delete
 rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
+rm -rf test/mri/tests/prism
+git checkout -- test/mri/tests/prism # Prism tests are updated separately by tool/import-prism.sh script
 
 # Copy from tool/lib to tests/lib
 cp -R ../ruby/tool/lib/* test/mri/tests/lib
