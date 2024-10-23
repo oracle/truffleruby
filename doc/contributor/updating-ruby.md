@@ -141,6 +141,9 @@ rm -rf lib/gems/gems/typeprof-* lib/gems/specifications/typeprof-*.gemspec
 ruby tool/patch-default-gemspecs.rb
 ```
 
+Update the `ruby/prism` default gem with `tool/import-prism.sh` script. See the "Update Prism" section
+in the [Prism](prism.md) document.
+
 ## Updating exe/ executables
 
 ```
