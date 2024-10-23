@@ -39,7 +39,7 @@ def platform_info
   "#{cpu_model}: ( #{Etc.nprocessors} vCPUs)"
 end
 
-def exclude_test!(class_name, test_method, error_display, platform = nil)
+def exclude_test!(class_name, test_method, error_display)
   file = EXCLUDES_DIR + "/" + class_name.split("::").join('/') + ".rb"
 
   # If a method name breaks the rules for method naming, e.g. it's defined dynamically with #define_method,
@@ -63,12 +63,7 @@ def exclude_test!(class_name, test_method, error_display, platform = nil)
   name_undumped = ('"'+test_method+'"').undump
   prefix = "exclude #{name_undumped.to_sym.inspect}," # don't strip a method name as far as some test names are defined with #define_method and contain terminating whitespaces
 
-  if test_method =~ /(linux|darwin)/
-    platform = $1
-  end
-
-  platform_guard = platform ? " if RUBY_PLATFORM.include?('#{platform}')" : ''
-  new_line = "#{prefix} #{(REASON || error_display).inspect}#{platform_guard}\n"
+  new_line = "#{prefix} #{(REASON || error_display).inspect}\n"
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
