@@ -3,9 +3,9 @@ foo rescue nil
 foo rescue
 nil
 
-break rescue nil
+tap { break rescue nil }
 
-next rescue nil
+tap { next rescue nil }
 
 return rescue nil
 
@@ -29,3 +29,7 @@ def a
   a b:
 rescue
 end
+
+foo if bar rescue baz
+
+z = x y rescue c d

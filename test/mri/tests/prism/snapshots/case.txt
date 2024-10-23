@@ -1,10 +1,10 @@
-@ ProgramNode (location: (1,0)-(44,22))
+@ ProgramNode (location: (1,0)-(55,3))
 ├── flags: ∅
-├── locals: []
+├── locals: [:b]
 └── statements:
-    @ StatementsNode (location: (1,0)-(44,22))
+    @ StatementsNode (location: (1,0)-(55,3))
     ├── flags: ∅
-    └── body: (length: 13)
+    └── body: (length: 15)
         ├── @ CaseNode (location: (1,0)-(3,3))
         │   ├── flags: newline
         │   ├── predicate:
@@ -399,30 +399,156 @@
         │   ├── else_clause: ∅
         │   ├── case_keyword_loc: (40,0)-(40,4) = "case"
         │   └── end_keyword_loc: (42,0)-(42,3) = "end"
-        └── @ CaseMatchNode (location: (44,0)-(44,22))
+        ├── @ CaseMatchNode (location: (44,0)-(44,22))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ MatchPredicateNode (location: (44,5)-(44,11))
+        │   │   ├── flags: ∅
+        │   │   ├── value:
+        │   │   │   @ IntegerNode (location: (44,5)-(44,6))
+        │   │   │   ├── flags: static_literal, decimal
+        │   │   │   └── value: 1
+        │   │   ├── pattern:
+        │   │   │   @ IntegerNode (location: (44,10)-(44,11))
+        │   │   │   ├── flags: static_literal, decimal
+        │   │   │   └── value: 2
+        │   │   └── operator_loc: (44,7)-(44,9) = "in"
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (44,13)-(44,17))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ IntegerNode (location: (44,16)-(44,17))
+        │   │       │   ├── flags: static_literal, decimal
+        │   │       │   └── value: 3
+        │   │       ├── statements: ∅
+        │   │       ├── in_loc: (44,13)-(44,15) = "in"
+        │   │       └── then_loc: ∅
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (44,0)-(44,4) = "case"
+        │   └── end_keyword_loc: (44,19)-(44,22) = "end"
+        ├── @ CaseMatchNode (location: (46,0)-(49,3))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ CallNode (location: (46,5)-(46,6))
+        │   │   ├── flags: variable_call, ignore_visibility
+        │   │   ├── receiver: ∅
+        │   │   ├── call_operator_loc: ∅
+        │   │   ├── name: :a
+        │   │   ├── message_loc: (46,5)-(46,6) = "a"
+        │   │   ├── opening_loc: ∅
+        │   │   ├── arguments: ∅
+        │   │   ├── closing_loc: ∅
+        │   │   └── block: ∅
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (47,0)-(48,3))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ IfNode (location: (47,3)-(47,15))
+        │   │       │   ├── flags: newline
+        │   │       │   ├── if_keyword_loc: (47,5)-(47,7) = "if"
+        │   │       │   ├── predicate:
+        │   │       │   │   @ AndNode (location: (47,8)-(47,15))
+        │   │       │   │   ├── flags: ∅
+        │   │       │   │   ├── left:
+        │   │       │   │   │   @ CallNode (location: (47,8)-(47,9))
+        │   │       │   │   │   ├── flags: variable_call, ignore_visibility
+        │   │       │   │   │   ├── receiver: ∅
+        │   │       │   │   │   ├── call_operator_loc: ∅
+        │   │       │   │   │   ├── name: :c
+        │   │       │   │   │   ├── message_loc: (47,8)-(47,9) = "c"
+        │   │       │   │   │   ├── opening_loc: ∅
+        │   │       │   │   │   ├── arguments: ∅
+        │   │       │   │   │   ├── closing_loc: ∅
+        │   │       │   │   │   └── block: ∅
+        │   │       │   │   ├── right:
+        │   │       │   │   │   @ CallNode (location: (47,14)-(47,15))
+        │   │       │   │   │   ├── flags: variable_call, ignore_visibility
+        │   │       │   │   │   ├── receiver: ∅
+        │   │       │   │   │   ├── call_operator_loc: ∅
+        │   │       │   │   │   ├── name: :d
+        │   │       │   │   │   ├── message_loc: (47,14)-(47,15) = "d"
+        │   │       │   │   │   ├── opening_loc: ∅
+        │   │       │   │   │   ├── arguments: ∅
+        │   │       │   │   │   ├── closing_loc: ∅
+        │   │       │   │   │   └── block: ∅
+        │   │       │   │   └── operator_loc: (47,10)-(47,13) = "and"
+        │   │       │   ├── then_keyword_loc: ∅
+        │   │       │   ├── statements:
+        │   │       │   │   @ StatementsNode (location: (47,3)-(47,4))
+        │   │       │   │   ├── flags: ∅
+        │   │       │   │   └── body: (length: 1)
+        │   │       │   │       └── @ LocalVariableTargetNode (location: (47,3)-(47,4))
+        │   │       │   │           ├── flags: newline
+        │   │       │   │           ├── name: :b
+        │   │       │   │           └── depth: 0
+        │   │       │   ├── subsequent: ∅
+        │   │       │   └── end_keyword_loc: ∅
+        │   │       ├── statements:
+        │   │       │   @ StatementsNode (location: (48,2)-(48,3))
+        │   │       │   ├── flags: ∅
+        │   │       │   └── body: (length: 1)
+        │   │       │       └── @ CallNode (location: (48,2)-(48,3))
+        │   │       │           ├── flags: newline, variable_call, ignore_visibility
+        │   │       │           ├── receiver: ∅
+        │   │       │           ├── call_operator_loc: ∅
+        │   │       │           ├── name: :e
+        │   │       │           ├── message_loc: (48,2)-(48,3) = "e"
+        │   │       │           ├── opening_loc: ∅
+        │   │       │           ├── arguments: ∅
+        │   │       │           ├── closing_loc: ∅
+        │   │       │           └── block: ∅
+        │   │       ├── in_loc: (47,0)-(47,2) = "in"
+        │   │       └── then_loc: ∅
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (46,0)-(46,4) = "case"
+        │   └── end_keyword_loc: (49,0)-(49,3) = "end"
+        └── @ CallNode (location: (51,0)-(55,3))
             ├── flags: newline
-            ├── predicate:
-            │   @ MatchPredicateNode (location: (44,5)-(44,11))
-            │   ├── flags: ∅
-            │   ├── value:
-            │   │   @ IntegerNode (location: (44,5)-(44,6))
-            │   │   ├── flags: static_literal, decimal
-            │   │   └── value: 1
-            │   ├── pattern:
-            │   │   @ IntegerNode (location: (44,10)-(44,11))
-            │   │   ├── flags: static_literal, decimal
-            │   │   └── value: 2
-            │   └── operator_loc: (44,7)-(44,9) = "in"
-            ├── conditions: (length: 1)
-            │   └── @ InNode (location: (44,13)-(44,17))
-            │       ├── flags: ∅
-            │       ├── pattern:
-            │       │   @ IntegerNode (location: (44,16)-(44,17))
-            │       │   ├── flags: static_literal, decimal
-            │       │   └── value: 3
-            │       ├── statements: ∅
-            │       ├── in_loc: (44,13)-(44,15) = "in"
-            │       └── then_loc: ∅
-            ├── else_clause: ∅
-            ├── case_keyword_loc: (44,0)-(44,4) = "case"
-            └── end_keyword_loc: (44,19)-(44,22) = "end"
+            ├── receiver:
+            │   @ IntegerNode (location: (51,0)-(51,1))
+            │   ├── flags: static_literal, decimal
+            │   └── value: 1
+            ├── call_operator_loc: (51,1)-(51,2) = "."
+            ├── name: :then
+            ├── message_loc: (51,2)-(51,6) = "then"
+            ├── opening_loc: ∅
+            ├── arguments: ∅
+            ├── closing_loc: ∅
+            └── block:
+                @ BlockNode (location: (51,7)-(55,3))
+                ├── flags: ∅
+                ├── locals: [:_1]
+                ├── parameters:
+                │   @ NumberedParametersNode (location: (51,7)-(55,3))
+                │   ├── flags: ∅
+                │   └── maximum: 1
+                ├── body:
+                │   @ StatementsNode (location: (52,2)-(54,5))
+                │   ├── flags: ∅
+                │   └── body: (length: 1)
+                │       └── @ CaseMatchNode (location: (52,2)-(54,5))
+                │           ├── flags: newline
+                │           ├── predicate:
+                │           │   @ IntegerNode (location: (52,7)-(52,8))
+                │           │   ├── flags: static_literal, decimal
+                │           │   └── value: 1
+                │           ├── conditions: (length: 1)
+                │           │   └── @ InNode (location: (53,2)-(53,8))
+                │           │       ├── flags: ∅
+                │           │       ├── pattern:
+                │           │       │   @ PinnedVariableNode (location: (53,5)-(53,8))
+                │           │       │   ├── flags: ∅
+                │           │       │   ├── variable:
+                │           │       │   │   @ LocalVariableReadNode (location: (53,6)-(53,8))
+                │           │       │   │   ├── flags: ∅
+                │           │       │   │   ├── name: :_1
+                │           │       │   │   └── depth: 0
+                │           │       │   └── operator_loc: (53,5)-(53,6) = "^"
+                │           │       ├── statements: ∅
+                │           │       ├── in_loc: (53,2)-(53,4) = "in"
+                │           │       └── then_loc: ∅
+                │           ├── else_clause: ∅
+                │           ├── case_keyword_loc: (52,2)-(52,6) = "case"
+                │           └── end_keyword_loc: (54,2)-(54,5) = "end"
+                ├── opening_loc: (51,7)-(51,9) = "do"
+                └── closing_loc: (55,0)-(55,3) = "end"

@@ -1,10 +1,10 @@
-@ ProgramNode (location: (1,0)-(7,3))
+@ ProgramNode (location: (1,0)-(11,3))
 ├── flags: ∅
 ├── locals: []
 └── statements:
-    @ StatementsNode (location: (1,0)-(7,3))
+    @ StatementsNode (location: (1,0)-(11,3))
     ├── flags: ∅
-    └── body: (length: 2)
+    └── body: (length: 3)
         ├── @ DefNode (location: (1,0)-(3,3))
         │   ├── flags: newline
         │   ├── name: :foo
@@ -63,58 +63,112 @@
         │   ├── rparen_loc: (1,20)-(1,21) = ")"
         │   ├── equal_loc: ∅
         │   └── end_keyword_loc: (3,0)-(3,3) = "end"
-        └── @ DefNode (location: (5,0)-(7,3))
+        ├── @ DefNode (location: (5,0)-(7,3))
+        │   ├── flags: newline
+        │   ├── name: :foo
+        │   ├── name_loc: (5,4)-(5,7) = "foo"
+        │   ├── receiver: ∅
+        │   ├── parameters:
+        │   │   @ ParametersNode (location: (5,8)-(5,19))
+        │   │   ├── flags: ∅
+        │   │   ├── requireds: (length: 1)
+        │   │   │   └── @ RequiredParameterNode (location: (5,8)-(5,16))
+        │   │   │       ├── flags: ∅
+        │   │   │       └── name: :argument
+        │   │   ├── optionals: (length: 0)
+        │   │   ├── rest:
+        │   │   │   @ RestParameterNode (location: (5,18)-(5,19))
+        │   │   │   ├── flags: ∅
+        │   │   │   ├── name: ∅
+        │   │   │   ├── name_loc: ∅
+        │   │   │   └── operator_loc: (5,18)-(5,19) = "*"
+        │   │   ├── posts: (length: 0)
+        │   │   ├── keywords: (length: 0)
+        │   │   ├── keyword_rest: ∅
+        │   │   └── block: ∅
+        │   ├── body:
+        │   │   @ StatementsNode (location: (6,2)-(6,18))
+        │   │   ├── flags: ∅
+        │   │   └── body: (length: 1)
+        │   │       └── @ CallNode (location: (6,2)-(6,18))
+        │   │           ├── flags: newline, ignore_visibility
+        │   │           ├── receiver: ∅
+        │   │           ├── call_operator_loc: ∅
+        │   │           ├── name: :bar
+        │   │           ├── message_loc: (6,2)-(6,5) = "bar"
+        │   │           ├── opening_loc: (6,5)-(6,6) = "("
+        │   │           ├── arguments:
+        │   │           │   @ ArgumentsNode (location: (6,6)-(6,17))
+        │   │           │   ├── flags: contains_splat
+        │   │           │   └── arguments: (length: 2)
+        │   │           │       ├── @ LocalVariableReadNode (location: (6,6)-(6,14))
+        │   │           │       │   ├── flags: ∅
+        │   │           │       │   ├── name: :argument
+        │   │           │       │   └── depth: 0
+        │   │           │       └── @ SplatNode (location: (6,16)-(6,17))
+        │   │           │           ├── flags: ∅
+        │   │           │           ├── operator_loc: (6,16)-(6,17) = "*"
+        │   │           │           └── expression: ∅
+        │   │           ├── closing_loc: (6,17)-(6,18) = ")"
+        │   │           └── block: ∅
+        │   ├── locals: [:argument]
+        │   ├── def_keyword_loc: (5,0)-(5,3) = "def"
+        │   ├── operator_loc: ∅
+        │   ├── lparen_loc: (5,7)-(5,8) = "("
+        │   ├── rparen_loc: (5,19)-(5,20) = ")"
+        │   ├── equal_loc: ∅
+        │   └── end_keyword_loc: (7,0)-(7,3) = "end"
+        └── @ DefNode (location: (9,0)-(11,3))
             ├── flags: newline
             ├── name: :foo
-            ├── name_loc: (5,4)-(5,7) = "foo"
+            ├── name_loc: (9,4)-(9,7) = "foo"
             ├── receiver: ∅
             ├── parameters:
-            │   @ ParametersNode (location: (5,8)-(5,19))
+            │   @ ParametersNode (location: (9,8)-(9,10))
             │   ├── flags: ∅
-            │   ├── requireds: (length: 1)
-            │   │   └── @ RequiredParameterNode (location: (5,8)-(5,16))
-            │   │       ├── flags: ∅
-            │   │       └── name: :argument
+            │   ├── requireds: (length: 0)
             │   ├── optionals: (length: 0)
-            │   ├── rest:
-            │   │   @ RestParameterNode (location: (5,18)-(5,19))
+            │   ├── rest: ∅
+            │   ├── posts: (length: 0)
+            │   ├── keywords: (length: 0)
+            │   ├── keyword_rest:
+            │   │   @ KeywordRestParameterNode (location: (9,8)-(9,10))
             │   │   ├── flags: ∅
             │   │   ├── name: ∅
             │   │   ├── name_loc: ∅
-            │   │   └── operator_loc: (5,18)-(5,19) = "*"
-            │   ├── posts: (length: 0)
-            │   ├── keywords: (length: 0)
-            │   ├── keyword_rest: ∅
+            │   │   └── operator_loc: (9,8)-(9,10) = "**"
             │   └── block: ∅
             ├── body:
-            │   @ StatementsNode (location: (6,2)-(6,18))
+            │   @ StatementsNode (location: (10,2)-(10,20))
             │   ├── flags: ∅
             │   └── body: (length: 1)
-            │       └── @ CallNode (location: (6,2)-(6,18))
-            │           ├── flags: newline, ignore_visibility
-            │           ├── receiver: ∅
-            │           ├── call_operator_loc: ∅
-            │           ├── name: :bar
-            │           ├── message_loc: (6,2)-(6,5) = "bar"
-            │           ├── opening_loc: (6,5)-(6,6) = "("
-            │           ├── arguments:
-            │           │   @ ArgumentsNode (location: (6,6)-(6,17))
-            │           │   ├── flags: contains_splat
-            │           │   └── arguments: (length: 2)
-            │           │       ├── @ LocalVariableReadNode (location: (6,6)-(6,14))
-            │           │       │   ├── flags: ∅
-            │           │       │   ├── name: :argument
-            │           │       │   └── depth: 0
-            │           │       └── @ SplatNode (location: (6,16)-(6,17))
-            │           │           ├── flags: ∅
-            │           │           ├── operator_loc: (6,16)-(6,17) = "*"
-            │           │           └── expression: ∅
-            │           ├── closing_loc: (6,17)-(6,18) = ")"
-            │           └── block: ∅
-            ├── locals: [:argument]
-            ├── def_keyword_loc: (5,0)-(5,3) = "def"
+            │       └── @ HashNode (location: (10,2)-(10,20))
+            │           ├── flags: newline
+            │           ├── opening_loc: (10,2)-(10,3) = "{"
+            │           ├── elements: (length: 2)
+            │           │   ├── @ AssocNode (location: (10,4)-(10,14))
+            │           │   │   ├── flags: static_literal
+            │           │   │   ├── key:
+            │           │   │   │   @ SymbolNode (location: (10,4)-(10,12))
+            │           │   │   │   ├── flags: static_literal, forced_us_ascii_encoding
+            │           │   │   │   ├── opening_loc: ∅
+            │           │   │   │   ├── value_loc: (10,4)-(10,11) = "default"
+            │           │   │   │   ├── closing_loc: (10,11)-(10,12) = ":"
+            │           │   │   │   └── unescaped: "default"
+            │           │   │   ├── value:
+            │           │   │   │   @ IntegerNode (location: (10,13)-(10,14))
+            │           │   │   │   ├── flags: static_literal, decimal
+            │           │   │   │   └── value: 1
+            │           │   │   └── operator_loc: ∅
+            │           │   └── @ AssocSplatNode (location: (10,16)-(10,18))
+            │           │       ├── flags: ∅
+            │           │       ├── value: ∅
+            │           │       └── operator_loc: (10,16)-(10,18) = "**"
+            │           └── closing_loc: (10,19)-(10,20) = "}"
+            ├── locals: []
+            ├── def_keyword_loc: (9,0)-(9,3) = "def"
             ├── operator_loc: ∅
-            ├── lparen_loc: (5,7)-(5,8) = "("
-            ├── rparen_loc: (5,19)-(5,20) = ")"
+            ├── lparen_loc: (9,7)-(9,8) = "("
+            ├── rparen_loc: (9,10)-(9,11) = ")"
             ├── equal_loc: ∅
-            └── end_keyword_loc: (7,0)-(7,3) = "end"
+            └── end_keyword_loc: (11,0)-(11,3) = "end"

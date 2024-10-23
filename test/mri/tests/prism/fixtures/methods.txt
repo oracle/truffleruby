@@ -161,9 +161,6 @@ def method(a)
   item >> a {}
 end
 
-def foo(_a, _a, b, c)
-end
-
 foo = 1
 def foo.bar; end
 
@@ -178,9 +175,14 @@ def f x:!a; end
 def foo x:%(xx); end
 
 def foo(...)
-  bar(&)
+  bar(...)
 end
 
 def foo(bar = (def baz(bar) = bar; 1)) = 2
 
 def (class Foo; end).foo(bar = 1) = 2
+
+module Foo
+  def clone(opts = nil || (return self))
+  end
+end

@@ -3,6 +3,7 @@
 require_relative "test_helper"
 
 return if RUBY_PLATFORM !~ /linux/
+return if RUBY_PLATFORM =~ /powerpc64le/
 
 module Prism
   #
