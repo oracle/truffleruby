@@ -1,0 +1,153 @@
+%a{annotate:rdoc:skip}
+module RDoc
+  # <!-- rdoc-file=lib/rdoc/context.rb -->
+  # A Context is something that can hold modules, classes, methods, attributes,
+  # aliases, requires, and includes. Classes, modules, and files are all Contexts.
+  #
+  class Context < CodeObject
+    include Comparable
+
+    # <!-- rdoc-file=lib/rdoc/context.rb -->
+    # Types of methods
+    #
+    TYPES: ::Array["class" | "instance"]
+
+    TOMDOC_TITLES: ::Array[nil | "Public" | "Internal" | "Deprecated"]
+
+    type class_types = singleton(RDoc::NormalClass) | singleton(RDoc::SingleClass)
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - new()
+    # -->
+    # Creates an unnamed empty context with public current visibility
+    #
+    def initialize: () -> void
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_alias(an_alias)
+    # -->
+    # Adds `an_alias` that is automatically resolved
+    #
+    def add_alias: (RDoc::Alias an_alias) -> RDoc::Alias
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_attribute(attribute)
+    # -->
+    # Adds `attribute` if not already there. If it is (as method(s) or attribute),
+    # updates the comment if it was empty.
+    #
+    # The attribute is registered only if it defines a new method. For instance,
+    # `attr_reader :foo` will not be registered if method `foo` exists, but
+    # `attr_accessor :foo` will be registered if method `foo` exists, but `foo=`
+    # does not.
+    #
+    def add_attribute: (RDoc::Attr attribute) -> RDoc::Attr
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_class(class_type, given_name, superclass = '::Object')
+    # -->
+    # Adds a class named `given_name` with `superclass`.
+    #
+    # Both `given_name` and `superclass` may contain '::', and are interpreted
+    # relative to the `self` context. This allows handling correctly examples like
+    # these:
+    #     class RDoc::Gauntlet < Gauntlet
+    #     module Mod
+    #       class Object   # implies < ::Object
+    #       class SubObject < Object  # this is _not_ ::Object
+    #
+    # Given `class Container::Item` RDoc assumes `Container` is a module unless it
+    # later sees `class Container`.  `add_class` automatically upgrades `given_name`
+    # to a class in this case.
+    #
+    def add_class: (class_types class_type, ::String given_name, ?::String superclass) -> (RDoc::NormalClass | RDoc::SingleClass)
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_constant(constant)
+    # -->
+    # Adds `constant` if not already there. If it is, updates the comment, value
+    # and/or is_alias_for of the known constant if they were empty/nil.
+    #
+    def add_constant: (RDoc::Constant constant) -> RDoc::Constant
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_include(include)
+    # -->
+    # Adds included module `include` which should be an RDoc::Include
+    #
+    def add_include: (RDoc::Include `include`) -> RDoc::Include
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_extend(ext)
+    # -->
+    # Adds extension module `ext` which should be an RDoc::Extend
+    #
+    def add_extend: (RDoc::Extend ext) -> RDoc::Extend
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_method(method)
+    # -->
+    # Adds `method` if not already there. If it is (as method or attribute), updates
+    # the comment if it was empty.
+    #
+    def add_method: (RDoc::AnyMethod method) -> RDoc::AnyMethod
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - add_module(class_type, name)
+    # -->
+    # Adds a module named `name`.  If RDoc already knows `name` is a class then that
+    # class is returned instead.  See also #add_class.
+    #
+    def add_module: (singleton(RDoc::NormalModule) class_type, String name) -> RDoc::NormalModule
+
+    # <!-- rdoc-file=lib/rdoc/context.rb -->
+    # All attr* methods
+    #
+    def attributes: () -> Array[Attr]
+
+    # <!-- rdoc-file=lib/rdoc/context.rb -->
+    # Constants defined
+    #
+    def constants: () -> Array[Constant]
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - find_module_named(name)
+    # -->
+    # Find a module with `name` using ruby's scoping rules
+    #
+    def find_module_named: (untyped name) -> (untyped | self)
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - full_name()
+    # -->
+    # The full name for this context.  This method is overridden by subclasses.
+    #
+    def full_name: () -> "(unknown)"
+
+    # <!-- rdoc-file=lib/rdoc/context.rb -->
+    # Methods defined in this context
+    #
+    def method_list: () -> Array[AnyMethod]
+
+    def to_s: () -> ::String
+
+    # <!--
+    #   rdoc-file=lib/rdoc/context.rb
+    #   - top_level()
+    # -->
+    # Return the TopLevel that owns us
+    #
+    def top_level: () -> RDoc::TopLevel
+  end
+end

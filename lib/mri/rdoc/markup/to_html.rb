@@ -61,6 +61,7 @@ class RDoc::Markup::ToHtml < RDoc::Markup::Formatter
   #
   # These methods are used by regexp handling markup added by RDoc::Markup#add_regexp_handling.
 
+  # :nodoc:
   URL_CHARACTERS_REGEXP_STR = /[A-Za-z0-9\-._~:\/\?#\[\]@!$&'\(\)*+,;%=]/.source
 
   ##
@@ -202,7 +203,9 @@ class RDoc::Markup::ToHtml < RDoc::Markup::Formatter
   def accept_paragraph paragraph
     @res << "\n<p>"
     text = paragraph.text @hard_break
-    text = text.gsub(/\r?\n/, ' ')
+    text = text.gsub(/(#{SPACE_SEPARATED_LETTER_CLASS})?\K\r?\n(?=(?(1)(#{SPACE_SEPARATED_LETTER_CLASS})?))/o) {
+      defined?($2) && ' '
+    }
     @res << to_html(text)
     @res << "</p>\n"
   end
@@ -432,7 +435,6 @@ class RDoc::Markup::ToHtml < RDoc::Markup::Formatter
     verbose, $VERBOSE = $VERBOSE, nil
     catch(:valid) do
       eval("BEGIN { throw :valid, true }\n#{text}")
-      false
     end
   rescue SyntaxError
     false
@@ -448,4 +450,3 @@ class RDoc::Markup::ToHtml < RDoc::Markup::Formatter
   end
 
 end
-

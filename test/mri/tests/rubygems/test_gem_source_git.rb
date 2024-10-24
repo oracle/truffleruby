@@ -9,7 +9,7 @@ class TestGemSourceGit < Gem::TestCase
 
     @name, @version, @repository, @head = git_gem
 
-    @hash = Digest::SHA1.hexdigest @repository
+    @hash = OpenSSL::Digest::SHA1.hexdigest @repository
 
     @source = Gem::Source::Git.new @name, @repository, nil, false
   end
@@ -216,7 +216,7 @@ class TestGemSourceGit < Gem::TestCase
     installed = Gem::Source::Installed.new
     vendor    = Gem::Source::Vendor.new "vendor/foo"
 
-    assert_equal(0, git.<=>(git),       "git <=> git")
+    assert_equal(0, git.<=>(git),       "git <=> git") # rubocop:disable Lint/BinaryOperatorWithIdenticalOperands
 
     assert_equal(1, git.<=>(remote),    "git <=> remote")
     assert_equal(-1, remote.<=>(git), "remote <=> git")
@@ -252,7 +252,7 @@ class TestGemSourceGit < Gem::TestCase
       specs = source.specs
     end
 
-    assert_equal %w[a-1 b-1], specs.map {|spec| spec.full_name }
+    assert_equal %w[a-1 b-1], specs.map(&:full_name)
 
     a_spec = specs.shift
 
@@ -289,7 +289,7 @@ class TestGemSourceGit < Gem::TestCase
   end
 
   def test_uri
-    assert_equal URI(@repository), @source.uri
+    assert_equal Gem::URI(@repository), @source.uri
   end
 
   def test_uri_hash

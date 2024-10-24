@@ -7,6 +7,7 @@ arity
 call
 clone
 curry
+dup
 eql?
 hash
 inspect

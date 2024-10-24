@@ -3,6 +3,7 @@ backtrace
 backtrace_locations
 blocking?
 inspect
+kill
 raise
 resume
 storage

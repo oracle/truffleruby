@@ -1256,8 +1256,7 @@ module Commands
     end
 
     mri_args = []
-    excluded_files = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
-      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
+    excluded_files = load_excluded_file_names
     patterns = []
 
     args.each do |arg|
@@ -1378,10 +1377,22 @@ module Commands
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
 
-    test_files.each do |test_file|
+    excluded_files = load_excluded_file_names.map { |path| MRI_TEST_RELATIVE_PREFIX + '/' + path }
+    files_to_skip = test_files & excluded_files
+    files_to_retag = test_files - excluded_files
+
+    puts 'The following files are excluded in test/mri/failing.exclude:'
+    puts files_to_skip.map { |s| '- ' + s }
+
+    files_to_retag.each do |test_file|
       puts '', test_file
-      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
-      raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
+      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+Test/).map(&:first) # see test/mri/tests/mkmf/test_config.rb, test/mri/tests/rdoc/test_rdoc_alias.rb...
+
+      if test_classes.empty?
+        puts "\nWARNING: Could not find class inheriting from TestCase in #{test_file}"
+        next
+      end
+
       found_excludes = false
       test_classes.each do |test_class|
         prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
@@ -1408,16 +1419,19 @@ module Commands
           end
         end
       end
-      unless found_excludes
-        puts "Found no excludes for #{test_classes.join(', ')}"
-        next
-      end
 
       process_tests = true
       while process_tests
         puts '1. Tagging tests'
         output_file = 'mri_tests.txt'
         run_mri_tests(options, [test_file], [], [:err, :out] => output_file, continue_on_failure: true)
+
+        # Uncomment this to debug retagging and test class/method name capturing
+        # puts ">"*80
+        # puts "*** mri_tests.txt:"
+        # puts ">"*80
+        # puts File.read(output_file)
+        # puts "<"*80
 
         puts '2. Parsing errors'
         sh 'ruby', 'tool/parse_mri_errors.rb', output_file, continue_on_failure: true
@@ -3204,6 +3218,13 @@ module Commands
     raise 'Ruby 3+ needed for "jt docker"' unless RUBY_VERSION.start_with?('3.')
     require_relative 'docker'
     JT::Docker.new.docker(*args)
+  end
+
+  private
+
+  def load_excluded_file_names
+    File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
+      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
   end
 end
 

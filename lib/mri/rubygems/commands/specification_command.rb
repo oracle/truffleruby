@@ -13,27 +13,27 @@ class Gem::Commands::SpecificationCommand < Gem::Command
     Gem.load_yaml
 
     super "specification", "Display gem specification (in yaml)",
-          :domain => :local, :version => Gem::Requirement.default,
-          :format => :yaml
+          domain: :local, version: Gem::Requirement.default,
+          format: :yaml
 
     add_version_option("examine")
     add_platform_option
     add_prerelease_option
 
     add_option("--all", "Output specifications for all versions of",
-               "the gem") do |value, options|
+               "the gem") do |_value, options|
       options[:all] = true
     end
 
-    add_option("--ruby", "Output ruby format") do |value, options|
+    add_option("--ruby", "Output ruby format") do |_value, options|
       options[:format] = :ruby
     end
 
-    add_option("--yaml", "Output YAML format") do |value, options|
+    add_option("--yaml", "Output YAML format") do |_value, options|
       options[:format] = :yaml
     end
 
-    add_option("--marshal", "Output Marshal format") do |value, options|
+    add_option("--marshal", "Output Marshal format") do |_value, options|
       options[:format] = :marshal
     end
 
@@ -107,7 +107,11 @@ Specific fields in the specification can be extracted in YAML format:
 
     if local?
       if File.exist? gem
-        specs << Gem::Package.new(gem).spec rescue nil
+        begin
+          specs << Gem::Package.new(gem).spec
+        rescue StandardError
+          nil
+        end
       end
 
       if specs.empty?
@@ -134,16 +138,16 @@ Specific fields in the specification can be extracted in YAML format:
     end
 
     unless options[:all]
-      specs = [specs.max_by {|s| s.version }]
+      specs = [specs.max_by(&:version)]
     end
 
     specs.each do |s|
       s = s.send field if field
 
       say case options[:format]
-      when :ruby then s.to_ruby
-      when :marshal then Marshal.dump s
-      else s.to_yaml
+          when :ruby then s.to_ruby
+          when :marshal then Marshal.dump s
+          else s.to_yaml
       end
 
       say "\n"

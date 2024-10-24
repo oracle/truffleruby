@@ -53,6 +53,7 @@ public_method_defined?
 refinements
 remove_class_variable
 remove_method
+set_temporary_name
 singleton_class?
 to_s
 undef_method

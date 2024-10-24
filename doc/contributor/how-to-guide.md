@@ -1627,7 +1627,7 @@ The `jt` CLI tool has a lot of commands but there are very few basic ones that y
 - `jt sync` - to synchronize changes in Standard Library Ruby source code and apply them without rebuilding TruffleRuby
 - `jt tag` - ruby/spec only
 - `jt untag <path-to-file>` - (ruby/spec only) regenerate an exclude file for particular ruby/spec file (and list all the failed test cases)
-- `jt retag <path-to-file>` - (MRI test only) regenerate an exclude file for particular MRI test file (and list all the failed test cases)
+- `jt retag <path-to-file>` - (MRI test only) regenerate an exclude file for particular MRI test file (and list all the failed test cases). Do nothing if there aren't any already excluded cases for this file.
 - `jt lint fast` - to run some linter checks (that are run on CI) locally
 - `jt rubocop` - to run Ruby source code linter separately from other linter checks.
     - `jt rubocop -a` - to correct safely Rubocop warnings automatically

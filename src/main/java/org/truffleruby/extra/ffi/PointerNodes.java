@@ -112,6 +112,7 @@ public abstract class PointerNodes {
             switch (type) {
                 case "char":
                 case "uchar":
+                case "bool":
                     return 1;
                 case "short":
                 case "ushort":

@@ -14,7 +14,5 @@ stat_heap
 stress
 stress=
 total_time
-using_rvargc?
 verify_compaction_references
 verify_internal_consistency
-verify_transient_heap_internal_consistency

@@ -3,6 +3,7 @@ arity
 bind
 bind_call
 clone
+dup
 eql?
 hash
 inspect

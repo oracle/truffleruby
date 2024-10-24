@@ -1,0 +1,47 @@
+%a{annotate:rdoc:skip}
+class Object
+  # <!--
+  #   rdoc-file=lib/delegate.rb
+  #   - DelegateClass(superclass, &block)
+  # -->
+  # The primary interface to this library.  Use to setup delegation when defining
+  # your class.
+  #
+  #     class MyClass < DelegateClass(ClassToDelegateTo) # Step 1
+  #       def initialize
+  #         super(obj_of_ClassToDelegateTo)              # Step 2
+  #       end
+  #     end
+  #
+  # or:
+  #
+  #     MyClass = DelegateClass(ClassToDelegateTo) do    # Step 1
+  #       def initialize
+  #         super(obj_of_ClassToDelegateTo)              # Step 2
+  #       end
+  #     end
+  #
+  # Here's a sample of use from Tempfile which is really a File object with a few
+  # special rules about storage location and when the File should be deleted.
+  # That makes for an almost textbook perfect example of how to use delegation.
+  #
+  #     class Tempfile < DelegateClass(File)
+  #       # constant and class member data initialization...
+  #
+  #       def initialize(basename, tmpdir=Dir::tmpdir)
+  #         # build up file path/name in var tmpname...
+  #
+  #         @tmpfile = File.open(tmpname, File::RDWR|File::CREAT|File::EXCL, 0600)
+  #
+  #         # ...
+  #
+  #         super(@tmpfile)
+  #
+  #         # below this point, all methods of File are supported...
+  #       end
+  #
+  #       # ...
+  #     end
+  #
+  def DelegateClass: (Class) -> Class
+end

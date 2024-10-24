@@ -11,6 +11,7 @@ TruffleRuby has the same command-line interface as our compatible MRI version.
 ```shell
 Usage: truffleruby [switches] [--] [programfile] [arguments]
   -0[octal]       specify record separator (\0, if no argument)
+                  (-00 for paragraph mode, -0777 for slurp mode)
   -a              autosplit mode with -n or -p (splits $_ into $F)
   -c              check syntax only
   -Cdirectory     cd to directory before executing your script
@@ -33,9 +34,11 @@ Usage: truffleruby [switches] [--] [programfile] [arguments]
                   set warning level; 0=silence, 1=medium, 2=verbose
   -x[directory]   strip off text before #!ruby line and perhaps cd to directory
   --copyright     print the copyright
-  --enable={jit|rubyopt|...}[,...], --disable={jit|rubyopt|...}[,...]
+  --enable={rubyopt|...}[,...]
+  --disable={rubyopt|...}[,...]
                   enable or disable features. see below for available features
-  --external-encoding=encoding, --internal-encoding=encoding
+  --external-encoding=encoding
+  --internal-encoding=encoding
                   specify the default external or internal character encoding
   --backtrace-limit=num
                   limit the maximum length of backtrace
@@ -55,6 +58,7 @@ Features:
 Warning categories:
   deprecated      deprecated features
   experimental    experimental features
+  performance     performance issues
 
 Runtime options:
   --polyglot                                   Run with all other guest languages accessible.

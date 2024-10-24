@@ -6,7 +6,6 @@ require_relative "deprecate"
 # This module contains various utility methods as module methods.
 
 module Gem::Util
-
   ##
   # Zlib::GzipReader wrapper that unzips +data+.
 
@@ -61,7 +60,7 @@ module Gem::Util
   # Invokes system, but silences all output.
 
   def self.silent_system(*command)
-    opt = { :out => IO::NULL, :err => [:child, :out] }
+    opt = { out: IO::NULL, err: [:child, :out] }
     if Hash === command.last
       opt.update(command.last)
       cmds = command[0...-1]
@@ -85,7 +84,11 @@ module Gem::Util
 
     here = File.expand_path directory
     loop do
-      Dir.chdir here, &block rescue Errno::EACCES
+      begin
+        Dir.chdir here, &block
+      rescue StandardError
+        Errno::EACCES
+      end
 
       new_here = File.expand_path("..", here)
       return if new_here == here # toplevel
@@ -102,15 +105,14 @@ module Gem::Util
   end
 
   ##
-  # Corrects +path+ (usually returned by `URI.parse().path` on Windows), that
+  # Corrects +path+ (usually returned by `Gem::URI.parse().path` on Windows), that
   # comes with a leading slash.
 
   def self.correct_for_windows_path(path)
-    if path[0].chr == "/" && path[1].chr =~ /[a-z]/i && path[2].chr == ":"
+    if path[0].chr == "/" && path[1].chr.match?(/[a-z]/i) && path[2].chr == ":"
       path[1..-1]
     else
       path
     end
   end
-
 end
