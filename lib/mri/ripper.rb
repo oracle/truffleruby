@@ -1,8 +1,14 @@
 # frozen_string_literal: true
-require 'ripper/core'
-require 'ripper/lexer'
-require 'ripper/filter'
-require 'ripper/sexp'
+
+require 'prism' # 'prism/translation/ripper' depends on it
+require 'prism/translation/ripper'
+require 'prism/translation/ripper/shim'
+return
+
+# require 'ripper/core'
+# require 'ripper/lexer'
+# require 'ripper/filter'
+# require 'ripper/sexp'
 
 # Ripper is a Ruby script parser.
 #
