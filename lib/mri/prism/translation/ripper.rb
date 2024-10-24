@@ -89,7 +89,7 @@ module Prism
       #
       # The main difference with Ripper.tokenize is that the
       # `:on_sp` token is not emitted.
-      def self.tokenize(src, filename = '-', lineno = 1, **kw)
+      def self.tokenize(src, filename = '-', lineno = 1, raise_errors: false)
         result = Prism.lex_compat(src, filepath: filename, line: lineno)
 
         if result.failure? && raise_errors
@@ -3489,7 +3489,7 @@ module Prism
       # string needs to be dedented because of a tilde heredoc. It is expected
       # that it will modify the string in place and return the number of bytes
       # that were removed.
-      def dedent_string(string, width)
+      def self.dedent_string(string, width)
         whitespace = 0
         cursor = 0
 
@@ -3507,8 +3507,13 @@ module Prism
         string.replace(string[cursor..])
         cursor
       end
+
+      def dedent_string(string, width)
+        self.class.dedent_string(string, width)
+      end
     end
   end
 end
 
 require_relative 'ripper/lexer'
+require_relative 'ripper/filter'
