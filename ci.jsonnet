@@ -395,17 +395,18 @@ local part_definitions = {
     },
 
     retag_mri_tests: {
-      run+: jt(["retag", "test/mri/tests/**/*test*.rb"]) + [
-        ["ls", "test/mri/tests/**/*test*.rb"],
-        ["set-export", "DATE", ["date", "+%F"]],
-        ["set-export", "TRUFFLERUBY_BRANCH", "retag-mri-tests-$DATE"],
-        ["git", "checkout", "-b", "$TRUFFLERUBY_BRANCH"],
-        ["git", "config", "--local", "user.email", "you@example.com"],
-        ["git", "config", "--local", "user.name", "Retag MRI tests"],
-        ["git", "add", "."],
-        ["git", "commit", "-m", "Retag MRI tests"],
-        ["git", "remote", "-v"],
-        ["git", "push", "-f", "origin", "HEAD"],
+//run+: jt(["retag", "test/mri/tests/**/*test*.rb"]) + [
+      run+: [
+        ["find test/mri/tests -name '*test*.rb'"],
+//        ["set-export", "DATE", ["date", "+%F"]],
+//        ["set-export", "TRUFFLERUBY_BRANCH", "retag-mri-tests-$DATE"],
+//        ["git", "checkout", "-b", "$TRUFFLERUBY_BRANCH"],
+//        ["git", "config", "--local", "user.email", "you@example.com"],
+//        ["git", "config", "--local", "user.name", "Retag MRI tests"],
+//        ["git", "add", "."],
+//        ["git", "commit", "-m", "Retag MRI tests"],
+//        ["git", "remote", "-v"],
+//        ["git", "push", "-f", "origin", "HEAD"],
       ],
     },
   },
