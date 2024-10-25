@@ -438,8 +438,12 @@ def process_test_failures!(contents)
 
     # As a catch-all, any message ending with a colon likely has more context on the next line.
     elsif error_display&.end_with?(':')
-      index += 1
-      error_display << ' ' << error_lines[index]
+      # if an error message contains excessive new lines then it can be captured only partially
+      # and a line with ":" can be the last captured one
+      if index < error_lines.size - 1
+        index += 1
+        error_display << ' ' << error_lines[index]
+      end
     end
 
     # Generated Markdown code blocks span multiple lines. It's much more useful if they're combined into one message.
