@@ -1393,12 +1393,23 @@ module Commands
 
     files_to_retag.each do |test_file|
       puts '', test_file
-      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+Test/).map(&:first) # see test/mri/tests/mkmf/test_config.rb, test/mri/tests/rdoc/test_rdoc_alias.rb...
+
+      # Detect test classes in runtime
+      # It's difficult to find out test classes declared in a test file properly by static analysis (probably only parsing and checking AST may work)
+      # There are the following issues with static analysis:
+      #   - there may be a base class for several test classes - so we cannot just look up with a regexp for classes that directly inherit Test::Unit::TestCase
+      #   - test classes can inherit one another
+      #   - test classes may share common test cases by including a module with test cases
+      #   - there may be several test classes in a single test file
+      output = run_ruby('tool/retag_helper.rb', test_file, capture: :both)
+      test_classes = output.lines.map(&:chomp)
 
       if test_classes.empty?
         puts "\nWARNING: Could not find class inheriting from TestCase in #{test_file}"
         next
       end
+
+      puts "Preprocess exclude files for classes: #{test_classes}"
 
       test_classes.each do |test_class|
         prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
