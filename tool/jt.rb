@@ -1400,7 +1400,6 @@ module Commands
         next
       end
 
-      found_excludes = false
       test_classes.each do |test_class|
         prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
         ["#{prefix}.rb", prefix].each do |file|
@@ -1421,8 +1420,6 @@ module Commands
             puts 'Retaining:'
             puts retain
             File.write(file, retain.sort.join)
-
-            found_excludes = true
           end
         end
       end
