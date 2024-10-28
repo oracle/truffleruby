@@ -88,7 +88,7 @@ cp "$RUBY_BUILD_DIR"/{id.h,symbol.h} lib/cext/include/truffleruby/internal
 cp "$RUBY_BUILD_DIR"/{node.c,parse.c,lex.c} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/ripper.y src/main/c/ripper/ripper.y.renamed
-cp "$RUBY_BUILD_DIR"/{node.h,node_name.inc,parse.h,parser_node.h,parser_st.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/{node.h,node_name.inc,parse.h,parser_node.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/{eventids1.h,eventids2.h,ripper_init.h} src/main/c/ripper
 cp ../ruby/rubyparser.h src/main/c/ripper
 mkdir src/main/c/ripper/internal
