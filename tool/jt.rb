@@ -857,7 +857,7 @@ module Commands
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
           --fast                                     skip MRI tests using subprocesses
-      jt retag [FILES]                               Remove MRI excludes and re-add as necessary for MRI tests. If FILES are omitted - all the test files are processed
+      jt retag [--together] [FILES]                  Remove MRI excludes and re-add as necessary for MRI tests. If FILES are omitted - all the test files are processed
       ---
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
@@ -1380,6 +1380,7 @@ module Commands
     in_truffleruby_repo_root!
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
+    together = options.delete('--together')
 
     test_files = get_mri_test_files(test_files)
 
@@ -1393,56 +1394,61 @@ module Commands
     puts 'The following files will be retagged:'
     puts files_to_retag.map { |s| '- ' + s }
 
-    files_to_retag.each do |test_file|
-      test_file = "#{MRI_TEST_RELATIVE_PREFIX}/#{test_file}"
-      puts '', test_file
+    files_to_retag = files_to_retag.map { |test_file| "#{MRI_TEST_RELATIVE_PREFIX}/#{test_file}" }
 
-      # Detect test classes in runtime
-      # It's difficult to find out test classes declared in a test file properly by static analysis (probably only parsing and checking AST may work)
-      # There are the following issues with static analysis:
-      #   - there may be a base class for several test classes - so we cannot just look up with a regexp for classes that directly inherit Test::Unit::TestCase
-      #   - test classes can inherit one another
-      #   - test classes may share common test cases by including a module with test cases
-      #   - there may be several test classes in a single test file
-      output = run_ruby('tool/retag_helper.rb', test_file, capture: :both)
-      test_classes = output.lines.map(&:chomp)
+    # Detect test classes in runtime
+    # It's difficult to find out test classes declared in a test file properly by static analysis (probably only parsing and checking AST may work)
+    # There are the following issues with static analysis:
+    #   - there may be a base class for several test classes - so we cannot just look up with a regexp for classes that directly inherit Test::Unit::TestCase
+    #   - test classes can inherit one another
+    #   - test classes may share common test cases by including a module with test cases
+    #   - there may be several test classes in a single test file
+    output = run_ruby('tool/retag_helper.rb', *files_to_retag, capture: :both)
+    test_classes = output.lines.map(&:chomp)
+    if test_classes.empty?
+      puts "\nWARNING: Could not find class inheriting from TestCase in #{files_to_retag}"
+      return
+    end
 
-      if test_classes.empty?
-        puts "\nWARNING: Could not find class inheriting from TestCase in #{test_file}"
-        next
-      end
+    puts "Preprocess exclude files for classes: #{test_classes}"
+    test_classes.each do |test_class|
+      prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
+      ["#{prefix}.rb", prefix].each do |file|
+        if File.exist?(file) && File.file?(file)
+          lines = File.readlines(file)
+          FileUtils::Verbose.rm_r file
 
-      puts "Preprocess exclude files for classes: #{test_classes}"
+          # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
+          # tests as excluded and manually inspect them later. We need to be careful that we're not checking for our
+          # retains pattern on the test name. Thus, we limit our checks to either the exclusion reason string or a
+          # conditional guard that applies to the exclusion.
+          retain = lines.select do |line|
+            reason_or_guard = line.split(',', 2).last
 
-      test_classes.each do |test_class|
-        prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
-        ["#{prefix}.rb", prefix].each do |file|
-          if File.exist?(file) && File.file?(file)
-            lines = File.readlines(file)
-            FileUtils::Verbose.rm_r file
+            MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| reason_or_guard =~ pattern }
+          end
 
-            # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
-            # tests as excluded and manually inspect them later. We need to be careful that we're not checking for our
-            # retains pattern on the test name. Thus, we limit our checks to either the exclusion reason string or a
-            # conditional guard that applies to the exclusion.
-            retain = lines.select do |line|
-              reason_or_guard = line.split(',', 2).last
-
-              MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| reason_or_guard =~ pattern }
-            end
-
+          unless retain.empty?
             puts 'Retaining:'
             puts retain
             File.write(file, retain.sort.join)
           end
         end
       end
+    end
 
+    if together
+      groups = [files_to_retag]
+    else
+      groups = files_to_retag.map { |file| [file] }
+    end
+
+    groups.each do |group|
       process_tests = true
       while process_tests
         puts '1. Tagging tests'
         output_file = 'mri_tests.txt'
-        run_mri_tests(options, [test_file], [], [:err, :out] => output_file, continue_on_failure: true)
+        run_mri_tests(options, group, [], [:err, :out] => output_file, continue_on_failure: true)
 
         # Uncomment this to debug retagging and test class/method name capturing
         # puts ">"*80
@@ -1458,7 +1464,7 @@ module Commands
       end
 
       puts '3. Verifying tests pass'
-      run_mri_tests(options, [test_file], [], use_exec: test_files.size == 1)
+      run_mri_tests(options, group, [], use_exec: groups.size == 1)
     end
   end
 
