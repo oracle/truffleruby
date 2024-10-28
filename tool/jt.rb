@@ -1273,9 +1273,16 @@ module Commands
       end
     end
 
-    patterns.push "#{MRI_TEST_PREFIX}/**/test_*.rb" if patterns.empty?
+    files_to_run = get_mri_test_files(patterns)
+    files_to_run -= excluded_files
 
-    files_to_run = patterns.flat_map do |pattern|
+    run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
+  end
+
+  private def get_mri_test_files(patterns)
+    patterns << "#{MRI_TEST_PREFIX}/**/test_*.rb" if patterns.empty?
+
+    patterns.flat_map do |pattern|
       if pattern.start_with?(MRI_TEST_RELATIVE_PREFIX)
         pattern = "#{TRUFFLERUBY_DIR}/#{pattern}"
       elsif !pattern.start_with?(MRI_TEST_PREFIX)
@@ -1291,9 +1298,6 @@ module Commands
       abort "pattern #{pattern} matched no files" if glob.empty?
       glob.map { |path| mri_test_name(path) }
     end.sort
-    files_to_run -= excluded_files
-
-    run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
   end
 
   private def mri_test_name(test)
@@ -1377,11 +1381,9 @@ module Commands
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
 
-    if test_files.empty?
-      test_files = Dir.glob('test/mri/tests/**/*test*.rb', sort: true)
-    end
+    test_files = get_mri_test_files(test_files)
 
-    excluded_files = load_excluded_file_names.map { |path| MRI_TEST_RELATIVE_PREFIX + '/' + path }
+    excluded_files = load_excluded_file_names
     files_to_skip = test_files & excluded_files
     files_to_retag = test_files - excluded_files
 
@@ -1392,6 +1394,7 @@ module Commands
     puts files_to_retag.map { |s| '- ' + s }
 
     files_to_retag.each do |test_file|
+      test_file = "#{MRI_TEST_RELATIVE_PREFIX}/#{test_file}"
       puts '', test_file
 
       # Detect test classes in runtime
