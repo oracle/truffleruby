@@ -16,6 +16,7 @@ Compatibility:
 * Add `MAJOR`, `MINOR`, `TEENY`, `PATCHLEVEL`, `RUBY_API_VERSION`, and `RUBY_PROGRAM_VERSION` to `RbConfig::CONFIG` (#3396, @rwstauner).
 * Set `RbConfig::CONFIG['archincludedir']` (#3396, @andrykonchin).
 * Support the index/length arguments for the string argument to `String#bytesplice` added in 3.3 (#3656, @rwstauner).
+* Implement `rb_str_strlen()` (#3697, @Th3-M4jor).
 
 Performance:
 

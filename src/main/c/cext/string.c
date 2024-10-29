@@ -204,6 +204,10 @@ int rb_str_cmp(VALUE a, VALUE b) {
   return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(a, "<=>", b));
 }
 
+long rb_str_strlen(VALUE string) {
+  return polyglot_as_i64(RUBY_INVOKE_NO_WRAP(string, "size"));
+}
+
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
   return rb_str_conv_enc_opts(string, from, to, 0, Qnil);
 }
