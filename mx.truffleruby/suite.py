@@ -848,7 +848,7 @@ suite = {
                 "mx:HAMCREST",
                 "mx:JUNIT",
             ],
-            "unittestConfig": "none",
+            "unittestConfig": "truffleruby",
             "javaProperties": {
                 "polyglot.engine.WarnInterpreterOnly": "false",
             },
@@ -872,7 +872,7 @@ suite = {
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
             ],
-            "unittestConfig": "none",
+            "unittestConfig": "truffleruby",
             "javaProperties": {
                 "polyglot.engine.WarnInterpreterOnly": "false",
                 "polyglotimpl.DisableClassPathIsolation": "true",
