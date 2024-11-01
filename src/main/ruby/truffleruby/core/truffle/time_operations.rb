@@ -104,62 +104,74 @@ module Truffle
         return self.compose(time_class, self.utc_offset_for_compose(offset || options[:in]), year, month, mday, hour, min, sec, usec)
       end
 
-      require 'strscan'
+      # raise ArgumentError, "can't parse: #{str.inspect}"
 
-      scanner = StringScanner.new(str)
-      year = scanner.scan(/\d+/)
+      len = str.length
+      state = [1, 0]
+      year = str.match(/^(\d+)/)&.captures&.first
       raise ArgumentError, "can't parse: #{str.inspect}" if Primitive.nil?(year)
       raise ArgumentError, "year must be 4 or more digits: #{year}" if year.length < 4
 
-      return self.compose(time_class, self.utc_offset_for_compose(options[:in]), year) if scanner.eos?
+      return self.compose(time_class, self.utc_offset_for_compose(options[:in]), year) if len == year.size
 
-      month = self.scan_for_two_digits(scanner, 'mon', '-', 1..12)
-      mday = self.scan_for_two_digits(scanner, 'mday', '-', 1..31)
+      state[1] += year.size
+      month = self.scan_for_two_digits(state, str, 'mon', '-', 1..12)
+      mday = self.scan_for_two_digits(state, str, 'mday', '-', 1..31)
 
       # Just focus on the time part now.
-      scanner.string = scanner.rest
-      hour = self.scan_for_two_digits(scanner, 'hour', /[ T]/, 0..23, 'no time information', true)
-      min = self.scan_for_two_digits(scanner, 'min', ':', 0..59, true, true)
-      sec = self.scan_for_two_digits(scanner, 'sec', ':', 0..59, true)
+      state[0] = state[1] + 1
+      hour = self.scan_for_two_digits(state, str, 'hour', /[ T]/, 0..23, 'no time information', true)
+      min = self.scan_for_two_digits(state, str, 'min', ':', 0..59, true, true)
+      sec = self.scan_for_two_digits(state, str, 'sec', ':', 0..60, true)
 
-      if scanner.scan(/\.(\d*)/)
-        usec = scanner.captures[0]
-        raise ArgumentError, "subsecond expected after dot: #{scanner.pre_match[1..]}. " if usec == ''
+      if match = str[state[1]].match(/\.(\d*)/)
+        usec = match.captures[0]
+        raise ArgumentError, "subsecond expected after dot: #{str[state[0]..state[1]]} " if usec == ''
       end
 
       utc_offset = options[:in]
-      unless scanner.eos?
-        scanner.skip(/\s+/)
-        if scanner.match?(/\S+/)
+      unless len == state[1]
+        if match = str[state[1]..].match(/\s*(\S+)/)
           # An offset provided in the string overrides any passed in via `in:`.
-          utc_offset = scanner.matched
+          utc_offset = match.captures[0]
+          state[1] += match[0].size
         end
       end
+
+      raise ArgumentError, "can't parse at:#{str[state[1]..]}" if str.length > state[1]
 
       self.compose(time_class, self.utc_offset_for_compose(utc_offset), year, month, mday, hour, min, sec, usec)
     end
 
-    def self.scan_for_two_digits(scanner, name, separator, range = nil, not_found_msg = nil, check_fraction = false)
-      digits = if scanner.scan(/#{separator}(\d+)/)
-                 scanner.captures[0]
-               elsif Primitive.true?(not_found_msg)
-                 raise ArgumentError, "missing #{name} part: #{scanner.string[1...scanner.pos]} "
-               elsif not_found_msg
-                 raise ArgumentError, not_found_msg
-               end
-
-      if digits.to_s.size != 2
-        after = " after '#{separator}'" if separator == ':' || separator == '-'
-        raise ArgumentError, "two digits #{name} is expected#{after}: #{ "#{scanner.matched}#{scanner.rest}"[0..10] }"
+    def self.scan_for_two_digits(state, str, name, separator, range = nil, not_found_msg = nil, check_fraction = false)
+      index = state[1]
+      if str.length > index && str[index].match?(separator) && str[(index + 1)].match?(/\d/)
+        subindex = index + 1
+        while str.length > subindex && str[subindex].match?(/\d/)
+          subindex += 1
+        end
+        digits = str[(index + 1)...subindex]
+      elsif Primitive.true?(not_found_msg)
+        raise ArgumentError, "missing #{name} part: #{str[state[0]..index]}"
+      elsif not_found_msg
+        raise ArgumentError, not_found_msg
       end
+
+      if digits.size != 2
+        after = " after '#{separator}'" if separator == ':' || separator == '-'
+        raise ArgumentError, "two digits #{name} is expected#{after}: #{ str[index..(index + 10)] }"
+      end
+
+      # Advance index.
+      index = state[1] = state[1] + 3
 
       num = digits.to_i
       if range && !range.include?(num)
         raise ArgumentError, "#{name} out of range"
       end
 
-      if check_fraction && scanner.peek(1) == '.'
-        raise ArgumentError, "fraction #{name} is not supported: #{ "#{scanner.pre_match}#{scanner.matched}"[1..] }."
+      if check_fraction && str[index] == '.'
+        raise ArgumentError, "fraction #{name} is not supported: #{ str[state[0]..index] }"
       end
 
       num

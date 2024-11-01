@@ -663,6 +663,12 @@ describe "Time.new with a timezone argument" do
           Time.new("a\nb")
         }.should raise_error(ArgumentError, "can't parse: \"a\\nb\"")
       end
+
+      it "raises ArgumentError if string has extra characters after offset" do
+        -> {
+          Time.new("2021-11-31 00:00:59 +09:00 abc")
+        }.should raise_error(ArgumentError, "can't parse at: abc")
+      end
     end
   end
 end
