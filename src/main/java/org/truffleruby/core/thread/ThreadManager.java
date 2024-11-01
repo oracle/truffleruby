@@ -134,7 +134,6 @@ public final class ThreadManager {
 
         final RubyFiber rootFiber = rootThread.getRootFiber();
         rootFiber.restart();
-        rootFiber.finishedLatch = new CountDownLatch(1);
 
         PRNGRandomizerNodes.resetSeed(context, rootThread.randomizer);
     }
@@ -200,8 +199,6 @@ public final class ThreadManager {
 
                 // the Fiber is not yet initialized, unblock the caller and rethrow the exception to it
                 fiber.initializedLatch.countDown();
-                // the Fiber thread is dying, unblock the caller
-                fiber.finishedLatch.countDown();
             } catch (Throwable t) { // exception inside this UncaughtExceptionHandler
                 t.initCause(throwable);
                 printInternalError(t);
@@ -423,6 +420,7 @@ public final class ThreadManager {
 
         unregisterThread(thread);
         thread.thread = null;
+        thread.getRootFiber().thread = null;
 
         if (Thread.currentThread() == javaThread) {
             for (ReentrantLock lock : thread.ownedLocks) {
@@ -438,9 +436,6 @@ public final class ThreadManager {
         }
 
         thread.finishedLatch.countDown();
-
-        // Not strictly needed as this is the root Fiber and nothing currently uses its finishedLatch but clearer this way than leaving it with count 1 forever.
-        thread.getRootFiber().finishedLatch.countDown();
     }
 
     public Thread getRootJavaThread() {
