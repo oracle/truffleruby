@@ -176,6 +176,7 @@ public final class FiberManager {
             fiber.returnFiber = null;
             fiber.lastMessage = null;
         }
+        fiber.finishedLatch.countDown();
     }
 
     public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, InlinedBranchProfile errorProfile) {
@@ -353,8 +354,6 @@ public final class FiberManager {
         fiber.rubyThread.runningFibers.remove(fiber);
 
         fiber.thread = null;
-
-        fiber.finishedLatch.countDown();
     }
 
     @TruffleBoundary

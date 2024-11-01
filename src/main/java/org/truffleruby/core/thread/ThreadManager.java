@@ -438,6 +438,9 @@ public final class ThreadManager {
         }
 
         thread.finishedLatch.countDown();
+
+        // Not strictly needed as this is the root Fiber and nothing currently uses its finishedLatch but clearer this way than leaving it with count 1 forever.
+        thread.getRootFiber().finishedLatch.countDown();
     }
 
     public Thread getRootJavaThread() {
