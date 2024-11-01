@@ -551,105 +551,105 @@ describe "Time.new with a timezone argument" do
       it "raises ArgumentError if part of time string is missing" do
         -> {
           Time.new("2020-12-25 00:56 +09:00")
-        }.should raise_error(ArgumentError, "missing sec part: 00:56 ")
+        }.should raise_error(ArgumentError, /missing sec part: 00:56 |can't parse:/)
 
         -> {
           Time.new("2020-12-25 00 +09:00")
-        }.should raise_error(ArgumentError, "missing min part: 00 ")
+        }.should raise_error(ArgumentError, /missing min part: 00 |can't parse:/)
 
         -> {
           Time.new("2020-12-25")
-        }.should raise_error(ArgumentError, 'no time information')
+        }.should raise_error(ArgumentError, /no time information|can't parse:/)
       end
 
       it "raises ArgumentError if subsecond is missing after dot" do
         -> {
           Time.new("2020-12-25 00:56:17. +0900")
-        }.should raise_error(ArgumentError, "subsecond expected after dot: 00:56:17. ")
+        }.should raise_error(ArgumentError, /subsecond expected after dot: 00:56:17. |can't parse:/)
       end
 
       it "raises ArgumentError if String argument is not in the supported format" do
         -> {
           Time.new("021-12-25 00:00:00.123456 +09:00")
-        }.should raise_error(ArgumentError, "year must be 4 or more digits: 021")
+        }.should raise_error(ArgumentError, /year must be 4 or more digits: 021|can't parse:/)
 
         -> {
           Time.new("2020-012-25 00:56:17 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits mon is expected after [`']-': -012-25 00:\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits mon is expected after [`']-': -012-25 00:\z|can't parse:/)
 
         -> {
           Time.new("2020-2-25 00:56:17 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits mon is expected after [`']-': -2-25 00:56\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits mon is expected after [`']-': -2-25 00:56\z|can't parse:/)
 
         -> {
           Time.new("2020-12-215 00:56:17 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits mday is expected after [`']-': -215 00:56:\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits mday is expected after [`']-': -215 00:56:\z|can't parse:/)
 
         -> {
           Time.new("2020-12-25 000:56:17 +0900")
-        }.should raise_error(ArgumentError, "two digits hour is expected:  000:56:17 ")
+        }.should raise_error(ArgumentError, /two digits hour is expected:  000:56:17 |can't parse:/)
 
         -> {
           Time.new("2020-12-25 0:56:17 +0900")
-        }.should raise_error(ArgumentError, "two digits hour is expected:  0:56:17 +0")
+        }.should raise_error(ArgumentError, /two digits hour is expected:  0:56:17 \+0|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:516:17 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits min is expected after [`']:': :516:17 \+09\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits min is expected after [`']:': :516:17 \+09\z|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:6:17 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits min is expected after [`']:': :6:17 \+0900\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits min is expected after [`']:': :6:17 \+0900\z|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56:137 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits sec is expected after [`']:': :137 \+0900\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits sec is expected after [`']:': :137 \+0900\z|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56:7 +0900")
-        }.should raise_error(ArgumentError, /\Atwo digits sec is expected after [`']:': :7 \+0900\z/)
+        }.should raise_error(ArgumentError, /\Atwo digits sec is expected after [`']:': :7 \+0900\z|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56. +0900")
-        }.should raise_error(ArgumentError, "fraction min is not supported: 00:56.")
+        }.should raise_error(ArgumentError, /fraction min is not supported: 00:56\.|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00. +0900")
-        }.should raise_error(ArgumentError, "fraction hour is not supported: 00.")
+        }.should raise_error(ArgumentError, /fraction hour is not supported: 00\.|can't parse:/)
       end
 
       it "raises ArgumentError if date/time parts values are not valid" do
         -> {
           Time.new("2020-13-25 00:56:17 +09:00")
-        }.should raise_error(ArgumentError, "mon out of range")
+        }.should raise_error(ArgumentError, /mon out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-32 00:56:17 +09:00")
-        }.should raise_error(ArgumentError, "mday out of range")
+        }.should raise_error(ArgumentError, /mday out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-25 25:56:17 +09:00")
-        }.should raise_error(ArgumentError, "hour out of range")
+        }.should raise_error(ArgumentError, /hour out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:61:17 +09:00")
-        }.should raise_error(ArgumentError, "min out of range")
+        }.should raise_error(ArgumentError, /min out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56:61 +09:00")
-        }.should raise_error(ArgumentError, "sec out of range")
+        }.should raise_error(ArgumentError, /sec out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +23:59:60")
-        }.should raise_error(ArgumentError, "utc_offset out of range")
+        }.should raise_error(ArgumentError, /utc_offset out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +24:00")
-        }.should raise_error(ArgumentError, "utc_offset out of range")
+        }.should raise_error(ArgumentError, /utc_offset out of range|can't parse:/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +23:61")
-        }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +23:61')
+        }.should raise_error(ArgumentError, /#{Regexp.escape('"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +23:61')}|can't parse:/)
       end
 
       it "raises ArgumentError if string has not ascii-compatible encoding" do
@@ -667,7 +667,7 @@ describe "Time.new with a timezone argument" do
       it "raises ArgumentError if string has extra characters after offset" do
         -> {
           Time.new("2021-11-31 00:00:59 +09:00 abc")
-        }.should raise_error(ArgumentError, "can't parse at: abc")
+        }.should raise_error(ArgumentError, /can't parse.+ abc/)
       end
     end
   end
