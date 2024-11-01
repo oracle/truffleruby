@@ -80,7 +80,6 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public final RubyBasicObject fiberLocals;
     public final RubyArray catchTags;
     public final CountDownLatch initializedLatch = new CountDownLatch(1);
-    public CountDownLatch finishedLatch = new CountDownLatch(1);
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
     public final RubyThread rubyThread;
     // @formatter:off

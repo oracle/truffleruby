@@ -176,6 +176,7 @@ public final class FiberManager {
             fiber.returnFiber = null;
             fiber.lastMessage = null;
         }
+        fiber.thread = null;
     }
 
     public RubyFiber getReturnFiber(RubyFiber currentFiber, Node currentNode, InlinedBranchProfile errorProfile) {
@@ -351,10 +352,6 @@ public final class FiberManager {
         fiber.status = FiberStatus.TERMINATED;
 
         fiber.rubyThread.runningFibers.remove(fiber);
-
-        fiber.thread = null;
-
-        fiber.finishedLatch.countDown();
     }
 
     @TruffleBoundary
@@ -388,9 +385,16 @@ public final class FiberManager {
             if (!fiber.isRootFiber()) {
                 addToMessageQueue(fiber, new FiberShutdownMessage());
 
-                // Wait for the Fiber to finish so we only run one Fiber at a time
-                final CountDownLatch finishedLatch = fiber.finishedLatch;
-                finishedLatch.await();
+                /* Wait for the Fiber to finish, so we only run one Fiber at a time. If fiber.thread is null it means
+                 * the Fiber never started and shouldn't ever start since we are killing all fibers of this Ruby thread
+                 * and so no more Ruby code (which could resume that Fiber) should run there. Adding a
+                 * FiberShutdownMessage above won't cause the Fiber to start, because the only thing causing the Fiber
+                 * to create a thread are callers of resumeAndWait(), which are Fiber#resume, Fiber#transfer,
+                 * Fiber#raise and Fiber.yield. */
+                Thread fiberThread = fiber.thread;
+                if (fiberThread != null) {
+                    fiberThread.join();
+                }
 
                 final Throwable uncaughtException = fiber.uncaughtException;
                 if (uncaughtException != null) {
