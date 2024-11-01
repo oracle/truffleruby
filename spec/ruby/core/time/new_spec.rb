@@ -485,6 +485,8 @@ describe "Time.new with a timezone argument" do
         Time.new("2020-12-25 00:56:17 +0900").should == t
         Time.new("2020-12-25 00:57:47 +090130").should == t
         Time.new("2020-12-25T00:56:17+09:00").should == t
+
+        Time.new("2020-12-25T00:56:17.123456+09:00").should == Time.utc(2020, 12, 24, 15, 56, 17, 123456)
       end
 
       it "accepts precision keyword argument and truncates specified digits of sub-second part" do
