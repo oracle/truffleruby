@@ -511,6 +511,16 @@ describe "Time.new with a timezone argument" do
         Time.new("2021-12-25 00:00:00", in: "-01:00").to_s.should == "2021-12-25 00:00:00 -0100"
       end
 
+      it "returns Time of Jan 1 for string with just year" do
+        Time.new("2021").should == Time.new(2021, 1, 1)
+        Time.new("2021").zone.should == Time.new(2021, 1, 1).zone
+        Time.new("2021").utc_offset.should == Time.new(2021, 1, 1).utc_offset
+      end
+
+      it "returns Time of Jan 1 for string with just year in timezone specified with in keyword argument" do
+        Time.new("2021", in: "+17:00").to_s.should == "2021-01-01 00:00:00 +1700"
+      end
+
       it "converts precision keyword argument into Integer if is not nil" do
         obj = Object.new
         def obj.to_int; 3; end
@@ -544,6 +554,10 @@ describe "Time.new with a timezone argument" do
         -> {
           Time.new("2020-12-25 00 +09:00")
         }.should raise_error(ArgumentError, "missing min part: 00 ")
+
+        -> {
+          Time.new("2020-12-25")
+        }.should raise_error(ArgumentError, 'no time information')
       end
 
       it "raises ArgumentError if subsecond is missing after dot" do
@@ -640,6 +654,12 @@ describe "Time.new with a timezone argument" do
         -> {
           Time.new("2021-11-31 00:00:60 +09:00".encode("utf-32le"))
         }.should raise_error(ArgumentError, "time string should have ASCII compatible encoding")
+      end
+
+      it "raises ArgumentError if string doesn't start with year" do
+        -> {
+          Time.new("a\nb")
+        }.should raise_error(ArgumentError, "can't parse: \"a\\nb\"")
       end
     end
   end
