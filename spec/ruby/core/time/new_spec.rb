@@ -621,31 +621,31 @@ describe "Time.new with a timezone argument" do
       it "raises ArgumentError if date/time parts values are not valid" do
         -> {
           Time.new("2020-13-25 00:56:17 +09:00")
-        }.should raise_error(ArgumentError, /mon out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(mon|argument) out of range/)
 
         -> {
           Time.new("2020-12-32 00:56:17 +09:00")
-        }.should raise_error(ArgumentError, /mday out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(mday|argument) out of range/)
 
         -> {
           Time.new("2020-12-25 25:56:17 +09:00")
-        }.should raise_error(ArgumentError, /hour out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(hour|argument) out of range/)
 
         -> {
           Time.new("2020-12-25 00:61:17 +09:00")
-        }.should raise_error(ArgumentError, /min out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(min|argument) out of range/)
 
         -> {
           Time.new("2020-12-25 00:56:61 +09:00")
-        }.should raise_error(ArgumentError, /sec out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(sec|argument) out of range/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +23:59:60")
-        }.should raise_error(ArgumentError, /utc_offset out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(utc_offset|argument) out of range/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +24:00")
-        }.should raise_error(ArgumentError, /utc_offset out of range|can't parse:/)
+        }.should raise_error(ArgumentError, /(utc_offset|argument) out of range/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +23:61")
