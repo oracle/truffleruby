@@ -96,8 +96,16 @@ module Truffle
       raise ArgumentError, 'time string should have ASCII compatible encoding' unless str.encoding.ascii_compatible?
 
       # Fast path for well-formed strings.
-      if match = str.match(/\A(\d{4,5})(?:-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?\s*(\S+)?)?\z/)
-        year, month, mday, hour, min, sec, usec, offset = match.captures
+      if /\A (?<year>\d{4,5})
+             (?:
+               - (?<month>\d{2})
+               - (?<mday> \d{2})
+               [ T] (?<hour> \d{2})
+                  : (?<min>  \d{2})
+                  : (?<sec>  \d{2})
+                  (?:\. (?<usec> \d+) )?
+              \s* (?<offset>\S+)?
+             )?\z/x =~ str
         return self.compose(time_class, self.utc_offset_for_compose(offset || options[:in]), year, month, mday, hour, min, sec, usec)
       end
 
