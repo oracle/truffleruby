@@ -51,7 +51,7 @@ cext-ruby/rational/test_rat.rb
 cext-ruby/string/test_fstring.rb
 cext-ruby/string/test_modify_expand.rb
 cext-ruby/string/test_nofree.rb
-cext-ruby/symbol/noninterned_name.rb
+cext-ruby/thread/test_instrumentation_api.rb # needs rb_internal_thread_add_event_hook to be implemented
 cext-ruby/win32/test_console_attr.rb
 cext-ruby/win32/test_dln.rb
 cext-ruby/win32/test_fd_setsize.rb

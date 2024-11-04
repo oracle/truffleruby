@@ -1,5 +1,7 @@
 require_relative '../test/mri/tests/tool/test/init'
 
+$LOAD_PATH.unshift 'test/mri/tests' # it's what Test::Unit::AutoRunner.run is doing
+
 ARGV.each do |test_file|
   require File.expand_path(test_file).chomp('.rb')
 end

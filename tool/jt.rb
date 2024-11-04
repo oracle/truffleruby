@@ -1328,10 +1328,6 @@ module Commands
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], *truffle_args].join(' '),
     }
-    compile_env = {
-      # MRI C-ext tests expect to be built with $extmk = true.
-      'MKMF_SET_EXTMK_TO_TRUE' => 'true',
-    }
 
     if extra_args.delete '--fast'
       env_vars['MRI_TEST_SUBPROCESSES'] = 'false'
@@ -1340,6 +1336,20 @@ module Commands
     cext_tests = test_files.select do |f|
       f.include?('cext-ruby') || MRI_TEST_CAPI_TESTS.include?(f)
     end
+
+    compile_cext_for_mri_c_api_tests(cext_tests)
+
+    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
+    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
+    run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
+  end
+
+  private def compile_cext_for_mri_c_api_tests(cext_tests)
+    compile_env = {
+      # MRI C-ext tests expect to be built with $extmk = true.
+      'MKMF_SET_EXTMK_TO_TRUE' => 'true',
+    }
+
     cext_tests.each do |test|
       puts
       puts test
@@ -1370,10 +1380,6 @@ module Commands
         puts "c require not found for cext test: #{test_path}"
       end
     end
-
-    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
-    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
-    run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
   end
 
   def retag(*args)
@@ -1394,16 +1400,27 @@ module Commands
     puts 'The following files will be retagged:'
     puts files_to_retag.map { |s| '- ' + s }
 
-    files_to_retag = files_to_retag.map { |test_file| "#{MRI_TEST_RELATIVE_PREFIX}/#{test_file}" }
+    files_to_retag_relative = files_to_retag # paths are relative to test/mri/tests directory
+    files_to_retag = files_to_retag_relative.map { |test_file| "#{MRI_TEST_RELATIVE_PREFIX}/#{test_file}" }
 
     # Detect test classes in runtime
+    #
     # It's difficult to find out test classes declared in a test file properly by static analysis (probably only parsing and checking AST may work)
     # There are the following issues with static analysis:
     #   - there may be a base class for several test classes - so we cannot just look up with a regexp for classes that directly inherit Test::Unit::TestCase
     #   - test classes can inherit one another
     #   - test classes may share common test cases by including a module with test cases
     #   - there may be several test classes in a single test file
-    output = run_ruby('tool/retag_helper.rb', *files_to_retag, capture: :both)
+
+    # build native extensions needed for MRI tests
+    cext_tests = files_to_retag_relative.select do |f|
+      f.include?('cext-ruby') || MRI_TEST_CAPI_TESTS.include?(f)
+    end
+    compile_cext_for_mri_c_api_tests(cext_tests)
+
+    command = ['tool/retag_helper.rb']
+    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext") if !cext_tests.empty?
+    output = run_ruby(*command, *files_to_retag, capture: :both)
     test_classes = output.lines.map(&:chomp)
     if test_classes.empty?
       puts "\nWARNING: Could not find class inheriting from TestCase in #{files_to_retag}"
