@@ -11,6 +11,7 @@ package org.truffleruby.signal;
 
 public abstract class LibRubySignal {
 
+    @SuppressWarnings("restricted")
     public static void loadLibrary(String rubyHome, String libSuffix) {
         final String path = rubyHome + "/lib/cext/librubysignal" + libSuffix;
         System.load(path);

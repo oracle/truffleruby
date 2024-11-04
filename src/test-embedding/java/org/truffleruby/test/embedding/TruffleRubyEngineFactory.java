@@ -46,9 +46,9 @@ import org.graalvm.polyglot.Value;
 public final class TruffleRubyEngineFactory implements ScriptEngineFactory {
     private static final String LANGUAGE_ID = "ruby";
 
-    /***********************************************************/
+    /*-*********************************************************/
     /* Everything below is generic and does not need to change */
-    /***********************************************************/
+    /*-*********************************************************/
 
     private final Engine polyglotEngine = Engine.newBuilder().build();
     private final Language language = polyglotEngine.getLanguages().get(LANGUAGE_ID);

@@ -2,6 +2,7 @@ package org.prism;
 
 public abstract class Parser {
 
+    @SuppressWarnings("restricted")
     public static void loadLibrary(String path) {
         System.load(path);
     }

@@ -23,6 +23,8 @@ import mx_sdk_vm
 import mx_sdk_vm_impl
 import mx_subst
 import mx_spotbugs
+import mx_truffle
+import mx_unittest
 
 # re-export custom mx project classes, so they can be used from suite.py
 from mx_sdk_shaded import ShadedLibraryProject # pylint: disable=unused-import
@@ -73,6 +75,17 @@ def get_truffleruby_abi_version():
     return m.group(1)
 
 mx_subst.results_substitutions.register_no_arg('truffleruby_abi_version', get_truffleruby_abi_version)
+
+class TruffleRubyUnittestConfig(mx_unittest.MxUnittestConfig):
+    def __init__(self):
+        super(TruffleRubyUnittestConfig, self).__init__('truffleruby')
+
+    def apply(self, config):
+        vmArgs, mainClass, mainClassArgs = config
+        mx_truffle.enable_truffle_native_access(vmArgs)
+        return (vmArgs, mainClass, mainClassArgs)
+
+mx_unittest.register_unittest_config(TruffleRubyUnittestConfig())
 
 # Utilities
 
@@ -138,6 +151,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
     def contents(self, result):
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
         jvm_args = [shlex.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
+        mx_truffle.enable_truffle_native_access(jvm_args)
 
         debug_args = mx.java_debug_args()
         jvm_args.extend(debug_args)
@@ -191,6 +205,7 @@ def ruby_check_heap_dump(input_args, out=None):
     args.insert(0, "--experimental-options")
     vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
     vm_args += mx.get_runtime_jvm_args(dists)
+    mx_truffle.enable_truffle_native_access(vm_args)
     # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
     vm_args.append("org.truffleruby.test.internal.LeakTest")
     out = mx.OutputCapture() if out is None else out

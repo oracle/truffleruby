@@ -1,6 +1,8 @@
 suite = {
     "mxversion": "7.27.0",
     "name": "truffleruby",
+    "version": "24.2.0",
+    "release": False,
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
     "developer": {
@@ -20,7 +22,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "ce344dd45cc746790b06bc572086a922b2ae328c",
+                "version": "1e8adf83a2a21aa517c64913b41f00ab93e08819",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -29,7 +31,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "ce344dd45cc746790b06bc572086a922b2ae328c",
+                "version": "1e8adf83a2a21aa517c64913b41f00ab93e08819",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -846,7 +848,7 @@ suite = {
                 "mx:HAMCREST",
                 "mx:JUNIT",
             ],
-            "unittestConfig": "none",
+            "unittestConfig": "truffleruby",
             "javaProperties": {
                 "polyglot.engine.WarnInterpreterOnly": "false",
             },
@@ -870,7 +872,7 @@ suite = {
                 "mx:JUNIT",
                 "truffleruby:NETBEANS-LIB-PROFILER",
             ],
-            "unittestConfig": "none",
+            "unittestConfig": "truffleruby",
             "javaProperties": {
                 "polyglot.engine.WarnInterpreterOnly": "false",
                 "polyglotimpl.DisableClassPathIsolation": "true",
