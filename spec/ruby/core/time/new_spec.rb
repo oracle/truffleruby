@@ -556,10 +556,14 @@ describe "Time.new with a timezone argument" do
         -> {
           Time.new("2020-12-25 00 +09:00")
         }.should raise_error(ArgumentError, /missing min part: 00 |can't parse:/)
+      end
 
-        -> {
-          Time.new("2020-12-25")
-        }.should raise_error(ArgumentError, /no time information|can't parse:/)
+      ruby_version_is "3.2.3" do
+        it "raises ArgumentError if the time part is missing" do
+          -> {
+            Time.new("2020-12-25")
+          }.should raise_error(ArgumentError, /no time information|can't parse:/)
+        end
       end
 
       it "raises ArgumentError if subsecond is missing after dot" do
