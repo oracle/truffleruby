@@ -91,5 +91,35 @@ module Truffle
 
       Primitive.time_s_from_array(time_class, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
     end
+
+    def self.new_from_string(time_class, str, **options)
+      raise ArgumentError, 'time string should have ASCII compatible encoding' unless str.encoding.ascii_compatible?
+
+      # Fast path for well-formed strings.
+      if /\A (?<year>\d{4,5})
+             (?:
+               - (?<month>\d{2})
+               - (?<mday> \d{2})
+               [ T] (?<hour> \d{2})
+                  : (?<min>  \d{2})
+                  : (?<sec>  \d{2})
+                  (?:\. (?<usec> \d+) )?
+              \s* (?<offset>\S+)?
+             )?\z/x =~ str
+        return self.compose(time_class, self.utc_offset_for_compose(offset || options[:in]), year, month, mday, hour, min, sec, usec)
+      end
+
+      raise ArgumentError, "can't parse: #{str.inspect}"
+    end
+
+    def self.utc_offset_for_compose(utc_offset)
+      if Primitive.nil?(utc_offset)
+        :local
+      elsif Time.send(:utc_offset_in_utc?, utc_offset)
+        :utc
+      else
+        Truffle::Type.coerce_to_utc_offset(utc_offset)
+      end
+    end
   end
 end

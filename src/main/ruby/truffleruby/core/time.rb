@@ -403,15 +403,19 @@ class Time
       time
     end
 
-    def new(year = undefined, month = nil, day = nil, hour = nil, minute = nil, second = nil, utc_offset = nil, **options)
+    def new(year = undefined, month = undefined, day = nil, hour = nil, minute = nil, second = nil, utc_offset = nil, **options)
       if utc_offset && options[:in]
         raise ArgumentError, 'timezone argument given as positional and keyword arguments'
       end
 
       utc_offset ||= options[:in]
+      month_undefined = Primitive.undefined?(month)
+      month = nil if month_undefined
 
       if Primitive.undefined?(year)
         utc_offset ? self.now.getlocal(utc_offset) : self.now
+      elsif Primitive.is_a?(year, String) && month_undefined
+        Truffle::TimeOperations.new_from_string(self, year, **options)
       elsif Primitive.nil? utc_offset
         Truffle::TimeOperations.compose(self, :local, year, month, day, hour, minute, second)
       elsif utc_offset == :std

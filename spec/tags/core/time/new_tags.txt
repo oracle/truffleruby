@@ -20,15 +20,6 @@ fails:Time.new with a timezone argument subject's class implements .find_timezon
 fails:Time.new with a timezone argument subject's class implements .find_timezone method calls .find_timezone to build a time object if passed zone name as a timezone argument
 fails:Time.new with a timezone argument subject's class implements .find_timezone method does not call .find_timezone if passed any not string/numeric/timezone timezone argument
 fails:Time.new with a timezone argument :in keyword argument could be a timezone object
-fails:Time.new with a timezone argument Time.new with a String argument parses an ISO-8601 like format
 fails:Time.new with a timezone argument Time.new with a String argument accepts precision keyword argument and truncates specified digits of sub-second part
-fails:Time.new with a timezone argument Time.new with a String argument returns Time in timezone specified in the String argument
-fails:Time.new with a timezone argument Time.new with a String argument returns Time in timezone specified in the String argument even if the in keyword argument provided
-fails:Time.new with a timezone argument Time.new with a String argument returns Time in timezone specified with in keyword argument if timezone isn't provided in the String argument
 fails:Time.new with a timezone argument Time.new with a String argument converts precision keyword argument into Integer if is not nil
 fails:Time.new with a timezone argument Time.new with a String argument raise TypeError is can't convert precision keyword argument into Integer
-fails:Time.new with a timezone argument Time.new with a String argument raises ArgumentError if part of time string is missing
-fails:Time.new with a timezone argument Time.new with a String argument raises ArgumentError if subsecond is missing after dot
-fails:Time.new with a timezone argument Time.new with a String argument raises ArgumentError if String argument is not in the supported format
-fails:Time.new with a timezone argument Time.new with a String argument raises ArgumentError if date/time parts values are not valid
-fails:Time.new with a timezone argument Time.new with a String argument raises ArgumentError if string has not ascii-compatible encoding
