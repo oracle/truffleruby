@@ -1,12 +1,15 @@
 @ ProgramNode (location: (1,0)-(3,10))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(3,10))
+    ├── flags: ∅
     └── body: (length: 2)
         ├── @ OrNode (location: (1,0)-(1,10))
+        │   ├── flags: newline
         │   ├── left:
         │   │   @ CallNode (location: (1,0)-(1,3))
-        │   │   ├── flags: variable_call
+        │   │   ├── flags: variable_call, ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :foo
@@ -17,7 +20,7 @@
         │   │   └── block: ∅
         │   ├── right:
         │   │   @ CallNode (location: (1,7)-(1,10))
-        │   │   ├── flags: variable_call
+        │   │   ├── flags: variable_call, ignore_visibility
         │   │   ├── receiver: ∅
         │   │   ├── call_operator_loc: ∅
         │   │   ├── name: :bar
@@ -28,9 +31,10 @@
         │   │   └── block: ∅
         │   └── operator_loc: (1,4)-(1,6) = "or"
         └── @ OrNode (location: (3,0)-(3,10))
+            ├── flags: newline
             ├── left:
             │   @ CallNode (location: (3,0)-(3,3))
-            │   ├── flags: variable_call
+            │   ├── flags: variable_call, ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :foo
@@ -41,7 +45,7 @@
             │   └── block: ∅
             ├── right:
             │   @ CallNode (location: (3,7)-(3,10))
-            │   ├── flags: variable_call
+            │   ├── flags: variable_call, ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :bar

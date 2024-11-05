@@ -1,10 +1,12 @@
 @ ProgramNode (location: (1,0)-(1,17))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(1,17))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ CallNode (location: (1,0)-(1,17))
-            ├── flags: ∅
+            ├── flags: newline, ignore_visibility
             ├── receiver: ∅
             ├── call_operator_loc: ∅
             ├── name: :a
@@ -14,23 +16,27 @@
             ├── closing_loc: ∅
             └── block:
                 @ BlockNode (location: (1,2)-(1,17))
+                ├── flags: ∅
                 ├── locals: [:b, :c]
-                ├── locals_body_index: 2
                 ├── parameters:
                 │   @ BlockParametersNode (location: (1,4)-(1,15))
+                │   ├── flags: ∅
                 │   ├── parameters:
                 │   │   @ ParametersNode (location: (1,5)-(1,14))
+                │   │   ├── flags: ∅
                 │   │   ├── requireds: (length: 1)
                 │   │   │   └── @ RequiredParameterNode (location: (1,5)-(1,6))
+                │   │   │       ├── flags: ∅
                 │   │   │       └── name: :b
                 │   │   ├── optionals: (length: 1)
                 │   │   │   └── @ OptionalParameterNode (location: (1,8)-(1,14))
+                │   │   │       ├── flags: ∅
                 │   │   │       ├── name: :c
                 │   │   │       ├── name_loc: (1,8)-(1,9) = "c"
                 │   │   │       ├── operator_loc: (1,10)-(1,11) = "="
                 │   │   │       └── value:
                 │   │   │           @ SymbolNode (location: (1,12)-(1,14))
-                │   │   │           ├── flags: ∅
+                │   │   │           ├── flags: static_literal, forced_us_ascii_encoding
                 │   │   │           ├── opening_loc: (1,12)-(1,13) = ":"
                 │   │   │           ├── value_loc: (1,13)-(1,14) = "d"
                 │   │   │           ├── closing_loc: ∅

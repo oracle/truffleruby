@@ -1,15 +1,18 @@
 @ ProgramNode (location: (1,0)-(1,20))
+├── flags: ∅
 ├── locals: [:a]
 └── statements:
     @ StatementsNode (location: (1,0)-(1,20))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ LocalVariableWriteNode (location: (1,0)-(1,20))
+            ├── flags: newline
             ├── name: :a
             ├── depth: 0
             ├── name_loc: (1,0)-(1,1) = "a"
             ├── value:
             │   @ CallNode (location: (1,4)-(1,20))
-            │   ├── flags: ∅
+            │   ├── flags: ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :foo
@@ -23,21 +26,24 @@
             │   │           ├── flags: ∅
             │   │           ├── receiver:
             │   │           │   @ InterpolatedStringNode (location: (1,8)-(1,14))
+            │   │           │   ├── flags: ∅
             │   │           │   ├── opening_loc: (1,8)-(1,14) = "<<~EOF"
             │   │           │   ├── parts: (length: 3)
             │   │           │   │   ├── @ StringNode (location: (2,0)-(3,0))
-            │   │           │   │   │   ├── flags: ∅
+            │   │           │   │   │   ├── flags: static_literal, frozen
             │   │           │   │   │   ├── opening_loc: ∅
             │   │           │   │   │   ├── content_loc: (2,0)-(3,0) = "\n"
             │   │           │   │   │   ├── closing_loc: ∅
             │   │           │   │   │   └── unescaped: "\n"
             │   │           │   │   ├── @ EmbeddedStatementsNode (location: (3,4)-(3,10))
+            │   │           │   │   │   ├── flags: ∅
             │   │           │   │   │   ├── opening_loc: (3,4)-(3,6) = "\#{"
             │   │           │   │   │   ├── statements:
             │   │           │   │   │   │   @ StatementsNode (location: (3,6)-(3,9))
+            │   │           │   │   │   │   ├── flags: ∅
             │   │           │   │   │   │   └── body: (length: 1)
             │   │           │   │   │   │       └── @ CallNode (location: (3,6)-(3,9))
-            │   │           │   │   │   │           ├── flags: variable_call
+            │   │           │   │   │   │           ├── flags: variable_call, ignore_visibility
             │   │           │   │   │   │           ├── receiver: ∅
             │   │           │   │   │   │           ├── call_operator_loc: ∅
             │   │           │   │   │   │           ├── name: :bar
@@ -48,7 +54,7 @@
             │   │           │   │   │   │           └── block: ∅
             │   │           │   │   │   └── closing_loc: (3,9)-(3,10) = "}"
             │   │           │   │   └── @ StringNode (location: (3,10)-(4,0))
-            │   │           │   │       ├── flags: ∅
+            │   │           │   │       ├── flags: static_literal, frozen
             │   │           │   │       ├── opening_loc: ∅
             │   │           │   │       ├── content_loc: (3,10)-(4,0) = "baz\n"
             │   │           │   │       ├── closing_loc: ∅

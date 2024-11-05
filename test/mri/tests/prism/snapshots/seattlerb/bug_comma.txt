@@ -1,13 +1,16 @@
 @ ProgramNode (location: (1,0)-(1,24))
+├── flags: ∅
 ├── locals: []
 └── statements:
     @ StatementsNode (location: (1,0)-(1,24))
+    ├── flags: ∅
     └── body: (length: 1)
         └── @ IfNode (location: (1,0)-(1,24))
+            ├── flags: newline
             ├── if_keyword_loc: (1,0)-(1,2) = "if"
             ├── predicate:
             │   @ CallNode (location: (1,3)-(1,15))
-            │   ├── flags: ∅
+            │   ├── flags: ignore_visibility
             │   ├── receiver: ∅
             │   ├── call_operator_loc: ∅
             │   ├── name: :test
@@ -24,7 +27,7 @@
             │   │       │   ├── closing_loc: ∅
             │   │       │   └── unescaped: "d"
             │   │       └── @ CallNode (location: (1,12)-(1,15))
-            │   │           ├── flags: variable_call
+            │   │           ├── flags: variable_call, ignore_visibility
             │   │           ├── receiver: ∅
             │   │           ├── call_operator_loc: ∅
             │   │           ├── name: :dir
@@ -37,5 +40,5 @@
             │   └── block: ∅
             ├── then_keyword_loc: (1,16)-(1,20) = "then"
             ├── statements: ∅
-            ├── consequent: ∅
+            ├── subsequent: ∅
             └── end_keyword_loc: (1,21)-(1,24) = "end"
