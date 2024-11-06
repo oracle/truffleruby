@@ -437,6 +437,11 @@ VALUE rb_enc_interned_str_cstr(const char *ptr, rb_encoding *enc) {
   return rb_str_to_interned_str(str);
 }
 
+VALUE rb_enc_interned_str(const char *ptr, long len, rb_encoding *enc) {
+  VALUE str = rb_enc_str_new(ptr, len, enc ? enc : rb_ascii8bit_encoding());
+  return rb_str_to_interned_str(str);
+}
+
 VALUE rb_str_to_interned_str(VALUE str) {
   return RUBY_INVOKE(str, "-@");
 }
