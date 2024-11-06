@@ -108,7 +108,7 @@ module RbConfig
   defs = ''
   cppflags = ''
   ldflags = ''
-  dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup' : ''
+  dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup' : '-Wl,-z,lazy'
 
   cext_dir = "#{prefix}/lib/cext"
   soext = Truffle::Platform::SOEXT
