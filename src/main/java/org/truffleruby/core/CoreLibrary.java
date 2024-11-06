@@ -299,11 +299,11 @@ public final class CoreLibrary {
         objectClass = (RubyClass) moduleClass.superclass;
         basicObjectClass = (RubyClass) objectClass.superclass;
 
-        // Set constants in Object and lexical parents
-        classClass.fields.getAdoptedByLexicalParent(context, objectClass, "Class", node);
-        basicObjectClass.fields.getAdoptedByLexicalParent(context, objectClass, "BasicObject", node);
-        objectClass.fields.getAdoptedByLexicalParent(context, objectClass, "Object", node);
-        moduleClass.fields.getAdoptedByLexicalParent(context, objectClass, "Module", node);
+        // Set constants in Object
+        objectClass.fields.setConstant(context, node, "Class", classClass);
+        objectClass.fields.setConstant(context, node, "BasicObject", basicObjectClass);
+        objectClass.fields.setConstant(context, node, "Object", objectClass);
+        objectClass.fields.setConstant(context, node, "Module", moduleClass);
 
         // Create Exception classes
 
