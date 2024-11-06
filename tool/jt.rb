@@ -1443,19 +1443,22 @@ module Commands
     out.sub('-', '--vm.')
   end
 
-  ALL_CEXTS_TESTS = %w[
-    tools postinstallhook
-    minimum module method globals backtraces xopenssl werror no_timespec stripped
+  GEMS_CEXTS_TESTS = %w[
     oily_png psd_native
     puma sqlite3 unf_ext json grpc RubyInline msgpack
   ]
+
+  ALL_CEXTS_TESTS = %w[
+    tools postinstallhook
+    minimum module method globals backtraces xopenssl werror no_timespec stripped
+  ] + GEMS_CEXTS_TESTS
 
   private def test_cexts(*args)
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
     tests = args.empty? ? ALL_CEXTS_TESTS : args
     tests -= %w[xopenssl] if no_openssl
-    tests.delete 'gems' if no_gems
+    tests -= GEMS_CEXTS_TESTS if no_gems
 
     tests.each do |test_name|
       run_single_cexts_test(test_name)
