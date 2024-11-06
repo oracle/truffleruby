@@ -57,6 +57,6 @@ describe "Thread#thread_variable_set" do
   it "does not try to convert the key with #to_sym" do
     key = mock('key')
     key.should_not_receive(:to_sym)
-    -> { @t.thread_variable_set(key, 42) }.should raise_error(TypeError, /#{key.inspect} is not a symbol/)
+    -> { @t.thread_variable_set(key, 42) }.should raise_error(TypeError, /#{Regexp.quote(key.inspect)} is not a symbol/)
   end
 end

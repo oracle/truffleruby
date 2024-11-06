@@ -645,7 +645,7 @@ describe "Time.new with a timezone argument" do
 
         -> {
           Time.new("2020-12-25 00:56:17 +23:59:60")
-        }.should raise_error(ArgumentError, /(utc_offset|argument) out of range/)
+        }.should raise_error(ArgumentError, /utc_offset|argument out of range/)
 
         -> {
           Time.new("2020-12-25 00:56:17 +24:00")
@@ -653,7 +653,13 @@ describe "Time.new with a timezone argument" do
 
         -> {
           Time.new("2020-12-25 00:56:17 +23:61")
-        }.should raise_error(ArgumentError, /#{Regexp.escape('"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +23:61')}|can't parse:/)
+        }.should raise_error(ArgumentError, /utc_offset|can't parse:/)
+
+        ruby_bug '#20797', ''...'3.4' do
+          -> {
+            Time.new("2020-12-25 00:56:17 +00:23:61")
+          }.should raise_error(ArgumentError, /utc_offset/)
+        end
       end
 
       it "raises ArgumentError if string has not ascii-compatible encoding" do

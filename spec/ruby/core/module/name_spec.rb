@@ -148,11 +148,11 @@ describe "Module#name" do
             puts const_get(name).name
           end
         end
-        
+
         # module with name
         module TEST1
         end
-        
+
         # anonymous module
         TEST2 = Module.new
       RUBY
