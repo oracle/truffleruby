@@ -129,8 +129,7 @@ public abstract class RegexpNodes {
         }
     }
 
-    // Splitting: inline cache
-    @CoreMethod(names = "to_s", split = Split.ALWAYS)
+    @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         public static ToSNode create() {
@@ -138,13 +137,6 @@ public abstract class RegexpNodes {
         }
 
         public abstract RubyString execute(RubyRegexp regexp);
-
-        @Specialization(guards = "regexp.regex == cachedRegexp.regex", limit = "getDefaultCacheLimit()")
-        RubyString toSCached(RubyRegexp regexp,
-                @Cached("regexp") RubyRegexp cachedRegexp,
-                @Cached("createTString(cachedRegexp)") TStringWithEncoding string) {
-            return createString(string);
-        }
 
         @Specialization
         RubyString toS(RubyRegexp regexp) {
