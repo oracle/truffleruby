@@ -902,16 +902,20 @@ describe "C-API String function" do
     end
 
     it "returns the original String if a transcoding error occurs" do
-      a = [0xEE].pack('C').force_encoding("utf-8")
-      @s.rb_str_conv_enc(a, Encoding::UTF_8, Encoding::EUC_JP).should equal(a)
+      a = [0xEE].pack('C').force_encoding(Encoding::UTF_8)
+      @s.rb_str_conv_enc(a, Encoding::UTF_8, Encoding::EUC_JP).should.equal?(a)
+      a.encoding.should == Encoding::UTF_8
+
+      a = "\x80".b
+      @s.rb_str_conv_enc(a, Encoding::BINARY, Encoding::UTF_8).should.equal?(a)
+      a.encoding.should == Encoding::BINARY
     end
 
     it "returns a transcoded String" do
-      a = "\xE3\x81\x82\xE3\x82\x8C".dup.force_encoding("utf-8")
+      a = "\xE3\x81\x82\xE3\x82\x8C".dup.force_encoding(Encoding::UTF_8)
       result = @s.rb_str_conv_enc(a, Encoding::UTF_8, Encoding::EUC_JP)
-      x = [0xA4, 0xA2, 0xA4, 0xEC].pack('C4').force_encoding('utf-8')
-      result.should == x.force_encoding("euc-jp")
-      result.encoding.should equal(Encoding::EUC_JP)
+      result.should == [0xA4, 0xA2, 0xA4, 0xEC].pack('C4').force_encoding(Encoding::EUC_JP)
+      result.encoding.should == Encoding::EUC_JP
     end
 
     describe "when the String encoding is equal to the destination encoding" do
@@ -1110,7 +1114,7 @@ end
     end
 
     it "tries to convert the passed argument to a string by calling #to_s" do
-      @s.rb_String({"bar" => "foo"}).should == '{"bar"=>"foo"}'
+      @s.rb_String({"bar" => "foo"}).should == {"bar" => "foo"}.to_s
     end
   end
 

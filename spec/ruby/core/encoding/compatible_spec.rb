@@ -168,39 +168,37 @@ describe "Encoding.compatible? String, String" do
   # encodings in all possible combinations.
   describe "compatibility matrix" do
 
-=begin
-    Use the following script to regenerate the matrix:
-
-    ```
-      # -*- encoding: binary -*-
-
-      ENCODINGS = [
-        "US-ASCII",
-        "UTF-8",
-        "ASCII-8BIT",
-        "ISO-8859-1",  # ASCII-compatible
-        "UTF-16BE",    # non-ASCII-compatible
-        "ISO-2022-JP"  # dummy
-      ]
-
-      TYPES = [:empty, :"7bits", :non7bits]
-
-      VALUES = {
-        empty: "",
-        :"7bits" => "\x01",
-        non7bits: "\x81"
-      }
-
-      ENCODINGS.product(TYPES, ENCODINGS, TYPES).each do |encoding1, type1, encoding2, type2|
-        value1 = VALUES[type1].dup.force_encoding(encoding1)
-        value2 = VALUES[type2].dup.force_encoding(encoding2)
-
-        result_encoding = Encoding.compatible?(value1, value2)
-
-        puts "[#{encoding1.inspect}, #{value1.inspect}, #{encoding2.inspect}, #{value2.inspect}, #{result_encoding&.name.inspect}],"
-      end
-    ```
-=end
+#     Use the following script to regenerate the matrix:
+#
+#     ```
+#       # -*- encoding: binary -*-
+#
+#       ENCODINGS = [
+#         "US-ASCII",
+#         "UTF-8",
+#         "ASCII-8BIT",
+#         "ISO-8859-1",  # ASCII-compatible
+#         "UTF-16BE",    # non-ASCII-compatible
+#         "ISO-2022-JP"  # dummy
+#       ]
+#
+#       TYPES = [:empty, :"7bits", :non7bits]
+#
+#       VALUES = {
+#         empty: "",
+#         :"7bits" => "\x01",
+#         non7bits: "\x81"
+#       }
+#
+#       ENCODINGS.product(TYPES, ENCODINGS, TYPES).each do |encoding1, type1, encoding2, type2|
+#         value1 = VALUES[type1].dup.force_encoding(encoding1)
+#         value2 = VALUES[type2].dup.force_encoding(encoding2)
+#
+#         result_encoding = Encoding.compatible?(value1, value2)
+#
+#         puts "[#{encoding1.inspect}, #{value1.inspect}, #{encoding2.inspect}, #{value2.inspect}, #{result_encoding&.name.inspect}],"
+#       end
+#     ```
 
     matrix = [
       ["US-ASCII", "", "US-ASCII", "", "US-ASCII"],
@@ -531,7 +529,7 @@ describe "Encoding.compatible? String, String" do
 
     matrix.each do |encoding1, value1, encoding2, value2, compatible_encoding|
       it "returns #{compatible_encoding} for #{value1.inspect} in #{encoding1} and #{value2.inspect} in #{encoding2}" do
-        actual_encoding = Encoding.compatible?(value1.force_encoding(encoding1), value2.force_encoding(encoding2))
+        actual_encoding = Encoding.compatible?(value1.dup.force_encoding(encoding1), value2.dup.force_encoding(encoding2))
         actual_encoding&.name.should == compatible_encoding
       end
     end

@@ -1,0 +1,1 @@
+fails:Integer#ceil with precision precision is negative always returns 0 when self is 0
