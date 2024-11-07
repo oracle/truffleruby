@@ -530,6 +530,40 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_category_warn" do
+    it "emits a warning into stderr" do
+      Warning[:deprecated] = true
+
+      -> {
+        @s.rb_category_warn_deprecated
+      }.should complain(/warning: foo/, verbose: true)
+    end
+
+    it "supports printf format modifiers" do
+      Warning[:deprecated] = true
+
+      -> {
+        @s.rb_category_warn_deprecated_with_integer_extra_value(42)
+      }.should complain(/warning: foo 42/, verbose: true)
+    end
+
+    it "does not emits a warning when a category is disabled" do
+      Warning[:deprecated] = false
+
+      -> {
+        @s.rb_category_warn_deprecated
+      }.should_not complain(verbose: true)
+    end
+
+    it "does not emits a warning when $VERBOSE is nil" do
+      Warning[:deprecated] = true
+
+      -> {
+        @s.rb_category_warn_deprecated
+      }.should_not complain(verbose: nil)
+    end
+  end
+
   describe "rb_ensure" do
     it "executes passed function and returns its value" do
       proc = -> x { x }

@@ -67,9 +67,18 @@ VALUE kernel_spec_rb_block_call_no_func(VALUE self, VALUE ary) {
   return rb_block_call(ary, rb_intern("map"), 0, NULL, (rb_block_call_func_t)NULL, Qnil);
 }
 
-
 VALUE kernel_spec_rb_frame_this_func(VALUE self) {
   return ID2SYM(rb_frame_this_func());
+}
+
+VALUE kernel_spec_rb_category_warn_deprecated(VALUE self) {
+  rb_category_warn(RB_WARN_CATEGORY_DEPRECATED, "foo");
+  return Qnil;
+}
+
+VALUE kernel_spec_rb_category_warn_deprecated_with_integer_extra_value(VALUE self, VALUE value) {
+  rb_category_warn(RB_WARN_CATEGORY_DEPRECATED, "foo %d", FIX2INT(value));
+  return Qnil;
 }
 
 VALUE kernel_spec_rb_ensure(VALUE self, VALUE main_proc, VALUE arg,
@@ -381,6 +390,8 @@ void Init_kernel_spec(void) {
   rb_define_method(cls, "rb_block_lambda", kernel_spec_rb_block_lambda, 0);
   rb_define_method(cls, "rb_frame_this_func_test", kernel_spec_rb_frame_this_func, 0);
   rb_define_method(cls, "rb_frame_this_func_test_again", kernel_spec_rb_frame_this_func, 0);
+  rb_define_method(cls, "rb_category_warn_deprecated", kernel_spec_rb_category_warn_deprecated, 0);
+  rb_define_method(cls, "rb_category_warn_deprecated_with_integer_extra_value", kernel_spec_rb_category_warn_deprecated_with_integer_extra_value, 1);
   rb_define_method(cls, "rb_ensure", kernel_spec_rb_ensure, 4);
   rb_define_method(cls, "rb_eval_string", kernel_spec_rb_eval_string, 1);
   rb_define_method(cls, "rb_eval_cmd_kw", kernel_spec_rb_eval_cmd_kw, 3);
