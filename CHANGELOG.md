@@ -51,6 +51,7 @@ Compatibility:
 * Add `rb_data_define()` to define Data (#3681, @andrykonchin).
 * Add `Refinement#target` (#3681, @andrykonchin).
 * Emit warning when `Kernel#format` called with excessive arguments (@andrykonchin).
+* Fix `Integer#ceil` when self is 0 (@andrykonchin).
 
 Performance:
 

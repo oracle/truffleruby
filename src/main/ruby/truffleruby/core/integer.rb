@@ -82,6 +82,8 @@ class Integer < Numeric
 
   def ceil(precision = 0)
     return self unless precision < 0
+    return 0 if self == 0
+
     x = 10 ** precision.abs
     ((self / x) + 1) * x
   end
