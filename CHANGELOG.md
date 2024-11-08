@@ -2,6 +2,8 @@
 
 New features:
 
+* Updated to Ruby 3.3.5 (#3681, @andrykonchin, @eregon).
+
 Bug fixes:
 
 * Fix `Module#name` called inside the `Module#const_added` callback when the module is defined in the top-level scope (#3683, @andrykonchin).
