@@ -501,6 +501,10 @@ module Truffle
       offset
     end
 
+    UTC_OFFSET_WITH_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?::(?<minutes>\d\d)(?::(?<seconds>\d\d))?)?\z/
+    UTC_OFFSET_WITHOUT_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?:(?<minutes>\d\d)(?:(?<seconds>\d\d))?)?\z/
+    UTC_OFFSET_PATTERN = /#{UTC_OFFSET_WITH_COLONS_PATTERN}|#{UTC_OFFSET_WITHOUT_COLONS_PATTERN}/
+
     def self.coerce_string_to_utc_offset(offset)
       unless offset.encoding.ascii_compatible?
         raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset.inspect
@@ -518,12 +522,10 @@ module Truffle
         else
           offset = (offset.ord - 'N'.ord + 1) * -3600 # ("N"..Y) => -1, -2, ...
         end
-      elsif offset.match(/\A(\+|-)(\d\d)(?::(\d\d)(?::(\d\d))?)?\z/) && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60 # with ":" separators
-        offset = $2.to_i*60*60 + $3.to_i*60 + $4.to_i
-        offset = -offset if $1.ord == 45
-      elsif offset.match(/\A(\+|-)(\d\d)(?:(\d\d)(?:(\d\d))?)?\z/) && $1.to_i < 24 && $2.to_i < 60 && $3.to_i < 60 # without ":" separators
-        offset = $2.to_i*60*60 + $3.to_i*60 + $4.to_i
-        offset = -offset if $1.ord == 45
+      elsif (m = offset.match(UTC_OFFSET_PATTERN)) && m[:minutes].to_i < 60 && m[:seconds].to_i < 60
+        # ignore hours - they are validated indirectly in #coerce_to_utc_offset
+        offset = m[:hours].to_i*60*60 + m[:minutes].to_i*60 + m[:seconds].to_i
+        offset = -offset if m[:sign] == '-'
       else
         raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset
       end

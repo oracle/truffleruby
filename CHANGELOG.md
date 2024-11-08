@@ -9,6 +9,7 @@ Bug fixes:
 * Fix `Module#name` called inside the `Module#const_added` callback when the module is defined in the top-level scope (#3683, @andrykonchin).
 * Fix duplicated calls of a `Module#const_added` callback when a module with nested modules is assigned to a constant (@andrykonchin).
 * Support OpenSSL 1.1-3.4 and prefer in order OpenSSL 3.0.x, 3.x and 1.1 (EOL). There was a compilation issue with OpenSSL 3.4 (#3724, @eregon).
+* Fix `Time{.at,.new,.now,#getlocal,#localtime}` methods and validation of seconds in utc offset in String format (@andrykonchin).
 
 Compatibility:
 

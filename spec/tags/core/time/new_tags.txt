@@ -23,4 +23,3 @@ fails:Time.new with a timezone argument :in keyword argument could be a timezone
 fails:Time.new with a timezone argument Time.new with a String argument accepts precision keyword argument and truncates specified digits of sub-second part
 fails:Time.new with a timezone argument Time.new with a String argument converts precision keyword argument into Integer if is not nil
 fails:Time.new with a timezone argument Time.new with a String argument raise TypeError is can't convert precision keyword argument into Integer
-fails:Time.new with a timezone argument Time.new with a String argument raises ArgumentError if date/time parts values are not valid
