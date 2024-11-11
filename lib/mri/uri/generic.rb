@@ -599,7 +599,7 @@ module URI
           "can not set host with registry or opaque"
       else
         if defined?(::TruffleRuby)
-          bad = !parser.regexp[:HOST].match(v)
+          bad = !parser.regexp[:HOST].match?(v)
         else
           bad = parser.regexp[:HOST] !~ v
         end
