@@ -135,11 +135,15 @@ rm -rf lib/gems/specifications
 cd ~/.rubies/ruby-$VERSION
 cp -R lib/ruby/gems/*.0/gems $TRUFFLERUBY/lib/gems
 cp -R lib/ruby/gems/*.0/specifications $TRUFFLERUBY/lib/gems
+rm -f lib/gems/gems/**/*.{o,a,so,bundle} lib/gems/gems/**/{Makefile,extconf.h,mkmf.log} lib/gems/gems/**/*.mk
 
 cd $TRUFFLERUBY
 rm -rf lib/gems/gems/typeprof-* lib/gems/specifications/typeprof-*.gemspec
 ruby tool/patch-default-gemspecs.rb
 ```
+
+Then review bundled gems with extensions like `lib/gems/gems/debug-*` and `lib/gems/gems/rbs-*`
+to ensure no build artifacts/generated files are committed, only "sources".
 
 Update the `ruby/prism` default gem with `tool/import-prism.sh` script. See the "Update Prism" section
 in the [Prism](prism.md) document.
