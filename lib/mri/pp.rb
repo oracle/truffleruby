@@ -608,7 +608,7 @@ if defined?(RubyVM::AbstractSyntaxTree)
       }
     end
   end
-end if defined?(RubyVM::AbstractSyntaxTree::Node)
+end
 
 class Object < BasicObject # :nodoc:
   include PP::ObjectMixin
