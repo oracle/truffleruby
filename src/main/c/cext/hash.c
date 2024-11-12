@@ -100,6 +100,14 @@ void rb_hash_foreach(VALUE hash, int (*func)(VALUE key, VALUE val, VALUE arg), V
   polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), func, (void*)arg);
 }
 
+void rb_hash_bulk_insert(long n, const VALUE *values, VALUE hash) {
+  void* unwrapped_hash = rb_tr_unwrap(hash);
+
+  for (long i = 0; i < n; i += 2) {
+    polyglot_invoke(unwrapped_hash, "[]=", rb_tr_unwrap(values[i]), rb_tr_unwrap(values[i + 1]));
+  }
+}
+
 VALUE rb_hash_size(VALUE hash) {
   return RUBY_INVOKE(hash, "size");
 }
