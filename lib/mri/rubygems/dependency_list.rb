@@ -6,7 +6,7 @@
 # See LICENSE.txt for permissions.
 #++
 
-require_relative "tsort"
+require_relative "vendored_tsort"
 require_relative "deprecate"
 
 ##
@@ -105,7 +105,7 @@ class Gem::DependencyList
   end
 
   def inspect # :nodoc:
-    "%s %p>" % [super[0..-2], map {|s| s.full_name }]
+    format("%s %p>", super[0..-2], map(&:full_name))
   end
 
   ##

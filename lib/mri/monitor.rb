@@ -17,17 +17,21 @@
 # You can freely distribute/modify this library.
 #
 
+unless defined?(::TruffleRuby)
+  require 'monitor.so'
+end
+
 #
 # In concurrent programming, a monitor is an object or module intended to be
-# used safely by more than one thread.  The defining characteristic of a
-# monitor is that its methods are executed with mutual exclusion.  That is, at
+# used safely by more than one thread. The defining characteristic of a
+# monitor is that its methods are executed with mutual exclusion. That is, at
 # each point in time, at most one thread may be executing any of its methods.
 # This mutual exclusion greatly simplifies reasoning about the implementation
 # of monitors compared to reasoning about parallel code that updates a data
 # structure.
 #
 # You can read more about the general principles on the Wikipedia page for
-# Monitors[https://en.wikipedia.org/wiki/Monitor_%28synchronization%29]
+# Monitors[https://en.wikipedia.org/wiki/Monitor_%28synchronization%29].
 #
 # == Examples
 #
@@ -58,7 +62,7 @@
 #   end
 #
 # The consumer thread waits for the producer thread to push a line to buf
-# while <tt>buf.empty?</tt>.  The producer thread (main thread) reads a
+# while <tt>buf.empty?</tt>. The producer thread (main thread) reads a
 # line from ARGF and pushes it into buf then calls <tt>empty_cond.signal</tt>
 # to notify the consumer thread of new data.
 #
@@ -96,11 +100,6 @@
 # This Class is implemented as subclass of Array which includes the
 # MonitorMixin module.
 #
-
-unless defined?(::TruffleRuby)
-  require 'monitor.so'
-end
-
 module MonitorMixin
   #
   # FIXME: This isn't documented in Nutshell.
@@ -108,9 +107,7 @@ module MonitorMixin
   # Since MonitorMixin.new_cond returns a ConditionVariable, and the example
   # above calls while_wait and signal, this class should be documented.
   #
-
   class ConditionVariable
-
     #
     # Releases the lock held in the associated monitor and waits; reacquires the lock on wakeup.
     #

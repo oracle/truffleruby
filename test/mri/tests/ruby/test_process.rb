@@ -272,7 +272,7 @@ class TestProcess < Test::Unit::TestCase
     end;
   end
 
-  MANDATORY_ENVS = %w[RUBYLIB MJIT_SEARCH_BUILD_DIR]
+  MANDATORY_ENVS = %w[RUBYLIB RJIT_SEARCH_BUILD_DIR]
   case RbConfig::CONFIG['target_os']
   when /linux/
     MANDATORY_ENVS << 'LD_PRELOAD'
@@ -665,6 +665,7 @@ class TestProcess < Test::Unit::TestCase
   end unless windows? # does not support fifo
 
   def test_execopts_redirect_open_fifo_interrupt_raise
+    pid = nil
     with_tmpchdir {|d|
       begin
         File.mkfifo("fifo")
@@ -682,15 +683,21 @@ class TestProcess < Test::Unit::TestCase
           puts "ok"
         end
       EOS
+        pid = io.pid
         assert_equal("start\n", io.gets)
         sleep 0.5
         Process.kill(:USR1, io.pid)
         assert_equal("ok\n", io.read)
       }
+      assert_equal(pid, $?.pid)
+      assert_predicate($?, :success?)
     }
+  ensure
+    assert_raise(Errno::ESRCH) {Process.kill(:KILL, pid)} if pid
   end unless windows? # does not support fifo
 
   def test_execopts_redirect_open_fifo_interrupt_print
+    pid = nil
     with_tmpchdir {|d|
       begin
         File.mkfifo("fifo")
@@ -703,14 +710,25 @@ class TestProcess < Test::Unit::TestCase
         puts "start"
         system("cat", :in => "fifo")
       EOS
+        pid = io.pid
         assert_equal("start\n", io.gets)
         sleep 0.2 # wait for the child to stop at opening "fifo"
         Process.kill(:USR1, io.pid)
         assert_equal("trap\n", io.readpartial(8))
+        sleep 0.2 # wait for the child to return to opening "fifo".
+        # On arm64-darwin22, often deadlocks while the child is
+        # opening "fifo".  Not sure to where "ok" line being written
+        # at the next has gone.
         File.write("fifo", "ok\n")
         assert_equal("ok\n", io.read)
       }
+      assert_equal(pid, $?.pid)
+      assert_predicate($?, :success?)
     }
+  ensure
+    if pid
+      assert_raise(Errno::ESRCH) {Process.kill(:KILL, pid)}
+    end
   end unless windows? # does not support fifo
 
   def test_execopts_redirect_pipe
@@ -1424,6 +1442,11 @@ class TestProcess < Test::Unit::TestCase
     REPRO
   end
 
+  def test_argv0_frozen
+    assert_predicate Process.argv0, :frozen?
+    assert_predicate $0, :frozen?
+  end
+
   def test_status
     with_tmpchdir do
       s = run_in_child("exit 1")
@@ -1432,8 +1455,15 @@ class TestProcess < Test::Unit::TestCase
       assert_equal(s, s)
       assert_equal(s, s.to_i)
 
-      assert_equal(s.to_i & 0x55555555, s & 0x55555555)
-      assert_equal(s.to_i >> 1, s >> 1)
+      assert_deprecated_warn(/\buse .*Process::Status/) do
+        assert_equal(s.to_i & 0x55555555, s & 0x55555555)
+      end
+      assert_deprecated_warn(/\buse .*Process::Status/) do
+        assert_equal(s.to_i >> 1, s >> 1)
+      end
+      assert_raise(ArgumentError) do
+        s >> -1
+      end
       assert_equal(false, s.stopped?)
       assert_equal(nil, s.stopsig)
 
@@ -1546,6 +1576,8 @@ class TestProcess < Test::Unit::TestCase
       assert_operator(diff, :<, sec,
                   ->{"#{bug11340}: #{diff} seconds to interrupt Process.wait"})
       f.puts
+    rescue Errno::EPIPE
+      omit "child process exited already in #{diff} seconds"
     end
   end
 
@@ -1694,11 +1726,6 @@ class TestProcess < Test::Unit::TestCase
   end
 
   def test_wait_and_sigchild
-    if /freebsd|openbsd/ =~ RUBY_PLATFORM
-      # this relates #4173
-      # When ruby can use 2 cores, signal and wait4 may miss the signal.
-      omit "this fails on FreeBSD and OpenBSD on multithreaded environment"
-    end
     signal_received = []
     IO.pipe do |sig_r, sig_w|
       Signal.trap(:CHLD) do
@@ -1717,7 +1744,7 @@ class TestProcess < Test::Unit::TestCase
       Process.wait pid
       assert_send [sig_r, :wait_readable, 5], 'self-pipe not readable'
     end
-    if defined?(RubyVM::MJIT) && RubyVM::MJIT.enabled? # checking -DMJIT_FORCE_ENABLE. It may trigger extra SIGCHLD.
+    if defined?(RubyVM::RJIT) && RubyVM::RJIT.enabled? # checking -DRJIT_FORCE_ENABLE. It may trigger extra SIGCHLD.
       assert_equal [true], signal_received.uniq, "[ruby-core:19744]"
     else
       assert_equal [true], signal_received, "[ruby-core:19744]"
@@ -1788,14 +1815,20 @@ class TestProcess < Test::Unit::TestCase
     exs << Errno::EINVAL if windows?
     exs << Errno::E2BIG if defined?(Errno::E2BIG)
     opts = {[STDOUT, STDERR]=>File::NULL}
-    opts[:rlimit_nproc] = 128 if defined?(Process::RLIMIT_NPROC)
+    if defined?(Process::RLIMIT_NPROC)
+      opts[:rlimit_nproc] = /openbsd/i =~ RUBY_PLATFORM ? 64 : 128
+    end
     EnvUtil.suppress_warning do
       assert_raise(*exs, mesg) do
         begin
           loop do
             Process.spawn(cmds.join(sep), opts)
             min = [cmds.size, min].max
-            cmds *= 100
+            begin
+              cmds *= 100
+            rescue ArgumentError
+              raise NoMemoryError
+            end
           end
         rescue NoMemoryError
           size = cmds.size
@@ -2155,7 +2188,9 @@ EOS
     t3 = Process.clock_gettime(Process::CLOCK_REALTIME, :nanosecond)
     assert_operator(t1, :<=, t2)
     assert_operator(t2, :<=, t3)
-    assert_raise(Errno::EINVAL) { Process.clock_gettime(:foo) }
+    assert_raise_with_message(Errno::EINVAL, /:foo/) do
+      Process.clock_gettime(:foo)
+    end
   end
 
   def test_clock_gettime_unit
@@ -2260,7 +2295,9 @@ EOS
   rescue Errno::EINVAL
   else
     assert_kind_of(Integer, r)
-    assert_raise(Errno::EINVAL) { Process.clock_getres(:foo) }
+    assert_raise_with_message(Errno::EINVAL, /:foo/) do
+      Process.clock_getres(:foo)
+    end
   end
 
   def test_clock_getres_constants
@@ -2347,7 +2384,7 @@ EOS
   end
 
   def test_deadlock_by_signal_at_forking
-    assert_separately(%W(--disable=gems - #{RUBY}), <<-INPUT, timeout: 100)
+    assert_separately(%W(- #{RUBY}), <<-INPUT, timeout: 100)
       ruby = ARGV.shift
       GC.start # reduce garbage
       GC.disable # avoid triggering CoW after forks
@@ -2586,6 +2623,26 @@ EOS
     end
   end if Process.respond_to?(:_fork)
 
+  def test__fork_pid_cache
+    _parent_pid = Process.pid
+    r, w = IO.pipe
+    pid = Process._fork
+    if pid == 0
+      begin
+        r.close
+        w << "ok: #{Process.pid}"
+        w.close
+      ensure
+        exit!
+      end
+    else
+      w.close
+      assert_equal("ok: #{pid}", r.read)
+      r.close
+      Process.waitpid(pid)
+    end
+  end if Process.respond_to?(:_fork)
+
   def test__fork_hook
     %w(fork Process.fork).each do |method|
       feature17795 = '[ruby-core:103400] [Feature #17795]'
@@ -2659,58 +2716,92 @@ EOS
     end;
   end if Process.respond_to?(:_fork)
 
-  def test_concurrent_group_and_pid_wait
-    # Use a pair of pipes that will make long_pid exit when this test exits, to avoid
-    # leaking temp processes.
-    long_rpipe, long_wpipe = IO.pipe
-    short_rpipe, short_wpipe = IO.pipe
-    # This process should run forever
-    long_pid = fork do
-      [short_rpipe, short_wpipe, long_wpipe].each(&:close)
-      long_rpipe.read
-    end
-    # This process will exit
-    short_pid = fork do
-      [long_rpipe, long_wpipe, short_wpipe].each(&:close)
-      short_rpipe.read
-    end
-    t1, t2, t3 = nil
-    EnvUtil.timeout(5) do
-      t1 = Thread.new do
-        Process.waitpid long_pid
+  def test_warmup_promote_all_objects_to_oldgen
+    assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
+    require 'objspace'
+    begin;
+      obj = Object.new
+
+      assert_not_include(ObjectSpace.dump(obj), '"old":true')
+      Process.warmup
+      assert_include(ObjectSpace.dump(obj), '"old":true')
+    end;
+  end
+
+  def test_warmup_run_major_gc_and_compact
+    assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
+    begin;
+      # Run a GC to ensure that we are not in the middle of a GC run
+      GC.start
+
+      major_gc_count = GC.stat(:major_gc_count)
+      compact_count = GC.stat(:compact_count)
+      Process.warmup
+      assert_equal major_gc_count + 1, GC.stat(:major_gc_count)
+      assert_equal compact_count + 1, GC.stat(:compact_count)
+    end;
+  end
+
+  def test_warmup_precompute_string_coderange
+    assert_separately([], "#{<<~"begin;"}\n#{<<~'end;'}")
+    require 'objspace'
+    begin;
+      obj = "a" * 12
+      obj.force_encoding(Encoding::UTF_16LE)
+      obj.force_encoding(Encoding::BINARY)
+      assert_include(ObjectSpace.dump(obj), '"coderange":"unknown"')
+      Process.warmup
+      assert_include(ObjectSpace.dump(obj), '"coderange":"7bit"')
+    end;
+  end
+
+  def test_warmup_frees_pages
+    assert_separately([{"RUBY_GC_HEAP_FREE_SLOTS_MAX_RATIO" => "1.0"}, "-W0"], "#{<<~"begin;"}\n#{<<~'end;'}")
+    begin;
+      GC.start
+
+      TIMES = 10_000
+      ary = Array.new(TIMES)
+      TIMES.times do |i|
+        ary[i] = Object.new
       end
-      # Wait for us to be blocking in a call to waitpid2
-      Thread.pass until t1.stop?
-      short_wpipe.close # Make short_pid exit
+      ary.clear
+      ary = nil
 
-      # The short pid has exited, so -1 should pick that up.
-      assert_equal short_pid, Process.waitpid(-1)
+      # Disable GC so we can make sure GC only runs in Process.warmup
+      GC.disable
 
-      # Terminate t1 for the next phase of the test.
-      t1.kill
-      t1.join
+      total_pages_before = GC.stat_heap.map { |_, v| v[:heap_eden_pages] + v[:heap_allocatable_pages] }
 
-      t2 = Thread.new do
-        Process.waitpid -1
-      rescue Errno::ECHILD
-        nil
+      Process.warmup
+
+      # Number of pages freed should cause equal increase in number of allocatable pages.
+      total_pages_before.each_with_index do |val, i|
+        assert_equal(val, GC.stat_heap(i, :heap_eden_pages) + GC.stat_heap(i, :heap_allocatable_pages), "size pool: #{i}")
       end
-      Thread.pass until t2.stop?
-      t3 = Thread.new do
-        Process.waitpid long_pid
-      rescue Errno::ECHILD
-        nil
-      end
-      Thread.pass until t3.stop?
+      assert_equal(0, GC.stat(:heap_tomb_pages))
+      assert_operator(GC.stat(:total_freed_pages), :>, 0)
+    end;
+  end
 
-      # it's actually nondeterministic which of t2 or t3 will receive the wait (this
-      # nondeterminism comes from the behaviour of the underlying system calls)
-      long_wpipe.close
-      assert_equal [long_pid], [t2, t3].map(&:value).compact
+  def test_handle_interrupt_with_fork
+    Thread.handle_interrupt(RuntimeError => :never) do
+      Thread.current.raise(RuntimeError, "Queued error")
+
+      assert_predicate Thread, :pending_interrupt?
+
+      pid = Process.fork do
+        if Thread.pending_interrupt?
+          exit 1
+        end
+      end
+
+      _, status = Process.waitpid2(pid)
+      assert_predicate status, :success?
+
+      assert_predicate Thread, :pending_interrupt?
     end
-  ensure
-    [t1, t2, t3].each { _1&.kill rescue nil }
-    [t1, t2, t3].each { _1&.join rescue nil }
-    [long_rpipe, long_wpipe, short_rpipe, short_wpipe].each { _1&.close rescue nil }
+  rescue RuntimeError
+    # Ignore.
   end if defined?(fork)
 end

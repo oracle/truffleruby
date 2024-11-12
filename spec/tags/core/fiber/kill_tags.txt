@@ -1,0 +1,7 @@
+fails:Fiber#kill kills a non-resumed fiber
+fails:Fiber#kill kills a resumed fiber
+fails:Fiber#kill can kill itself
+fails:Fiber#kill kills a resumed fiber from a child
+fails:Fiber#kill executes the ensure block
+fails:Fiber#kill does not execute rescue block
+fails:Fiber#kill repeatedly kills a fiber

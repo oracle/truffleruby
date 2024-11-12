@@ -21,8 +21,8 @@ class TestGemSourceSubpathProblem < Gem::TestCase
   end
 
   def test_dependency_resolver_set
-    response = Net::HTTPResponse.new "1.1", 200, "OK"
-    response.uri = URI("http://example")
+    response = Gem::Net::HTTPResponse.new "1.1", 200, "OK"
+    response.uri = Gem::URI("http://example")
 
     @fetcher.data["#{@gem_repo}/"] = response
 
@@ -44,7 +44,7 @@ class TestGemSourceSubpathProblem < Gem::TestCase
       Gem::NameTuple.new(@b2.name, @b2.version, "ruby"),
     ]))
 
-    released = @source.load_specs(:latest).map {|spec| spec.full_name }
+    released = @source.load_specs(:latest).map(&:full_name)
     assert_equal %W[a-1 b-2], released
   end
 end

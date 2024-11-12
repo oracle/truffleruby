@@ -8,6 +8,7 @@ class Reline::Test < Reline::TestCase
   end
 
   def setup
+    Reline.send(:test_mode)
     Reline.output_modifier_proc = nil
     Reline.completion_proc = nil
     Reline.prompt_proc = nil
@@ -284,7 +285,7 @@ class Reline::Test < Reline::TestCase
     input, to_write = IO.pipe
     to_read, output = IO.pipe
     unless Reline.__send__(:input=, input)
-      omit "Setting to input is not effective on #{Reline::IOGate}"
+      omit "Setting to input is not effective on #{Reline.core.io_gate}"
     end
     Reline.output = output
 
@@ -302,12 +303,12 @@ class Reline::Test < Reline::TestCase
 
   def test_vi_editing_mode
     Reline.vi_editing_mode
-    assert_equal(Reline::KeyActor::ViInsert, Reline.send(:core).config.editing_mode.class)
+    assert_equal(Reline::KeyActor::ViInsert, Reline.core.config.editing_mode.class)
   end
 
   def test_emacs_editing_mode
     Reline.emacs_editing_mode
-    assert_equal(Reline::KeyActor::Emacs, Reline.send(:core).config.editing_mode.class)
+    assert_equal(Reline::KeyActor::Emacs, Reline.core.config.editing_mode.class)
   end
 
   def test_add_dialog_proc
@@ -320,6 +321,9 @@ class Reline::Test < Reline::TestCase
     Reline.add_dialog_proc(:test_proc, dummy_proc_2)
     d = Reline.dialog_proc(:test_proc)
     assert_equal(dummy_proc_2, d.dialog_proc)
+
+    Reline.add_dialog_proc(:test_proc, nil)
+    assert_nil(Reline.dialog_proc(:test_proc))
 
     l = lambda {}
     Reline.add_dialog_proc(:test_lambda, l)
@@ -370,14 +374,32 @@ class Reline::Test < Reline::TestCase
 
   def test_dumb_terminal
     lib = File.expand_path("../../lib", __dir__)
-    out = IO.popen([{"TERM"=>"dumb"}, "ruby", "-I#{lib}", "-rreline", "-e", "p Reline::IOGate"], &:read)
+    out = IO.popen([{"TERM"=>"dumb"}, Reline.test_rubybin, "-I#{lib}", "-rreline", "-e", "p Reline.core.io_gate"], &:read)
     assert_equal("Reline::GeneralIO", out.chomp)
   end
 
+  def test_require_reline_should_not_trigger_winsize
+    pend if win?
+    lib = File.expand_path("../../lib", __dir__)
+    code = <<~RUBY
+      require "io/console"
+      def STDIN.tty?; true; end
+      def STDOUT.tty?; true; end
+      def STDIN.winsize; raise; end
+      require("reline") && p(Reline.core.io_gate)
+    RUBY
+    out = IO.popen([{}, Reline.test_rubybin, "-I#{lib}", "-e", code], &:read)
+    assert_equal("Reline::ANSI", out.chomp)
+  end
+
+  def win?
+    /mswin|mingw/.match?(RUBY_PLATFORM)
+  end
+
   def get_reline_encoding
-    if encoding = Reline::IOGate.encoding
+    if encoding = Reline.core.encoding
       encoding
-    elsif RUBY_PLATFORM =~ /mswin|mingw/
+    elsif win?
       Encoding::UTF_8
     else
       Encoding::default_external

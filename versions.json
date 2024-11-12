@@ -1,31 +1,33 @@
 {
   "gems": {
     "default": {
-      "bundler": "2.4.19",
+      "bundler": "2.5.16",
       "did_you_mean": "1.6.3",
-      "erb": "4.0.2",
-      "gem": "3.4.19",
-      "irb": "1.6.2",
-      "racc": "1.6.2",
-      "rdoc": "6.5.1.1"
+      "erb": "4.0.3",
+      "gem": "3.5.16",
+      "io-console": "0.7.1",
+      "irb": "1.13.1",
+      "rdoc": "6.6.3.1",
+      "syntax_suggest": "2.0.0"
     },
 
     "bundled": {
-      "debug": "1.7.1",
+      "debug": "1.9.1",
       "matrix": "0.4.2",
-      "minitest": "5.16.3",
-      "net-ftp": "0.2.1",
-      "net-imap": "0.3.4.1",
+      "minitest": "5.20.0",
+      "net-ftp": "0.3.4",
+      "net-imap": "0.4.9.1",
       "net-pop": "0.1.2",
-      "net-smtp": "0.3.4",
+      "net-smtp": "0.4.0.1",
       "power_assert": "2.0.3",
       "prime": "0.1.2",
-      "rake": "13.0.6",
-      "rbs": "2.8.2",
-      "rexml": "3.2.5",
-      "rss": "0.2.9",
-      "test-unit": "3.5.7",
-      "typeprof": "0.21.3"
+      "racc": "1.7.3",
+      "rake": "13.1.0",
+      "rbs": "3.4.0",
+      "rexml": "3.3.6",
+      "rss": "0.3.1",
+      "test-unit": "3.6.1",
+      "typeprof": "0.21.9"
     }
   }
 }

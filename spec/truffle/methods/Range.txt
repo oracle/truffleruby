@@ -19,6 +19,8 @@ max
 member?
 min
 minmax
+overlap?
+reverse_each
 size
 step
 to_a

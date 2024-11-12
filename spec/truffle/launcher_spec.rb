@@ -22,14 +22,15 @@ describe "The launcher" do
     bundler: escape["Bundler version #{@default_gems['bundler']}"],
     erb: escape[@default_gems['erb']],
     gem: escape[@default_gems['gem']],
-    irb: escape["irb #{@default_gems['irb']} (2022-12-13)"],
-    racc: escape["racc version #{@default_gems['racc']}"],
+    irb: escape["irb #{@default_gems['irb']} (2024-05-05)"],
+    racc: escape["racc version #{@bundled_gems['racc']}"],
     rake: escape["rake, version #{@bundled_gems['rake']}"],
     rbs: escape["rbs #{@bundled_gems['rbs']}"],
     rdbg: escape["rdbg #{@bundled_gems['debug']}"],
     rdoc: escape[@default_gems['rdoc']],
     ri: escape["ri #{@default_gems['rdoc']}"],
     ruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    syntax_suggest: escape["syntax_suggest #{@default_gems['syntax_suggest']}"],
     truffleruby: /^truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
   }
 
@@ -79,7 +80,7 @@ describe "The launcher" do
 
   it "all launchers are in @launchers" do
     known = @launchers.keys.map(&:to_s).sort
-    actual = Dir.children(File.dirname(RbConfig.ruby)).sort
+    actual = Dir.children(@bindir).sort
     actual.delete('truffleruby-polyglot-get')
     actual.should == known
   end
@@ -144,6 +145,14 @@ describe "The launcher" do
       `#{@bindir}/gem uninstall hello-world -x #{@redirect}`
       check_status_and_empty_stderr
       File.should_not.exist?(@bindir + '/hello-world.rb')
+
+      # TODO: remove this logic after upgrading RubyGems/bundler where the issue is fixed
+      # See https://github.com/rubygems/rubygems/issues/7997
+      # remove a shim file
+      shim_file_path = @bindir + '/hello-world.rb.lock'
+      if File.exist?(shim_file_path)
+        File.unlink(shim_file_path)
+      end
     end
   end
 

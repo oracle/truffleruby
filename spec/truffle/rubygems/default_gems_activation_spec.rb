@@ -16,9 +16,6 @@ describe "Default gems activation" do
     'open-uri' => 'open-uri',
     'resolv-replace' => 'resolv-replace',
 
-    # 'readline/ext' is loaded by 'require "readline"'
-    'readline-ext' => 'readline',
-
     # rinda gem cannot be required by single 'require "rinda"', only by requiring some of its files, e.g. 'rinda/tuplespace'
     'rinda' => 'rinda/tuplespace',
 
@@ -30,13 +27,6 @@ describe "Default gems activation" do
   def gems_entry_points
     # Truffle::GemUtil::DEFAULT_GEMS.keys could be used instead (a far as its correctness is tested)
     filenames = Dir.children(Gem.default_specifications_dir)
-
-    # don't test readline-ext as far as TruffleRuby doesn't provide its implementation
-    size = filenames.size
-    filenames.delete_if { |filename| filename.include? 'readline-ext' }
-    if size == filenames.size
-      raise "Remove readline-ext related logic in this test because it is not a default gem"
-    end
 
     filenames.sort.map do |filename|
       # extract gem name from a gem specification file

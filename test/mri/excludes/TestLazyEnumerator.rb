@@ -1,6 +1,6 @@
 exclude :test_drop_nested, "<[6,"
 exclude :test_drop_while_nested, "<[6,"
-exclude :test_inspect, "<\"#<Enumerator::Lazy: 1..10>\"> expected but was <\"#<Enumerator::Lazy: #<Enumerator::Generator:0xa58 @proc=#<Proc:0xa68 <internal:core> core/enumerator.rb:365>>:each>\">."
+exclude :test_inspect, "<\"#<Enumerator::Lazy: 1..10>\"> expected but was <\"#<Enumerator::Lazy: #<Enumerator::Generator:0xa68 @proc=#<Proc:0xa78 <internal:core> core/enumerator.rb:365>>:each>\">."
 exclude :test_laziness_conservation, "ArgumentError: wrong number of arguments (given 1, expected 0)"
 exclude :test_lazy_to_enum_lazy_methods, "<[nil, 4]> expected but was <[nil]>."
 exclude :test_size, "<0> expected but was <Infinity>."

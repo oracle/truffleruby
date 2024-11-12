@@ -237,15 +237,15 @@ class TestKeywordArguments < Test::Unit::TestCase
     assert_equal(true, Hash.ruby2_keywords_hash?(marked))
   end
 
+  def assert_equal_not_same(kw, res)
+    assert_instance_of(Hash, res)
+    assert_equal(kw, res)
+    assert_not_same(kw, res)
+  end
+
   def test_keyword_splat_new
     kw = {}
     h = {a: 1}
-
-    def self.assert_equal_not_same(kw, res)
-      assert_instance_of(Hash, res)
-      assert_equal(kw, res)
-      assert_not_same(kw, res)
-    end
 
     def self.yo(**kw) kw end
     m = method(:yo)
@@ -447,6 +447,30 @@ class TestKeywordArguments < Test::Unit::TestCase
     assert_equal(false, public_send(:yo, **{}).frozen?)
     assert_equal_not_same(kw, public_send(:yo, **kw))
     assert_equal_not_same(h, public_send(:yo, **h))
+
+    def self.yo(*a, **kw) = kw
+    assert_equal_not_same kw, yo(**kw)
+    assert_equal_not_same kw, yo(**kw, **kw)
+
+    singleton_class.send(:remove_method, :yo)
+    def self.yo(opts) = opts
+    assert_equal_not_same h, yo(*[], **h)
+    a = []
+    assert_equal_not_same h, yo(*a, **h)
+  end
+
+  def test_keyword_splat_to_non_keyword_method
+    h = {a: 1}.freeze
+
+    def self.yo(kw) kw end
+    assert_equal_not_same(h, yo(**h))
+    assert_equal_not_same(h, method(:yo).(**h))
+    assert_equal_not_same(h, :yo.to_proc.(self, **h))
+
+    def self.yoa(*kw) kw[0] end
+    assert_equal_not_same(h, yoa(**h))
+    assert_equal_not_same(h, method(:yoa).(**h))
+    assert_equal_not_same(h, :yoa.to_proc.(self, **h))
   end
 
   def test_regular_kwsplat
@@ -4406,6 +4430,24 @@ class TestKeywordArgumentsSymProcRefinements < Test::Unit::TestCase
     assert_equal({x: 1, y: 2}, f.call(x:, y:))
     assert_equal({x: 1, y: 2, z: 3}, f.call(x:, y:, z: 3))
     assert_equal({one: 1, two: 2}, f.call(one:, two:))
+  end
+
+  def m_bug20570(*a, **nil)
+    a
+  end
+
+  def test_splat_arg_with_prohibited_keyword
+    assert_equal([], m_bug20570(*[]))
+    assert_equal([1], m_bug20570(*[1]))
+    assert_equal([1, 2], m_bug20570(*[1, 2]))
+    h = nil
+    assert_equal([], m_bug20570(*[], **h))
+    assert_equal([1], m_bug20570(*[1], **h))
+    assert_equal([1, 2], m_bug20570(*[1, 2], **h))
+
+    assert_equal([], m_bug20570(*[], **nil))
+    assert_equal([1], m_bug20570(*[1], **nil))
+    assert_equal([1, 2], m_bug20570(*[1, 2], **nil))
   end
 
   private def one

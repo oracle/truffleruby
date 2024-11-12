@@ -37,25 +37,34 @@ module JSON
     '\\'  =>  '\\\\',
   } # :nodoc:
 
-  ESCAPE_SLASH_MAP = MAP.merge(
+  ESCAPE_PATTERN = /[\/"\\\x0-\x1f]/n # :nodoc:
+
+  SCRIPT_SAFE_MAP = MAP.merge(
     '/'  =>  '\\/',
+    "\u2028".b => '\u2028',
+    "\u2029".b => '\u2029',
   )
+
+  SCRIPT_SAFE_ESCAPE_PATTERN = Regexp.union(ESCAPE_PATTERN, "\u2028".b, "\u2029".b)
 
   # Convert a UTF8 encoded Ruby string _string_ to a JSON string, encoded with
   # UTF16 big endian characters as \u????, and return it.
-  def utf8_to_json(string, escape_slash = false) # :nodoc:
+  def utf8_to_json(string, script_safe = false) # :nodoc:
     string = string.dup
     string.force_encoding(::Encoding::ASCII_8BIT)
-    map = escape_slash ? ESCAPE_SLASH_MAP : MAP
-    string.gsub!(/[\/"\\\x0-\x1f]/) { map[$&] || $& }
+    if script_safe
+      string.gsub!(SCRIPT_SAFE_ESCAPE_PATTERN) { SCRIPT_SAFE_MAP[$&] || $& }
+    else
+      string.gsub!(ESCAPE_PATTERN) { MAP[$&] || $& }
+    end
     string.force_encoding(::Encoding::UTF_8)
     string
   end
 
-  def utf8_to_json_ascii(string, escape_slash = false) # :nodoc:
+  def utf8_to_json_ascii(string, script_safe = false) # :nodoc:
     string = string.dup
     string.force_encoding(::Encoding::ASCII_8BIT)
-    map = escape_slash ? ESCAPE_SLASH_MAP : MAP
+    map = script_safe ? SCRIPT_SAFE_MAP : MAP
     string.gsub!(/[\/"\\\x0-\x1f]/n) { map[$&] || $& }
     string.gsub!(/(
       (?:
@@ -115,7 +124,8 @@ module JSON
         # * *space_before*: a string that is put before a : pair delimiter (default: ''),
         # * *object_nl*: a string that is put at the end of a JSON object (default: ''),
         # * *array_nl*: a string that is put at the end of a JSON array (default: ''),
-        # * *escape_slash*: true if forward slash (/) should be escaped (default: false)
+        # * *script_safe*: true if U+2028, U+2029 and forward slash (/) should be escaped
+        #   as to make the JSON object safe to interpolate in a script tag (default: false).
         # * *check_circular*: is deprecated now, use the :max_nesting option instead,
         # * *max_nesting*: sets the maximum level of data structure nesting in
         #   the generated JSON, max_nesting = 0 if no maximum should be checked.
@@ -130,7 +140,8 @@ module JSON
           @array_nl              = ''
           @allow_nan             = false
           @ascii_only            = false
-          @escape_slash          = false
+          @script_safe          = false
+          @strict                = false
           @buffer_initial_length = 1024
           configure opts
         end
@@ -158,7 +169,11 @@ module JSON
 
         # If this attribute is set to true, forward slashes will be escaped in
         # all json strings.
-        attr_accessor :escape_slash
+        attr_accessor :script_safe
+
+        # If this attribute is set to true, attempting to serialize types not
+        # supported by the JSON spec will raise a JSON::GeneratorError
+        attr_accessor :strict
 
         # :stopdoc:
         attr_reader :buffer_initial_length
@@ -200,8 +215,13 @@ module JSON
         end
 
         # Returns true, if forward slashes are escaped. Otherwise returns false.
-        def escape_slash?
-          @escape_slash
+        def script_safe?
+          @script_safe
+        end
+
+        # Returns true, if forward slashes are escaped. Otherwise returns false.
+        def strict?
+          @strict
         end
 
         # Configure this State instance with the Hash _opts_, and return
@@ -214,7 +234,7 @@ module JSON
           else
             raise TypeError, "can't convert #{opts.class} into Hash"
           end
-          for key, value in opts
+          opts.each do |key, value|
             instance_variable_set "@#{key}", value
           end
           @indent                = opts[:indent] if opts.key?(:indent)
@@ -226,7 +246,16 @@ module JSON
           @ascii_only            = opts[:ascii_only] if opts.key?(:ascii_only)
           @depth                 = opts[:depth] || 0
           @buffer_initial_length ||= opts[:buffer_initial_length]
-          @escape_slash          = !!opts[:escape_slash] if opts.key?(:escape_slash)
+
+          @script_safe = if opts.key?(:script_safe)
+            !!opts[:script_safe]
+          elsif opts.key?(:escape_slash)
+            !!opts[:escape_slash]
+          else
+            false
+          end
+
+          @strict                = !!opts[:strict] if opts.key?(:strict)
 
           if !opts.key?(:max_nesting) # defaults to 100
             @max_nesting = 100
@@ -243,7 +272,7 @@ module JSON
         # passed to the configure method.
         def to_h
           result = {}
-          for iv in instance_variables
+          instance_variables.each do |iv|
             iv = iv.to_s[1..-1]
             result[iv.to_sym] = self[iv]
           end
@@ -287,7 +316,13 @@ module JSON
           # Converts this object to a string (calling #to_s), converts
           # it to a JSON string, and returns the result. This is a fallback, if no
           # special method #to_json was defined for some object.
-          def to_json(*) to_s.to_json end
+          def to_json(generator_state)
+            if generator_state.strict?
+              raise GeneratorError, "#{self.class} not allowed in JSON"
+            else
+              to_s.to_json
+            end
+          end
         end
 
         module Hash
@@ -310,21 +345,18 @@ module JSON
           end
 
           def json_transform(state)
-            delim = ','
-            delim << state.object_nl
-            result = '{'
-            result << state.object_nl
+            delim = ",#{state.object_nl}"
+            result = "{#{state.object_nl}"
             depth = state.depth += 1
             first = true
             indent = !state.object_nl.empty?
-            each { |key,value|
+            each { |key, value|
               result << delim unless first
               result << state.indent * depth if indent
-              result << key.to_s.to_json(state)
-              result << state.space_before
-              result << ':'
-              result << state.space
-              if value.respond_to?(:to_json)
+              result = "#{result}#{key.to_s.to_json(state)}#{state.space_before}:#{state.space}"
+              if state.strict?
+                raise GeneratorError, "#{value.class} not allowed in JSON"
+              elsif value.respond_to?(:to_json)
                 result << value.to_json(state)
               else
                 result << %{"#{String(value)}"}
@@ -365,7 +397,9 @@ module JSON
             each { |value|
               result << delim unless first
               result << state.indent * depth if indent
-              if value.respond_to?(:to_json)
+              if state.strict?
+                raise GeneratorError, "#{value.class} not allowed in JSON"
+              elsif value.respond_to?(:to_json)
                 result << value.to_json(state)
               else
                 result << %{"#{String(value)}"}
@@ -419,9 +453,9 @@ module JSON
               string = encode(::Encoding::UTF_8)
             end
             if state.ascii_only?
-              '"' << JSON.utf8_to_json_ascii(string, state.escape_slash) << '"'
+              '"' << JSON.utf8_to_json_ascii(string, state.script_safe) << '"'
             else
-              '"' << JSON.utf8_to_json(string, state.escape_slash) << '"'
+              '"' << JSON.utf8_to_json(string, state.script_safe) << '"'
             end
           end
 

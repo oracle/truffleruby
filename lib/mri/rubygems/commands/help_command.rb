@@ -59,7 +59,7 @@ multiple environments.  The RubyGems implementation is designed to be
 compatible with Bundler's Gemfile format.  You can see additional
 documentation on the format at:
 
-  http://bundler.io
+  https://bundler.io
 
 RubyGems automatically looks for these gem dependencies files:
 
@@ -172,7 +172,7 @@ and #platforms methods:
 See the bundler Gemfile manual page for a list of platforms supported in a gem
 dependencies file.:
 
-  http://bundler.io/v1.6/man/gemfile.5.html
+  https://bundler.io/v2.5/man/gemfile.5.html
 
 Ruby Version and Engine Dependency
 ==================================
@@ -269,7 +269,7 @@ Gem::Platform::CURRENT.  This will correctly mark the gem with your ruby's
 platform.
   EOF
 
-  # NOTE when updating also update Gem::Command::HELP
+  # NOTE: when updating also update Gem::Command::HELP
 
   SUBCOMMANDS = [
     ["commands",         :show_commands],
@@ -324,16 +324,16 @@ platform.
 
     margin_width = 4
 
-    desc_width = @command_manager.command_names.map {|n| n.size }.max + 4
+    desc_width = @command_manager.command_names.map(&:size).max + 4
 
     summary_width = 80 - margin_width - desc_width
     wrap_indent = " " * (margin_width + desc_width)
-    format = "#{' ' * margin_width}%-#{desc_width}s%s"
+    format = "#{" " * margin_width}%-#{desc_width}s%s"
 
     @command_manager.command_names.each do |cmd_name|
       command = @command_manager[cmd_name]
 
-      next if command.deprecated?
+      next if command&.deprecated?
 
       summary =
         if command
@@ -343,7 +343,7 @@ platform.
         end
 
       summary = wrap(summary, summary_width).split "\n"
-      out << sprintf(format, cmd_name, summary.shift)
+      out << format(format, cmd_name, summary.shift)
       until summary.empty? do
         out << "#{wrap_indent}#{summary.shift}"
       end
@@ -367,7 +367,7 @@ platform.
       command = @command_manager[possibilities.first]
       command.invoke("--help")
     elsif possibilities.size > 1
-      alert_warning "Ambiguous command #{command_name} (#{possibilities.join(', ')})"
+      alert_warning "Ambiguous command #{command_name} (#{possibilities.join(", ")})"
     else
       alert_warning "Unknown command #{command_name}. Try: gem help commands"
     end

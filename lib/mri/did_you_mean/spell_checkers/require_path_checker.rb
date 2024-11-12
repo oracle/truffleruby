@@ -25,7 +25,6 @@ module DidYouMean
     end
     Ractor.make_shareable(ENV_SPECIFIC_EXT) if defined?(Ractor)
 
-
     private_constant :INITIAL_LOAD_PATH, :ENV_SPECIFIC_EXT
 
     def self.requireables

@@ -1,0 +1,1 @@
+fails:SizedQueue#freeze raises an exception when freezing

@@ -1,1 +1,1 @@
-exclude :test_bad_version, "RuntimeError: External LLVMFunction rb_random_mark cannot be found."
+exclude :test_bad_version, "RuntimeError: /b/b/e/main/.ext/c/random.so: undefined symbol: rb_random_mark"

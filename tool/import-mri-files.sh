@@ -82,11 +82,18 @@ cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 
 # Ripper
+rm -rf src/main/c/ripper
+mkdir -p src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/{id.h,symbol.h} lib/cext/include/truffleruby/internal
 cp "$RUBY_BUILD_DIR"/{node.c,parse.c,lex.c} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/ripper.y src/main/c/ripper/ripper.y.renamed
-cp "$RUBY_BUILD_DIR"/{node.h,parse.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/{node.h,node_name.inc,parse.h,parser_node.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/ext/ripper/{eventids1.h,eventids2.h,ripper_init.h} src/main/c/ripper
+cp ../ruby/rubyparser.h src/main/c/ripper
+mkdir src/main/c/ripper/internal
+cp ../ruby/internal/ruby_parser.h src/main/c/ripper/internal
+cp ../ruby/internal/parse.h src/main/c/ripper/internal
 
 # test/
 rm -rf test/mri/tests
@@ -100,10 +107,18 @@ find test/mri/tests/cext-ruby -name '*.rb' -print0 | xargs -0 -n 1 sed -i.backup
 find test/mri/tests/cext-ruby -name '*.backup' -delete
 rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
+rm -rf test/mri/tests/prism
+git checkout -- test/mri/tests/prism # Prism tests are updated separately by tool/import-prism.sh script
 
-# Copy from tool/lib to test/lib
+# Copy from tool/lib to tests/lib
 cp -R ../ruby/tool/lib/* test/mri/tests/lib
 rm -f test/mri/tests/lib/leakchecker.rb
+
+# Copy from tool/test to tests/tool
+rm -rf test/mri/tests/tool
+mkdir -p test/mri/tests/tool/test
+cp -R ../ruby/tool/test/runner.rb test/mri/tests/tool/test
+cp -R ../ruby/tool/test/init.rb test/mri/tests/tool/test
 
 # basictest/ and bootstraptest/
 rm -rf test/basictest
@@ -128,7 +143,7 @@ cp -R ../ruby/include/. lib/cext/include
 rm -rf lib/cext/include/ccan
 cp -R ../ruby/ccan lib/cext/include
 
-internal_headers=({bignum,bits,compile,compilers,complex,error,fixnum,imemo,numeric,parse,rational,re,static_assert,util}.h)
+internal_headers=({bignum,bits,compile,compilers,complex,error,fixnum,imemo,numeric,rational,re,static_assert,util}.h)
 rm -f "${internal_headers[@]/#/lib/cext/include/internal/}"
 cp -R "${internal_headers[@]/#/../ruby/internal/}" lib/cext/include/internal
 

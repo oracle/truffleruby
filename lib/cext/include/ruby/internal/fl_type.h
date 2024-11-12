@@ -60,8 +60,7 @@
 
 #define FL_SINGLETON    RBIMPL_CAST((VALUE)RUBY_FL_SINGLETON)            /**< @old{RUBY_FL_SINGLETON} */
 #define FL_WB_PROTECTED RBIMPL_CAST((VALUE)RUBY_FL_WB_PROTECTED)         /**< @old{RUBY_FL_WB_PROTECTED} */
-#define FL_PROMOTED0    RBIMPL_CAST((VALUE)RUBY_FL_PROMOTED0)            /**< @old{RUBY_FL_PROMOTED0} */
-#define FL_PROMOTED1    RBIMPL_CAST((VALUE)RUBY_FL_PROMOTED1)            /**< @old{RUBY_FL_PROMOTED1} */
+#define FL_PROMOTED     RBIMPL_CAST((VALUE)RUBY_FL_PROMOTED)             /**< @old{RUBY_FL_PROMOTED} */
 #define FL_FINALIZE     RBIMPL_CAST((VALUE)RUBY_FL_FINALIZE)             /**< @old{RUBY_FL_FINALIZE} */
 #define FL_TAINT        RBIMPL_CAST((VALUE)RUBY_FL_TAINT)                /**< @old{RUBY_FL_TAINT} */
 #define FL_SHAREABLE    RBIMPL_CAST((VALUE)RUBY_FL_SHAREABLE)            /**< @old{RUBY_FL_SHAREABLE} */
@@ -118,13 +117,6 @@
 #define RB_OBJ_FREEZE_RAW    RB_OBJ_FREEZE_RAW
 #define RB_OBJ_FROZEN        RB_OBJ_FROZEN
 #define RB_OBJ_FROZEN_RAW    RB_OBJ_FROZEN_RAW
-#define RB_OBJ_INFECT        RB_OBJ_INFECT
-#define RB_OBJ_INFECT_RAW    RB_OBJ_INFECT_RAW
-#define RB_OBJ_TAINT         RB_OBJ_TAINT
-#define RB_OBJ_TAINTABLE     RB_OBJ_TAINTABLE
-#define RB_OBJ_TAINTED       RB_OBJ_TAINTED
-#define RB_OBJ_TAINTED_RAW   RB_OBJ_TAINTED_RAW
-#define RB_OBJ_TAINT_RAW     RB_OBJ_TAINT_RAW
 #define RB_OBJ_UNTRUST       RB_OBJ_TAINT
 #define RB_OBJ_UNTRUSTED     RB_OBJ_TAINTED
 /** @endcond */
@@ -214,12 +206,15 @@ ruby_fl_type {
     RUBY_FL_WB_PROTECTED = (1<<5),
 
     /**
-     * This flag  has something to do  with our garbage collector.   These days
-     * ruby  objects are  "generational".  There  are those  who are  young and
-     * those who are old.  Young objects are prone to die; monitored relatively
-     * extensively by  the garbage  collector.  OTOH old  objects tend  to live
-     * longer.  They are relatively rarely considered.  This flag is set when a
-     * object experienced promotion i.e. survived a garbage collection.
+     * Ruby objects are "generational".  There are young objects & old objects.
+     * Young objects are prone to die & monitored relatively extensively by the
+     * garbage collector.  Old objects tend to live longer & are monitored less
+     * frequently.  When an object survives a GC, its age is incremented.  When
+     * age is equal to RVALUE_OLD_AGE, the object becomes Old. This flag is set
+     * when an object becomes old, and is used by the write barrier to check if
+     * an old object should be considered for marking more frequently  - as old
+     * objects that have references added between major GCs need to be remarked
+     * to prevent the referred object being mistakenly swept.
      *
      * @internal
      *
@@ -227,41 +222,14 @@ ruby_fl_type {
      * 3rd parties.  It must be an implementation detail that they should never
      * know.  Might better be hidden.
      */
-    RUBY_FL_PROMOTED0    = (1<<5),
+    RUBY_FL_PROMOTED    = (1<<5),
 
     /**
-     * This flag  has something to do  with our garbage collector.   These days
-     * ruby  objects are  "generational".  There  are those  who are  young and
-     * those who are old.  Young objects are prone to die; monitored relatively
-     * extensively by  the garbage  collector.  OTOH old  objects tend  to live
-     * longer.  They are relatively rarely considered.  This flag is set when a
-     * object  experienced two  promotions  i.e.  survived garbage  collections
-     * twice.
+     * This flag is no longer in use
      *
      * @internal
-     *
-     * But honestly, @shyouhei  doesn't think this flag should  be visible from
-     * 3rd parties.  It must be an implementation detail that they should never
-     * know.  Might better be hidden.
      */
-    RUBY_FL_PROMOTED1    = (1<<6),
-
-    /**
-     * This flag  has something to do  with our garbage collector.   These days
-     * ruby  objects are  "generational".  There  are those  who are  young and
-     * those who are old.  Young objects are prone to die; monitored relatively
-     * extensively by  the garbage  collector.  OTOH old  objects tend  to live
-     * longer.  They are relatively rarely considered.  This flag is set when a
-     * object  experienced  promotions i.e.   survived  more  than one  garbage
-     * collections.
-     *
-     * @internal
-     *
-     * But honestly, @shyouhei  doesn't think this flag should  be visible from
-     * 3rd parties.  It must be an implementation detail that they should never
-     * know.  Might better be hidden.
-     */
-    RUBY_FL_PROMOTED     = RUBY_FL_PROMOTED0 | RUBY_FL_PROMOTED1,
+    RUBY_FL_UNUSED6    = (1<<6),
 
     /**
      * This flag has  something to do with finalisers.  A  ruby object can have
@@ -290,7 +258,7 @@ ruby_fl_type {
 # pragma deprecated(RUBY_FL_TAINT)
 #endif
 
-                         = (1<<8),
+                         = 0,
 
     /**
      * This flag has something to do with Ractor.  Multiple Ractors run without
@@ -317,7 +285,7 @@ ruby_fl_type {
 # pragma deprecated(RUBY_FL_UNTRUSTED)
 #endif
 
-                         = (1<<8),
+                         = 0,
 
     /**
      * This flag has something to do with  object IDs.  Unlike in the old days,
@@ -496,7 +464,7 @@ RB_FL_ABLE(VALUE obj)
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an implenentation detail of  RB_FL_TEST().  3rd parties need not use
+ * This is an implementation detail of  RB_FL_TEST().  3rd parties need not use
  * this.  Just always use RB_FL_TEST().
  *
  * @param[in]  obj    Object in question.
@@ -548,7 +516,7 @@ RB_FL_TEST(VALUE obj, VALUE flags)
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_ANY().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_ANY().  3rd parties  need not use
  * this.  Just always use RB_FL_ANY().
  *
  * @param[in]  obj    Object in question.
@@ -582,7 +550,7 @@ RB_FL_ANY(VALUE obj, VALUE flags)
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_ALL().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_ALL().  3rd parties  need not use
  * this.  Just always use RB_FL_ALL().
  *
  * @param[in]  obj    Object in question.
@@ -619,7 +587,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 /**
  * @private
  *
- * This is an  implenentation detail of RB_FL_SET().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_SET().  3rd parties  need not use
  * this.  Just always use RB_FL_SET().
  *
  * @param[out]  obj    Object in question.
@@ -640,7 +608,7 @@ rbimpl_fl_set_raw_raw(struct RBasic *obj, VALUE flags)
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_SET().  3rd parties  need not use
+ * This is an  implementation detail of RB_FL_SET().  3rd parties  need not use
  * this.  Just always use RB_FL_SET().
  *
  * @param[out]  obj    Object in question.
@@ -685,7 +653,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 /**
  * @private
  *
- * This is an implenentation detail of RB_FL_UNSET().  3rd parties need not use
+ * This is an implementation detail of RB_FL_UNSET().  3rd parties need not use
  * this.  Just always use RB_FL_UNSET().
  *
  * @param[out]  obj    Object in question.
@@ -706,7 +674,7 @@ rbimpl_fl_unset_raw_raw(struct RBasic *obj, VALUE flags)
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an implenentation detail of RB_FL_UNSET().  3rd parties need not use
+ * This is an implementation detail of RB_FL_UNSET().  3rd parties need not use
  * this.  Just always use RB_FL_UNSET().
  *
  * @param[out]  obj    Object in question.
@@ -746,7 +714,7 @@ RBIMPL_ATTR_ARTIFICIAL()
 /**
  * @private
  *
- * This is an  implenentation detail of RB_FL_REVERSE().  3rd  parties need not
+ * This is an  implementation detail of RB_FL_REVERSE().  3rd  parties need not
  * use this.  Just always use RB_FL_REVERSE().
  *
  * @param[out]  obj    Object in question.
@@ -767,7 +735,7 @@ rbimpl_fl_reverse_raw_raw(struct RBasic *obj, VALUE flags)
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_FL_REVERSE().  3rd  parties need not
+ * This is an  implementation detail of RB_FL_REVERSE().  3rd  parties need not
  * use this.  Just always use RB_FL_REVERSE().
  *
  * @param[out]  obj    Object in question.
@@ -821,6 +789,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline bool
 RB_OBJ_TAINTABLE(VALUE obj)
 {
+    (void)obj;
     return false;
 }
 
@@ -838,6 +807,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline VALUE
 RB_OBJ_TAINTED_RAW(VALUE obj)
 {
+    (void)obj;
     return false;
 }
 
@@ -855,6 +825,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline bool
 RB_OBJ_TAINTED(VALUE obj)
 {
+    (void)obj;
     return false;
 }
 
@@ -870,6 +841,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_TAINT_RAW(VALUE obj)
 {
+    (void)obj;
     return;
 }
 
@@ -885,6 +857,7 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_TAINT(VALUE obj)
 {
+    (void)obj;
     return;
 }
 
@@ -901,6 +874,8 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_INFECT_RAW(VALUE dst, VALUE src)
 {
+    (void)dst;
+    (void)src;
     return;
 }
 
@@ -917,6 +892,8 @@ RBIMPL_ATTR_DEPRECATED(("taintedness turned out to be a wrong idea."))
 static inline void
 RB_OBJ_INFECT(VALUE dst, VALUE src)
 {
+    (void)dst;
+    (void)src;
     return;
 }
 
@@ -927,7 +904,7 @@ RBIMPL_WARNING_POP()
 RBIMPL_ATTR_PURE_UNLESS_DEBUG()
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_OBJ_FROZEN().  3rd  parties need not
+ * This is an  implementation detail of RB_OBJ_FROZEN().  3rd  parties need not
  * use this.  Just always use RB_OBJ_FROZEN().
  *
  * @param[in]  obj             Object in question.
@@ -976,7 +953,7 @@ RB_OBJ_FROZEN(VALUE obj)
 
 RBIMPL_ATTR_ARTIFICIAL()
 /**
- * This is an  implenentation detail of RB_OBJ_FREEZE().  3rd  parties need not
+ * This is an  implementation detail of RB_OBJ_FREEZE().  3rd  parties need not
  * use this.  Just always use RB_OBJ_FREEZE().
  *
  * @param[out]  obj  Object in question.

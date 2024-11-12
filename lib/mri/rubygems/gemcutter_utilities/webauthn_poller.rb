@@ -37,16 +37,16 @@ module Gem::GemcutterUtilities
         thread.abort_on_exception = true
         thread.report_on_exception = false
         thread[:otp] = new(options, host).poll_for_otp(webauthn_url, credentials)
-      rescue Gem::WebauthnVerificationError, Timeout::Error => e
+      rescue Gem::WebauthnVerificationError, Gem::Timeout::Error => e
         thread[:error] = e
       end
     end
 
     def poll_for_otp(webauthn_url, credentials)
-      Timeout.timeout(TIMEOUT_IN_SECONDS) do
+      Gem::Timeout.timeout(TIMEOUT_IN_SECONDS) do
         loop do
           response = webauthn_verification_poll_response(webauthn_url, credentials)
-          raise Gem::WebauthnVerificationError, response.message unless response.is_a?(Net::HTTPSuccess)
+          raise Gem::WebauthnVerificationError, response.message unless response.is_a?(Gem::Net::HTTPSuccess)
 
           require "json"
           parsed_response = JSON.parse(response.body)
@@ -69,8 +69,10 @@ module Gem::GemcutterUtilities
       rubygems_api_request(:get, "api/v1/webauthn_verification/#{webauthn_token}/status.json") do |request|
         if credentials.empty?
           request.add_field "Authorization", api_key
+        elsif credentials[:identifier] && credentials[:password]
+          request.basic_auth credentials[:identifier], credentials[:password]
         else
-          request.basic_auth credentials[:email], credentials[:password]
+          raise Gem::WebauthnVerificationError, "Provided missing credentials"
         end
       end
     end

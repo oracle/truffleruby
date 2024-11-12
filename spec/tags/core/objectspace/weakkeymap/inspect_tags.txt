@@ -1,0 +1,1 @@
+fails:ObjectSpace::WeakKeyMap#inspect only displays size in output

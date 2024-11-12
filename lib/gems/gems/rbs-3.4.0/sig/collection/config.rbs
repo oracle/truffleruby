@@ -1,0 +1,46 @@
+module RBS
+  module Collection
+    # This class represent the configuration file.
+    class Config
+      class CollectionNotAvailable < StandardError
+        def initialize: () -> void
+      end
+
+      PATH: Pathname
+
+      type gem_entry = {
+        'name' => String,
+        'version' => String?,
+        'ignore' => boolish,
+        'source' => Sources::source_entry?
+      }
+
+      attr_reader config_path: Pathname
+
+      attr_reader data: untyped
+
+      @sources: Array[Sources::_Source]
+
+      def self.find_config_path: () -> Pathname?
+
+      def self.generate_lockfile: (config_path: Pathname, definition: Bundler::Definition, ?with_lockfile: boolish) -> [Config, Lockfile]
+
+      def self.from_path: (Pathname path) -> Config
+
+      def self.to_lockfile_path: (Pathname config_path) -> Pathname
+
+      # config_path is necessary to resolve relative repo_path
+      def initialize: (untyped data, config_path: Pathname) -> void
+
+      def gem: (String gem_name) -> gem_entry?
+
+      def repo_path: () -> Pathname
+
+      def repo_path_data: () -> Pathname
+
+      def sources: () -> Array[Sources::t]
+
+      def gems: () -> Array[gem_entry]
+    end
+  end
+end

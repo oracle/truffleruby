@@ -1,1 +1,0 @@
-exclude :test_correctable_error_objects_are_dumpable, "<\"undefined method `sizee' for #<File:test_name_error_extension.rb (closed)>\"> expected but was <\"undefined method `sizee' for #<File:0x3c8 path=test_name_error_extension.rb (closed)>\">."

@@ -78,7 +78,7 @@ struct timeval;
  *
  * Although  any file  descriptors are  possible here,  it makes  completely no
  * sense to pass  a descriptor that is  not `O_NONBLOCK`.  If you  want to know
- * the reason for  this limitatuon in detail, you might  find this thread super
+ * the reason for  this limitation in detail, you might  find this thread super
  * interesting: https://lkml.org/lkml/2004/10/6/117
  */
 #if defined(TRUFFLERUBY) && defined(NFDBITS) && defined(HAVE_RB_FD_INIT) // Don't define an incorrect rb_fdset_t if NFDBITS is not set

@@ -1,0 +1,56 @@
+module Net
+  class Protocol
+    VERSION: String
+  end
+
+  class ProtocolError < StandardError
+  end
+
+  class ProtoSyntaxError < ProtocolError
+  end
+
+  class ProtoFatalError < ProtocolError
+  end
+
+  class ProtoUnknownError < ProtocolError
+  end
+
+  class ProtoServerError < ProtocolError
+  end
+
+  class ProtoAuthError < ProtocolError
+  end
+
+  class ProtoCommandError < ProtocolError
+  end
+
+  class ProtoRetriableError < ProtocolError
+  end
+
+  class HTTPBadResponse < StandardError
+  end
+
+  class HTTPHeaderSyntaxError < StandardError
+  end
+
+  # <!-- rdoc-file=lib/net/protocol.rb -->
+  # OpenTimeout, a subclass of Timeout::Error, is raised if a connection cannot be
+  # created within the open_timeout.
+  #
+  class OpenTimeout < Timeout::Error
+  end
+
+  # <!-- rdoc-file=lib/net/protocol.rb -->
+  # ReadTimeout, a subclass of Timeout::Error, is raised if a chunk of the
+  # response cannot be read within the read_timeout.
+  #
+  class ReadTimeout < Timeout::Error
+  end
+
+  # <!-- rdoc-file=lib/net/protocol.rb -->
+  # WriteTimeout, a subclass of Timeout::Error, is raised if a chunk of the
+  # response cannot be written within the write_timeout.  Not raised on Windows.
+  #
+  class WriteTimeout < Timeout::Error
+  end
+end

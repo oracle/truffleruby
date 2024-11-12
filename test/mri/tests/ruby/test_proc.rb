@@ -289,7 +289,6 @@ class TestProc < Test::Unit::TestCase
     assert_equal(false, l.lambda?)
     assert_equal(false, l.curry.lambda?, '[ruby-core:24127]')
     assert_equal(false, proc(&l).lambda?)
-    assert_equal(false, assert_deprecated_warning {lambda(&l)}.lambda?)
     assert_equal(false, Proc.new(&l).lambda?)
     l = lambda {}
     assert_equal(true, l.lambda?)
@@ -299,47 +298,21 @@ class TestProc < Test::Unit::TestCase
     assert_equal(true, Proc.new(&l).lambda?)
   end
 
-  def self.helper_test_warn_lamda_with_passed_block &b
+  def helper_test_warn_lambda_with_passed_block &b
     lambda(&b)
   end
 
-  def self.def_lambda_warning name, warn
-    define_method(name, proc do
-      prev = Warning[:deprecated]
-      assert_warn warn do
-        Warning[:deprecated] = true
-        yield
-      end
-    ensure
-      Warning[:deprecated] = prev
-    end)
+  def test_lambda_warning_pass_proc
+    assert_raise(ArgumentError) do
+      b = proc{}
+      lambda(&b)
+    end
   end
 
-  def_lambda_warning 'test_lambda_warning_normal', '' do
-    lambda{}
-  end
-
-  def_lambda_warning 'test_lambda_warning_pass_lambda', '' do
-    b = lambda{}
-    lambda(&b)
-  end
-
-  def_lambda_warning 'test_lambda_warning_pass_symbol_proc', '' do
-    lambda(&:to_s)
-  end
-
-  def_lambda_warning 'test_lambda_warning_pass_proc', /deprecated/ do
-    b = proc{}
-    lambda(&b)
-  end
-
-  def_lambda_warning 'test_lambda_warning_pass_block', /deprecated/ do
-    helper_test_warn_lamda_with_passed_block{}
-  end
-
-  def_lambda_warning 'test_lambda_warning_pass_block_symbol_proc', '' do
-    # Symbol#to_proc returns lambda
-    helper_test_warn_lamda_with_passed_block(&:to_s)
+  def test_lambda_warning_pass_block
+    assert_raise(ArgumentError) do
+      helper_test_warn_lambda_with_passed_block{}
+    end
   end
 
   def test_curry_ski_fib
@@ -415,6 +388,15 @@ class TestProc < Test::Unit::TestCase
   def test_dup_subclass
     c1 = Class.new(Proc)
     assert_equal c1, c1.new{}.dup.class, '[Bug #17545]'
+    c1 = Class.new(Proc) {def initialize_dup(*) throw :initialize_dup; end}
+    assert_throw(:initialize_dup) {c1.new{}.dup}
+  end
+
+  def test_clone_subclass
+    c1 = Class.new(Proc)
+    assert_equal c1, c1.new{}.clone.class, '[Bug #17545]'
+    c1 = Class.new(Proc) {def initialize_clone(*) throw :initialize_clone; end}
+    assert_throw(:initialize_clone) {c1.new{}.clone}
   end
 
   def test_binding

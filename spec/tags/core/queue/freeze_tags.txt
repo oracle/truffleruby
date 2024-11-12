@@ -1,0 +1,1 @@
+fails:Queue#freeze raises an exception when freezing

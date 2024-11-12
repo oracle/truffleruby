@@ -155,10 +155,6 @@
 # undef RBIMPL_TEST3
 #endif /* HAVE_VA_ARGS_MACRO */
 
-#ifndef USE_RVARGC
-# define USE_RVARGC 1
-#endif
-
 #define TRUFFLERUBY
 // Loaded at the end of config.h, included from defines.h.
 #include <truffleruby/truffleruby-pre.h>

@@ -7,7 +7,7 @@ exclude :test_inspect, "<\"2000-01-01 00:00:00 1/10000000000 UTC\"> expected but
 exclude :test_marshal_broken_month, "ArgumentError: argument out of range"
 exclude :test_marshal_distant_future, "RangeError: float 5.67E9 out of range of integer"
 exclude :test_marshal_distant_past, "ArgumentError: year too big to marshal: 1890"
-exclude :test_marshal_nsec_191, "<1969-12-31 19:00:00.123456789 -0500> expected but was <1969-12-31 19:00:00.123456 -0500>."
+exclude :test_marshal_nsec_191, "<1970-01-01 00:00:00.123456789 +0000> expected but was <1970-01-01 00:00:00.123456 +0000>."
 exclude :test_memsize, "NameError: uninitialized constant GC::INTERNAL_CONSTANTS"
 exclude :test_new, "Exception(ArgumentError) with message matches to /invalid value for Integer/."
 exclude :test_new_from_string, "ArgumentError expected but nothing was raised."

@@ -39,16 +39,31 @@ def platform_info
   "#{cpu_model}: ( #{Etc.nprocessors} vCPUs)"
 end
 
-def exclude_test!(class_name, test_method, error_display, platform = nil)
+def exclude_test!(class_name, test_method, error_display)
   file = EXCLUDES_DIR + "/" + class_name.split("::").join('/') + ".rb"
-  prefix = "exclude #{test_method.strip.to_sym.inspect},"
 
-  if test_method =~ /(linux|darwin)/
-    platform = $1
+  # If a method name breaks the rules for method naming, e.g. it's defined dynamically with #define_method,
+  # in the tests output it's wrapped into "...". The patterns may not remove `""` so do this explicitly.
+  if test_method[0] == '"' && test_method[-1] == '"'
+    test_method = test_method[1..-2]
   end
 
-  platform_guard = platform ? " if RUBY_PLATFORM.include?('#{platform}')" : ''
-  new_line = "#{prefix} #{(REASON || error_display).inspect}#{platform_guard}\n"
+  # A method name can contain escape sequences e.g. \t, \v etc (when a method is created
+  # with #define_method method call). Such method name is escaped when being printed in
+  # the test output. So it should be unescaped to match an actual Ruby method name.
+  #
+  # Example:
+  #   output contains:
+  #     '[ 1/13] Prism::MagicCommentTest#"test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v"dyld[88292]: missing symbol called'
+  #   captured method name:
+  #     'test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v'
+  #   unescaped (with #undump):
+  #     "test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v"
+  name_dumped = test_method
+  name_undumped = ('"'+test_method+'"').undump
+  prefix = "exclude #{name_undumped.to_sym.inspect}," # don't strip a method name as far as some test names are defined with #define_method and contain terminating whitespaces
+
+  new_line = "#{prefix} #{(REASON || error_display).inspect}\n"
 
   FileUtils.mkdir_p(File.dirname(file))
   lines = File.exist?(file) ? File.readlines(file) : []
@@ -72,6 +87,21 @@ def exclude_test!(class_name, test_method, error_display, platform = nil)
 end
 
 module Patterns
+  # A pattern for a method name is a bit complicated and isn't as simple as `\w+`.
+  # By convention a method can be terminated with '?' or '!' character. Moreover
+  # dynamically defined methods can terminate with any non-space character/characters,
+  # e.g. with '>>', '==' or '[]'.
+  #
+  # Examples:
+  # - TestBignum_BigZero#test_zero?
+  # - TestRDocCrossReference#"test_resolve_method:!" (generated with `define_method`)
+  # - Prism::MagicCommentTest#"test_magic_comment_#  \t\v encoding  \t\v :  \t\v ascii  \t\v"
+  #
+  # In case a method name contains characters that don't allowed by a parser a method in the output is wrapped with "".
+  # So the pattern should look like `#"?\w+[^"\n]*"?`
+
+  METHOD_NAME = /\w+[?!]?|"\w+[^"\n]*?"/
+
   # Sample:
   #
   # [101/125] TestM17N#test_string_inspect_encoding
@@ -83,7 +113,7 @@ module Patterns
   # 	from org.truffleruby.core.string.StringNodes$CharacterPrintablePrimitiveNode.isCharacterPrintable(StringNodes.java:3102)
   #
   # Extracts: ['TestM17N', 'test_string_inspect_encoding', '<no message> (java.lang.AssertionError) from org.truffleruby.core.string.StringNodes$CharacterPrintablePrimitiveNode.isCharacterPrintable(StringNodes.java:3102)']
-  ESCAPED_EXCEPTION = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\n.*?```\n(.*?\n.*?)\n/m
+  ESCAPED_EXCEPTION = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(#{METHOD_NAME})\n.*?```\n(.*?\n.*?)\n/m
 
   # Sample:
   #
@@ -98,28 +128,32 @@ module Patterns
   # # V  [libjvm.dylib+0x9be9b8]  Unsafe_GetDouble(JNIEnv_*, _jobject*, _jobject*, long)+0x13c
   #
   # Extracts: ['TestNum2int', 'test_num2ll', 'SIGSEGV', 'V  [libjvm.dylib+0x9be9b8]  Unsafe_GetDouble(JNIEnv_*, _jobject*, _jobject*, long)+0x13c']
-  JVM_CRASH = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(\w+)\s*#\n# A fatal error has been detected.*?(?:\n#)+\s+(SIG\w+).*?Problematic frame:\n#\s+(.+?)\n/m
+  JVM_CRASH = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(#{METHOD_NAME})\s*#\n# A fatal error has been detected.*?(?:\n#)+\s+(SIG\w+).*?Problematic frame:\n#\s+(.+?)\n/m
 
   # Sample: [19/21] TestSH#test_strftimetest/mri/tests/runner.rb: TestSH#test_strftime: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/lib/mri/date_core.so: undefined symbol: rb_str_format
   # Extracts: ['TestSH', 'test_strftimetest', 'rb_str_format']
   #
   # Sample: [1/3] TestBignum_Big2str#test_big2str_generictest/mri/tests/runner.rb: TestBignum_Big2str#test_big2str_generic: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/bignum.so: undefined symbol: rb_big2str_generic
   # Extracts: ['TestBignum_Big2str', 'test_big2str', 'rb_big2str_generic']
-  MISSING_SYMBOL = / ((?:\w+::)*\w+)#(\w+): symbol lookup error.*? undefined symbol: (\w+)/
+  #
+  # Sample: test/mri/tests/runner.rb: TestRDocParserRuby#test_read_directive_one_liner: symbol lookup error: /b/b/e/main/mxbuild/truffleruby-native/lib/mri/ripper.so: undefined symbol: rb_parser_st_locale_insensitive_strncasecmp
+  # Extracts: ['TestRDocParserRuby', 'test_read_directive_one_liner', 'rb_parser_st_locale_insensitive_strncasecmp']
+  MISSING_SYMBOL = / ((?:\w+::)*\w+)#(#{METHOD_NAME}): symbol lookup error.*? undefined symbol: (\w+)/
 
-  # Sample:  [1/4] TestThreadInstrumentation#test_join_counters/home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/bin/ruby: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/thread/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook
+  # Sample:  [1/4] TestThreadInstrumentation#test_join/home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/mxbuild/truffleruby-jvm-ce/bin/ruby: symbol lookup error: /home/nirvdrum/dev/workspaces/truffleruby-ws/truffleruby/.ext/c/thread/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook
   # Extracts: ['TestThreadInstrumentation', 'test_join', 'rb_internal_thread_add_event_hook']
-  SYMBOL_LOOKUP_ERROR = / ((?:\w+::)*\w+)#(\w+?)(?:\/.*?)?: symbol lookup error.*? undefined symbol: (\w+)/
+  SYMBOL_LOOKUP_ERROR = / ((?:\w+::)*\w+)#(#{METHOD_NAME})(?:\/.*?)?: symbol lookup error.*? undefined symbol: (\w+)/
 
   # Sample: [ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called
   # Extracts: ['TestFileExhaustive', 'test_expand_path_hfs', 'missing symbol called']
-  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#(\w+?)dyld\[\d+\]: (.*)/
+  DYLD_MISSING_SYMBOL = / ((?:\w+::)*\w+)#(#{METHOD_NAME})dyld\[\d+\]: (.*)/
 
   # Sample: [ 6/39] TestSocket_UNIXSocket#test_addr = 0.02 s
   # Extracts: ['TestSocket_UNIXSocket', 'test_addr', '0.02']
-  TEST_EXECUTION_TIME = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(.+?) = (\d+\.\d+) s/
+  TEST_EXECUTION_TIME = /^\[\s*\d+\/\d+\] ((?:\w+::)*\w+)#(#{METHOD_NAME}) = (\d+\.\d+) s/
 
   # Too many examples to list. Take a look at the generated mri_tests.txt file when you use `jt retag`.
+  # NOTE: method names containing whitespaces, special characters etc aren't wrapped with "".
   TEST_FAILURE = /^\s+\d+\) (Error|Failure|Timeout):\n((?:\w+::)*\w+)#(.+?)(?:\s*\[(?:[^\]])+\])?:?\n(.*?)\n$/m
 end
 
@@ -169,11 +203,190 @@ def process_fatal_errors!(contents)
   # this situation the message may not include what the symbol is. But, we can still extract the error message and tag
   # the test for reprocessing.
   contents.scan(Patterns::DYLD_MISSING_SYMBOL) do |class_name, test_method, dyld_message|
-    exclude_test!(class_name, test_method, "dyld: #{dyld_message}", 'darwin')
+    exclude_test!(class_name, test_method, "dyld: #{dyld_message}")
 
     exit RETRY_EXIT_STATUS
   end
 end
+
+# Define unit tests for patterns this way. Run them every time the script is launched.
+# A test failure doesn't terminate retagging but at least it helps to refactor and modify the patterns.
+module PatternTests
+  def self.assert(value, message)
+    unless value
+      raise "Assertion failure: #{message}"
+    end
+  end
+
+  # ESCAPED_EXCEPTION
+
+  output = <<-OUTPUT
+[101/125] TestM17N#test_string_inspect_encoding
+truffleruby: an internal exception escaped out of the interpreter,
+please report it to https://github.com/oracle/truffleruby/issues
+
+```
+<no message> (java.lang.AssertionError)
+	from org.truffleruby.core.string.StringNodes$CharacterPrintablePrimitiveNode.isCharacterPrintable(StringNodes.java:3102)
+  OUTPUT
+  expected = ['TestM17N', 'test_string_inspect_encoding', "<no message> (java.lang.AssertionError)\n\tfrom org.truffleruby.core.string.StringNodes$CharacterPrintablePrimitiveNode.isCharacterPrintable(StringNodes.java:3102)"]
+  actual = Patterns::ESCAPED_EXCEPTION.match(output).captures
+  assert(actual == expected, '[ESCAPED_EXCEPTION] captures test class, test method name, and error message')
+
+  # JVM_CRASH
+
+  output = <<-OUTPUT
+[ 7/13] TestNum2int#test_num2ll#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00000001049c29b8, pid=68349, tid=6151
+#
+# JRE version: OpenJDK Runtime Environment GraalVM CE 24-dev+11.1 (24.0+11) (build 24+11-jvmci-b01)
+# Java VM: OpenJDK 64-Bit Server VM GraalVM CE 24-dev+11.1 (24+11-jvmci-b01, mixed mode, sharing, tiered, jvmci, jvmci compiler, compressed oops, compressed class ptrs, g1 gc, bsd-aarch64)
+# Problematic frame:
+# V  [libjvm.dylib+0x9be9b8]  Unsafe_GetDouble(JNIEnv_*, _jobject*, _jobject*, long)+0x13c
+  OUTPUT
+  expected = ['TestNum2int', 'test_num2ll', "SIGSEGV", "V  [libjvm.dylib+0x9be9b8]  Unsafe_GetDouble(JNIEnv_*, _jobject*, _jobject*, long)+0x13c"]
+  actual = Patterns::JVM_CRASH.match(output).captures
+  assert(actual == expected, '[JVM_CRASH] captures test class, test method name, error type, and source')
+
+  # MISSING_SYMBOL
+
+  output = 'test/mri/tests/runner.rb: TestRDocParserRuby#test_read_directive_one_liner: symbol lookup error: /b/ripper.so: undefined symbol: rb_parser_st_locale_insensitive_strncasecmp'
+  expected = ['TestRDocParserRuby', 'test_read_directive_one_liner', 'rb_parser_st_locale_insensitive_strncasecmp']
+  actual = Patterns::MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[MISSING_SYMBOL] captures test class, test method name, and a missing symbol')
+
+  output = 'test/mri/tests/runner.rb: TestRDocAnyMethod#test_has_call_seq?: symbol lookup error: /b/ripper.so: undefined symbol: rb_parser_st_locale_insensitive_strncasecmp'
+  expected = ['TestRDocAnyMethod', 'test_has_call_seq?', 'rb_parser_st_locale_insensitive_strncasecmp']
+  actual = Patterns::MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[MISSING_SYMBOL] when method name terminated with ? captures it properly')
+
+  output = 'test/mri/tests/runner.rb:  TestRDocAnyMethod#"test_resolve_method:!": symbol lookup error: /b/ripper.so: undefined symbol: rb_parser_st_locale_insensitive_strncasecmp'
+  expected = ['TestRDocAnyMethod', '"test_resolve_method:!"', 'rb_parser_st_locale_insensitive_strncasecmp']
+  actual = Patterns::MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[MISSING_SYMBOL] when method name terminated with multiple non-alphanumeric characters captures it properly')
+
+  output = 'test/mri/tests/runner.rb: Prism::MagicCommentTest#"test_magic_comment_# encoding: ascii": symbol lookup error: /b/ripper.so: undefined symbol: rb_parser_st_locale_insensitive_strncasecmp'
+  expected = ['Prism::MagicCommentTest', '"test_magic_comment_# encoding: ascii"', 'rb_parser_st_locale_insensitive_strncasecmp']
+  actual = Patterns::MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[MISSING_SYMBOL] when method name contains whitespaces captures it properly')
+
+  # SYMBOL_LOOKUP_ERROR
+
+  output = '[1/4] TestThreadInstrumentation#test_join_counters/home/ruby: symbol lookup error: /home/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook'
+  expected = ['TestThreadInstrumentation', 'test_join_counters', 'rb_internal_thread_add_event_hook']
+  actual = Patterns::SYMBOL_LOOKUP_ERROR.match(output).captures
+  assert(actual == expected, '[SYMBOL_LOOKUP_ERROR] captures test class, test method name, and a missing symbol')
+
+  output = '[1/4] TestRDocAnyMethod#test_has_call_seq?/home/ruby: symbol lookup error: /home/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook'
+  expected = ['TestRDocAnyMethod', 'test_has_call_seq?', 'rb_internal_thread_add_event_hook']
+  actual = Patterns::SYMBOL_LOOKUP_ERROR.match(output).captures
+  assert(actual == expected, '[SYMBOL_LOOKUP_ERROR] when method name terminated with ? captures it properly')
+
+  output = '[1/4] TestRDocAnyMethod#"test_resolve_method:!"/home/ruby: symbol lookup error: /home/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook'
+  expected = ['TestRDocAnyMethod', '"test_resolve_method:!"', 'rb_internal_thread_add_event_hook']
+  actual = Patterns::SYMBOL_LOOKUP_ERROR.match(output).captures
+  assert(actual == expected, '[SYMBOL_LOOKUP_ERROR] when method name terminated with multiple non-alphanumeric characters captures it properly')
+
+  output = '[1/4] Prism::MagicCommentTest#"test_magic_comment_# encoding: ascii"/home/ruby: symbol lookup error: /home/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook'
+  expected = ['Prism::MagicCommentTest', '"test_magic_comment_# encoding: ascii"', 'rb_internal_thread_add_event_hook']
+  actual = Patterns::SYMBOL_LOOKUP_ERROR.match(output).captures
+  assert(actual == expected, '[SYMBOL_LOOKUP_ERROR] when method name contains whitespaces captures it properly')
+
+  output = '[1/4] TestRDocAnyMethod#"test_resolve_method:/"/home/ruby: symbol lookup error: /home/instrumentation.so: undefined symbol: rb_internal_thread_add_event_hook'
+  expected = ['TestRDocAnyMethod', '"test_resolve_method:/"', 'rb_internal_thread_add_event_hook']
+  actual = Patterns::SYMBOL_LOOKUP_ERROR.match(output).captures
+  assert(actual == expected, '[SYMBOL_LOOKUP_ERROR] when method name terminated with / captures it properly')
+
+  # DYLD_MISSING_SYMBOL
+
+  output = '[ 35/123] TestFileExhaustive#test_expand_path_hfsdyld[32447]: missing symbol called'
+  expected = ['TestFileExhaustive', 'test_expand_path_hfs', 'missing symbol called']
+  actual = Patterns::DYLD_MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[DYLD_MISSING_SYMBOL] captures test class, and test method name')
+
+  output = '[ 35/123] TestRDocAnyMethod#test_has_call_seq?dyld[32447]: missing symbol called'
+  expected = ['TestRDocAnyMethod', 'test_has_call_seq?', 'missing symbol called']
+  actual = Patterns::DYLD_MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[DYLD_MISSING_SYMBOL] when method name terminated with ? captures it properly')
+
+  output = '[ 35/123] TestRDocAnyMethod#"test_resolve_method:!"dyld[32447]: missing symbol called'
+  expected = ['TestRDocAnyMethod', '"test_resolve_method:!"', 'missing symbol called']
+  actual = Patterns::DYLD_MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[DYLD_MISSING_SYMBOL] when method name terminated with multiple non-alphanumeric characters captures it properly')
+
+  output = '[ 35/123] Prism::MagicCommentTest#"test_magic_comment_# encoding: ascii"dyld[32447]: missing symbol called'
+  expected = ['Prism::MagicCommentTest', '"test_magic_comment_# encoding: ascii"', 'missing symbol called']
+  actual = Patterns::DYLD_MISSING_SYMBOL.match(output).captures
+  assert(actual == expected, '[DYLD_MISSING_SYMBOL] when method name contains whitespaces captures it properly')
+
+  # TEST_EXECUTION_TIME
+
+  output = '[ 6/39] TestSocket_UNIXSocket#test_addr = 0.02 s'
+  expected = ['TestSocket_UNIXSocket', 'test_addr', '0.02']
+  actual = Patterns::TEST_EXECUTION_TIME.match(output).captures
+  assert(actual == expected, '[TEST_EXECUTION_TIME] captures test class, test method name, and seconds')
+
+  output = '[ 6/39] TestRDocAnyMethod#test_has_call_seq? = 0.02 s'
+  expected = ['TestRDocAnyMethod', 'test_has_call_seq?', '0.02']
+  actual = Patterns::TEST_EXECUTION_TIME.match(output).captures
+  assert(actual == expected, '[TEST_EXECUTION_TIME] when method name terminated with ? captures it properly')
+
+  output = '[ 6/39] TestRDocAnyMethod#"test_resolve_method:!" = 0.02 s'
+  expected = ['TestRDocAnyMethod', '"test_resolve_method:!"', '0.02']
+  actual = Patterns::TEST_EXECUTION_TIME.match(output).captures
+  assert(actual == expected, '[TEST_EXECUTION_TIME] when method name terminated with multiple non-alphanumeric characters captures it properly')
+
+  output = '[ 6/39] Prism::MagicCommentTest#"test_magic_comment_# encoding: ascii" = 0.02 s'
+  expected = ['Prism::MagicCommentTest', '"test_magic_comment_# encoding: ascii"', '0.02']
+  actual = Patterns::TEST_EXECUTION_TIME.match(output).captures
+  assert(actual == expected, '[TEST_EXECUTION_TIME] when method name contains whitespaces captures it properly')
+
+  # TEST_FAILURE
+
+  output = <<-OUTPUT
+  1) Error:
+TestFiberBacktrace#test_backtrace:
+NoMethodError: undefined method `backtrace' for #<Fiber:0x3c8 root (created)>
+    /b/b/e/main/test/mri/tests/fiber/test_backtrace.rb:7:in `test_backtrace'
+
+Finished tests in 0.116441s, 25.7641 tests/s, 25.7641 assertions/s.
+3 tests, 3 assertions, 0 failures, 3 errors, 0 skips
+  OUTPUT
+  expected = ['Error', 'TestFiberBacktrace', 'test_backtrace', "NoMethodError: undefined method `backtrace' for #<Fiber:0x3c8 root (created)>\n    /b/b/e/main/test/mri/tests/fiber/test_backtrace.rb:7:in `test_backtrace'"]
+  actual = Patterns::TEST_FAILURE.match(output).captures
+  assert(actual == expected, '[TEST_FAILURE] when error - captures failure type, test class, test method name and error message')
+
+  output = <<-OUTPUT
+  1) Failure:
+Test_NotImplement#test_not_method_defined [/b/b/e/main/test/mri/tests/cext-ruby/test_notimplement.rb:28]:
+Failed assertion, no message given.
+
+Finished tests in 0.116441s, 25.7641 tests/s, 25.7641 assertions/s.
+3 tests, 3 assertions, 0 failures, 3 errors, 0 skips
+  OUTPUT
+  expected = ['Failure', 'Test_NotImplement', 'test_not_method_defined', 'Failed assertion, no message given.']
+  actual = Patterns::TEST_FAILURE.match(output).captures
+  assert(actual == expected, '[TEST_FAILURE] when failure - captures failure type, test class, test method name and error message')
+
+  output = <<-OUTPUT
+  1) Failure:
+Test_SPrintf#test_format_integer(% #-020.d) [/b/b/e/main/test/mri/tests/cext-ruby/test_printf.rb:153]:
+rb_sprintf("% #-020.d", 2147483647).
+<[" 2147483647         ", "% #-020.d"]> expected but was
+<[" 0000000002147483647", "% #-020.d"]>.
+
+Finished tests in 0.592768s, 42.1750 tests/s, 705.1663 assertions/s.
+25 tests, 418 assertions, 2 failures, 0 errors, 0 skips
+  OUTPUT
+  expected = ['Failure', 'Test_SPrintf', 'test_format_integer(% #-020.d)', "rb_sprintf(\"% #-020.d\", 2147483647).\n<[\" 2147483647         \", \"% #-020.d\"]> expected but was\n<[\" 0000000002147483647\", \"% #-020.d\"]>."]
+  actual = Patterns::TEST_FAILURE.match(output).captures
+  assert(actual == expected, '[TEST_FAILURE] when failure and method name contains whitespaces - captures it properly')
+
+  # TODO: add example for TIMEOUT:
+end
+
 
 def process_test_failures!(contents)
   contents.scan(Patterns::TEST_FAILURE) do |error_type, class_name, test_method, error|
@@ -192,6 +405,16 @@ def process_test_failures!(contents)
     error_display = error_lines[index]
 
     # Mismatched expectations span two lines. It's much more useful if they're combined into one message.
+    #
+    # FIXME: A line with "expected but was" may be prefixed with additional line, e.g.
+    # ```
+    #   1) Failure:
+    # Test_SPrintf#test_format_integer(% #-020.d) [/b/b/e/main/test/mri/tests/cext-ruby/test_printf.rb:153]:
+    # rb_sprintf("% #-020.d", 2147483647).
+    # <[" 2147483647         ", "% #-020.d"]> expected but was
+    # <[" 0000000002147483647", "% #-020.d"]>.
+    # ```
+    # In this case only the first line of the message is added to the result - 'rb_sprintf("% #-020.d", 2147483647).'
     if error_display =~ /expected but was/
       index += 1
       error_display << ' ' + error_lines[index]
@@ -215,8 +438,12 @@ def process_test_failures!(contents)
 
     # As a catch-all, any message ending with a colon likely has more context on the next line.
     elsif error_display&.end_with?(':')
-      index += 1
-      error_display << ' ' << error_lines[index]
+      # if an error message contains excessive new lines then it can be captured only partially
+      # and a line with ":" can be the last captured one
+      if index < error_lines.size - 1
+        index += 1
+        error_display << ' ' << error_lines[index]
+      end
     end
 
     # Generated Markdown code blocks span multiple lines. It's much more useful if they're combined into one message.
@@ -244,6 +471,10 @@ def process_test_failures!(contents)
 end
 
 def process_slow_tests!(contents)
+  if !contents.include?('ruby -v:')
+    raise "Tests output doesn't contain a line with Ruby version (that looks like 'ruby -v: ...'). Please include it to proceed further."
+  end
+
   test_ruby_version = contents.match(/ruby -v: (.*)/)[1].strip
 
   contents.scan(Patterns::TEST_EXECUTION_TIME) do |class_name, test_method, execution_time|

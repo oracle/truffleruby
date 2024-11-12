@@ -36,12 +36,12 @@ class TestGemExtCargoBuilder < Gem::TestCase
     end
 
     output = output.join "\n"
-    bundle = File.join(@dest_path, "rust_ruby_example.#{RbConfig::CONFIG['DLEXT']}")
+    bundle = File.join(@dest_path, "rust_ruby_example.#{RbConfig::CONFIG["DLEXT"]}")
 
     assert_match(/Finished/, output)
     assert_match(/release/, output)
     assert_ffi_handle bundle, "Init_rust_ruby_example"
-  rescue Exception => e
+  rescue StandardError => e
     pp output if output
 
     raise(e)
@@ -62,12 +62,12 @@ class TestGemExtCargoBuilder < Gem::TestCase
     end
 
     output = output.join "\n"
-    bundle = File.join(@dest_path, "rust_ruby_example.#{RbConfig::CONFIG['DLEXT']}")
+    bundle = File.join(@dest_path, "rust_ruby_example.#{RbConfig::CONFIG["DLEXT"]}")
 
     assert_ffi_handle bundle, "hello_from_rubygems"
     assert_ffi_handle bundle, "hello_from_rubygems_version"
     refute_ffi_handle bundle, "should_never_exist"
-  rescue Exception => e
+  rescue StandardError => e
     pp output if output
 
     raise(e)
@@ -140,7 +140,7 @@ class TestGemExtCargoBuilder < Gem::TestCase
   private
 
   def skip_unsupported_platforms!
-    pend "jruby not supported" if java_platform?
+    pend "jruby not supported" if Gem.java_platform?
     pend "truffleruby not supported (yet)" if RUBY_ENGINE == "truffleruby"
     system(@rust_envs, "cargo", "-V", out: IO::NULL, err: [:child, :out])
     pend "cargo not present" unless $?.success?
@@ -152,12 +152,16 @@ class TestGemExtCargoBuilder < Gem::TestCase
     require "fiddle"
     dylib_handle = Fiddle.dlopen bundle
     assert_nothing_raised { dylib_handle[name] }
+  ensure
+    dylib_handle&.close
   end
 
   def refute_ffi_handle(bundle, name)
     require "fiddle"
     dylib_handle = Fiddle.dlopen bundle
     assert_raise { dylib_handle[name] }
+  ensure
+    dylib_handle&.close
   end
 
   def replace_in_rust_file(name, from, to)

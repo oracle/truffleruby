@@ -1,6 +1,5 @@
-exclude :test_condvar_timed_wait, "Expected #<ConditionVariable:0x408> to be nil."
+exclude :test_condvar_timed_wait, "Expected #<ConditionVariable:0x418> to be nil."
 exclude :test_condvar_wait_deadlock, "very slow: 600.33s on truffleruby 24.2.0-dev-b555f590, like ruby 3.2.4, GraalVM CE JVM [x86_64-linux] with AMD Ryzen 7 3700X 8-Core Processor (16 vCPUs)"
 exclude :test_condvar_wait_deadlock_2, "spurious; hangs"
 exclude :test_dump, "TypeError expected but nothing was raised."
 exclude :test_dup, "NoMethodError expected but nothing was raised."
-exclude :test_initialized, "[TypeError] exception expected, not #<ArgumentError:  must be a Mutex or Mutex_m>."

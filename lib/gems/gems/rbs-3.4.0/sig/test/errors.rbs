@@ -1,0 +1,52 @@
+module RBS
+  module Test
+    module Errors
+      type t = ArgumentTypeError | BlockArgumentError | ArgumentError | BlockArgumentError | ReturnTypeError | BlockReturnTypeError
+             | UnexpectedBlockError | MissingBlockError | UnresolvedOverloadingError
+
+      # Type of a argument value given to a method call is not compatible with the type from method type
+      class ArgumentTypeError
+      end
+
+      # Type of a argument value given to a block yield is not compatible with the type from method type
+      class BlockArgumentTypeError
+      end
+
+      # Incompatible number of args/keyword args is given to a method call
+      class ArgumentError
+      end
+
+      # Incompatible number of args is given to a block yield
+      class BlockArgumentError
+      end
+
+      # Type of return value from a method call is incompatible
+      class ReturnTypeError
+      end
+
+      # Type of return value from a block yield is incompatible
+      class BlockReturnTypeError
+      end
+
+      # Unexpected block is given
+      class UnexpectedBlockError
+      end
+
+      # Required block is missing
+      class MissingBlockError
+      end
+
+      # Any other error
+      class UnresolvedOverloadingError
+      end
+
+      def self.format_param: (Types::Function::Param) -> String
+
+      RESPOND_TO: UnboundMethod
+
+      def self.inspect_: (untyped) -> String
+
+      def self.to_string: (t) -> String
+    end
+  end
+end

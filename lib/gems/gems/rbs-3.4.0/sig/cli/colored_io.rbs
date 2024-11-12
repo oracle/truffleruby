@@ -1,0 +1,15 @@
+module RBS
+  class CLI
+    class ColoredIO
+      attr_reader stdout: CLI::_IO
+      def initialize: (stdout: CLI::_IO) -> void
+      def puts_green: (String) -> void
+      def puts_red: (String) -> void
+      def puts: (?String) -> void
+
+      private def can_display_colors?: () -> bool
+      private def are_colors_supported?: () -> bool
+      private def are_colors_disabled?: () -> bool
+    end
+  end
+end

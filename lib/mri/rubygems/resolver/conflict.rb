@@ -55,7 +55,7 @@ class Gem::Resolver::Conflict
     activated   = @activated.spec.full_name
     dependency  = @failed_dep.dependency
     requirement = dependency.requirement
-    alternates  = dependency.matching_specs.map {|spec| spec.full_name }
+    alternates  = dependency.matching_specs.map(&:full_name)
 
     unless alternates.empty?
       matching = <<-MATCHING.chomp
@@ -64,10 +64,7 @@ class Gem::Resolver::Conflict
     %s
       MATCHING
 
-      matching = matching % [
-        dependency,
-        alternates.join(", "),
-      ]
+      matching = format(matching, dependency, alternates.join(", "))
     end
 
     explanation = <<-EXPLANATION
@@ -82,12 +79,7 @@ class Gem::Resolver::Conflict
 %s
     EXPLANATION
 
-    explanation % [
-      activated, requirement,
-      request_path(@activated).reverse.join(", depends on\n    "),
-      request_path(@failed_dep).reverse.join(", depends on\n    "),
-      matching
-    ]
+    format(explanation, activated, requirement, request_path(@activated).reverse.join(", depends on\n    "), request_path(@failed_dep).reverse.join(", depends on\n    "), matching)
   end
 
   ##
@@ -132,7 +124,7 @@ class Gem::Resolver::Conflict
 
         current = current.parent
       when Gem::Resolver::DependencyRequest then
-        path << "#{current.dependency}"
+        path << current.dependency.to_s
 
         current = current.requester
       else

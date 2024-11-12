@@ -393,6 +393,20 @@ local part_definitions = {
       is_after+:: ["$.run.generate_native_config"],
       run+: jt(["check_native_configuration"]) + jt(["check_config_header"]),
     },
+
+    retag_mri_tests: {
+      run+: jt(["retag"]) + [
+        ["set-export", "DATE", ["date", "+%F"]],
+        ["set-export", "TRUFFLERUBY_BRANCH", "retag-mri-tests-$DATE"],
+        ["git", "checkout", "-b", "$TRUFFLERUBY_BRANCH"],
+        ["git", "config", "--local", "user.email", "ol-automation_ww@oracle.com"],
+        ["git", "config", "--local", "user.name", "ol-automation_ww"],
+        ["git", "add", "."],
+        ["git", "commit", "-m", "Retag MRI tests"],
+        ["git", "remote", "-v"],
+        ["git", "push", "-f", "origin", "HEAD"],
+      ],
+    },
   },
 
   benchmark: {
@@ -513,8 +527,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       # Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
       "ruby-test-specs-linux-amd64-stable":    $.platform.linux  + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-linux-amd64-latest":    $.platform.linux  + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-amd64-stable":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-amd64-stable":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "02:00:00" },
+      "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "02:00:00" },
       "ruby-test-specs-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-specs-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.latest + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
@@ -698,6 +712,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     "ruby-generate-native-config-linux-aarch64":  $.platform.linux_aarch64 + $.jdk.latest + shared + native_config,
     "ruby-generate-native-config-darwin-amd64":   $.platform.darwin_amd64 + $.jdk.latest + shared + native_config,
     "ruby-generate-native-config-darwin-aarch64": $.platform.darwin_aarch64 + $.jdk.latest + shared + native_config,
+
+    "ruby-retag-mri-tests-linux-amd64":           $.platform.linux + $.jdk.latest + shared + $.env.native + $.use.build + $.run.retag_mri_tests + { timelimit: "02:00:00" },
   },
 
   builds:

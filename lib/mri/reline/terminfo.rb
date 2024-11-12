@@ -31,21 +31,7 @@ module Reline::Terminfo
   @curses_dl = false
   def self.curses_dl
     return @curses_dl unless @curses_dl == false
-    if RUBY_VERSION >= '3.0.0'
-      # Gem module isn't defined in test-all of the Ruby repository, and
-      # Fiddle in Ruby 3.0.0 or later supports Fiddle::TYPE_VARIADIC.
-      fiddle_supports_variadic = true
-    elsif Fiddle.const_defined?(:VERSION,false) and Gem::Version.create(Fiddle::VERSION) >= Gem::Version.create('1.0.1')
-      # Fiddle::TYPE_VARIADIC is supported from Fiddle 1.0.1.
-      fiddle_supports_variadic = true
-    else
-      fiddle_supports_variadic = false
-    end
-    if fiddle_supports_variadic and not Fiddle.const_defined?(:TYPE_VARIADIC)
-      # If the libffi version is not 3.0.5 or higher, there isn't TYPE_VARIADIC.
-      fiddle_supports_variadic = false
-    end
-    if fiddle_supports_variadic
+    if Fiddle.const_defined?(:TYPE_VARIADIC)
       curses_dl_files.each do |curses_name|
         result = Fiddle::Handle.new(curses_name)
       rescue Fiddle::DLError
@@ -94,23 +80,11 @@ module Reline::Terminfo
   def self.setupterm(term, fildes)
     errret_int = Fiddle::Pointer.malloc(Fiddle::SIZEOF_INT)
     ret = @setupterm.(term, fildes, errret_int)
-    errret = errret_int[0, Fiddle::SIZEOF_INT].unpack1('i')
     case ret
     when 0 # OK
-      0
+      @term_supported = true
     when -1 # ERR
-      case errret
-      when 1
-        raise TerminfoError.new('The terminal is hardcopy, cannot be used for curses applications.')
-      when 0
-        raise TerminfoError.new('The terminal could not be found, or that it is a generic type, having too little information for curses applications to run.')
-      when -1
-        raise TerminfoError.new('The terminfo database could not be found.')
-      else # unknown
-        -1
-      end
-    else # unknown
-      -2
+      @term_supported = false
     end
   end
 
@@ -162,8 +136,13 @@ module Reline::Terminfo
     num
   end
 
+  # NOTE: This means Fiddle and curses are enabled.
   def self.enabled?
     true
+  end
+
+  def self.term_supported?
+    @term_supported
   end
 end if Reline::Terminfo.curses_dl
 

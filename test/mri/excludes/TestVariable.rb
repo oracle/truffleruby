@@ -2,5 +2,6 @@ exclude :test_cloned_allows_setting_cvar, "<\"Athena\"> expected but was <\"Cron
 exclude :test_cvar_overtaken_by_module, "RuntimeError expected but nothing was raised."
 exclude :test_cvar_overtaken_by_parent_class, "RuntimeError expected but nothing was raised."
 exclude :test_global_variables, "Expected [] to include :$1."
+exclude :test_set_class_variable_on_frozen_object, "FrozenError expected but nothing was raised."
 exclude :test_setting_class_variable_on_module_through_inheritance, "FrozenError expected but nothing was raised."
 exclude :test_variable, "NameError expected but nothing was raised."

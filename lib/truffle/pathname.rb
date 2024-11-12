@@ -251,16 +251,6 @@ class Pathname
     end
   end
 
-  def taint
-    warn 'Pathname#taint is deprecated and will be removed in Ruby 3.2.', uplevel: 1 if $VERBOSE
-    self
-  end
-
-  def untaint
-    warn 'Pathname#untaint is deprecated and will be removed in Ruby 3.2.', uplevel: 1 if $VERBOSE
-    self
-  end
-
   #
   # Compare this pathname with +other+.  The comparison is string-based.
   # Be aware that two different paths (<tt>foo.txt</tt> and <tt>./foo.txt</tt>)

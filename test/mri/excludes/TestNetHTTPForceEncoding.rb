@@ -1,5 +1,0 @@
-exclude :test_response_body_encoding_encoding_without_content_type, "Errno::EADDRNOTAVAIL: Cannot assign requested address - bind(2)"
-exclude :test_response_body_encoding_false, "Errno::EADDRNOTAVAIL: Cannot assign requested address - bind(2)"
-exclude :test_response_body_encoding_string_without_content_type, "Errno::EADDRNOTAVAIL: Cannot assign requested address - bind(2)"
-exclude :test_response_body_encoding_true_with_content_type, "Errno::EADDRNOTAVAIL: Cannot assign requested address - bind(2)"
-exclude :test_response_body_encoding_true_without_content_type, "Errno::EADDRNOTAVAIL: Cannot assign requested address - bind(2)"

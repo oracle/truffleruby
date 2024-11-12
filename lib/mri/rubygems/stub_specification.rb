@@ -35,7 +35,7 @@ class Gem::StubSpecification < Gem::BasicSpecification
 
     def initialize(data, extensions)
       parts          = data[PREFIX.length..-1].split(" ", 4)
-      @name          = parts[0].freeze
+      @name          = -parts[0]
       @version       = if Gem::Version.correct?(parts[1])
         Gem::Version.new(parts[1])
       else
@@ -69,7 +69,6 @@ class Gem::StubSpecification < Gem::BasicSpecification
 
   def initialize(filename, base_dir, gems_dir, default_gem)
     super()
-    filename.tap(&Gem::UNTAINT)
 
     self.loaded_from = filename
     @data            = nil
@@ -85,10 +84,10 @@ class Gem::StubSpecification < Gem::BasicSpecification
 
   def activated?
     @activated ||=
-    begin
-      loaded = Gem.loaded_specs[name]
-      loaded && loaded.version == version
-    end
+      begin
+        loaded = Gem.loaded_specs[name]
+        loaded && loaded.version == version
+      end
   end
 
   def default_gem?
@@ -112,20 +111,23 @@ class Gem::StubSpecification < Gem::BasicSpecification
         saved_lineno = $.
 
         Gem.open_file loaded_from, OPEN_MODE do |file|
-          begin
-            file.readline # discard encoding line
-            stubline = file.readline.chomp
-            if stubline.start_with?(PREFIX)
-              extensions = if /\A#{PREFIX}/ =~ file.readline.chomp
-                $'.split "\0"
+          file.readline # discard encoding line
+          stubline = file.readline
+          if stubline.start_with?(PREFIX)
+            extline = file.readline
+
+            extensions =
+              if extline.delete_prefix!(PREFIX)
+                extline.chomp!
+                extline.split "\0"
               else
                 StubLine::NO_EXTENSIONS
               end
 
-              @data = StubLine.new stubline, extensions
-            end
-          rescue EOFError
+            stubline.chomp! # readline(chomp: true) allocates 3x as much as .readline.chomp!
+            @data = StubLine.new stubline, extensions
           end
+        rescue EOFError
         end
       ensure
         $. = saved_lineno
@@ -207,5 +209,26 @@ class Gem::StubSpecification < Gem::BasicSpecification
 
   def stubbed?
     data.is_a? StubLine
+  end
+
+  def ==(other) # :nodoc:
+    self.class === other &&
+      name == other.name &&
+      version == other.version &&
+      platform == other.platform
+  end
+
+  alias_method :eql?, :== # :nodoc:
+
+  def hash # :nodoc:
+    name.hash ^ version.hash ^ platform.hash
+  end
+
+  def <=>(other) # :nodoc:
+    sort_obj <=> other.sort_obj
+  end
+
+  def sort_obj # :nodoc:
+    [name, version, Gem::Platform.sort_priority(platform)]
   end
 end

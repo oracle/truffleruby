@@ -1,0 +1,43 @@
+module RBS
+  class CLI
+    class Validate
+      class Errors
+        @limit: Integer?
+        @exit_error: boolish
+        @has_syntax_error: bool
+        @errors: Array[BaseError]
+
+        def initialize: (limit: Integer?, exit_error: boolish) -> void
+
+        def add: (BaseError) -> void
+
+        def finish: () -> void
+
+        private
+
+        def build_message: (BaseError) -> String
+      end
+
+      @env: Environment
+      @builder: RBS::DefinitionBuilder
+      @validator: RBS::Validator
+      @errors: Errors
+
+      def initialize: (args: Array[String], options: LibraryOptions) -> void
+
+      def run: () -> void
+
+      private
+
+      def validate_class_module_definition: () -> void
+      def validate_class_module_alias_definition: () -> void
+      def validate_interface: () -> void
+      def validate_constant: () -> void
+      def validate_global: () -> void
+      def validate_type_alias: () -> void
+      def no_self_type_validator: (::RBS::Types::t | ::RBS::MethodType type) -> void
+      def no_classish_type_validator: (::RBS::Types::t | ::RBS::MethodType type) -> void
+      def void_type_context_validator: (::RBS::Types::t | ::RBS::MethodType type, ?bool allowed_here) -> void
+    end
+  end
+end

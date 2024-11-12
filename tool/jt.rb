@@ -857,7 +857,7 @@ module Commands
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
           --fast                                     skip MRI tests using subprocesses
-      jt retag FILE                                  Remove MRI excludes and re-add as necessary for MRI tests
+      jt retag [--together] [FILES]                  Remove MRI excludes and re-add as necessary for MRI tests. If FILES are omitted - all the test files are processed
       ---
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
@@ -1256,8 +1256,7 @@ module Commands
     end
 
     mri_args = []
-    excluded_files = File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
-      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
+    excluded_files = load_excluded_file_names
     patterns = []
 
     args.each do |arg|
@@ -1274,9 +1273,16 @@ module Commands
       end
     end
 
-    patterns.push "#{MRI_TEST_PREFIX}/**/test_*.rb" if patterns.empty?
+    files_to_run = get_mri_test_files(patterns)
+    files_to_run -= excluded_files
 
-    files_to_run = patterns.flat_map do |pattern|
+    run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
+  end
+
+  private def get_mri_test_files(patterns)
+    patterns << "#{MRI_TEST_PREFIX}/**/test_*.rb" if patterns.empty?
+
+    patterns.flat_map do |pattern|
       if pattern.start_with?(MRI_TEST_RELATIVE_PREFIX)
         pattern = "#{TRUFFLERUBY_DIR}/#{pattern}"
       elsif !pattern.start_with?(MRI_TEST_PREFIX)
@@ -1292,9 +1298,6 @@ module Commands
       abort "pattern #{pattern} matched no files" if glob.empty?
       glob.map { |path| mri_test_name(path) }
     end.sort
-    files_to_run -= excluded_files
-
-    run_mri_tests(mri_args, files_to_run, runner_args, use_exec: true)
   end
 
   private def mri_test_name(test)
@@ -1325,10 +1328,6 @@ module Commands
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
       'TRUFFLERUBYOPT' => [*ENV['TRUFFLERUBYOPT'], *truffle_args].join(' '),
     }
-    compile_env = {
-      # MRI C-ext tests expect to be built with $extmk = true.
-      'MKMF_SET_EXTMK_TO_TRUE' => 'true',
-    }
 
     if extra_args.delete '--fast'
       env_vars['MRI_TEST_SUBPROCESSES'] = 'false'
@@ -1337,6 +1336,20 @@ module Commands
     cext_tests = test_files.select do |f|
       f.include?('cext-ruby') || MRI_TEST_CAPI_TESTS.include?(f)
     end
+
+    compile_cext_for_mri_c_api_tests(cext_tests)
+
+    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
+    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
+    run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
+  end
+
+  private def compile_cext_for_mri_c_api_tests(cext_tests)
+    compile_env = {
+      # MRI C-ext tests expect to be built with $extmk = true.
+      'MKMF_SET_EXTMK_TO_TRUE' => 'true',
+    }
+
     cext_tests.each do |test|
       puts
       puts test
@@ -1367,57 +1380,99 @@ module Commands
         puts "c require not found for cext test: #{test_path}"
       end
     end
-
-    command = %w[test/mri/tests/runner.rb -v --test-order=sorted --color=never --tty=no -q]
-    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
-    run_ruby(env_vars, *extra_args, *command, *test_files, *runner_args, run_options)
   end
 
   def retag(*args)
     in_truffleruby_repo_root!
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
+    together = options.delete('--together')
 
-    test_files.each do |test_file|
-      puts '', test_file
-      test_classes = File.read(test_file).scrub.scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
-      raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
-      found_excludes = false
-      test_classes.each do |test_class|
-        prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
-        ["#{prefix}.rb", prefix].each do |file|
-          if File.exist?(file) && File.file?(file)
-            lines = File.readlines(file)
-            FileUtils::Verbose.rm_r file
+    test_files = get_mri_test_files(test_files)
 
-            # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
-            # tests as excluded and manually inspect them later. We need to be careful that we're not checking for our
-            # retains pattern on the test name. Thus, we limit our checks to either the exclusion reason string or a
-            # conditional guard that applies to the exclusion.
-            retain = lines.select do |line|
-              reason_or_guard = line.split(',', 2).last
+    excluded_files = load_excluded_file_names
+    files_to_skip = test_files & excluded_files
+    files_to_retag = test_files - excluded_files
 
-              MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| reason_or_guard =~ pattern }
-            end
+    puts 'The following files are excluded in test/mri/failing.exclude:'
+    puts files_to_skip.map { |s| '- ' + s }
 
+    puts 'The following files will be retagged:'
+    puts files_to_retag.map { |s| '- ' + s }
+
+    files_to_retag_relative = files_to_retag # paths are relative to test/mri/tests directory
+    files_to_retag = files_to_retag_relative.map { |test_file| "#{MRI_TEST_RELATIVE_PREFIX}/#{test_file}" }
+
+    # Detect test classes in runtime
+    #
+    # It's difficult to find out test classes declared in a test file properly by static analysis (probably only parsing and checking AST may work)
+    # There are the following issues with static analysis:
+    #   - there may be a base class for several test classes - so we cannot just look up with a regexp for classes that directly inherit Test::Unit::TestCase
+    #   - test classes can inherit one another
+    #   - test classes may share common test cases by including a module with test cases
+    #   - there may be several test classes in a single test file
+
+    # build native extensions needed for MRI tests
+    cext_tests = files_to_retag_relative.select do |f|
+      f.include?('cext-ruby') || MRI_TEST_CAPI_TESTS.include?(f)
+    end
+    compile_cext_for_mri_c_api_tests(cext_tests)
+
+    command = ['tool/retag_helper.rb']
+    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext") if !cext_tests.empty?
+    output = run_ruby(*command, *files_to_retag, capture: :both)
+    test_classes = output.lines.map(&:chomp)
+    if test_classes.empty?
+      puts "\nWARNING: Could not find class inheriting from TestCase in #{files_to_retag}"
+      return
+    end
+
+    puts "Preprocess exclude files for classes: #{test_classes}"
+    test_classes.each do |test_class|
+      prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
+      ["#{prefix}.rb", prefix].each do |file|
+        if File.exist?(file) && File.file?(file)
+          lines = File.readlines(file)
+          FileUtils::Verbose.rm_r file
+
+          # We know some tests hang and odds are very good they're going to continue to hang, so let's keep those
+          # tests as excluded and manually inspect them later. We need to be careful that we're not checking for our
+          # retains pattern on the test name. Thus, we limit our checks to either the exclusion reason string or a
+          # conditional guard that applies to the exclusion.
+          retain = lines.select do |line|
+            reason_or_guard = line.split(',', 2).last
+
+            MRI_TEST_RETAG_RETAIN_PATTERNS.any? { |pattern| reason_or_guard =~ pattern }
+          end
+
+          unless retain.empty?
             puts 'Retaining:'
             puts retain
             File.write(file, retain.sort.join)
-
-            found_excludes = true
           end
         end
       end
-      unless found_excludes
-        puts "Found no excludes for #{test_classes.join(', ')}"
-        next
-      end
+    end
 
+    if together
+      groups = [files_to_retag]
+    else
+      groups = files_to_retag.map { |file| [file] }
+    end
+
+    groups.each do |group|
       process_tests = true
       while process_tests
         puts '1. Tagging tests'
         output_file = 'mri_tests.txt'
-        run_mri_tests(options, [test_file], [], [:err, :out] => output_file, continue_on_failure: true)
+        run_mri_tests(options, group, [], [:err, :out] => output_file, continue_on_failure: true)
+
+        # Uncomment this to debug retagging and test class/method name capturing
+        # puts ">"*80
+        # puts "*** mri_tests.txt:"
+        # puts ">"*80
+        # puts File.read(output_file)
+        # puts "<"*80
 
         puts '2. Parsing errors'
         sh 'ruby', 'tool/parse_mri_errors.rb', output_file, continue_on_failure: true
@@ -1426,7 +1481,7 @@ module Commands
       end
 
       puts '3. Verifying tests pass'
-      run_mri_tests(options, [test_file], [], use_exec: test_files.size == 1)
+      run_mri_tests(options, group, [], use_exec: groups.size == 1)
     end
   end
 
@@ -3207,6 +3262,13 @@ module Commands
     raise 'Ruby 3+ needed for "jt docker"' unless RUBY_VERSION.start_with?('3.')
     require_relative 'docker'
     JT::Docker.new.docker(*args)
+  end
+
+  private
+
+  def load_excluded_file_names
+    File.readlines("#{TRUFFLERUBY_DIR}/test/mri/failing.exclude").
+      map { |line| line.gsub(/#.*/, '').strip }.reject(&:empty?)
   end
 end
 

@@ -1,0 +1,28 @@
+module RBS
+  class Diff
+    @type_name: TypeName
+    @library_options: RBS::CLI::LibraryOptions
+    @after_path: Array[String]
+    @before_path: Array[String]
+    @detail: boolish
+
+    def initialize: (
+      type_name: TypeName,
+      library_options: RBS::CLI::LibraryOptions,
+      ?after_path: Array[String],
+      ?before_path: Array[String],
+      ?detail: boolish
+    ) -> void
+
+    def each_diff: () { (String before, String after) -> void } -> void
+
+    private def each_diff_by: (Symbol kind, Hash[::Symbol, Definition::Method] before_methods, Hash[::Symbol, Definition::Method] after_methods) { (String before, String after) -> void } -> void
+    private def build_methods: (Array[String] path) -> [ Hash[::Symbol, Definition::Method], Hash[::Symbol, Definition::Method] , Hash[Symbol, Constant]]
+    private def build_env: (Array[String] path) -> Environment
+    private def build_builder: (Environment env) -> DefinitionBuilder
+    private def definition_method_to_s: (Symbol key, Symbol kind, Definition::Method definition_method) -> String?
+    private def each_diff_methods: (Symbol kind, Hash[Symbol, Definition::Method], Hash[Symbol, Definition::Method]) { (String before, String after) -> void } -> void
+    private def each_diff_constants: (Hash[Symbol, Constant] before_constants, Hash[Symbol, Constant] after_constants) { (String before, String after) -> void } -> void
+    private def constant_to_s: (Constant?) -> String
+  end
+end

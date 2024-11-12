@@ -1,12 +1,10 @@
 # frozen_string_literal: true
-$LOAD_PATH.unshift "#{__dir__}/../.."
-require_relative '../../test/unit'
 
-require_relative '../../profile_test_all' if ENV.key?('RUBY_TEST_ALL_PROFILE')
-require_relative '../../tracepointchecker' unless defined?(::TruffleRuby)
-require_relative '../../zombie_hunter'
-require_relative '../../iseq_loader_checker' unless defined?(::TruffleRuby)
-require_relative '../../gc_checker'
+if defined? ::TruffleRuby
+  require_relative "../../../tool/test/init"
+else
+  require_relative "../../../test/init"
+end
 
 module Test
   module Unit
@@ -208,5 +206,9 @@ if $0 == __FILE__
     end
   end
   require 'rubygems'
+  begin
+    require 'rake'
+  rescue LoadError
+  end
   Test::Unit::Worker.new.run(ARGV)
 end

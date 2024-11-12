@@ -129,9 +129,12 @@ enum ruby_method_ids {
     id_core_sprintf,
     id_debug_created_info,
     tPRESERVED_ID_END,
+
+    /* LOCAL tokens {{{ */
     tTOKEN_LOCAL_BEGIN = tPRESERVED_ID_END-1,
     tMax,
     tMin,
+    tHash,
     tFreeze,
     tInspect,
     tIntern,
@@ -154,7 +157,6 @@ enum ruby_method_ids {
     tLambda,
     tSend,
     t__send__,
-    t__attached__,
     t__recursive_key__,
     tInitialize,
     tInitialize_copy,
@@ -200,23 +202,43 @@ enum ruby_method_ids {
     tNUMPARAM_9,
     tDefault,
     tTOKEN_LOCAL_END,
+    /* LOCAL tokens }}} */
+
+    /* INSTANCE tokens {{{ */
     tTOKEN_INSTANCE_BEGIN = tTOKEN_LOCAL_END-1,
     tTOKEN_INSTANCE_END,
+    /* INSTANCE tokens }}} */
+
+    /* GLOBAL tokens {{{ */
     tTOKEN_GLOBAL_BEGIN = tTOKEN_INSTANCE_END-1,
     tLASTLINE,
     tBACKREF,
     tERROR_INFO,
     tTOKEN_GLOBAL_END,
+    /* GLOBAL tokens }}} */
+
+    /* CONST tokens {{{ */
     tTOKEN_CONST_BEGIN = tTOKEN_GLOBAL_END-1,
     tTOKEN_CONST_END,
+    /* CONST tokens }}} */
+
+    /* CLASS tokens {{{ */
     tTOKEN_CLASS_BEGIN = tTOKEN_CONST_END-1,
     tTOKEN_CLASS_END,
+    /* CLASS tokens }}} */
+
+    /* ATTRSET tokens {{{ */
     tTOKEN_ATTRSET_BEGIN = tTOKEN_CLASS_END-1,
     tTOKEN_ATTRSET_END,
+    /* ATTRSET tokens }}} */
+
     tNEXT_ID = tTOKEN_ATTRSET_END,
+
+    /* LOCAL IDs {{{ */
 #define DEFINE_LOCALID_FROM_TOKEN(n) id##n = TOKEN2LOCALID(t##n)
     DEFINE_LOCALID_FROM_TOKEN(Max),
     DEFINE_LOCALID_FROM_TOKEN(Min),
+    DEFINE_LOCALID_FROM_TOKEN(Hash),
     DEFINE_LOCALID_FROM_TOKEN(Freeze),
     DEFINE_LOCALID_FROM_TOKEN(Inspect),
     DEFINE_LOCALID_FROM_TOKEN(Intern),
@@ -239,7 +261,6 @@ enum ruby_method_ids {
     DEFINE_LOCALID_FROM_TOKEN(Lambda),
     DEFINE_LOCALID_FROM_TOKEN(Send),
     DEFINE_LOCALID_FROM_TOKEN(__send__),
-    DEFINE_LOCALID_FROM_TOKEN(__attached__),
     DEFINE_LOCALID_FROM_TOKEN(__recursive_key__),
     DEFINE_LOCALID_FROM_TOKEN(Initialize),
     DEFINE_LOCALID_FROM_TOKEN(Initialize_copy),
@@ -284,14 +305,37 @@ enum ruby_method_ids {
     DEFINE_LOCALID_FROM_TOKEN(NUMPARAM_8),
     DEFINE_LOCALID_FROM_TOKEN(NUMPARAM_9),
     DEFINE_LOCALID_FROM_TOKEN(Default),
+#undef DEFINE_LOCALID_FROM_TOKEN
+    /* LOCAL IDs }}} */
+
+    /* INSTANCE IDs {{{ */
 #define DEFINE_INSTANCEID_FROM_TOKEN(n) id##n = TOKEN2INSTANCEID(t##n)
+#undef DEFINE_INSTANCEID_FROM_TOKEN
+    /* INSTANCE IDs }}} */
+
+    /* GLOBAL IDs {{{ */
 #define DEFINE_GLOBALID_FROM_TOKEN(n) id##n = TOKEN2GLOBALID(t##n)
     DEFINE_GLOBALID_FROM_TOKEN(LASTLINE),
     DEFINE_GLOBALID_FROM_TOKEN(BACKREF),
     DEFINE_GLOBALID_FROM_TOKEN(ERROR_INFO),
+#undef DEFINE_GLOBALID_FROM_TOKEN
+    /* GLOBAL IDs }}} */
+
+    /* CONST IDs {{{ */
 #define DEFINE_CONSTID_FROM_TOKEN(n) id##n = TOKEN2CONSTID(t##n)
+#undef DEFINE_CONSTID_FROM_TOKEN
+    /* CONST IDs }}} */
+
+    /* CLASS IDs {{{ */
 #define DEFINE_CLASSID_FROM_TOKEN(n) id##n = TOKEN2CLASSID(t##n)
+#undef DEFINE_CLASSID_FROM_TOKEN
+    /* CLASS IDs }}} */
+
+    /* ATTRSET IDs {{{ */
 #define DEFINE_ATTRSETID_FROM_TOKEN(n) id##n = TOKEN2ATTRSETID(t##n)
+#undef DEFINE_ATTRSETID_FROM_TOKEN
+    /* ATTRSET IDs }}} */
+
     tLAST_OP_ID = tPRESERVED_ID_END-1,
     idLAST_OP_ID = tLAST_OP_ID >> ID_SCOPE_SHIFT
 };

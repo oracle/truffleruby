@@ -21,3 +21,4 @@ fails:Fiber.[]= does not overwrite the storage of the parent fiber
 fails:Fiber.[]= can't access the storage of the fiber with non-symbol keys
 fails:Fiber.[] can use dynamically defined keys
 fails:Fiber.[] can't use invalid keys
+fails:Fiber.[]= deletes the fiber storage key when assigning nil

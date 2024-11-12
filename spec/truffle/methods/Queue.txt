@@ -5,6 +5,7 @@ closed?
 deq
 empty?
 enq
+freeze
 length
 marshal_dump
 num_waiting

@@ -8,5 +8,7 @@ exclude :test_getcred_ucred, "Expected / pid=142305 / to match \"#<Socket::Optio
 exclude :test_getcred_xucred, "NameError: uninitialized constant Socket::LOCAL_PEERCRED" if RUBY_PLATFORM.include?('darwin')
 exclude :test_initialize, "spurious; [ArgumentError] exception expected, not #<SocketError: Result too large for supplied buffer>."
 exclude :test_sendcred_ucred, "SocketError: Result too large for supplied buffer" if RUBY_PLATFORM.include?('linux')
-exclude :test_socket_pair_with_block, "<:return_value> expected but was <[#<Socket:fd 83>, #<Socket:fd 84>]>."
+exclude :test_seqpacket_pair, "Expected \"\" to be nil."
+exclude :test_socket_pair_with_block, "<:return_value> expected but was <[#<Socket:fd 48>, #<Socket:fd 49>]>."
+exclude :test_stream_pair, "Expected \"\" to be nil."
 exclude :test_unix_socket_pair_with_block, "NoMethodError: undefined method `[]' for nil:NilClass"

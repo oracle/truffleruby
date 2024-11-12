@@ -225,7 +225,15 @@ suite = {
             "dir": "src/main/c/yarp",
             # "makeTarget": "all-no-debug", # Can use this to build without asserts
             "results": ["build/libprism.a"],
-            "description": "YARP used as a static library"
+            "description": "YARP used as a static library with only semantics fields"
+        },
+
+        "org.prism.libprism.for.gem": {
+            "class": "YARPNativeProject",
+            "dir": "src/main/c/prism-gem",
+            # "makeTarget": "all-no-debug", # Can use this to build without asserts
+            "results": ["build/<lib:prism>"],
+            "description": "YARP used as a dynamic library with all fields"
         },
 
         "org.truffleruby.yarp.bindings": {
@@ -722,6 +730,9 @@ suite = {
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
                 ],
+                "lib/prism/": [
+                    "file:src/main/c/prism-gem/include",
+                ],
             },
             "license": [
                 "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
@@ -741,19 +752,23 @@ suite = {
                 "lib/": [
                     "dependency:org.truffleruby.yarp.bindings",
                 ],
+                "lib/prism/": [
+                    "dependency:org.prism.libprism.for.gem/build/<lib:prism>",
+                ],
                 "lib/cext/": [
                     "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                     "dependency:org.truffleruby.librubysignal",
                 ],
-                # Create the complete files to let RubyGems know the gems are fully built
-                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.7.1/gem.build_complete": "string:",
-                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-2.8.2/gem.build_complete": "string:",
-                "lib/gems/gems/debug-1.7.1/lib/debug/": [
+                # Create the complete files to let RubyGems know the gems are fully built and can be activated
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.9.1/gem.build_complete": "string:",
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/racc-1.7.3/gem.build_complete": "string:", # actually we do not build the C extension because the pure-Ruby fallback is enough
+                "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/rbs-3.4.0/gem.build_complete": "string:",
+                "lib/gems/gems/debug-1.9.1/lib/debug/": [
                     "dependency:org.truffleruby.cext/src/main/c/debug/<extsuffix:debug>",
                 ],
-                "lib/gems/gems/rbs-2.8.2/lib/": [
+                "lib/gems/gems/rbs-3.4.0/lib/": [
                     "dependency:org.truffleruby.cext/src/main/c/rbs/<extsuffix:rbs_extension>",
                 ],
                 "lib/mri/": [
