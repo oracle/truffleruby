@@ -35,7 +35,7 @@ int rb_tr_obj_equal(VALUE first, VALUE second) {
 }
 
 void rb_tr_warn_va_list(const char *fmt, va_list args) {
-  RUBY_INVOKE(rb_mKernel, "warn", rb_vsprintf(fmt, args));
+  RUBY_CEXT_INVOKE("rb_tr_warn", rb_vsprintf(fmt, args));
 }
 
 VALUE rb_tr_zlib_crc_table(void) {

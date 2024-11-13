@@ -156,26 +156,16 @@ describe "C-API Kernel function" do
   end
 
   describe "rb_warn" do
-    before :each do
-      @stderr, $stderr = $stderr, IOStub.new
-      @verbose = $VERBOSE
-    end
-
-    after :each do
-      $stderr = @stderr
-      $VERBOSE = @verbose
-    end
-
     it "prints a message to $stderr if $VERBOSE evaluates to true" do
-      $VERBOSE = true
-      @s.rb_warn("This is a warning")
-      $stderr.should =~ /This is a warning/
+      -> {
+        @s.rb_warn("This is a warning")
+      }.should complain(/warning: This is a warning/, verbose: true)
     end
 
     it "prints a message to $stderr if $VERBOSE evaluates to false" do
-      $VERBOSE = false
-      @s.rb_warn("This is a warning")
-      $stderr.should =~ /This is a warning/
+      -> {
+        @s.rb_warn("This is a warning")
+      }.should complain(/warning: This is a warning/, verbose: false)
     end
   end
 
