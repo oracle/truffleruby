@@ -2319,8 +2319,20 @@ module Truffle::CExt
     end
   end
 
+  def rb_tr_warn(message)
+    location = caller_locations(1, 1)[0]
+    message_with_prefix = location.label + ': warning: ' + message
+    Warning.warn(message_with_prefix)
+  end
+
   def rb_warning_category_enabled_p(category)
     Warning[category]
+  end
+
+  def rb_tr_warn_category(message, category)
+    location = caller_locations(1, 1)[0]
+    message_with_prefix = location.label + ': warning: ' + message
+    Warning.warn(message_with_prefix, category: category)
   end
 
   def rb_tr_flags(object)

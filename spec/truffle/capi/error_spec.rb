@@ -10,6 +10,7 @@ require_relative '../../ruby/optional/capi/spec_helper'
 
 load_extension("error")
 
+# C functions defined in CRuby internal headers, so they don't belong to the public API.
 describe "C-API error functions" do
   before :each do
     @e = CApiErrorSpecs.new

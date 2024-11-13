@@ -23,6 +23,7 @@ Compatibility:
 * Implement `rb_enc_interned_str()` (#3703, @Th3-M4jor).
 * Implement `rb_hash_bulk_insert()` (#3705, @Th3-M4jor).
 * Remove deprecated `Pathname#{taint,untaint}` methods (#3681, @andrykonchin).
+* Add `rb_category_warn` function (#3710, @andrykonchin).
 
 Performance:
 
