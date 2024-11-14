@@ -24,6 +24,7 @@ Compatibility:
 * Implement `rb_hash_bulk_insert()` (#3705, @Th3-M4jor).
 * Remove deprecated `Pathname#{taint,untaint}` methods (#3681, @andrykonchin).
 * Add `rb_category_warn` function (#3710, @andrykonchin).
+* Add `rb_gc_mark_locations()` (#3704, @andrykonchin).
 
 Performance:
 

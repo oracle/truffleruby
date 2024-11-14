@@ -34,6 +34,16 @@ void rb_gc_mark(VALUE ptr) {
   polyglot_invoke(RUBY_CEXT, "rb_gc_mark", ptr);
 }
 
+void rb_gc_mark_locations(const VALUE *start, const VALUE *end) {
+  VALUE *value = start;
+
+  while (value < end) {
+    rb_gc_mark(*value);
+    polyglot_invoke(RUBY_CEXT, "rb_gc_mark_maybe", *value);
+    value++;
+  }
+}
+
 void rb_gc_mark_movable(VALUE obj) {
   rb_gc_mark(obj);
 }
