@@ -20,7 +20,6 @@ import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.shadowed.org.joni.NameEntry;
 import org.truffleruby.annotations.CoreMethod;
-import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
@@ -59,7 +58,7 @@ public abstract class RegexpNodes {
         }
     }
 
-    @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1, split = Split.ALWAYS)
+    @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
     public abstract static class QuoteNode extends CoreMethodArrayArgumentsNode {
 
         public abstract RubyString execute(Object raw);
@@ -69,35 +68,13 @@ public abstract class RegexpNodes {
             return RegexpNodesFactory.QuoteNodeFactory.create(null);
         }
 
-        @Specialization(
-                guards = {
-                        "libString.isRubyString(this, raw)",
-                        "equalNode.execute(node, libString, raw, cachedString, cachedEnc)" },
-                limit = "getDefaultCacheLimit()")
-        static RubyString quoteStringCached(Object raw,
-                @Cached @Exclusive RubyStringLibrary libString,
-                @Cached("asTruffleStringUncached(raw)") TruffleString cachedString,
-                @Cached("libString.getEncoding(this, raw)") RubyEncoding cachedEnc,
-                @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
-                @Cached("quote(this, libString, raw)") TStringWithEncoding quotedString,
-                @Bind("this") Node node) {
-            return createString(node, quotedString);
-        }
-
-        @Specialization(replaces = "quoteStringCached", guards = "libString.isRubyString(this, raw)", limit = "1")
+        @Specialization(guards = "libString.isRubyString(this, raw)", limit = "1")
         RubyString quoteString(Object raw,
                 @Cached @Exclusive RubyStringLibrary libString) {
             return createString(quote(this, libString, raw));
         }
 
-        @Specialization(guards = "raw == cachedSymbol", limit = "getDefaultCacheLimit()")
-        RubyString quoteSymbolCached(RubySymbol raw,
-                @Cached("raw") RubySymbol cachedSymbol,
-                @Cached("quote(cachedSymbol)") TStringWithEncoding quotedString) {
-            return createString(quotedString);
-        }
-
-        @Specialization(replaces = "quoteSymbolCached")
+        @Specialization
         RubyString quoteSymbol(RubySymbol raw) {
             return createString(quote(raw));
         }
