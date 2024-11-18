@@ -1416,6 +1416,10 @@ module Truffle::CExt
     sprintf(*args)
   end
 
+  def rb_str_format(args, format)
+    sprintf(format, *args)
+  end
+
   def rb_io_printf(out, args)
     out.printf(*args)
   end

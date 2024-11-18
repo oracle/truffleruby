@@ -25,6 +25,7 @@ Compatibility:
 * Remove deprecated `Pathname#{taint,untaint}` methods (#3681, @andrykonchin).
 * Add `rb_category_warn` function (#3710, @andrykonchin).
 * Add `rb_gc_mark_locations()` (#3704, @andrykonchin).
+* Implement `rb_str_format()` (#3716, @andrykonchin).
 
 Performance:
 

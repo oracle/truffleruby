@@ -892,4 +892,10 @@ describe "C-API Kernel function" do
       @s.rb_check_funcall(object, :protected_method, []).should == :protected
     end
   end
+
+  describe "rb_str_format" do
+    it "returns a string according to format and arguments" do
+      @s.rb_str_format(3, [10, 2.5, "test"], "%d %f %s").should == "10 2.500000 test"
+    end
+  end
 end

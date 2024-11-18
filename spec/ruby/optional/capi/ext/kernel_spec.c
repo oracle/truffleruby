@@ -332,6 +332,10 @@ static VALUE kernel_spec_rb_f_sprintf(VALUE self, VALUE ary) {
   return rb_f_sprintf((int)RARRAY_LEN(ary), RARRAY_PTR(ary));
 }
 
+static VALUE kernel_spec_rb_str_format(VALUE self, VALUE count, VALUE ary, VALUE format) {
+  return rb_str_format(FIX2INT(count), RARRAY_PTR(ary), format);
+}
+
 static VALUE kernel_spec_rb_make_backtrace(VALUE self) {
   return rb_make_backtrace();
 }
@@ -421,6 +425,7 @@ void Init_kernel_spec(void) {
   rb_define_method(cls, "rb_exec_recursive", kernel_spec_rb_exec_recursive, 1);
   rb_define_method(cls, "rb_set_end_proc", kernel_spec_rb_set_end_proc, 1);
   rb_define_method(cls, "rb_f_sprintf", kernel_spec_rb_f_sprintf, 1);
+  rb_define_method(cls, "rb_str_format", kernel_spec_rb_str_format, 3);
   rb_define_method(cls, "rb_make_backtrace", kernel_spec_rb_make_backtrace, 0);
   rb_define_method(cls, "rb_funcallv", kernel_spec_rb_funcallv, 3);
 #ifdef RUBY_VERSION_IS_3_0

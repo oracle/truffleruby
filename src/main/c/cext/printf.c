@@ -183,3 +183,7 @@ VALUE rb_str_vcatf(VALUE str, const char *fmt, va_list args) {
   rb_str_concat(str, result);
   return str;
 }
+
+VALUE rb_str_format(int argc, const VALUE *argv, VALUE fmt) {
+  return RUBY_CEXT_INVOKE("rb_str_format", rb_ary_new4(argc, argv), fmt);
+}
