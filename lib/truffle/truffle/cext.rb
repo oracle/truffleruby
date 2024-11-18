@@ -2367,6 +2367,16 @@ module Truffle::CExt
     io.instance_variable_get(:@path)
   end
 
+  def rb_io_open_descriptor(klass, fd, mode, path, timeout, internal_encoding, external_encoding, flags, options)
+    return klass.allocate if klass != IO and klass != File
+
+    # Translate Ruby-specific modes (`FMODE_`) to corresponding platform-specific file open flags (`O_`).
+    # Ruby interface accepts `FMODE_` flags, but C API functions accept `O_` flags.
+    mode = Truffle::IOOperations.translate_omode_to_fmode(mode)
+
+    klass.new(fd, mode, **options, internal_encoding: internal_encoding, external_encoding: external_encoding, path: path, flags: flags, skip_mode_enforcing: true)
+  end
+
   def rb_io_closed_p(io)
     io.closed?
   end
