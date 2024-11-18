@@ -371,6 +371,10 @@ static VALUE io_spec_rb_io_mode(VALUE self, VALUE io) {
 static VALUE io_spec_rb_io_path(VALUE self, VALUE io) {
   return rb_io_path(io);
 }
+
+static VALUE io_spec_rb_io_closed_p(VALUE self, VALUE io) {
+  return rb_io_closed_p(io);
+}
 #endif
 
 void Init_io_spec(void) {
@@ -409,6 +413,7 @@ void Init_io_spec(void) {
 #if defined(RUBY_VERSION_IS_3_3) || defined(TRUFFLERUBY)
   rb_define_method(cls, "rb_io_mode", io_spec_rb_io_mode, 1);
   rb_define_method(cls, "rb_io_path", io_spec_rb_io_path, 1);
+  rb_define_method(cls, "rb_io_closed_p", io_spec_rb_io_closed_p, 1);
 #endif
 }
 

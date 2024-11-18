@@ -2367,6 +2367,10 @@ module Truffle::CExt
     io.instance_variable_get(:@path)
   end
 
+  def rb_io_closed_p(io)
+    io.closed?
+  end
+
   def rb_tr_io_pointer(io)
     Primitive.object_hidden_var_get(io, RB_IO_STRUCT)
   end

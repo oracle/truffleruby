@@ -516,6 +516,20 @@ describe "C-API IO function" do
         @o.rb_io_path(@rw_io).should == @name
       end
     end
+
+    describe "rb_io_closed_p" do
+      it "returns false when io is not closed" do
+        @o.rb_io_closed_p(@r_io).should == false
+        @r_io.closed?.should == false
+      end
+
+      it "returns true when io is closed" do
+        @r_io.close
+
+        @o.rb_io_closed_p(@r_io).should == true
+        @r_io.closed?.should == true
+      end
+    end
   end
 
   ruby_version_is "3.4" do

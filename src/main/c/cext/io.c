@@ -43,6 +43,10 @@ VALUE rb_io_path(VALUE io) {
   return RUBY_CEXT_INVOKE("rb_io_path", io);
 }
 
+VALUE rb_io_closed_p(VALUE io) {
+  return RUBY_CEXT_INVOKE("rb_io_closed_p", io);
+}
+
 static RFile_and_rb_io_t* get_RFile_and_rb_io_t(VALUE io) {
   RFile_and_rb_io_t* pointer = RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_io_pointer", io);
   if (!polyglot_is_null(pointer)) {
