@@ -218,6 +218,7 @@ module Truffle::POSIX
   attach_function :truffleposix_poll_single_fd, [:int, :int, :int], :int, LIBTRUFFLEPOSIX
   attach_function :poll, [:pointer, :nfds_t, :int], :int
   attach_function :read, [:int, :pointer, :size_t], :ssize_t, LIBC, true
+  attach_function :pread, [:int, :pointer, :size_t, :off_t], :ssize_t, LIBC, true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :realpath, [:string, :pointer], :pointer
   attach_function :truffleposix_readdir_multiple, [:pointer, :int, :int, :int, :pointer], :int, LIBTRUFFLEPOSIX
@@ -236,6 +237,7 @@ module Truffle::POSIX
   attach_function :unlink, [:string], :int
   attach_function :truffleposix_utimes, [:string, :long, :int, :long, :int], :int, LIBTRUFFLEPOSIX
   attach_function :write, [:int, :pointer, :size_t], :ssize_t, LIBC, true
+  attach_function :pwrite, [:int, :pointer, :size_t, :off_t], :ssize_t, LIBC, true
 
   Truffle::Boot.delay do
     if NATIVE
@@ -485,6 +487,29 @@ module Truffle::POSIX
     end
   end
 
+  def self.pread_string_native(io, length, offset)
+    fd = io.fileno
+    buffer = Primitive.io_thread_buffer_allocate(length)
+
+    begin
+      bytes_read = Truffle::POSIX.pread(fd, buffer, length, offset)
+
+      if bytes_read < 0 # error
+        [nil, Errno.errno]
+      elsif bytes_read == 0 # EOF
+        [nil, 0]
+      else
+        [buffer.read_string(bytes_read), 0]
+      end
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
+    end
+  end
+
+  def self.pread_string_polyglot(io, length, offset)
+    raise 'Not implemented' # there is not way to read starting from a specific position
+  end
+
   # #write_string (either #write_string_native or #write_string_polyglot) is
   # called by IO#syswrite, IO#write, and IO::InternalBuffer#empty_to
 
@@ -577,6 +602,27 @@ module Truffle::POSIX
     end
   end
 
+  def self.pwrite_string_native(io, string, offset)
+    fd = io.fileno
+    length = string.bytesize
+    buffer = Primitive.io_thread_buffer_allocate(length)
+
+    begin
+      buffer.write_bytes string
+
+      written = Truffle::POSIX.pwrite(fd, buffer, length, offset)
+      Errno.handle_errno(Errno.errno) if written < 0
+
+      written
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
+    end
+  end
+
+  def self.pwrite_string_polyglot(io, length, offset)
+    raise 'Not implemented' # there is not way to write starting from a specific position
+  end
+
   # Select between native and polyglot variants
 
   Truffle::Boot.delay do
@@ -584,15 +630,19 @@ module Truffle::POSIX
       class << self
         alias_method :read_string, :read_string_polyglot
         alias_method :read_to_buffer, :read_to_buffer_polyglot
+        alias_method :pread_string, :pread_string_polyglot
         alias_method :write_string, :write_string_polyglot
         alias_method :write_string_nonblock, :write_string_nonblock_polyglot
+        alias_method :pwrite_string, :pwrite_string_polyglot
       end
     else
       class << self
         alias_method :read_string, :read_string_native
         alias_method :read_to_buffer, :read_to_buffer_native
+        alias_method :pread_string, :pread_string_native
         alias_method :write_string, :write_string_native
         alias_method :write_string_nonblock, :write_string_nonblock_native
+        alias_method :pwrite_string, :pwrite_string_native
       end
     end
   end
