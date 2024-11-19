@@ -1614,6 +1614,32 @@ class IO
     seek Primitive.rb_num2long(offset), SEEK_SET
   end
 
+  def pread(length, offset, buffer = nil)
+    ensure_open_and_readable
+
+    length = Primitive.rb_to_int(length)
+    offset = Primitive.rb_to_int(offset)
+
+    raise ArgumentError, 'negative string size (or size too big)' if length < 0
+    raise Errno::EINVAL, 'offset must not be negative' if offset < 0
+
+    if length == 0
+      return buffer ? buffer : +''
+    end
+
+    str, errno = Truffle::POSIX.pread_string(self, length, offset)
+    Errno.handle_errno(errno) unless errno == 0
+
+    raise EOFError if Primitive.nil? str
+
+    if buffer
+      buffer = StringValue(buffer)
+      buffer.replace str.force_encoding(buffer.encoding)
+    else
+      str
+    end
+  end
+
   ##
   # Writes each given argument.to_s to the stream or $_ (the result of last
   # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
@@ -1667,6 +1693,15 @@ class IO
     write sprintf(fmt, *args)
   end
   Truffle::Graal.always_split(instance_method(:printf))
+
+  def pwrite(object, offset)
+    string = Truffle::Type.rb_obj_as_string(object)
+    offset = Primitive.rb_to_int(offset)
+
+    ensure_open_and_writable
+
+    Truffle::POSIX.pwrite_string(self, string, offset)
+  end
 
   def read(length = nil, buffer = nil)
     ensure_open_and_readable
