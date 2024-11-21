@@ -38,8 +38,7 @@ void rb_gc_mark_locations(const VALUE *start, const VALUE *end) {
   VALUE *value = start;
 
   while (value < end) {
-    rb_gc_mark(*value);
-    polyglot_invoke(RUBY_CEXT, "rb_gc_mark_maybe", *value);
+    rb_gc_mark_maybe(*value);
     value++;
   }
 }
