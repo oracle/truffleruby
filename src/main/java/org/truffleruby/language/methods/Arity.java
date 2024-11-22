@@ -115,6 +115,10 @@ public final class Arity {
         return hasKeywords() || hasKeywordsRest();
     }
 
+    public boolean acceptsPositionalArguments() {
+        return getRequired() > 0 || getOptional() > 0 || hasRest();
+    }
+
     public boolean hasKeywords() {
         return keywordArguments.length != 0;
     }

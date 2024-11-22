@@ -1072,3 +1072,32 @@ describe "Anonymous block forwarding" do
     end
   end
 end
+
+describe "`it` calls without arguments in a block with no ordinary parameters" do
+  ruby_version_is "3.3"..."3.4" do
+    it "emits a deprecation warning" do
+      -> {
+        eval "proc { it }"
+      }.should complain(/warning: `it` calls without arguments will refer to the first block param in Ruby 3.4; use it\(\) or self.it/)
+    end
+
+    it "does not emit a deprecation warning when a block has parameters" do
+      -> { eval "proc { |a, b| it }" }.should_not complain
+      -> { eval "proc { |*rest| it }" }.should_not complain
+      -> { eval "proc { |*| it }" }.should_not complain
+      -> { eval "proc { |a:, b:| it }" }.should_not complain
+      -> { eval "proc { |**kw| it }" }.should_not complain
+      -> { eval "proc { |**| it }" }.should_not complain
+      -> { eval "proc { |&block| it }" }.should_not complain
+      -> { eval "proc { |&| it }" }.should_not complain
+    end
+
+    it "does not emit a deprecation warning when `it` calls with arguments" do
+      -> { eval "proc { it(42) }" }.should_not complain
+    end
+
+    it "does not emit a deprecation warning when `it` calls with explicit empty arguments list" do
+      -> { eval "proc { it() }" }.should_not complain
+    end
+  end
+end

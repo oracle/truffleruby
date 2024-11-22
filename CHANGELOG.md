@@ -27,6 +27,7 @@ Compatibility:
 * Add `rb_gc_mark_locations()` (#3704, @andrykonchin).
 * Implement `rb_str_format()` (#3716, @andrykonchin).
 * Add `IO#{pread, pwrite}` methods (#3718, @andrykonchin).
+* Emit a warning when `it` call without arguments is used in a block without parameters (#3681, @andrykonchin).
 
 Performance:
 
