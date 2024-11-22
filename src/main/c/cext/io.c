@@ -43,6 +43,37 @@ VALUE rb_io_path(VALUE io) {
   return RUBY_CEXT_INVOKE("rb_io_path", io);
 }
 
+VALUE rb_io_open_descriptor(VALUE klass, int descriptor, int mode, VALUE path, VALUE timeout, struct rb_io_encoding *encoding) {
+  VALUE internal_encoding, external_encoding, ecflags, ecopts;
+
+  if (encoding) {
+    internal_encoding = rb_enc_from_encoding(encoding->enc);
+    external_encoding = rb_enc_from_encoding(encoding->enc2);
+    ecflags = INT2FIX(encoding->ecflags);
+    ecopts = encoding->ecopts;
+  } else {
+    internal_encoding = Qnil;
+    external_encoding = Qnil;
+    ecflags = INT2FIX(0);
+    ecopts = rb_hash_new();
+  }
+
+  return RUBY_CEXT_INVOKE("rb_io_open_descriptor",
+    klass,
+    INT2FIX(descriptor),
+    INT2FIX(mode),
+    path,
+    timeout,
+    internal_encoding,
+    external_encoding,
+    ecflags,
+    ecopts);
+}
+
+VALUE rb_io_closed_p(VALUE io) {
+  return RUBY_CEXT_INVOKE("rb_io_closed_p", io);
+}
+
 static RFile_and_rb_io_t* get_RFile_and_rb_io_t(VALUE io) {
   RFile_and_rb_io_t* pointer = RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_io_pointer", io);
   if (!polyglot_is_null(pointer)) {

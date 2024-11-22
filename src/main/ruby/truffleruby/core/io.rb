@@ -817,7 +817,9 @@ class IO
   #
   # The +sync+ attribute will also be set.
   #
-  def self.setup(io, fd, mode, sync)
+  # The +skip_mode_enforcing+ parameter is needed for implementing some C-functions and allows
+  # to bypass enforcing a specified file mode to be the same as current mode of a file.
+  def self.setup(io, fd, mode, sync, skip_mode_enforcing = false)
     if !Truffle::Boot.preinitializing? && Truffle::POSIX::NATIVE
       cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
       Errno.handle if cur_mode < 0
@@ -828,7 +830,7 @@ class IO
       mode = Truffle::IOOperations.parse_mode(mode)
       mode &= ACCMODE
 
-      if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
+      if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode && !skip_mode_enforcing
         raise Errno::EINVAL, "Invalid mode #{cur_mode} for existing descriptor #{fd} (expected #{mode})"
       end
     else
@@ -863,7 +865,7 @@ class IO
 
     fd = Truffle::Type.coerce_to(fd, Integer, :to_int)
     sync = fd == 2 # stderr is always unbuffered, see setvbuf(3)
-    IO.setup(self, fd, mode, sync)
+    IO.setup(self, fd, mode, sync, options[:skip_mode_enforcing]) # :skip_mode_enforcing is a TruffleRuby specific option used internally only
 
     binmode if binary
     set_encoding external, internal
