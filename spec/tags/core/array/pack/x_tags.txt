@@ -1,4 +1,2 @@
 fails:Array#pack with format 'x' warns that a directive is unknown
 fails:Array#pack with format 'X' warns that a directive is unknown
-fails:Array#pack with format 'x' raise ArgumentError when a directive is unknown
-fails:Array#pack with format 'X' raise ArgumentError when a directive is unknown
