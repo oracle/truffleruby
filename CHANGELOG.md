@@ -29,6 +29,7 @@ Compatibility:
 * Add `IO#{pread, pwrite}` methods (#3718, @andrykonchin).
 * Add `rb_io_closed_p()` (#3681, @andrykonchin).
 * Add `rb_io_open_descriptor()` (#3681, @andrykonchin).
+* Support serializing of `Data` instances into Marshal format (#3726, @andrykonchin).
 
 Performance:
 
