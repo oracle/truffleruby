@@ -437,6 +437,39 @@ class Struct
   end
 end
 
+class Data
+  # Data is serialized like Struct with the same type 'S'
+  private def __marshal__(ms)
+    # Data instances are frozen so no instance variables could be set (with #instance_variable_set).
+    # But when Data class has no members - then its instances are allowed to be assigned instance variables.
+    #   Foo = Data.define
+    #   f = Foo.new
+    #   f.instance_variable_set(:@a, 42) # => 42
+    # So keep the logic of serializing instance variables for now.
+    out =  ms.serialize_instance_variables_prefix(self)
+    Primitive.string_binary_append out, ms.serialize_extended_object(self)
+
+    Primitive.string_binary_append out, 'S'
+
+    cls = Primitive.class self
+    if Primitive.module_anonymous?(cls)
+      raise TypeError, "can't dump anonymous class #{cls}"
+    end
+    class_name = Primitive.module_name cls
+    Primitive.string_binary_append out, ms.serialize(class_name.to_sym)
+    Primitive.string_binary_append out, ms.serialize_integer(self.members.length)
+
+    self.to_h.each_pair do |name, value|
+      Primitive.string_binary_append out, ms.serialize(name)
+      Primitive.string_binary_append out, ms.serialize(value)
+    end
+
+    Primitive.string_binary_append out, ms.serialize_instance_variables_suffix(self)
+
+    out
+  end
+end
+
 class Array
   private def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
@@ -952,6 +985,7 @@ module Marshal
       store_unique_object obj
     end
 
+    # handle both Struct and Data classes
     def construct_struct
       name = get_symbol
 
@@ -969,6 +1003,8 @@ module Marshal
 
         Primitive.object_hidden_var_set obj, slot, construct
       end
+
+      obj.freeze if Primitive.is_a?(obj, Data)
 
       obj
     end
