@@ -30,6 +30,8 @@ Compatibility:
 * Add `rb_io_closed_p()` (#3681, @andrykonchin).
 * Add `rb_io_open_descriptor()` (#3681, @andrykonchin).
 * Support serializing of `Data` instances into Marshal format (#3726, @andrykonchin).
+* `Array#pack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
+* `String#unpack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
 
 Performance:
 

@@ -427,8 +427,7 @@ public final class SimplePackParser {
 
                 default:
                     n++;
-                    listener.warn(String.format("unknown pack directive '%c'", (char) b));
-                    break;
+                    listener.error(String.format("unknown %s directive '%c'", listener.packListenerMode(), (char) b));
             }
         }
     }

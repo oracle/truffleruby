@@ -279,6 +279,11 @@ public final class SimpleUnpackTreeBuilder implements SimplePackListener {
         throw CompilerDirectives.shouldNotReachHere();
     }
 
+    @Override
+    public String packListenerMode() {
+        return "unpack";
+    }
+
     public FormatNode getNode() {
         return sequenceStack.peek().get(0);
     }

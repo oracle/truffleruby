@@ -271,6 +271,11 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
         }
     }
 
+    @Override
+    public String packListenerMode() {
+        return "pack";
+    }
+
     public FormatNode getNode() {
         return sequenceStack.peek().get(0);
     }

@@ -59,4 +59,5 @@ public interface SimplePackListener {
 
     void warn(String message);
 
+    String packListenerMode();
 }
