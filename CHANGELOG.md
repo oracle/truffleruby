@@ -32,6 +32,7 @@ Compatibility:
 * Support serializing of `Data` instances into Marshal format (#3726, @andrykonchin).
 * `Array#pack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
 * `String#unpack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
+* Add `Range#reverse_each` (#3681, @andrykonchin).
 
 Performance:
 
