@@ -32,6 +32,8 @@ Compatibility:
 * Support serializing of `Data` instances into Marshal format (#3726, @andrykonchin).
 * `Array#pack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
 * `String#unpack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
+* `Thread::Queue#freeze` now raises `TypeError` when called (#3681, @Th3-M4jor).
+* `Thread::SizedQueue#freeze` now raises `TypeError` when called (#3681, @Th3-M4jor).
 
 Performance:
 

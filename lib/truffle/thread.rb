@@ -41,6 +41,10 @@ class Thread
     end
     alias_method :shift, :pop
     alias_method :deq, :pop
+
+    def freeze
+      raise TypeError, "cannot freeze #{self}"
+    end
   end
 
   class SizedQueue
@@ -62,5 +66,9 @@ class Thread
     end
     alias_method :<<, :push
     alias_method :enq, :push
+
+    def freeze
+      raise TypeError, "cannot freeze #{self}"
+    end
   end
 end
