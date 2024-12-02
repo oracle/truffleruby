@@ -104,7 +104,7 @@ module Truffle
                   : (?<min>  \d{2})
                   : (?<sec>  \d{2})
                   (?:\. (?<usec> \d+) )?
-              \s* (?<offset>\S+)?
+              (?:\s* (?<offset>\S+))?
              )?\z/x =~ str
         return self.compose(time_class, self.utc_offset_for_compose(offset || options[:in]), year, month, mday, hour, min, sec, usec)
       end
