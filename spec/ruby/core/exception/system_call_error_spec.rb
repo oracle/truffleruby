@@ -53,6 +53,11 @@ describe "SystemCallError.new" do
     e.should be_an_instance_of(@example_errno_class)
   end
 
+  it "sets an error message corresponding to an appropriate Errno class" do
+    e = SystemCallError.new(@example_errno)
+    e.message.should == 'Invalid argument'
+  end
+
   it "accepts an optional custom message preceding the errno" do
     exc = SystemCallError.new("custom message", @example_errno)
     exc.should be_an_instance_of(@example_errno_class)
@@ -79,6 +84,17 @@ describe "SystemCallError.new" do
   it "converts to Integer if errno is a Float" do
     SystemCallError.new('foo', 2.0).should == SystemCallError.new('foo', 2)
     SystemCallError.new('foo', 2.9).should == SystemCallError.new('foo', 2)
+  end
+
+  it "treats nil errno as unknown error value" do
+    SystemCallError.new(nil).should be_an_instance_of(SystemCallError)
+  end
+
+  it "treats nil custom message as if it is not passed at all" do
+    exc = SystemCallError.new(nil, @example_errno)
+    exc.should be_an_instance_of(@example_errno_class)
+    exc.errno.should == @example_errno
+    exc.message.should == 'Invalid argument'
   end
 
   it "converts to Integer if errno is a Complex convertible to Integer" do

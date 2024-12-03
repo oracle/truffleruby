@@ -298,7 +298,8 @@ class SystemCallError < StandardError
           message = nil
         else
           errno = nil
-          message = StringValue(args.first)
+          message = args.first
+          message = StringValue(message) unless Primitive.nil?(message)
         end
         location = nil
       when 2
