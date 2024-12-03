@@ -321,8 +321,8 @@ public abstract class ExceptionNodes {
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization
-        RubySystemCallError exceptionErrnoError(RubyClass errorClass, Object message, int errno) {
-            return errnoErrorNode.execute(errorClass, errno, message, null);
+        RubySystemCallError exceptionErrnoError(RubyClass errorClass, Object extraMessage, int errno, Object location) {
+            return errnoErrorNode.execute(errorClass, errno, extraMessage, location, null);
         }
 
     }

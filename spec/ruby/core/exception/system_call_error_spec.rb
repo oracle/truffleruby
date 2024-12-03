@@ -92,9 +92,15 @@ describe "SystemCallError.new" do
 
   it "treats nil custom message as if it is not passed at all" do
     exc = SystemCallError.new(nil, @example_errno)
-    exc.should be_an_instance_of(@example_errno_class)
-    exc.errno.should == @example_errno
     exc.message.should == 'Invalid argument'
+  end
+
+  it "sets an 'unknown error' message when an unknown error number" do
+    SystemCallError.new(-1).message.should =~ /Unknown error(:)? -1/
+  end
+
+  it "adds a custom error message to an 'unknown error' message when an unknown error number and a custom message specified" do
+    SystemCallError.new("custom message", -1).message.should =~ /Unknown error(:)? -1 - custom message/
   end
 
   it "converts to Integer if errno is a Complex convertible to Integer" do

@@ -187,13 +187,19 @@ describe "C-API Kernel function" do
     it "raises an exception from the given error" do
       -> do
         @s.rb_syserr_fail(Errno::EINVAL::Errno, "additional info")
-      end.should raise_error(Errno::EINVAL, /additional info/)
+      end.should raise_error(Errno::EINVAL, "Invalid argument - additional info")
     end
 
     it "can take a NULL message" do
       -> do
         @s.rb_syserr_fail(Errno::EINVAL::Errno, nil)
-      end.should raise_error(Errno::EINVAL)
+      end.should raise_error(Errno::EINVAL, "Invalid argument")
+    end
+
+    it "uses an 'unknown error' message when errno is unknown" do
+      -> do
+        @s.rb_syserr_fail(-10, nil)
+      end.should raise_error(SystemCallError, /Unknown error(:)? -1/) # a new class Errno::E-01 is generated on the fly
     end
   end
 
@@ -201,13 +207,19 @@ describe "C-API Kernel function" do
     it "raises an exception from the given error" do
       -> do
         @s.rb_syserr_fail_str(Errno::EINVAL::Errno, "additional info")
-      end.should raise_error(Errno::EINVAL, /additional info/)
+      end.should raise_error(Errno::EINVAL, "Invalid argument - additional info")
     end
 
     it "can take nil as a message" do
       -> do
         @s.rb_syserr_fail_str(Errno::EINVAL::Errno, nil)
-      end.should raise_error(Errno::EINVAL)
+      end.should raise_error(Errno::EINVAL, "Invalid argument")
+    end
+
+    it "uses an 'unknown error' message when errno is unknown" do
+      -> do
+        @s.rb_syserr_fail_str(-1, nil)
+      end.should raise_error(SystemCallError, /Unknown error(:)? -1/) # a new class Errno::E-01 is generated on the fly
     end
   end
 
