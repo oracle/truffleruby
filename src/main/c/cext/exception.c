@@ -66,6 +66,15 @@ void rb_syserr_fail(int eno, const char *message) {
   UNREACHABLE;
 }
 
+void rb_syserr_fail_str(int eno, VALUE message) {
+  if (message == Qnil) {
+    message = rb_str_new_cstr("");
+  }
+
+  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(message));
+  UNREACHABLE;
+}
+
 #undef rb_sys_fail
 void rb_sys_fail(const char *message) {
   int n = errno;

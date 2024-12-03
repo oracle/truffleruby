@@ -197,6 +197,20 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_syserr_fail_str" do
+    it "raises an exception from the given error" do
+      -> do
+        @s.rb_syserr_fail_str(Errno::EINVAL::Errno, "additional info")
+      end.should raise_error(Errno::EINVAL, /additional info/)
+    end
+
+    it "can take nil as a message" do
+      -> do
+        @s.rb_syserr_fail_str(Errno::EINVAL::Errno, nil)
+      end.should raise_error(Errno::EINVAL)
+    end
+  end
+
   describe "rb_yield" do
     it "yields passed argument" do
       ret = nil
