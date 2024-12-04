@@ -159,7 +159,7 @@ describe "File.expand_path" do
   platform_is_not :windows do
     it "raises an Encoding::CompatibilityError if the external encoding is not compatible" do
       Encoding.default_external = Encoding::UTF_16BE
-      -> { File.expand_path("./ab") }.should raise_error(Encoding::CompatibilityError)
+      -> { File.expand_path("./a") }.should raise_error(Encoding::CompatibilityError)
     end
   end
 
