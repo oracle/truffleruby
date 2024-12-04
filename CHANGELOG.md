@@ -34,6 +34,7 @@ Compatibility:
 * `String#unpack` now raises `ArgumentError` for unknown directives (#3681, @Th3-M4jor).
 * `Thread::Queue#freeze` now raises `TypeError` when called (#3681, @Th3-M4jor).
 * `Thread::SizedQueue#freeze` now raises `TypeError` when called (#3681, @Th3-M4jor).
+* Add `Range#reverse_each` (#3681, @andrykonchin).
 
 Performance:
 

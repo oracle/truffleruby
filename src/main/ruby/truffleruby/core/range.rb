@@ -446,6 +446,36 @@ class Range
     Truffle::RangeOperations.step_no_block(self, n)
   end
 
+  private def reverse_each_internal(&block)
+    return to_enum { size } unless block_given?
+
+    if Primitive.nil?(self.end)
+      raise TypeError, "can't iterate from NilClass"
+    end
+
+    if Primitive.is_a?(self.begin, Integer) && Primitive.is_a?(self.end, Integer)
+      last = exclude_end? ? self.end - 1 : self.end
+
+      i = last
+      while i >= first
+        yield i
+        i -= 1
+      end
+    elsif Primitive.nil?(self.begin) && Primitive.is_a?(self.end, Integer)
+      last = exclude_end? ? self.end - 1 : self.end
+
+      i = last
+      while true
+        yield i
+        i -= 1
+      end
+    else
+      method(:reverse_each).super_method.call(&block)
+    end
+
+    self
+  end
+
   private def step_internal(step_size = 1, &block) # :yields: object
     return Truffle::RangeOperations.step_no_block(self, step_size) unless block
 
