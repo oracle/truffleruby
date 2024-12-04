@@ -62,6 +62,16 @@ class Dir
     @ptr.null? ? nil : self
   end
 
+  private def initialize_from_file_descriptor(fd)
+    @path = nil
+    @encoding = Encoding.filesystem
+    @ptr = Truffle::POSIX.fdopendir(fd)
+
+    if @ptr.null?
+      Errno.handle('fdopendir')
+    end
+  end
+
   private def ensure_open
     raise IOError, 'closed directory' if closed?
   end
@@ -313,6 +323,12 @@ class Dir
       end
 
       nil
+    end
+
+    def for_fd(fd)
+      dir = Dir.allocate
+      dir.send(:initialize_from_file_descriptor, Primitive.rb_num2int(fd))
+      dir
     end
 
     def chdir(path = ENV['HOME'])

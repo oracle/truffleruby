@@ -188,6 +188,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, varargs(:int)], :int
+  attach_function :fdopendir, [:int], :pointer
   attach_function :flock, [:int, :int], :int, LIBC, true
   attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_mode, [:int], :mode_t, LIBTRUFFLEPOSIX
