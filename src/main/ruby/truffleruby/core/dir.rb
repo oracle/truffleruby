@@ -113,13 +113,12 @@ class Dir
 
   def close
     unless closed?
-      ret = Truffle::POSIX.closedir(@ptr)
-      Errno.handle if ret == -1
+      Truffle::POSIX.closedir(@ptr)
       @ptr = nil
     end
   end
 
-  def closed?
+  private def closed?
     Primitive.nil? @ptr
   end
 
