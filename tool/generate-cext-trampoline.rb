@@ -19,6 +19,7 @@ NO_RETURN_FUNCTIONS = %w[
   rb_exc_raise
   rb_jump_tag
   rb_syserr_fail
+  rb_syserr_fail_str
   rb_sys_fail
   rb_sys_fail_str
   rb_throw

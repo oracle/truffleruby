@@ -62,7 +62,13 @@ VALUE rb_errinfo(void) {
 }
 
 void rb_syserr_fail(int eno, const char *message) {
-  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(rb_str_new_cstr(message == NULL ? "" : message)));
+  VALUE messageValue = (message == NULL) ? Qnil : rb_str_new_cstr(message);
+  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(messageValue));
+  UNREACHABLE;
+}
+
+void rb_syserr_fail_str(int eno, VALUE message) {
+  polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(message));
   UNREACHABLE;
 }
 

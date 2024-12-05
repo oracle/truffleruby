@@ -36,6 +36,7 @@ Compatibility:
 * `Thread::SizedQueue#freeze` now raises `TypeError` when called (#3681, @Th3-M4jor).
 * Add `Range#reverse_each` (#3681, @andrykonchin).
 * Emit a warning when `it` call without arguments is used in a block without parameters (#3681, @andrykonchin).
+* Add `rb_syserr_fail_str()` (#3732, @andrykonchin).
 
 Performance:
 
