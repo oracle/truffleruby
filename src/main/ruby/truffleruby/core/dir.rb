@@ -355,6 +355,33 @@ class Dir
       end
     end
 
+    def fchdir(fd)
+      fd = Primitive.rb_num2int(fd)
+
+      if block_given?
+        original_path = getwd
+        original_dir = Dir.new(original_path)
+
+        ret = Truffle::POSIX.fchdir fd
+        Errno.handle('fchdir') if ret != 0
+        Primitive.dir_set_truffle_working_directory(getwd)
+
+        begin
+          yield
+        ensure
+          Primitive.dir_set_truffle_working_directory(original_path)
+          ret = Truffle::POSIX.fchdir original_dir.fileno
+          Errno.handle('fchdir') if ret != 0
+          original_dir.close
+        end
+      else
+        ret = Truffle::POSIX.fchdir fd
+        Errno.handle('fchdir') if ret != 0
+        Primitive.dir_set_truffle_working_directory(getwd)
+        ret
+      end
+    end
+
     def mkdir(path, mode = 0777)
       path = Truffle::Type.coerce_to_path(path)
       if mode
