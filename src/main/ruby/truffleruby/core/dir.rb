@@ -111,6 +111,10 @@ class Dir
     Truffle::DirOperations.readdir_name(self)
   end
 
+  def chdir(&block)
+    Dir.fchdir(fileno, &block)
+  end
+
   def close
     unless closed?
       Truffle::POSIX.closedir(@ptr)

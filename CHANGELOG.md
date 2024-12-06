@@ -39,6 +39,7 @@ Compatibility:
 * Add `rb_syserr_fail_str()` (#3732, @andrykonchin).
 * Add `Dir.for_fd` (#3681, @andrykonchin).
 * Add `Dir.fchdir` (#3681, @andrykonchin).
+* Add `Dir#chdir` (#3681, @andrykonchin).
 
 Performance:
 
