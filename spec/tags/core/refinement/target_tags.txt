@@ -1,0 +1,1 @@
+fails:Refinement#target returns the class refined by the receiver
