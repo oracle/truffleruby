@@ -1,0 +1,3 @@
+slow:Process::Status#& returns a bitwise and of the integer status of an exited child
+slow:Process::Status#& raises an ArgumentError if mask is negative
+slow:Process::Status#& shows a deprecation warning
