@@ -197,9 +197,13 @@ describe "C-API Kernel function" do
     end
 
     it "uses an 'unknown error' message when errno is unknown" do
-      -> do
-        @s.rb_syserr_fail(-10, nil)
-      end.should raise_error(SystemCallError, /Unknown error(:)? -1/) # a new class Errno::E-01 is generated on the fly
+      platform_is_not :windows do
+        -> { @s.rb_syserr_fail(-10, nil) }.should raise_error(SystemCallError, /Unknown error(:)? -10/)
+      end
+
+      platform_is :windows do
+        -> { @s.rb_syserr_fail(-1, nil) }.should raise_error(SystemCallError, "The operation completed successfully.")
+      end
     end
   end
 
@@ -217,9 +221,13 @@ describe "C-API Kernel function" do
     end
 
     it "uses an 'unknown error' message when errno is unknown" do
-      -> do
-        @s.rb_syserr_fail_str(-1, nil)
-      end.should raise_error(SystemCallError, /Unknown error(:)? -1/) # a new class Errno::E-01 is generated on the fly
+      platform_is_not :windows do
+        -> { @s.rb_syserr_fail_str(-10, nil) }.should raise_error(SystemCallError, /Unknown error(:)? -10/)
+      end
+
+      platform_is :windows do
+        -> { @s.rb_syserr_fail_str(-1, nil) }.should raise_error(SystemCallError, "The operation completed successfully.")
+      end
     end
   end
 
