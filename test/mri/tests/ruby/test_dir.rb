@@ -171,10 +171,7 @@ class TestDir < Test::Unit::TestCase
     assert_equal(42, ret)
   ensure
     begin
-      # TruffleRuby: Dir#chdir is not implemented yet so the test now fails at the beginning
-      # on the `root_dir.chdir` step and NoMethodError is raised. Repeated Dir#chdir call
-      # here would lead to the whole process termination.
-      assert_equal(0, Dir.chdir(dir))
+      assert_equal(0, dir.chdir)
     rescue
       abort("cannot return the original directory: #{ pwd }")
     end
