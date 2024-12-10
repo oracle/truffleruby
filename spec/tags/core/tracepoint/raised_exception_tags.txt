@@ -1,1 +1,2 @@
 fails:TracePoint#raised_exception returns value from exception raised on the :raise event
+fails:TracePoint#raised_exception returns value from exception rescued on the :rescue event

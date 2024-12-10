@@ -2,7 +2,7 @@ require_relative '../../spec_helper'
 
 ruby_version_is "3.3" do
   describe "Range#reverse_each" do
-    it "traverses the Range in reverse order and pass each element to block" do
+    it "traverses the Range in reverse order and passes each element to block" do
       a = []
       (1..3).reverse_each { |i| a << i }
       a.should == [3, 2, 1]
@@ -88,8 +88,10 @@ ruby_version_is "3.3" do
           (1..3).reverse_each.size.should == 3
         end
 
-        it "returns Infinity when Range size is infinite" do
-          (..3).reverse_each.size.should == Float::INFINITY
+        ruby_bug "#20936", "3.4"..."3.5" do
+          it "returns Infinity when Range size is infinite" do
+            (..3).reverse_each.size.should == Float::INFINITY
+          end
         end
 
         it "returns nil when Range size is unknown" do

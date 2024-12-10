@@ -96,11 +96,23 @@ describe "SystemCallError.new" do
   end
 
   it "sets an 'unknown error' message when an unknown error number" do
-    SystemCallError.new(-1).message.should =~ /Unknown error(:)? -1/
+    platform_is_not :windows do
+      SystemCallError.new(-1).message.should =~ /Unknown error(:)? -1/
+    end
+
+    platform_is :windows do
+      SystemCallError.new(-1).message.should == "The operation completed successfully."
+    end
   end
 
   it "adds a custom error message to an 'unknown error' message when an unknown error number and a custom message specified" do
-    SystemCallError.new("custom message", -1).message.should =~ /Unknown error(:)? -1 - custom message/
+    platform_is_not :windows do
+      SystemCallError.new("custom message", -1).message.should =~ /Unknown error(:)? -1 - custom message/
+    end
+
+    platform_is :windows do
+      SystemCallError.new("custom message", -1).message.should == "The operation completed successfully. - custom message"
+    end
   end
 
   it "converts to Integer if errno is a Complex convertible to Integer" do

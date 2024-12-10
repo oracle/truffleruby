@@ -1,0 +1,1 @@
+fails:Refinement#refined_class has been deprecated in favour of Refinement#target

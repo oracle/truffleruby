@@ -999,6 +999,7 @@ describe "Post-args" do
   end
 end
 
+# tested more thoroughly in language/delegation_spec.rb
 describe "Anonymous block forwarding" do
   ruby_version_is "3.1" do
     it "forwards blocks to other method that formally declares anonymous block" do
