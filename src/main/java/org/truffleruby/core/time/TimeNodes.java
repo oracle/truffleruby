@@ -409,9 +409,8 @@ public abstract class TimeNodes {
 
     @Primitive(name = "time_set_zone")
     public abstract static class TimeSetZoneNode extends PrimitiveArrayArgumentsNode {
-        @Specialization(guards = "strings.isRubyString(this, zone)", limit = "1")
-        Object timeSetZone(RubyTime time, Object zone,
-                @Cached RubyStringLibrary strings) {
+        @Specialization
+        Object timeSetZone(RubyTime time, Object zone) {
             time.zone = zone;
             return zone;
         }

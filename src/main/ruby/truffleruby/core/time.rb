@@ -186,7 +186,9 @@ class Time
     if to_utc
       Primitive.time_utctime(self)
     else
-      Primitive.time_localtime(self, offset)
+      result = Primitive.time_localtime(self, offset)
+      Truffle::TimeOperations.set_zone_if_object(result, zone_or_offset)
+      result
     end
   end
 
@@ -371,6 +373,7 @@ class Time
         result = is_utc ? Primitive.time_utctime(result) : Primitive.time_localtime(result, offset)
       end
       if result
+        Truffle::TimeOperations.set_zone_if_object(result, timezone)
         return result
       end
 
@@ -431,9 +434,12 @@ class Time
         if utc_offset_in_utc?(utc_offset)
           utc_offset = :utc
         else
+          zone = utc_offset
           utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset, Time.utc(year, month, day, hour, minute, second), :local_to_utc)
         end
-        Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
+        result = Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
+        Truffle::TimeOperations.set_zone_if_object(result, zone)
+        result
       end
     end
 
