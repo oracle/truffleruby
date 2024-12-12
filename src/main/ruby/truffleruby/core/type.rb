@@ -481,13 +481,19 @@ module Truffle
       end
     end
 
-    def self.coerce_to_utc_offset(offset)
+    def self.coerce_to_utc_offset(offset, time = nil, conversion_method = nil)
       offset = String.try_convert(offset) || offset
 
       if Primitive.is_a? offset, String
         offset = Truffle::Type.coerce_string_to_utc_offset(offset)
-      elsif Primitive.respond_to?(offset, :utc_to_local, false)
-        offset = offset.utc_to_local(Time.now).utc_offset
+      elsif conversion_method == :local_to_utc && Primitive.respond_to?(offset, :local_to_utc, false)
+        time ||= Time.now
+        as_utc = offset.local_to_utc(time.getutc)
+        offset = time.to_i - as_utc.to_i
+      elsif conversion_method == :utc_to_local && Primitive.respond_to?(offset, :utc_to_local, false)
+        time ||= Time.now
+        as_local = offset.utc_to_local(time.getutc)
+        offset = as_local.utc_offset.nonzero? || as_local.to_i - time.to_i
       else
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end

@@ -168,10 +168,11 @@ class Time
   end
   alias_method :getutc, :getgm
 
-  def localtime(offset = nil)
+  def localtime(zone_or_offset = nil)
+    offset = zone_or_offset
     if offset
       to_utc = Time.send(:utc_offset_in_utc?, offset)
-      offset = Truffle::Type.coerce_to_utc_offset(offset)
+      offset = Truffle::Type.coerce_to_utc_offset(offset, self, :utc_to_local)
     end
 
     # the only cases when #localtime is allowed for a frozen time -
@@ -349,8 +350,6 @@ class Time
     def at(sec, sub_sec = undefined, unit = undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
       timezone = kwargs[:in]
-      offset = timezone ? Truffle::Type.coerce_to_utc_offset(timezone) : nil
-      is_utc = utc_offset_in_utc?(timezone) if offset
 
       result = if Primitive.undefined?(sub_sec)
                  if Primitive.is_a?(sec, Time)
@@ -364,6 +363,10 @@ class Time
                    Primitive.time_at self, sec.to_i, ns
                  end
                end
+
+      offset = timezone ? Truffle::Type.coerce_to_utc_offset(timezone, result, :utc_to_local) : nil
+      is_utc = utc_offset_in_utc?(timezone) if offset
+
       if result && offset
         result = is_utc ? Primitive.time_utctime(result) : Primitive.time_localtime(result, offset)
       end
@@ -428,7 +431,7 @@ class Time
         if utc_offset_in_utc?(utc_offset)
           utc_offset = :utc
         else
-          utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
+          utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset, Time.utc(year, month, day, hour, minute, second), :local_to_utc)
         end
         Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
       end
@@ -444,7 +447,7 @@ class Time
       in_timezone = options[:in]
 
       if in_timezone
-        utc_offset = Truffle::Type.coerce_to_utc_offset(in_timezone)
+        utc_offset = Truffle::Type.coerce_to_utc_offset(in_timezone, time_now, :utc_to_local)
         is_utc = utc_offset_in_utc?(in_timezone)
         is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)
       else
