@@ -37,6 +37,10 @@
 class Time
   include Comparable
 
+  # Time#to_time is defined in date_core.c but it's just `return self`
+  # so we can make it available for use without having to `require "date"`.
+  alias_method :to_time, :itself
+
   def inspect
     str = strftime('%Y-%m-%d %H:%M:%S')
 
