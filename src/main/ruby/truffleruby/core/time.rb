@@ -107,13 +107,15 @@ class Time
   def zone
     zone = Primitive.time_zone(self)
 
-    if zone && zone.ascii_only?
-      zone.encode Encoding::US_ASCII
-    elsif zone && Encoding.default_internal
-      zone.encode Encoding.default_internal
-    else
-      zone
+    if zone && Primitive.is_a?(zone, String)
+      if zone.ascii_only?
+        return zone.encode Encoding::US_ASCII
+      elsif Encoding.default_internal
+        return zone.encode Encoding.default_internal
+      end
     end
+
+    zone
   end
 
   # Random number for hash codes. Stops hashes for similar values in
