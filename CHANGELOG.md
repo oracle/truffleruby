@@ -53,6 +53,7 @@ Compatibility:
 * Add `Refinement#target` (#3681, @andrykonchin).
 * Emit warning when `Kernel#format` called with excessive arguments (@andrykonchin).
 * Fix `Integer#ceil` when self is 0 (@andrykonchin).
+* Fix `Module#remove_const` and emit warning when constant is deprecated (@andrykonchin).
 
 Performance:
 

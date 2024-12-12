@@ -71,6 +71,7 @@ import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -91,6 +92,7 @@ import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
+import org.truffleruby.language.constants.WarnDeprecatedConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -2009,7 +2011,8 @@ public abstract class ModuleNodes {
 
         @Specialization
         Object removeConstant(RubyModule module, Object nameObject,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached LazyWarnNode lazyWarnNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
             final RubyConstant oldConstant = module.fields.removeConstant(getContext(), this, name);
             if (oldConstant == null) {
@@ -2020,9 +2023,16 @@ public abstract class ModuleNodes {
                 if (oldConstant.isAutoload() || oldConstant.isUndefined()) {
                     return nil;
                 } else {
+                    if (oldConstant.isDeprecated()) {
+                        warnDeprecatedConstant(module, name, lazyWarnNode);
+                    }
                     return oldConstant.getValue();
                 }
             }
+        }
+
+        private void warnDeprecatedConstant(RubyModule module, String name, LazyWarnNode lazyWarnNode) {
+            WarnDeprecatedConstantNode.warnDeprecatedConstant(this, lazyWarnNode.get(this), module, name);
         }
     }
 
