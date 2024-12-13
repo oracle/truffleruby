@@ -40,6 +40,7 @@ Compatibility:
 * Add `Dir.for_fd` (#3681, @andrykonchin).
 * Add `Dir.fchdir` (#3681, @andrykonchin).
 * Add `Dir#chdir` (#3681, @andrykonchin).
+* Remove deprecated `Encoding#replicate` method (#3681, @rwstauner).
 
 Performance:
 

@@ -101,7 +101,6 @@ fails(we defined these methods on the generated Data subclasses):Public methods 
 fails(we defined these methods on the generated Data subclasses):Public methods on Data should include to_s
 fails(we defined these methods on the generated Data subclasses):Public methods on Data should include with
 fails:Public methods on Dir should include chdir
-fails:Public methods on Encoding should not include replicate
 fails:Public methods on Fiber should include kill
 fails:Public methods on Method should include dup
 fails:Public methods on Module should include set_temporary_name

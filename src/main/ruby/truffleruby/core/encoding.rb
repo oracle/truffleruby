@@ -138,12 +138,6 @@ class Encoding
     names
   end
 
-  def replicate(name)
-    warn 'Encoding#replicate is deprecated and will be removed in Ruby 3.3; use the original encoding instead', category: :deprecated, uplevel: 1
-
-    Truffle::EncodingOperations.replicate_encoding(self, name)
-  end
-
   def _dump(depth)
     name
   end
