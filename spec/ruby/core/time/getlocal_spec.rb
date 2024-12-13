@@ -14,6 +14,7 @@ describe "Time#getlocal" do
     t = Time.gm(2007, 1, 9, 12, 0, 0).getlocal(3630)
     t.should == Time.new(2007, 1, 9, 13, 0, 30, 3630)
     t.utc_offset.should == 3630
+    t.zone.should be_nil
   end
 
   platform_is_not :windows do
@@ -128,7 +129,7 @@ describe "Time#getlocal" do
 
       -> {
         Time.utc(2000, 1, 1, 12, 0, 0).getlocal(zone)
-      }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
+      }.should raise_error(TypeError)
     end
 
     it "does not raise exception if timezone does not implement #local_to_utc method" do

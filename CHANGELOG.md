@@ -40,6 +40,7 @@ Compatibility:
 * Add `Dir.for_fd` (#3681, @andrykonchin).
 * Add `Dir.fchdir` (#3681, @andrykonchin).
 * Add `Dir#chdir` (#3681, @andrykonchin).
+* Support Timezone argument to `Time.{new,at}` and `Time#{getlocal,localtime}` (#1717, @patricklinpl, @manefz, @rwstauner).
 
 Performance:
 

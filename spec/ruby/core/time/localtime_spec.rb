@@ -128,6 +128,17 @@ describe "Time#localtime" do
     end
   end
 
+  describe "with an argument that responds to #utc_to_local" do
+    it "coerces using #utc_to_local" do
+      o = mock('string')
+      o.should_receive(:utc_to_local).and_return(Time.new(2007, 1, 9, 13, 0, 0, 3600))
+      t = Time.gm(2007, 1, 9, 12, 0, 0)
+      t.localtime(o)
+      t.should == Time.new(2007, 1, 9, 13, 0, 0, 3600)
+      t.utc_offset.should == 3600
+    end
+  end
+
   it "raises ArgumentError if the String argument is not of the form (+|-)HH:MM" do
     t = Time.now
     -> { t.localtime("3600") }.should raise_error(ArgumentError)

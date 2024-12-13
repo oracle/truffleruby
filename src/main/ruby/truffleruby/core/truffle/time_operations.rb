@@ -121,5 +121,14 @@ module Truffle
         Truffle::Type.coerce_to_utc_offset(utc_offset)
       end
     end
+
+    # When a timezone object is used (via its utc_to_local or local_to_utc methods)
+    # the resulting time object gets its zone set to be the object
+    # (but this isn't done when the zone is just an integer offset or string abbreviation).
+    def self.set_zone_if_object(time, zone)
+      return if Primitive.nil?(zone) || Primitive.is_a?(zone, Integer) || Primitive.is_a?(zone, String)
+
+      Primitive.time_set_zone(time, zone)
+    end
   end
 end

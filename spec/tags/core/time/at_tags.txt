@@ -1,2 +1,1 @@
-fails:Time.at :in keyword argument could be a timezone object
 fails:Time.at passed non-Time, non-Numeric with an argument that responds to #to_r needs for the argument to respond to #to_int too
