@@ -86,21 +86,7 @@ public abstract class ProcNodes {
                 @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
-            final RubyProc proc = new RubyProc(
-                    procClass,
-                    getLanguage().procShape,
-                    block.type,
-                    block.arity,
-                    block.argumentDescriptors,
-                    block.callTargets,
-                    block.callTarget,
-                    block.declarationFrame,
-                    block.declarationVariables,
-                    block.declaringMethod,
-                    block.frameOnStackMarker,
-                    block.declarationContext);
-
-            AllocationTracing.trace(proc, this);
+            final RubyProc proc = ProcOperations.duplicate(procClass, getLanguage().procShape, block, this);
             initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
         }
@@ -110,27 +96,26 @@ public abstract class ProcNodes {
         }
     }
 
-    @CoreMethod(names = { "dup", "clone" })
+    @CoreMethod(names = "clone")
+    public abstract static class CloneNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        RubyProc clone(RubyProc proc,
+                @Cached DispatchNode initializeCopyNode) {
+            final RubyProc copy = ProcOperations.duplicate(proc.getLogicalClass(), getLanguage().procShape, proc, this);
+            initializeCopyNode.call(copy, "initialize_copy", proc);
+            return copy;
+        }
+    }
+
+    @CoreMethod(names = "dup")
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyProc dup(RubyProc proc) {
-            final RubyClass logicalClass = proc.getLogicalClass();
-            final RubyProc copy = new RubyProc(
-                    logicalClass,
-                    getLanguage().procShape,
-                    proc.type,
-                    proc.arity,
-                    proc.argumentDescriptors,
-                    proc.callTargets,
-                    proc.callTarget,
-                    proc.declarationFrame,
-                    proc.declarationVariables,
-                    proc.declaringMethod,
-                    proc.frameOnStackMarker,
-                    proc.declarationContext);
-
-            AllocationTracing.trace(copy, this);
+        RubyProc dup(RubyProc proc,
+                @Cached DispatchNode initializeDupNode) {
+            final RubyProc copy = ProcOperations.duplicate(proc.getLogicalClass(), getLanguage().procShape, proc, this);
+            initializeDupNode.call(copy, "initialize_dup", proc);
             return copy;
         }
     }
