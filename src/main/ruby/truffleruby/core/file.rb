@@ -82,6 +82,8 @@ class File < IO
     NONBLOCK = Truffle::Config['platform.file.O_NONBLOCK']
     SYNC     = Truffle::Config['platform.file.O_SYNC']
 
+    SHARE_DELETE   = 0 # a pseudo file mode flag that's meaningful only on Windows
+
     if value = Truffle::Config.lookup('platform.file.O_TMPFILE')
       TMPFILE = value
     end
