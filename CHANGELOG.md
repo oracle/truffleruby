@@ -40,6 +40,7 @@ Compatibility:
 * Add `Dir.for_fd` (#3681, @andrykonchin).
 * Add `Dir.fchdir` (#3681, @andrykonchin).
 * Add `Dir#chdir` (#3681, @andrykonchin).
+* Declare `File::SHARE_DELETE` constant (#3745, @andrykonchin).
 
 Performance:
 
