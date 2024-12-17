@@ -42,6 +42,7 @@ Compatibility:
 * Add `Dir#chdir` (#3681, @andrykonchin).
 * Declare `File::SHARE_DELETE` constant (#3745, @andrykonchin).
 * Support `symbolize_names` argument to `MatchData#named_captures` (#3681, @rwstauner).
+* Support `Proc#initialize_{dup,copy}` for subclasses (#3681, @rwstauner).
 
 Performance:
 
