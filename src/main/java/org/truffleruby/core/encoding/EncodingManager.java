@@ -256,16 +256,6 @@ public final class EncodingManager {
         return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
     }
 
-    @TruffleBoundary
-    public synchronized RubyEncoding replicateEncoding(RubyEncoding encoding, String name) {
-        if (getRubyEncoding(name) != null) {
-            return null;
-        }
-
-        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(encoding.jcoding, nameBytes);
-    }
-
     public RubyEncoding getLocaleEncoding() {
         return localeEncoding;
     }

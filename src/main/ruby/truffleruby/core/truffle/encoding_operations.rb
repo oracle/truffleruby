@@ -49,13 +49,6 @@ module Truffle
       [new_encoding, index]
     end
 
-    def self.replicate_encoding(encoding, name)
-      name = StringValue(name)
-      new_encoding, _index = Primitive.encoding_replicate encoding, name
-      EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
-      new_encoding
-    end
-
     def self.define_alias(encoding, alias_name)
       key = alias_name.upcase.to_sym
       EncodingMap[key] = [alias_name, encoding]

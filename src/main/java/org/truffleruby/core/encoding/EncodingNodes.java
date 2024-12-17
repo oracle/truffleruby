@@ -537,33 +537,6 @@ public abstract class EncodingNodes {
 
     }
 
-    @Primitive(name = "encoding_replicate")
-    public abstract static class EncodingReplicateNode extends EncodingCreationNode {
-
-        @Specialization(guards = "strings.isRubyString(this, nameObject)", limit = "1")
-        static RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
-                @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
-            final String name = toJavaStringNode.execute(node, nameObject);
-
-            final RubyEncoding newEncoding = replicate(node, name, object);
-            return setIndexOrRaiseError(node, name, newEncoding);
-        }
-
-        @TruffleBoundary
-        private static RubyEncoding replicate(Node node, String name, RubyEncoding encoding) {
-            if (getContext(node).getEncodingManager().getNumberOfEncodings() >= Encodings.MAX_NUMBER_OF_ENCODINGS) {
-                throw new RaiseException(
-                        getContext(node),
-                        coreExceptions(node).encodingErrorTooManyEncodings(Encodings.MAX_NUMBER_OF_ENCODINGS, node));
-            }
-
-            return getContext(node).getEncodingManager().replicateEncoding(encoding, name);
-        }
-
-    }
-
     @Primitive(name = "encoding_create_dummy")
     public abstract static class DummyEncodingNode extends EncodingCreationNode {
 
