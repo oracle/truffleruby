@@ -44,6 +44,7 @@ Compatibility:
 * Support `symbolize_names` argument to `MatchData#named_captures` (#3681, @rwstauner).
 * Support `Proc#initialize_{dup,copy}` for subclasses (#3681, @rwstauner).
 * Remove deprecated `Encoding#replicate` method (#3681, @rwstauner).
+* Fix `Marshal.dump` when a Float value is dumped repeatedly (#3747, @andrykochin).
 
 Performance:
 

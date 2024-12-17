@@ -239,6 +239,10 @@ describe "Marshal.dump" do
         [Marshal,  nan_value,      "\004\bf\bnan"],
       ].should be_computed_by(:dump)
     end
+
+    it "uses object links for objects repeatedly dumped" do
+      Marshal.dump([0.0, 0.0]).should == "\x04\b[\af\x060@\x06" # @\x06 is a link to the float value
+    end
   end
 
   describe "with a Bignum" do

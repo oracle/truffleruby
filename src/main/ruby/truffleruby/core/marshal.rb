@@ -643,7 +643,8 @@ module Marshal
     def add_non_immediate_object(obj)
       # Skip entities that cannot be referenced as objects.
       # Integers that are bigger than 4 bytes also increase the object links counter.
-      return if Primitive.immediate_value?(obj) && !serialize_as_bignum?(obj)
+      # All Floats - as well, even CRuby's Flonums that are immediate values.
+      return if Primitive.immediate_value?(obj) && !serialize_as_bignum?(obj) && !Primitive.is_a?(obj, Float)
       add_object(obj)
     end
 
