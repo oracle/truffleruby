@@ -335,12 +335,12 @@ class Range
 
     ivars = self.instance_variables
     Primitive.string_binary_append out, ms.serialize_integer(3 + ivars.size)
+    Primitive.string_binary_append out, ms.serialize(:excl)
+    Primitive.string_binary_append out, ms.serialize(self.exclude_end?)
     Primitive.string_binary_append out, ms.serialize(:begin)
     Primitive.string_binary_append out, ms.serialize(self.begin)
     Primitive.string_binary_append out, ms.serialize(:end)
     Primitive.string_binary_append out, ms.serialize(self.end)
-    Primitive.string_binary_append out, ms.serialize(:excl)
-    Primitive.string_binary_append out, ms.serialize(self.exclude_end?)
     ivars.each do |ivar|
       val = Primitive.object_ivar_get self, ivar
       Primitive.string_binary_append out, ms.serialize(ivar)

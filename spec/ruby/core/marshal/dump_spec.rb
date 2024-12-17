@@ -652,16 +652,25 @@ describe "Marshal.dump" do
   end
 
   describe "with a Range" do
-    it "dumps a Range inclusive of end (with indeterminant order)" do
+    it "dumps a Range inclusive of end" do
       dump = Marshal.dump(1..2)
+      dump.should == "\x04\bo:\nRange\b:\texclF:\nbegini\x06:\bendi\a"
+
       load = Marshal.load(dump)
       load.should == (1..2)
     end
 
-    it "dumps a Range exclusive of end (with indeterminant order)" do
+    it "dumps a Range exclusive of end" do
       dump = Marshal.dump(1...2)
+      dump.should == "\x04\bo:\nRange\b:\texclT:\nbegini\x06:\bendi\a"
+
       load = Marshal.load(dump)
       load.should == (1...2)
+    end
+
+    it "uses object links for objects repeatedly dumped" do
+      r = 1..2
+      Marshal.dump([r, r]).should == "\x04\b[\ao:\nRange\b:\texclF:\nbegini\x06:\bendi\a@\x06" # @\x06 is a link to the object
     end
 
     it "raises TypeError with an anonymous Range subclass" do
