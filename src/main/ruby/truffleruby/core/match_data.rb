@@ -91,7 +91,9 @@ class MatchData
     regexp.names
   end
 
-  def named_captures
+  def named_captures(symbolize_names: false)
+    names = Primitive.regexp_names(self.regexp).map(&:first)
+    names.map!(&:to_s) unless symbolize_names
     names.collect { |name| [name, self[name]] }.to_h
   end
 
