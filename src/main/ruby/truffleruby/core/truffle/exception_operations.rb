@@ -87,10 +87,7 @@ module Truffle
           "module #{receiver}"
         else
           klass = Primitive.metaclass(receiver)
-          if klass.name
-            "an instance of #{klass.name}"
-          end
-          # else fall through to rb_any_to_s
+          "an instance of #{klass}"
         end
       rescue Exception # rubocop:disable Lint/RescueException
         nil

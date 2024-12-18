@@ -1,0 +1,1 @@
+fails:BasicObject#singleton_method_added when singleton_method_added is undefined raises NoMethodError for a singleton instance
