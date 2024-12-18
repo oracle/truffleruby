@@ -166,6 +166,17 @@ describe "NoMethodError#message" do
       end
     end
 
+    it "uses class' string representation when receiver is a singleton class" do
+      obj = Object.new
+      singleton_class = obj.singleton_class
+
+      begin
+        singleton_class.foo
+      rescue NoMethodError => error
+        error.message.should =~ /\Aundefined method [`']foo' for class #<Class:#<Object:0x\h+>>\Z/
+      end
+    end
+
     it "uses #name when receiver is a module" do
       begin
         NoMethodErrorSpecs::AModule.foo

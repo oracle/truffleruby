@@ -79,18 +79,15 @@ module Truffle
         when NilClass, TrueClass, FalseClass
           Truffle::Type.rb_inspect(receiver)
         when Class
-          unless receiver.singleton_class?
-            "class #{receiver}"
-          end
-          # otherwise fall through to rb_any_to_s
+          "class #{receiver}"
         when Module
           "module #{receiver}"
         else
           klass = Primitive.metaclass(receiver)
-          if klass.name
-            "an instance of #{klass.name}"
+          unless klass.singleton_class?
+            "an instance of #{klass}"
           end
-          # else fall through to rb_any_to_s
+          # otherwise fall through to rb_any_to_s
         end
       rescue Exception # rubocop:disable Lint/RescueException
         nil
