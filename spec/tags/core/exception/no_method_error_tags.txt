@@ -1,0 +1,2 @@
+fails:NoMethodError#message uses class string representation when receiver is an instance of anonymous class
+fails:NoMethodError#message does not call #inspect when calling Exception#message
