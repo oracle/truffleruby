@@ -1,1 +1,0 @@
-fails:NoMethodError#message does not call receiver.inspect even when calling Exception#message
