@@ -187,7 +187,7 @@ describe "Time#getlocal" do
 
       -> {
         Time.utc(2000, 1, 1, 12, 0, 0).getlocal(zone)
-      }.should raise_error(TypeError)
+      }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
     end
 
     it "does not raise exception if timezone does not implement #local_to_utc method" do

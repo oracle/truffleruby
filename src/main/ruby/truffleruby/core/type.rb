@@ -472,12 +472,12 @@ module Truffle
     def self.coerce_to_exact_num(obj)
       if Primitive.is_a? obj, Integer
         obj
-      elsif Primitive.is_a? obj, String
-        raise TypeError, "can't convert #{obj} into an exact number"
-      elsif Primitive.nil? obj
-        raise TypeError, "can't convert nil into an exact number"
+      elsif (rational = rb_check_convert_type(obj, Rational, :to_r)) && Primitive.respond_to?(obj, :to_int, false)
+        rational
+      elsif integer = rb_check_convert_type(obj, Integer, :to_int)
+        integer
       else
-        rb_check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
+        raise TypeError, "can't convert #{Primitive.class(obj)} into an exact number"
       end
     end
 

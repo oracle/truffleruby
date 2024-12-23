@@ -226,7 +226,7 @@ describe "Time.new with a timezone argument" do
 
     -> {
       Time.new(2000, 1, 1, 12, 0, 0, zone)
-    }.should raise_error(TypeError)
+    }.should raise_error(TypeError, /can't convert Object into an exact number/)
   end
 
   it "does not raise exception if timezone does not implement #utc_to_local method" do
