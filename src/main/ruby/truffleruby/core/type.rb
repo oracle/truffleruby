@@ -487,13 +487,19 @@ module Truffle
       if Primitive.is_a? offset, String
         offset = Truffle::Type.coerce_string_to_utc_offset(offset)
       elsif conversion_method == :local_to_utc && Primitive.respond_to?(offset, :local_to_utc, false)
+        zone = offset # timezone object
         time ||= Time.now
-        as_utc = offset.local_to_utc(time.getutc)
+        as_utc = zone.local_to_utc(time.getutc)
         offset = time.to_i - as_utc.to_i
       elsif conversion_method == :utc_to_local && Primitive.respond_to?(offset, :utc_to_local, false)
+        zone = offset # timezone object
         time ||= Time.now
-        as_local = offset.utc_to_local(time.getutc)
-        offset = as_local.to_i - time.to_i
+        as_local = zone.utc_to_local(time.getutc)
+        offset = if Primitive.is_a?(as_local, Time)
+                   as_local.to_i + as_local.utc_offset - time.to_i
+                 else
+                   as_local.to_i - time.to_i
+                 end
       else
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end

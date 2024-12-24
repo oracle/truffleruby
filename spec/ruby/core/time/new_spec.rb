@@ -279,7 +279,7 @@ describe "Time.new with a timezone argument" do
       }.should_not raise_error
     end
 
-    it "could have any #zone and #utc_offset because they are ignored" do
+    it "could have any #zone and #utc_offset because they are ignored if it isn't an instance of Time" do
       zone = Object.new
       def zone.local_to_utc(time)
         Struct.new(:to_i, :zone, :utc_offset).new(time.to_i, 'America/New_York', -5*60*60)
@@ -293,7 +293,15 @@ describe "Time.new with a timezone argument" do
       Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 0
     end
 
-    it "leads to raising Argument error if difference between argument and result is too large" do
+    it "cannot have arbitrary #utc_offset if it is an instance of Time" do
+      zone = Object.new
+      def zone.local_to_utc(t)
+        Time.new(t.year, t.mon, t.mday, t.hour, t.min, t.sec, 9*60*60)
+      end
+      Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 9*60*60
+    end
+
+    it "raises ArgumentError if difference between argument and result is too large" do
       zone = Object.new
       def zone.local_to_utc(t)
         Time.utc(t.year, t.mon, t.day + 1, t.hour, t.min, t.sec)

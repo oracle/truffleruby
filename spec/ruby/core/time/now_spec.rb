@@ -155,6 +155,12 @@ describe "Time.now" do
                   .new(t.year, t.mon, t.mday, t.hour, t.min, t.sec, t.isdst, t.to_i, 'Asia/Tokyo', 9*60*60)
           end
           Time.now(in: zone).utc_offset.should == 0
+
+          zone = Object.new
+          def zone.utc_to_local(t)
+            Time.new(t.year, t.mon, t.mday, t.hour, t.min, t.sec, 9*60*60)
+          end
+          Time.now(in: zone).utc_offset.should == 0
         end
 
         it "raises ArgumentError if difference between argument and result is too large" do
