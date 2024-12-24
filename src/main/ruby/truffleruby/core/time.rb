@@ -459,7 +459,9 @@ class Time
       if in_timezone
         utc_offset = Truffle::Type.coerce_to_utc_offset(in_timezone, time_now, :utc_to_local)
         is_utc = utc_offset_in_utc?(in_timezone)
-        is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)
+        time_in_timezone = is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)
+        Truffle::TimeOperations.set_zone_if_object(time_in_timezone, in_timezone)
+        time_in_timezone
       else
         time_now
       end
