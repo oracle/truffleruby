@@ -7,7 +7,6 @@ fails:Time.new with a timezone argument #name method uses the optional #name met
 fails:Time.new with a timezone argument #name method cannot marshal Time if #name method isn't implemented
 fails:Time.new with a timezone argument subject's class implements .find_timezone method calls .find_timezone to build a time object at loading marshaled data
 fails:Time.new with a timezone argument subject's class implements .find_timezone method calls .find_timezone to build a time object if passed zone name as a timezone argument
-fails:Time.new with a timezone argument subject's class implements .find_timezone method does not call .find_timezone if passed any not string/numeric/timezone timezone argument
 fails:Time.new with a timezone argument Time.new with a String argument accepts precision keyword argument and truncates specified digits of sub-second part
 fails:Time.new with a timezone argument Time.new with a String argument converts precision keyword argument into Integer if is not nil
 fails:Time.new with a timezone argument Time.new with a String argument raise TypeError is can't convert precision keyword argument into Integer
