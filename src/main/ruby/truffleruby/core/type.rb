@@ -493,7 +493,7 @@ module Truffle
       elsif conversion_method == :utc_to_local && Primitive.respond_to?(offset, :utc_to_local, false)
         time ||= Time.now
         as_local = offset.utc_to_local(time.getutc)
-        offset = as_local.utc_offset.nonzero? || as_local.to_i - time.to_i
+        offset = as_local.to_i - time.to_i
       else
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end
