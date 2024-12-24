@@ -481,18 +481,12 @@ module Truffle
       end
     end
 
-    def self.coerce_to_utc_offset(offset, time = nil, conversion_method = nil)
-      offset = String.try_convert(offset) || offset
-
-      if Primitive.is_a? offset, String
-        offset = Truffle::Type.coerce_string_to_utc_offset(offset)
-      elsif conversion_method == :local_to_utc && Primitive.respond_to?(offset, :local_to_utc, false)
-        zone = offset # timezone object
+    def self.calculate_utc_offset_with_timezone_object(zone, conversion_method, time)
+      if conversion_method == :local_to_utc && Primitive.respond_to?(zone, :local_to_utc, false)
         time ||= Time.now
         as_utc = zone.local_to_utc(time.getutc)
         offset = time.to_i - as_utc.to_i
-      elsif conversion_method == :utc_to_local && Primitive.respond_to?(offset, :utc_to_local, false)
-        zone = offset # timezone object
+      elsif conversion_method == :utc_to_local && Primitive.respond_to?(zone, :utc_to_local, false)
         time ||= Time.now
         as_local = zone.utc_to_local(time.getutc)
         offset = if Primitive.is_a?(as_local, Time)
@@ -501,6 +495,19 @@ module Truffle
                    as_local.to_i - time.to_i
                  end
       else
+        return nil
+      end
+
+      validate_utc_offset(offset)
+      offset
+    end
+
+    def self.coerce_to_utc_offset(offset)
+      offset = String.try_convert(offset) || offset
+
+      if Primitive.is_a? offset, String
+        offset = Truffle::Type.coerce_string_to_utc_offset(offset)
+      else
         offset = Truffle::Type.coerce_to_exact_num(offset)
       end
 
@@ -508,11 +515,14 @@ module Truffle
         offset = offset.round
       end
 
+      validate_utc_offset(offset)
+      offset
+    end
+
+    def self.validate_utc_offset(offset)
       if offset <= -86400 || offset >= 86400
         raise ArgumentError, 'utc_offset out of range'
       end
-
-      offset
     end
 
     UTC_OFFSET_WITH_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?::(?<minutes>\d\d)(?::(?<seconds>\d\d))?)?\z/
