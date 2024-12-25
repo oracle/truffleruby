@@ -31,7 +31,7 @@ class BasicSocket < IO
   def self.for_fd(fd)
     sock = allocate
 
-    IO.setup(sock, fd, nil, true)
+    sock.__send__(:setup, fd, nil, true)
     sock.binmode
     # TruffleRuby: start
     sock.do_not_reverse_lookup = do_not_reverse_lookup
@@ -160,6 +160,9 @@ class BasicSocket < IO
         else
           Truffle::Socket::Error.read_error('recv(2)', self)
         end
+      elsif n_bytes == 0 && stream_socket?
+        # no data available to receive and a peer closed connection
+        return nil
       end
 
       str = buf.read_string(n_bytes)
@@ -182,9 +185,7 @@ class BasicSocket < IO
   end
 
   private def internal_recvmsg(max_msg_len, flags, max_control_len, scm_rights, exception)
-    socket_type = getsockopt(:SOCKET, :TYPE).int
-
-    if socket_type == Socket::SOCK_STREAM
+    if stream_socket?
       grow_msg = false
     else
       grow_msg = Primitive.nil?(max_msg_len)
@@ -211,6 +212,9 @@ class BasicSocket < IO
           else
             Truffle::Socket::Error.read_error('recvmsg(2)', self)
           end
+        elsif msg_size == 0 && stream_socket?
+          # no data available to receive and a peer closed connection
+          return nil
         end
 
         if grow_msg and header.message_truncated?
@@ -354,4 +358,18 @@ class BasicSocket < IO
   def getpeereid
     Truffle::Socket::Foreign.getpeereid(Primitive.io_fd(self))
   end
+
+  # is supposed to be called at initializing of every leaf socket class
+  private def setup(fd, mode, sync)
+    IO.setup(self, fd, mode, sync)
+
+    @socket_type = getsockopt(:SOCKET, :TYPE).int
+  end
+
+  # Whether a socket protocol is connection-based/sequenced (SOCK_STREAM) or datagram (SOCK_DGRAM).
+  private def stream_socket?
+    socket_type == Socket::SOCK_STREAM
+  end
+
+  private attr_reader :socket_type
 end

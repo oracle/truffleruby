@@ -40,6 +40,7 @@ Compatibility:
 * Add `Dir.for_fd` (#3681, @andrykonchin).
 * Add `Dir.fchdir` (#3681, @andrykonchin).
 * Add `Dir#chdir` (#3681, @andrykonchin).
+* Socket `#recv*` methods (`{BasicSocket,IPSocket,TCPSocket,UDPSocket,Socket}#{recv,recv_nonblock,recvmsg,recvmsg_nonblock,recvfrom,recvfrom_nonblock}`) return `nil` instead of an empty String on closed connections (#3681, @andrykonchyn).
 
 Performance:
 
