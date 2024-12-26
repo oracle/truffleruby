@@ -1949,6 +1949,12 @@ module Truffle::CExt
     klass.new(*args)
   end
 
+  def rb_data_define_no_splat(klass, attrs)
+    klass ||= Data
+    Truffle::Type.rb_check_type(klass, Data)
+    klass.define(*attrs)
+  end
+
   def yield_no_block
     raise LocalJumpError
   end

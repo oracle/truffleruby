@@ -70,3 +70,14 @@ VALUE rb_struct_members(VALUE s) {
 VALUE rb_struct_size(VALUE s) {
   return RUBY_INVOKE(s, "size");
 }
+
+VALUE rb_tr_data_define_va_list(VALUE super, va_list args) {
+  VALUE ary = rb_ary_new();
+  int i = 0;
+  char *arg;
+  while ((arg = va_arg(args, char*)) != NULL) {
+    rb_ary_push(ary, rb_str_new_cstr(arg));
+    i++;
+  }
+  return RUBY_CEXT_INVOKE("rb_data_define_no_splat", super, ary);
+}

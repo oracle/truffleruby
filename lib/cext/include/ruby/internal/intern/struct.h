@@ -240,6 +240,10 @@ RBIMPL_ATTR_NONNULL((2))
  */
 VALUE rb_struct_define_without_accessor_under(VALUE outer, const char *class_name, VALUE super, rb_alloc_func_t alloc, ...);
 
+#ifdef TRUFFLERUBY
+VALUE rb_tr_data_define_va_list(VALUE super, va_list args);
+#endif
+
 /**
  * Defines an anonymous data class.
  *
@@ -252,7 +256,17 @@ VALUE rb_struct_define_without_accessor_under(VALUE outer, const char *class_nam
  * @exception  rb_eArgError    Duplicated field name.
  * @return     The defined class.
  */
+#ifdef TRUFFLERUBY
+static inline VALUE rb_data_define(VALUE super, ...) {
+    va_list args;
+    va_start(args, super);
+    VALUE result = rb_tr_data_define_va_list(super == 0 ? Qnil : super, args);
+    va_end(args);
+    return result;
+}
+#else
 VALUE rb_data_define(VALUE super, ...);
+#endif
 
 RBIMPL_SYMBOL_EXPORT_END()
 
