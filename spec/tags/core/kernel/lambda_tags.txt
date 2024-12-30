@@ -1,3 +1,2 @@
 fails:Kernel.lambda creates a lambda-style Proc when called with zsuper
 fails:Kernel.lambda does not create lambda-style Procs when captured with #method
-fails:Kernel.lambda when called without a literal block raises when proc isn't a lambda

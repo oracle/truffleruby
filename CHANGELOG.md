@@ -44,6 +44,7 @@ Compatibility:
 * Support `symbolize_names` argument to `MatchData#named_captures` (#3681, @rwstauner).
 * Support `Proc#initialize_{dup,copy}` for subclasses (#3681, @rwstauner).
 * Remove deprecated `Encoding#replicate` method (#3681, @rwstauner).
+* `Kernel#lambda` with now raises `ArgumentError` when given a non-lambda, non-literal block (#3681, @Th3-M4jor).
 
 Performance:
 
