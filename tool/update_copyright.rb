@@ -90,6 +90,7 @@ excludes = %w[
   src/main/c/io-console
   src/main/c/nkf
   src/main/c/openssl
+  src/main/c/prism-gem
   src/main/c/psych
   src/main/c/rbconfig-sizeof
   src/main/c/ripper
