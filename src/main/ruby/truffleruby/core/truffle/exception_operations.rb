@@ -353,10 +353,7 @@ module Truffle
     end
 
     def self.format_errno_error_message(errno_description, errno, extra_message, location)
-      message = errno_description || "Unknown error: #{errno}"
-      message += " @ #{location}" if location
-      message += " - #{extra_message}" if extra_message
-      +message
+      "#{errno_description || "Unknown error: #{errno}"}#{" @ #{location}" if location}#{" - #{extra_message}" if extra_message}"
     end
   end
 end
