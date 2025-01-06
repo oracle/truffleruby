@@ -19,6 +19,8 @@ import java.nio.charset.Charset;
 import org.graalvm.shadowed.org.jline.terminal.Attributes;
 import org.graalvm.shadowed.org.jline.terminal.Size;
 import org.graalvm.shadowed.org.jline.terminal.impl.AbstractTerminal;
+import org.graalvm.shadowed.org.jline.terminal.spi.SystemStream;
+import org.graalvm.shadowed.org.jline.terminal.spi.TerminalProvider;
 import org.graalvm.shadowed.org.jline.utils.NonBlocking;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingReader;
@@ -97,4 +99,13 @@ public final class SingleThreadTerminal extends AbstractTerminal {
         this.size.copy(size);
     }
 
+    @Override
+    public TerminalProvider getProvider() {
+        return null;
+    }
+
+    @Override
+    public SystemStream getSystemStream() {
+        return null;
+    }
 }
