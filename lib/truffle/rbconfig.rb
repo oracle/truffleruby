@@ -145,6 +145,9 @@ module RbConfig
 
     warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
     warnflags << '-Werror' # Make sure there are no warnings in core C extensions
+    # If there are deprecations in core C extensions, do not error for them.
+    # This would be problematic for extconf.rb checks as they would think such deprecated functions do not exist.
+    warnflags << '-Wno-error=deprecated-declarations'
   else
     libtruffleruby = "#{cext_dir}/libtruffleruby.#{soext}"
     libtrufflerubytrampoline = "#{cext_dir}/libtrufflerubytrampoline.#{soext}"

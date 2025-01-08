@@ -13,11 +13,6 @@
 
 require "mkmf"
 
-if defined?(::TruffleRuby)
-  # Needed with libssl 3.0.0 and -Werror from building core C extensions
-  $warnflags += ' -Wno-deprecated-declarations'
-end
-
 ssl_dirs = nil
 if defined?(::TruffleRuby)
   # Always respect the openssl prefix chosen by truffle/openssl-prefix
