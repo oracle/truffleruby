@@ -99,7 +99,7 @@ public abstract class RefinementNodes {
         }
     }
 
-    @CoreMethod(names = "refined_class")
+    @CoreMethod(names = { "refined_class", "target" })
     public abstract static class RefinedClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
