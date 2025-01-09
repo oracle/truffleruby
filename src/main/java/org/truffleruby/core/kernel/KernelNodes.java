@@ -1130,6 +1130,7 @@ public abstract class KernelNodes {
 
     }
 
+    // See InlinedLambdaNode for the fast path
     @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true, split = Split.HEURISTIC)
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
