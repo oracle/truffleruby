@@ -1130,6 +1130,7 @@ public abstract class KernelNodes {
 
     }
 
+    // See InlinedLambdaNode for the fast path
     @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true, split = Split.HEURISTIC)
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
@@ -1148,23 +1149,17 @@ public abstract class KernelNodes {
             return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
         }
 
-        @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
-        RubyProc lambdaFromExistingProc(RubyProc block,
-                @Cached WarnNode warnNode) {
-            if (warnNode.shouldWarnForDeprecation()) {
-                warnNode.warningMessage(
-                        getContext().getCallStack().getTopMostUserSourceSection(),
-                        "lambda without a literal block is deprecated; use the proc without lambda instead");
-            }
-
-            // If the argument isn't a literal, its original behaviour (proc or lambda) is preserved.
+        @Specialization(guards = { "!isLiteralBlock(block)", "block.isLambda()" })
+        RubyProc lambdaFromExistingLambda(RubyProc block) {
+            // If the argument isn't a literal, its original behaviour is preserved only if its a lambda.
             return block;
         }
 
-        @Specialization(guards = { "!isLiteralBlock(block)", "block.isLambda()" })
+        @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
         RubyProc lambdaFromExistingProc(RubyProc block) {
-            // If the argument isn't a literal, its original behaviour (proc or lambda) is preserved.
-            return block;
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().argumentError("the lambda method requires a literal block", this));
         }
 
         @TruffleBoundary
