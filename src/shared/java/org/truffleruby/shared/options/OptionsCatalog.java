@@ -71,7 +71,7 @@ public final class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_NEW_FIBER_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> CEXTS_PANAMA_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> CEXTS_PANAMA_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> OPTIONS_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);
