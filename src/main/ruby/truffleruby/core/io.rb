@@ -817,17 +817,17 @@ class IO
   #
   # The +sync+ attribute will also be set.
   def self.setup(io, fd, mode, sync)
-    if !Truffle::Boot.preinitializing? && Truffle::POSIX::NATIVE
-      cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
-      Errno.handle if cur_mode < 0
-      cur_mode &= ACCMODE
-    end
+    raise Errno::EBADF if fd < 0
 
     if mode
       mode = Truffle::IOOperations.parse_mode(mode)
       mode &= ACCMODE
+    elsif !Truffle::Boot.preinitializing? && Truffle::POSIX::NATIVE
+      mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
+      Errno.handle if mode < 0
+      mode &= ACCMODE
     else
-      mode = cur_mode or raise 'No mode given for IO'
+      raise 'No mode given for IO'
     end
 
     # Close old descriptor if there was already one associated
