@@ -53,6 +53,7 @@ MRI_TEST_RETAG_RETAIN_PATTERNS = [
   /transient/,
   /if RUBY_PLATFORM/,
   /pid \d+ (exit|killed)/,
+  /GR-\d+/ # mentioning an existing ticket number
 ]
 
 RUBOCOP_INCLUDE_LIST = %w[
