@@ -46,6 +46,7 @@ Compatibility:
 * Support `Proc#initialize_{dup,copy}` for subclasses (#3681, @rwstauner).
 * Remove deprecated `Encoding#replicate` method (#3681, @rwstauner).
 * Add `ObjectSpace::WeakMap#delete` (#3681, @andrykonchin).
+* Add `Range#overlap?` (#3681, @andrykonchin).
 
 Performance:
 

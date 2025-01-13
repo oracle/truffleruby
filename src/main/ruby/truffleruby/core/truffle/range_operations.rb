@@ -138,5 +138,18 @@ module Truffle
 
       true
     end
+
+    # MRI: empty_region_p
+    def self.greater_than?(from, to, to_exclusive)
+      return false if Primitive.nil?(from)
+      return false if Primitive.nil?(to)
+
+      cmp = from <=> to
+
+      return true if Primitive.nil?(cmp)
+      return true if cmp == 0 && to_exclusive
+
+      cmp > 0 # that's from > to
+    end
   end
 end
