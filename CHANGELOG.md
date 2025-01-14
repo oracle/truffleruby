@@ -11,6 +11,7 @@ Bug fixes:
 * Support OpenSSL 1.1-3.4 and prefer in order OpenSSL 3.0.x, 3.x and 1.1 (EOL). There was a compilation issue with OpenSSL 3.4 (#3724, @eregon).
 * Fix `Time{.at,.new,.now,#getlocal,#localtime}` methods and validation of seconds in utc offset in String format (@andrykonchin).
 * Fix `ObjectSpace.undefine_finalizer` and raise `FrozenError` when called for a frozen object (@andrykonchin).
+* Fix `Integer#/` when called with a bignum argument (@andrykonchin).
 
 Compatibility:
 
