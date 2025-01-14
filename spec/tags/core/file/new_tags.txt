@@ -1,1 +1,2 @@
 fails:File.new does not use the given block and warns to use File::open
+fails:File.new can't alter mode or permissions when opening a file
