@@ -28,7 +28,7 @@ import com.oracle.truffle.api.dsl.Specialization;
  * Also useful to split Ruby methods which do something like `if obj.is_a?(Foo) then foo else bar end`
  * such as NoBorderImagePadded#index used by NoBorderImage#[] in the image-demo benchmarks. */
 @GenerateUncached
-@ReportPolymorphism // see commment above
+@ReportPolymorphism // see comment above
 public abstract class IsANode extends RubyBaseNode {
 
     @NeverDefault

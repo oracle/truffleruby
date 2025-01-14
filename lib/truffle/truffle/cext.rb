@@ -1949,6 +1949,17 @@ module Truffle::CExt
     klass.new(*args)
   end
 
+  def rb_data_define_no_splat(klass, attrs)
+    klass ||= Data
+    Truffle::Type.rb_check_type(klass, Class)
+
+    unless klass <= Data
+      raise TypeError, 'invalid Class for rb_data_define(), expected Data or a subclass of Data'
+    end
+
+    klass.define(*attrs)
+  end
+
   def yield_no_block
     raise LocalJumpError
   end
