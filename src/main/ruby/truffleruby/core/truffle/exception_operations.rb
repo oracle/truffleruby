@@ -76,8 +76,10 @@ module Truffle
     def self.receiver_string(receiver)
       ret = begin
         case receiver
-        when NilClass, TrueClass, FalseClass
-          Truffle::Type.rb_inspect(receiver)
+        when true, false
+          receiver.to_s
+        when nil
+          'nil'
         when Class
           "class #{receiver}"
         when Module
