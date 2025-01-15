@@ -28,6 +28,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class BasicSocket < IO
+  undef_method :initialize
+
   def self.for_fd(fd)
     sock = allocate
 
