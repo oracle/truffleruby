@@ -75,20 +75,31 @@ module Truffle
     # MRI: name_err_mesg_to_str
     def self.receiver_string(receiver)
       ret = begin
-        if Primitive.respond_to?(receiver, :inspect, false)
-          Truffle::Type.rb_inspect(receiver)
+        case receiver
+        when true, false
+          receiver.to_s
+        when nil
+          'nil'
+        when Class
+          name = receiver.name || receiver.to_s
+          "class #{name}"
+        when Module
+          name = receiver.name || receiver.to_s
+          "module #{name}"
         else
-          nil
+          klass = Primitive.metaclass(receiver)
+
+          unless klass.singleton_class?
+            class_name = klass.name || klass.to_s
+            "an instance of #{class_name}"
+          end
+          # otherwise fall through to rb_any_to_s
         end
       rescue Exception # rubocop:disable Lint/RescueException
         nil
       end
-      ret = Primitive.rb_any_to_s(receiver) unless ret && ret.bytesize <= 65
-      if ret.start_with?('#')
-        ret
-      else
-        "#{ret}:#{class_name(receiver)}"
-      end
+      ret = Primitive.rb_any_to_s(receiver) unless ret
+      ret
     end
 
     # MRI: inspect_frozen_obj

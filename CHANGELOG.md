@@ -50,6 +50,7 @@ Compatibility:
 * Add `rb_data_define()` to define Data (#3681, @andrykonchin).
 * Add `Refinement#target` (#3681, @andrykonchin).
 * Add `Range#overlap?` (#3681, @andrykonchin).
+* Update `NoMethodError#message` to not use `#inspect` on receiver (#3681, @rwstauner).
 
 Performance:
 
