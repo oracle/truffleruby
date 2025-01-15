@@ -52,6 +52,7 @@ Compatibility:
 * Add `Range#overlap?` (#3681, @andrykonchin).
 * Update `NoMethodError#message` to not use `#inspect` on receiver (#3681, @rwstauner).
 * Socket `#recv*` methods (`{BasicSocket,IPSocket,TCPSocket,UDPSocket,Socket}#{recv,recv_nonblock,recvmsg,recvmsg_nonblock,recvfrom,recvfrom_nonblock}`) return `nil` instead of an empty String on closed connections (#3681, @andrykonchyn).
+* Fix `Marshal.dump` when a Float value is dumped repeatedly (#3747, @andrykochin).
 
 Performance:
 
