@@ -249,6 +249,22 @@ describe "NoMethodError#message" do
         ScratchPad.recorded.should == []
       end
     end
+
+    it "does not truncate long class names" do
+      class_name = 'ExceptionSpecs::A' + 'a'*100
+
+      begin
+        eval <<~RUBY
+          class #{class_name}
+          end
+
+          obj = #{class_name}.new
+          obj.foo
+        RUBY
+      rescue NoMethodError => error
+        error.message.should =~ /\Aundefined method [`']foo' for an instance of #{class_name}\Z/
+      end
+    end
   end
 end
 

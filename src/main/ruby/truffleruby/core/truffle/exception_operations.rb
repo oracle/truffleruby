@@ -98,7 +98,7 @@ module Truffle
       rescue Exception # rubocop:disable Lint/RescueException
         nil
       end
-      ret = Primitive.rb_any_to_s(receiver) unless ret && ret.bytesize <= 65
+      ret = Primitive.rb_any_to_s(receiver) unless ret
       ret
     end
 
