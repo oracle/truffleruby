@@ -49,6 +49,7 @@ Compatibility:
 * `Kernel#lambda` with now raises `ArgumentError` when given a non-lambda, non-literal block (#3681, @Th3-M4jor).
 * Add `rb_data_define()` to define Data (#3681, @andrykonchin).
 * Add `Refinement#target` (#3681, @andrykonchin).
+* Add `Range#overlap?` (#3681, @andrykonchin).
 
 Performance:
 

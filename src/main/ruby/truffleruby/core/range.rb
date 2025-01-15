@@ -442,6 +442,20 @@ class Range
     end
   end
 
+  def overlap?(other)
+    Truffle::Type.rb_check_type(other, Range)
+
+    # ranges don't overlap
+    return false if Truffle::RangeOperations.greater_than?(self.begin, other.end, other.exclude_end?)
+    return false if Truffle::RangeOperations.greater_than?(other.begin, self.end, self.exclude_end?)
+
+    # empty range doesn't overlap any other range
+    return false if Truffle::RangeOperations.greater_than?(self.begin, self.end, self.exclude_end?)
+    return false if Truffle::RangeOperations.greater_than?(other.begin, other.end, other.exclude_end?)
+
+    true
+  end
+
   def %(n)
     Truffle::RangeOperations.step_no_block(self, n)
   end
