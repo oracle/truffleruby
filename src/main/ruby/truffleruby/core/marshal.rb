@@ -641,11 +641,22 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      # Skip entities that cannot be referenced as objects.
-      # Integers that are bigger than 4 bytes also increase the object links counter.
-      # All Floats - as well, even CRuby's Flonums that are immediate values.
-      return if Primitive.immediate_value?(obj) && !serialize_as_bignum?(obj) && !Primitive.is_a?(obj, Float)
-      add_object(obj)
+      # Skip entities that cannot be referenced as objects in Marshal format.
+      #
+      # The following objects are considered immediate in Ruby
+      # - nil, true, false
+      # - Float,
+      # - Integer that fits in native long
+      # - Symbol
+      #
+      # The Marshal format has some additional rules:
+      # - Float is always serialized as object, so it is not "immediate"
+      # - Integer is "immediate" only if it is immediate on the x32 architecture that is fits in 4 bytes
+
+      unless Primitive.nil?(obj) || Primitive.true?(obj) || Primitive.false?(obj) || Primitive.is_a?(obj, Symbol) ||
+        (Primitive.is_a?(obj, Integer) && !serialize_as_bignum?(obj))
+        add_object(obj)
+      end
     end
 
     def add_object(obj)
