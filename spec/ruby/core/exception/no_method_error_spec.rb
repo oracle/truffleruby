@@ -149,10 +149,12 @@ describe "NoMethodError#message" do
     end
 
     it "uses #name when receiver is a class" do
+      klass = Class.new { def self.name; "MyClass"; end }
+
       begin
-        NoMethodErrorSpecs::AClass.foo
+        klass.foo
       rescue NoMethodError => error
-        error.message.should =~ /\Aundefined method [`']foo' for class NoMethodErrorSpecs::AClass\Z/
+        error.message.should =~ /\Aundefined method [`']foo' for class MyClass\Z/
       end
     end
 
@@ -178,10 +180,12 @@ describe "NoMethodError#message" do
     end
 
     it "uses #name when receiver is a module" do
+      mod = Module.new { def self.name; "MyModule"; end }
+
       begin
-        NoMethodErrorSpecs::AModule.foo
+        mod.foo
       rescue NoMethodError => error
-        error.message.should =~ /\Aundefined method [`']foo' for module NoMethodErrorSpecs::AModule\Z/
+        error.message.should =~ /\Aundefined method [`']foo' for module MyModule\Z/
       end
     end
 
@@ -195,13 +199,14 @@ describe "NoMethodError#message" do
       end
     end
 
-    it "uses class name when receiver is an ordinary object" do
-      instance = NoMethodErrorSpecs::NoMethodErrorA.new
+    it "uses class #name when receiver is an ordinary object" do
+      klass = Class.new { def self.name; "MyClass"; end }
+      instance = klass.new
 
       begin
         instance.bar
       rescue NoMethodError => error
-        error.message.should =~ /\Aundefined method [`']bar' for an instance of NoMethodErrorSpecs::NoMethodErrorA\Z/
+        error.message.should =~ /\Aundefined method [`']bar' for an instance of MyClass\Z/
       end
     end
 

@@ -81,13 +81,17 @@ module Truffle
         when nil
           'nil'
         when Class
-          "class #{receiver}"
+          name = receiver.name || receiver.to_s
+          "class #{name}"
         when Module
-          "module #{receiver}"
+          name = receiver.name || receiver.to_s
+          "module #{name}"
         else
           klass = Primitive.metaclass(receiver)
+
           unless klass.singleton_class?
-            "an instance of #{klass}"
+            class_name = klass.name || klass.to_s
+            "an instance of #{class_name}"
           end
           # otherwise fall through to rb_any_to_s
         end
