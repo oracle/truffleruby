@@ -44,8 +44,7 @@ class IPSocket < BasicSocket
 
   private def internal_recvfrom(maxlen, flags, buffer, exception)
     message, addr = internal_recvmsg(maxlen, flags, nil, false, exception)
-
-    return message if message == :wait_readable
+    return message if message == :wait_readable || Primitive.nil?(message)
 
     aname    = Truffle::Socket.address_family_name(addr.afamily)
     hostname = addr.ip_address
