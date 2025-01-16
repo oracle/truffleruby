@@ -45,3 +45,7 @@ bool rb_warning_category_enabled_p(rb_warning_category_t category) {
         return true;
     }
 }
+
+void rb_tr_warn_va_list(const char *fmt, va_list args) {
+  RUBY_CEXT_INVOKE("rb_tr_warn", rb_vsprintf(fmt, args));
+}
