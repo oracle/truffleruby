@@ -1390,9 +1390,6 @@ console_clear_screen(VALUE io)
 }
 
 #ifndef HAVE_RB_IO_OPEN_DESCRIPTOR
-// Suppress deprecation for rb_io_t fields, it is used because we don't have rb_io_open_descriptor() yet
-RBIMPL_WARNING_PUSH()
-RBIMPL_WARNING_IGNORED(-Wdeprecated-declarations)
 static VALUE
 io_open_descriptor_fallback(VALUE klass, int descriptor, int mode, VALUE path, VALUE timeout, void *encoding)
 {
@@ -1413,13 +1410,9 @@ io_open_descriptor_fallback(VALUE klass, int descriptor, int mode, VALUE path, V
     return self;
 }
 #define rb_io_open_descriptor io_open_descriptor_fallback
-RBIMPL_WARNING_POP()
 #endif
 
 #ifndef HAVE_RB_IO_CLOSED_P
-// Suppress deprecation for rb_io_t fields, it is used because we don't have rb_io_closed_p() yet
-RBIMPL_WARNING_PUSH()
-RBIMPL_WARNING_IGNORED(-Wdeprecated-declarations)
 static VALUE
 rb_io_closed_p_fallback(VALUE io)
 {
@@ -1427,7 +1420,6 @@ rb_io_closed_p_fallback(VALUE io)
     return fptr->fd == -1 ? Qtrue : Qfalse;
 }
 #define rb_io_closed_p rb_io_closed_p_fallback
-RBIMPL_WARNING_POP()
 #endif
 
 /*
