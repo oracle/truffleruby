@@ -101,9 +101,9 @@ public abstract class ProcNodes {
 
         @Specialization
         RubyProc clone(RubyProc proc,
-                @Cached DispatchNode initializeCopyNode) {
+                @Cached DispatchNode initializeCloneNode) {
             final RubyProc copy = ProcOperations.duplicate(proc.getLogicalClass(), getLanguage().procShape, proc, this);
-            initializeCopyNode.call(copy, "initialize_copy", proc);
+            initializeCloneNode.call(copy, "initialize_clone", proc);
             return copy;
         }
     }
