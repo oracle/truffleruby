@@ -99,6 +99,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     /** Either fully qualified name or lazily evaluated anonymous name */
     private String name = null;
     private ImmutableRubyString rubyStringName;
+    /** A temporary name assigned to an anonymous module */
+    private String temporaryName = null;
+    /** Whether a temporary name is assigned. Is needed to distinguish a case when nil value is assigned. */
+    private boolean isTemporaryNameAssigned = false;
 
     /** Whether this is a refinement module (R), created by #refine */
     private boolean isRefinement = false;
@@ -172,6 +176,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         assert name != null;
 
         if (!hasFullName()) {
+            resetTemporaryName();
+
             if (lexicalParent == getObjectClass()) {
                 this.setFullName(name);
                 nameChildrenModules(context);
@@ -180,7 +186,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 nameChildrenModules(context);
             } else {
                 // Our lexicalParent is also an anonymous module
-                // and will name us when it gets named via updateAnonymousChildrenModules(),
+                // and will name us when it gets named via nameChildrenModules(),
                 // or we'll compute an anonymous name on #getName() if needed
             }
         }
@@ -717,11 +723,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public String getName() {
-        final String name = this.name;
+        // Lazily compute the anonymous name because it is expensive
         if (name == null) {
-            // Lazily compute the anonymous name because it is expensive
-            return getAnonymousName();
+            recomputeAnonymousName();
         }
+
+        assert name != null;
         return name;
     }
 
@@ -737,10 +744,19 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    private String getAnonymousName() {
-        final String anonymousName = createAnonymousName();
-        setName(anonymousName);
-        return anonymousName;
+    private void recomputeAnonymousName() {
+        if (!isAnonymous()) {
+            return;
+        }
+
+        final String newName;
+        if (temporaryName != null) {
+            newName = temporaryName;
+        } else {
+            newName = createFullyQualifiedAnonymousName();
+        }
+
+        setName(newName);
     }
 
     public void setFullName(String name) {
@@ -756,6 +772,17 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
+    public void setTemporaryName(String name) {
+        this.temporaryName = name;
+        this.isTemporaryNameAssigned = true;
+        recomputeAnonymousName();
+    }
+
+    private void resetTemporaryName() {
+        temporaryName = null;
+        isTemporaryNameAssigned = false;
+    }
+
     public Object getRubyStringName() {
         if (hasPartialName()) {
             if (rubyStringName == null) {
@@ -769,7 +796,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    private String createAnonymousName() {
+    private String createFullyQualifiedAnonymousName() {
         if (givenBaseName != null) {
             if (lexicalParent == getObjectClass()) {
                 return givenBaseName;
@@ -804,8 +831,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return hasFullName;
     }
 
+    /** Whether Module#name Ruby method returns a value other than nil */
     public boolean hasPartialName() {
-        return hasFullName() || givenBaseName != null;
+        return hasFullName() || temporaryName != null || (givenBaseName != null && !isTemporaryNameAssigned);
     }
 
     public boolean isAnonymous() {
