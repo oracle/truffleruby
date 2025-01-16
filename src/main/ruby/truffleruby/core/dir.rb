@@ -373,9 +373,10 @@ class Dir
         begin
           yield
         ensure
-          Primitive.dir_set_truffle_working_directory(original_path)
           ret = Truffle::POSIX.fchdir original_dir.fileno
           Errno.handle('fchdir') if ret != 0
+
+          Primitive.dir_set_truffle_working_directory(original_path)
           original_dir.close
         end
       else
