@@ -177,7 +177,7 @@ ruby_version_is '3.3' do
       dir.close
     end
 
-    it "raises an Errno::ENOENT if the original directory no longer exists" do
+    it "does not raise an Errno::ENOENT if the original directory no longer exists" do
       dir_name1 = tmp('testdir1')
       dir_name2 = tmp('testdir2')
       Dir.should_not.exist?(dir_name1)
@@ -185,20 +185,19 @@ ruby_version_is '3.3' do
       Dir.mkdir dir_name1
       Dir.mkdir dir_name2
 
-      dir1 = Dir.new(dir_name1)
+      dir2 = Dir.new(dir_name2)
 
       begin
-        -> {
-          dir1.chdir do
-            Dir.chdir(dir_name2) { Dir.unlink dir_name1 }
-          end
-        }.should raise_error(Errno::ENOENT)
+        Dir.chdir(dir_name1) do
+          dir2.chdir { Dir.unlink dir_name1 }
+        end
+        Dir.pwd.should == @original
       ensure
         Dir.unlink dir_name1 if Dir.exist?(dir_name1)
         Dir.unlink dir_name2 if Dir.exist?(dir_name2)
       end
     ensure
-      dir1.close
+      dir2.close
     end
 
     it "always returns to the original directory when given a block" do
