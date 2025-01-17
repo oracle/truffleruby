@@ -769,6 +769,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.name = name;
         if (hasPartialName()) {
             this.rubyStringName = language.getFrozenStringLiteral(TStringUtils.utf8TString(name), Encodings.UTF_8);
+        } else {
+            this.rubyStringName = null;
         }
     }
 
