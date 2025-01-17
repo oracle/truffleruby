@@ -836,7 +836,10 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     /** Whether Module#name Ruby method returns a value other than nil */
     public boolean hasPartialName() {
-        return hasFullName() || temporaryName != null || (givenBaseName != null && !isTemporaryNameAssigned);
+        if (isTemporaryNameAssigned) {
+            return temporaryName != null;
+        }
+        return hasFullName() || givenBaseName != null;
     }
 
     public boolean isAnonymous() {
