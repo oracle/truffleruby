@@ -645,7 +645,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         boolean isAnonymous(RubyModule module) {
-            return module.fields.isAnonymous();
+            return module.fields.isAnonymousOrTemporary();
         }
 
     }
@@ -2292,6 +2292,48 @@ public abstract class ModuleNodes {
             final ModuleFields refinementFields = refinement.fields;
             refinementFields.setupRefinementModule(moduleToRefine, namespace);
             return refinement;
+        }
+
+    }
+
+    @CoreMethod(names = "set_temporary_name", required = 1)
+    public abstract static class SetTemporaryNameNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        RubyModule setTemporaryName(RubyModule self, Object name,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            if (name == nil) {
+                self.fields.setTemporaryName(null);
+                return self;
+            }
+
+            final String string = toJavaStringNode.execute(this, name);
+            validateName(string, self);
+            self.fields.setTemporaryName(string);
+
+            return self;
+        }
+
+        private void validateName(String name, RubyModule self) {
+            if (name.isEmpty()) {
+                throw new RaiseException(
+                        getContext(this),
+                        coreExceptions(this).argumentError("empty class/module name", this));
+            }
+
+            if (self.fields.hasFullName()) {
+                throw new RaiseException(
+                        getContext(this),
+                        coreExceptions(this).runtimeError("can't change permanent name", this));
+            }
+
+            if (Identifiers.isValidConstantPath(name)) {
+                throw new RaiseException(
+                        getContext(this),
+                        coreExceptions(this).argumentError(
+                                "the temporary name must not be a constant path to avoid confusion", this));
+            }
         }
 
     }

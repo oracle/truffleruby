@@ -59,6 +59,7 @@ Compatibility:
 * Emit warning when `Kernel#format` called with excessive arguments (@andrykonchin).
 * Fix `Integer#ceil` when self is 0 (@andrykonchin).
 * Fix `Module#remove_const` and emit warning when constant is deprecated (@andrykonchin).
+* Add `Module#set_temporary_name` (#3681, @andrykonchin).
 
 Performance:
 
