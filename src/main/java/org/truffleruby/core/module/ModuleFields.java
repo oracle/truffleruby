@@ -90,14 +90,34 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private final PrependMarker start;
 
-    private final RubyModule lexicalParent;
-    /** Module (or class) own explicitly specified name */
-    public final String givenBaseName;
+    /**
+     * <pre>
+     * Naming modules is complicated, we try to summarize the transitions here.
+     * fully named (simple): module M; end -> module with givenBaseName="M" hasFullName=true
+     * fully named (nested): module N; module M; end; end -> module with name="N::M" hasFullName=true
+     * anonymous: Module.new -> #name is nil, #inspect is #<Module:0x...>
+     * nested-anonymous: m = Module.new; module m::N; end -> givenBaseName="N" hasFullName=false hasPartialName=true #name is "#<Module:0x...>::N"
+     *
+     * Transitions:
+     * * anonymous to nested-anonymous, by constant assignment
+     * * anonymous/nested-anonymous to full, by constant assignment (for anonymous), or lexical parent gets fully named (for nested-anonymous)
+     * * temporary to full, by constant assignment or lexical parent gets fully named
+     * * anonymous/nested-anonymous to temporary, by set_temporary_name("...") or set_temporary_name(nil)
+     * * temporary to temporary, by set_temporary_name("...") or set_temporary_name(nil)
+     * They form a lattice/total order, as it's never possible to go back from a transition
+     *
+     * Note there is no temporary to anonymous/nested-anonymous, it just stays temporary in that case.
+     * </pre>
+     */
 
+    private final RubyModule lexicalParent;
+    /** Module (or class) own explicitly specified name: either `class Foo` or `module Foo` or a core module/class */
+    public final String givenBaseName;
     /** Means whether a fully qualified name (with parent lexical scope names) is already set */
     private boolean hasFullName = false;
-    /** Either fully qualified name or lazily evaluated anonymous name */
+    /** Either fully qualified name or lazily evaluated anonymous name, or temporary name */
     private String name = null;
+    /** Same as {@link #name} except null if {@link #hasPartialName()} */
     private ImmutableRubyString rubyStringName;
     /** A temporary name assigned to an anonymous module */
     private String temporaryName = null;
