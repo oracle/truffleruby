@@ -10,7 +10,6 @@
 package org.truffleruby.core.proc;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -21,7 +20,6 @@ import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -123,24 +121,6 @@ public abstract class ProcOperations {
         // Inefficient otherwise, check upstream, in a guard if possible.
         assert block.type == ProcType.LAMBDA;
         return convertBlock(context, language, block, ProcType.PROC);
-    }
-
-    public static RubyProc duplicate(RubyClass procClass, Shape shape, RubyProc proc, Node node) {
-        final RubyProc copy = new RubyProc(
-                procClass,
-                shape,
-                proc.type,
-                proc.arity,
-                proc.argumentDescriptors,
-                proc.callTargets,
-                proc.callTarget,
-                proc.declarationFrame,
-                proc.declarationVariables,
-                proc.declaringMethod,
-                proc.frameOnStackMarker,
-                proc.declarationContext);
-        AllocationTracing.trace(copy, node);
-        return copy;
     }
 
     public static Object getSelf(RubyProc proc) {

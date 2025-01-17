@@ -460,8 +460,8 @@ class Range
     Truffle::RangeOperations.step_no_block(self, n)
   end
 
-  private def reverse_each_internal(&block)
-    return to_enum { size } unless block_given?
+  def reverse_each(&block)
+    return to_enum(:reverse_each) { size } unless block_given?
 
     if Primitive.nil?(self.end)
       raise TypeError, "can't iterate from NilClass"

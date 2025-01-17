@@ -86,7 +86,7 @@ public abstract class ProcNodes {
                 @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
-            final RubyProc proc = ProcOperations.duplicate(procClass, getLanguage().procShape, block, this);
+            final RubyProc proc = block.duplicate(procClass, getLanguage().procShape, this);
             initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
         }
@@ -101,9 +101,9 @@ public abstract class ProcNodes {
 
         @Specialization
         RubyProc clone(RubyProc proc,
-                @Cached DispatchNode initializeCopyNode) {
-            final RubyProc copy = ProcOperations.duplicate(proc.getLogicalClass(), getLanguage().procShape, proc, this);
-            initializeCopyNode.call(copy, "initialize_copy", proc);
+                @Cached DispatchNode initializeCloneNode) {
+            final RubyProc copy = proc.duplicate(getLanguage().procShape, this);
+            initializeCloneNode.call(copy, "initialize_clone", proc);
             return copy;
         }
     }
@@ -114,7 +114,7 @@ public abstract class ProcNodes {
         @Specialization
         RubyProc dup(RubyProc proc,
                 @Cached DispatchNode initializeDupNode) {
-            final RubyProc copy = ProcOperations.duplicate(proc.getLogicalClass(), getLanguage().procShape, proc, this);
+            final RubyProc copy = proc.duplicate(getLanguage().procShape, this);
             initializeDupNode.call(copy, "initialize_dup", proc);
             return copy;
         }

@@ -22,6 +22,7 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.SpecialVariableStorage;
@@ -96,6 +97,28 @@ public final class RubyProc extends RubyDynamicObject implements ObjectGraphNode
                 declaringMethod,
                 frameOnStackMarker,
                 declarationContext);
+    }
+
+    public RubyProc duplicate(RubyClass procClass, Shape shape, Node node) {
+        final RubyProc copy = new RubyProc(
+                procClass,
+                shape,
+                this.type,
+                this.arity,
+                this.argumentDescriptors,
+                this.callTargets,
+                this.callTarget,
+                this.declarationFrame,
+                this.declarationVariables,
+                this.declaringMethod,
+                this.frameOnStackMarker,
+                this.declarationContext);
+        AllocationTracing.trace(copy, node);
+        return copy;
+    }
+
+    public RubyProc duplicate(Shape shape, Node node) {
+        return duplicate(this.getLogicalClass(), shape, node);
     }
 
     @Override
