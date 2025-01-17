@@ -258,7 +258,7 @@ public final class PrintfSimpleTreeBuilder {
                         break;
                     default:
                         throw new UnsupportedOperationException(
-                                "unsupported type: " + config.getFormatType().toString());
+                                "unsupported type: " + config.getFormatType());
                 }
 
             }

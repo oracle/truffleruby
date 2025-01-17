@@ -9,6 +9,9 @@ Bug fixes:
 * Fix `Module#name` called inside the `Module#const_added` callback when the module is defined in the top-level scope (#3683, @andrykonchin).
 * Fix duplicated calls of a `Module#const_added` callback when a module with nested modules is assigned to a constant (@andrykonchin).
 * Support OpenSSL 1.1-3.4 and prefer in order OpenSSL 3.0.x, 3.x and 1.1 (EOL). There was a compilation issue with OpenSSL 3.4 (#3724, @eregon).
+* Fix `Time{.at,.new,.now,#getlocal,#localtime}` methods and validation of seconds in utc offset in String format (@andrykonchin).
+* Fix `ObjectSpace.undefine_finalizer` and raise `FrozenError` when called for a frozen object (@andrykonchin).
+* Fix `Integer#/` when called with a bignum argument (@andrykonchin).
 
 Compatibility:
 
@@ -53,6 +56,9 @@ Compatibility:
 * Update `NoMethodError#message` to not use `#inspect` on receiver (#3681, @rwstauner).
 * Socket `#recv*` methods (`{BasicSocket,IPSocket,TCPSocket,UDPSocket,Socket}#{recv,recv_nonblock,recvmsg,recvmsg_nonblock,recvfrom,recvfrom_nonblock}`) return `nil` instead of an empty String on closed connections (#3681, @andrykonchyn).
 * Fix `Marshal.dump` when a Float value is dumped repeatedly (#3747, @andrykochin).
+* Emit warning when `Kernel#format` called with excessive arguments (@andrykonchin).
+* Fix `Integer#ceil` when self is 0 (@andrykonchin).
+* Fix `Module#remove_const` and emit warning when constant is deprecated (@andrykonchin).
 
 Performance:
 
