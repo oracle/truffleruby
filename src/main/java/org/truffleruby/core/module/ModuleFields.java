@@ -176,8 +176,6 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         assert name != null;
 
         if (!hasFullName()) {
-            resetTemporaryName();
-
             if (lexicalParent == getObjectClass()) {
                 this.setFullName(name);
                 nameChildrenModules(context);
@@ -725,7 +723,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public String getName() {
         // Lazily compute the anonymous name because it is expensive
         if (name == null) {
-            recomputeAnonymousName();
+            recomputeAnonymousOrTemporaryName();
         }
 
         assert name != null;
@@ -744,8 +742,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    private void recomputeAnonymousName() {
-        if (!isAnonymous()) {
+    private void recomputeAnonymousOrTemporaryName() {
+        if (!isAnonymousOrTemporary()) {
             return;
         }
 
@@ -778,7 +776,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void setTemporaryName(String name) {
         this.temporaryName = name;
         this.isTemporaryNameAssigned = true;
-        recomputeAnonymousName();
+        recomputeAnonymousOrTemporaryName();
     }
 
     private void resetTemporaryName() {
@@ -842,7 +840,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return hasFullName() || givenBaseName != null;
     }
 
-    public boolean isAnonymous() {
+    public boolean isAnonymousOrTemporary() {
         return !this.hasFullName;
     }
 

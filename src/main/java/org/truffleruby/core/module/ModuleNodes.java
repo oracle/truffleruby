@@ -643,7 +643,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         boolean isAnonymous(RubyModule module) {
-            return module.fields.isAnonymous();
+            return module.fields.isAnonymousOrTemporary();
         }
 
     }

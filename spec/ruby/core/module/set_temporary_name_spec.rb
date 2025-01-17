@@ -116,5 +116,26 @@ ruby_version_is "3.3" do
       m.set_temporary_name("foo")
       m::N.name.should =~ /\A#<Module:0x\h+>::N\z/
     end
+
+    it "keeps temporary name when assigned in an anonymous module" do
+      outer = Module.new
+      m = Module.new
+      m.set_temporary_name "m"
+      m.name.should == "m"
+      outer::M = m
+      m.name.should == "m"
+      m.inspect.should == "m"
+    end
+
+    it "keeps temporary name when assigned in an anonymous module and nested before" do
+      outer = Module.new
+      m = Module.new
+      outer::A = m
+      m.set_temporary_name "m"
+      m.name.should == "m"
+      outer::M = m
+      m.name.should == "m"
+      m.inspect.should == "m"
+    end
   end
 end
