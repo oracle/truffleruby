@@ -763,6 +763,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         assert name != null;
         hasFullName = true;
         setName(name);
+        resetTemporaryName();
     }
 
     private void setName(String name) {
