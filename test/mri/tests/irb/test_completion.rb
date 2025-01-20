@@ -133,6 +133,8 @@ module TestIRB
       def test_complete_require_library_name_first
         # Test that library name is completed first with subdirectories
         candidates = IRB::RegexpCompletor.new.completion_candidates("require ", "'irb", "", bind: binding)
+        puts ""
+        p candidates
         assert_equal "'irb", candidates.first
       end
 
