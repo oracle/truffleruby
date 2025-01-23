@@ -1,7 +1,7 @@
 suite = {
     "mxversion": "7.27.0",
     "name": "truffleruby",
-    "version": "25.0.0",
+    "version": "24.2.0",
     "release": False,
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
@@ -22,7 +22,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "7cc02b160cb19c7e7bda543a80e993bc190264b5",
+                "version": "0869146efc3ab6092e01dfb832e5e81ce5276cf2",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -31,7 +31,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "7cc02b160cb19c7e7bda543a80e993bc190264b5",
+                "version": "0869146efc3ab6092e01dfb832e5e81ce5276cf2",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
