@@ -19,6 +19,7 @@ Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2024-49761 | ReDoS vulnerability in REXML | [Fix](https://github.com/ruby/rexml/commit/ce59f2eb1aeb371fe1643414f06618dbe031979f) | [Test](https://github.com/ruby/rexml/commit/ce59f2eb1aeb371fe1643414f06618dbe031979f) | Not applicable thanks to TRegex
 CVE-2024-39908 | DoS in REXML | [Fix](https://github.com/ruby/rexml/compare/v3.3.1...v3.3.2) | [Test](https://github.com/ruby/rexml/compare/v3.3.1...v3.3.2) | [same mitigation as CRuby](https://www.ruby-lang.org/en/news/2024/07/16/dos-rexml-cve-2024-39908/), users must update rexml to 3.3.2+ if they use it
 CVE-2024-35176 | DoS in REXML | [Fix](https://github.com/ruby/rexml/pull/126/commits/ba70cfefadf7e79885fe08228d1df4c0549ad0f8) | [Test](https://github.com/ruby/rexml/pull/126/commits/ba70cfefadf7e79885fe08228d1df4c0549ad0f8) | [same mitigation as CRuby](https://www.ruby-lang.org/en/news/2024/05/16/dos-rexml-cve-2024-35176/), users must update rexml to 3.2.7+ if they use it
 CVE-2024-27282 | Arbitrary memory address read vulnerability with Regex search | [Fix](https://github.com/ruby/ruby/commit/989a2355808a63fc45367785c82ffd46d18c900a) | | Not applicable thanks to Java semantics

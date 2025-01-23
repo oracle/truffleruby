@@ -37,7 +37,7 @@ class UDPSocket < IPSocket
 
     Errno.handle('socket(2)') if descriptor < 0
 
-    IO.setup(self, descriptor, nil, true)
+    setup(descriptor, nil, true)
     binmode
   end
 

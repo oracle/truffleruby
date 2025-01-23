@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2016, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -81,6 +81,8 @@ class File < IO
     APPEND   = Truffle::Config['platform.file.O_APPEND']
     NONBLOCK = Truffle::Config['platform.file.O_NONBLOCK']
     SYNC     = Truffle::Config['platform.file.O_SYNC']
+
+    SHARE_DELETE   = 0 # a pseudo file mode flag that's meaningful only on Windows
 
     if value = Truffle::Config.lookup('platform.file.O_TMPFILE')
       TMPFILE = value

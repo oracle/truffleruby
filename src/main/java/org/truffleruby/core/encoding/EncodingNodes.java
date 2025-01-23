@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -533,33 +533,6 @@ public abstract class EncodingNodes {
 
             final int index = newEncoding.index;
             return createArray(node, new Object[]{ newEncoding, index });
-        }
-
-    }
-
-    @Primitive(name = "encoding_replicate")
-    public abstract static class EncodingReplicateNode extends EncodingCreationNode {
-
-        @Specialization(guards = "strings.isRubyString(this, nameObject)", limit = "1")
-        static RubyArray encodingReplicate(RubyEncoding object, Object nameObject,
-                @Cached RubyStringLibrary strings,
-                @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
-            final String name = toJavaStringNode.execute(node, nameObject);
-
-            final RubyEncoding newEncoding = replicate(node, name, object);
-            return setIndexOrRaiseError(node, name, newEncoding);
-        }
-
-        @TruffleBoundary
-        private static RubyEncoding replicate(Node node, String name, RubyEncoding encoding) {
-            if (getContext(node).getEncodingManager().getNumberOfEncodings() >= Encodings.MAX_NUMBER_OF_ENCODINGS) {
-                throw new RaiseException(
-                        getContext(node),
-                        coreExceptions(node).encodingErrorTooManyEncodings(Encodings.MAX_NUMBER_OF_ENCODINGS, node));
-            }
-
-            return getContext(node).getEncodingManager().replicateEncoding(encoding, name);
         }
 
     }

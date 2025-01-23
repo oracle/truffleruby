@@ -42,7 +42,7 @@ class TCPServer < TCPSocket
       next if descriptor < 0
 
       # Truffle: set REUSEADDR *before* bind
-      IO.setup(self, descriptor, nil, true)
+      setup(descriptor, nil, true)
       binmode
       setsockopt(:SOCKET, :REUSEADDR, true)
 

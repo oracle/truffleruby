@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -71,6 +71,7 @@ import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -91,6 +92,7 @@ import org.truffleruby.language.constants.ConstantEntry;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantInterface;
 import org.truffleruby.language.constants.LookupConstantNode;
+import org.truffleruby.language.constants.WarnDeprecatedConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -643,7 +645,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         boolean isAnonymous(RubyModule module) {
-            return module.fields.isAnonymous();
+            return module.fields.isAnonymousOrTemporary();
         }
 
     }
@@ -2009,7 +2011,8 @@ public abstract class ModuleNodes {
 
         @Specialization
         Object removeConstant(RubyModule module, Object nameObject,
-                @Cached NameToJavaStringNode nameToJavaStringNode) {
+                @Cached NameToJavaStringNode nameToJavaStringNode,
+                @Cached LazyWarnNode lazyWarnNode) {
             final var name = nameToJavaStringNode.execute(this, nameObject);
             final RubyConstant oldConstant = module.fields.removeConstant(getContext(), this, name);
             if (oldConstant == null) {
@@ -2020,9 +2023,16 @@ public abstract class ModuleNodes {
                 if (oldConstant.isAutoload() || oldConstant.isUndefined()) {
                     return nil;
                 } else {
+                    if (oldConstant.isDeprecated()) {
+                        warnDeprecatedConstant(module, name, lazyWarnNode);
+                    }
                     return oldConstant.getValue();
                 }
             }
+        }
+
+        private void warnDeprecatedConstant(RubyModule module, String name, LazyWarnNode lazyWarnNode) {
+            WarnDeprecatedConstantNode.warnDeprecatedConstant(this, lazyWarnNode.get(this), module, name);
         }
     }
 
@@ -2282,6 +2292,48 @@ public abstract class ModuleNodes {
             final ModuleFields refinementFields = refinement.fields;
             refinementFields.setupRefinementModule(moduleToRefine, namespace);
             return refinement;
+        }
+
+    }
+
+    @CoreMethod(names = "set_temporary_name", required = 1)
+    public abstract static class SetTemporaryNameNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        RubyModule setTemporaryName(RubyModule self, Object name,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            if (name == nil) {
+                self.fields.setTemporaryName(null);
+                return self;
+            }
+
+            final String string = toJavaStringNode.execute(this, name);
+            validateName(string, self);
+            self.fields.setTemporaryName(string);
+
+            return self;
+        }
+
+        private void validateName(String name, RubyModule self) {
+            if (name.isEmpty()) {
+                throw new RaiseException(
+                        getContext(this),
+                        coreExceptions(this).argumentError("empty class/module name", this));
+            }
+
+            if (self.fields.hasFullName()) {
+                throw new RaiseException(
+                        getContext(this),
+                        coreExceptions(this).runtimeError("can't change permanent name", this));
+            }
+
+            if (Identifiers.isValidConstantPath(name)) {
+                throw new RaiseException(
+                        getContext(this),
+                        coreExceptions(this).argumentError(
+                                "the temporary name must not be a constant path to avoid confusion", this));
+            }
         }
 
     }

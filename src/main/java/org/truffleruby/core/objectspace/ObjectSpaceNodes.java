@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -25,6 +25,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
@@ -279,9 +280,12 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        Object undefineFinalizer(RubyDynamicObject object) {
+        Object undefineFinalizer(RubyDynamicObject object,
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
             final DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
             synchronized (object) {
+                raiseIfFrozenNode.execute(this, object);
+
                 FinalizerReference ref = (FinalizerReference) objectLibrary
                         .getOrDefault(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 if (ref != null) {

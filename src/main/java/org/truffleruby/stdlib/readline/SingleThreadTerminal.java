@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -19,6 +19,8 @@ import java.nio.charset.Charset;
 import org.graalvm.shadowed.org.jline.terminal.Attributes;
 import org.graalvm.shadowed.org.jline.terminal.Size;
 import org.graalvm.shadowed.org.jline.terminal.impl.AbstractTerminal;
+import org.graalvm.shadowed.org.jline.terminal.spi.SystemStream;
+import org.graalvm.shadowed.org.jline.terminal.spi.TerminalProvider;
 import org.graalvm.shadowed.org.jline.utils.NonBlocking;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingInputStream;
 import org.graalvm.shadowed.org.jline.utils.NonBlockingReader;
@@ -97,4 +99,13 @@ public final class SingleThreadTerminal extends AbstractTerminal {
         this.size.copy(size);
     }
 
+    @Override
+    public TerminalProvider getProvider() {
+        return null;
+    }
+
+    @Override
+    public SystemStream getSystemStream() {
+        return null;
+    }
 }

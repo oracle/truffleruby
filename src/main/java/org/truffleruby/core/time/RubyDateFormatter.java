@@ -546,11 +546,11 @@ public abstract class RubyDateFormatter {
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
                 final RubyString message = StringOperations.createUTF8String(context, language, "strftime");
+                final int errno = context.getCoreLibrary().getErrnoValue("ERANGE");
 
                 throw new RaiseException(
                         context,
-                        errnoErrorNode.execute(null, context.getCoreLibrary().getErrnoValue("ERANGE"), message,
-                                backtrace));
+                        errnoErrorNode.execute(null, errno, message, null, backtrace));
             }
 
             // reset formatter

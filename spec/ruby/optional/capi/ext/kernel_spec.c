@@ -251,6 +251,13 @@ VALUE kernel_spec_rb_syserr_fail(VALUE self, VALUE err, VALUE msg) {
   return Qnil;
 }
 
+VALUE kernel_spec_rb_syserr_fail_str(VALUE self, VALUE err, VALUE msg) {
+  if (self != Qundef) {
+    rb_syserr_fail_str(NUM2INT(err), msg);
+  }
+  return Qnil;
+}
+
 VALUE kernel_spec_rb_warn(VALUE self, VALUE msg) {
   rb_warn("%s", StringValuePtr(msg));
   return Qnil;
@@ -415,6 +422,7 @@ void Init_kernel_spec(void) {
   rb_define_method(cls, "rb_catch_obj", kernel_spec_rb_catch_obj, 2);
   rb_define_method(cls, "rb_sys_fail", kernel_spec_rb_sys_fail, 1);
   rb_define_method(cls, "rb_syserr_fail", kernel_spec_rb_syserr_fail, 2);
+  rb_define_method(cls, "rb_syserr_fail_str", kernel_spec_rb_syserr_fail_str, 2);
   rb_define_method(cls, "rb_warn", kernel_spec_rb_warn, 1);
   rb_define_method(cls, "rb_yield", kernel_spec_rb_yield, 1);
   rb_define_method(cls, "rb_yield_indirected", kernel_spec_rb_yield_indirected, 1);

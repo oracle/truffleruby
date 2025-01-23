@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -20,6 +20,6 @@
 // $RUBY_VERSION must be the same as TruffleRuby.LANGUAGE_VERSION.
 // $ABI_NUMBER starts at 1 and is incremented for every ABI-incompatible change.
 
-#define TRUFFLERUBY_ABI_VERSION "3.3.5.6"
+#define TRUFFLERUBY_ABI_VERSION "3.3.5.24.2.0.1"
 
 #endif

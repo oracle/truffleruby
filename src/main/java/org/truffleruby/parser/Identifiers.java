@@ -44,6 +44,29 @@ public final class Identifiers {
         return isConstantFirstCodePoint(first) && isNameString(id, Character.charCount(first));
     }
 
+    /** Check if String is a valid constant path, e.g. A::B or ::A */
+    @TruffleBoundary
+    public static boolean isValidConstantPath(String id) {
+        boolean isConstantPath = true;
+
+        final String[] pathSections = id.split("::", -1);
+        for (int i = 0; i < pathSections.length; i++) {
+            String section = pathSections[i];
+
+            // is a constant path prefixed with '::' (e.g. '::A::B')?
+            if (section.isEmpty() && i == 0) {
+                continue;
+            }
+
+            if (!isValidConstantName(section)) {
+                isConstantPath = false;
+                break;
+            }
+        }
+
+        return isConstantPath;
+    }
+
     @TruffleBoundary
     public static boolean isValidLocalVariableName(String id) {
         return isValidIdentifier(id, 0);

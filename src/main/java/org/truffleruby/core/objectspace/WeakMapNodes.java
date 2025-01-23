@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -10,6 +10,7 @@
 package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
@@ -102,6 +103,35 @@ public abstract class WeakMapNodes {
         @Specialization
         RubyArray getValues(RubyWeakMap map) {
             return createArray(values(map.storage));
+        }
+    }
+
+    @CoreMethod(names = "delete", required = 1, needsBlock = true)
+    public abstract static class DeleteNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        Object delete(RubyWeakMap map, Object key, RubyProc block,
+                @Cached InlinedConditionProfile isContainedProfile,
+                @Cached CallBlockNode yieldNode) {
+            Object value = map.storage.remove(new CompareByRubyIdentityWrapper(key));
+
+            if (isContainedProfile.profile(this, value != null)) {
+                return value;
+            } else {
+                return yieldNode.yield(this, block, key);
+            }
+        }
+
+        @Specialization
+        Object delete(RubyWeakMap map, Object key, Nil block,
+                @Cached InlinedConditionProfile isContainedProfile) {
+            Object value = map.storage.remove(new CompareByRubyIdentityWrapper(key));
+
+            if (isContainedProfile.profile(this, value != null)) {
+                return value;
+            } else {
+                return nil;
+            }
         }
     }
 

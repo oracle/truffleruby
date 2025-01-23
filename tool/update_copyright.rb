@@ -1,4 +1,4 @@
-# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -90,6 +90,7 @@ excludes = %w[
   src/main/c/io-console
   src/main/c/nkf
   src/main/c/openssl
+  src/main/c/prism-gem
   src/main/c/psych
   src/main/c/rbconfig-sizeof
   src/main/c/ripper

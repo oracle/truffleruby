@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -86,21 +86,7 @@ public abstract class ProcNodes {
                 @Cached DispatchNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
 
-            final RubyProc proc = new RubyProc(
-                    procClass,
-                    getLanguage().procShape,
-                    block.type,
-                    block.arity,
-                    block.argumentDescriptors,
-                    block.callTargets,
-                    block.callTarget,
-                    block.declarationFrame,
-                    block.declarationVariables,
-                    block.declaringMethod,
-                    block.frameOnStackMarker,
-                    block.declarationContext);
-
-            AllocationTracing.trace(proc, this);
+            final RubyProc proc = block.duplicate(procClass, getLanguage().procShape, this);
             initialize.callWithDescriptor(proc, "initialize", block, RubyArguments.getDescriptor(frame), args);
             return proc;
         }
@@ -110,27 +96,26 @@ public abstract class ProcNodes {
         }
     }
 
-    @CoreMethod(names = { "dup", "clone" })
+    @CoreMethod(names = "clone")
+    public abstract static class CloneNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        RubyProc clone(RubyProc proc,
+                @Cached DispatchNode initializeCloneNode) {
+            final RubyProc copy = proc.duplicate(getLanguage().procShape, this);
+            initializeCloneNode.call(copy, "initialize_clone", proc);
+            return copy;
+        }
+    }
+
+    @CoreMethod(names = "dup")
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        RubyProc dup(RubyProc proc) {
-            final RubyClass logicalClass = proc.getLogicalClass();
-            final RubyProc copy = new RubyProc(
-                    logicalClass,
-                    getLanguage().procShape,
-                    proc.type,
-                    proc.arity,
-                    proc.argumentDescriptors,
-                    proc.callTargets,
-                    proc.callTarget,
-                    proc.declarationFrame,
-                    proc.declarationVariables,
-                    proc.declaringMethod,
-                    proc.frameOnStackMarker,
-                    proc.declarationContext);
-
-            AllocationTracing.trace(copy, this);
+        RubyProc dup(RubyProc proc,
+                @Cached DispatchNode initializeDupNode) {
+            final RubyProc copy = proc.duplicate(getLanguage().procShape, this);
+            initializeDupNode.call(copy, "initialize_dup", proc);
             return copy;
         }
     }

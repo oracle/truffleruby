@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 # truffleruby_primitives: true
 
-# Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -1949,6 +1949,17 @@ module Truffle::CExt
     klass.new(*args)
   end
 
+  def rb_data_define_no_splat(klass, attrs)
+    klass ||= Data
+    Truffle::Type.rb_check_type(klass, Class)
+
+    unless klass <= Data
+      raise TypeError, 'invalid Class for rb_data_define(), expected Data or a subclass of Data'
+    end
+
+    klass.define(*attrs)
+  end
+
   def yield_no_block
     raise LocalJumpError
   end
@@ -2325,7 +2336,7 @@ module Truffle::CExt
 
   def rb_tr_warn(message)
     location = caller_locations(1, 1)[0]
-    message_with_prefix = location.label + ': warning: ' + message
+    message_with_prefix = "#{location.label}: warning: #{message}"
     Warning.warn(message_with_prefix)
   end
 
@@ -2335,7 +2346,7 @@ module Truffle::CExt
 
   def rb_tr_warn_category(message, category)
     location = caller_locations(1, 1)[0]
-    message_with_prefix = location.label + ': warning: ' + message
+    message_with_prefix = "#{location.label}: warning: #{message}"
     Warning.warn(message_with_prefix, category: category)
   end
 
@@ -2368,17 +2379,11 @@ module Truffle::CExt
   end
 
   def rb_io_open_descriptor(klass, fd, mode, path, timeout, internal_encoding, external_encoding, flags, options)
-    return klass.allocate if klass != IO and klass != File
-
-    # Translate Ruby-specific modes (`FMODE_`) to corresponding platform-specific file open flags (`O_`).
+    # Translate platform-specific file open flags (`O_`) to corresponding Ruby-specific modes (`FMODE_`).
     # Ruby interface accepts `FMODE_` flags, but C API functions accept `O_` flags.
     mode = Truffle::IOOperations.translate_omode_to_fmode(mode)
 
-    klass.new(fd, mode, **options, internal_encoding: internal_encoding, external_encoding: external_encoding, path: path, flags: flags, skip_mode_enforcing: true)
-  end
-
-  def rb_io_closed_p(io)
-    io.closed?
+    klass.new(fd, mode, **options, internal_encoding: internal_encoding, external_encoding: external_encoding, path: path, flags: flags)
   end
 
   def rb_tr_io_pointer(io)

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2023, 2024 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2023, 2025 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -19,6 +19,7 @@ NO_RETURN_FUNCTIONS = %w[
   rb_exc_raise
   rb_jump_tag
   rb_syserr_fail
+  rb_syserr_fail_str
   rb_sys_fail
   rb_sys_fail_str
   rb_throw

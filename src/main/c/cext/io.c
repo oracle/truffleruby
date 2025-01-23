@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -71,7 +71,7 @@ VALUE rb_io_open_descriptor(VALUE klass, int descriptor, int mode, VALUE path, V
 }
 
 VALUE rb_io_closed_p(VALUE io) {
-  return RUBY_CEXT_INVOKE("rb_io_closed_p", io);
+  return RUBY_INVOKE(io, "closed?");
 }
 
 static RFile_and_rb_io_t* get_RFile_and_rb_io_t(VALUE io) {

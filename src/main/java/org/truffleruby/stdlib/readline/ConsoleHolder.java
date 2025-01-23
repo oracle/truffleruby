@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -54,8 +54,9 @@ import org.graalvm.shadowed.org.jline.reader.impl.LineReaderImpl;
 import org.graalvm.shadowed.org.jline.terminal.Size;
 import org.graalvm.shadowed.org.jline.terminal.Terminal;
 import org.graalvm.shadowed.org.jline.terminal.impl.DumbTerminal;
-import org.graalvm.shadowed.org.jline.terminal.impl.ExecPty;
-import org.graalvm.shadowed.org.jline.terminal.spi.TerminalProvider;
+import org.graalvm.shadowed.org.jline.terminal.impl.exec.ExecPty;
+import org.graalvm.shadowed.org.jline.terminal.impl.exec.ExecTerminalProvider;
+import org.graalvm.shadowed.org.jline.terminal.spi.SystemStream;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.support.RubyIO;
@@ -124,7 +125,7 @@ public final class ConsoleHolder {
                 terminal = new PosixSysTerminalKeepSignalHandlers(
                         "TruffleRuby",
                         getType(),
-                        ExecPty.current(TerminalProvider.Stream.Output),
+                        ExecPty.current(new ExecTerminalProvider(), SystemStream.Output),
                         StandardCharsets.UTF_8);
             } else {
                 try (Terminal inherit = new DumbTerminal(in.getIn(), out.getOut())) {

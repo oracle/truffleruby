@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -254,16 +254,6 @@ public final class EncodingManager {
 
         final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
         return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
-    }
-
-    @TruffleBoundary
-    public synchronized RubyEncoding replicateEncoding(RubyEncoding encoding, String name) {
-        if (getRubyEncoding(name) != null) {
-            return null;
-        }
-
-        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(encoding.jcoding, nameBytes);
     }
 
     public RubyEncoding getLocaleEncoding() {

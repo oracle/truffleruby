@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -32,10 +32,6 @@ VALUE rb_java_to_string(VALUE obj) {
 // BasicObject#equal?
 int rb_tr_obj_equal(VALUE first, VALUE second) {
   return RTEST(RUBY_CEXT_INVOKE("rb_tr_obj_equal", first, second));
-}
-
-void rb_tr_warn_va_list(const char *fmt, va_list args) {
-  RUBY_CEXT_INVOKE("rb_tr_warn", rb_vsprintf(fmt, args));
 }
 
 VALUE rb_tr_zlib_crc_table(void) {

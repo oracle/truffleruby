@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -44,4 +44,8 @@ bool rb_warning_category_enabled_p(rb_warning_category_t category) {
     } else {
         return true;
     }
+}
+
+void rb_tr_warn_va_list(const char *fmt, va_list args) {
+  RUBY_CEXT_INVOKE("rb_tr_warn", rb_vsprintf(fmt, args));
 }

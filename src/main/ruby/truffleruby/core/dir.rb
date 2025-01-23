@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2016, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2016, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -62,6 +62,16 @@ class Dir
     @ptr.null? ? nil : self
   end
 
+  private def initialize_from_file_descriptor(fd)
+    @path = nil
+    @encoding = Encoding.filesystem
+    @ptr = Truffle::POSIX.fdopendir(fd)
+
+    if @ptr.null?
+      Errno.handle('fdopendir')
+    end
+  end
+
   private def ensure_open
     raise IOError, 'closed directory' if closed?
   end
@@ -101,15 +111,18 @@ class Dir
     Truffle::DirOperations.readdir_name(self)
   end
 
+  def chdir(&block)
+    Dir.fchdir(fileno, &block)
+  end
+
   def close
     unless closed?
-      ret = Truffle::POSIX.closedir(@ptr)
-      Errno.handle if ret == -1
+      Truffle::POSIX.closedir(@ptr)
       @ptr = nil
     end
   end
 
-  def closed?
+  private def closed?
     Primitive.nil? @ptr
   end
 
@@ -315,6 +328,12 @@ class Dir
       nil
     end
 
+    def for_fd(fd)
+      dir = Dir.allocate
+      dir.send(:initialize_from_file_descriptor, Primitive.rb_num2int(fd))
+      dir
+    end
+
     def chdir(path = ENV['HOME'])
       path = Truffle::Type.coerce_to_path path
       path = path.dup.force_encoding(Encoding::LOCALE) if path.encoding == Encoding::BINARY
@@ -336,6 +355,37 @@ class Dir
         Primitive.dir_set_truffle_working_directory(path)
         ret = Truffle::POSIX.chdir path
         Errno.handle path if ret != 0
+        ret
+      end
+    end
+
+    def fchdir(fd)
+      fd = Primitive.rb_num2int(fd)
+
+      if block_given?
+        original_path = getwd
+        original_dir = Dir.new(original_path)
+
+        ret = Truffle::POSIX.fchdir fd
+        Errno.handle('fchdir') if ret != 0
+        Primitive.dir_set_truffle_working_directory(getwd)
+
+        begin
+          yield
+        ensure
+          begin
+            ret = Truffle::POSIX.fchdir original_dir.fileno
+            Errno.handle('fchdir') if ret != 0
+
+            Primitive.dir_set_truffle_working_directory(original_path)
+          ensure
+            original_dir.close
+          end
+        end
+      else
+        ret = Truffle::POSIX.fchdir fd
+        Errno.handle('fchdir') if ret != 0
+        Primitive.dir_set_truffle_working_directory(getwd)
         ret
       end
     end

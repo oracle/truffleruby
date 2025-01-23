@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2017, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -185,9 +185,11 @@ module Truffle::POSIX
   attach_function :dirfd, [:pointer], :int
   attach_function :dup, [:int], :int
   attach_function :dup2, [:int, :int], :int
+  attach_function :fchdir, [:int], :int
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, varargs(:int)], :int
+  attach_function :fdopendir, [:int], :pointer
   attach_function :flock, [:int, :int], :int, LIBC, true
   attach_function :truffleposix_fstat, [:int, :pointer], :int, LIBTRUFFLEPOSIX
   attach_function :truffleposix_fstat_mode, [:int], :mode_t, LIBTRUFFLEPOSIX
@@ -487,7 +489,7 @@ module Truffle::POSIX
     end
   end
 
-  def self.pread_string_native(io, length, offset)
+  def self.pread_string(io, length, offset)
     fd = io.fileno
     buffer = Primitive.io_thread_buffer_allocate(length)
 
@@ -504,10 +506,6 @@ module Truffle::POSIX
     ensure
       Primitive.io_thread_buffer_free(buffer)
     end
-  end
-
-  def self.pread_string_polyglot(io, length, offset)
-    raise 'Not implemented' # there is not way to read starting from a specific position
   end
 
   # #write_string (either #write_string_native or #write_string_polyglot) is
@@ -602,7 +600,7 @@ module Truffle::POSIX
     end
   end
 
-  def self.pwrite_string_native(io, string, offset)
+  def self.pwrite_string(io, string, offset)
     fd = io.fileno
     length = string.bytesize
     buffer = Primitive.io_thread_buffer_allocate(length)
@@ -619,10 +617,6 @@ module Truffle::POSIX
     end
   end
 
-  def self.pwrite_string_polyglot(io, length, offset)
-    raise 'Not implemented' # there is not way to write starting from a specific position
-  end
-
   # Select between native and polyglot variants
 
   Truffle::Boot.delay do
@@ -630,19 +624,15 @@ module Truffle::POSIX
       class << self
         alias_method :read_string, :read_string_polyglot
         alias_method :read_to_buffer, :read_to_buffer_polyglot
-        alias_method :pread_string, :pread_string_polyglot
         alias_method :write_string, :write_string_polyglot
         alias_method :write_string_nonblock, :write_string_nonblock_polyglot
-        alias_method :pwrite_string, :pwrite_string_polyglot
       end
     else
       class << self
         alias_method :read_string, :read_string_native
         alias_method :read_to_buffer, :read_to_buffer_native
-        alias_method :pread_string, :pread_string_native
         alias_method :write_string, :write_string_native
         alias_method :write_string_nonblock, :write_string_nonblock_native
-        alias_method :pwrite_string, :pwrite_string_native
       end
     end
   end

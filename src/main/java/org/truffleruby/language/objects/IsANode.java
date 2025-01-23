@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -28,7 +28,7 @@ import com.oracle.truffle.api.dsl.Specialization;
  * Also useful to split Ruby methods which do something like `if obj.is_a?(Foo) then foo else bar end`
  * such as NoBorderImagePadded#index used by NoBorderImage#[] in the image-demo benchmarks. */
 @GenerateUncached
-@ReportPolymorphism // see commment above
+@ReportPolymorphism // see comment above
 public abstract class IsANode extends RubyBaseNode {
 
     @NeverDefault

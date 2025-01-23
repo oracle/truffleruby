@@ -49,7 +49,7 @@ class UNIXSocket < BasicSocket
 
     Errno.handle('socket(2)') if fd < 0
 
-    IO.setup(self, fd, 'r+', true)
+    setup(fd, 'r+', true)
     binmode
 
     sockaddr = Socket.sockaddr_un(Truffle::Type.check_null_safe(path))

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2019, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2019, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -47,13 +47,6 @@ module Truffle
       new_encoding, index = Primitive.encoding_create_dummy name
       EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
       [new_encoding, index]
-    end
-
-    def self.replicate_encoding(encoding, name)
-      name = StringValue(name)
-      new_encoding, _index = Primitive.encoding_replicate encoding, name
-      EncodingMap[name.upcase.to_sym] = [nil, new_encoding]
-      new_encoding
     end
 
     def self.define_alias(encoding, alias_name)

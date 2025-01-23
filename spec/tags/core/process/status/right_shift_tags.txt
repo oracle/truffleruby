@@ -1,0 +1,5 @@
+slow:Process::Status#>> returns a right shift of the integer status of an exited child
+slow:Process::Status#>> raises an ArgumentError if shift value is negative
+slow:Process::Status#>> shows a deprecation warning
+fails:Process::Status#>> raises an ArgumentError if shift value is negative
+fails:Process::Status#>> shows a deprecation warning

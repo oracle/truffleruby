@@ -1,2 +1,0 @@
-fails:MatchData#named_captures returns a Hash with Symbol keys when symbolize_names is provided a true value
-fails:MatchData#named_captures returns a Hash with String keys when symbolize_names is provided a false value

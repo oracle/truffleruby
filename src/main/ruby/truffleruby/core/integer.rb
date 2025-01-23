@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -82,6 +82,8 @@ class Integer < Numeric
 
   def ceil(precision = 0)
     return self unless precision < 0
+    return 0 if self == 0
+
     x = 10 ** precision.abs
     ((self / x) + 1) * x
   end

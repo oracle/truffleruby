@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -18,6 +18,7 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -33,10 +34,11 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
     @Child private DispatchNode formatMessageNode;
 
     public abstract RubySystemCallError execute(RubyClass rubyClass, int errno, Object extraMessage,
-            Backtrace backtrace);
+            Object location, Backtrace backtrace);
 
     @Specialization
-    RubySystemCallError errnoError(RubyClass rubyClass, int errno, Object extraMessage, Backtrace backtrace,
+    RubySystemCallError errnoError(
+            RubyClass rubyClass, int errno, Object extraMessage, Object location, Backtrace backtrace,
             @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
@@ -57,26 +59,30 @@ public abstract class ErrnoErrorNode extends RubyBaseNode {
                     Encodings.UTF_8);
         }
 
-        final RubyString errorMessage = formatMessage(errnoDescription, errno, extraMessage);
+        final RubyString errorMessage = formatMessage(errnoDescription, errno, extraMessage, location);
 
         return ExceptionOperations
                 .createSystemCallError(getContext(), errnoClass, errorMessage, errno, backtrace);
     }
 
-    private RubyString formatMessage(Object errnoDescription, int errno, Object extraMessage) {
-        assert extraMessage instanceof RubyString || extraMessage instanceof ImmutableRubyString;
+    private RubyString formatMessage(Object errnoDescription, int errno, Object extraMessage, Object location) {
+        assert extraMessage instanceof RubyString || extraMessage instanceof ImmutableRubyString ||
+                extraMessage instanceof Nil;
 
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             formatMessageNode = insert(DispatchNode.create());
         }
 
+        if (location == null) {
+            location = nil;
+        }
+
+        var arguments = new Object[]{ errnoDescription, errno, extraMessage, location };
         return (RubyString) formatMessageNode.call(
                 getContext().getCoreLibrary().truffleExceptionOperationsModule,
                 "format_errno_error_message",
-                errnoDescription,
-                errno,
-                extraMessage);
+                arguments);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -415,70 +415,6 @@ public abstract class RangeNodes {
             return RangeNodesFactory.RangeLiteralNodeGen
                     .create(getBeginNode().cloneUninitialized(), getEndNode().cloneUninitialized(), getExcludeEnd())
                     .copyFlags(this);
-        }
-    }
-
-    @CoreMethod(names = "reverse_each", needsBlock = true, enumeratorSize = "size")
-    public abstract static class ReverseEachNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DispatchNode reverseEachInternalCall;
-
-        @Specialization
-        RubyIntRange reverseEachInt(RubyIntRange range, RubyProc block,
-                @Cached @Shared InlinedConditionProfile excludedEndProfile,
-                @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode) {
-            final int end;
-            if (excludedEndProfile.profile(this, range.excludedEnd)) {
-                end = range.end - 1;
-            } else {
-                end = range.end;
-            }
-
-            int n = end;
-            try {
-                for (; loopProfile.inject(this, n >= range.begin); n--) {
-                    yieldNode.yield(this, block, n);
-                }
-            } finally {
-                profileAndReportLoopCount(this, loopProfile, end - range.begin + 1);
-            }
-
-            return range;
-        }
-
-        @Specialization
-        RubyLongRange reverseEachLong(RubyLongRange range, RubyProc block,
-                @Cached @Shared InlinedConditionProfile excludedEndProfile,
-                @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
-                @Cached @Shared CallBlockNode yieldNode) {
-            final long end;
-            if (excludedEndProfile.profile(this, range.excludedEnd)) {
-                end = range.end - 1;
-            } else {
-                end = range.end;
-            }
-
-            long n = end;
-            try {
-                for (; loopProfile.inject(this, n >= range.begin); n--) {
-                    yieldNode.yield(this, block, n);
-                }
-            } finally {
-                profileAndReportLoopCount(this, loopProfile, end - range.begin + 1);
-            }
-
-            return range;
-        }
-
-        @Specialization
-        Object reverseEachObject(RubyObjectRange range, RubyProc block) {
-            if (reverseEachInternalCall == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                reverseEachInternalCall = insert(DispatchNode.create());
-            }
-
-            return reverseEachInternalCall.callWithBlock(range, "reverse_each_internal", block);
         }
     }
 

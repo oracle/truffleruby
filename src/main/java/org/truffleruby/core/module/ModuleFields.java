@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -90,15 +90,39 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     private final PrependMarker start;
 
-    private final RubyModule lexicalParent;
-    /** Module (or class) own explicitly specified name */
-    public final String givenBaseName;
+    /**
+     * <pre>
+     * Naming modules is complicated, we try to summarize the transitions here.
+     * fully named (simple): module M; end -> module with givenBaseName="M" hasFullName=true
+     * fully named (nested): module N; module M; end; end -> module with name="N::M" hasFullName=true
+     * anonymous: Module.new -> #name is nil, #inspect is #<Module:0x...>
+     * nested-anonymous: m = Module.new; module m::N; end -> givenBaseName="N" hasFullName=false hasPartialName=true #name is "#<Module:0x...>::N"
+     *
+     * Transitions:
+     * * anonymous to nested-anonymous, by constant assignment
+     * * anonymous/nested-anonymous to full, by constant assignment (for anonymous), or lexical parent gets fully named (for nested-anonymous)
+     * * temporary to full, by constant assignment or lexical parent gets fully named
+     * * anonymous/nested-anonymous to temporary, by set_temporary_name("...") or set_temporary_name(nil)
+     * * temporary to temporary, by set_temporary_name("...") or set_temporary_name(nil)
+     * They form a lattice/total order, as it's never possible to go back from a transition
+     *
+     * Note there is no temporary to anonymous/nested-anonymous, it just stays temporary in that case.
+     * </pre>
+     */
 
+    private final RubyModule lexicalParent;
+    /** Module (or class) own explicitly specified name: either `class Foo` or `module Foo` or a core module/class */
+    public final String givenBaseName;
     /** Means whether a fully qualified name (with parent lexical scope names) is already set */
     private boolean hasFullName = false;
-    /** Either fully qualified name or lazily evaluated anonymous name */
+    /** Either fully qualified name or lazily evaluated anonymous name, or temporary name */
     private String name = null;
+    /** Same as {@link #name} except null if {@link #hasPartialName()} */
     private ImmutableRubyString rubyStringName;
+    /** A temporary name assigned to an anonymous module */
+    private String temporaryName = null;
+    /** Whether a temporary name is assigned. Is needed to distinguish a case when nil value is assigned. */
+    private boolean isTemporaryNameAssigned = false;
 
     /** Whether this is a refinement module (R), created by #refine */
     private boolean isRefinement = false;
@@ -180,7 +204,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 nameChildrenModules(context);
             } else {
                 // Our lexicalParent is also an anonymous module
-                // and will name us when it gets named via updateAnonymousChildrenModules(),
+                // and will name us when it gets named via nameChildrenModules(),
                 // or we'll compute an anonymous name on #getName() if needed
             }
         }
@@ -717,11 +741,12 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public String getName() {
-        final String name = this.name;
+        // Lazily compute the anonymous name because it is expensive
         if (name == null) {
-            // Lazily compute the anonymous name because it is expensive
-            return getAnonymousName();
+            recomputeAnonymousOrTemporaryName();
         }
+
+        assert name != null;
         return name;
     }
 
@@ -737,23 +762,46 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    private String getAnonymousName() {
-        final String anonymousName = createAnonymousName();
-        setName(anonymousName);
-        return anonymousName;
+    private void recomputeAnonymousOrTemporaryName() {
+        if (!isAnonymousOrTemporary()) {
+            return;
+        }
+
+        final String newName;
+        if (temporaryName != null) {
+            newName = temporaryName;
+        } else {
+            newName = createFullyQualifiedAnonymousName();
+        }
+
+        setName(newName);
     }
 
     public void setFullName(String name) {
         assert name != null;
         hasFullName = true;
         setName(name);
+        resetTemporaryName();
     }
 
     private void setName(String name) {
         this.name = name;
         if (hasPartialName()) {
             this.rubyStringName = language.getFrozenStringLiteral(TStringUtils.utf8TString(name), Encodings.UTF_8);
+        } else {
+            this.rubyStringName = null;
         }
+    }
+
+    public void setTemporaryName(String name) {
+        this.temporaryName = name;
+        this.isTemporaryNameAssigned = true;
+        recomputeAnonymousOrTemporaryName();
+    }
+
+    private void resetTemporaryName() {
+        temporaryName = null;
+        isTemporaryNameAssigned = false;
     }
 
     public Object getRubyStringName() {
@@ -769,7 +817,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    private String createAnonymousName() {
+    private String createFullyQualifiedAnonymousName() {
         if (givenBaseName != null) {
             if (lexicalParent == getObjectClass()) {
                 return givenBaseName;
@@ -804,11 +852,15 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return hasFullName;
     }
 
+    /** Whether Module#name Ruby method returns a value other than nil */
     public boolean hasPartialName() {
+        if (isTemporaryNameAssigned) {
+            return temporaryName != null;
+        }
         return hasFullName() || givenBaseName != null;
     }
 
-    public boolean isAnonymous() {
+    public boolean isAnonymousOrTemporary() {
         return !this.hasFullName;
     }
 

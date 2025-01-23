@@ -1,7 +1,7 @@
 # frozen-string-literal: false
 # truffleruby_primitives: true
 
-# Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -145,6 +145,9 @@ module RbConfig
 
     warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
     warnflags << '-Werror' # Make sure there are no warnings in core C extensions
+    # If there are deprecations in core C extensions, do not error for them.
+    # This would be problematic for extconf.rb checks as they would think such deprecated functions do not exist.
+    warnflags << '-Wno-error=deprecated-declarations'
   else
     libtruffleruby = "#{cext_dir}/libtruffleruby.#{soext}"
     libtrufflerubytrampoline = "#{cext_dir}/libtrufflerubytrampoline.#{soext}"

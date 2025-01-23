@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -427,14 +427,9 @@ public abstract class IntegerNodes {
             return a / b;
         }
 
-        @Specialization(guards = { "!isLongMinValue(a)" })
-        int divBignum(long a, RubyBignum b) {
-            return 0;
-        }
-
-        @Specialization(guards = { "isLongMinValue(a)" })
-        int divBignumEdgeCase(long a, RubyBignum b) {
-            return -b.value.signum();
+        @Specialization
+        Object divBignum(long a, RubyBignum b) {
+            return (a == 0 || Long.signum(a) == b.value.signum()) ? 0 : -1;
         }
 
         // Bignum
@@ -479,10 +474,6 @@ public abstract class IntegerNodes {
         Object divCoerced(Object a, Object b,
                 @Cached DispatchNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreSymbols().DIVIDE, b);
-        }
-
-        protected static boolean isLongMinValue(long a) {
-            return a == Long.MIN_VALUE;
         }
 
     }

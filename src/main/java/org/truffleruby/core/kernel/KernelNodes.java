@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2024 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -59,10 +59,14 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
+import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatExceptionTranslator;
+import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
-import org.truffleruby.core.format.printf.PrintfCompiler;
+import org.truffleruby.core.format.printf.PrintfSimpleParser;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.format.printf.SprintfConfig;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.HashingNodes;
 import org.truffleruby.core.hash.RubyHash;
@@ -82,6 +86,7 @@ import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
@@ -103,6 +108,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -1130,6 +1136,7 @@ public abstract class KernelNodes {
 
     }
 
+    // See InlinedLambdaNode for the fast path
     @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true, split = Split.HEURISTIC)
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
@@ -1148,23 +1155,17 @@ public abstract class KernelNodes {
             return ProcOperations.createLambdaFromBlock(getContext(), getLanguage(), block);
         }
 
-        @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
-        RubyProc lambdaFromExistingProc(RubyProc block,
-                @Cached WarnNode warnNode) {
-            if (warnNode.shouldWarnForDeprecation()) {
-                warnNode.warningMessage(
-                        getContext().getCallStack().getTopMostUserSourceSection(),
-                        "lambda without a literal block is deprecated; use the proc without lambda instead");
-            }
-
-            // If the argument isn't a literal, its original behaviour (proc or lambda) is preserved.
+        @Specialization(guards = { "!isLiteralBlock(block)", "block.isLambda()" })
+        RubyProc lambdaFromExistingLambda(RubyProc block) {
+            // If the argument isn't a literal, its original behaviour is preserved only if its a lambda.
             return block;
         }
 
-        @Specialization(guards = { "!isLiteralBlock(block)", "block.isLambda()" })
+        @Specialization(guards = { "!isLiteralBlock(block)", "block.isProc()" })
         RubyProc lambdaFromExistingProc(RubyProc block) {
-            // If the argument isn't a literal, its original behaviour (proc or lambda) is preserved.
-            return block;
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().argumentError("the lambda method requires a literal block", this));
         }
 
         @TruffleBoundary
@@ -1663,14 +1664,17 @@ public abstract class KernelNodes {
         @Specialization(
                 guards = {
                         "equalNode.execute(node, format, encoding, cachedFormat, cachedEncoding)",
-                        "isDebug == cachedIsDebug" },
+                        "isDebug == cachedIsDebug",
+                        "arguments.length == cachedArgumentsLength" },
                 limit = "3")
         static BytesResult formatCached(
                 Node node, AbstractTruffleString format, RubyEncoding encoding, Object[] arguments, boolean isDebug,
+                @Cached @Shared WarningNode warnNode,
                 @Cached("isDebug") boolean cachedIsDebug,
                 @Cached("format.asTruffleStringUncached(encoding.tencoding)") TruffleString cachedFormat,
                 @Cached("encoding") RubyEncoding cachedEncoding,
-                @Cached(value = "create(compileFormat(cachedFormat, cachedEncoding, arguments, isDebug, node))",
+                @Cached("arguments.length") int cachedArgumentsLength,
+                @Cached(value = "create(compileFormat(cachedFormat, cachedEncoding, arguments, isDebug, warnNode, node))",
                         inline = false) DirectCallNode callPackNode,
                 @Cached StringHelperNodes.EqualSameEncodingNode equalNode) {
             return (BytesResult) callPackNode.call(new Object[]{ arguments, arguments.length, null });
@@ -1679,17 +1683,51 @@ public abstract class KernelNodes {
         @Specialization(replaces = "formatCached")
         static BytesResult formatUncached(
                 Node node, AbstractTruffleString format, RubyEncoding encoding, Object[] arguments, boolean isDebug,
+                @Cached @Shared WarningNode warnNode,
                 @Cached(inline = false) IndirectCallNode callPackNode) {
             return (BytesResult) callPackNode.call(
-                    compileFormat(format, encoding, arguments, isDebug, node),
+                    compileFormat(format, encoding, arguments, isDebug, warnNode, node),
                     new Object[]{ arguments, arguments.length, null });
         }
 
         @TruffleBoundary
         static RootCallTarget compileFormat(AbstractTruffleString tstring, RubyEncoding encoding, Object[] arguments,
-                boolean isDebug, Node node) {
+                boolean isDebug, WarningNode warnNode, Node node) {
             try {
-                return new PrintfCompiler(getLanguage(node), node).compile(tstring, encoding, arguments, isDebug);
+                var byteArray = tstring.getInternalByteArrayUncached(encoding.tencoding);
+
+                final PrintfSimpleParser parser = new PrintfSimpleParser(StringSupport.bytesToChars(byteArray),
+                        arguments,
+                        isDebug);
+                final List<SprintfConfig> configs = parser.parse();
+                final PrintfSimpleTreeBuilder builder = new PrintfSimpleTreeBuilder(getLanguage(node), configs,
+                        encoding);
+
+                if (warnNode.shouldWarn()) {
+                    int modifiersCount = 0;
+                    for (var config : configs) {
+                        if (!config.isLiteral()) {
+                            modifiersCount++;
+                        }
+                    }
+
+                    // don't check number of values passed as a Hash:
+                    //   format("%<foo>d : %<bar>f", { :foo => 1, :bar => 2 })
+                    boolean areReferences = arguments.length == 1 && arguments[0] instanceof RubyHash;
+                    if (!areReferences && modifiersCount < arguments.length) {
+                        warnNode.warningMessage(
+                                RubyContext.get(node).getCallStack().getTopMostUserSourceSection(),
+                                "too many arguments for format string");
+                    }
+                }
+
+                return new FormatRootNode(
+                        getLanguage(node),
+                        node.getEncapsulatingSourceSection(),
+                        new FormatEncoding(encoding),
+                        builder.getNode(),
+                        false,
+                        false).getCallTarget();
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
             }
