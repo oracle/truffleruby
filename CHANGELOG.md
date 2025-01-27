@@ -63,6 +63,7 @@ Compatibility:
 
 Performance:
 
+* Speedup some C extensions like `sqlite3`, `trilogy` and `json` by 2 to 3 times by using the Panama NFI backend for faster upcalls in JVM mode (@eregon).
 * Optimize encoding negotiation for ASCII-compatible encodings (@eregon, @andrykonchin).
 
 Changes:

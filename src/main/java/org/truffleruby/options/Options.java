@@ -107,7 +107,7 @@ public final class Options {
     public final boolean CEXTS;
     /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
-    /** --cexts-panama=false */
+    /** --cexts-panama=true */
     public final boolean CEXTS_PANAMA;
     /** --options-log=false */
     public final boolean OPTIONS_LOG;
