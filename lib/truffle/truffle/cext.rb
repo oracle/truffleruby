@@ -190,7 +190,20 @@ module Truffle::CExt
 
     init_functions = libtrampoline[:rb_tr_trampoline_init_functions]
     init_functions = Primitive.interop_eval_nfi('(env,(string):pointer):void').bind(init_functions)
-    if Truffle::Boot.get_option 'cexts-panama' and Primitive.vm_java_version >= 22 and !TruffleRuby.native?
+
+    panama = Truffle::Boot.get_option('cexts-panama') && Primitive.vm_java_version >= 22 && !TruffleRuby.native?
+    if panama
+      # Check if the Panama backend is available, it might not be when embedding TruffleRuby
+      rb_tr_invoke = LIBTRUFFLERUBY['rb_tr_invoke']
+      begin
+        keep_alive << rb_tr_invoke.createNativeClosure('panama')
+      rescue Polyglot::ForeignException => e
+        warn "warning: the Panama Truffle NFI backend for running C extensions faster is not available (#{e.message}). Add 'org.graalvm.truffle:truffle-nfi-panama' to Maven dependencies to resolve or use '--ruby.cexts-panama=false' to ignore."
+        panama = false
+      end
+    end
+
+    if panama
       init_functions.call(-> name {
         closure = LIBTRUFFLERUBY[name].createNativeClosure('panama')
         keep_alive << closure

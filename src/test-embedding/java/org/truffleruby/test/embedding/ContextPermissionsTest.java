@@ -78,6 +78,13 @@ public class ContextPermissionsTest {
     }
 
     @Test
+    public void testRequireCExtension() {
+        try (Context context = Context.newBuilder("ruby").allowIO(IOAccess.ALL).allowNativeAccess(true).build()) {
+            Assert.assertEquals("Etc", context.eval("ruby", "require 'etc'; Etc.to_s").asString());
+        }
+    }
+
+    @Test
     public void testThreadsNoNative() throws Throwable {
         // The ruby.single_threaded option needs to be set because --single-threaded defaults to --embedded.
         try (Context context = Context
