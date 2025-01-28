@@ -222,6 +222,7 @@ public final class CoreLibrary {
     public final RubyClass digestClass;
     public final RubyClass structClass;
     public final RubyClass weakMapClass;
+    public final RubyClass weakKeyMapClass;
 
     public final RubyArray argv;
     public final RubyBasicObject mainObject;
@@ -445,6 +446,7 @@ public final class CoreLibrary {
         objectSpaceModule = defineModule("ObjectSpace");
 
         weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap");
+        weakKeyMapClass = defineClass(objectSpaceModule, objectClass, "WeakKeyMap");
 
         // The rest
 
@@ -1049,6 +1051,7 @@ public final class CoreLibrary {
             "/core/unbound_method.rb",
             "/core/truffle/warning_operations.rb",
             "/core/warning.rb",
+            "/core/weakkeymap.rb",
             "/core/weakmap.rb",
             "/core/tracepoint.rb",
             "/core/truffle/interop.rb",

@@ -76,6 +76,8 @@ import org.truffleruby.core.method.UnboundMethodNodesBuiltins;
 import org.truffleruby.core.method.UnboundMethodNodesFactory;
 import org.truffleruby.core.module.ModuleNodesBuiltins;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.objectspace.WeakKeyMapNodesBuiltins;
+import org.truffleruby.core.objectspace.WeakKeyMapNodesFactory;
 import org.truffleruby.core.refinement.RefinementNodesBuiltins;
 import org.truffleruby.core.refinement.RefinementNodesFactory;
 import org.truffleruby.core.monitor.TruffleMonitorNodesBuiltins;
@@ -254,6 +256,7 @@ public abstract class BuiltinsClasses {
         TypeNodesBuiltins.setup(coreManager);
         UnboundMethodNodesBuiltins.setup(coreManager);
         VMPrimitiveNodesBuiltins.setup(coreManager);
+        WeakKeyMapNodesBuiltins.setup(coreManager);
         WeakMapNodesBuiltins.setup(coreManager);
         WeakRefNodesBuiltins.setup(coreManager);
     }
@@ -336,6 +339,7 @@ public abstract class BuiltinsClasses {
         TypeNodesBuiltins.setupPrimitives(primitiveManager);
         UnboundMethodNodesBuiltins.setupPrimitives(primitiveManager);
         VMPrimitiveNodesBuiltins.setupPrimitives(primitiveManager);
+        WeakKeyMapNodesBuiltins.setupPrimitives(primitiveManager);
         WeakMapNodesBuiltins.setupPrimitives(primitiveManager);
         WeakRefNodesBuiltins.setupPrimitives(primitiveManager);
     }
@@ -419,6 +423,7 @@ public abstract class BuiltinsClasses {
                 TypeNodesFactory.getFactories(),
                 UnboundMethodNodesFactory.getFactories(),
                 VMPrimitiveNodesFactory.getFactories(),
+                WeakKeyMapNodesFactory.getFactories(),
                 WeakMapNodesFactory.getFactories(),
                 WeakRefNodesFactory.getFactories());
     }

@@ -74,6 +74,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.objectspace.RubyWeakKeyMap;
 import org.truffleruby.core.objectspace.RubyWeakMap;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.queue.RubyQueue;
@@ -332,6 +333,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape truffleFFIPointerShape = createShape(RubyPointer.class);
     public final Shape unboundMethodShape = createShape(RubyUnboundMethod.class);
     public final Shape weakMapShape = createShape(RubyWeakMap.class);
+    public final Shape weakKeyMapShape = createShape(RubyWeakKeyMap.class);
 
     public final Shape classVariableShape = Shape
             .newBuilder()

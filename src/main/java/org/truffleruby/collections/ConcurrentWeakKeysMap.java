@@ -18,24 +18,34 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** A concurrent thread-safe map with weak keys. Keys cannot be null. This map currently assumes keys do not depend on
- * Hashing and so there is no need for ReHashable. So far this is only used for keys which are compared by identity. */
+/** A concurrent thread-safe map with weak keys. Keys cannot be null. This map currently assumes keys never need to be
+ * re-hashed with ReHashable, which means no Ruby ObjectSpace::WeakKeyMap instance should be part of the pre-initialized
+ * context. ConcurrentWeakKeysMap and ConcurrentWeakSet with keys whose hashCode() does not depend on the Ruby random
+ * seed are fine as part of the pre-initialized context. */
 public class ConcurrentWeakKeysMap<Key, Value> {
 
     protected final ConcurrentHashMap<WeakKeyReference<Key>, Value> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Key> referenceQueue = new ReferenceQueue<>();
 
+    @TruffleBoundary
     public ConcurrentWeakKeysMap() {
+    }
+
+    @TruffleBoundary
+    public void clear() {
+        map.clear();
+    }
+
+    @TruffleBoundary
+    public boolean containsKey(Key key) {
+        removeStaleEntries();
+        return map.containsKey(new WeakKeyReference<>(key));
     }
 
     @TruffleBoundary
     public Value get(Key key) {
         removeStaleEntries();
         return map.get(new WeakKeyReference<>(key));
-    }
-
-    public boolean contains(Key key) {
-        return get(key) != null;
     }
 
     /** Sets the value in the cache, always returns the old value. */
@@ -47,11 +57,27 @@ public class ConcurrentWeakKeysMap<Key, Value> {
     }
 
     @TruffleBoundary
+    public int size() {
+        removeStaleEntries();
+        int size = 0;
+
+        // Filter out null entries.
+        for (var e : map.keySet()) {
+            final Key key = e.get();
+            if (key != null) {
+                ++size;
+            }
+        }
+
+        return size;
+    }
+
+    @TruffleBoundary
     public Collection<Key> keys() {
         removeStaleEntries();
         final Collection<Key> keys = new ArrayList<>(map.size());
 
-        // Filter out keys for null values.
+        // Filter out null entries.
         for (var e : map.keySet()) {
             final Key key = e.get();
             if (key != null) {
@@ -60,6 +86,12 @@ public class ConcurrentWeakKeysMap<Key, Value> {
         }
 
         return keys;
+    }
+
+    @TruffleBoundary
+    public Value remove(Key key) {
+        removeStaleEntries();
+        return map.remove(new WeakKeyReference<>(key));
     }
 
     /** Attempts to remove map entries whose values have been made unreachable by the GC.
@@ -96,8 +128,7 @@ public class ConcurrentWeakKeysMap<Key, Value> {
             if (this == other) {
                 return true;
             }
-            if (other instanceof WeakKeyReference) {
-                WeakKeyReference<?> ref = (WeakKeyReference<?>) other;
+            if (other instanceof WeakKeyReference<?> ref) {
                 Key key = get();
                 Object otherKey = ref.get();
                 return key != null && otherKey != null && key.equals(otherKey);

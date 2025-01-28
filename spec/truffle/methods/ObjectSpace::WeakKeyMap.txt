@@ -1,0 +1,7 @@
+[]
+[]=
+clear
+delete
+getkey
+inspect
+key?

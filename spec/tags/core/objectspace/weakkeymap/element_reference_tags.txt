@@ -1,2 +1,1 @@
-fails:ObjectSpace::WeakKeyMap#[] is faithful to the map's content
-fails:ObjectSpace::WeakKeyMap#[] matches using equality semantics
+fails:ObjectSpace::WeakKeyMap#[] raises ArgumentError when numbers or Symbols are used as keys, that cannot be garbage collected

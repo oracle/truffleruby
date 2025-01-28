@@ -1,6 +1,3 @@
-fails:ObjectSpace::WeakKeyMap#[]= is correct
-fails:ObjectSpace::WeakKeyMap#[]= requires the keys to implement #hash
-fails:ObjectSpace::WeakKeyMap#[]= accepts frozen keys or values
 fails:ObjectSpace::WeakKeyMap#[]= rejects symbols as keys
 fails:ObjectSpace::WeakKeyMap#[]= rejects integers as keys
 fails:ObjectSpace::WeakKeyMap#[]= rejects floats as keys
