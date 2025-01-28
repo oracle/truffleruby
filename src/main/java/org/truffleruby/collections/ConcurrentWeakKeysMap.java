@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** A concurrent thread-safe map with weak keys. Keys cannot be null. This map currently assumes keys do no depend on
+/** A concurrent thread-safe map with weak keys. Keys cannot be null. This map currently assumes keys do not depend on
  * Hashing and so there is no need for ReHashable. So far this is only used for keys which are compared by identity. */
 public class ConcurrentWeakKeysMap<Key, Value> {
 

@@ -12,7 +12,7 @@ package org.truffleruby.core.hash;
 import org.truffleruby.core.basicobject.ReferenceEqualNode;
 import org.truffleruby.core.hash.HashingNodes.ToHashByIdentity;
 
-/** Wraps a value so that it will compared and hashed according to Ruby identity semantics. These semantics differ from
+/** Wraps a value so that it will be compared and hashed according to Ruby identity semantics. These semantics differ from
  * Java semantics notably for primitives (e.g. all the NaN are different according to Ruby, but Java compares them
  * equal). */
 public final class CompareByRubyIdentityWrapper {
