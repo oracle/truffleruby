@@ -109,7 +109,7 @@ public abstract class RequireNode extends RubyBaseNode {
                 RubyLanguage.LOGGER
                         .info(() -> String.format(
                                 "%s: requiring %s which is registered as an autoload for %s",
-                                getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                getLanguage().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                                 feature,
                                 info));
             }
@@ -127,7 +127,7 @@ public abstract class RequireNode extends RubyBaseNode {
                 if (constant.getAutoloadConstant().isAutoloadingThread() && !alreadyAutoloading.contains(constant)) {
                     final boolean undefined = GetConstantNode
                             .autoloadUndefineConstantIfStillAutoload(constant);
-                    GetConstantNode.logAutoloadResult(getContext(), constant, undefined);
+                    GetConstantNode.logAutoloadResult(getLanguage(), getContext(), constant, undefined);
                     GetConstantNode.autoloadConstantStop(constant);
                     featureLoader.removeAutoload(constant);
                 }

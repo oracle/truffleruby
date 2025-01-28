@@ -32,7 +32,7 @@ public abstract class CoverageNodes {
 
         @Specialization
         Object enable() {
-            getLanguage().coverageManager.enable();
+            getLanguage().coverageManager.enable(getLanguage());
             return nil;
         }
 

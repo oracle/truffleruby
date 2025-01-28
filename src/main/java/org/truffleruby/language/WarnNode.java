@@ -12,7 +12,9 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.DenyReplace;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.FromJavaStringNode;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -60,20 +62,21 @@ public class WarnNode extends RubyBaseNode {
             callWarnNode = insert(DispatchNode.create());
         }
 
-        callWarn(getContext(), sourceSection, message, this, fromJavaStringNode, callWarnNode);
+        callWarn(getLanguage(), getContext(), sourceSection, message, this, fromJavaStringNode, callWarnNode);
     }
 
-    static void callWarn(RubyContext context, SourceSection sourceSection, String message, RubyBaseNode node,
-            TruffleString.FromJavaStringNode fromJavaStringNode, DispatchNode callWarnNode) {
-        final String warningMessage = buildWarningMessage(context, sourceSection, message);
+    static void callWarn(RubyLanguage language, RubyContext context, SourceSection sourceSection, String message,
+            RubyBaseNode node,
+            FromJavaStringNode fromJavaStringNode, DispatchNode callWarnNode) {
+        final String warningMessage = buildWarningMessage(language, sourceSection, message);
         final RubyString warningString = node.createString(fromJavaStringNode, warningMessage, Encodings.UTF_8);
 
         callWarnNode.call(context.getCoreLibrary().kernelModule, "warn", warningString);
     }
 
     @TruffleBoundary
-    private static String buildWarningMessage(RubyContext context, SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? context.fileLine(sourceSection) + ": " : "";
+    private static String buildWarningMessage(RubyLanguage language, SourceSection sourceSection, String message) {
+        final String sourceLocation = sourceSection != null ? language.fileLine(sourceSection) + ": " : "";
         return sourceLocation + "warning: " + message;
     }
 
@@ -84,7 +87,7 @@ public class WarnNode extends RubyBaseNode {
         public void warningMessage(SourceSection sourceSection, String message) {
             assert shouldWarn();
             WarnNode.callWarn(
-                    getContext(), sourceSection, message, this,
+                    getLanguage(), getContext(), sourceSection, message, this,
                     TruffleString.FromJavaStringNode.getUncached(),
                     DispatchNode.getUncached());
         }

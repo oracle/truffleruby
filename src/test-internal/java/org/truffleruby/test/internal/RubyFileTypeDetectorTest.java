@@ -48,12 +48,12 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                         if (testCase.hasRubyMimeType) {
                             assertEquals(
                                     testCase.path.toString(),
-                                    RubyLanguage.getMimeType(false),
+                                    RubyLanguage.MIME_TYPE,
                                     fileTypeDetector.findMimeType(file));
                         } else {
                             assertNotEquals(
                                     testCase.path.toString(),
-                                    RubyLanguage.getMimeType(false),
+                                    RubyLanguage.MIME_TYPE,
                                     fileTypeDetector.findMimeType(file));
                         }
                     }
@@ -70,12 +70,12 @@ public class RubyFileTypeDetectorTest extends RubyTest {
             if (testCase.hasRubyMimeType) {
                 assertEquals(
                         testCase.path.toString(),
-                        RubyLanguage.getMimeType(false),
+                        RubyLanguage.MIME_TYPE,
                         Source.findMimeType(testCase.path.toFile()));
             } else {
                 assertNotEquals(
                         testCase.path.toString(),
-                        RubyLanguage.getMimeType(false),
+                        RubyLanguage.MIME_TYPE,
                         Source.findMimeType(testCase.path.toFile()));
             }
         }

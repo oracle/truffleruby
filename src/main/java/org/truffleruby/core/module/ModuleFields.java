@@ -85,7 +85,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     /** The language is stored here so that we don't need to pass the language to the many callers of getName() (some of
      * which we can't like toString()). It shouldn't be used for anything else than {@link #setName(String)} (instead
      * pass the RubyLanguage as an argument). */
-    private final RubyLanguage language;
+    private final RubyLanguage languageForSetName;
     private final SourceSection sourceSection;
 
     private final PrependMarker start;
@@ -164,7 +164,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             String givenBaseName,
             RubyModule rubyModule /* not fully initialized yet, should not access any field of it */) {
         super(null);
-        this.language = language;
+        this.languageForSetName = language;
         this.sourceSection = sourceSection;
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
@@ -444,8 +444,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, Object filename,
-            String javaFilename) {
+    public void setAutoloadConstant(RubyLanguage language, RubyContext context, Node currentNode, String name,
+            Object filename, String javaFilename) {
         RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
         if (autoloadConstant == null) {
             return;
@@ -454,7 +454,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         if (context.getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: setting up autoload %s with %s",
-                    context.fileLine(context.getCallStack().getTopMostUserSourceSection()),
+                    language.fileLine(context.getCallStack().getTopMostUserSourceSection()),
                     autoloadConstant,
                     filename));
         }
@@ -787,7 +787,8 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void setName(String name) {
         this.name = name;
         if (hasPartialName()) {
-            this.rubyStringName = language.getFrozenStringLiteral(TStringUtils.utf8TString(name), Encodings.UTF_8);
+            this.rubyStringName = languageForSetName.getFrozenStringLiteral(TStringUtils.utf8TString(name),
+                    Encodings.UTF_8);
         } else {
             this.rubyStringName = null;
         }

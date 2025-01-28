@@ -53,7 +53,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected int getLine() {
         if (line == 0) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            line = RubySource.getStartLineAdjusted(context, eventContext.getInstrumentedSourceSection());
+            line = RubySource.getStartLineAdjusted(language, eventContext.getInstrumentedSourceSection());
         }
         return line;
     }

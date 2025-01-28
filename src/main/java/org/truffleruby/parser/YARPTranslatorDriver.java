@@ -174,7 +174,8 @@ public final class YARPTranslatorDriver {
 
         parseEnvironment.yarpSource = parseResult.source;
 
-        handleWarningsErrorsPrimitives(context, parseResult, rubySource, sourcePath, parseEnvironment, rubyWarnings);
+        handleWarningsErrorsPrimitives(language, context, parseResult, rubySource, sourcePath, parseEnvironment,
+                rubyWarnings);
 
         var node = parseResult.value;
 
@@ -414,8 +415,8 @@ public final class YARPTranslatorDriver {
         return YARPLoader.load(serializedBytes, sourceBytes, rubySource);
     }
 
-    public static void handleWarningsErrorsPrimitives(RubyContext context, ParseResult parseResult,
-            RubySource rubySource, String sourcePath, ParseEnvironment parseEnvironment,
+    public static void handleWarningsErrorsPrimitives(RubyLanguage language, RubyContext context,
+            ParseResult parseResult, RubySource rubySource, String sourcePath, ParseEnvironment parseEnvironment,
             RubyDeferredWarnings rubyWarnings) {
 
         final ParseResult.Error[] errors = parseResult.errors;
@@ -448,7 +449,7 @@ public final class YARPTranslatorDriver {
             Nodes.Location location = error.location;
             SourceSection section = rubySource.getSource().createSection(location.startOffset, location.length);
 
-            String message = context.fileLine(section) + ": " + error.message;
+            String message = language.fileLine(section) + ": " + error.message;
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().syntaxErrorAlreadyWithFileLine(message, null, section));

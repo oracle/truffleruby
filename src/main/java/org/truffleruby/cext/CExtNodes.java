@@ -1188,7 +1188,7 @@ public abstract class CExtNodes {
         @Specialization
         int sourceLine() {
             final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
-            return RubySource.getStartLineAdjusted(getContext(), sourceSection);
+            return RubySource.getStartLineAdjusted(getLanguage(), sourceSection);
         }
 
     }

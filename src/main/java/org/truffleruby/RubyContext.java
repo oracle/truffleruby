@@ -31,13 +31,11 @@ import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.AssumedValue;
 import org.graalvm.collections.Pair;
 import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.collections.SharedIndicesMap.ContextArray;
-import org.truffleruby.collections.ConcurrentWeakKeysMap;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.DataObjectFinalizationService;
 import org.truffleruby.core.FinalizationService;
@@ -126,7 +124,6 @@ public final class RubyContext {
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager;
-    private final ConcurrentWeakKeysMap<Source, Integer> sourceLineOffsets = new ConcurrentWeakKeysMap<>();
     /** (Symbol, refinements) -> Proc for Symbol#to_proc */
     public final Map<Pair<RubySymbol, Map<RubyModule, RubyModule[]>>, RootCallTarget> cachedSymbolToProcTargetsWithRefinements = new ConcurrentHashMap<>();
     /** Default signal handlers for Ruby, only SIGINT and SIGALRM, see {@code core/main.rb} */
@@ -719,15 +716,6 @@ public final class RubyContext {
 
     public ValueWrapperManager getValueWrapperManager() {
         return valueWrapperManager;
-    }
-
-    public ConcurrentWeakKeysMap<Source, Integer> getSourceLineOffsets() {
-        return sourceLineOffsets;
-    }
-
-    @TruffleBoundary
-    public String fileLine(SourceSection section) {
-        return language.fileLine(this, section);
     }
 
     private static SecureRandom createRandomInstance() {

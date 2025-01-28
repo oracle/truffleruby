@@ -94,7 +94,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             if (getContext().getOptions().LOG_AUTOLOAD) {
                 RubyLanguage.LOGGER.info(() -> String.format(
                         "%s: %s::%s is being treated as missing while loading %s",
-                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                        getLanguage().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                         module.fields.getName(),
                         name,
                         expandedPath));
@@ -105,7 +105,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
         if (getContext().getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: autoloading %s with %s",
-                    getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                    getLanguage().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                     autoloadConstant,
                     autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }
@@ -147,10 +147,11 @@ public abstract class GetConstantNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    public static void logAutoloadResult(RubyContext context, RubyConstant constant, boolean undefined) {
+    public static void logAutoloadResult(RubyLanguage language, RubyContext context, RubyConstant constant,
+            boolean undefined) {
         if (context.getOptions().LOG_AUTOLOAD) {
             final SourceSection section = context.getCallStack().getTopMostUserSourceSection();
-            final String message = context.fileLine(section) + ": " + constant + " " +
+            final String message = language.fileLine(section) + ": " + constant + " " +
                     (undefined
                             ? "was marked as undefined as it was not assigned in "
                             : "was successfully autoloaded from ") +
@@ -172,11 +173,11 @@ public abstract class GetConstantNode extends RubyBaseNode {
                 (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
                         resolvedConstant.getDeclaringModule() == coreLibrary().objectClass)) {
             // all is good, just return that constant
-            logAutoloadResult(getContext(), autoloadConstant, false);
+            logAutoloadResult(getLanguage(), getContext(), autoloadConstant, false);
         } else {
             // If the autoload constant was not set in the ancestors, undefine the constant
             boolean undefined = fields.undefineConstantIfStillAutoload(autoloadConstant);
-            logAutoloadResult(getContext(), autoloadConstant, undefined);
+            logAutoloadResult(getLanguage(), getContext(), autoloadConstant, undefined);
 
             // redo lookup, to consider the undefined constant
             resolvedConstant = lookupConstantNode.lookupConstant(this, lexicalScope, module, name, true);

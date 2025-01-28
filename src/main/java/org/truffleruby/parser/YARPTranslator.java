@@ -680,7 +680,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             if (translatedArguments.length != constructor.getPrimitiveArity()) {
                 throw new Error(
                         "Incorrect number of arguments (expected " + constructor.getPrimitiveArity() + ") at " +
-                                RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+                                language.fileLine(getSourceSection(node)));
             }
 
             final RubyNode invokePrimitiveNode = constructor.createInvokePrimitiveNode(translatedArguments);
@@ -1473,8 +1473,8 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> "dynamic constant lookup at " +
-                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+                RubyLanguage.LOGGER
+                        .info(() -> "dynamic constant lookup at " + language.fileLine(getSourceSection(node)));
             }
 
             rubyNode = new ReadConstantWithDynamicScopeNode(node.name);
@@ -3162,8 +3162,7 @@ public class YARPTranslator extends YARPBaseTranslator {
                 dynamicConstantLookup = true;
                 if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
                     RubyLanguage.LOGGER.info(
-                            () -> "start dynamic constant lookup at " +
-                                    RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+                            () -> "start dynamic constant lookup at " + language.fileLine(getSourceSection(node)));
                 }
             }
         }
@@ -3515,8 +3514,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     private RubyNode getLexicalScopeNode(String kind, Nodes.Node yarpNode) {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> kind + " at " +
-                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(yarpNode)));
+                RubyLanguage.LOGGER.info(() -> kind + " at " + language.fileLine(getSourceSection(yarpNode)));
             }
             return new GetDynamicLexicalScopeNode();
         } else {
@@ -3634,8 +3632,7 @@ public class YARPTranslator extends YARPBaseTranslator {
     private RubyNode getLexicalScopeModuleNode(String kind, Nodes.Node node) {
         if (environment.isDynamicConstantLookup()) {
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> kind + " at " +
-                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+                RubyLanguage.LOGGER.info(() -> kind + " at " + language.fileLine(getSourceSection(node)));
             }
             return new DynamicLexicalScopeNode();
         } else {
@@ -3684,8 +3681,8 @@ public class YARPTranslator extends YARPBaseTranslator {
         } else {
             // Switch to dynamic constant lookup
             if (language.options.LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> "start dynamic constant lookup at " +
-                        RubyLanguage.getCurrentContext().fileLine(getSourceSection(node)));
+                RubyLanguage.LOGGER
+                        .info(() -> "start dynamic constant lookup at " + language.fileLine(getSourceSection(node)));
             }
             return true;
         }

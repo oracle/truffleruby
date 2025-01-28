@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyLanguage.RubySourceOptions;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -187,7 +187,7 @@ public abstract class TruffleBootNodes {
             } catch (IOException e) {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
-            assert RubyLanguage.MIME_TYPE_MAIN_SCRIPT.equals(rubySource.getSource().getMimeType());
+            assert rubySource.getSource().getOptions(getLanguage()).get(RubySourceOptions.MainScript);
 
             getContext().initializeMainScriptName(mainScriptName);
 

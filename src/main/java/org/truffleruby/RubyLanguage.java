@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.ContextThreadLocal;
+import com.oracle.truffle.api.Option;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -41,7 +42,9 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.nativeimage.ImageInfo;
+import org.graalvm.options.OptionCategory;
 import org.graalvm.options.OptionDescriptors;
+import org.graalvm.options.OptionKey;
 import org.prism.Parser;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.builtins.PrimitiveManager;
@@ -158,10 +161,7 @@ import static org.truffleruby.language.RubyBaseNode.nil;
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
         version = TruffleRuby.LANGUAGE_VERSION,
-        characterMimeTypes = {
-                RubyLanguage.MIME_TYPE,
-                RubyLanguage.MIME_TYPE_COVERAGE,
-                RubyLanguage.MIME_TYPE_MAIN_SCRIPT },
+        characterMimeTypes = RubyLanguage.MIME_TYPE,
         defaultMimeType = RubyLanguage.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm", "regex" },
         fileTypeDetectors = RubyFileTypeDetector.class)
@@ -178,11 +178,23 @@ import static org.truffleruby.language.RubyBaseNode.nil;
 })
 public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
-    /** Do not access directly, instead use {@link #getMimeType(boolean)} */
-    static final String MIME_TYPE = "application/x-ruby";
-    public static final String MIME_TYPE_COVERAGE = "application/x-ruby;coverage=true";
-    public static final String MIME_TYPE_MAIN_SCRIPT = "application/x-ruby;main-script=true";
-    public static final String[] MIME_TYPES = { MIME_TYPE, MIME_TYPE_COVERAGE, MIME_TYPE_MAIN_SCRIPT };
+    @Option.Group(TruffleRuby.LANGUAGE_ID)
+    public abstract static class RubySourceOptions {
+        // @formatter:off
+        @Option(help = "Whether Ruby coverage is enabled for this source", category = OptionCategory.INTERNAL)
+        public static final OptionKey<Boolean> Coverage = new OptionKey<>(false);
+
+        @Option(help = "Mark this source as the main Ruby script ($0)", category = OptionCategory.INTERNAL)
+        public static final OptionKey<Boolean> MainScript = new OptionKey<>(false);
+
+        @Option(help = "Record the line offset when this source was eval'ed", category = OptionCategory.INTERNAL)
+        public static final OptionKey<Integer> LineOffset = new OptionKey<>(0);
+        // @formatter:on
+    }
+
+    public static final String MIME_TYPE = "application/x-ruby";
+    /** To avoid some String[] allocations */
+    public static final String[] MIME_TYPES = { MIME_TYPE };
 
     public static final String LLVM_BITCODE_MIME_TYPE = "application/x-llvm-ir-bitcode";
 
@@ -366,10 +378,6 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return REFERENCE.get(node);
     }
 
-    public static String getMimeType(boolean coverageEnabled) {
-        return coverageEnabled ? MIME_TYPE_COVERAGE : MIME_TYPE;
-    }
-
     public RubyLanguage() {
         coreMethodAssumptions = new CoreMethodAssumptions(this);
         coreStrings = new CoreStrings(this);
@@ -469,7 +477,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
                 this.coreLoadPath = buildCoreLoadPath(this.options.CORE_LOAD_PATH);
                 this.corePath = coreLoadPath + File.separator + "core" + File.separator;
                 Instrumenter instrumenter = Objects.requireNonNull(env.lookup(Instrumenter.class));
-                this.coverageManager = new CoverageManager(options, instrumenter);
+                this.coverageManager = new CoverageManager(this, instrumenter);
                 if (options.INSTRUMENT_ALL_NODES) {
                     instrumentAllNodes(instrumenter);
                 }
@@ -597,7 +605,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         final ParsingParameters parsingParameters = parsingRequestParams.get();
         if (parsingParameters != null) { // from #require or core library
             assert parsingParameters.rubySource.getSource().equals(source);
-            final ParserContext parserContext = MIME_TYPE_MAIN_SCRIPT.equals(source.getMimeType())
+            final ParserContext parserContext = request.getOptionValues().get(RubySourceOptions.MainScript)
                     ? ParserContext.TOP_LEVEL_FIRST
                     : ParserContext.TOP_LEVEL;
             final LexicalScope lexicalScope = contextIfSingleContext.map(RubyContext::getRootLexicalScope).orElse(null);
@@ -632,6 +640,11 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected OptionDescriptors getOptionDescriptors() {
         return OptionDescriptors.create(Arrays.asList(OptionsCatalog.allDescriptors()));
+    }
+
+    @Override
+    protected OptionDescriptors getSourceOptionDescriptors() {
+        return new RubySourceOptionsOptionDescriptors();
     }
 
     @Override
@@ -955,7 +968,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     /** Only use when no language/context is available (e.g. Node#toString). Prefer
-     * {@link RubyContext#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
+     * {@link RubyLanguage#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
     @TruffleBoundary
     public static String fileLineRange(SourceSection section) {
         if (section == null) {
@@ -975,16 +988,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    /** Prefer {@link RubyContext#fileLine(SourceSection)} as it is more concise. */
     @TruffleBoundary
-    String fileLine(RubyContext context, SourceSection section) {
+    public String fileLine(SourceSection section) {
         if (section == null) {
             return "no source section";
         } else {
             final String path = getSourcePath(section.getSource());
 
             if (section.isAvailable()) {
-                return path + ":" + RubySource.getStartLineAdjusted(context, section);
+                return path + ":" + RubySource.getStartLineAdjusted(this, section);
             } else {
                 return path;
             }
@@ -992,7 +1004,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     /** Only use when no language/context is available (e.g. Node#toString). Prefer
-     * {@link RubyContext#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
+     * {@link RubyLanguage#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
     @TruffleBoundary
     public static String filenameLine(SourceSection section) {
         if (section == null) {
@@ -1009,14 +1021,14 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    public Object rubySourceLocation(RubyContext context, SourceSection section,
+    public Object rubySourceLocation(SourceSection section,
             TruffleString.FromJavaStringNode fromJavaStringNode,
             Node node) {
         if (!BacktraceFormatter.isAvailable(section)) {
             return nil;
         } else {
             var file = createString(node, fromJavaStringNode, getSourcePath(section.getSource()), Encodings.UTF_8);
-            Object[] objects = new Object[]{ file, RubySource.getStartLineAdjusted(context, section) };
+            Object[] objects = new Object[]{ file, RubySource.getStartLineAdjusted(this, section) };
             return createArray(node, objects);
         }
     }

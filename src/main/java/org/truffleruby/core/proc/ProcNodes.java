@@ -216,7 +216,7 @@ public abstract class ProcNodes {
             if (!sourceSection.isAvailable() || RubyLanguage.getPath(source).endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {
-                return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
+                return getLanguage().rubySourceLocation(sourceSection, fromJavaStringNode, this);
             }
         }
 

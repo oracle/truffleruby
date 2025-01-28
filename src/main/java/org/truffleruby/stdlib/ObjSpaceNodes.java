@@ -245,7 +245,7 @@ public abstract class ObjSpaceNodes {
             if (trace == null) {
                 return nil;
             } else {
-                return RubySource.getStartLineAdjusted(getContext(), trace.allocatingSourceSection);
+                return RubySource.getStartLineAdjusted(getLanguage(), trace.allocatingSourceSection);
             }
         }
 

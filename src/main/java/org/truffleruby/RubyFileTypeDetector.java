@@ -42,20 +42,20 @@ public final class RubyFileTypeDetector implements TruffleFile.FileTypeDetector 
 
         for (String candidate : KNOWN_RUBY_SUFFIXES) {
             if (lowerCaseFileName.endsWith(candidate)) {
-                return RubyLanguage.getMimeType(false);
+                return RubyLanguage.MIME_TYPE;
             }
         }
 
         for (String candidate : KNOWN_RUBY_FILES) {
             if (fileName.equals(candidate)) {
-                return RubyLanguage.getMimeType(false);
+                return RubyLanguage.MIME_TYPE;
             }
         }
 
         try (BufferedReader fileContent = file.newBufferedReader(StandardCharsets.ISO_8859_1)) {
             final String firstLine = fileContent.readLine();
             if (firstLine != null && SHEBANG_REGEXP.matcher(firstLine).matches()) {
-                return RubyLanguage.getMimeType(false);
+                return RubyLanguage.MIME_TYPE;
             }
         } catch (IOException | SecurityException e) {
             // Reading random files could cause all sorts of errors

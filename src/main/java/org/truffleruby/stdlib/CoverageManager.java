@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyLanguage.RubySourceOptions;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentOperations;
 
@@ -31,7 +32,6 @@ import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.options.LanguageOptions;
 
 public final class CoverageManager {
 
@@ -46,11 +46,11 @@ public final class CoverageManager {
 
     private volatile boolean enabled;
 
-    public CoverageManager(LanguageOptions options, Instrumenter instrumenter) {
+    public CoverageManager(RubyLanguage language, Instrumenter instrumenter) {
         this.instrumenter = instrumenter;
 
-        if (options.COVERAGE_GLOBAL) {
-            enable();
+        if (language.options.COVERAGE_GLOBAL) {
+            enable(language);
         }
     }
 
@@ -69,7 +69,7 @@ public final class CoverageManager {
     }
 
     @TruffleBoundary
-    public synchronized void enable() {
+    public synchronized void enable(RubyLanguage language) {
         if (enabled) {
             return;
         }
@@ -77,7 +77,8 @@ public final class CoverageManager {
         binding = instrumenter.attachExecutionEventFactory(
                 SourceSectionFilter
                         .newBuilder()
-                        .mimeTypeIs(RubyLanguage.MIME_TYPE_COVERAGE)
+                        .mimeTypeIs(RubyLanguage.MIME_TYPES)
+                        .sourceIs(source -> source.getOptions(language).get(RubySourceOptions.Coverage))
                         .tagIs(LineTag.class)
                         .build(),
                 eventContext -> new ExecutionEventNode() {

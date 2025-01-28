@@ -134,7 +134,7 @@ public abstract class ThreadBacktraceLocationNodes {
         int lineno(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
-            return RubySource.getStartLineAdjusted(getContext(), sourceSection);
+            return RubySource.getStartLineAdjusted(getLanguage(), sourceSection);
         }
 
     }

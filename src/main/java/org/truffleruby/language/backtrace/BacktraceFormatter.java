@@ -281,13 +281,13 @@ public final class BacktraceFormatter {
             } else {
                 builder.append(language.getSourcePath(reportedSourceSection.getSource()));
                 builder.append(":");
-                builder.append(RubySource.getStartLineAdjusted(context, reportedSourceSection));
+                builder.append(RubySource.getStartLineAdjusted(language, reportedSourceSection));
             }
         } else { // A foreign frame
             if (sourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(context.fileLine(sourceSection));
+                builder.append(language.fileLine(sourceSection));
             }
         }
 
