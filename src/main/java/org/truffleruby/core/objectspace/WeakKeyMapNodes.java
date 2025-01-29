@@ -21,9 +21,12 @@ import org.truffleruby.core.hash.CompareByRubyHashEqlWrapper.RecordingCompareByR
 import org.truffleruby.core.hash.HashingNodes.ToHashByHashCode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.annotations.Visibility;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
 
@@ -94,12 +97,24 @@ public abstract class WeakKeyMapNodes {
     @CoreMethod(names = "[]=", required = 2)
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(guards = "isGarbageCollectable(key)")
         Object set(RubyWeakKeyMap map, Object key, Object value,
                 @Cached ToHashByHashCode hashCodeNode) {
             int hashCode = hashCodeNode.execute(this, key);
             map.storage.put(new CompareByRubyHashEqlWrapper(key, hashCode), value);
             return value;
+        }
+
+        @Specialization(guards = "!isGarbageCollectable(key)")
+        void set(RubyWeakKeyMap map, Object key, Object value) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().argumentError("WeakKeyMap must be garbage collectable", this));
+        }
+
+        boolean isGarbageCollectable(Object object) {
+            return !(object == nil || object instanceof Boolean || object instanceof RubySymbol ||
+                    RubyGuards.isRubyNumber(object));
         }
     }
 

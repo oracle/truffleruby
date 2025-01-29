@@ -88,16 +88,15 @@ ruby_version_is "3.3" do
       map[key].should == 42
     end
 
-    it "raises ArgumentError when numbers or Symbols are used as keys, that cannot be garbage collected" do
-      -> {
-        map = ObjectSpace::WeakKeyMap.new
-        map[1.0] = "x"
-      }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+    it "returns nil and does not raise error when a key cannot be garbage collected" do
+      map = ObjectSpace::WeakKeyMap.new
 
-      -> {
-        map = ObjectSpace::WeakKeyMap.new
-        map[:a] = "x"
-      }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+      map[1].should == nil
+      map[1.0].should == nil
+      map[:a].should == nil
+      map[true].should == nil
+      map[false].should == nil
+      map[nil].should == nil
     end
   end
 end

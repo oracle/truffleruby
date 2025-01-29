@@ -1,1 +1,0 @@
-fails:ObjectSpace::WeakKeyMap#[] raises ArgumentError when numbers or Symbols are used as keys, that cannot be garbage collected
