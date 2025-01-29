@@ -26,6 +26,9 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
 
+/** A RubySource object contains extra data for a Source. RubySource objects are created just before parsing, so they
+ * are just a convenient to pass extra data together with the Source and short-lived (not stored anywhere). It notably
+ * contains the source as a byte[] or TruffleString to avoid extra byte[]->java.lang.String->byte[] conversions. */
 public final class RubySource {
 
     private final Source source;
