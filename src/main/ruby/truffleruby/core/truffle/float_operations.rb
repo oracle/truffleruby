@@ -12,7 +12,7 @@ module Truffle
   module FloatOperations
     class << self
       def round_overflow?(ndigits, exponent)
-        ndigits >= Float::DIG + 2 - (exponent > 0 ? exponent/4 : exponent/3 - 1)
+        ndigits >= Float::DIG + 2 - (exponent > 0 ? exponent / 4 : exponent / 3 - 1)
       end
 
       def round_underflow?(ndigits, exponent)
