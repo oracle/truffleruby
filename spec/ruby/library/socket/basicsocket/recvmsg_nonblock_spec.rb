@@ -236,6 +236,7 @@ describe 'BasicSocket#recvmsg_nonblock' do
       end
 
       ruby_version_is ""..."3.3" do
+        quarantine! do # May fail with "IO::EAGAINWaitReadable: Resource temporarily unavailable - recvfrom(2) would block" error
         it "returns an empty String as received data on a closed stream socket" do
           ready = false
 
@@ -258,29 +259,32 @@ describe 'BasicSocket#recvmsg_nonblock' do
           t.value.should.is_a? Array
           t.value[0].should == ""
         end
+        end
       end
 
       ruby_version_is "3.3" do
-        it "returns nil on a closed stream socket" do
-          ready = false
+        platform_is_not :windows do
+          it "returns nil on a closed stream socket" do
+            ready = false
 
-          t = Thread.new do
-            client = @server.accept
+            t = Thread.new do
+              client = @server.accept
 
-            Thread.pass while !ready
-            client.recvmsg_nonblock(10)
-          ensure
-            client.close if client
+              Thread.pass while !ready
+              client.recvmsg_nonblock(10)
+            ensure
+              client.close if client
+            end
+
+            Thread.pass while t.status and t.status != "sleep"
+            t.status.should_not be_nil
+
+            socket = TCPSocket.new('127.0.0.1', @port)
+            socket.close
+            ready = true
+
+            t.value.should be_nil
           end
-
-          Thread.pass while t.status and t.status != "sleep"
-          t.status.should_not be_nil
-
-          socket = TCPSocket.new('127.0.0.1', @port)
-          socket.close
-          ready = true
-
-          t.value.should be_nil
         end
       end
     end

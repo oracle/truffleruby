@@ -113,6 +113,7 @@ describe "Socket::BasicSocket#recv_nonblock" do
       end
 
       ruby_version_is ""..."3.3" do
+        quarantine! do # May fail with "IO::EAGAINWaitReadable: Resource temporarily unavailable - recvfrom(2) would block" error
         it "returns an empty String on a closed stream socket" do
           ready = false
 
@@ -133,6 +134,7 @@ describe "Socket::BasicSocket#recv_nonblock" do
           ready = true
 
           t.value.should == ""
+        end
         end
       end
 

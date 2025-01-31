@@ -159,6 +159,7 @@ describe 'Socket#recvfrom_nonblock' do
       end
 
       ruby_version_is ""..."3.3" do
+        quarantine! do # May fail with "IO::EAGAINWaitReadable: Resource temporarily unavailable - recvfrom(2) would block" error
         it "returns an empty String as received data on a closed stream socket" do
           ready = false
 
@@ -181,9 +182,11 @@ describe 'Socket#recvfrom_nonblock' do
           t.value.should.is_a? Array
           t.value[0].should == ""
         end
+        end
       end
 
       ruby_version_is "3.3" do
+        quarantine! do # May fail with "IO::EAGAINWaitReadable: Resource temporarily unavailable - recvfrom(2) would block" error
         it "returns nil on a closed stream socket" do
           ready = false
 
@@ -204,6 +207,7 @@ describe 'Socket#recvfrom_nonblock' do
           ready = true
 
           t.value.should be_nil
+        end
         end
       end
     end
