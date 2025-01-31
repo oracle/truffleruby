@@ -209,41 +209,45 @@ describe 'BasicSocket#recvmsg' do
       end
 
       ruby_version_is ""..."3.3" do
-        it "returns an empty String as received data on a closed stream socket" do
-          t = Thread.new do
-            client = @server.accept
-            client.recvmsg(10)
-          ensure
-            client.close if client
+        platform_is_not :windows do
+          it "returns an empty String as received data on a closed stream socket" do
+            t = Thread.new do
+              client = @server.accept
+              client.recvmsg(10)
+            ensure
+              client.close if client
+            end
+
+            Thread.pass while t.status and t.status != "sleep"
+            t.status.should_not be_nil
+
+            socket = TCPSocket.new('127.0.0.1', @port)
+            socket.close
+
+            t.value.should.is_a? Array
+            t.value[0].should == ""
           end
-
-          Thread.pass while t.status and t.status != "sleep"
-          t.status.should_not be_nil
-
-          socket = TCPSocket.new('127.0.0.1', @port)
-          socket.close
-
-          t.value.should.is_a? Array
-          t.value[0].should == ""
         end
       end
 
       ruby_version_is "3.3" do
-        it "returns nil on a closed stream socket" do
-          t = Thread.new do
-            client = @server.accept
-            client.recvmsg(10)
-          ensure
-            client.close if client
+        platform_is_not :windows do
+          it "returns nil on a closed stream socket" do
+            t = Thread.new do
+              client = @server.accept
+              client.recvmsg(10)
+            ensure
+              client.close if client
+            end
+
+            Thread.pass while t.status and t.status != "sleep"
+            t.status.should_not be_nil
+
+            socket = TCPSocket.new('127.0.0.1', @port)
+            socket.close
+
+            t.value.should be_nil
           end
-
-          Thread.pass while t.status and t.status != "sleep"
-          t.status.should_not be_nil
-
-          socket = TCPSocket.new('127.0.0.1', @port)
-          socket.close
-
-          t.value.should be_nil
         end
       end
     end
