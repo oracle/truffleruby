@@ -1,0 +1,1 @@
+slow:CApiFinalizerSpecs rb_define_finalizer defines a finalizer on the object
