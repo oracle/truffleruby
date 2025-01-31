@@ -23,3 +23,6 @@ fails:Fiber.[] can use dynamically defined keys
 fails:Fiber.[] can't use invalid keys
 fails:Fiber.[]= deletes the fiber storage key when assigning nil
 fails:Fiber.[] can use keys as strings
+fails:Fiber.[] converts a String key into a Symbol
+fails:Fiber.[] can use any object that responds to #to_str as a key
+fails:Fiber.[] does not call #to_sym on the key

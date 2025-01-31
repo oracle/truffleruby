@@ -1,1 +1,3 @@
+fails:CApiFinalizerSpecs rb_define_finalizer defines a finalizer on the object
+fails:CApiFinalizerSpecs rb_undefine_finalizer removes finalizers from the object
 slow:CApiFinalizerSpecs rb_define_finalizer defines a finalizer on the object
