@@ -193,42 +193,44 @@ class Float < Numeric
     end
   end
 
-  def round(ndigits = undefined, half: nil)
-    ndigits = if Primitive.undefined?(ndigits)
-                nil
-              else
-                Truffle::Type.coerce_to(ndigits, Integer, :to_int)
-              end
+  def round(ndigits = 0, half: :up)
+    ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
+
     if self == 0.0
-      return ndigits && ndigits > 0 ? self : 0
+      return ndigits > 0 ? self : 0
     end
-    if Primitive.nil?(ndigits)
-      if infinite?
+
+    half = :up if Primitive.nil?(half)
+    if half != :up && half != :down && half != :even
+      raise ArgumentError, "invalid rounding mode: #{half}"
+    end
+
+    if ndigits <= 0
+      if self.infinite?
         raise FloatDomainError, 'Infinite'
-      elsif nan?
+      elsif self.nan?
         raise FloatDomainError, 'NaN'
-      else
-        case half
-        when nil, :up
-          Primitive.float_round_up(self)
-        when :even
-          Primitive.float_round_even(self)
-        when :down
-          Primitive.float_round_down(self)
-        else
-          raise ArgumentError, "invalid rounding mode: #{half}"
-        end
       end
-    else
-      if ndigits == 0
-        round(half: half)
-      elsif ndigits < 0
-        to_i.round(ndigits, :half => half)
-      elsif infinite? or nan?
+    end
+
+    if ndigits < 0
+      to_i.round(ndigits, half: half)
+    elsif ndigits == 0
+      Truffle::FloatOperations.round_to_n_place(self, ndigits, half)
+    elsif !infinite? && !nan?
+      exponent = Primitive.float_exp(self)
+
+      if Truffle::FloatOperations.round_overflow?(ndigits, exponent)
         self
+      elsif Truffle::FloatOperations.round_overflow?(ndigits, exponent)
+        0.0
+      elsif ndigits > 14
+        to_r.round(ndigits, half: half).to_f
       else
         Truffle::FloatOperations.round_to_n_place(self, ndigits, half)
       end
+    else
+      self # Infinity or NaN
     end
   end
 
