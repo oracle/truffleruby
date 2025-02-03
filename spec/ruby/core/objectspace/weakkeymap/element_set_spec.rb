@@ -36,6 +36,15 @@ ruby_version_is "3.3" do
       should_accept(map, y, x)
     end
 
+    it "does not duplicate and freeze String keys (like Hash#[]= does)" do
+      map = ObjectSpace::WeakKeyMap.new
+      key = +"a"
+      map[key] = 1
+
+      map.getkey("a").should.equal? key
+      map.getkey("a").should_not.frozen?
+    end
+
     context "a key cannot be garbage collected" do
       it "raises ArgumentError when Integer is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
