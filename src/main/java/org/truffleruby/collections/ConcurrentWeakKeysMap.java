@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * seed are fine as part of the pre-initialized context. */
 public class ConcurrentWeakKeysMap<Key, Value> {
 
-    protected final ConcurrentHashMap<WeakKeyReference<Key>, Value> map = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<WeakReference<Key>, Value> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Key> referenceQueue = new ReferenceQueue<>();
 
     @TruffleBoundary
@@ -39,20 +39,20 @@ public class ConcurrentWeakKeysMap<Key, Value> {
     @TruffleBoundary
     public boolean containsKey(Key key) {
         removeStaleEntries();
-        return map.containsKey(new WeakKeyReference<>(key));
+        return map.containsKey(buildWeakReference(key));
     }
 
     @TruffleBoundary
     public Value get(Key key) {
         removeStaleEntries();
-        return map.get(new WeakKeyReference<>(key));
+        return map.get(buildWeakReference(key));
     }
 
     /** Sets the value in the cache, always returns the old value. */
     @TruffleBoundary
     public Value put(Key key, Value value) {
         removeStaleEntries();
-        var ref = new WeakKeyReference<>(key, referenceQueue);
+        var ref = buildWeakReference(key, referenceQueue);
         return map.put(ref, value);
     }
 
@@ -91,7 +91,15 @@ public class ConcurrentWeakKeysMap<Key, Value> {
     @TruffleBoundary
     public Value remove(Key key) {
         removeStaleEntries();
-        return map.remove(new WeakKeyReference<>(key));
+        return map.remove(buildWeakReference(key));
+    }
+
+    protected WeakReference<Key> buildWeakReference(Key key) {
+        return new WeakKeyReference<>(key);
+    }
+
+    protected WeakReference<Key> buildWeakReference(Key key, ReferenceQueue<Key> referenceQueue) {
+        return new WeakKeyReference<>(key, referenceQueue);
     }
 
     /** Attempts to remove map entries whose values have been made unreachable by the GC.
@@ -99,7 +107,7 @@ public class ConcurrentWeakKeysMap<Key, Value> {
      * This relies on the underlying {@link WeakReference} instance being enqueued to the {@link #referenceQueue} queue.
      * It is possible that the map still contains {@link WeakReference} instances whose key has been nulled out after a
      * call to this method (the reference not having been enqueued yet)! */
-    private void removeStaleEntries() {
+    protected void removeStaleEntries() {
         WeakKeyReference<?> ref;
         while ((ref = (WeakKeyReference<?>) referenceQueue.poll()) != null) {
             // Here ref.get() is null, so it will not remove a new key-value pair with the same key

@@ -16,9 +16,6 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.hash.CompareByRubyHashEqlWrapper;
-import org.truffleruby.core.hash.CompareByRubyHashEqlWrapper.RecordingCompareByRubyHashEqlWrapper;
-import org.truffleruby.core.hash.HashingNodes.ToHashByHashCode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -29,8 +26,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.language.yield.CallBlockNode;
-
-import java.util.Objects;
 
 @CoreModule(value = "ObjectSpace::WeakKeyMap", isClass = true)
 public abstract class WeakKeyMapNodes {
@@ -59,10 +54,8 @@ public abstract class WeakKeyMapNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        Object get(RubyWeakKeyMap map, Object key,
-                @Cached ToHashByHashCode hashCodeNode) {
-            int hashCode = hashCodeNode.execute(this, key);
-            Object value = map.storage.get(new CompareByRubyHashEqlWrapper(key, hashCode));
+        Object get(RubyWeakKeyMap map, Object key) {
+            Object value = map.storage.get(key);
             return value == null ? nil : value;
         }
     }
@@ -71,12 +64,11 @@ public abstract class WeakKeyMapNodes {
     public abstract static class GetKeyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        Object getKey(RubyWeakKeyMap map, Object key,
-                @Cached ToHashByHashCode hashCodeNode) {
-            int hashCode = hashCodeNode.execute(this, key);
-            var recordingWrapper = new RecordingCompareByRubyHashEqlWrapper(key, hashCode);
-            if (map.storage.containsKey(recordingWrapper)) {
-                return Objects.requireNonNull(recordingWrapper.keyInMap);
+        Object getKey(RubyWeakKeyMap map, Object key) {
+            Object originalKey = map.storage.getKey(key);
+
+            if (originalKey != null) {
+                return originalKey;
             } else {
                 return nil;
             }
@@ -87,10 +79,8 @@ public abstract class WeakKeyMapNodes {
     public abstract static class MemberNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        boolean containsKey(RubyWeakKeyMap map, Object key,
-                @Cached ToHashByHashCode hashCodeNode) {
-            int hashCode = hashCodeNode.execute(this, key);
-            return map.storage.containsKey(new CompareByRubyHashEqlWrapper(key, hashCode));
+        boolean containsKey(RubyWeakKeyMap map, Object key) {
+            return map.storage.containsKey(key);
         }
     }
 
@@ -98,15 +88,13 @@ public abstract class WeakKeyMapNodes {
     public abstract static class SetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isGarbageCollectable(key)")
-        Object set(RubyWeakKeyMap map, Object key, Object value,
-                @Cached ToHashByHashCode hashCodeNode) {
-            int hashCode = hashCodeNode.execute(this, key);
-            map.storage.put(new CompareByRubyHashEqlWrapper(key, hashCode), value);
+        Object set(RubyWeakKeyMap map, Object key, Object value) {
+            map.storage.put(key, value);
             return value;
         }
 
         @Specialization(guards = "!isGarbageCollectable(key)")
-        void set(RubyWeakKeyMap map, Object key, Object value) {
+        void setWithInvalidKey(RubyWeakKeyMap map, Object key, Object value) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError("WeakKeyMap must be garbage collectable", this));
@@ -134,10 +122,8 @@ public abstract class WeakKeyMapNodes {
         @Specialization
         Object delete(RubyWeakKeyMap map, Object key, RubyProc block,
                 @Cached InlinedConditionProfile isContainedProfile,
-                @Cached CallBlockNode yieldNode,
-                @Cached ToHashByHashCode hashCodeNode) {
-            int hashCode = hashCodeNode.execute(this, key);
-            Object value = map.storage.remove(new CompareByRubyHashEqlWrapper(key, hashCode));
+                @Cached CallBlockNode yieldNode) {
+            Object value = map.storage.remove(key);
 
             if (isContainedProfile.profile(this, value != null)) {
                 return value;
@@ -148,10 +134,8 @@ public abstract class WeakKeyMapNodes {
 
         @Specialization
         Object delete(RubyWeakKeyMap map, Object key, Nil block,
-                @Cached InlinedConditionProfile isContainedProfile,
-                @Cached ToHashByHashCode hashCodeNode) {
-            int hashCode = hashCodeNode.execute(this, key);
-            Object value = map.storage.remove(new CompareByRubyHashEqlWrapper(key, hashCode));
+                @Cached InlinedConditionProfile isContainedProfile) {
+            Object value = map.storage.remove(key);
 
             if (isContainedProfile.profile(this, value != null)) {
                 return value;
