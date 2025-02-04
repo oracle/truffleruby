@@ -1750,17 +1750,6 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "kernel_to_hex")
-    public abstract static class KernelToHexStringNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        String toHexString(Object value,
-                @Cached ToHexStringNode toHexStringNode) {
-            return toHexStringNode.execute(this, value);
-        }
-    }
-
-
     @GenerateUncached
     @GenerateInline
     @GenerateCached(false)

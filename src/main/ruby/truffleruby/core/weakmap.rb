@@ -13,12 +13,8 @@ module ObjectSpace
   class WeakMap
     include Enumerable
 
-    def []=(key, value)
-      Primitive.weakmap_aset(self, key, value)
-    end
-
     def inspect
-      str = "#<ObjectSpace::WeakMap:0x#{Primitive.kernel_to_hex(object_id)}"
+      str = super[0...-1]
       entries = self.entries
       str += ': ' if entries.length > 0
       entries.each do |k, v|

@@ -1,1 +1,0 @@
-fails:ObjectSpace::WeakKeyMap#getkey returns the existing equal key

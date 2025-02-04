@@ -18,32 +18,58 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** A concurrent thread-safe map with weak keys. Keys cannot be null. This map currently assumes keys do no depend on
- * Hashing and so there is no need for ReHashable. So far this is only used for keys which are compared by identity. */
+/** A concurrent thread-safe map with weak keys. Keys cannot be null. This map currently assumes keys never need to be
+ * re-hashed with ReHashable, which means no Ruby ObjectSpace::WeakKeyMap instance should be part of the pre-initialized
+ * context. ConcurrentWeakKeysMap and ConcurrentWeakSet with keys whose hashCode() does not depend on the Ruby random
+ * seed are fine as part of the pre-initialized context. */
 public class ConcurrentWeakKeysMap<Key, Value> {
 
-    protected final ConcurrentHashMap<WeakKeyReference<Key>, Value> map = new ConcurrentHashMap<>();
+    protected final ConcurrentHashMap<WeakReference<Key>, Value> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Key> referenceQueue = new ReferenceQueue<>();
 
+    @TruffleBoundary
     public ConcurrentWeakKeysMap() {
+    }
+
+    @TruffleBoundary
+    public void clear() {
+        map.clear();
+    }
+
+    @TruffleBoundary
+    public boolean containsKey(Key key) {
+        removeStaleEntries();
+        return map.containsKey(buildWeakReference(key));
     }
 
     @TruffleBoundary
     public Value get(Key key) {
         removeStaleEntries();
-        return map.get(new WeakKeyReference<>(key));
-    }
-
-    public boolean contains(Key key) {
-        return get(key) != null;
+        return map.get(buildWeakReference(key));
     }
 
     /** Sets the value in the cache, always returns the old value. */
     @TruffleBoundary
     public Value put(Key key, Value value) {
         removeStaleEntries();
-        var ref = new WeakKeyReference<>(key, referenceQueue);
+        var ref = buildWeakReference(key, referenceQueue);
         return map.put(ref, value);
+    }
+
+    @TruffleBoundary
+    public int size() {
+        removeStaleEntries();
+        int size = 0;
+
+        // Filter out null entries.
+        for (var e : map.keySet()) {
+            final Key key = e.get();
+            if (key != null) {
+                ++size;
+            }
+        }
+
+        return size;
     }
 
     @TruffleBoundary
@@ -51,7 +77,7 @@ public class ConcurrentWeakKeysMap<Key, Value> {
         removeStaleEntries();
         final Collection<Key> keys = new ArrayList<>(map.size());
 
-        // Filter out keys for null values.
+        // Filter out null entries.
         for (var e : map.keySet()) {
             final Key key = e.get();
             if (key != null) {
@@ -62,12 +88,26 @@ public class ConcurrentWeakKeysMap<Key, Value> {
         return keys;
     }
 
+    @TruffleBoundary
+    public Value remove(Key key) {
+        removeStaleEntries();
+        return map.remove(buildWeakReference(key));
+    }
+
+    protected WeakReference<Key> buildWeakReference(Key key) {
+        return new WeakKeyReference<>(key);
+    }
+
+    protected WeakReference<Key> buildWeakReference(Key key, ReferenceQueue<Key> referenceQueue) {
+        return new WeakKeyReference<>(key, referenceQueue);
+    }
+
     /** Attempts to remove map entries whose values have been made unreachable by the GC.
      * <p>
      * This relies on the underlying {@link WeakReference} instance being enqueued to the {@link #referenceQueue} queue.
      * It is possible that the map still contains {@link WeakReference} instances whose key has been nulled out after a
      * call to this method (the reference not having been enqueued yet)! */
-    private void removeStaleEntries() {
+    protected void removeStaleEntries() {
         WeakKeyReference<?> ref;
         while ((ref = (WeakKeyReference<?>) referenceQueue.poll()) != null) {
             // Here ref.get() is null, so it will not remove a new key-value pair with the same key
@@ -96,8 +136,7 @@ public class ConcurrentWeakKeysMap<Key, Value> {
             if (this == other) {
                 return true;
             }
-            if (other instanceof WeakKeyReference) {
-                WeakKeyReference<?> ref = (WeakKeyReference<?>) other;
+            if (other instanceof WeakKeyReference<?> ref) {
                 Key key = get();
                 Object otherKey = ref.get();
                 return key != null && otherKey != null && key.equals(otherKey);

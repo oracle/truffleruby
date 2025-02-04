@@ -12,5 +12,6 @@ package org.truffleruby.core.objectspace;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.hash.CompareByRubyIdentityWrapper;
 
+// An alias of WeakValueCache<CompareByRubyIdentityWrapper, Object> to keep things short
 public final class WeakMapStorage extends WeakValueCache<CompareByRubyIdentityWrapper, Object> {
 }

@@ -67,6 +67,10 @@ public abstract class HashingNodes {
             return HashingNodesFactory.ToHashByHashCodeNodeGen.create();
         }
 
+        public static int executeUncached(Object key) {
+            return HashingNodesFactory.ToHashByHashCodeNodeGen.getUncached().execute(null, key);
+        }
+
         public abstract int execute(Node node, Object key);
 
         public final int executeCached(Object key) {

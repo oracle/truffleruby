@@ -24,7 +24,8 @@ modules = %w[
   Array BasicObject Binding Class Complex Complex Data Dir ENV.singleton_class
   Encoding Enumerable Enumerator Enumerator::Lazy Exception FalseClass Fiber
   File FileTest Float GC GC.singleton_class Hash IO Integer Kernel Marshal MatchData Math Method
-  Module Mutex NilClass Numeric Object ObjectSpace Proc Process Process.singleton_class Queue Random
+  Module Mutex NilClass Numeric Object ObjectSpace ObjectSpace::WeakKeyMap ObjectSpace::WeakMap
+  Proc Process Process.singleton_class Queue Random
   Random::Formatter Random.singleton_class Range Rational Regexp Signal
   SizedQueue String Struct Symbol SystemExit Thread TracePoint TrueClass
   UnboundMethod Warning

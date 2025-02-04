@@ -1,0 +1,15 @@
+[]
+[]=
+delete
+each
+each_key
+each_pair
+each_value
+include?
+inspect
+key?
+keys
+length
+member?
+size
+values

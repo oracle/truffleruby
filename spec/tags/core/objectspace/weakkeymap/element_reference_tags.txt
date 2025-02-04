@@ -1,2 +1,0 @@
-fails:ObjectSpace::WeakKeyMap#[] is faithful to the map's content
-fails:ObjectSpace::WeakKeyMap#[] matches using equality semantics

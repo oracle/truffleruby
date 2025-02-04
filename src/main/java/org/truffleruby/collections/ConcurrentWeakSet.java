@@ -9,6 +9,7 @@
  */
 package org.truffleruby.collections;
 
+import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -26,6 +27,11 @@ public final class ConcurrentWeakSet<E> extends ConcurrentWeakKeysMap<E, Boolean
     }
 
     @TruffleBoundary
+    public boolean contains(E element) {
+        return containsKey(element);
+    }
+
+    @TruffleBoundary
     public Object[] toArray() {
         return keys().toArray();
     }
@@ -36,10 +42,10 @@ public final class ConcurrentWeakSet<E> extends ConcurrentWeakKeysMap<E, Boolean
     }
 
     private static final class WeakSetIterator<E> implements Iterator<E> {
-        private final Iterator<WeakKeyReference<E>> keysIterator;
+        private final Iterator<WeakReference<E>> keysIterator;
         private E nextElement;
 
-        private WeakSetIterator(Iterator<WeakKeyReference<E>> keysIterator) {
+        private WeakSetIterator(Iterator<WeakReference<E>> keysIterator) {
             this.keysIterator = keysIterator;
             computeNext();
         }
