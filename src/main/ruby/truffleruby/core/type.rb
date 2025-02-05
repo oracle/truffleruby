@@ -483,8 +483,8 @@ module Truffle
 
     def self.calculate_utc_offset_with_timezone_object(zone, conversion_method, time)
       if conversion_method == :local_to_utc && Primitive.respond_to?(zone, :local_to_utc, false)
-        time ||= Time.now
-        as_utc = zone.local_to_utc(time.getutc)
+        Primitive.assert time.utc?
+        as_utc = zone.local_to_utc(time)
         offset = time.to_i - as_utc.to_i
       elsif conversion_method == :utc_to_local && Primitive.respond_to?(zone, :utc_to_local, false)
         time ||= Time.now
