@@ -309,7 +309,7 @@ public abstract class VMPrimitiveNodes {
 
             return registerHandler(signalName, signal -> {
                 var rootThread = context.getThreadManager().getRootThread();
-                context.getSafepointManager().pauseRubyThreadAndExecute(DummyNode.INSTANCE,
+                context.getSafepointManager().pauseRubyThreadAndExecute(null,
                         callProcSafepointAction(proc, signal, rootThread));
             }, isRubyDefaultHandler);
         }

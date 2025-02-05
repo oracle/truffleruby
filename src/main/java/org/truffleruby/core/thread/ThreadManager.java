@@ -32,7 +32,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.collections.ConcurrentWeakSet;
-import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
@@ -618,7 +617,7 @@ public final class ThreadManager {
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
             if (thread != Thread.currentThread()) {
-                runUntilResultKeepStatus(DummyNode.INSTANCE, t -> {
+                runUntilResultKeepStatus(null, t -> {
                     t.join();
                     return BlockingAction.SUCCESS;
                 }, thread);
@@ -634,8 +633,7 @@ public final class ThreadManager {
         SafepointPredicate predicate = (context, thread, action) -> Thread.currentThread() != initiatingJavaThread &&
                 language.getCurrentFiber() == thread.getCurrentFiber();
 
-        context.getSafepointManager().pauseAllThreadsAndExecute(
-                DummyNode.INSTANCE,
+        context.getSafepointManager().pauseAllThreadsAndExecute(null,
                 new SafepointAction("kill other threads for shutdown", predicate, true, true) {
                     @Override
                     public void run(RubyThread rubyThread, Node currentNode) {

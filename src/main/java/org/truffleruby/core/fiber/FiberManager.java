@@ -19,7 +19,6 @@ import org.truffleruby.core.fiber.RubyFiber.FiberStatus;
 import com.oracle.truffle.api.TruffleSafepoint;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
@@ -371,7 +370,7 @@ public final class FiberManager {
         final TruffleSafepoint safepoint = TruffleSafepoint.getCurrent();
         boolean allowSideEffects = safepoint.setAllowSideEffects(false);
         try {
-            context.getThreadManager().leaveAndEnter(DummyNode.INSTANCE, Interrupter.THREAD_INTERRUPT, (unused) -> {
+            context.getThreadManager().leaveAndEnter(null, Interrupter.THREAD_INTERRUPT, (unused) -> {
                 doKillOtherFibers(thread);
                 return BlockingAction.SUCCESS;
             }, null);

@@ -49,7 +49,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.annotations.Split;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.SetBindingFrameForEvalNode;
 import org.truffleruby.core.encoding.Encodings;
@@ -343,7 +342,7 @@ public final class YARPTranslatorDriver {
     public static ParseResult parseToYARPAST(RubySource rubySource, String sourcePath, byte[] sourceBytes,
             List<List<String>> localsInScopes, boolean frozenStringLiteral, Options cliOptions,
             ParserContext parserContext) {
-        TruffleSafepoint.poll(DummyNode.INSTANCE);
+        TruffleSafepoint.poll(null);
 
         final byte[] filepath = sourcePath.getBytes(Encodings.FILESYSTEM_CHARSET);
         int line = rubySource.getLineOffset() + 1;
