@@ -178,7 +178,7 @@ public abstract class CExtNodes {
         return nativeBufferSize - NATIVE_STRING_TERMINATOR_LENGTH;
     }
 
-    @Primitive(name = "call_with_c_mutex_and_frame")
+    @Primitive(name = "call_with_cext_lock_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -230,7 +230,39 @@ public abstract class CExtNodes {
         }
     }
 
-    @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
+    @Primitive(name = "call_with_frame_and_unwrap")
+    public abstract static class CallWithFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        Object callWithFrame(
+                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
+                @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached RunMarkOnExitNode runMarksNode,
+                @Cached UnwrapNode unwrapNode) {
+            final ExtensionCallStack extensionStack = getLanguage().getCurrentFiber().extensionCallStack;
+            final boolean keywordsGiven = RubyArguments.getDescriptor(frame) instanceof KeywordArgumentsDescriptor;
+            extensionStack.push(keywordsGiven, specialVariables, block);
+            try {
+                final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+                try {
+                    return unwrapNode.execute(this,
+                            InteropNodes.execute(this, receiver, args, receivers, translateInteropExceptionNode));
+                } finally {
+                    runMarksNode.execute(this, extensionStack);
+                }
+            } finally {
+                extensionStack.pop();
+            }
+        }
+
+        protected int getCacheLimit() {
+            return getLanguage().options.DISPATCH_CACHE;
+        }
+    }
+
+    @Primitive(name = "call_with_cext_lock_and_frame_and_unwrap")
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -283,7 +315,7 @@ public abstract class CExtNodes {
         }
     }
 
-    @Primitive(name = "call_with_c_mutex")
+    @Primitive(name = "call_with_cext_lock")
     public abstract static class CallWithCExtLockNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object execute(Object receiver, RubyArray argsArray);
@@ -460,11 +492,10 @@ public abstract class CExtNodes {
     }
 
     @CoreMethod(names = "cext_lock_owned?", onSingleton = true)
-    public abstract static class IsCExtLockOwnedNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IsCExtLockOwnedPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         boolean isCExtLockOwned() {
-            final ReentrantLock lock = getContext().getCExtensionsLock();
-            return lock.isHeldByCurrentThread();
+            return getContext().getCExtensionsLock().isHeldByCurrentThread();
         }
     }
 
@@ -2104,6 +2135,23 @@ public abstract class CExtNodes {
         @Specialization
         RubyArray zlibGetCRCTable() {
             return createArray(ZLibCRCTable.TABLE.clone());
+        }
+    }
+
+    @CoreMethod(names = "set_thread_safe", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class SetThreadSafe extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        Object setThreadSafe(int threadSafe) {
+            getLanguage().getCurrentFiber().threadSafeExtension = threadSafe != 0;
+            return nil;
+        }
+    }
+
+    @Primitive(name = "cext_thread_safe?")
+    public abstract static class CExtIsThreadSafe extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        boolean isThreadSafe() {
+            return getLanguage().getCurrentFiber().threadSafeExtension;
         }
     }
 
