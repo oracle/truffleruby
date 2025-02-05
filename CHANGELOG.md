@@ -12,6 +12,7 @@ Compatibility:
 
 Performance:
 
+* Run C extensions marked as `rb_ext_ractor_safe()` or `rb_ext_thread_safe()` in parallel (without the C extension lock) (#2136, @eregon).
 
 Changes:
 
