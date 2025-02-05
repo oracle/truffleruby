@@ -117,9 +117,9 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             final String sharingReason = "creating " + THREAD_NAME + " thread for " +
                     service.getClass().getSimpleName();
 
-            threadManager.initialize(newThread, DummyNode.INSTANCE, THREAD_NAME, sharingReason, () -> {
+            threadManager.initialize(newThread, null, THREAD_NAME, sharingReason, () -> {
                 while (true) {
-                    final PhantomProcessingReference<?, ?> reference = threadManager.runUntilResult(DummyNode.INSTANCE,
+                    final PhantomProcessingReference<?, ?> reference = threadManager.runUntilResult(null,
                             () -> (PhantomProcessingReference<?, ?>) processingQueue.remove());
                     reference.service().processReference(context, language, reference);
                 }

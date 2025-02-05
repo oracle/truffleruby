@@ -20,7 +20,6 @@ import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.language.methods.CachedLazyCallTargetSupplier;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.inlined.AlwaysInlinedMethodNode;
 import org.truffleruby.core.klass.RubyClass;
@@ -256,7 +255,7 @@ public final class CoreMethodNodeManager {
             String[] names,
             Arity arity,
             Visibility visibility) {
-        TruffleSafepoint.poll(DummyNode.INSTANCE);
+        TruffleSafepoint.poll(null);
 
         for (String name : names) {
             final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(

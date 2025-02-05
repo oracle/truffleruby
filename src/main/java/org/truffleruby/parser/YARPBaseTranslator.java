@@ -17,7 +17,6 @@ import com.oracle.truffle.api.nodes.Node;
 import org.prism.AbstractNodeVisitor;
 import org.prism.Nodes;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.DummyNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -202,7 +201,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
 
     protected final void copyNewlineFlag(Nodes.Node yarpNode, RubyNode rubyNode) {
         if (yarpNode.hasNewLineFlag()) {
-            TruffleSafepoint.poll(DummyNode.INSTANCE);
+            TruffleSafepoint.poll(currentNode);
 
             if (parseEnvironment.isCoverageEnabled()) {
                 rubyNode.unsafeSetIsCoverageLine();
