@@ -44,10 +44,12 @@ See [this documentation](reporting-performance-problems.md) for more details abo
 
 ### Consider Disabling the Global C-Extension Lock
 
-On TruffleRuby, C extensions by default use a global lock for maximum compatibility with CRuby.
-If you are benchmarking a multi-threaded Ruby program (e.g. Rails on a multi-threaded server), it is worth trying
+On TruffleRuby, C extensions by default use a global extension lock for maximum compatibility with CRuby.
+Extensions marked as thread-safe by using `rb_ext_ractor_safe()` or `rb_ext_thread_safe()` do not use the global extension lock and run in parallel.
+
+If you are benchmarking a multi-threaded Ruby program (e.g. Rails on a multi-threaded server),
+and not all extensions are already marked as thread-safe, it is worth trying
 `TRUFFLERUBYOPT="--experimental-options --cexts-lock=false"`.
-[This issue](https://github.com/oracle/truffleruby/issues/2136) tracks a way to automatically not use the lock for extensions which do not need it.
 
 ## Recommendations
 

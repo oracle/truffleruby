@@ -12,12 +12,12 @@
 
 // Ractor, rb_ractor_*
 
-// Because of a mix of #if HAVE_RB_EXT_RACTOR_SAFE and #ifdef HAVE_RB_EXT_RACTOR_SAFE,
-// we cannot just leave HAVE_RB_EXT_RACTOR_SAFE undefined or defined to 0 without getting
-// -Wundef warnings & errors. So we let it defined to 1 but rb_ext_ractor_safe() has no effect.
-// Also rb_ext_ractor_safe() is sometimes called directly instead of RB_EXT_RACTOR_SAFE().
 void rb_ext_ractor_safe(bool flag) {
-  // No-op
+  rb_ext_thread_safe(flag);
+}
+
+void rb_ext_thread_safe(bool flag) {
+  polyglot_invoke(RUBY_CEXT, "set_thread_safe", flag);
 }
 
 // Simplified to main Ractor only
