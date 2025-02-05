@@ -30,7 +30,15 @@ static VALUE has_lock_in_call_without_gvl(VALUE self) {
 }
 
 static VALUE has_lock_in_rb_funcall(VALUE self) {
-  return rb_funcall(truffleCExt, rb_intern("cext_lock_owned?"), 0);
+  return rb_funcall(truffleCExt, rb_intern("rb_tr_cext_lock_owned_p"), 0);
+}
+
+static VALUE has_lock_for_rb_define_method_after_rb_ext_ractor_safe(VALUE self) {
+  return rb_tr_cext_lock_owned_p();
+}
+
+static VALUE has_lock_for_rb_define_method_after_rb_ext_ractor_safe_false(VALUE self) {
+  return rb_tr_cext_lock_owned_p();
 }
 
 void Init_truffleruby_lock_spec(void) {
@@ -39,6 +47,11 @@ void Init_truffleruby_lock_spec(void) {
   rb_define_method(cls, "has_lock?", has_lock, 0);
   rb_define_method(cls, "has_lock_in_call_without_gvl?", has_lock_in_call_without_gvl, 0);
   rb_define_method(cls, "has_lock_in_rb_funcall?", has_lock_in_rb_funcall, 0);
+
+  rb_ext_ractor_safe(true);
+  rb_define_method(cls, "has_lock_for_rb_define_method_after_rb_ext_ractor_safe?", has_lock_for_rb_define_method_after_rb_ext_ractor_safe, 0);
+  rb_ext_ractor_safe(false);
+  rb_define_method(cls, "has_lock_for_rb_define_method_after_rb_ext_ractor_safe_false?", has_lock_for_rb_define_method_after_rb_ext_ractor_safe_false, 0);
 }
 
 #ifdef __cplusplus

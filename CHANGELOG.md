@@ -24,6 +24,7 @@ Compatibility:
 Performance:
 
 * Use TRegex for binary Regexps with non-US-ASCII characters in the pattern like `/[\x80-\xff]/n` (#3858, @eregon).
+* Run C extensions marked as `rb_ext_ractor_safe()` or `rb_ext_thread_safe()` in parallel (without the C extension lock) (#2136, @eregon).
 
 Changes:
 

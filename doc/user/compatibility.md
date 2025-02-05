@@ -194,6 +194,15 @@ To help alleviate this problem, backtraces are automatically disabled in cases w
 
 ## C Extension Compatibility
 
+### Global Extension Lock
+
+Native extensions are by default considered thread-unsafe for maximum compatibility with CRuby and use the global extension lock (unless `--cexts-lock=false` is used).
+
+Extensions can mark themselves as thread-safe either by using `rb_ext_ractor_safe()` or `rb_ext_thread_safe()`.
+Such extensions are then run by TruffleRuby without a global extension lock, i.e. in parallel.
+
+See [Thread-Safe Extensions](thread-safe-extensions.md) for how to mark extensions as Ractor-safe or thread-safe.
+
 ### Identifiers may be macros or functions
 
 Identifiers which are normally macros may be functions, functions may be macros, and global variables may be macros.
