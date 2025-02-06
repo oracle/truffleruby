@@ -176,8 +176,8 @@ class Time
     offset = zone_or_offset
     if offset
       to_utc = Time.send(:utc_offset_in_utc?, offset)
-      offset = Truffle::Type.calculate_utc_offset_with_timezone_object(offset, :utc_to_local, self) ||
-        Truffle::Type.coerce_to_utc_offset(offset)
+      offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(offset, :utc_to_local, self) ||
+        Truffle::TimeOperations.coerce_to_utc_offset(offset)
     end
 
     # the only cases when #localtime is allowed for a frozen time -
@@ -372,8 +372,8 @@ class Time
                end
 
       if timezone
-        offset = Truffle::Type.calculate_utc_offset_with_timezone_object(timezone, :utc_to_local, result) ||
-          Truffle::Type.coerce_to_utc_offset(timezone)
+        offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(timezone, :utc_to_local, result) ||
+          Truffle::TimeOperations.coerce_to_utc_offset(timezone)
         is_utc = utc_offset_in_utc?(timezone)
       else
         offset = nil
@@ -446,8 +446,8 @@ class Time
         else
           zone = utc_offset
           as_utc = Time.utc(year, month, day, hour, minute, second)
-          utc_offset = Truffle::Type.calculate_utc_offset_with_timezone_object(utc_offset, :local_to_utc, as_utc) ||
-            Truffle::Type.coerce_to_utc_offset(utc_offset)
+          utc_offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(utc_offset, :local_to_utc, as_utc) ||
+            Truffle::TimeOperations.coerce_to_utc_offset(utc_offset)
         end
         result = Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
         Truffle::TimeOperations.set_zone_if_object(result, zone)
@@ -465,8 +465,8 @@ class Time
       in_timezone = options[:in]
 
       if in_timezone
-        utc_offset = Truffle::Type.calculate_utc_offset_with_timezone_object(in_timezone, :utc_to_local, time_now) ||
-          Truffle::Type.coerce_to_utc_offset(in_timezone)
+        utc_offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(in_timezone, :utc_to_local, time_now) ||
+          Truffle::TimeOperations.coerce_to_utc_offset(in_timezone)
 
         is_utc = utc_offset_in_utc?(in_timezone)
         time_in_timezone = is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)

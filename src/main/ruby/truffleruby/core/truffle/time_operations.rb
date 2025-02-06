@@ -118,7 +118,7 @@ module Truffle
       elsif Time.send(:utc_offset_in_utc?, utc_offset)
         :utc
       else
-        Truffle::Type.coerce_to_utc_offset(utc_offset)
+        coerce_to_utc_offset(utc_offset)
       end
     end
 
@@ -129,6 +129,82 @@ module Truffle
       return if Primitive.nil?(zone) || Primitive.is_a?(zone, Integer) || Primitive.is_a?(zone, String)
 
       Primitive.time_set_zone(time, zone)
+    end
+
+    def self.calculate_utc_offset_with_timezone_object(zone, conversion_method, time)
+      if conversion_method == :local_to_utc && Primitive.respond_to?(zone, :local_to_utc, false)
+        Primitive.assert time.utc?
+        as_utc = zone.local_to_utc(time)
+        offset = time.to_i - as_utc.to_i
+      elsif conversion_method == :utc_to_local && Primitive.respond_to?(zone, :utc_to_local, false)
+        time ||= Time.now
+        as_local = zone.utc_to_local(time.getutc)
+        offset = if Primitive.is_a?(as_local, Time)
+                   as_local.to_i + as_local.utc_offset - time.to_i
+                 else
+                   as_local.to_i - time.to_i
+                 end
+      else
+        return nil
+      end
+
+      validate_utc_offset(offset)
+      offset
+    end
+
+    def self.coerce_to_utc_offset(offset)
+      offset = String.try_convert(offset) || offset
+
+      if Primitive.is_a? offset, String
+        offset = coerce_string_to_utc_offset(offset)
+      else
+        offset = Truffle::Type.coerce_to_exact_num(offset)
+      end
+
+      if Primitive.is_a?(offset, Rational)
+        offset = offset.round
+      end
+
+      validate_utc_offset(offset)
+      offset
+    end
+
+    def self.validate_utc_offset(offset)
+      if offset <= -86400 || offset >= 86400
+        raise ArgumentError, 'utc_offset out of range'
+      end
+    end
+
+    UTC_OFFSET_WITH_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?::(?<minutes>\d\d)(?::(?<seconds>\d\d))?)?\z/
+    UTC_OFFSET_WITHOUT_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?:(?<minutes>\d\d)(?:(?<seconds>\d\d))?)?\z/
+    UTC_OFFSET_PATTERN = /#{UTC_OFFSET_WITH_COLONS_PATTERN}|#{UTC_OFFSET_WITHOUT_COLONS_PATTERN}/
+
+    def self.coerce_string_to_utc_offset(offset)
+      unless offset.encoding.ascii_compatible?
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset.inspect
+      end
+
+      if offset == 'UTC'
+        offset = 0
+      elsif offset.size == 1 && ('A'..'Z') === offset && offset != 'J'
+        if offset == 'Z'
+          offset = 0
+        elsif offset < 'J' # skip J
+          offset = (offset.ord - 'A'.ord + 1) * 3600 # ("A".."I") => 1, 2, ...
+        elsif offset > 'J' && offset <= 'M'
+          offset = (offset.ord - 'A'.ord) * 3600 # ("K".."M") => 10, 11, 12
+        else
+          offset = (offset.ord - 'N'.ord + 1) * -3600 # ("N"..Y) => -1, -2, ...
+        end
+      elsif (m = offset.match(UTC_OFFSET_PATTERN)) && m[:minutes].to_i < 60 && m[:seconds].to_i < 60
+        # ignore hours - they are validated indirectly in #coerce_to_utc_offset
+        offset = m[:hours].to_i*60*60 + m[:minutes].to_i*60 + m[:seconds].to_i
+        offset = -offset if m[:sign] == '-'
+      else
+        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset
+      end
+
+      offset
     end
   end
 end
