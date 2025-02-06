@@ -319,12 +319,9 @@ describe "Time.new with a timezone argument" do
     end
 
     it "implements subset of Time methods" do
+      # List only methods that are explicitly documented.
       [
-        :year, :mon, :month, :mday, :hour, :min, :sec,
-        :tv_sec, :tv_usec, :usec, :tv_nsec, :nsec, :subsec,
-        :to_i, :to_f, :to_r, :+, :-,
-        :isdst, :dst?, :zone, :gmtoff, :gmt_offset, :utc_offset, :utc?, :gmt?,
-        :to_s, :inspect, :to_a, :to_time,
+        :year, :mon, :mday, :hour, :min, :sec, :to_i, :isdst
       ].each do |name|
         @obj.respond_to?(name).should == true
       end
