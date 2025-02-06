@@ -80,7 +80,7 @@ public abstract class ToLongNode extends FormatNode {
             @Cached DispatchNode toIntNode,
             @Cached("create(true)") ToLongNode redoNode,
             @Cached InlinedBranchProfile noConversionAvailable,
-            @Bind("this") Node node) {
+            @Bind Node node) {
 
         Object result = toIntNode.call(PRIVATE_RETURN_MISSING, object, "to_int");
         if (result == DispatchNode.MISSING) {

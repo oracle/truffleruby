@@ -67,7 +67,7 @@ public abstract class PolyglotNodes {
                 @Cached("stringsId.getEncoding(this, langId)") RubyEncoding cachedLangIdEnc,
                 @Cached("asTruffleStringUncached(code)") TruffleString cachedCode,
                 @Cached("stringsSource.getEncoding(this, code)") RubyEncoding cachedCodeEnc,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached("create(parse(node, getJavaString(langId), getJavaString(code)))") DirectCallNode callNode,
                 @Cached StringHelperNodes.EqualNode idEqualNode,
                 @Cached StringHelperNodes.EqualNode codeEqualNode) {
@@ -83,7 +83,7 @@ public abstract class PolyglotNodes {
                 @Cached ToJavaStringNode toJavaStringLandNode,
                 @Cached ToJavaStringNode toJavaStringCodeNode,
                 @Cached IndirectCallNode callNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return callNode.call(parse(node, toJavaStringLandNode.execute(node, langId),
                     toJavaStringCodeNode.execute(node, code)), EMPTY_ARGUMENTS);
         }
@@ -230,7 +230,7 @@ public abstract class PolyglotNodes {
                 "filenameEqualNode.execute(filenameLib, filename, cachedFilename, cachedFilenameEnc)" },
                 limit = "getCacheLimit()")
         static Object evalCached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary idLib,
                 @Cached @Exclusive RubyStringLibrary codeLib,
                 @Cached @Exclusive RubyStringLibrary filenameLib,
@@ -253,7 +253,7 @@ public abstract class PolyglotNodes {
                 guards = { "idLib.isRubyString(node, langId)", "codeLib.isRubyString(node, code)" }, limit = "1",
                 replaces = "evalCached")
         static Object evalUncached(RubyInnerContext rubyInnerContext, Object langId, Object code, Object filename,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary idLib,
                 @Cached @Exclusive RubyStringLibrary codeLib,
                 @Cached @Exclusive RubyStringLibrary filenameLib,

@@ -120,7 +120,7 @@ public abstract class TruffleRubyNodes {
         static Object synchronize(RubyDynamicObject object, RubyProc block,
                 @Cached GetLockNode getLockNode,
                 @Cached CallBlockNode yieldNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final ReentrantLock lock = getLockNode.execute(node, object);
 
             MutexOperations.lockInternal(getContext(node), lock, node);

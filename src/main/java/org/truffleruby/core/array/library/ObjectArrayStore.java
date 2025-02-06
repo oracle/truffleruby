@@ -98,7 +98,7 @@ public final class ObjectArrayStore {
                 @CachedLibrary("store") ArrayStoreLibrary arrayStoreLibrary,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached WriteBarrierNode writeBarrierNode,
-                @Bind("$node") Node node) {
+                @Bind Node node) {
             int i = start;
             try {
                 for (; loopProfile.inject(i < end); i++) {

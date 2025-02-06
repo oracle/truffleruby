@@ -37,7 +37,7 @@ public abstract class WriteUUStringNode extends FormatNode {
 
     @Specialization
     Object write(VirtualFrame frame, Object string,
-            @Bind("this") Node node,
+            @Bind Node node,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {
         var tstring = libString.getTString(node, string);

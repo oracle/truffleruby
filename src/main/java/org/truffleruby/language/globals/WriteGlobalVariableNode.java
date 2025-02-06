@@ -67,7 +67,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceAssignabl
             @Bind("setterArity(storage)") int arity,
             @Cached @Exclusive CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         yieldNode.yield(node,
                 storage.getSetter(),
                 value,

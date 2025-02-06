@@ -438,7 +438,7 @@ public abstract class TimeNodes {
                 @Cached @Shared TruffleString.CodePointLengthNode codePointLengthNode,
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared ErrnoErrorNode errnoErrorNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (canUseFast && yearIsFastProfile.profile(node, yearIsFast(time))) {
                 var tstring = RubyDateFormatter.formatToTStringFast(pattern, time.dateTime, concatNode, fromLongNode,
                         codePointLengthNode);

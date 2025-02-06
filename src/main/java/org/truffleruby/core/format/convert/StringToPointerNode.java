@@ -40,7 +40,7 @@ public abstract class StringToPointerNode extends FormatNode {
     static long toPointer(VirtualFrame frame, Object string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
             @Cached RubyStringLibrary strings,
-            @Bind("this") Node node) {
+            @Bind Node node) {
 
         final Pointer pointer = stringToNativeNode.executeToNative(node, string, true);
 

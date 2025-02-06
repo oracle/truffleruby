@@ -60,7 +60,7 @@ public abstract class DispatchMethodMissingNode extends RubyBaseNode {
             @Cached ToSymbolNode toSymbol,
             @Cached DispatchNode callMethodMissing,
             @Cached InlinedBranchProfile methodMissingMissingProfile,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         final RubySymbol symbolName = toSymbol.execute(node, methodName);
 
         final Object[] newArgs = RubyArguments.repack(rubyArgs, receiver, 0, 1);

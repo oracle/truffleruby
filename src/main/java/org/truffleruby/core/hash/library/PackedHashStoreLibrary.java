@@ -185,7 +185,7 @@ public final class PackedHashStoreLibrary {
                 @Cached @Shared HashingNodes.ToHash hashNode,
                 @Cached @Shared PropagateSharingNode propagateSharingKey,
                 @Cached @Shared PropagateSharingNode propagateSharingValue,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(node, key, byIdentity);
             propagateSharingKey.execute(node, hash, key2);
@@ -205,7 +205,7 @@ public final class PackedHashStoreLibrary {
                 @Cached @Shared CompareHashKeysNode compareHashKeys,
                 @CachedLibrary(limit = "hashStrategyLimit()") HashStoreLibrary hashes,
                 @Cached InlinedConditionProfile withinCapacity,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             assert verify(store, hash);
             final int size = hash.size;
@@ -249,7 +249,7 @@ public final class PackedHashStoreLibrary {
     static Object delete(Object[] store, RubyHash hash, Object key,
             @Cached @Shared HashingNodes.ToHash hashNode,
             @Cached @Shared CompareHashKeysNode compareHashKeys,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
 
         assert verify(store, hash);
         final int hashed = hashNode.execute(key, hash.compareByIdentity);
@@ -325,7 +325,7 @@ public final class PackedHashStoreLibrary {
     @ExportMessage
     static void replace(Object[] store, RubyHash hash, RubyHash dest,
             @Cached @Exclusive PropagateSharingNode propagateSharing,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         if (hash == dest) {
             return;
         }
@@ -362,7 +362,7 @@ public final class PackedHashStoreLibrary {
     static void rehash(Object[] store, RubyHash hash,
             @Cached @Shared CompareHashKeysNode compareHashKeys,
             @Cached @Shared HashingNodes.ToHash hashNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
 
         assert verify(store, hash);
         int size = hash.size;
@@ -431,7 +431,7 @@ public final class PackedHashStoreLibrary {
         static Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, PEBiFunction defaultValueNode,
                 @Cached ReferenceEqualNode refEqual,
                 @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached("index(node, refEqual, hash, key, hashed, cachedByIdentity)") int cachedIndex) {
 
             final Object[] store = (Object[]) hash.store;
@@ -475,7 +475,7 @@ public final class PackedHashStoreLibrary {
                 @Cached CompareHashKeysNode compareHashKeys,
                 @Cached InlinedBranchProfile notInHashProfile,
                 @Cached InlinedConditionProfile byIdentityProfile,
-                @Bind("$node") Node node) {
+                @Bind Node node) {
 
             final boolean compareByIdentity = byIdentityProfile.profile(node, hash.compareByIdentity);
             final Object[] store = (Object[]) hash.store;

@@ -45,7 +45,7 @@ public abstract class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Specialization
     RubyRegexp interpolatedRegexp(VirtualFrame frame,
-            @Bind("this") Node node,
+            @Bind Node node,
             @Cached("create(encoding, options)") RegexpBuilderNode builderNode,
             @Cached AsTruffleStringNode asTruffleStringNode,
             @Cached RubyStringLibrary libString) {

@@ -39,7 +39,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
     int byteSize(VirtualFrame frame, RubyString self,
             @Cached @Shared LookupMethodOnSelfNode lookupNode,
             @Cached @Exclusive RubyStringLibrary libString,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         return libString.byteLength(node, self);
     }
 
@@ -49,7 +49,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
     int byteSizeImmutable(VirtualFrame frame, ImmutableRubyString self,
             @Cached @Shared LookupMethodOnSelfNode lookupNode,
             @Cached @Exclusive RubyStringLibrary libString,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         return libString.byteLength(node, self);
     }
 

@@ -79,7 +79,7 @@ public final class EmptyHashStore {
     @ExportMessage
     protected void replace(RubyHash hash, RubyHash dest,
             @Cached PropagateSharingNode propagateSharing,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         if (hash == dest) {
             return;
         }

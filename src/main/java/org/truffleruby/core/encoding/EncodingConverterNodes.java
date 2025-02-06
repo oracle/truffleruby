@@ -452,7 +452,7 @@ public abstract class EncodingConverterNodes {
                 @Cached TruffleString.GetInternalByteArrayNode bytesNode,
                 @Cached RubyStringLibrary libReplacement,
                 @Cached ToStrNode toStrNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final var replacementAsString = toStrNode.execute(node, replacement);
             var tstring = libReplacement.getTString(node, replacementAsString);
             var encoding = libReplacement.getEncoding(node, replacementAsString);

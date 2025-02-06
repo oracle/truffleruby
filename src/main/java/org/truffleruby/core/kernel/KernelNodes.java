@@ -249,7 +249,7 @@ public abstract class KernelNodes {
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             String feature = toJavaStringNode.execute(node, featureString);
             final String expandedPath = getContext(node).getFeatureLoader().findFeature(feature);
             if (expandedPath == null) {
@@ -267,7 +267,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "libFeature.isRubyString(node, feature)", limit = "1")
         @TruffleBoundary
         static RubyString getCallerPath(Object feature,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary libFeature,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String featureString = RubyGuards.getJavaString(feature);
@@ -310,7 +310,7 @@ public abstract class KernelNodes {
                 @Cached RubyStringLibrary libFeatureString,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RequireNode requireNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return requireNode.executeRequire(
                     toJavaStringNode.execute(node, featureString),
                     expandedPathString);
@@ -375,7 +375,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "strings.isRubyString(node, string)", limit = "1")
         @TruffleBoundary
         static RubyString canonicalPath(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext(node)
@@ -547,7 +547,7 @@ public abstract class KernelNodes {
                 @Cached IsFrozenNode isFrozenNode,
                 @Cached FreezeNode freezeNode,
                 @Cached LazySingletonClassNode lazySingletonClassNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final RubyDynamicObject newObject = copyNode.executeCopy(object);
 
             // Copy the singleton class if any.
@@ -726,7 +726,7 @@ public abstract class KernelNodes {
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         static Object evalCached(Object self, Object source, RubyBinding binding, Object file, int line,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary libSource,
                 @Cached @Exclusive RubyStringLibrary libFile,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
@@ -746,7 +746,7 @@ public abstract class KernelNodes {
 
         @Specialization(replaces = "evalCached")
         static Object evalBindingUncached(Object self, Object source, RubyBinding binding, Object file, int line,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached IndirectCallNode callNode,
                 @Cached @Exclusive RubyStringLibrary libSource,
                 @Cached ToJavaStringNode toJavaStringNode) {
@@ -863,14 +863,14 @@ public abstract class KernelNodes {
         @Specialization
         static long hashString(RubyString value,
                 @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return stringHashNode.execute(node, value);
         }
 
         @Specialization
         static long hashImmutableString(ImmutableRubyString value,
                 @Cached @Exclusive StringHelperNodes.HashStringNode stringHashNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return stringHashNode.execute(node, value);
         }
 
@@ -896,7 +896,7 @@ public abstract class KernelNodes {
         static int hashForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (interop.hasIdentity(value)) {
                 try {
                     return interop.identityHashCode(value);
@@ -1096,7 +1096,7 @@ public abstract class KernelNodes {
         static boolean any(RubyDynamicObject self,
                 @CachedLibrary("self") DynamicObjectLibrary objectLibrary,
                 @Cached InlinedConditionProfile noPropertiesProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var shape = objectLibrary.getShape(self);
 
             if (noPropertiesProfile.profile(node, shape.getPropertyCount() == 0)) {
@@ -1623,7 +1623,7 @@ public abstract class KernelNodes {
                 @Cached InlinedConditionProfile resizeProfile,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached SprintfInnerNode sprintfInnerNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = libFormat.getTString(node, formatAsString);
             var encoding = libFormat.getEncoding(node, formatAsString);
 

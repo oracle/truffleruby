@@ -155,7 +155,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             return InteropNodes.execute(node, receiver, args, receivers, translateInteropException);
         }
@@ -244,7 +244,7 @@ public abstract class InteropNodes {
                         "sourceEqualNode.execute(stringsSource, source, cachedSource, cachedSourceEnc)" },
                 limit = "getEvalCacheLimit()")
         static Object evalCached(Object mimeType, Object source,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary stringsMimeType,
                 @Cached @Exclusive RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
@@ -266,7 +266,7 @@ public abstract class InteropNodes {
                 @Cached ToJavaStringNode toJavaStringMimeNode,
                 @Cached ToJavaStringNode toJavaStringSourceNode,
                 @Cached IndirectCallNode callNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return callNode.call(parse(node, toJavaStringMimeNode.execute(node, mimeType),
                     toJavaStringSourceNode.execute(node, source)), EMPTY_ARGUMENTS);
         }
@@ -297,7 +297,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = "library.isRubyString(node, code)", limit = "1")
         static Object evalNFI(Object code,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary library,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(node, code), EMPTY_ARGUMENTS);
@@ -355,7 +355,7 @@ public abstract class InteropNodes {
         static Object getExceptionCause(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.getExceptionCause(receiver);
             } catch (UnsupportedMessageException e) {
@@ -371,7 +371,7 @@ public abstract class InteropNodes {
         static int getExceptionExitStatus(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.getExceptionExitStatus(receiver);
             } catch (UnsupportedMessageException e) {
@@ -387,7 +387,7 @@ public abstract class InteropNodes {
         static boolean isExceptionIncompleteSource(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.isExceptionIncompleteSource(receiver);
             } catch (UnsupportedMessageException e) {
@@ -413,7 +413,7 @@ public abstract class InteropNodes {
         static Object getExceptionMessage(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.getExceptionMessage(receiver);
             } catch (UnsupportedMessageException e) {
@@ -439,7 +439,7 @@ public abstract class InteropNodes {
         static Object getExceptionStackTrace(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.getExceptionStackTrace(receiver);
             } catch (UnsupportedMessageException e) {
@@ -455,7 +455,7 @@ public abstract class InteropNodes {
         static RubySymbol getExceptionType(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final ExceptionType exceptionType = receivers.getExceptionType(receiver);
                 return getLanguage(node).getSymbol(exceptionType.name());
@@ -472,7 +472,7 @@ public abstract class InteropNodes {
         static Object throwException(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 throw receivers.throwException(receiver);
             } catch (UnsupportedMessageException e) {
@@ -511,7 +511,7 @@ public abstract class InteropNodes {
         static Object getExecutableName(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.getExecutableName(receiver);
             } catch (UnsupportedMessageException e) {
@@ -528,7 +528,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object foreign = InteropNodes.execute(node, receiver, args, receivers, translateInteropException);
             return foreignToRubyNode.execute(node, foreign);
         }
@@ -542,7 +542,7 @@ public abstract class InteropNodes {
         static Object interopExecuteWithoutConversion(Object receiver, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return InteropNodes.execute(node, receiver, args, receivers, translateInteropException);
         }
     }
@@ -567,7 +567,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object foreign;
             try {
                 foreign = receivers.instantiate(receiver, args);
@@ -599,7 +599,7 @@ public abstract class InteropNodes {
         static Object arraySize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             try {
                 return receivers.getArraySize(receiver);
@@ -618,7 +618,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object foreign;
             try {
                 foreign = receivers.readArrayElement(receiver, identifier);
@@ -637,7 +637,7 @@ public abstract class InteropNodes {
         static Object write(Object receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 receivers.writeArrayElement(receiver, identifier, value);
             } catch (InteropException e) {
@@ -655,7 +655,7 @@ public abstract class InteropNodes {
         static Nil readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 receivers.removeArrayElement(receiver, identifier);
             } catch (InteropException e) {
@@ -755,7 +755,7 @@ public abstract class InteropNodes {
         static RubySourceLocation getSourceLocation(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final SourceSection sourceLocation;
             try {
                 sourceLocation = receivers.getSourceLocation(receiver);
@@ -786,7 +786,7 @@ public abstract class InteropNodes {
         static String asString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asString(receiver);
             } catch (InteropException e) {
@@ -801,7 +801,7 @@ public abstract class InteropNodes {
         static TruffleString asTruffleString(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asTruffleString(receiver);
             } catch (InteropException e) {
@@ -817,7 +817,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final TruffleString truffleString;
             try {
                 truffleString = receivers.asTruffleString(receiver);
@@ -870,7 +870,7 @@ public abstract class InteropNodes {
         static boolean asBoolean(Object receiver,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asBoolean(receiver);
             } catch (InteropException e) {
@@ -896,7 +896,7 @@ public abstract class InteropNodes {
         static Object asDate(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return getContext(node).getEnv().asGuestValue(receivers.asDate(receiver));
             } catch (UnsupportedMessageException e) {
@@ -920,7 +920,7 @@ public abstract class InteropNodes {
         static Object asDuration(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return getContext(node).getEnv().asGuestValue(receivers.asDuration(receiver));
             } catch (UnsupportedMessageException e) {
@@ -944,7 +944,7 @@ public abstract class InteropNodes {
         static Object asInstant(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return getContext(node).getEnv().asGuestValue(receivers.asInstant(receiver));
             } catch (UnsupportedMessageException e) {
@@ -968,7 +968,7 @@ public abstract class InteropNodes {
         static Object asTime(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return getContext(node).getEnv().asGuestValue(receivers.asTime(receiver));
             } catch (UnsupportedMessageException e) {
@@ -992,7 +992,7 @@ public abstract class InteropNodes {
         static Object asTimeZone(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return getContext(node).getEnv().asGuestValue(receivers.asTimeZone(receiver));
             } catch (UnsupportedMessageException e) {
@@ -1081,7 +1081,7 @@ public abstract class InteropNodes {
         static int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asByte(receiver);
             } catch (InteropException e) {
@@ -1096,7 +1096,7 @@ public abstract class InteropNodes {
         static int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asShort(receiver);
             } catch (InteropException e) {
@@ -1111,7 +1111,7 @@ public abstract class InteropNodes {
         static int as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asInt(receiver);
             } catch (InteropException e) {
@@ -1126,7 +1126,7 @@ public abstract class InteropNodes {
         static long as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asLong(receiver);
             } catch (InteropException e) {
@@ -1142,7 +1142,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return fixnumOrBignumNode.execute(node, receivers.asBigInteger(receiver));
             } catch (InteropException e) {
@@ -1157,7 +1157,7 @@ public abstract class InteropNodes {
         static double as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asFloat(receiver);
             } catch (InteropException e) {
@@ -1172,7 +1172,7 @@ public abstract class InteropNodes {
         static double as(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asDouble(receiver);
             } catch (InteropException e) {
@@ -1213,7 +1213,7 @@ public abstract class InteropNodes {
         static long asPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.asPointer(receiver);
             } catch (InteropException e) {
@@ -1260,7 +1260,7 @@ public abstract class InteropNodes {
         static Object members(Object receiver, boolean internal,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return receivers.getMembers(receiver, internal);
             } catch (InteropException e) {
@@ -1307,7 +1307,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final String name = toJavaStringNode.execute(node, identifier);
             return InteropNodes.readMember(node, receivers, receiver, name, translateInteropException);
         }
@@ -1321,7 +1321,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.writeMember(receiver, name, value);
@@ -1374,7 +1374,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final String name = toJavaStringNode.execute(node, identifier);
             try {
                 receivers.removeMember(receiver, name);
@@ -1422,7 +1422,7 @@ public abstract class InteropNodes {
         static boolean isMemberReadable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberReadable(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1433,7 +1433,7 @@ public abstract class InteropNodes {
         static boolean isMemberModifiable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberModifiable(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1444,7 +1444,7 @@ public abstract class InteropNodes {
         static boolean isMemberInsertable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberInsertable(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1455,7 +1455,7 @@ public abstract class InteropNodes {
         static boolean isMemberRemovable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberRemovable(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1466,7 +1466,7 @@ public abstract class InteropNodes {
         static boolean isMemberInvocable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberInvocable(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1477,7 +1477,7 @@ public abstract class InteropNodes {
         static boolean isMemberInternal(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberInternal(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1488,7 +1488,7 @@ public abstract class InteropNodes {
         static boolean isMemberWritable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberWritable(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1499,7 +1499,7 @@ public abstract class InteropNodes {
         static boolean isMemberExisting(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.isMemberExisting(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1510,7 +1510,7 @@ public abstract class InteropNodes {
         static boolean hasMemberReadSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1521,7 +1521,7 @@ public abstract class InteropNodes {
         static boolean hasMemberWriteSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.execute(node, name));
         }
     }
@@ -1584,7 +1584,7 @@ public abstract class InteropNodes {
         static Object getLanguage(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached FromJavaStringNode fromJavaStringNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (!receivers.hasLanguage(receiver)) {
                 return nil;
             }
@@ -1818,7 +1818,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached LogicalClassNode logicalClassNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (interop.hasMetaObject(value)) {
                 try {
                     return interop.getMetaObject(value);
@@ -1847,7 +1847,7 @@ public abstract class InteropNodes {
         static Object declaringMetaObject(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getDeclaringMetaObject(value);
             } catch (UnsupportedMessageException e) {
@@ -1862,7 +1862,7 @@ public abstract class InteropNodes {
         static boolean isMetaInstance(Object metaObject, Object instance,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.isMetaInstance(metaObject, instance);
             } catch (UnsupportedMessageException e) {
@@ -1877,7 +1877,7 @@ public abstract class InteropNodes {
         static Object getMetaSimpleName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getMetaSimpleName(metaObject);
             } catch (UnsupportedMessageException e) {
@@ -1892,7 +1892,7 @@ public abstract class InteropNodes {
         static Object getMetaQualifiedName(Object metaObject,
                 @CachedLibrary("metaObject") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getMetaQualifiedName(metaObject);
             } catch (UnsupportedMessageException e) {
@@ -1916,7 +1916,7 @@ public abstract class InteropNodes {
         static Object getMetaParents(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getMetaParents(value);
             } catch (UnsupportedMessageException e) {
@@ -1943,7 +1943,7 @@ public abstract class InteropNodes {
         static Object hashEntriesIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getHashEntriesIterator(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2013,7 +2013,7 @@ public abstract class InteropNodes {
         static Object hashKeysIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getHashKeysIterator(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2028,7 +2028,7 @@ public abstract class InteropNodes {
         static long hashSize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getHashSize(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2043,7 +2043,7 @@ public abstract class InteropNodes {
         static Object hashValuesIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getHashValuesIterator(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2059,7 +2059,7 @@ public abstract class InteropNodes {
         static Object readHashValue(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.readHashValue(receiver, key);
             } catch (InteropException e) {
@@ -2074,7 +2074,7 @@ public abstract class InteropNodes {
         static Object readHashValueOrDefault(Object receiver, Object key, Object defaultValue,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.readHashValueOrDefault(receiver, key, defaultValue);
             } catch (UnsupportedMessageException e) {
@@ -2089,7 +2089,7 @@ public abstract class InteropNodes {
         static Object removeHashEntry(Object receiver, Object key,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 interop.removeHashEntry(receiver, key);
                 return nil;
@@ -2105,7 +2105,7 @@ public abstract class InteropNodes {
         static Object writeHashEntry(Object receiver, Object key, Object value,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 interop.writeHashEntry(receiver, key, value);
                 return value;
@@ -2142,7 +2142,7 @@ public abstract class InteropNodes {
         static int identityHashCode(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (interop.hasIdentity(value)) {
                 try {
                     return interop.identityHashCode(value);
@@ -2182,7 +2182,7 @@ public abstract class InteropNodes {
         static Object getScope(Object scope,
                 @CachedLibrary("scope") InteropLibrary interopLibrary,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (interopLibrary.hasScopeParent(scope)) {
                 try {
                     return interopLibrary.getScopeParent(scope);
@@ -2201,7 +2201,7 @@ public abstract class InteropNodes {
         Object getScope(VirtualFrame frame,
                 @CachedLibrary(limit = "1") NodeLibrary nodeLibrary,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return nodeLibrary.getScope(this, frame, true);
             } catch (UnsupportedMessageException e) {
@@ -2238,7 +2238,7 @@ public abstract class InteropNodes {
         static boolean isBufferWritable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.isBufferWritable(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2255,7 +2255,7 @@ public abstract class InteropNodes {
         static long getBufferSize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getBufferSize(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2273,7 +2273,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             byte[] bytes = new byte[length];
             try {
                 interop.readBuffer(receiver, byteOffset, bytes, 0, length);
@@ -2293,7 +2293,7 @@ public abstract class InteropNodes {
         static byte readBufferByte(Object receiver, long byteOffset,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.readBufferByte(receiver, byteOffset);
             } catch (InteropException e) {
@@ -2311,7 +2311,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @CachedLibrary("value") InteropLibrary interopValue,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final byte byteValue = interopValue.asByte(value);
                 interop.writeBufferByte(receiver, byteOffset, byteValue);
@@ -2331,7 +2331,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var byteOrder = symbolToByteOrderNode.execute(node, byteOrderObject);
                 return interop.readBufferShort(receiver, byteOrder, byteOffset);
@@ -2351,7 +2351,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("value") InteropLibrary interopValue,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var byteOrder = symbolToByteOrderNode.execute(node, byteOrderObject);
                 final short shortValue = interopValue.asShort(value);
@@ -2372,7 +2372,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var byteOrder = symbolToByteOrderNode.execute(node, byteOrderObject);
                 return interop.readBufferInt(receiver, byteOrder, byteOffset);
@@ -2392,7 +2392,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("value") InteropLibrary interopValue,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var order = symbolToByteOrderNode.execute(node, orderObject);
                 final int intValue = interopValue.asInt(value);
@@ -2413,7 +2413,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var byteOrder = symbolToByteOrderNode.execute(node, byteOrderObject);
                 return interop.readBufferLong(receiver, byteOrder, byteOffset);
@@ -2433,7 +2433,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("value") InteropLibrary interopValue,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var order = symbolToByteOrderNode.execute(node, orderObject);
                 final long longValue = interopValue.asLong(value);
@@ -2455,7 +2455,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var byteOrder = symbolToByteOrderNode.execute(node, byteOrderObject);
                 return interop.readBufferFloat(receiver, byteOrder, byteOffset);
@@ -2475,7 +2475,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("value") InteropLibrary interopValue,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var order = symbolToByteOrderNode.execute(node, orderObject);
                 final float floatValue = (float) interopValue.asDouble(value);
@@ -2496,7 +2496,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var byteOrder = symbolToByteOrderNode.execute(node, byteOrderObject);
                 return interop.readBufferDouble(receiver, byteOrder, byteOffset);
@@ -2516,7 +2516,7 @@ public abstract class InteropNodes {
                 @CachedLibrary("value") InteropLibrary interopValue,
                 @Cached SymbolToByteOrderNode symbolToByteOrderNode,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 final var order = symbolToByteOrderNode.execute(node, orderObject);
                 final double doubleValue = interopValue.asDouble(value);
@@ -2555,7 +2555,7 @@ public abstract class InteropNodes {
         static Object getIterator(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getIterator(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2570,7 +2570,7 @@ public abstract class InteropNodes {
         static boolean hasIteratorNextElement(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.hasIteratorNextElement(receiver);
             } catch (UnsupportedMessageException e) {
@@ -2585,7 +2585,7 @@ public abstract class InteropNodes {
         static Object getIteratorNextElement(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 return interop.getIteratorNextElement(receiver);
             } catch (InteropException e) {

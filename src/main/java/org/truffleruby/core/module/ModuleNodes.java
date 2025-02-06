@@ -616,7 +616,7 @@ public abstract class ModuleNodes {
         static Object autoload(RubyModule module, Object nameObject, Object filename,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ToPathNode toPathNode,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Bind("toPathNode.execute(node, filename)") Object filenameAsPath,
                 @Cached RubyStringLibrary libFilename) {
             final var name = nameToJavaStringNode.execute(node, nameObject);
@@ -704,7 +704,7 @@ public abstract class ModuleNodes {
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
                 @Cached IndirectCallNode callNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object sourceCode;
             String fileName = coreStrings(node).EVAL_FILENAME_STRING.toString();
             int line = 1;
@@ -1579,7 +1579,7 @@ public abstract class ModuleNodes {
                 @Cached @Exclusive InlinedBranchProfile errorProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
                 @Cached SingleValueCastNode singleValueCastNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             checkNotClass(node, module, errorProfile);
             int i = 0;
             try {
@@ -1664,7 +1664,7 @@ public abstract class ModuleNodes {
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(node, module, name, Visibility.PUBLIC);
             }
@@ -1707,7 +1707,7 @@ public abstract class ModuleNodes {
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(node, module, name, Visibility.PRIVATE);
             }
@@ -1984,7 +1984,7 @@ public abstract class ModuleNodes {
                 @Bind("getPositionalArguments(rubyArgs)") Object[] names,
                 @Cached SetMethodVisibilityNode setMethodVisibilityNode,
                 @Cached SingleValueCastNode singleValueCastNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             for (Object name : names) {
                 setMethodVisibilityNode.execute(node, module, name, Visibility.PROTECTED);
             }

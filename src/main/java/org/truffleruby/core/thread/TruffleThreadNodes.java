@@ -40,7 +40,7 @@ public abstract class TruffleThreadNodes {
                 @Bind("modules.getStore()") Object store,
                 @CachedLibrary("store") ArrayStoreLibrary stores,
                 @Cached GetSpecialVariableStorage storageNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(store, 0, modulesSize);
             MaterializedFrame frame = getContext(node)

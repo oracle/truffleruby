@@ -162,7 +162,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean hasArrayElements(
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_has_array_elements?");
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -173,7 +173,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Shared BranchProfile errorProfile,
             @Cached @Shared TranslateInteropRubyExceptionNode translateRubyException,
             @Cached @Exclusive DispatchNode dispatchNode,
-            @Bind("$node") Node node)
+            @Bind Node node)
             throws UnsupportedMessageException {
         Object value;
         try {
@@ -246,7 +246,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isArrayElementReadable(long index,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_array_element_readable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -255,7 +255,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isArrayElementModifiable(long index,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_array_element_modifiable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -264,7 +264,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isArrayElementInsertable(long index,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_array_element_insertable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -273,7 +273,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isArrayElementRemovable(long index,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_array_element_removable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -284,7 +284,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean hasHashEntries(
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_has_hash_entries?");
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -294,7 +294,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Shared BranchProfile errorProfile,
             @Cached @Exclusive ToLongNode toInt,
-            @Bind("$node") Node node) throws UnsupportedMessageException {
+            @Bind Node node) throws UnsupportedMessageException {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_hash_size");
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
@@ -307,7 +307,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isHashEntryReadable(Object key,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_hash_entry_readable?", key);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -316,7 +316,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isHashEntryModifiable(Object key,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_hash_entry_modifiable?", key);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -325,7 +325,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isHashEntryInsertable(Object key,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_hash_entry_insertable?", key);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -334,7 +334,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isHashEntryRemovable(Object key,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         final Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_hash_entry_removable?", key);
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
     }
@@ -464,7 +464,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @CachedLibrary("this") InteropLibrary interopLibrary,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) throws UnsupportedMessageException {
+            @Bind Node node) throws UnsupportedMessageException {
         if (!interopLibrary.isIterator(this)) {
             throw UnsupportedMessageException.create();
         }
@@ -503,7 +503,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean isPointer(
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
 
         Object value = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_pointer?");
         return value != DispatchNode.MISSING && booleanCastNode.execute(node, value);
@@ -515,7 +515,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Shared TranslateInteropRubyExceptionNode translateRubyException,
             @Cached LongCastNode longCastNode,
-            @Bind("$node") Node node) throws UnsupportedMessageException {
+            @Bind Node node) throws UnsupportedMessageException {
 
         Object value;
         try {
@@ -545,7 +545,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
     public boolean hasMembers(
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_has_members?");
         return dynamic == DispatchNode.MISSING || booleanCastNode.execute(node, dynamic);
     }
@@ -607,7 +607,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Shared TranslateInteropRubyExceptionNode translateRubyException,
             @Cached @Shared BranchProfile errorProfile,
-            @Bind("$node") Node node)
+            @Bind Node node)
             throws UnknownIdentifierException, UnsupportedMessageException {
         Object dynamic;
         try {
@@ -669,7 +669,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Shared TranslateInteropRubyExceptionNode translateRubyException,
             @Cached @Shared BranchProfile errorProfile,
-            @Bind("$node") Node node)
+            @Bind Node node)
             throws UnknownIdentifierException, UnsupportedTypeException, UnsupportedMessageException, ArityException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(node, arguments);
         Object[] combinedArguments = ArrayUtils.unshift(convertedArguments, name);
@@ -699,7 +699,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive BooleanCastNode booleanCastNode,
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Shared ConditionProfile ivarFoundProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_member_readable?", name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (ivarFoundProfile.profile(objectLibrary.containsKey(this, name))) {
@@ -719,7 +719,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
             @Cached @Shared ConditionProfile dynamicProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_member_modifiable?", name);
         return isMemberModifiableRemovable(
                 node,
@@ -738,7 +738,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
             @Cached @Shared ConditionProfile dynamicProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_member_removable?", name);
         return isMemberModifiableRemovable(
                 node,
@@ -774,7 +774,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
             @Cached @Shared ConditionProfile dynamicProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_member_insertable?", name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (isFrozenNode.execute(this) || !isIVar(name)) {
@@ -795,7 +795,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive BooleanCastNode booleanCastNode,
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Shared ConditionProfile ivarFoundProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_member_invocable?", name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             Object iVar = objectLibrary.getOrDefault(this, name, null);
@@ -818,7 +818,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive BooleanCastNode booleanCastNode,
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Shared ConditionProfile ivarFoundProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_member_internal?", name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             Object result = objectLibrary.getOrDefault(this, name, null);
@@ -839,7 +839,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_has_member_read_side_effects?",
                 name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
@@ -854,7 +854,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Shared ConditionProfile dynamicProfile,
             @Cached @Exclusive BooleanCastNode booleanCastNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object dynamic = dispatchNode.call(PRIVATE_RETURN_MISSING, this, "polyglot_has_member_write_side_effects?",
                 name);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
@@ -877,7 +877,7 @@ public abstract class RubyDynamicObject extends DynamicObject {
             @Cached @Shared BranchProfile errorProfile,
             @Cached @Exclusive DispatchNode dispatchNode,
             @Cached @Exclusive ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @Bind("$node") Node node)
+            @Bind Node node)
             throws UnsupportedMessageException {
         Object instance = dispatchNode.call(PUBLIC_RETURN_MISSING, this, "new",
                 foreignToRubyArgumentsNode.executeConvert(node, arguments));

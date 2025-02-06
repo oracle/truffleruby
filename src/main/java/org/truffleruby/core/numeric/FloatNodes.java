@@ -379,7 +379,7 @@ public abstract class FloatNodes {
         @Specialization
         Object equal(Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached EqualInternalNode equalInternalNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             Object other = RubyArguments.getArgument(rubyArgs, 0);
             return equalInternalNode.execute(node, self, other);
         }

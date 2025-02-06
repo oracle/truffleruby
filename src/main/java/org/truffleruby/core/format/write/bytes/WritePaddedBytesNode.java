@@ -41,7 +41,7 @@ public abstract class WritePaddedBytesNode extends FormatNode {
 
     @Specialization
     Object write(VirtualFrame frame, int padding, int precision, Object string,
-            @Bind("this") Node node,
+            @Bind Node node,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.CodePointLengthNode codePointLengthNode,
             @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,

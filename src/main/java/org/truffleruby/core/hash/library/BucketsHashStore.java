@@ -220,7 +220,7 @@ public final class BucketsHashStore {
     protected Object lookupOrDefault(Frame frame, RubyHash hash, Object key, PEBiFunction defaultNode,
             @Cached @Shared LookupEntryNode lookup,
             @Cached @Exclusive InlinedConditionProfile found,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
 
         final Entry[] entries = this.entries;
         final HashLookupResult hashLookupResult = lookup.execute(hash, entries, key);
@@ -242,7 +242,7 @@ public final class BucketsHashStore {
             @Cached @Exclusive InlinedConditionProfile bucketCollision,
             @Cached @Exclusive InlinedConditionProfile appending,
             @Cached @Exclusive InlinedConditionProfile resize,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         assert verify(hash);
 
         final Object key2 = freezeHashKeyIfNeeded.executeFreezeIfNeeded(node, key, byIdentity);
@@ -291,7 +291,7 @@ public final class BucketsHashStore {
     protected Object delete(RubyHash hash, Object key,
             @Cached @Shared LookupEntryNode lookup,
             @Cached @Exclusive InlinedConditionProfile missing,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         assert verify(hash);
 
         final Entry[] entries = this.entries;
@@ -312,7 +312,7 @@ public final class BucketsHashStore {
     @ExportMessage
     protected Object deleteLast(RubyHash hash, Object key,
             @Cached @Exclusive InlinedConditionProfile singleEntry,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         assert verify(hash);
 
         final Entry[] entries = this.entries;
@@ -380,7 +380,7 @@ public final class BucketsHashStore {
     @ExportMessage
     protected void replace(RubyHash hash, RubyHash dest,
             @Cached @Exclusive PropagateSharingNode propagateSharing,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         if (hash == dest) {
             return;
         }

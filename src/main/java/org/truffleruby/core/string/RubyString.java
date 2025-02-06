@@ -134,7 +134,7 @@ public final class RubyString extends RubyDynamicObject {
                 guards = "equalNode.execute(string.tstring, libString.getEncoding(node, string), cachedTString, cachedEncoding)",
                 limit = "getLimit()")
         static String asStringCached(RubyString string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached("string.asTruffleStringUncached()") TruffleString cachedTString,
                 @Cached("string.getEncodingUncached()") RubyEncoding cachedEncoding,
@@ -149,7 +149,7 @@ public final class RubyString extends RubyDynamicObject {
                 @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached TruffleString.ToJavaStringNode toJavaStringNode,
                 @Cached InlinedConditionProfile binaryNonAsciiProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var encoding = libString.getEncoding(node, string);
             if (binaryNonAsciiProfile.profile(node, encoding == Encodings.BINARY &&
                     !StringGuards.is7Bit(string.tstring, encoding, codeRangeNode))) {

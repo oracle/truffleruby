@@ -385,7 +385,7 @@ public final class ValueWrapperManager {
         @ExportMessage
         protected Object execute(Object[] arguments,
                 @Cached UnwrapNode unwrapNode,
-                @Bind("$node") Node node) {
+                @Bind Node node) {
             return unwrapNode.execute(node, arguments[0]);
         }
     }
@@ -419,7 +419,7 @@ public final class ValueWrapperManager {
         public Object execute(Object[] arguments,
                 @Cached UnwrapNode unwrapNode,
                 @Cached SymbolToIDNode symbolTOIDNode,
-                @Bind("$node") Node node) {
+                @Bind Node node) {
             return symbolTOIDNode.execute(unwrapNode.execute(node, arguments[0]));
         }
     }
@@ -452,7 +452,7 @@ public final class ValueWrapperManager {
         @ExportMessage
         protected boolean execute(Object[] arguments,
                 @Cached IsNativeObjectNode isNativeObjectNode,
-                @Bind("$node") Node node) {
+                @Bind Node node) {
             return isNativeObjectNode.execute(node, arguments[0]);
         }
     }

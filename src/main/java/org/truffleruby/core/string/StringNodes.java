@@ -310,7 +310,7 @@ public abstract class StringNodes {
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
                 @Cached StringHelperNodes.StringEqualInternalNode stringEqualInternalNode,
                 @Bind("getArgument(rubyArgs, 0)") Object other,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstringSelf = libSelf.getTString(node, self);
             var encSelf = libSelf.getEncoding(node, self);
             var tstringOther = libOther.getTString(node, other);
@@ -431,7 +431,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "libFirst.isRubyString(node, first)", limit = "1")
         static RubyString concat(RubyString string, Object first,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached StringAppendPrimitiveNode stringAppendNode,
                 @Cached RubyStringLibrary libFirst) {
             return stringAppendNode.executeStringAppend(string, first);
@@ -463,7 +463,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "rest.length == 0", "libFirst.isRubyString(node, first)" }, limit = "1")
         static RubyString concat(RubyString string, Object first, Object[] rest,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached StringAppendPrimitiveNode stringAppendNode,
                 @Cached @Exclusive RubyStringLibrary libFirst) {
             return stringAppendNode.executeStringAppend(string, first);
@@ -637,7 +637,7 @@ public abstract class StringNodes {
                 @Cached @Exclusive InlinedConditionProfile sameThreadProfile,
                 @Cached @Exclusive InlinedConditionProfile notMatchedProfile,
                 @Cached @Exclusive InlinedConditionProfile captureSetProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             final Object capture = RubyGuards.wasProvided(maybeCapture) ? maybeCapture : 0;
             final Object matchStrPair = callNode.call(
@@ -673,7 +673,7 @@ public abstract class StringNodes {
                 @Cached @Exclusive DispatchNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached AsTruffleStringNode asTruffleStringNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             final Object included = includeNode.call(string, "include?", matchStr);
 
@@ -1120,7 +1120,7 @@ public abstract class StringNodes {
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode,
                 @Cached CallBlockNode yieldNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = strings.getTString(node, string);
             var encoding = strings.getEncoding(node, string).tencoding;
 
@@ -1144,7 +1144,7 @@ public abstract class StringNodes {
         // use separate specialization instances for getTString() in the loop
         @Specialization(guards = "strings.seen(node, string)", limit = "2")
         static RubyArray bytesWithoutBlock(Object string, Nil block,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.MaterializeNode materializeNode,
                 @Cached TruffleString.ReadByteNode readByteNode) {
@@ -1395,7 +1395,7 @@ public abstract class StringNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached @Exclusive ForceEncodingNode forceEncodingNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final String stringName = toJavaStringNode.execute(node, newEncoding);
             final RubyEncoding rubyEncoding = getContext(node).getEncodingManager().getRubyEncoding(stringName);
 
@@ -1413,7 +1413,7 @@ public abstract class StringNodes {
         static RubyString forceEncoding(RubyString string, Object newEncoding,
                 @Cached ToStrNode toStrNode,
                 @Cached @Exclusive ForceEncodingNode forceEncodingNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return forceEncodingNode.execute(string, toStrNode.execute(node, newEncoding));
         }
     }
@@ -1492,7 +1492,7 @@ public abstract class StringNodes {
         static RubyString initialize(VirtualFrame frame, RubyString string, Object from, Object encoding,
                 @Cached @Exclusive RubyStringLibrary stringLibrary,
                 @Cached ToStrNode toStrNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object stringFrom = toStrNode.execute(node, from);
             string.setTString(stringLibrary.getTString(node, stringFrom), stringLibrary.getEncoding(node, stringFrom));
             return string;
@@ -1624,7 +1624,7 @@ public abstract class StringNodes {
                 @Cached InlinedBranchProfile nonSpaceCodePointProfile,
                 @Cached InlinedBranchProfile badCodePointProfile,
                 @Cached InlinedConditionProfile noopProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = string.tstring;
             var encoding = getActualEncodingNode.execute(node, tstring, libString.getEncoding(node, string));
             var tencoding = encoding.tencoding;
@@ -1764,7 +1764,7 @@ public abstract class StringNodes {
                 @Cached InlinedBranchProfile badCodePointProfile,
                 @Cached TruffleString.SubstringByteIndexNode substringNode,
                 @Cached @Exclusive InlinedConditionProfile noopProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = string.tstring;
             var encoding = getActualEncodingNode.execute(node, tstring, libString.getEncoding(node, string));
             var tencoding = encoding.tencoding;
@@ -2366,7 +2366,7 @@ public abstract class StringNodes {
         static Object squeezeBang(RubyString string, Object[] args,
                 @Cached CheckStringEncodingNode checkEncodingNode,
                 @Cached ToStrNode toStrNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
             final Object[] otherStrings = new Object[args.length];
@@ -2509,7 +2509,7 @@ public abstract class StringNodes {
         static Object sum(Object string, Object bits,
                 @Cached ToLongNode toLongNode,
                 @Cached SumNode sumNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return sumNode.executeSum(string, toLongNode.execute(node, bits));
         }
 
@@ -2573,7 +2573,7 @@ public abstract class StringNodes {
                         "preserveSymbol == cachedPreserveSymbol" },
                 limit = "getDefaultCacheLimit()")
         static RubySymbol toSymCached(Object string, boolean preserveSymbol,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Cached("asTruffleStringUncached(string)") TruffleString cachedTString,
                 @Cached("strings.getEncoding(node, string)") RubyEncoding cachedEncoding,
@@ -2588,7 +2588,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!isBrokenCodeRange(tstring, encoding, codeRangeNode)", replaces = "toSymCached",
                 limit = "1")
         static RubySymbol toSym(Object string, boolean preserveSymbol,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Bind("strings.getTString(node, string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(node, string)") RubyEncoding encoding) {
@@ -2597,7 +2597,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isBrokenCodeRange(tstring, encoding, codeRangeNode)", limit = "1")
         static RubySymbol toSymBroken(Object string, boolean preserveSymbol,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Bind("strings.getTString(node, string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(node, string)") RubyEncoding encoding) {
@@ -2762,7 +2762,7 @@ public abstract class StringNodes {
         static Object trSBang(RubyString self, Object fromStr, Object toStr,
                 @Cached ToStrNode fromStrNode,
                 @Cached ToStrNode toStrNode,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Bind("fromStrNode.execute(node, fromStr)") Object fromStrAsString,
                 @Bind("toStrNode.execute(node, toStr)") Object toStrAsString,
                 @Cached CheckStringEncodingNode checkEncodingNode,
@@ -2845,7 +2845,7 @@ public abstract class StringNodes {
                 @Cached IndirectCallNode callUnpackNode,
                 @Cached @Shared StringHelperNodes.StringGetAssociatedNode stringGetAssociatedNode,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var byteArray = byteArrayNode.execute(libString.getTString(node, string),
                     libString.getTEncoding(node, string));
 
@@ -3169,7 +3169,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "is7Bit(tstring, encoding, codeRangeNode)", limit = "1")
         static Object stringAwkSplitAsciiOnly(Object string, int limit, Object block,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Cached @Exclusive InlinedConditionProfile executeBlockProfile,
                 @Cached @Exclusive InlinedConditionProfile growArrayProfile,
@@ -3252,7 +3252,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isValid(tstring, encoding, codeRangeNode)", limit = "1")
         static Object stringAwkSplit(Object string, int limit, Object block,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Cached @Exclusive InlinedConditionProfile executeBlockProfile,
                 @Cached @Exclusive InlinedConditionProfile growArrayProfile,
@@ -3335,7 +3335,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isBrokenCodeRange(tstring, encoding, codeRangeNode)", limit = "1")
         static Object broken(Object string, int limit, Object block,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Bind("strings.getTString(node, string)") AbstractTruffleString tstring,
                 @Bind("strings.getEncoding(node, string)") RubyEncoding encoding) {
@@ -3427,7 +3427,7 @@ public abstract class StringNodes {
                 guards = "indexOutOfBounds(strings.byteLength(node, string), byteIndex)", limit = "1")
         static Object stringChrAtOutOfBounds(Object string, int byteIndex,
                 @Cached @Exclusive RubyStringLibrary strings,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return nil;
         }
 
@@ -3437,7 +3437,7 @@ public abstract class StringNodes {
                         "is7Bit(tstring, encoding, codeRangeNode)" },
                 limit = "1")
         static Object stringChrAtSingleByte(Object string, int byteIndex,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Cached @Shared TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached @Exclusive TruffleString.SubstringByteIndexNode substringByteIndexNode,
@@ -3452,7 +3452,7 @@ public abstract class StringNodes {
                         "!is7Bit(originalTString, originalEncoding, codeRangeNode)" },
                 limit = "1")
         static Object stringChrAt(Object string, int byteIndex,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary strings,
                 @Cached @Shared TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached GetActualEncodingNode getActualEncodingNode,
@@ -3767,7 +3767,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "patternTString.isEmpty()", limit = "1")
         static int stringIndexEmptyPattern(Object rubyString, Object rubyPattern, int byteOffset,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary libPattern,
                 @Bind("libPattern.getTString(node, rubyPattern)") AbstractTruffleString patternTString) {
             assert byteOffset >= 0;
@@ -3776,7 +3776,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!patternTString.isEmpty()", limit = "1")
         static Object findStringByteIndex(Object rubyString, Object rubyPattern, int byteOffset,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary libString,
                 @Cached @Exclusive RubyStringLibrary libPattern,
                 @Cached CheckStringEncodingNode checkEncodingNode,
@@ -4113,7 +4113,7 @@ public abstract class StringNodes {
         @Specialization(guards = "spliceByteIndex == byteLength", limit = "1")
         static Object spliceAppend(
                 RubyString string, Object other, int spliceByteIndex, int byteCountToReplace, RubyEncoding rubyEncoding,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached @Exclusive RubyStringLibrary libString,
                 @Cached @Exclusive RubyStringLibrary libOther,
                 @Cached @Shared TruffleString.ConcatNode concatNode,
@@ -4139,7 +4139,7 @@ public abstract class StringNodes {
                 @Cached @Shared TruffleString.ConcatNode concatNode,
                 @Cached TruffleString.ForceEncodingNode forceEncodingNode,
                 @Bind("libString.byteLength(this, string)") int byteLength,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var sourceTEncoding = libString.getTEncoding(node, string);
             var resultTEncoding = rubyEncoding.tencoding;
             var source = string.tstring;
@@ -4254,7 +4254,7 @@ public abstract class StringNodes {
     public abstract static class StringByteAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = "libOther.isRubyString(node, other)", limit = "1")
         static RubyString stringByteAppend(RubyString string, Object other,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached TruffleString.ConcatNode concatNode,
@@ -4276,7 +4276,7 @@ public abstract class StringNodes {
     public abstract static class StringBinaryAppendNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = "libOther.isRubyString(node, other)", limit = "1")
         static RubyString stringBinaryAppend(RubyString string, Object other,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary libString,
                 @Cached RubyStringLibrary libOther,
                 @Cached TruffleString.ConcatNode concatNode,
@@ -4352,7 +4352,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "libString.isRubyString(node, string)", limit = "1")
         static Object stringToNullTerminatedByteArray(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached RubyStringLibrary libString) {
             final var encoding = libString.getEncoding(node, string);

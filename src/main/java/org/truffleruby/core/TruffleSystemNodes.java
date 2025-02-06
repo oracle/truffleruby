@@ -106,7 +106,7 @@ public abstract class TruffleSystemNodes {
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached InlinedConditionProfile nullValueProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final String javaName = toJavaStringNode.execute(node, name);
             final String value = getEnv(javaName);
 
@@ -187,7 +187,7 @@ public abstract class TruffleSystemNodes {
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             String value = getProperty(toJavaStringNode.execute(node, property));
             if (value == null) {
                 return nil;

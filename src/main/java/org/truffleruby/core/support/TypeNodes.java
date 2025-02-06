@@ -138,7 +138,7 @@ public abstract class TypeNodes {
                 @Cached InlinedConditionProfile singletonClassUnfrozenProfile,
                 @Cached IsFrozenNode isFrozenMetaClassNode,
                 @Cached @Exclusive FreezeNode freezeMetaClasNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             RubyClass metaClass = metaClassNode.execute(node, self);
             if (metaClass.isSingleton) {
                 if (singletonClassUnfrozenProfile.profile(node,
@@ -267,7 +267,7 @@ public abstract class TypeNodes {
         static RubyArray instanceVariables(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @Cached InlinedConditionProfile noPropertiesProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var shape = objectLibrary.getShape(object);
 
             if (noPropertiesProfile.profile(node, shape.getPropertyCount() == 0)) {
@@ -529,7 +529,7 @@ public abstract class TypeNodes {
                 @Cached InlinedConditionProfile numericProfile,
                 @Cached DispatchNode isRealNode,
                 @Cached BooleanCastNode booleanCastNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return numericProfile.profile(node, isANode.executeIsA(value, coreLibrary(node).numericClass)) &&
                     booleanCastNode.execute(node, isRealNode.call(value, "real?"));
         }

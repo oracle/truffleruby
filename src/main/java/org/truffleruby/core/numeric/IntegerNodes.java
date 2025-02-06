@@ -790,7 +790,7 @@ public abstract class IntegerNodes {
         @Specialization
         static Object equal(Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached EqualInternalNode equalInternalNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             Object other = RubyArguments.getArgument(rubyArgs, 0);
             return equalInternalNode.execute(node, self, other);
         }
@@ -1300,7 +1300,7 @@ public abstract class IntegerNodes {
         static Object leftShiftCoerced(Object a, Object b,
                 @Cached ToRubyIntegerNode toRubyIntNode,
                 @Cached LeftShiftNode leftShiftNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return leftShiftNode.executeLeftShift(a, toRubyIntNode.execute(node, b));
         }
 
@@ -1421,7 +1421,7 @@ public abstract class IntegerNodes {
         static Object rightShiftCoerced(Object a, Object b,
                 @Cached ToRubyIntegerNode toRubyIntNode,
                 @Cached RightShiftNode rightShiftNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return rightShiftNode.executeRightShift(a, toRubyIntNode.execute(node, b));
         }
 

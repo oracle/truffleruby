@@ -195,7 +195,7 @@ public abstract class GetConstantNode extends RubyBaseNode {
             boolean callConstMissing,
             @Cached ToSymbolNode toSymbolNode,
             @Cached @Exclusive LazyDispatchNode constMissingNode,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         CompilerAsserts.partialEvaluationConstant(callConstMissing);
         if (callConstMissing) {
             return constMissingNode.get(node).call(module, "const_missing", toSymbolNode.execute(node, name));

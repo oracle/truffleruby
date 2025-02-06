@@ -80,7 +80,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "strings.isRubyString(node, string)", limit = "1")
         static RubyByteArray prepend(RubyByteArray byteArray, Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode) {
             final byte[] bytes = byteArray.bytes;
