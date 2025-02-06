@@ -102,8 +102,8 @@ describe "Time.at" do
 
       it "needs for the argument to respond to #to_int too" do
         o = mock('rational-but-no-to_int')
-        o.should_receive(:to_r).and_return(Rational(5, 2))
-        -> { Time.at(o) }.should raise_error(TypeError)
+        def o.to_r; Rational(5, 2) end
+        -> { Time.at(o) }.should raise_error(TypeError, "can't convert MockObject into an exact number")
       end
     end
   end

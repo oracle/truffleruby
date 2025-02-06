@@ -468,11 +468,13 @@ module Truffle
       end
     end
 
-    # Equivalent of num_exact in MRI's time.c, used by Time methods.
+    # MRI: num_exact() in time.c
     def self.coerce_to_exact_num(obj)
       if Primitive.is_a? obj, Integer
         obj
-      elsif (rational = rb_check_convert_type(obj, Rational, :to_r)) && Primitive.respond_to?(obj, :to_int, false)
+      # MRI: test to_int method availability to reject non-Numeric objects such as String,
+      # Time, etc which have to_r method.
+      elsif Primitive.respond_to?(obj, :to_int, false) and rational = rb_check_convert_type(obj, Rational, :to_r)
         rational
       elsif integer = rb_check_convert_type(obj, Integer, :to_int)
         integer
