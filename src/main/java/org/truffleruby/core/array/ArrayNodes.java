@@ -1543,7 +1543,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(this, format)") RubyEncoding cachedEncoding,
+                @Cached("libFormat.getEncoding($node, format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("compileFormat(node, getJavaString(format))") RootCallTarget formatCallTarget,
                 @Cached("create(formatCallTarget)") DirectCallNode callPackNode,

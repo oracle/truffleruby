@@ -51,7 +51,7 @@ public abstract class IsANode extends RubyBaseNode {
             limit = "getCacheLimit()")
     boolean isAMetaClassCached(Object self, RubyModule module,
             @Cached @Shared MetaClassNode metaClassNode,
-            @Cached("metaClassNode.execute(this, self)") RubyClass cachedMetaClass,
+            @Cached("metaClassNode.execute($node, self)") RubyClass cachedMetaClass,
             @Cached("module") RubyModule cachedModule,
             @Cached("isA(cachedMetaClass, cachedModule)") boolean result) {
         return result;

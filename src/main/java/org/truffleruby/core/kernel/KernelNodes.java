@@ -339,7 +339,7 @@ public abstract class KernelNodes {
         @Specialization
         RubyBinding binding(Frame callerFrame, Object self, Object[] rubyArgs, RootCallTarget target,
                 @Cached(
-                        value = "getAdoptedNode(this).getEncapsulatingSourceSection()",
+                        value = "getAdoptedNode($node).getEncapsulatingSourceSection()",
                         allowUncached = true, neverDefault = false) SourceSection sourceSection) {
             needCallerFrame(callerFrame, target);
             return BindingNodes.createBinding(getContext(), getLanguage(), callerFrame.materialize(), sourceSection);
@@ -1615,7 +1615,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "libFormat.isRubyString(this, formatAsString)", limit = "1")
         static RubyString sprintf(VirtualFrame frame, Object format, Object[] arguments,
                 @Cached ToStrNode toStrNode,
-                @Bind("toStrNode.execute(this, format)") Object formatAsString,
+                @Bind("toStrNode.execute($node, format)") Object formatAsString,
                 @Cached(parameters = "GVAR_DEBUG") ReadGlobalVariableNode readDebugGlobalNode,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached RubyStringLibrary libFormat,

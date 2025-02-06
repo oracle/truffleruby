@@ -191,7 +191,7 @@ public abstract class RegexpNodes {
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
                 @Cached @Exclusive RubyStringLibrary libPattern,
                 @Cached("asTruffleStringUncached(pattern)") TruffleString cachedPattern,
-                @Cached("libPattern.getEncoding(this, pattern)") RubyEncoding cachedPatternEnc,
+                @Cached("libPattern.getEncoding($node, pattern)") RubyEncoding cachedPatternEnc,
                 @Cached("options") int cachedOptions,
                 @Cached StringHelperNodes.EqualSameEncodingNode patternEqualNode,
                 @Bind Node node,

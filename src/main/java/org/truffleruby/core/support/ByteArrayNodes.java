@@ -163,8 +163,8 @@ public abstract class ByteArrayNodes {
                 @Cached InlinedBranchProfile tooSmallStartProfile,
                 @Cached InlinedBranchProfile tooLargeStartProfile,
                 @Cached @Shared RubyStringLibrary libPattern,
-                @Bind("libPattern.getTString(this, pattern)") AbstractTruffleString patternTString,
-                @Bind("libPattern.getTEncoding(this, pattern)") TruffleString.Encoding patternEncoding) {
+                @Bind("libPattern.getTString($node, pattern)") AbstractTruffleString patternTString,
+                @Bind("libPattern.getTEncoding($node, pattern)") TruffleString.Encoding patternEncoding) {
 
             byte[] bytes = byteArray.bytes;
             int searchByte = readByteNode.execute(patternTString, 0, patternEncoding);
@@ -191,8 +191,8 @@ public abstract class ByteArrayNodes {
                 @Cached InlinedConditionProfile noCopyProfile,
                 @Cached InlinedConditionProfile notFoundProfile,
                 @Cached @Shared RubyStringLibrary libPattern,
-                @Bind("libPattern.getTString(this, pattern)") AbstractTruffleString patternTString,
-                @Bind("libPattern.getTEncoding(this, pattern)") TruffleString.Encoding patternEncoding) {
+                @Bind("libPattern.getTString($node, pattern)") AbstractTruffleString patternTString,
+                @Bind("libPattern.getTEncoding($node, pattern)") TruffleString.Encoding patternEncoding) {
             // TODO (nirvdrum 09-June-2022): Copying the byte array here is wasteful, but ArrayUtils.indexOfWithOrMask does not accept an offset or length for the needle.
             // Another possibility would be to create a MutableTruffleString for the RubyByteArray and use ByteIndexOfStringNode, but that would force computation of the coderange of the byte[]
             final byte[] patternBytes = TStringUtils.getBytesOrCopy(this, patternTString, patternEncoding,

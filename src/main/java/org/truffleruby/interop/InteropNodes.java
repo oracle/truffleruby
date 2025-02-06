@@ -248,9 +248,9 @@ public abstract class InteropNodes {
                 @Cached @Exclusive RubyStringLibrary stringsMimeType,
                 @Cached @Exclusive RubyStringLibrary stringsSource,
                 @Cached("asTruffleStringUncached(mimeType)") TruffleString cachedMimeType,
-                @Cached("stringsMimeType.getEncoding(this, mimeType)") RubyEncoding cachedMimeTypeEnc,
+                @Cached("stringsMimeType.getEncoding($node, mimeType)") RubyEncoding cachedMimeTypeEnc,
                 @Cached("asTruffleStringUncached(source)") TruffleString cachedSource,
-                @Cached("stringsSource.getEncoding(this, source)") RubyEncoding cachedSourceEnc,
+                @Cached("stringsSource.getEncoding($node, source)") RubyEncoding cachedSourceEnc,
                 @Cached("create(parse(node, getJavaString(mimeType), getJavaString(source)))") DirectCallNode callNode,
                 @Cached StringHelperNodes.EqualNode mimeTypeEqualNode,
                 @Cached StringHelperNodes.EqualNode sourceEqualNode) {

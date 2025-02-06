@@ -67,7 +67,7 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     static RubySymbol rubyString(Node node, Object str,
             @Cached @Exclusive RubyStringLibrary strings,
             @Cached("asTruffleStringUncached(str)") TruffleString cachedTString,
-            @Cached("strings.getEncoding(this, str)") RubyEncoding cachedEncoding,
+            @Cached("strings.getEncoding($node, str)") RubyEncoding cachedEncoding,
             @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
             @Cached("getSymbol(node, cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;

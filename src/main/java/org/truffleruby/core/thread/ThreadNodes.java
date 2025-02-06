@@ -988,7 +988,7 @@ public abstract class ThreadNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached("new(this, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
+                @Cached("new($node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             final RubyThread thread = getLanguage().getCurrentThread();
