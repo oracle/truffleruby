@@ -105,7 +105,7 @@ public final class ValueWrapper implements TruffleObject {
     static void toNative(ValueWrapper wrapper,
             @Cached AllocateHandleNode createNativeHandleNode,
             @Cached @Exclusive InlinedBranchProfile createHandleProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         if (!wrapper.isPointer()) {
             createHandleProfile.enter(node);
             createNativeHandleNode.execute(node, wrapper);
@@ -116,7 +116,7 @@ public final class ValueWrapper implements TruffleObject {
     static long asPointer(ValueWrapper wrapper,
             @Cached KeepAliveNode keepAliveNode,
             @Cached @Exclusive InlinedBranchProfile taggedObjectProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         long handle = wrapper.getHandle();
         assert handle != ValueWrapperManager.UNSET_HANDLE;
 
@@ -147,7 +147,7 @@ public final class ValueWrapper implements TruffleObject {
     @ExportMessage
     static Object readMember(ValueWrapper wrapper, String member,
             @Cached @Exclusive InlinedBranchProfile errorProfile,
-            @Bind("$node") Node node) throws UnknownIdentifierException {
+            @Bind Node node) throws UnknownIdentifierException {
         if ("value".equals(member)) {
             if (wrapper.object != null) {
                 return wrapper.object;

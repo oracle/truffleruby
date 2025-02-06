@@ -21,6 +21,10 @@ JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_setupLocale(JNI
   setlocale(LC_CTYPE, "");
 }
 
+JNIEXPORT void JNICALL Java_org_truffleruby_signal_LibRubySignal_setupLocaleOnlyCTYPE(JNIEnv *env, jclass clazz) {
+  setlocale(LC_CTYPE, "");
+}
+
 static void empty_handler(int sig) {
 }
 

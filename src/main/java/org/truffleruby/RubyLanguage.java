@@ -11,6 +11,7 @@ package org.truffleruby;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.Cleaner;
 import java.util.Arrays;
 import java.util.Map;
@@ -40,7 +41,6 @@ import com.oracle.truffle.api.strings.AbstractTruffleString;
 import com.oracle.truffle.api.strings.InternalByteArray;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.graalvm.nativeimage.ImageInfo;
-import org.graalvm.nativeimage.ProcessProperties;
 import org.graalvm.options.OptionDescriptors;
 import org.prism.Parser;
 import org.truffleruby.annotations.SuppressFBWarnings;
@@ -290,9 +290,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private static final RubyObjectType objectType = new RubyObjectType();
 
-    public final Shape basicObjectShape = createShape(RubyBasicObject.class);
-    public final Shape moduleShape = createShape(RubyModule.class);
-    public final Shape classShape = createShape(RubyClass.class);
+    public final Shape basicObjectShape = createShape(RubyBasicObject.class, RubyBasicObject.LOOKUP);
+    public final Shape moduleShape = createShape(RubyModule.class, RubyModule.LOOKUP);
+    public final Shape classShape = createShape(RubyClass.class, RubyModule.LOOKUP);
 
     public final Shape arrayShape = createShape(RubyArray.class);
     public final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
@@ -338,7 +338,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape classVariableShape = Shape
             .newBuilder()
             .allowImplicitCastIntToLong(true)
-            .layout(ClassVariableStorage.class)
+            .layout(ClassVariableStorage.class, ClassVariableStorage.LOOKUP)
             .build();
 
     public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
@@ -831,13 +831,18 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         // CRuby does setlocale(LC_CTYPE, "") because this is needed to get the locale encoding with nl_langinfo(CODESET).
         // This means every locale category except LC_CTYPE remains the initial "C".
         // LC_CTYPE is set according to environment variables (LC_ALL, LC_CTYPE, LANG).
-        // HotSpot does setlocale(LC_ALL, "") and Native Image does nothing.
+        // HotSpot and Native Image with UseSystemLocale=true (the default) do setlocale(LC_ALL, "").
         // We match CRuby by doing setlocale(LC_ALL, "C") and setlocale(LC_CTYPE, "").
         // This also affects C functions that depend on the locale in C extensions, so best to follow CRuby here.
         // Change the strict minimum if embedded because setlocale() is process-wide.
         if (env.getOptions().get(OptionsCatalog.EMBEDDED_KEY)) {
             if (ImageInfo.inImageRuntimeCode()) {
-                ProcessProperties.setLocale("LC_CTYPE", "");
+                // Only do this on Native Image, to handle the case of the embedder setting UseSystemLocale=false.
+                LibRubySignal.loadLibrary(rubyHome, Platform.LIB_SUFFIX);
+                LibRubySignal.setupLocaleOnlyCTYPE();
+            } else {
+                // Nothing to do, JVM and Native Image UseSystemLocale=true already did setlocale(LC_ALL, "")
+                // so there is no need to setlocale(LC_CTYPE, "").
             }
         } else {
             LibRubySignal.loadLibrary(rubyHome, Platform.LIB_SUFFIX);
@@ -879,10 +884,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass) {
+        return createShape(layoutClass, RubyDynamicObject.LOOKUP);
+    }
+
+    private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass, MethodHandles.Lookup lookup) {
+        assert lookup.lookupClass().isAssignableFrom(layoutClass) : layoutClass;
         return Shape
                 .newBuilder()
                 .allowImplicitCastIntToLong(true)
-                .layout(layoutClass)
+                .layout(layoutClass, lookup)
                 .dynamicType(RubyLanguage.objectType)
                 .build();
     }

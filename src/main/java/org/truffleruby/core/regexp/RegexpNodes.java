@@ -84,7 +84,7 @@ public abstract class RegexpNodes {
                 @Cached @Exclusive RubyStringLibrary libString,
                 @Cached ToStrNode toStrNode,
                 @Cached QuoteNode recursive,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return recursive.execute(toStrNode.execute(node, raw));
         }
 
@@ -191,10 +191,10 @@ public abstract class RegexpNodes {
                 @Cached @Shared TruffleString.AsTruffleStringNode asTruffleStringNode,
                 @Cached @Exclusive RubyStringLibrary libPattern,
                 @Cached("asTruffleStringUncached(pattern)") TruffleString cachedPattern,
-                @Cached("libPattern.getEncoding(this, pattern)") RubyEncoding cachedPatternEnc,
+                @Cached("libPattern.getEncoding($node, pattern)") RubyEncoding cachedPatternEnc,
                 @Cached("options") int cachedOptions,
                 @Cached StringHelperNodes.EqualSameEncodingNode patternEqualNode,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached("compile(pattern, options, node, libPattern, asTruffleStringNode, UNCACHED_BRANCH_PROFILE)") RubyRegexp regexp) {
             return regexp;
         }

@@ -165,7 +165,7 @@ public final class CompactHashStore {
             @Cached @Shared GetIndexPosForKeyNode getIndexPosForKeyNode,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Exclusive InlinedConditionProfile keyNotFound,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
 
         int indexPos = getIndexPosForKeyNode.execute(node, key, keyHash, hash.compareByIdentity, index, kvStore, false);
@@ -185,7 +185,7 @@ public final class CompactHashStore {
             @Cached @Exclusive PropagateSharingNode propagateSharingForKey,
             @Cached @Exclusive PropagateSharingNode propagateSharingForVal,
             @Cached SetKvAtNode setKv,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         var frozenKey = freezeKey.executeFreezeIfNeeded(node, key, byIdentity);
         int keyHash = hashFunction.execute(frozenKey, byIdentity);
         int indexPos = getIndexPosForKeyNode.execute(node, frozenKey, keyHash, byIdentity, index, kvStore, true);
@@ -202,7 +202,7 @@ public final class CompactHashStore {
             @Cached @Shared GetIndexPosForKeyNode getIndexPosForKeyNode,
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Exclusive InlinedConditionProfile keyNotFound,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         int keyHash = hashFunction.execute(key, hash.compareByIdentity);
         int indexPos = getIndexPosForKeyNode.execute(node, key, keyHash, hash.compareByIdentity, index, kvStore, false);
         if (keyNotFound.profile(node, indexPos == KEY_NOT_FOUND)) {
@@ -218,7 +218,7 @@ public final class CompactHashStore {
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetIndexPosFromKeyPosNode getIndexPosFromKeyPosNode,
             @Cached @Shared InlinedLoopConditionProfile nonNullKeyNotYetFound,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         assert hash.size > 0;
         int keyPos = firstNonNullKeyPosFromEnd(nonNullKeyNotYetFound, node);
         Object lastKey = kvStore[keyPos];
@@ -239,7 +239,7 @@ public final class CompactHashStore {
             @Cached @Shared HashingNodes.ToHash hashFunction,
             @Cached @Shared GetIndexPosFromKeyPosNode getIndexPosFromKeyPosNode,
             @Cached @Shared InlinedLoopConditionProfile nonNullKeyNotYetFound,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         assert hash.size > 0;
         int keyPos = firstNonNullKeyPosFromBeginning(nonNullKeyNotYetFound, node);
 
@@ -255,7 +255,7 @@ public final class CompactHashStore {
     Object eachEntry(RubyHash hash, EachEntryCallback callback, Object state,
             @Cached @Exclusive InlinedConditionProfile keyNotNull,
             @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         int i = 0;
         int callbackIdx = 0;
         try {
@@ -281,7 +281,7 @@ public final class CompactHashStore {
     void replace(RubyHash hash, RubyHash dest,
             @Cached @Exclusive PropagateSharingNode propagateSharing,
             @Cached @Exclusive InlinedConditionProfile noReplaceNeeded,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         if (noReplaceNeeded.profile(node, hash == dest)) {
             return;
         }
@@ -302,7 +302,7 @@ public final class CompactHashStore {
             @Cached @Exclusive InlinedConditionProfile slotUsed,
             @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
             @CachedLibrary("this") HashStoreLibrary hashlib,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         Object[] oldKvStore = this.kvStore;
         int oldKvStoreInsertionPos = this.kvStoreInsertionPos;
 

@@ -36,7 +36,7 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
     static boolean not(VirtualFrame frame, Object self,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached BooleanCastNode booleanCastNode,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         return !booleanCastNode.execute(node, self);
     }
 

@@ -124,7 +124,7 @@ public abstract class TruffleRegexpNodes {
         @Specialization
         static RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object string,
                 @Cached PrepareRegexpEncodingNode prepareRegexpEncodingNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return prepareRegexpEncodingNode.executePrepare(node, regexp, string);
 
         }
@@ -308,7 +308,7 @@ public abstract class TruffleRegexpNodes {
                 guards = "argsMatch(node, frame, cachedArgs, args, sameOrEqualNode)",
                 limit = "getDefaultCacheLimit()")
         static Object fastUnion(VirtualFrame frame, RubyString str, Object sep, Object[] args,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached SameOrEqualNode sameOrEqualNode,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached @Exclusive RubyStringLibrary libString,
@@ -827,7 +827,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached InlinedConditionProfile zeroOffsetProfile,
                 @Cached MatchNode matchNode,
                 @Cached RubyStringLibrary libString,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             Regex regex = regexp.regex;
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
 
@@ -925,7 +925,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             stringToTruffleStringInplaceNode.execute(node, string);
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
             var tstring = switchEncodingNode.execute(libString.getTString(node, string), negotiatedEncoding.tencoding);
@@ -1068,7 +1068,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached TRegexCompileNode tRegexCompileNode,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object compiledRegex = tRegexCompileNode.executeTRegexCompile(regexp, false, regexp.encoding);
 
             if (tRegexCouldNotCompileProfile.profile(node, compiledRegex == nil)) {

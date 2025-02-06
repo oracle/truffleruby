@@ -51,7 +51,7 @@ public final class ProxyForeignObject implements TruffleObject {
             @Cached DispatchNode dispatchNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedLibrary("this.delegate") ReflectionLibrary reflections,
-            @Bind("$node") Node node) throws Exception {
+            @Bind Node node) throws Exception {
 
         if (message == IS_META_INSTANCE) { // Workaround StackOverflowError in asserts (GR-37197)
             rawArgs = rawArgs.clone();

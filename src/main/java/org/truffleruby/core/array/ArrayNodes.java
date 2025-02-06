@@ -139,7 +139,7 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         static RubyArray addGeneralize(RubyArray a, Object bObject,
                 @Cached ToAryNode toAryNode,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Bind("toAryNode.execute(node, bObject)") RubyArray b,
                 @Bind("a.getStore()") Object aStore,
                 @Bind("b.getStore()") Object bStore,
@@ -250,7 +250,7 @@ public abstract class ArrayNodes {
                 @Cached ToLongNode toLongNode,
                 @Cached FixnumLowerNode lowerNode,
                 @Cached AtNode atNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return atNode.executeAt(array, lowerNode.execute(node, toLongNode.execute(node, index)));
         }
     }
@@ -764,7 +764,7 @@ public abstract class ArrayNodes {
                 @Cached InlinedConditionProfile negativeIndexProfile,
                 @Cached InlinedConditionProfile notInBoundsProfile,
                 @Cached InlinedConditionProfile isMutableProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final int size = arraySizeProfile.profile(node, array.size);
             final int index = toIntNode.execute(indexObject);
             int i = index;
@@ -859,7 +859,7 @@ public abstract class ArrayNodes {
                 @Cached InlinedBranchProfile falseProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
                 @Cached SameOrEqualNode sameOrEqualNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             if (sameProfile.profile(node, a == b)) {
                 return true;
@@ -932,7 +932,7 @@ public abstract class ArrayNodes {
                 @Cached InlinedBranchProfile trueProfile,
                 @Cached InlinedBranchProfile falseProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
-                @Bind("$node") Node node) {
+                @Bind Node node) {
 
             if (sameProfile.profile(node, a == b)) {
                 return true;
@@ -1048,7 +1048,7 @@ public abstract class ArrayNodes {
                 @Cached HashingNodes.ToHashByHashCode toHashByHashCode,
                 @Cached @Exclusive InlinedIntValueProfile arraySizeProfile,
                 @Cached @Exclusive InlinedLoopConditionProfile loopProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final int size = arraySizeProfile.profile(node, array.size);
             long h = getContext(node).getHashing(node).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -1080,7 +1080,7 @@ public abstract class ArrayNodes {
                 @Cached SameOrEqualNode sameOrEqualNode,
                 @Cached InlinedIntValueProfile arraySizeProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
 
             int n = 0;
             try {
@@ -1221,7 +1221,7 @@ public abstract class ArrayNodes {
                 @Cached @Exclusive IsSharedNode isSharedNode,
                 @Cached @Exclusive LoopConditionProfile loopProfile,
                 @Cached CallBlockNode yieldNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             BuilderState state = arrayBuilder.start(size);
 
             int n = 0;
@@ -1543,7 +1543,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached("asTruffleStringUncached(format)") TruffleString cachedFormat,
-                @Cached("libFormat.getEncoding(this, format)") RubyEncoding cachedEncoding,
+                @Cached("libFormat.getEncoding($node, format)") RubyEncoding cachedEncoding,
                 @Cached("cachedFormat.byteLength(cachedEncoding.tencoding)") int cachedFormatLength,
                 @Cached("compileFormat(node, getJavaString(format))") RootCallTarget formatCallTarget,
                 @Cached("create(formatCallTarget)") DirectCallNode callPackNode,
@@ -2114,7 +2114,7 @@ public abstract class ArrayNodes {
                 @Cached @Shared IntValueProfile arraySizeProfile,
                 @Cached @Exclusive DispatchNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object newStore = stores
                     .unsharedAllocator(store)
                     .allocate(getContext(node).getOptions().ARRAY_SMALL);
@@ -2233,7 +2233,7 @@ public abstract class ArrayNodes {
         static RubyArray stealStorage(RubyArray array, RubyArray other,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             propagateSharingNode.execute(node, array, other);
 
             final int size = other.size;

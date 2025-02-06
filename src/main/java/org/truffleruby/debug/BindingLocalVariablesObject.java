@@ -62,7 +62,7 @@ public final class BindingLocalVariablesObject implements TruffleObject {
     @ExportMessage
     protected Object readMember(String member,
             @Cached @Exclusive BindingNodes.LocalVariableGetNode localVariableGetNode,
-            @Bind("$node") Node node)
+            @Bind Node node)
             throws UnknownIdentifierException {
         try {
             return localVariableGetNode.execute(node, binding, member);
@@ -74,7 +74,7 @@ public final class BindingLocalVariablesObject implements TruffleObject {
     @ExportMessage
     protected void writeMember(String member, Object value,
             @Cached BindingNodes.LocalVariableSetNode localVariableSetNode,
-            @Bind("$node") Node node) throws UnknownIdentifierException {
+            @Bind Node node) throws UnknownIdentifierException {
         if (isValidLocalVariableName(member)) {
             localVariableSetNode.execute(node, binding, member, value);
         } else {
@@ -86,7 +86,7 @@ public final class BindingLocalVariablesObject implements TruffleObject {
     @ExportMessage(name = "isMemberModifiable")
     protected boolean memberExists(String member,
             @Cached @Exclusive BindingNodes.HasLocalVariableNode hasLocalVariableNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         return hasLocalVariableNode.execute(node, binding, member);
     }
 

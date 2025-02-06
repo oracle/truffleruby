@@ -72,7 +72,7 @@ public final class RubyMethod extends RubyDynamicObject implements ObjectGraphNo
     public Object execute(Object[] arguments,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Cached CallInternalMethodNode callInternalMethodNode,
-            @Bind("$node") Node node) {
+            @Bind Node node) {
         final Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(node, arguments);
         final Object[] frameArgs = RubyArguments.pack(null, null, method, null, receiver, nil,
                 NoKeywordArgumentsDescriptor.INSTANCE, convertedArguments);

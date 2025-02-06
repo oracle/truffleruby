@@ -74,7 +74,7 @@ public abstract class WriteMIMEStringNode extends FormatNode {
 
     @Specialization(guards = "libString.isRubyString(node, string)", limit = "1")
     static Object write(VirtualFrame frame, Object string,
-            @Bind("this") Node node,
+            @Bind Node node,
             @Bind("length") int boundLength,
             @Cached RubyStringLibrary libString,
             @Cached TruffleString.GetInternalByteArrayNode byteArrayNode) {

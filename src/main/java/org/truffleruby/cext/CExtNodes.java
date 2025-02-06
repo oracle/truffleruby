@@ -742,7 +742,7 @@ public abstract class CExtNodes {
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode,
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached InlinedBranchProfile errorProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = strings.getTString(node, string);
             var encoding = strings.getEncoding(node, string);
             var tencoding = encoding.tencoding;
@@ -1642,7 +1642,7 @@ public abstract class CExtNodes {
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = strings.getTString(node, string);
             var encoding = strings.getEncoding(node, string);
             var bytes = TStringUtils.getBytesOrFail(tstring, encoding, byteArrayNode);
@@ -1705,7 +1705,7 @@ public abstract class CExtNodes {
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         static Object rbEncMbLen(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             var tstring = strings.getTString(node, string);
@@ -1718,7 +1718,7 @@ public abstract class CExtNodes {
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
         @Specialization
         static int rbEncPreciseMbclen(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.ByteLengthOfCodePointNode byteLengthOfCodePointNode) {
             var tstring = strings.getTString(node, string);
@@ -1732,7 +1732,7 @@ public abstract class CExtNodes {
 
         @Specialization
         static int rbEncStrlen(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.CodePointLengthNode codePointLengthNode) {
             var tstring = strings.getTString(node, string);
@@ -1764,7 +1764,7 @@ public abstract class CExtNodes {
                 @Cached TruffleString.CodePointAtByteIndexNode codePointAtByteIndexNode,
                 @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached InlinedConditionProfile brokenProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = strings.getTString(node, string);
             var encoding = strings.getEncoding(node, string);
             int codepoint = codePointAtByteIndexNode.execute(tstring, 0, encoding.tencoding,
@@ -2039,7 +2039,7 @@ public abstract class CExtNodes {
                 @Cached InlinedBranchProfile exceptionProfile,
                 @Cached InlinedConditionProfile resizeProfile,
                 @Cached IndirectCallNode formatNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             var tstring = libFormat.getTString(node, format);
             var encoding = libFormat.getEncoding(node, format);
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);

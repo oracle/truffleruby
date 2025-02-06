@@ -73,7 +73,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
             @Cached @Exclusive InlinedConditionProfile sameNameProfile,
             @Cached LazyWarnNode lazyWarnNode,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         if (!isValidConstantName) {
             throw new RaiseException(getContext(node),
                     coreExceptions(node).nameErrorWrongConstantName(cachedName, node));

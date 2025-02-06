@@ -45,7 +45,7 @@ public abstract class LookupSuperMethodNode extends RubyBaseNode {
     InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
             @Cached @Shared MetaClassNode metaClassNode,
-            @Cached("metaClassNode.execute(this, self)") RubyClass selfMetaClass,
+            @Cached("metaClassNode.execute($node, self)") RubyClass selfMetaClass,
             @Cached("doLookup(currentMethod, selfMetaClass)") MethodLookupResult superMethod) {
         return superMethod.getMethod();
     }

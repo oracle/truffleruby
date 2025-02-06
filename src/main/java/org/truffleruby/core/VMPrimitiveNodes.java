@@ -239,7 +239,7 @@ public abstract class VMPrimitiveNodes {
         static Object foreignException(Object exception,
                 @CachedLibrary("exception") InteropLibrary interopLibrary,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             try {
                 throw interopLibrary.throwException(exception);
             } catch (UnsupportedMessageException e) {

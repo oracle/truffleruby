@@ -49,8 +49,8 @@ public abstract class ToSymbolNode extends RubyBaseNode {
 
     @Specialization(guards = "str == cachedStr", limit = "getCacheLimit()")
     static RubySymbol javaString(String str,
-            @Cached(value = "str") String cachedStr,
-            @Cached(value = "getSymbol(cachedStr)") RubySymbol rubySymbol) {
+            @Cached("str") String cachedStr,
+            @Cached("getSymbol(cachedStr)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 
@@ -66,10 +66,10 @@ public abstract class ToSymbolNode extends RubyBaseNode {
             limit = "getCacheLimit()")
     static RubySymbol rubyString(Node node, Object str,
             @Cached @Exclusive RubyStringLibrary strings,
-            @Cached(value = "asTruffleStringUncached(str)") TruffleString cachedTString,
-            @Cached(value = "strings.getEncoding(this, str)") RubyEncoding cachedEncoding,
+            @Cached("asTruffleStringUncached(str)") TruffleString cachedTString,
+            @Cached("strings.getEncoding($node, str)") RubyEncoding cachedEncoding,
             @Cached StringHelperNodes.EqualSameEncodingNode equalNode,
-            @Cached(value = "getSymbol(node, cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
+            @Cached("getSymbol(node, cachedTString, cachedEncoding)") RubySymbol rubySymbol) {
         return rubySymbol;
     }
 

@@ -197,12 +197,12 @@ public abstract class StringHelperNodes {
                 @Cached TruffleString.EqualNode equalNode,
                 @Cached @Shared RubyStringLibrary libString,
                 @Cached @Shared EncodingNodes.CheckStringEncodingNode checkEncodingNode,
-                @Bind("libString.getTString(this, string)") AbstractTruffleString tstring,
-                @Bind("libString.getEncoding(this, string)") RubyEncoding encoding,
-                @Cached("libString.getEncoding(this, string)") RubyEncoding cachedEncoding,
+                @Bind("libString.getTString($node, string)") AbstractTruffleString tstring,
+                @Bind("libString.getEncoding($node, string)") RubyEncoding encoding,
+                @Cached("libString.getEncoding($node, string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(this, libString.getTString(this, string), libString.getEncoding(this, string), cachedArgs, checkEncodingNode)") RubyEncoding compatEncoding,
-                @Cached("makeTables(this, cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
+                @Cached("findEncoding($node, libString.getTString($node, string), libString.getEncoding($node, string), cachedArgs, checkEncodingNode)") RubyEncoding compatEncoding,
+                @Cached("makeTables($node, cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
                 @Cached @Shared TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached @Shared TruffleString.GetByteCodeRangeNode getByteCodeRangeNode) {
             var byteArray = byteArrayNode.execute(tstring, encoding.tencoding);
@@ -326,9 +326,9 @@ public abstract class StringHelperNodes {
                 @Cached(value = "args", dimensions = 1) TStringWithEncoding[] cachedArgs,
                 @Cached(inline = false) TruffleString.EqualNode equalNode,
                 @Cached @Exclusive RubyStringLibrary libString,
-                @Cached("libString.getEncoding(this, string)") RubyEncoding cachedEncoding,
+                @Cached("libString.getEncoding($node, string)") RubyEncoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
-                @Cached("findEncoding(node, libString.getTString(this, string), libString.getEncoding(this, string), cachedArgs, UNCACHED_CHECK_ENCODING_NODE)") RubyEncoding compatEncoding,
+                @Cached("findEncoding(node, libString.getTString($node, string), libString.getEncoding($node, string), cachedArgs, UNCACHED_CHECK_ENCODING_NODE)") RubyEncoding compatEncoding,
                 @Cached("makeTables(node, cachedArgs, squeeze, compatEncoding)") StringSupport.TrTables tables,
                 @Cached @Exclusive InlinedBranchProfile nullProfile) {
             var processedTString = processStr(node, string, squeeze, compatEncoding, tables);

@@ -497,13 +497,13 @@ public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode
 
     @Specialization
     protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
-            @Shared @Cached PropagateSharingNode propagateSharingNode) {
+            @Cached @Shared PropagateSharingNode propagateSharingNode) {
         // ...
     }
 
     @Specialization(guards = "wasProvided(defaultValue)")
     protected RubyHash initialize(RubyHash hash, Object defaultValue, Nil block,
-            @Shared @Cached PropagateSharingNode propagateSharingNode) {
+            @Cached @Shared PropagateSharingNode propagateSharingNode) {
         // ...
     }
 

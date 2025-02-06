@@ -135,7 +135,7 @@ public abstract class IONodes {
                 guards = { "stringsPattern.isRubyString(node, pattern)", "stringsPath.isRubyString(node, path)" },
                 limit = "1")
         static boolean fnmatch(Object pattern, Object path, int flags,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary stringsPattern,
                 @Cached RubyStringLibrary stringsPath,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayPatternNode,

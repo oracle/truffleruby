@@ -185,7 +185,7 @@ public abstract class BasicObjectNodes {
         @Specialization(replaces = "objectIDSmallFixnumOverflow")
         static Object objectIDLong(long value,
                 @Cached InlinedCountingConditionProfile smallProfile,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (smallProfile.profile(node, ObjectIDOperations.isSmallFixnum(value))) {
                 return ObjectIDOperations.smallFixnumToID(value);
             } else {
@@ -244,7 +244,7 @@ public abstract class BasicObjectNodes {
         static int objectIDForeign(Object value,
                 @CachedLibrary("value") InteropLibrary interop,
                 @Cached TranslateInteropExceptionNode translateInteropException,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             if (interop.hasIdentity(value)) {
                 try {
                     return interop.identityHashCode(value);
@@ -294,7 +294,7 @@ public abstract class BasicObjectNodes {
                 @Cached ToStrNode toStrNode,
                 @Cached ToIntNode toIntNode,
                 @Cached IndirectCallNode callNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final Object sourceCode;
             String fileName = coreStrings(node).EVAL_FILENAME_STRING.toString();
             int line = 1;

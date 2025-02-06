@@ -383,7 +383,7 @@ public abstract class EncodingNodes {
         static RubyEncoding getActualEncoding(Object string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached RubyStringLibrary libString,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             return getActualEncodingNode.execute(node, libString.getTString(node, string),
                     libString.getEncoding(node, string));
         }
@@ -544,7 +544,7 @@ public abstract class EncodingNodes {
         static RubyArray createDummyEncoding(Object nameObject,
                 @Cached RubyStringLibrary strings,
                 @Cached ToJavaStringNode toJavaStringNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final String name = toJavaStringNode.execute(node, nameObject);
 
             final RubyEncoding newEncoding = createDummy(node, name);
@@ -603,7 +603,7 @@ public abstract class EncodingNodes {
                 @Cached RubyStringLibrary libSecond,
                 @Cached InlinedBranchProfile errorProfile,
                 @Cached NegotiateCompatibleStringEncodingNode negotiateCompatibleStringEncodingNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             final RubyEncoding firstEncoding = libFirst.getEncoding(node, first);
             final RubyEncoding secondEncoding = libSecond.getEncoding(node, second);
 

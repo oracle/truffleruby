@@ -48,7 +48,7 @@ public final class SingleMemberDescriptor implements TruffleObject {
     @ExportMessage
     protected Object readMember(String member,
             @Cached InlinedBranchProfile errorProfile,
-            @Bind("$node") Node node) throws UnknownIdentifierException {
+            @Bind Node node) throws UnknownIdentifierException {
         if (isMemberReadable(member)) {
             return value;
         } else {

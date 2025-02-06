@@ -141,7 +141,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(node, string)", limit = "1")
         static RubyString toStringDebug(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             return createString(node, fromJavaStringNode, strings.getTString(node, string).toStringDebug(),
@@ -155,7 +155,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "libString.isRubyString(node, string)", limit = "1")
         static RubyString flattenString(Object string,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached RubyStringLibrary libString) {
             final RubyEncoding rubyEncoding = libString.getEncoding(node, string);
@@ -256,7 +256,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "strings.isRubyString(node, code)", limit = "1")
         static Object ast(Object code,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),

@@ -39,7 +39,7 @@ public abstract class InlinedAtNode extends BinaryInlinedOperationNode {
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached ArrayIndexNodes.ReadNormalizedNode readNormalizedNode,
             @Cached InlinedConditionProfile denormalized,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         if (denormalized.profile(node, index < 0)) {
             index += array.size;
         }

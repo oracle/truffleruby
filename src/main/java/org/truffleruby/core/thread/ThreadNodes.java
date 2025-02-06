@@ -686,7 +686,7 @@ public abstract class ThreadNodes {
                 RubyThread thread, Object wrapper, Object function, Object arg, long unblocker, long unblockerArg,
                 @CachedLibrary("wrapper") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached("new(node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible) {
             var context = getContext(node);
             final ThreadManager threadManager = context.getThreadManager();
@@ -988,7 +988,7 @@ public abstract class ThreadNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary(limit = "1") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached("new(this, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
+                @Cached("new($node, receivers, translateInteropExceptionNode)") BlockingCallInterruptible blockingCallInterruptible,
                 @Cached ForeignToRubyNode foreignToRubyNode) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
             final RubyThread thread = getLanguage().getCurrentThread();

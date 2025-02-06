@@ -108,7 +108,7 @@ public abstract class DigestNodes {
 
         @Specialization(guards = "strings.isRubyString(node, message)", limit = "1")
         static RubyDigest update(RubyDigest digestObject, Object message,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             final MessageDigest digest = digestObject.digest;

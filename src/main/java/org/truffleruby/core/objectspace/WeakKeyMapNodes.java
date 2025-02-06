@@ -10,6 +10,7 @@
 package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.profiles.InlinedConditionProfile;
 import org.truffleruby.annotations.CoreMethod;
 import org.truffleruby.annotations.CoreModule;
@@ -121,7 +122,7 @@ public abstract class WeakKeyMapNodes {
 
         @Specialization
         Object delete(RubyWeakKeyMap map, Object key, RubyProc block,
-                @Cached InlinedConditionProfile isContainedProfile,
+                @Cached @Shared InlinedConditionProfile isContainedProfile,
                 @Cached CallBlockNode yieldNode) {
             Object value = map.storage.remove(key);
 
@@ -134,7 +135,7 @@ public abstract class WeakKeyMapNodes {
 
         @Specialization
         Object delete(RubyWeakKeyMap map, Object key, Nil block,
-                @Cached InlinedConditionProfile isContainedProfile) {
+                @Cached @Shared InlinedConditionProfile isContainedProfile) {
             Object value = map.storage.remove(key);
 
             if (isContainedProfile.profile(this, value != null)) {

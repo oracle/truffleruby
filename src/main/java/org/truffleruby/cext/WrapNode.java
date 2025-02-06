@@ -112,7 +112,7 @@ public abstract class WrapNode extends RubyBaseNode {
     static ValueWrapper wrapValue(RubyDynamicObject value,
             @CachedLibrary("value") DynamicObjectLibrary objectLibrary,
             @Cached @Shared InlinedBranchProfile noHandleProfile,
-            @Bind("this") Node node) {
+            @Bind Node node) {
         ValueWrapper wrapper = (ValueWrapper) objectLibrary.getOrDefault(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {
             noHandleProfile.enter(node);

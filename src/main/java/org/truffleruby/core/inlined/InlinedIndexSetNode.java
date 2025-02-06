@@ -45,7 +45,7 @@ public abstract class InlinedIndexSetNode extends TernaryInlinedOperationNode im
     static Object arrayWrite(VirtualFrame frame, RubyArray array, int index, Object value,
             @Cached LookupMethodOnSelfNode lookupNode,
             @Cached InlinedConditionProfile denormalized,
-            @Bind("this") Node node,
+            @Bind Node node,
             @Bind("normalize(node, array, index, denormalized)") int normalizedIndex,
             @Cached ArrayWriteNormalizedNode writeNode) {
         return writeNode.executeWrite(array, normalizedIndex, value);

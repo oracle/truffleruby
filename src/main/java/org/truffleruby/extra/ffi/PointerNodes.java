@@ -342,7 +342,7 @@ public abstract class PointerNodes {
                 @Cached TruffleString.CopyToNativeMemoryNode copyToNativeMemoryNode,
                 @Cached RubyStringLibrary libString,
                 @Cached CheckNullPointerNode checkNullPointerNode,
-                @Bind("this") Node node) {
+                @Bind Node node) {
             Pointer ptr = new Pointer(getContext(node), address);
             var tstring = libString.getTString(node, string);
             var encoding = libString.getTEncoding(node, string);

@@ -81,7 +81,7 @@ public abstract class ReadlineNodes {
         static Object setBasicWordBreakCharacters(Object characters,
                 @Cached ToStrNode toStrNode,
                 @Cached RubyStringLibrary strings,
-                @Bind("this") Node node,
+                @Bind Node node,
                 @Bind("toStrNode.execute(node, characters)") Object charactersAsString) {
             final String delimiters = RubyGuards.getJavaString(charactersAsString);
             getContext(node).getConsoleHolder().getParser().setDelimiters(delimiters);

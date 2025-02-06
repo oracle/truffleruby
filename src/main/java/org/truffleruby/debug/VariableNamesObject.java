@@ -41,7 +41,7 @@ public final class VariableNamesObject implements TruffleObject {
     @ExportMessage
     protected Object readArrayElement(long index,
             @Cached InlinedBranchProfile errorProfile,
-            @Bind("$node") Node node) throws InvalidArrayIndexException {
+            @Bind Node node) throws InvalidArrayIndexException {
         if (isArrayElementReadable(index)) {
             return names[(int) index];
         } else {
