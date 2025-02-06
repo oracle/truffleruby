@@ -13,9 +13,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyLanguage;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 
 public final class ClassVariableStorage extends DynamicObject {
+
+    public static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     // Same number of inline fields as DynamicObjectBasic
     @DynamicField private long primitive1;

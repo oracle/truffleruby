@@ -11,6 +11,7 @@ package org.truffleruby;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.Cleaner;
 import java.util.Arrays;
 import java.util.Map;
@@ -289,9 +290,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private static final RubyObjectType objectType = new RubyObjectType();
 
-    public final Shape basicObjectShape = createShape(RubyBasicObject.class);
-    public final Shape moduleShape = createShape(RubyModule.class);
-    public final Shape classShape = createShape(RubyClass.class);
+    public final Shape basicObjectShape = createShape(RubyBasicObject.class, RubyBasicObject.LOOKUP);
+    public final Shape moduleShape = createShape(RubyModule.class, RubyModule.LOOKUP);
+    public final Shape classShape = createShape(RubyClass.class, RubyModule.LOOKUP);
 
     public final Shape arrayShape = createShape(RubyArray.class);
     public final Shape atomicReferenceShape = createShape(RubyAtomicReference.class);
@@ -337,7 +338,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final Shape classVariableShape = Shape
             .newBuilder()
             .allowImplicitCastIntToLong(true)
-            .layout(ClassVariableStorage.class)
+            .layout(ClassVariableStorage.class, ClassVariableStorage.LOOKUP)
             .build();
 
     public final ThreadLocal<ParsingParameters> parsingRequestParams = new ThreadLocal<>();
@@ -883,10 +884,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass) {
+        return createShape(layoutClass, RubyDynamicObject.LOOKUP);
+    }
+
+    private static Shape createShape(Class<? extends RubyDynamicObject> layoutClass, MethodHandles.Lookup lookup) {
+        assert lookup.lookupClass().isAssignableFrom(layoutClass) : layoutClass;
         return Shape
                 .newBuilder()
                 .allowImplicitCastIntToLong(true)
-                .layout(layoutClass)
+                .layout(layoutClass, lookup)
                 .dynamicType(RubyLanguage.objectType)
                 .build();
     }

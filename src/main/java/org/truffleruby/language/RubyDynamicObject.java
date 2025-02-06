@@ -57,6 +57,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.TriState;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
+import java.lang.invoke.MethodHandles;
+
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_RETURN_MISSING;
@@ -64,6 +66,8 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC_RET
 /** All Ruby DynamicObjects extend this. */
 @ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
+
+    public static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     private RubyClass metaClass;
 

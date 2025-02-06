@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.module;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Set;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -36,6 +37,7 @@ import org.truffleruby.language.objects.SingletonClassNode;
 public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     public static final RubyModule[] EMPTY_ARRAY = new RubyModule[0];
+    public static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     public final ModuleFields fields;
 
