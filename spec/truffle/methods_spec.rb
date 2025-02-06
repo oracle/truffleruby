@@ -27,7 +27,7 @@ modules = %w[
   Module Mutex NilClass Numeric Object ObjectSpace ObjectSpace::WeakKeyMap ObjectSpace::WeakMap
   Proc Process Process.singleton_class Queue Random
   Random::Formatter Random.singleton_class Range Rational Regexp Signal
-  SizedQueue String Struct Symbol SystemExit Thread TracePoint TrueClass
+  SizedQueue String Struct Symbol SystemExit Thread Time TracePoint TrueClass
   UnboundMethod Warning
 
   Digest Digest.singleton_class

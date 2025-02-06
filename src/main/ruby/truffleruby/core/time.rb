@@ -37,10 +37,6 @@
 class Time
   include Comparable
 
-  # Time#to_time is defined in date_core.c but it's just `return self`
-  # so we can make it available for use without having to `require "date"`.
-  alias_method :to_time, :itself
-
   def inspect
     str = strftime('%Y-%m-%d %H:%M:%S')
 
@@ -195,12 +191,6 @@ class Time
       Truffle::TimeOperations.set_zone_if_object(result, zone_or_offset)
       result
     end
-  end
-
-  def succ
-    warn 'Time#succ is obsolete', uplevel: 1
-
-    self + 1
   end
 
   def +(other)
