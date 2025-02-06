@@ -1669,7 +1669,7 @@ public abstract class KernelNodes {
                 limit = "3")
         static BytesResult formatCached(
                 Node node, AbstractTruffleString format, RubyEncoding encoding, Object[] arguments, boolean isDebug,
-                @Cached @Shared WarningNode warnNode,
+                @Cached(inline = false) @Shared WarningNode warnNode,
                 @Cached("isDebug") boolean cachedIsDebug,
                 @Cached("format.asTruffleStringUncached(encoding.tencoding)") TruffleString cachedFormat,
                 @Cached("encoding") RubyEncoding cachedEncoding,
@@ -1683,7 +1683,7 @@ public abstract class KernelNodes {
         @Specialization(replaces = "formatCached")
         static BytesResult formatUncached(
                 Node node, AbstractTruffleString format, RubyEncoding encoding, Object[] arguments, boolean isDebug,
-                @Cached @Shared WarningNode warnNode,
+                @Cached(inline = false) @Shared WarningNode warnNode,
                 @Cached(inline = false) IndirectCallNode callPackNode) {
             return (BytesResult) callPackNode.call(
                     compileFormat(format, encoding, arguments, isDebug, warnNode, node),
