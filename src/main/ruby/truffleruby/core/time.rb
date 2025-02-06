@@ -107,12 +107,8 @@ class Time
   def zone
     zone = Primitive.time_zone(self)
 
-    if zone && Primitive.is_a?(zone, String)
-      if zone.ascii_only?
-        return zone.encode Encoding::US_ASCII
-      elsif Encoding.default_internal
-        return zone.encode Encoding.default_internal
-      end
+    if zone && Primitive.is_a?(zone, String) && zone.ascii_only?
+      return zone.encode Encoding::US_ASCII
     end
 
     zone
