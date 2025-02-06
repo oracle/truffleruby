@@ -94,9 +94,9 @@ public abstract class SymbolNodes {
                 guards = { "isSingleContext()", "symbol == cachedSymbol", "!preInitializing" },
                 limit = "1")
         static long hashCached(Node node, RubySymbol symbol,
-                @Cached(value = "isPreInitializing(getContext())") boolean preInitializing,
-                @Cached(value = "symbol") RubySymbol cachedSymbol,
-                @Cached(value = "hash(node, cachedSymbol)") long cachedHash) {
+                @Cached("isPreInitializing(getContext())") boolean preInitializing,
+                @Cached("symbol") RubySymbol cachedSymbol,
+                @Cached("hash(node, cachedSymbol)") long cachedHash) {
             return cachedHash;
         }
 
