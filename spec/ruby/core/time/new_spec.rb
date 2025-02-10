@@ -193,6 +193,7 @@ describe "Time.new with a utc_offset argument" do
   end
 end
 
+# The method #local_to_utc is tested only here because Time.new is the only method that calls #local_to_utc.
 describe "Time.new with a timezone argument" do
   it "returns a Time in the timezone" do
     zone = TimeSpecs::Timezone.new(offset: (5*3600+30*60))
@@ -213,9 +214,7 @@ describe "Time.new with a timezone argument" do
       time
     end
 
-    -> {
-      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-    }.should_not raise_error
+    Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
   end
 
   it "raises TypeError if timezone does not implement #local_to_utc method" do
@@ -226,7 +225,7 @@ describe "Time.new with a timezone argument" do
 
     -> {
       Time.new(2000, 1, 1, 12, 0, 0, zone)
-    }.should raise_error(TypeError, /can't convert \w+ into an exact number/)
+    }.should raise_error(TypeError, /can't convert Object into an exact number/)
   end
 
   it "does not raise exception if timezone does not implement #utc_to_local method" do
@@ -235,13 +234,11 @@ describe "Time.new with a timezone argument" do
       time
     end
 
-    -> {
-      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-    }.should_not raise_error
+    Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
   end
 
   # The result also should be a Time or Time-like object (not necessary to be the same class)
-  # The zone of the result is just ignored
+  # or respond to #to_int method. The zone of the result is just ignored.
   describe "returned value by #utc_to_local and #local_to_utc methods" do
     it "could be Time instance" do
       zone = Object.new
@@ -249,10 +246,8 @@ describe "Time.new with a timezone argument" do
         Time.utc(t.year, t.mon, t.day, t.hour - 1, t.min, t.sec)
       end
 
-      -> {
-        Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-        Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
-      }.should_not raise_error
+      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
+      Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
     end
 
     it "could be Time subclass instance" do
@@ -261,25 +256,23 @@ describe "Time.new with a timezone argument" do
         Class.new(Time).utc(t.year, t.mon, t.day, t.hour - 1, t.min, t.sec)
       end
 
-      -> {
-        Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-        Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
-      }.should_not raise_error
+      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
+      Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
     end
 
     it "could be any object with #to_i method" do
       zone = Object.new
       def zone.local_to_utc(time)
-        Struct.new(:to_i).new(time.to_i - 60*60)
+        obj = Object.new
+        obj.singleton_class.define_method(:to_i) { time.to_i - 60*60 }
+        obj
       end
 
-      -> {
-        Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
-        Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
-      }.should_not raise_error
+      Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
+      Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 60*60
     end
 
-    it "could have any #zone and #utc_offset because they are ignored" do
+    it "could have any #zone and #utc_offset because they are ignored if it isn't an instance of Time" do
       zone = Object.new
       def zone.local_to_utc(time)
         Struct.new(:to_i, :zone, :utc_offset).new(time.to_i, 'America/New_York', -5*60*60)
@@ -293,7 +286,15 @@ describe "Time.new with a timezone argument" do
       Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 0
     end
 
-    it "leads to raising Argument error if difference between argument and result is too large" do
+    it "cannot have arbitrary #utc_offset if it is an instance of Time" do
+      zone = Object.new
+      def zone.local_to_utc(t)
+        Time.new(t.year, t.mon, t.mday, t.hour, t.min, t.sec, 9*60*60)
+      end
+      Time.new(2000, 1, 1, 12, 0, 0, zone).utc_offset.should == 9*60*60
+    end
+
+    it "raises ArgumentError if difference between argument and result is too large" do
       zone = Object.new
       def zone.local_to_utc(t)
         Time.utc(t.year, t.mon, t.day + 1, t.hour, t.min, t.sec)
@@ -318,12 +319,9 @@ describe "Time.new with a timezone argument" do
     end
 
     it "implements subset of Time methods" do
+      # List only methods that are explicitly documented.
       [
-        :year, :mon, :month, :mday, :hour, :min, :sec,
-        :tv_sec, :tv_usec, :usec, :tv_nsec, :nsec, :subsec,
-        :to_i, :to_f, :to_r, :+, :-,
-        :isdst, :dst?, :zone, :gmtoff, :gmt_offset, :utc_offset, :utc?, :gmt?,
-        :to_s, :inspect, :to_a, :to_time,
+        :year, :mon, :mday, :hour, :min, :sec, :to_i, :isdst
       ].each do |name|
         @obj.respond_to?(name).should == true
       end

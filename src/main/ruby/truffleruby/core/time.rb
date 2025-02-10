@@ -107,13 +107,11 @@ class Time
   def zone
     zone = Primitive.time_zone(self)
 
-    if zone && zone.ascii_only?
-      zone.encode Encoding::US_ASCII
-    elsif zone && Encoding.default_internal
-      zone.encode Encoding.default_internal
-    else
-      zone
+    if zone && Primitive.is_a?(zone, String) && zone.ascii_only?
+      return zone.encode Encoding::US_ASCII
     end
+
+    zone
   end
 
   # Random number for hash codes. Stops hashes for similar values in
@@ -166,10 +164,12 @@ class Time
   end
   alias_method :getutc, :getgm
 
-  def localtime(offset = nil)
+  def localtime(zone_or_offset = nil)
+    offset = zone_or_offset
     if offset
       to_utc = Time.send(:utc_offset_in_utc?, offset)
-      offset = Truffle::Type.coerce_to_utc_offset(offset)
+      offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(offset, :utc_to_local, self) ||
+        Truffle::TimeOperations.coerce_to_utc_offset(offset)
     end
 
     # the only cases when #localtime is allowed for a frozen time -
@@ -183,14 +183,10 @@ class Time
     if to_utc
       Primitive.time_utctime(self)
     else
-      Primitive.time_localtime(self, offset)
+      result = Primitive.time_localtime(self, offset)
+      Truffle::TimeOperations.set_zone_if_object(result, zone_or_offset)
+      result
     end
-  end
-
-  def succ
-    warn 'Time#succ is obsolete', uplevel: 1
-
-    self + 1
   end
 
   def +(other)
@@ -347,8 +343,6 @@ class Time
     def at(sec, sub_sec = undefined, unit = undefined, **kwargs)
       # **kwargs is used here because 'in' is a ruby keyword
       timezone = kwargs[:in]
-      offset = timezone ? Truffle::Type.coerce_to_utc_offset(timezone) : nil
-      is_utc = utc_offset_in_utc?(timezone) if offset
 
       result = if Primitive.undefined?(sub_sec)
                  if Primitive.is_a?(sec, Time)
@@ -362,10 +356,20 @@ class Time
                    Primitive.time_at self, sec.to_i, ns
                  end
                end
+
+      if timezone
+        offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(timezone, :utc_to_local, result) ||
+          Truffle::TimeOperations.coerce_to_utc_offset(timezone)
+        is_utc = utc_offset_in_utc?(timezone)
+      else
+        offset = nil
+      end
+
       if result && offset
         result = is_utc ? Primitive.time_utctime(result) : Primitive.time_localtime(result, offset)
       end
       if result
+        Truffle::TimeOperations.set_zone_if_object(result, timezone)
         return result
       end
 
@@ -426,9 +430,14 @@ class Time
         if utc_offset_in_utc?(utc_offset)
           utc_offset = :utc
         else
-          utc_offset = Truffle::Type.coerce_to_utc_offset(utc_offset)
+          zone = utc_offset
+          as_utc = Time.utc(year, month, day, hour, minute, second)
+          utc_offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(utc_offset, :local_to_utc, as_utc) ||
+            Truffle::TimeOperations.coerce_to_utc_offset(utc_offset)
         end
-        Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
+        result = Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
+        Truffle::TimeOperations.set_zone_if_object(result, zone)
+        result
       end
     end
 
@@ -442,9 +451,13 @@ class Time
       in_timezone = options[:in]
 
       if in_timezone
-        utc_offset = Truffle::Type.coerce_to_utc_offset(in_timezone)
+        utc_offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(in_timezone, :utc_to_local, time_now) ||
+          Truffle::TimeOperations.coerce_to_utc_offset(in_timezone)
+
         is_utc = utc_offset_in_utc?(in_timezone)
-        is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)
+        time_in_timezone = is_utc ? Primitive.time_utctime(time_now) : Primitive.time_localtime(time_now, utc_offset)
+        Truffle::TimeOperations.set_zone_if_object(time_in_timezone, in_timezone)
+        time_in_timezone
       else
         time_now
       end

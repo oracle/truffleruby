@@ -61,6 +61,7 @@ Compatibility:
 * Fix `Module#remove_const` and emit warning when constant is deprecated (@andrykonchin).
 * Add `Module#set_temporary_name` (#3681, @andrykonchin).
 * Modify `Float#round` to match MRI behavior (#3676, @andrykonchin).
+* Support Timezone argument to `Time.{new,at}` and `Time#{getlocal,localtime}` (#1717, @patricklinpl, @manefz, @rwstauner).
 
 Performance:
 

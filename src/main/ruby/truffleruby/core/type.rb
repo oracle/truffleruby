@@ -468,69 +468,19 @@ module Truffle
       end
     end
 
-    # Equivalent of num_exact in MRI's time.c, used by Time methods.
+    # MRI: num_exact() in time.c
     def self.coerce_to_exact_num(obj)
       if Primitive.is_a? obj, Integer
         obj
-      elsif Primitive.is_a? obj, String
-        raise TypeError, "can't convert #{obj} into an exact number"
-      elsif Primitive.nil? obj
-        raise TypeError, "can't convert nil into an exact number"
+      # MRI: test to_int method availability to reject non-Numeric objects such as String,
+      # Time, etc which have to_r method.
+      elsif Primitive.respond_to?(obj, :to_int, false) and rational = rb_check_convert_type(obj, Rational, :to_r)
+        rational
+      elsif integer = rb_check_convert_type(obj, Integer, :to_int)
+        integer
       else
-        rb_check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
+        raise TypeError, "can't convert #{Primitive.class(obj)} into an exact number"
       end
-    end
-
-    def self.coerce_to_utc_offset(offset)
-      offset = String.try_convert(offset) || offset
-
-      if Primitive.is_a? offset, String
-        offset = Truffle::Type.coerce_string_to_utc_offset(offset)
-      else
-        offset = Truffle::Type.coerce_to_exact_num(offset)
-      end
-
-      if Primitive.is_a?(offset, Rational)
-        offset = offset.round
-      end
-
-      if offset <= -86400 || offset >= 86400
-        raise ArgumentError, 'utc_offset out of range'
-      end
-
-      offset
-    end
-
-    UTC_OFFSET_WITH_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?::(?<minutes>\d\d)(?::(?<seconds>\d\d))?)?\z/
-    UTC_OFFSET_WITHOUT_COLONS_PATTERN = /\A(?<sign>\+|-)(?<hours>\d\d)(?:(?<minutes>\d\d)(?:(?<seconds>\d\d))?)?\z/
-    UTC_OFFSET_PATTERN = /#{UTC_OFFSET_WITH_COLONS_PATTERN}|#{UTC_OFFSET_WITHOUT_COLONS_PATTERN}/
-
-    def self.coerce_string_to_utc_offset(offset)
-      unless offset.encoding.ascii_compatible?
-        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset.inspect
-      end
-
-      if offset == 'UTC'
-        offset = 0
-      elsif offset.size == 1 && ('A'..'Z') === offset && offset != 'J'
-        if offset == 'Z'
-          offset = 0
-        elsif offset < 'J' # skip J
-          offset = (offset.ord - 'A'.ord + 1) * 3600 # ("A".."I") => 1, 2, ...
-        elsif offset > 'J' && offset <= 'M'
-          offset = (offset.ord - 'A'.ord) * 3600 # ("K".."M") => 10, 11, 12
-        else
-          offset = (offset.ord - 'N'.ord + 1) * -3600 # ("N"..Y) => -1, -2, ...
-        end
-      elsif (m = offset.match(UTC_OFFSET_PATTERN)) && m[:minutes].to_i < 60 && m[:seconds].to_i < 60
-        # ignore hours - they are validated indirectly in #coerce_to_utc_offset
-        offset = m[:hours].to_i*60*60 + m[:minutes].to_i*60 + m[:seconds].to_i
-        offset = -offset if m[:sign] == '-'
-      else
-        raise ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: ' + offset
-      end
-
-      offset
     end
 
     def self.coerce_to_bitwise_operand(obj)

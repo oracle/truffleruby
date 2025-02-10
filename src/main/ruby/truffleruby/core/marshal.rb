@@ -140,7 +140,7 @@ class Exception
 end
 
 class Time
-  def __custom_marshal__(ms)
+  private def __custom_marshal__(ms)
     out = ''.b
 
     # Order matters.
@@ -1307,8 +1307,8 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      if Primitive.respond_to? obj, :__custom_marshal__, false
-        return obj.__custom_marshal__(self)
+      if Primitive.respond_to? obj, :__custom_marshal__, true
+        return obj.send(:__custom_marshal__, self)
       end
 
       str = obj.__send__ :_dump, @depth
