@@ -112,3 +112,6 @@ fails:Public methods on SizedQueue should include freeze
 fails:Public methods on String should include dup
 fails:Public methods on UnboundMethod should include dup
 fails:Public methods on StringIO should include pread
+fails:Public methods on StringScanner should not include peek_byte
+fails:Public methods on StringScanner should not include scan_byte
+fails:Public methods on StringScanner should not include scan_integer

@@ -1,3 +1,24 @@
+# 25.0.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+* Implement `StringScanner#{peek_byte,scan_byte,scan_integer}` methods (#3788, @andrykonchin).
+
+Performance:
+
+
+Changes:
+
+
+Memory Footprint:
+
+
 # 24.2.0
 
 New features:

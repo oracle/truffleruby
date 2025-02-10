@@ -244,6 +244,39 @@ class StringScanner
     scan_internal pattern, true, true, true
   end
 
+  def scan_byte
+    if eos?
+      @match = nil
+      return nil
+    end
+
+    pos = @pos
+    @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos + 1)
+    @prev_pos = pos
+    @pos = pos + 1
+
+    @string.getbyte(pos)
+  end
+
+  def scan_integer(base: 10)
+    unless @string.encoding.ascii_compatible?
+      raise Encoding::CompatibilityError, "ASCII incompatible encoding: #{@string.encoding.name}"
+    end
+
+    case base
+    when 10
+      substr = scan(/[+-]?\d+/)
+    when 16
+      substr = scan(/[+-]?(?:0x)?[0-9a-fA-F]+/)
+    else
+      raise ArgumentError, "Unsupported integer base: #{base.inspect}, expected 10 or 16"
+    end
+
+    if substr
+      Primitive.string_to_inum(substr, base, true, true)
+    end
+  end
+
   def scan_until(pattern)
     scan_internal pattern, true, true, false
   end
@@ -310,6 +343,10 @@ class StringScanner
     raise ArgumentError if len < 0
     return '' if len.zero?
     @string.byteslice(@pos, len)
+  end
+
+  def peek_byte
+    @string.getbyte(@pos)
   end
 
   def peep(len)
