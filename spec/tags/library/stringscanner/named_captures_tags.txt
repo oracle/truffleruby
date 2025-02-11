@@ -1,4 +1,0 @@
-fails:StringScanner#named_captures returns a hash of names and matched substrings for named capturing groups in a regular expression of the most recent matching
-fails:StringScanner#named_captures returns {} if there are no named capturing groups
-fails:StringScanner#named_captures returns {} if there is no any matching done
-fails:StringScanner#named_captures returns nil for an optional named capturing group if it doesn't match

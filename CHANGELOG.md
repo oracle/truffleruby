@@ -8,7 +8,7 @@ Bug fixes:
 
 Compatibility:
 
-* Implement `StringScanner#{peek_byte,scan_byte,scan_integer}` methods (#3788, @andrykonchin).
+* Implement `StringScanner#{peek_byte,scan_byte,scan_integer,named_captures}` methods (#3788, @andrykonchin).
 
 Performance:
 

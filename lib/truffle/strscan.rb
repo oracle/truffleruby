@@ -205,6 +205,10 @@ class StringScanner
     Primitive.match_data_byte_end(@match, 0) - Primitive.match_data_byte_begin(@match, 0) if @match
   end
 
+  def named_captures
+    @match&.named_captures || {}
+  end
+
   def post_match
     @match&.post_match
   end
