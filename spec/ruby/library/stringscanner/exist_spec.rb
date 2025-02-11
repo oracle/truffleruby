@@ -2,11 +2,11 @@ require_relative '../../spec_helper'
 require 'strscan'
 
 describe "StringScanner#exist?" do
-  before :each do
+  before do
     @s = StringScanner.new("This is a test")
   end
 
-  it "returns the index of the first occurrence of the given pattern" do
+  it "returns distance in bytes between the current position and the end of the matched substring" do
     @s.exist?(/s/).should == 4
     @s.scan(/This is/)
     @s.exist?(/s/).should == 6
@@ -22,11 +22,27 @@ describe "StringScanner#exist?" do
     @s.exist?(/i/).should == nil
   end
 
-  ruby_version_is ""..."3.4" do
+  it "does not modify the current position" do
+    @s.pos.should == 0
+    @s.exist?(/s/).should == 4
+    @s.pos.should == 0
+  end
+
+  version_is StringScanner::Version, ""..."3.1.1" do # ruby_version_is ""..."3.4"
     it "raises TypeError if given a String" do
       -> {
         @s.exist?('T')
       }.should raise_error(TypeError, 'wrong argument type String (expected Regexp)')
+    end
+  end
+
+  version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
+    it "searches a substring in the rest part of a string if given a String" do
+      @s.exist?('a').should == 9
+    end
+
+    it "returns nil if the pattern isn't found in the string" do
+      @s.exist?("S").should == nil
     end
   end
 end
