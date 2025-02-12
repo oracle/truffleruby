@@ -359,13 +359,10 @@ class StringScanner
   end
 
   private def scan_check_args(pattern, headonly)
-    case pattern
-    when String
-      raise TypeError, 'wrong argument type String (expected Regexp)' unless headonly
-    when Regexp
-    else
+    unless Primitive.is_a?(pattern, Regexp) || Primitive.is_a?(pattern, String)
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
+
     raise ArgumentError, 'uninitialized StringScanner object' unless @string
   end
 
@@ -376,12 +373,13 @@ class StringScanner
     scan_check_args(pattern, headonly)
 
     if Primitive.is_a?(pattern, String)
-      md = scan_internal_string_pattern(pattern)
+      md = scan_internal_string_pattern(pattern, headonly)
     else
       start = @fixed_anchor ? 0 : @pos
       md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, start
       Primitive.matchdata_fixup_positions(md, start) if md
     end
+
     if md
       @match = md
       scan_internal_set_pos_and_str(advance_pos, getstr, md)
@@ -390,13 +388,23 @@ class StringScanner
     end
   end
 
-  private def scan_internal_string_pattern(pattern)
-    # always headonly=true, see #scan_check_args
+  private def scan_internal_string_pattern(pattern, headonly)
     pos = @pos
-    if @string.byteslice(pos..).start_with?(pattern)
-      Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize)
+
+    if headonly
+      if @string.byteslice(pos..).start_with?(pattern)
+        Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize)
+      else
+        nil
+      end
     else
-      nil
+      relative_pos = @string.byteslice(pos..).byteindex(pattern)
+      if relative_pos
+        found_pos = pos + relative_pos
+        Primitive.matchdata_create_single_group(pattern, @string.dup, found_pos, found_pos + pattern.bytesize)
+      else
+        nil
+      end
     end
   end
 

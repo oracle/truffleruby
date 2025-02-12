@@ -47,5 +47,15 @@ describe "StringScanner#skip_until" do
         @s.post_match.should == " test"
       end
     end
+
+    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+      it "sets the last match result if given a String" do
+        @s.skip_until("a")
+
+        @s.pre_match.should == "This is "
+        @s.matched.should == "a"
+        @s.post_match.should == " test"
+      end
+    end
   end
 end

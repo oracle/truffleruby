@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Implement `StringScanner#{peek_byte,scan_byte,scan_integer,named_captures}` methods (#3788, @andrykonchin).
+* Support String patterns in `StringScanner#{exist?,scan_until,skip_until,check_until,search_full}` methods (@andrykonchin).
 
 Performance:
 

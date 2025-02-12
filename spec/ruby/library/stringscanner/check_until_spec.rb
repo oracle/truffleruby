@@ -14,6 +14,7 @@ describe "StringScanner#check_until" do
 
   it "sets the last match result" do
     @s.check_until(/a/)
+
     @s.pre_match.should == "This is "
     @s.matched.should == "a"
     @s.post_match.should == " test"
@@ -37,8 +38,19 @@ describe "StringScanner#check_until" do
     version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.1"
       it "sets the last match result if given a String" do
         @s.check_until("a")
+
         @s.pre_match.should == ""
         @s.matched.should == "This is a"
+        @s.post_match.should == " test"
+      end
+    end
+
+    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+      it "sets the last match result if given a String" do
+        @s.check_until("a")
+
+        @s.pre_match.should == "This is "
+        @s.matched.should == "a"
         @s.post_match.should == " test"
       end
     end
