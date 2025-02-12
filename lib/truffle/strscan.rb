@@ -44,7 +44,7 @@ end
 class StringScanner
 
   Id = 'None$Id'.freeze
-  Version = '1.0.0'.freeze
+  Version = '3.1.3'.freeze
 
   attr_reader :pos
   alias_method :pointer, :pos
