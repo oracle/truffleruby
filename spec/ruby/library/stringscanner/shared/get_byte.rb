@@ -1,4 +1,6 @@
 # -*- encoding: binary -*-
+require 'strscan'
+
 describe :strscan_get_byte, shared: true do
   it "scans one byte and returns it" do
     s = StringScanner.new('abc5.')
@@ -25,5 +27,33 @@ describe :strscan_get_byte, shared: true do
     s = StringScanner.new('a')
     s.send(@method) # skip one
     s.send(@method).should == nil
+  end
+
+  describe "#[] successive call with a capture group name" do
+    it "returns nil" do
+      s = StringScanner.new("This is a test")
+      s.send(@method)
+      s.should.matched?
+      s[:a].should be_nil
+    end
+
+    it "returns a matching character when given Integer index" do
+      s = StringScanner.new("This is a test")
+      s.send(@method)
+      s[0].should == "T"
+    end
+
+    # https://github.com/ruby/strscan/issues/135
+    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+      it "ignores the previous matching with Regexp" do
+        s = StringScanner.new("This is a test")
+        s.exist?(/This/)
+        s.should.matched?
+
+        s.send(@method)
+        s.should.matched?
+        s[:a].should be_nil
+      end
+    end
   end
 end

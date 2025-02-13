@@ -40,5 +40,33 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
       s.matched.should == "b"
       s.post_match.should == "c"
     end
+
+    describe "#[] successive call with a capture group name" do
+      it "returns nil" do
+        s = StringScanner.new("abc")
+        s.scan_byte
+        s.should.matched?
+        s[:a].should be_nil
+      end
+
+      it "returns a matching character when given Integer index" do
+        s = StringScanner.new("This is a test")
+        s.scan_byte
+        s[0].should == "T"
+      end
+
+      # https://github.com/ruby/strscan/issues/135
+      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+        it "ignores the previous matching with Regexp" do
+          s = StringScanner.new("abc")
+          s.exist?(/a/)
+          s.should.matched?
+
+          s.scan_byte
+          s.should.matched?
+          s[:a].should be_nil
+        end
+      end
+    end
   end
 end

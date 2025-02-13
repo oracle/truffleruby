@@ -55,4 +55,53 @@ describe "StringScanner#check_until" do
       end
     end
   end
+
+  describe "#[] successive call with a capture group name" do
+    context "when #check_until was called with a Regexp pattern" do
+      it "returns matched substring when matching succeeded" do
+        @s.check_until(/(?<a>This)/)
+        @s.should.matched?
+        @s[:a].should == "This"
+      end
+
+      it "returns nil when matching failed" do
+        @s.check_until(/(?<a>2008)/)
+        @s.should_not.matched?
+        @s[:a].should be_nil
+      end
+    end
+
+    version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
+      context "when #check_until was called with a String pattern" do
+        it "returns nil when matching succeeded" do
+          @s.check_until("This")
+          @s.should.matched?
+          @s[:a].should be_nil
+        end
+
+        it "returns nil when matching failed" do
+          @s.check_until("2008")
+          @s.should_not.matched?
+          @s[:a].should be_nil
+        end
+
+        it "returns a matching substring when given Integer index" do
+          @s.check_until("This")
+          @s[0].should == "This"
+        end
+
+        # https://github.com/ruby/strscan/issues/135
+        version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+          it "ignores the previous matching with Regexp" do
+            @s.exist?(/This/)
+            @s.should.matched?
+
+            @s.check_until("This")
+            @s.should.matched?
+            @s[:a].should be_nil
+          end
+        end
+      end
+    end
+  end
 end

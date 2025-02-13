@@ -45,4 +45,53 @@ describe "StringScanner#exist?" do
       @s.exist?("S").should == nil
     end
   end
+
+  describe "#[] successive call with a capture group name" do
+    context "when #exist? was called with a Regexp pattern" do
+      it "returns matched substring when matching succeeded" do
+        @s.exist?(/(?<a>This)/)
+        @s.should.matched?
+        @s[:a].should == "This"
+      end
+
+      it "returns nil when matching failed" do
+        @s.exist?(/(?<a>2008)/)
+        @s.should_not.matched?
+        @s[:a].should be_nil
+      end
+    end
+
+    version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
+      context "when #exist? was called with a String pattern" do
+        it "returns nil when matching succeeded" do
+          @s.exist?("This")
+          @s.should.matched?
+          @s[:a].should be_nil
+        end
+
+        it "returns nil when matching failed" do
+          @s.exist?("2008")
+          @s.should_not.matched?
+          @s[:a].should be_nil
+        end
+
+        it "returns a matching substring when given Integer index" do
+          @s.exist?("This")
+          @s[0].should == "This"
+        end
+
+        # https://github.com/ruby/strscan/issues/135
+        version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+          it "ignores the previous matching with Regexp" do
+            @s.exist?(/This/)
+            @s.should.matched?
+
+            @s.exist?("This")
+            @s.should.matched?
+            @s[:a].should be_nil
+          end
+        end
+      end
+    end
+  end
 end
