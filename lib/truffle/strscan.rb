@@ -61,7 +61,6 @@ class StringScanner
     reset_state
 
     @fixed_anchor = Primitive.as_boolean(fixed_anchor)
-    @last_match_used_regexp = false
   end
 
   def pos=(n)
@@ -78,9 +77,6 @@ class StringScanner
   alias_method :pointer=, :pos=
 
   def [](n)
-    # String patterns cannot produce named capture groups
-    return nil if (Primitive.is_a?(n, String) || Primitive.is_a?(n, Symbol)) && !@last_match_used_regexp
-
     if @match
       raise TypeError, "no implicit conversion of #{Primitive.class(n)} into Integer" if Primitive.is_a?(n, Range)
       @match[n]
@@ -101,12 +97,10 @@ class StringScanner
   end
 
   def check(pattern)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, false, true, true
   end
 
   def check_until(pattern)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, false, true, false
   end
 
@@ -132,7 +126,6 @@ class StringScanner
   end
 
   def exist?(pattern)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, false, false, false
   end
 
@@ -141,8 +134,6 @@ class StringScanner
   end
 
   def get_byte
-    @last_match_used_regexp = false
-
     if eos?
       @match = nil
       return nil
@@ -164,9 +155,7 @@ class StringScanner
   end
 
   def getch
-    char = scan(/./m)
-    @last_match_used_regexp = false
-    char
+    scan(/./m)
   end
 
   def inspect
@@ -201,7 +190,6 @@ class StringScanner
   end
 
   def match?(pattern)
-    @last_match_used_regexp = true
     scan_internal pattern, false, false, true
   end
 
@@ -257,7 +245,6 @@ class StringScanner
   end
 
   def scan(pattern)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, true, true, true
   end
 
@@ -271,7 +258,6 @@ class StringScanner
     @match = Primitive.matchdata_create_single_group(/./mn, @string, pos, pos + 1)
     @prev_pos = pos
     @pos = pos + 1
-    @last_match_used_regexp = false
 
     @string.getbyte(pos)
   end
@@ -290,24 +276,20 @@ class StringScanner
       raise ArgumentError, "Unsupported integer base: #{base.inspect}, expected 10 or 16"
     end
 
-    @last_match_used_regexp = false
     if substr
       Primitive.string_to_inum(substr, base, true, true)
     end
   end
 
   def scan_until(pattern)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, true, true, false
   end
 
   def scan_full(pattern, advance_pos, getstr)
-    @last_match_used_regexp = true
     scan_internal pattern, advance_pos, getstr, true
   end
 
   def search_full(pattern, advance_pos, getstr)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, advance_pos, getstr, false
   end
 
@@ -320,12 +302,10 @@ class StringScanner
   end
 
   def skip(pattern)
-    @last_match_used_regexp = true
     scan_internal pattern, true, false, true
   end
 
   def skip_until(pattern)
-    @last_match_used_regexp = Primitive.is_a?(pattern, Regexp)
     scan_internal pattern, true, false, false
   end
 

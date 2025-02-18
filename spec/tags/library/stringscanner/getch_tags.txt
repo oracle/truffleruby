@@ -1,0 +1,2 @@
+fails:StringScanner#getch #[] successive call with a capture group name returns nil
+fails:StringScanner#getch #[] successive call with a capture group name ignores the previous matching with Regexp
