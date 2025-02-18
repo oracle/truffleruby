@@ -52,6 +52,8 @@ gem spec prism.gem --ruby > prism.generated.gemspec
 VERSION=$(ruby -e 'puts File.read("prism.generated.gemspec")[/stub: prism ([\d\.]+)/, 1]')
 popd
 
+rm lib/gems/specifications/default/prism-*.gemspec # remove a gemspec of the previous version
+
 cp $PRISM/prism.generated.gemspec "lib/gems/specifications/default/prism-$VERSION.gemspec"
 rm $PRISM/prism.generated.gemspec
 rm $PRISM/prism.gem
