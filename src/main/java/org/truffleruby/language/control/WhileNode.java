@@ -73,7 +73,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public String toString() {
-            return "while loop at " + RubyLanguage.filenameLine(getEncapsulatingSourceSection());
+            return "while loop at " + RubyLanguage.fileLineRange(getEncapsulatingSourceSection());
         }
 
         public abstract WhileRepeatingBaseNode cloneUninitialized();

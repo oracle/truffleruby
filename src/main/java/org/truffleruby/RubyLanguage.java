@@ -126,7 +126,6 @@ import org.truffleruby.options.LanguageOptions;
 import org.truffleruby.parser.BlockDescriptorInfo;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.ParsingParameters;
-import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
 import org.truffleruby.shared.Platform;
 import org.truffleruby.shared.Metrics;
@@ -957,14 +956,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @TruffleBoundary
-    public static String getCorePath(Source source) {
-        final String path = getPath(source);
-        String coreLoadPath = OptionsCatalog.CORE_LOAD_PATH_KEY.getDefaultValue();
-        if (path.startsWith(coreLoadPath)) {
-            return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
-        } else {
-            throw CompilerDirectives.shouldNotReachHere(path + " is not a core path starting with " + coreLoadPath);
-        }
+    public int getStartLineAdjusted(SourceSection sourceSection) {
+        int lineOffset = sourceSection.getSource().getOptions(this).get(RubySourceOptions.LineOffset);
+        return sourceSection.getStartLine() + lineOffset;
     }
 
     /** Only use when no language/context is available (e.g. Node#toString). Prefer
@@ -996,27 +990,9 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             final String path = getSourcePath(section.getSource());
 
             if (section.isAvailable()) {
-                return path + ":" + RubySource.getStartLineAdjusted(this, section);
+                return path + ":" + getStartLineAdjusted(section);
             } else {
                 return path;
-            }
-        }
-    }
-
-    /** Only use when no language/context is available (e.g. Node#toString). Prefer
-     * {@link RubyLanguage#fileLine(SourceSection)} as it accounts for coreLoadPath and line offsets. */
-    @TruffleBoundary
-    public static String filenameLine(SourceSection section) {
-        if (section == null) {
-            return "no source section";
-        } else {
-            final String path = getPath(section.getSource());
-            final String filename = new File(path).getName();
-
-            if (section.isAvailable()) {
-                return filename + ":" + section.getStartLine();
-            } else {
-                return filename;
             }
         }
     }
@@ -1028,7 +1004,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             return nil;
         } else {
             var file = createString(node, fromJavaStringNode, getSourcePath(section.getSource()), Encodings.UTF_8);
-            Object[] objects = new Object[]{ file, RubySource.getStartLineAdjusted(this, section) };
+            Object[] objects = new Object[]{ file, getStartLineAdjusted(section) };
             return createArray(node, objects);
         }
     }

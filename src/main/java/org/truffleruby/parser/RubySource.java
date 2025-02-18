@@ -13,14 +13,11 @@ import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.Objects;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.RubyFileTypeDetector;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.source.Source;
-import org.truffleruby.RubyLanguage.RubySourceOptions;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.TStringUtils;
@@ -119,12 +116,6 @@ public final class RubySource {
 
     public int getLineOffset() {
         return lineOffset;
-    }
-
-    @TruffleBoundary
-    public static int getStartLineAdjusted(RubyLanguage language, SourceSection sourceSection) {
-        int lineOffset = sourceSection.getSource().getOptions(language).get(RubySourceOptions.LineOffset);
-        return sourceSection.getStartLine() + lineOffset;
     }
 
 }

@@ -38,7 +38,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.parser.RubySource;
 
 @CoreModule("Truffle::ObjSpace")
 public abstract class ObjSpaceNodes {
@@ -245,7 +244,7 @@ public abstract class ObjSpaceNodes {
             if (trace == null) {
                 return nil;
             } else {
-                return RubySource.getStartLineAdjusted(getLanguage(), trace.allocatingSourceSection);
+                return getLanguage().getStartLineAdjusted(trace.allocatingSourceSection);
             }
         }
 

@@ -21,7 +21,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.source.Source;
-import org.truffleruby.parser.RubySource;
 
 public class TraceBaseEventNode extends ExecutionEventNode {
 
@@ -53,7 +52,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected int getLine() {
         if (line == 0) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            line = RubySource.getStartLineAdjusted(language, eventContext.getInstrumentedSourceSection());
+            line = language.getStartLineAdjusted(eventContext.getInstrumentedSourceSection());
         }
         return line;
     }
