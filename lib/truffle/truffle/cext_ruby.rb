@@ -21,7 +21,7 @@ module Truffle::CExt
     end
 
     wrapper = RB_DEFINE_METHOD_WRAPPERS[argc]
-    thread_safe = Primitive.cext_thread_safe?
+    use_cext_lock = Primitive.use_cext_lock?
     method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
       if argc == -1 # (int argc, VALUE *argv, VALUE obj)
         args = [function, args.size, Truffle::CExt.RARRAY_PTR(args), Primitive.cext_wrap(self)]
@@ -36,11 +36,7 @@ module Truffle::CExt
 
       # We must set block argument if given here so that the
       # `rb_block_*` functions will be able to find it by walking the stack.
-      if thread_safe
-        Primitive.call_with_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block)
-      else
-        Primitive.call_with_cext_lock_and_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block)
-      end
+      Primitive.call_with_cext_lock_and_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block, use_cext_lock)
     end
 
     # Even if the argc is -2, the arity number

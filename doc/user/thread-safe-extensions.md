@@ -8,7 +8,7 @@ permalink: /reference-manual/ruby/ThreadSafeExtensions/
 
 Native extensions are by default considered thread-unsafe for maximum compatibility with CRuby and use the global extension lock (unless `--cexts-lock=false` is used).
 
-Extensions can mark themselves as thread-safe either by using `rb_ext_ractor_safe()` or `rb_ext_thread_safe()` (TruffleRuby-specific).
+Extensions can mark themselves as thread-safe either by using `rb_ext_ractor_safe()` or `rb_ext_thread_safe()` (the latter is TruffleRuby-specific).
 Such extensions are then run by TruffleRuby without a global extension lock, i.e. in parallel.
 
 Here is an example of an extension marking itself as Ractor-safe.
@@ -33,6 +33,27 @@ void Init_my_extension(void) {
     rb_define_method(myClass, "foo", foo_impl, 0); // The C function foo_impl can be called from multiple threads in parallel
 }
 ```
+
+It is possible to mark individual methods as Ractor/Thread-safe by using `rb_ext_ractor_safe/rb_ext_thread_safe(true/false)` around them (these functions actually set a Fiber-local flag):
+```c
+void Init_my_extension(void) {
+    #ifdef HAVE_RB_EXT_RACTOR_SAFE
+    rb_ext_ractor_safe(true);
+    #endif
+    rb_define_method(myClass, "ractor_safe_method", foo_impl, 0); // The C function foo_impl can be called from multiple threads in parallel
+    // more Ractor-safe methods
+
+    #ifdef HAVE_RB_EXT_RACTOR_SAFE
+    rb_ext_ractor_safe(false);
+    #endif
+    rb_define_method(myClass, "ractor_unsafe_method", bar_impl, 0); // The C function bar_impl needs a global extension lock for correctness
+    // more Ractor-unsafe methods
+}
+```
+
+Other Ruby C API functions taking a C function like `rb_proc_new()` do not use the global extension lock if:
+* Called inside the `Init_my_extension` and `rb_ext_ractor_safe(true)` / `rb_ext_thread_safe(true)` are used.
+* Called outside the `Init_my_extension` and the calling function does not hold the global extension lock.
 
 The conditions for an extension to be thread-safe are the following.
 This is similar to [the conditions for Ractor-safe extensions](https://github.com/ruby/ruby/blob/master/doc/extension.rdoc#appendix-f-ractor-support-) but not all conditions are necessary.

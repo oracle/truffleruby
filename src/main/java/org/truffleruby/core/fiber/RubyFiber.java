@@ -104,6 +104,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public final ValueWrapperManager.HandleBlockHolder handleData;
     boolean blocking = true;
     public RubyArray cGlobalVariablesDuringInitFunction;
+    /** Always false when not inside a C ext Init_ function */
     public boolean threadSafeExtension = false;
 
     // To pass state between beforeEnter(), fiberMain() and afterLeave()
