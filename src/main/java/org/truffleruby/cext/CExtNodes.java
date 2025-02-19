@@ -183,7 +183,12 @@ public abstract class CExtNodes {
 
         @Specialization
         Object callWithCExtLockAndFrame(
-                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                VirtualFrame frame,
+                Object receiver,
+                RubyArray argsArray,
+                Object specialVariables,
+                Object block,
+                boolean useCExtLock,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
@@ -197,7 +202,7 @@ public abstract class CExtNodes {
             try {
                 final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
-                if (getContext().getOptions().CEXT_LOCK) {
+                if (getContext().getOptions().CEXT_LOCK && useCExtLock) {
                     final ReentrantLock lock = getContext().getCExtensionsLock();
                     boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
@@ -496,6 +501,18 @@ public abstract class CExtNodes {
         @Specialization
         boolean isCExtLockOwned() {
             return getContext().getCExtensionsLock().isHeldByCurrentThread();
+        }
+    }
+
+    @CoreMethod(names = "use_cext_lock?", onSingleton = true)
+    public abstract static class UseCExtLockNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        boolean useCExtLock() {
+            if (getLanguage().getCurrentFiber().threadSafeExtension) {
+                return false;
+            } else {
+                return getContext().getCExtensionsLock().isHeldByCurrentThread();
+            }
         }
     }
 
@@ -2144,14 +2161,6 @@ public abstract class CExtNodes {
         Object setThreadSafe(int threadSafe) {
             getLanguage().getCurrentFiber().threadSafeExtension = threadSafe != 0;
             return nil;
-        }
-    }
-
-    @Primitive(name = "cext_thread_safe?")
-    public abstract static class CExtIsThreadSafe extends PrimitiveArrayArgumentsNode {
-        @Specialization
-        boolean isThreadSafe() {
-            return getLanguage().getCurrentFiber().threadSafeExtension;
         }
     }
 
