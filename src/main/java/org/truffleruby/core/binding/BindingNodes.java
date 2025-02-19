@@ -467,7 +467,7 @@ public abstract class BindingNodes {
         Object sourceLocation(RubyBinding binding,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var sourceSection = binding.sourceSection;
-            return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
+            return getLanguage().rubySourceLocation(sourceSection, fromJavaStringNode, this);
         }
     }
 

@@ -235,7 +235,7 @@ public abstract class MethodNodes {
         Object sourceLocation(RubyMethod method,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var sourceSection = method.method.getSharedMethodInfo().getSourceSection();
-            return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
+            return getLanguage().rubySourceLocation(sourceSection, fromJavaStringNode, this);
         }
     }
 

@@ -55,12 +55,10 @@ public abstract class EvalLoader {
         }
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, new ByteBasedCharSequence(sourceTString), file)
+                .option("ruby.LineOffset", Integer.toString(line - 1))
                 .build();
 
-        final RubySource rubySource = new RubySource(source, file, sourceTString, true, line - 1);
-
-        context.getSourceLineOffsets().put(source, line - 1);
-        return rubySource;
+        return new RubySource(source, file, sourceTString, true, line - 1);
     }
 
 }

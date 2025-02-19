@@ -31,7 +31,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.methods.TranslateExceptionNode;
-import org.truffleruby.parser.RubySource;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -281,13 +280,13 @@ public final class BacktraceFormatter {
             } else {
                 builder.append(language.getSourcePath(reportedSourceSection.getSource()));
                 builder.append(":");
-                builder.append(RubySource.getStartLineAdjusted(context, reportedSourceSection));
+                builder.append(language.getStartLineAdjusted(reportedSourceSection));
             }
         } else { // A foreign frame
             if (sourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(context.fileLine(sourceSection));
+                builder.append(language.fileLine(sourceSection));
             }
         }
 

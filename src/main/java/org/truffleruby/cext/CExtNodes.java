@@ -139,7 +139,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.parser.RubySource;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
@@ -1188,7 +1187,7 @@ public abstract class CExtNodes {
         @Specialization
         int sourceLine() {
             final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
-            return RubySource.getStartLineAdjusted(getContext(), sourceSection);
+            return getLanguage().getStartLineAdjusted(sourceSection);
         }
 
     }

@@ -635,7 +635,8 @@ public abstract class ModuleNodes {
             }
 
             final String javaStringFilename = RubyGuards.getJavaString(filenameAsPath);
-            module.fields.setAutoloadConstant(getContext(node), node, name, filenameAsPath, javaStringFilename);
+            module.fields.setAutoloadConstant(getLanguage(node), getContext(node), node, name, filenameAsPath,
+                    javaStringFilename);
             return nil;
         }
     }
@@ -1157,7 +1158,7 @@ public abstract class ModuleNodes {
             if (!BacktraceFormatter.isAvailable(sourceSection)) {
                 return createEmptyArray(node);
             } else {
-                return getLanguage(node).rubySourceLocation(getContext(node), sourceSection, fromJavaStringNode, node);
+                return getLanguage(node).rubySourceLocation(sourceSection, fromJavaStringNode, node);
             }
         }
 

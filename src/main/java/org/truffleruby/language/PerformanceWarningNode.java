@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
@@ -53,7 +54,7 @@ public abstract class PerformanceWarningNode extends RubyBaseNode {
             return;
         }
 
-        log(getContext(), message, this);
+        log(getLanguage(), getContext(), message, this);
         throw new Warned();
     }
 
@@ -74,18 +75,18 @@ public abstract class PerformanceWarningNode extends RubyBaseNode {
             return;
         }
 
-        log(context, message, currentNode);
+        log(context.getLanguageSlow(), context, message, currentNode);
     }
 
     @TruffleBoundary
-    private static void log(RubyContext context, String message, Node currentNode) {
+    private static void log(RubyLanguage language, RubyContext context, String message, Node currentNode) {
         // We want the topmost user source section, as otherwise lots of warnings will come from the same core methods
         final SourceSection userSourceSection = context.getCallStack()
                 .getTopMostUserSourceSection(currentNode.getEncapsulatingSourceSection());
 
         final String displayedWarning = String.format(
                 "%s: warning: %s%n",
-                context.fileLine(userSourceSection),
+                language.fileLine(userSourceSection),
                 message);
 
         if (DISPLAYED_WARNINGS.add(displayedWarning)) {

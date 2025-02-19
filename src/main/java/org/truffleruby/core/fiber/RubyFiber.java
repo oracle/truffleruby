@@ -135,7 +135,7 @@ public final class RubyFiber extends RubyDynamicObject implements ObjectGraphNod
     public void initialize(RubyLanguage language, RubyContext context, boolean blocking, RubyProc block,
             Node currentNode) {
         final SourceSection sourceSection = block.getSharedMethodInfo().getSourceSection();
-        this.sourceLocation = context.fileLine(sourceSection);
+        this.sourceLocation = language.fileLine(sourceSection);
         this.body = block;
         this.initializeNode = currentNode;
         this.blocking = blocking;

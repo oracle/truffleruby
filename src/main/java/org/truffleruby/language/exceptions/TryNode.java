@@ -135,7 +135,7 @@ public abstract class TryNode extends RubyContextSourceNode {
 
     @TruffleBoundary
     private void printBacktraceOnRescue(RescueNode rescue, AbstractTruffleException exception) {
-        String info = "rescued at " + getContext().fileLine(
+        String info = "rescued at " + getLanguage().fileLine(
                 getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
                 ":\n";
         getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception);

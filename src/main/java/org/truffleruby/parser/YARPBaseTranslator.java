@@ -73,7 +73,7 @@ public abstract class YARPBaseTranslator extends AbstractNodeVisitor<RubyNode> {
         var context = RubyLanguage.getCurrentContext();
         String code = toString(node);
         var message = this.getClass().getSimpleName() + " does not know how to translate " +
-                node.getClass().getSimpleName() + " at " + context.fileLine(getSourceSection(node)) +
+                node.getClass().getSimpleName() + " at " + language.fileLine(getSourceSection(node)) +
                 "\nCode snippet:\n" + code + "\nPrism AST:\n" + node;
         throw new RaiseException(context,
                 context.getCoreExceptions().syntaxError(message, null, getSourceSection(node)));

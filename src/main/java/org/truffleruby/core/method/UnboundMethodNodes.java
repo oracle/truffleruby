@@ -201,7 +201,7 @@ public abstract class UnboundMethodNodes {
         Object sourceLocation(RubyUnboundMethod unboundMethod,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             var sourceSection = unboundMethod.method.getSharedMethodInfo().getSourceSection();
-            return getLanguage().rubySourceLocation(getContext(), sourceSection, fromJavaStringNode, this);
+            return getLanguage().rubySourceLocation(sourceSection, fromJavaStringNode, this);
         }
     }
 

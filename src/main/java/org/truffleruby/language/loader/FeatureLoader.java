@@ -292,7 +292,7 @@ public final class FeatureLoader {
                 final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
                 return String.format(
                         "starting search from %s for feature %s...",
-                        context.fileLine(sourceSection),
+                        language.fileLine(sourceSection),
                         originalFeature);
             });
 

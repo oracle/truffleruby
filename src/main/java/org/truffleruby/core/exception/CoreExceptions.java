@@ -1010,7 +1010,7 @@ public final class CoreExceptions {
     public RubySyntaxError syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         String messageWithFileLine;
         if (sourceLocation != null) {
-            messageWithFileLine = context.fileLine(sourceLocation) + ": " + message;
+            messageWithFileLine = language.fileLine(sourceLocation) + ": " + message;
         } else {
             messageWithFileLine = "(unknown):1: " + message;
         }

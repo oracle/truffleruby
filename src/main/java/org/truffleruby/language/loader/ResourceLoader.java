@@ -51,7 +51,7 @@ public abstract class ResourceLoader {
 
         Source source = Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, new ByteBasedCharSequence(sourceTString), path)
-                .mimeType(RubyLanguage.getMimeType(false))
+                .option("ruby.Coverage", "false")
                 .internal(internal)
                 .build();
 
