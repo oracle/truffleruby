@@ -184,7 +184,12 @@ public abstract class CExtNodes {
 
         @Specialization
         Object callWithCExtLockAndFrame(
-                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                VirtualFrame frame,
+                Object receiver,
+                RubyArray argsArray,
+                Object specialVariables,
+                Object block,
+                boolean useCExtLock,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
@@ -198,7 +203,7 @@ public abstract class CExtNodes {
             try {
                 final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
-                if (getContext().getOptions().CEXT_LOCK) {
+                if (getContext().getOptions().CEXT_LOCK && useCExtLock) {
                     final ReentrantLock lock = getContext().getCExtensionsLock();
                     boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
