@@ -42,11 +42,22 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
     end
 
     describe "#[] successive call with a capture group name" do
-      it "returns nil" do
-        s = StringScanner.new("abc")
-        s.scan_byte
-        s.should.matched?
-        s[:a].should be_nil
+      # https://github.com/ruby/strscan/issues/139
+      version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+        it "returns nil" do
+          s = StringScanner.new("abc")
+          s.scan_byte
+          s.should.matched?
+          s[:a].should be_nil
+        end
+      end
+      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4.3"
+        it "raises IndexError" do
+          s = StringScanner.new("abc")
+          s.scan_byte
+          s.should.matched?
+          -> { s[:a] }.should raise_error(IndexError)
+        end
       end
 
       it "returns a matching character when given Integer index" do
@@ -56,15 +67,30 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
       end
 
       # https://github.com/ruby/strscan/issues/135
-      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+      version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
         it "ignores the previous matching with Regexp" do
           s = StringScanner.new("abc")
-          s.exist?(/a/)
+
+          s.exist?(/(?<a>a)/)
           s.should.matched?
+          s[:a].should == "a"
 
           s.scan_byte
           s.should.matched?
-          s[:a].should be_nil
+          s[:a].should == nil
+        end
+      end
+      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+        it "ignores the previous matching with Regexp" do
+          s = StringScanner.new("abc")
+
+          s.exist?(/(?<a>a)/)
+          s.should.matched?
+          s[:a].should == "a"
+
+          s.scan_byte
+          s.should.matched?
+          -> { s[:a] }.should raise_error(IndexError)
         end
       end
     end

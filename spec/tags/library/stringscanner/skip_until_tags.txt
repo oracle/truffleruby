@@ -1,2 +1,0 @@
-fails:StringScanner#skip_until #[] successive call with a capture group name when #skip_until was called with a String pattern returns nil when matching succeeded
-fails:StringScanner#skip_until #[] successive call with a capture group name when #skip_until was called with a String pattern ignores the previous matching with Regexp

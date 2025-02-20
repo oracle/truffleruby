@@ -30,11 +30,22 @@ describe :strscan_get_byte, shared: true do
   end
 
   describe "#[] successive call with a capture group name" do
-    it "returns nil" do
-      s = StringScanner.new("This is a test")
-      s.send(@method)
-      s.should.matched?
-      s[:a].should be_nil
+    # https://github.com/ruby/strscan/issues/139
+    version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+      it "returns nil" do
+        s = StringScanner.new("This is a test")
+        s.send(@method)
+        s.should.matched?
+        s[:a].should be_nil
+      end
+    end
+    version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+      it "raises IndexError" do
+        s = StringScanner.new("This is a test")
+        s.send(@method)
+        s.should.matched?
+        -> { s[:a] }.should raise_error(IndexError)
+      end
     end
 
     it "returns a matching character when given Integer index" do
@@ -44,15 +55,28 @@ describe :strscan_get_byte, shared: true do
     end
 
     # https://github.com/ruby/strscan/issues/135
-    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+    version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
       it "ignores the previous matching with Regexp" do
         s = StringScanner.new("This is a test")
-        s.exist?(/This/)
+        s.exist?(/(?<a>This)/)
         s.should.matched?
+        s[:a].should == "This"
 
         s.send(@method)
         s.should.matched?
         s[:a].should be_nil
+      end
+    end
+    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+      it "ignores the previous matching with Regexp" do
+        s = StringScanner.new("This is a test")
+        s.exist?(/(?<a>This)/)
+        s.should.matched?
+        s[:a].should == "This"
+
+        s.send(@method)
+        s.should.matched?
+        -> { s[:a] }.should raise_error(IndexError)
       end
     end
   end

@@ -1,2 +1,0 @@
-fails:StringScanner#exist? #[] successive call with a capture group name when #exist? was called with a String pattern returns nil when matching succeeded
-fails:StringScanner#exist? #[] successive call with a capture group name when #exist? was called with a String pattern ignores the previous matching with Regexp

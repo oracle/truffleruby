@@ -38,10 +38,20 @@ describe "StringScanner#check" do
     end
 
     context "when #check was called with a String pattern" do
-      it "returns nil when matching succeeded" do
-        @s.check("This")
-        @s.should.matched?
-        @s[:a].should be_nil
+      # https://github.com/ruby/strscan/issues/139
+      version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+        it "returns nil when matching succeeded" do
+          @s.check("This")
+          @s.should.matched?
+          @s[:a].should be_nil
+        end
+      end
+      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+        it "raises IndexError when matching succeeded" do
+          @s.check("This")
+          @s.should.matched?
+          -> { @s[:a] }.should raise_error(IndexError)
+        end
       end
 
       it "returns nil when matching failed" do
@@ -56,14 +66,26 @@ describe "StringScanner#check" do
       end
 
       # https://github.com/ruby/strscan/issues/135
-      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+      version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
         it "ignores the previous matching with Regexp" do
-          @s.exist?(/This/)
+          @s.exist?(/(?<a>This)/)
           @s.should.matched?
+          @s[:a].should == "This"
 
           @s.check("This")
           @s.should.matched?
           @s[:a].should be_nil
+        end
+      end
+      version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+        it "ignores the previous matching with Regexp" do
+          @s.exist?(/(?<a>This)/)
+          @s.should.matched?
+          @s[:a].should == "This"
+
+          @s.check("This")
+          @s.should.matched?
+          -> { @s[:a] }.should raise_error(IndexError)
         end
       end
     end

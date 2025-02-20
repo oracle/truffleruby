@@ -93,11 +93,22 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
   end
 
   describe "#[] successive call with a capture group name" do
-    it "returns nil substring when matching succeeded" do
-      s = StringScanner.new("42")
-      s.scan_integer
-      s.should.matched?
-      s[:a].should == nil
+    # https://github.com/ruby/strscan/issues/139
+    version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
+      it "returns nil substring when matching succeeded" do
+        s = StringScanner.new("42")
+        s.scan_integer
+        s.should.matched?
+        s[:a].should == nil
+      end
+    end
+    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4.3"
+      it "raises IndexError when matching succeeded" do
+        s = StringScanner.new("42")
+        s.scan_integer
+        s.should.matched?
+        -> { s[:a] }.should raise_error(IndexError)
+      end
     end
 
     it "returns nil when matching failed" do
@@ -116,16 +127,30 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
     end
 
     # https://github.com/ruby/strscan/issues/135
-    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+    version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
       it "ignores the previous matching with Regexp" do
         s = StringScanner.new("42")
 
-        s.exist?(/42/)
+        s.exist?(/(?<a>42)/)
         s.should.matched?
+        s[:a].should == "42"
 
         s.scan_integer
         s.should.matched?
         s[:a].should == nil
+      end
+    end
+    version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
+      it "ignores the previous matching with Regexp" do
+        s = StringScanner.new("42")
+
+        s.exist?(/(?<a>42)/)
+        s.should.matched?
+        s[:a].should == "42"
+
+        s.scan_integer
+        s.should.matched?
+        -> { s[:a] }.should raise_error(IndexError)
       end
     end
   end

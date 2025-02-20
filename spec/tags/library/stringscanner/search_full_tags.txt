@@ -1,2 +1,0 @@
-fails:StringScanner#search_full #[] successive call with a capture group name when #search_full was called with a String pattern returns nil when matching succeeded
-fails:StringScanner#search_full #[] successive call with a capture group name when #search_full was called with a String pattern ignores the previous matching with Regexp
