@@ -94,10 +94,14 @@ public class ConcurrentWeakKeysMap<Key, Value> {
         return map.remove(buildWeakReference(key));
     }
 
+    /** It's important a WeakReference that is built returns true for {@code ref.equals(ref)} even if the reference is
+     * cleared. */
     protected WeakReference<Key> buildWeakReference(Key key) {
         return new WeakKeyReference<>(key);
     }
 
+    /** It's important a WeakReference that is built returns true for {@code ref.equals(ref)} even if the reference is
+     * cleared. */
     protected WeakReference<Key> buildWeakReference(Key key, ReferenceQueue<Key> referenceQueue) {
         return new WeakKeyReference<>(key, referenceQueue);
     }
