@@ -18,14 +18,18 @@ ruby_version_is "3.3" do
 
     it "compares keys with #eql? semantics" do
       map = ObjectSpace::WeakKeyMap.new
-      map[[1.0]] = "x"
+      key = [1.0]
+      map[key] = "x"
       map[[1]].should == nil
       map[[1.0]].should == "x"
+      key.should == [1.0] # keep the key alive until here to keep the map entry
 
       map = ObjectSpace::WeakKeyMap.new
-      map[[1]] = "x"
+      key = [1]
+      map[key] = "x"
       map[[1.0]].should == nil
       map[[1]].should == "x"
+      key.should == [1] # keep the key alive until here to keep the map entry
 
       map = ObjectSpace::WeakKeyMap.new
       key1, key2 = %w[a a].map(&:upcase)
@@ -39,7 +43,8 @@ ruby_version_is "3.3" do
       x.should_receive(:hash).and_return(0)
 
       map = ObjectSpace::WeakKeyMap.new
-      map['foo'] = :bar
+      key = 'foo'
+      map[key] = :bar
       map[x].should == nil
     end
 

@@ -94,10 +94,14 @@ public class ConcurrentWeakKeysMap<Key, Value> {
         return map.remove(buildWeakReference(key));
     }
 
+    /** It's important a WeakReference that is built returns true for {@code ref.equals(ref)} even if the reference is
+     * cleared. */
     protected WeakReference<Key> buildWeakReference(Key key) {
         return new WeakKeyReference<>(key);
     }
 
+    /** It's important a WeakReference that is built returns true for {@code ref.equals(ref)} even if the reference is
+     * cleared. */
     protected WeakReference<Key> buildWeakReference(Key key, ReferenceQueue<Key> referenceQueue) {
         return new WeakKeyReference<>(key, referenceQueue);
     }
@@ -108,14 +112,16 @@ public class ConcurrentWeakKeysMap<Key, Value> {
      * It is possible that the map still contains {@link WeakReference} instances whose key has been nulled out after a
      * call to this method (the reference not having been enqueued yet)! */
     protected void removeStaleEntries() {
-        WeakKeyReference<?> ref;
-        while ((ref = (WeakKeyReference<?>) referenceQueue.poll()) != null) {
+        WeakReference<?> ref;
+        while ((ref = (WeakReference<?>) referenceQueue.poll()) != null) {
             // Here ref.get() is null, so it will not remove a new key-value pair with the same key
-            // as that is a different WeakKeyReference instance.
+            // as that is a different WeakReference instance.
             map.remove(ref);
         }
     }
 
+    /** A default implementation of a key that wraps in a user-provided key. Compares keys by
+     * {@link Object#equals(Object)} */
     protected static final class WeakKeyReference<Key> extends WeakReference<Key> {
         private final int hashCode;
 
