@@ -575,7 +575,13 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        Object slice(Object string, long start, long length) {
+        Object slice(Object string, long start, long length,
+                @Cached @Shared InlinedBranchProfile negativeLengthProfile) {
+            if (length < 0) {
+                negativeLengthProfile.enter(this);
+                return nil;
+            }
+
             int lengthInt = (int) length;
             if (lengthInt != length) {
                 lengthInt = Integer.MAX_VALUE; // go to end of string
@@ -589,8 +595,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "wasProvided(length)")
         Object slice(Object string, long start, Object length,
-                @Cached @Shared ToLongNode toLongNode) {
-            return slice(string, start, toLongNode.execute(this, length));
+                @Cached @Shared ToLongNode toLongNode,
+                @Cached @Shared InlinedBranchProfile negativeLengthProfile) {
+            return slice(string, start, toLongNode.execute(this, length), negativeLengthProfile);
         }
 
         @Specialization(
@@ -600,8 +607,10 @@ public abstract class StringNodes {
                         "isNotRubyString(start)",
                         "wasProvided(length)" })
         Object slice(Object string, Object start, Object length,
-                @Cached @Shared ToLongNode toLongNode) {
-            return slice(string, toLongNode.execute(this, start), toLongNode.execute(this, length));
+                @Cached @Shared ToLongNode toLongNode,
+                @Cached @Shared InlinedBranchProfile negativeLengthProfile) {
+            return slice(string, toLongNode.execute(this, start), toLongNode.execute(this, length),
+                    negativeLengthProfile);
         }
 
         // endregion

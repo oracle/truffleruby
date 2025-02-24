@@ -11,6 +11,7 @@ Compatibility:
 * Implement `StringScanner#{peek_byte,scan_byte,scan_integer,named_captures}` methods (#3788, @andrykonchin).
 * Support String patterns in `StringScanner#{exist?,scan_until,skip_until,check_until,search_full}` methods (@andrykonchin).
 * Implement `ObjectSpace::WeakKeyMap` (#3681, @andrykonchin).
+* Fix `String#slice` called with negative offset (@andrykonchin).
 
 Performance:
 
