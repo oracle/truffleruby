@@ -159,6 +159,11 @@ describe :string_slice_index_length, shared: true do
     -> { "hello".send(@method, 0, bignum_value) }.should raise_error(RangeError)
   end
 
+  it "raises a RangeError if the index or length is too small" do
+    -> { "hello".send(@method, -bignum_value, 1) }.should raise_error(RangeError)
+    -> { "hello".send(@method, 0, -bignum_value) }.should raise_error(RangeError)
+  end
+
   it "returns String instances" do
     s = StringSpecs::MyString.new("hello")
     s.send(@method, 0,0).should be_an_instance_of(String)
