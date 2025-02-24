@@ -22,12 +22,14 @@ ruby_version_is "3.3" do
       map[key] = "x"
       map[[1]].should == nil
       map[[1.0]].should == "x"
+      key.should == [1.0] # keep the key alive until here to keep the map entry
 
       map = ObjectSpace::WeakKeyMap.new
       key = [1]
       map[key] = "x"
       map[[1.0]].should == nil
       map[[1]].should == "x"
+      key.should == [1] # keep the key alive until here to keep the map entry
 
       map = ObjectSpace::WeakKeyMap.new
       key1, key2 = %w[a a].map(&:upcase)

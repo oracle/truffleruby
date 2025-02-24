@@ -43,6 +43,8 @@ ruby_version_is "3.3" do
 
       map.getkey("a").should.equal? key
       map.getkey("a").should_not.frozen?
+
+      key.should == "a" # keep the key alive until here to keep the map entry
     end
 
     context "a key cannot be garbage collected" do
