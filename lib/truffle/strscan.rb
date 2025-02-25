@@ -277,7 +277,7 @@ class StringScanner
     end
 
     if substr
-      Primitive.string_to_inum(substr, base, true, true)
+      substr.to_i(base)
     end
   end
 
@@ -332,7 +332,7 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if Primitive.nil?(@match)
+    raise ScanError unless @match
     @pos = @prev_pos
     @prev_pos = nil
     @match = nil
