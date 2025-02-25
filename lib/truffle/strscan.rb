@@ -368,7 +368,7 @@ class StringScanner
     peek len
   end
 
-  private def scan_check_args(pattern, headonly)
+  private def scan_check_args(pattern)
     unless Primitive.is_a?(pattern, Regexp) || Primitive.is_a?(pattern, String)
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
@@ -379,14 +379,14 @@ class StringScanner
   # This method is kept very small so that it should fit within 100
   # AST nodes and can be split. This is done to avoid indirect calls
   # to TRegex.
-  private def scan_internal(pattern, advance_pos, getstr, headonly)
-    scan_check_args(pattern, headonly)
+  private def scan_internal(pattern, advance_pos, getstr, only_match_at_start)
+    scan_check_args(pattern)
 
     if Primitive.is_a?(pattern, String)
-      md = scan_internal_string_pattern(pattern, headonly)
+      md = scan_internal_string_pattern(pattern, only_match_at_start)
     else
       start = @fixed_anchor ? 0 : @pos
-      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, start
+      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, only_match_at_start, start
     end
 
     if md
@@ -398,10 +398,10 @@ class StringScanner
   end
   Primitive.always_split self, :scan_internal
 
-  private def scan_internal_string_pattern(pattern, headonly)
+  private def scan_internal_string_pattern(pattern, only_match_at_start)
     pos = @pos
 
-    if headonly
+    if only_match_at_start
       if @string.byteslice(pos..).start_with?(pattern)
         Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize)
       else
