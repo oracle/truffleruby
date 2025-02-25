@@ -99,10 +99,12 @@ class StringScanner
   def check(pattern)
     scan_internal pattern, false, true, true
   end
+  Primitive.always_split self, :check
 
   def check_until(pattern)
     scan_internal pattern, false, true, false
   end
+  Primitive.always_split self, :check_until
 
   def clear
     warn 'StringScanner#clear is obsolete; use #terminate instead' if $VERBOSE
@@ -128,6 +130,7 @@ class StringScanner
   def exist?(pattern)
     scan_internal pattern, false, false, false
   end
+  Primitive.always_split self, :exist?
 
   def fixed_anchor?
     @fixed_anchor
@@ -192,6 +195,7 @@ class StringScanner
   def match?(pattern)
     scan_internal pattern, false, false, true
   end
+  Primitive.always_split self, :match?
 
   def matched
     @match&.to_s
@@ -247,6 +251,7 @@ class StringScanner
   def scan(pattern)
     scan_internal pattern, true, true, true
   end
+  Primitive.always_split self, :scan
 
   def scan_byte
     if eos?
@@ -284,14 +289,17 @@ class StringScanner
   def scan_until(pattern)
     scan_internal pattern, true, true, false
   end
+  Primitive.always_split self, :scan_until
 
   def scan_full(pattern, advance_pos, getstr)
     scan_internal pattern, advance_pos, getstr, true
   end
+  Primitive.always_split self, :scan_full
 
   def search_full(pattern, advance_pos, getstr)
     scan_internal pattern, advance_pos, getstr, false
   end
+  Primitive.always_split self, :search_full
 
   def self.must_C_version
     self
@@ -304,10 +312,12 @@ class StringScanner
   def skip(pattern)
     scan_internal pattern, true, false, true
   end
+  Primitive.always_split self, :skip
 
   def skip_until(pattern)
     scan_internal pattern, true, false, false
   end
+  Primitive.always_split self, :skip_until
 
   def string
     @original
@@ -387,6 +397,7 @@ class StringScanner
       @match = nil
     end
   end
+  Primitive.always_split self, :scan_internal
 
   private def scan_internal_string_pattern(pattern, headonly)
     pos = @pos
