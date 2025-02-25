@@ -35,8 +35,6 @@ methods = [
   Regexp.instance_method(:match?),
   Truffle::RegexpOperations.method(:match),
   Truffle::RegexpOperations.method(:match?),
-  Truffle::RegexpOperations.method(:search_region),
-  Truffle::RegexpOperations.method(:match_in_region),
 
   String.instance_method(:[]),
   Truffle::StringOperations.method(:subpattern),

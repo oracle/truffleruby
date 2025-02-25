@@ -386,7 +386,11 @@ class StringScanner
       md = scan_internal_string_pattern(pattern, only_match_at_start)
     else
       start = @fixed_anchor ? 0 : @pos
-      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, only_match_at_start, start
+      if only_match_at_start
+        md = Primitive.regexp_match_at_start(pattern, @string, @pos, start)
+      else
+        md = Primitive.regexp_search_with_start(pattern, @string, @pos, start)
+      end
     end
 
     if md

@@ -18,17 +18,6 @@ module Truffle
       Primitive.regexp_last_match_set(s, v)
     }
 
-    def self.search_region(re, str, start_index, end_index, forward, create_match_data)
-      if forward
-        from = start_index
-        to = end_index
-      else
-        from = end_index
-        to = start_index
-      end
-      match_in_region(re, str, from, to, false, 0, create_match_data)
-    end
-
     # MRI: rb_reg_match_m/reg_match_pos
     def self.match(re, str, pos = 0)
       return nil unless str
@@ -39,7 +28,7 @@ module Truffle
       return nil if pos < 0 or pos > str.size
       pos = Primitive.character_index_to_byte_index(str, pos)
 
-      search_region(re, str, pos, str.bytesize, true, true)
+      Primitive.regexp_search(re, str, pos)
     end
 
     # MRI: rb_reg_match_p
@@ -52,14 +41,14 @@ module Truffle
       return false if pos < 0 or pos > str.size
       pos = Primitive.character_index_to_byte_index(str, pos)
 
-      search_region(re, str, pos, str.bytesize, true, false)
+      Primitive.regexp_search?(re, str, pos)
     end
     Primitive.always_split singleton_class, :match?
 
     def self.match_from(re, str, pos)
       return nil unless str
 
-      search_region(re, str, pos, str.bytesize, true, true)
+      Primitive.regexp_search(re, str, pos)
     end
 
     Truffle::Boot.delay do
@@ -73,16 +62,6 @@ module Truffle
       end
     end
 
-    def self.match_in_region(re, str, from, to, at_start, start, create_match_data = true)
-      if COMPARE_ENGINES
-        match_in_region_compare_engines(re, str, from, to, at_start, start, create_match_data)
-      elsif USE_TRUFFLE_REGEX
-        Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start, create_match_data)
-      else
-        Primitive.regexp_match_in_region(re, str, from, to, at_start, start, create_match_data)
-      end
-    end
-
     def self.match_in_region_compare_engines(re, str, from, to, at_start, start, create_match_data)
       begin
         md1 = Primitive.regexp_match_in_region_tregex(re, str, from, to, at_start, start, create_match_data)
@@ -90,7 +69,7 @@ module Truffle
         md1 = e
       end
       begin
-        md2 = Primitive.regexp_match_in_region(re, str, from, to, at_start, start, create_match_data)
+        md2 = Primitive.regexp_match_in_region_joni(re, str, from, to, at_start, start, create_match_data)
       rescue => e
         md2 = e
       end

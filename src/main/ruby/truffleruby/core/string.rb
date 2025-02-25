@@ -149,7 +149,7 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      match_data = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, true, true)
+      match_data = Primitive.regexp_search(pattern, self, 0)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
     when String
@@ -280,7 +280,7 @@ class String
 
   def rpartition(pattern)
     if Primitive.is_a?(pattern, Regexp)
-      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
+      if m = Primitive.regexp_search_backward(pattern, self, bytesize)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m[0], m.post_match]
       end
@@ -1153,7 +1153,7 @@ class String
     if Primitive.is_a?(sub, Regexp)
       Primitive.regexp_check_encoding(sub, self)
 
-      match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false, true)
+      match_data = Primitive.regexp_search_backward(sub, self, byte_finish)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
 
@@ -1224,7 +1224,7 @@ class String
     if Primitive.is_a?(str, Regexp)
       Primitive.regexp_check_encoding(str, self)
 
-      match = Truffle::RegexpOperations.search_region(str, self, 0, finish, false, true)
+      match = Primitive.regexp_search_backward(str, self, finish)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
       return match ? Primitive.match_data_byte_begin(match, 0) : nil
     end
@@ -1253,7 +1253,7 @@ class String
     prefixes.each do |original_prefix|
       case original_prefix
       when Regexp
-        match_data = Truffle::RegexpOperations.match_in_region(original_prefix, self, 0, bytesize, true, 0)
+        match_data = Primitive.regexp_match_at_start(original_prefix, self, 0, 0)
         Primitive.regexp_last_match_set(storage, match_data)
         return true if match_data
       else
