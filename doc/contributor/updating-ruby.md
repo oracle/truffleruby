@@ -135,10 +135,11 @@ rm -rf lib/gems/specifications
 cd ~/.rubies/ruby-$VERSION
 cp -R lib/ruby/gems/*.0/gems $TRUFFLERUBY/lib/gems
 cp -R lib/ruby/gems/*.0/specifications $TRUFFLERUBY/lib/gems
-rm -f lib/gems/gems/**/*.{o,a,so,bundle} lib/gems/gems/**/{Makefile,extconf.h,mkmf.log} lib/gems/gems/**/*.mk
 
 cd $TRUFFLERUBY
+rm -f lib/gems/gems/**/*.{o,a,so,bundle} lib/gems/gems/**/{Makefile,extconf.h,mkmf.log} lib/gems/gems/**/*.mk
 rm -rf lib/gems/gems/typeprof-* lib/gems/specifications/typeprof-*.gemspec
+rm lib/gems/gems/rbs-*/Gemfile.lock
 ruby tool/patch-default-gemspecs.rb
 ```
 

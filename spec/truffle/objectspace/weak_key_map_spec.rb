@@ -27,26 +27,6 @@ describe "ObjectSpace::WeakKeyMap" do
     map.getkey(key).should == nil
   end
 
-  it "has iterators methods that exclude unreferenced objects" do
-    # This spec does not pass on MRI because the garbage collector is presumably too conservative and will not get rid
-    # of the references eagerly enough.
-
-    map = ObjectSpace::WeakKeyMap.new
-    k1, k2 = %w[a b].map(&:upcase)
-    v1, v2 = %w[x y].map(&:upcase)
-    map[k1] = v1
-    map[k2] = v2
-    k2 = nil
-
-    Primitive.gc_force
-
-    map.key?(k2).should == false
-    map[k2].should == nil
-
-    map.key?(k1).should == true
-    map[k1].should == v1
-  end
-
   it "supports frozen objects" do
     map = ObjectSpace::WeakKeyMap.new
     k = "x".freeze

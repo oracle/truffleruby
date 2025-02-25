@@ -119,6 +119,13 @@ describe :string_slice_index_length, shared: true do
     "hello there".send(@method, -4,-3).should == nil
   end
 
+  platform_is pointer_size: 64 do
+    it "returns nil if the length is negative big value" do
+      "hello there".send(@method, 4, -(1 << 31)).should == nil
+      "hello there".send(@method, 4, -(1 << 63)).should == nil
+    end
+  end
+
   it "calls to_int on the given index and the given length" do
     "hello".send(@method, 0.5, 1).should == "h"
     "hello".send(@method, 0.5, 2.5).should == "he"
@@ -150,6 +157,11 @@ describe :string_slice_index_length, shared: true do
   it "raises a RangeError if the index or length is too big" do
     -> { "hello".send(@method, bignum_value, 1) }.should raise_error(RangeError)
     -> { "hello".send(@method, 0, bignum_value) }.should raise_error(RangeError)
+  end
+
+  it "raises a RangeError if the index or length is too small" do
+    -> { "hello".send(@method, -bignum_value, 1) }.should raise_error(RangeError)
+    -> { "hello".send(@method, 0, -bignum_value) }.should raise_error(RangeError)
   end
 
   it "returns String instances" do
