@@ -54,7 +54,7 @@ module Truffle
 
       search_region(re, str, pos, str.bytesize, true, false)
     end
-    Truffle::Graal.always_split(method(:match?))
+    Primitive.always_split singleton_class, :match?
 
     def self.match_from(re, str, pos)
       return nil unless str

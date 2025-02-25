@@ -147,7 +147,7 @@ class Regexp
       Truffle::RegexpOperations.union(str, sep, *patterns)
     end
   end
-  Truffle::Graal.always_split(method(:union))
+  Primitive.always_split singleton_class, :union
 
   def self.new(pattern, opts = undefined, encoding = nil)
     if Primitive.is_a?(pattern, Regexp)
@@ -198,7 +198,7 @@ class Regexp
 
     Primitive.regexp_compile pattern, opts # may be overridden by subclasses
   end
-  Truffle::Graal.always_split(method(:new))
+  Primitive.always_split singleton_class, :new
 
   class << self
     alias_method :compile, :new

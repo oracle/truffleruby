@@ -17,5 +17,5 @@ class UnboundMethod
   def bind_call(recv, ...)
     bind(recv).call(...)
   end
-  Truffle::Graal.always_split instance_method(:bind_call)
+  Primitive.always_split self, :bind_call
 end

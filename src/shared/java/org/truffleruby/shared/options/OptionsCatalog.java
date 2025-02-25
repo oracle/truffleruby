@@ -1167,7 +1167,7 @@ public final class OptionsCatalog {
 
     public static final OptionDescriptor ALWAYS_SPLIT_HONOR = OptionDescriptor
             .newBuilder(ALWAYS_SPLIT_HONOR_KEY, "ruby.always-split-honor")
-            .help("Honor Truffle::Graal.always_split annotations")
+            .help("Honor Primitive.always_split annotations")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .usageSyntax("")

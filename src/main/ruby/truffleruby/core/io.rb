@@ -1687,7 +1687,7 @@ class IO
     fmt = StringValue(fmt)
     write sprintf(fmt, *args)
   end
-  Truffle::Graal.always_split(instance_method(:printf))
+  Primitive.always_split self, :printf
 
   def pwrite(object, offset)
     string = Truffle::Type.rb_obj_as_string(object)
@@ -2461,7 +2461,7 @@ class IO::BidirectionalPipe < IO
   def printf(fmt, *args)
     @write.printf(fmt, *args)
   end
-  Truffle::Graal.always_split(instance_method(:printf))
+  Primitive.always_split self, :printf
 
   def putc(obj)
     @write.putc(obj)

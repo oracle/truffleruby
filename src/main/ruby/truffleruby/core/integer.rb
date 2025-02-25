@@ -55,7 +55,7 @@ class Integer < Numeric
 
     redo_coerced :**, o
   end
-  Truffle::Graal.always_split instance_method(:**)
+  Primitive.always_split self, :**
 
   def [](index, len = undefined)
     if Primitive.is_a?(index, Range)
@@ -147,7 +147,7 @@ class Integer < Numeric
       Primitive.mod_pow(self, exponent, modulus)
     end
   end
-  Truffle::Graal.always_split instance_method(:pow)
+  Primitive.always_split self, :pow
 
   def times
     return to_enum(:times) { self } unless block_given?
@@ -159,7 +159,7 @@ class Integer < Numeric
     end
     self
   end
-  Truffle::Graal.always_split instance_method(:times)
+  Primitive.always_split self, :times
 
   def truncate(precision = 0)
     if precision >= 0
@@ -363,7 +363,7 @@ class Integer < Numeric
     end
     self
   end
-  Truffle::Graal.always_split instance_method(:upto_internal)
+  Primitive.always_split self, :upto_internal
 
   private def downto_internal(val)
     return to_enum(:downto, val) { self >= val ? self - val + 1 : 0 } unless block_given?
@@ -375,7 +375,7 @@ class Integer < Numeric
     end
     self
   end
-  Truffle::Graal.always_split instance_method(:downto_internal)
+  Primitive.always_split self, :downto_internal
 
   class << self
     undef_method :new
