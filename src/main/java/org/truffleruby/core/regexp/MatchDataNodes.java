@@ -220,11 +220,11 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 })
+    @Primitive(name = "matchdata_create_single_group", lowerFixnum = { 2, 3 }, isPublic = true)
     public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        Object create(Object regexp, Object string, int start, int end) {
+        RubyMatchData create(Object regexp, Object string, int start, int end) {
             final MultiRegion region = new MultiRegion(start, end);
             RubyMatchData matchData = new RubyMatchData(
                     coreLibrary().matchDataClass,
@@ -620,7 +620,7 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @Primitive(name = "match_data_byte_begin", lowerFixnum = 1)
+    @Primitive(name = "match_data_byte_begin", lowerFixnum = 1, isPublic = true)
     public abstract static class ByteBeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
@@ -649,7 +649,7 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @Primitive(name = "match_data_byte_end", lowerFixnum = 1)
+    @Primitive(name = "match_data_byte_end", lowerFixnum = 1, isPublic = true)
     public abstract static class ByteEndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
