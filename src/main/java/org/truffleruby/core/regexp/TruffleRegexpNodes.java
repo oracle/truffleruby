@@ -949,6 +949,111 @@ public abstract class TruffleRegexpNodes {
         }
     }
 
+    public abstract static class MatchNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher, int from, int to,
+                boolean onlyMatchAtStart, int start, boolean createMatchData);
+
+        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
+        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
+        // implemented using the source string data. We mustn't allow the source string's contents to change, however, so we must ensure that we have
+        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
+        // the MatchData object, it would be possible for the source string to be modified externally.
+        //
+        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
+        //
+        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
+        // same as when the MatchData was created.
+        @Specialization
+        Object match(
+                RubyRegexp regexp,
+                Object string,
+                Matcher matcher,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
+                boolean createMatchData,
+                @Cached LazyDispatchNode stringDupNode,
+                @Cached InlinedConditionProfile createMatchDataProfile,
+                @Cached InlinedConditionProfile mismatchProfile,
+                @Cached InlinedConditionProfile nonZeroStart,
+                @Cached FixupMatchDataStartNode fixupMatchDataStartNode) {
+            if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
+                TruffleRegexpNodes.instrumentMatch(
+                        MATCHED_REGEXPS_JONI,
+                        regexp,
+                        string,
+                        onlyMatchAtStart,
+                        getContext().getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
+            }
+
+            int match = runMatch(matcher, from, to, onlyMatchAtStart);
+
+            if (createMatchDataProfile.profile(this, createMatchData)) {
+                if (mismatchProfile.profile(this, match == Matcher.FAILED)) {
+                    return nil;
+                }
+
+                assert match >= 0;
+
+                final MultiRegion region = getMatcherEagerRegion(matcher);
+                assert assertValidRegion(region);
+
+                var dupedString = stringDupNode.get(this).call(string, "dup");
+                RubyMatchData result = new RubyMatchData(
+                        coreLibrary().matchDataClass,
+                        getLanguage().matchDataShape,
+                        regexp,
+                        dupedString,
+                        region);
+                AllocationTracing.trace(result, this);
+
+                if (nonZeroStart.profile(this, start != 0)) {
+                    fixupMatchDataStartNode.execute(this, result, start);
+                }
+
+                return result;
+            } else {
+                return match != Matcher.FAILED;
+            }
+        }
+
+        @TruffleBoundary
+        private int runMatch(Matcher matcher, int from, int to, boolean onlyMatchAtStart) {
+            // Keep status as RUN because MRI has an uninterruptible Regexp engine
+            if (onlyMatchAtStart) {
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        unused -> matcher.matchInterruptible(from, to, Option.DEFAULT), null);
+            } else {
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        unused -> matcher.searchInterruptible(from, to, Option.DEFAULT), null);
+            }
+        }
+
+        /** Is equivalent to {@link org.graalvm.shadowed.org.joni.Matcher#getEagerRegion()} but returns MultiRegion
+         * instead of abstract Region class */
+        private MultiRegion getMatcherEagerRegion(Matcher matcher) {
+            Region eagerRegion = matcher.getEagerRegion();
+
+            if (eagerRegion instanceof SingleRegion singleRegion) {
+                return new MultiRegion(singleRegion.getBeg(0), singleRegion.getEnd(0));
+            } else if (eagerRegion instanceof MultiRegion multiRegion) {
+                return multiRegion;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        private boolean assertValidRegion(MultiRegion region) {
+            for (int i = 0; i < region.getNumRegs(); i++) {
+                assert region.getBeg(i) >= 0 || region.getBeg(i) == RubyMatchData.MISSING;
+                assert region.getEnd(i) >= 0 || region.getEnd(i) == RubyMatchData.MISSING;
+            }
+            return true;
+        }
+    }
+
     @GenerateCached(false)
     @GenerateInline
     public abstract static class LazyMatchInRegionJoniNode extends RubyBaseNode {
@@ -1179,111 +1284,6 @@ public abstract class TruffleRegexpNodes {
             boolean isBacktracking = (boolean) InteropNodes.readMember(node, regexInterop, compiledRegex,
                     "isBacktracking", translateInteropExceptionNode);
             return !isBacktracking;
-        }
-    }
-
-    public abstract static class MatchNode extends RubyBaseNode {
-
-        public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
-                int from, int to, boolean onlyMatchAtStart, int start, boolean createMatchData);
-
-        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
-        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
-        // implemented using the source string data. We mustn't allow the source string's contents to change, however, so we must ensure that we have
-        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
-        // the MatchData object, it would be possible for the source string to be modified externally.
-        //
-        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
-        //
-        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
-        // same as when the MatchData was created.
-        @Specialization
-        Object match(
-                RubyRegexp regexp,
-                Object string,
-                Matcher matcher,
-                int from,
-                int to,
-                boolean onlyMatchAtStart,
-                int start,
-                boolean createMatchData,
-                @Cached LazyDispatchNode stringDupNode,
-                @Cached InlinedConditionProfile createMatchDataProfile,
-                @Cached InlinedConditionProfile mismatchProfile,
-                @Cached InlinedConditionProfile nonZeroStart,
-                @Cached FixupMatchDataStartNode fixupMatchDataStartNode) {
-            if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
-                TruffleRegexpNodes.instrumentMatch(
-                        MATCHED_REGEXPS_JONI,
-                        regexp,
-                        string,
-                        onlyMatchAtStart,
-                        getContext().getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
-            }
-
-            int match = runMatch(matcher, from, to, onlyMatchAtStart);
-
-            if (createMatchDataProfile.profile(this, createMatchData)) {
-                if (mismatchProfile.profile(this, match == Matcher.FAILED)) {
-                    return nil;
-                }
-
-                assert match >= 0;
-
-                final MultiRegion region = getMatcherEagerRegion(matcher);
-                assert assertValidRegion(region);
-
-                var dupedString = stringDupNode.get(this).call(string, "dup");
-                RubyMatchData result = new RubyMatchData(
-                        coreLibrary().matchDataClass,
-                        getLanguage().matchDataShape,
-                        regexp,
-                        dupedString,
-                        region);
-                AllocationTracing.trace(result, this);
-
-                if (nonZeroStart.profile(this, start != 0)) {
-                    fixupMatchDataStartNode.execute(this, result, start);
-                }
-
-                return result;
-            } else {
-                return match != Matcher.FAILED;
-            }
-        }
-
-        @TruffleBoundary
-        private int runMatch(Matcher matcher, int from, int to, boolean onlyMatchAtStart) {
-            // Keep status as RUN because MRI has an uninterruptible Regexp engine
-            if (onlyMatchAtStart) {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        unused -> matcher.matchInterruptible(from, to, Option.DEFAULT), null);
-            } else {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        unused -> matcher.searchInterruptible(from, to, Option.DEFAULT), null);
-            }
-        }
-
-        /** Is equivalent to {@link org.graalvm.shadowed.org.joni.Matcher#getEagerRegion()} but returns MultiRegion
-         * instead of abstract Region class */
-        private MultiRegion getMatcherEagerRegion(Matcher matcher) {
-            Region eagerRegion = matcher.getEagerRegion();
-
-            if (eagerRegion instanceof SingleRegion singleRegion) {
-                return new MultiRegion(singleRegion.getBeg(0), singleRegion.getEnd(0));
-            } else if (eagerRegion instanceof MultiRegion multiRegion) {
-                return multiRegion;
-            } else {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-        }
-
-        private boolean assertValidRegion(MultiRegion region) {
-            for (int i = 0; i < region.getNumRegs(); i++) {
-                assert region.getBeg(i) >= 0 || region.getBeg(i) == RubyMatchData.MISSING;
-                assert region.getEnd(i) >= 0 || region.getEnd(i) == RubyMatchData.MISSING;
-            }
-            return true;
         }
     }
 
