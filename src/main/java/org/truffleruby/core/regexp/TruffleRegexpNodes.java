@@ -63,6 +63,7 @@ import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.core.regexp.MatchDataNodes.FixupMatchDataStartNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.StringHelperNodes.StringToTruffleStringInplaceNode;
@@ -386,60 +387,60 @@ public abstract class TruffleRegexpNodes {
     @ImportStatic(Encodings.class)
     public abstract static class TRegexCompileNode extends RubyBaseNode {
 
-        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, RubyEncoding encoding);
+        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding);
 
         @Child DispatchNode warnOnFallbackNode;
 
         @Specialization(guards = "encoding == US_ASCII")
-        Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object usASCII(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
+            final Object tregex = regexp.tregexCache.getUSASCIIRegex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == ISO_8859_1")
-        Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object latin1(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
+            final Object tregex = regexp.tregexCache.getLatin1Regex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == UTF_8")
-        Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object utf8(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
+            final Object tregex = regexp.tregexCache.getUTF8Regex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == BINARY")
-        Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object binary(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
+            final Object tregex = regexp.tregexCache.getBinaryRegex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Fallback
-        Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object other(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding) {
             return nil;
         }
 
@@ -789,8 +790,8 @@ public abstract class TruffleRegexpNodes {
             return TruffleRegexpNodesFactory.MatchInRegionNodeFactory.create(null);
         }
 
-        public abstract Object executeMatchInRegion(RubyRegexp regexp, Object string, int fromPos, int toPos,
-                boolean atStart, int startPos, boolean createMatchData);
+        public abstract Object executeMatchInRegion(RubyRegexp regexp, Object string, int from, int to,
+                boolean onlyMatchAtStart, int start, boolean createMatchData);
 
         /** Matches a regular expression against a string over the specified range of characters.
          *
@@ -798,16 +799,16 @@ public abstract class TruffleRegexpNodes {
          *
          * @param string The string to match against
          *
-         * @param fromPos The position to search from
+         * @param from The position to search from
          *
-         * @param toPos The position to search to (if less than from pos then this means search backwards)
+         * @param to The position to search to (if less than from pos then this means search backwards)
          *
-         * @param atStart Whether to only match at the beginning of the string, if false then the regexp can have any
-         *            amount of prematch.
+         * @param onlyMatchAtStart Whether to only match at the beginning of the string, if false then the regexp can
+         *            have any amount of prematch.
          *
-         * @param startPos The position within the string which the matcher should consider the start. Setting this to
-         *            the from position allows scanners to match starting part-way through a string while still setting
-         *            atStart and thus forcing the match to be at the specific starting position.
+         * @param start The position within the string which the matcher should consider the start. Setting this to the
+         *            from position allows scanners to match starting part-way through a string while still setting
+         *            onlyMatchAtStart and thus forcing the match to be at the specific starting position.
          *
          * @param createMatchData Whether to create a Ruby `MatchData` object with the results of the match or return a
          *            simple Boolean value indicating a successful match (true: match; false: mismatch). */
@@ -815,10 +816,10 @@ public abstract class TruffleRegexpNodes {
         static Object matchInRegion(
                 RubyRegexp regexp,
                 Object string,
-                int fromPos,
-                int toPos,
-                boolean atStart,
-                int startPos,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
                 boolean createMatchData,
                 @Cached InlinedConditionProfile createMatchDataProfile,
                 @Cached InlinedConditionProfile encodingMismatchProfile,
@@ -849,12 +850,12 @@ public abstract class TruffleRegexpNodes {
 
             final Matcher matcher;
             if (createMatchDataProfile.profile(node, createMatchData)) {
-                matcher = getMatcher(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
+                matcher = getMatcher(regex, byteArray.getArray(), offset + start, byteArray.getEnd());
             } else {
-                matcher = getMatcherNoRegion(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
+                matcher = getMatcherNoRegion(regex, byteArray.getArray(), offset + start, byteArray.getEnd());
             }
 
-            return matchNode.execute(regexp, string, matcher, offset + fromPos, offset + toPos, atStart,
+            return matchNode.execute(regexp, string, matcher, offset + from, offset + to, onlyMatchAtStart, start,
                     createMatchData);
         }
     }
@@ -897,14 +898,15 @@ public abstract class TruffleRegexpNodes {
     public abstract static class MatchInRegionTRegexNode extends PrimitiveArrayArgumentsNode {
 
 
+        /** See {@link MatchInRegionNode#matchInRegion} for parameters documentation */
         @Specialization
         static Object matchInRegionTRegex(
                 RubyRegexp regexp,
                 Object string,
-                int fromPos,
-                int toPos,
-                boolean atStart,
-                int startPos,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
                 boolean createMatchData,
                 @Cached StringToTruffleStringInplaceNode stringToTruffleStringInplaceNode,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
@@ -912,7 +914,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached InlinedConditionProfile matchFoundProfile,
                 @Cached InlinedConditionProfile tRegexCouldNotCompileProfile,
                 @Cached InlinedConditionProfile tRegexIncompatibleProfile,
-                @Cached InlinedConditionProfile startPosNotZeroProfile,
+                @Cached InlinedConditionProfile startNotZeroProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
@@ -925,6 +927,8 @@ public abstract class TruffleRegexpNodes {
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
+                @Cached InlinedConditionProfile nonZeroStart,
+                @Cached FixupMatchDataStartNode fixupMatchDataStartNode,
                 @Bind Node node) {
             stringToTruffleStringInplaceNode.execute(node, string);
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
@@ -933,20 +937,20 @@ public abstract class TruffleRegexpNodes {
 
             final Object tRegex;
             if (tRegexIncompatibleProfile
-                    .profile(node, toPos < fromPos || toPos != byteLength || fromPos < 0) ||
+                    .profile(node, to < from || to != byteLength || from < 0) ||
                     tRegexCouldNotCompileProfile.profile(node, (tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
-                            atStart,
+                            onlyMatchAtStart,
                             negotiatedEncoding)) == nil)) {
                 return fallbackToJoni(
                         node,
                         regexp,
                         string,
                         negotiatedEncoding,
-                        fromPos,
-                        toPos,
-                        atStart,
-                        startPos,
+                        from,
+                        to,
+                        onlyMatchAtStart,
+                        start,
                         createMatchData,
                         warnOnFallbackNode,
                         fallbackMatchInRegionNode.get(node));
@@ -957,29 +961,29 @@ public abstract class TruffleRegexpNodes {
                         MATCHED_REGEXPS_TREGEX,
                         regexp,
                         string,
-                        atStart,
+                        onlyMatchAtStart,
                         getContext(node).getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
             }
 
-            int fromIndex = fromPos;
+            int fromIndex = from;
             final TruffleString tstringToMatch;
             final String execMethod;
 
             if (createMatchDataProfile.profile(node, createMatchData)) {
-                if (startPosNotZeroProfile.profile(node, startPos > 0)) {
-                    // If startPos != 0, then fromPos == startPos.
-                    assert fromPos == startPos;
+                if (startNotZeroProfile.profile(node, start > 0)) {
+                    // If start != 0, then from == start.
+                    assert from == start;
                     fromIndex = 0;
 
-                    tstringToMatch = substringByteIndexNode.get(node).execute(tstring, startPos, toPos - startPos,
+                    tstringToMatch = substringByteIndexNode.get(node).execute(tstring, start, to - start,
                             negotiatedEncoding.tencoding, true);
                 } else {
                     tstringToMatch = tstring;
                 }
                 execMethod = "exec";
             } else {
-                // Only strscan ever passes a non-zero startPos and that never uses `match?`.
-                assert startPos == 0 : "Simple Boolean match not supported with non-zero startPos";
+                // Only strscan ever passes a non-zero start and that never uses `match?`.
+                assert start == 0 : "Simple Boolean match not supported with non-zero start";
 
                 tstringToMatch = tstring;
                 execMethod = "execBoolean";
@@ -1009,7 +1013,12 @@ public abstract class TruffleRegexpNodes {
                         profileAndReportLoopCount(node, loopProfile, groupCount);
                     }
 
-                    return createMatchData(node, regexp, dupString(string, stringDupNode.get(node)), region, result);
+                    var matchData = createMatchData(node, regexp, dupString(string, stringDupNode.get(node)), region,
+                            result);
+                    if (nonZeroStart.profile(node, start != 0)) {
+                        fixupMatchDataStartNode.execute(node, matchData, start);
+                    }
+                    return matchData;
                 } else {
                     return nil;
                 }
@@ -1019,9 +1028,8 @@ public abstract class TruffleRegexpNodes {
         }
 
         private static Object fallbackToJoni(Node node, RubyRegexp regexp, Object string, RubyEncoding encoding,
-                int fromPos, int toPos,
-                boolean atStart, int startPos, boolean createMatchData, LazyDispatchNode warnOnFallbackNode,
-                MatchInRegionNode fallbackMatchInRegionNode) {
+                int from, int to, boolean onlyMatchAtStart, int start, boolean createMatchData,
+                LazyDispatchNode warnOnFallbackNode, MatchInRegionNode fallbackMatchInRegionNode) {
             if (getContext(node).getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
 
                 warnOnFallbackNode.get(node).call(
@@ -1031,17 +1039,17 @@ public abstract class TruffleRegexpNodes {
                                 regexp,
                                 string,
                                 encoding,
-                                fromPos,
-                                toPos,
-                                atStart,
-                                startPos });
+                                from,
+                                to,
+                                onlyMatchAtStart,
+                                start });
             }
 
             return fallbackMatchInRegionNode
-                    .executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos, createMatchData);
+                    .executeMatchInRegion(regexp, string, from, to, onlyMatchAtStart, start, createMatchData);
         }
 
-        private static Object createMatchData(Node node, RubyRegexp regexp, Object string, MultiRegion region,
+        private static RubyMatchData createMatchData(Node node, RubyRegexp regexp, Object string, MultiRegion region,
                 Object tRegexResult) {
             final RubyMatchData matchData = new RubyMatchData(
                     coreLibrary(node).matchDataClass,
@@ -1086,7 +1094,7 @@ public abstract class TruffleRegexpNodes {
         @Child private DispatchNode dupNode = DispatchNode.create();
 
         public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
-                int startPos, int range, boolean onlyMatchAtStart, boolean createMatchData);
+                int from, int to, boolean onlyMatchAtStart, int start, boolean createMatchData);
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
         // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
@@ -1104,12 +1112,15 @@ public abstract class TruffleRegexpNodes {
                 RubyRegexp regexp,
                 Object string,
                 Matcher matcher,
-                int startPos,
-                int range,
+                int from,
+                int to,
                 boolean onlyMatchAtStart,
+                int start,
                 boolean createMatchData,
                 @Cached InlinedConditionProfile createMatchDataProfile,
-                @Cached InlinedConditionProfile mismatchProfile) {
+                @Cached InlinedConditionProfile mismatchProfile,
+                @Cached InlinedConditionProfile nonZeroStart,
+                @Cached FixupMatchDataStartNode fixupMatchDataStartNode) {
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
                 TruffleRegexpNodes.instrumentMatch(
                         MATCHED_REGEXPS_JONI,
@@ -1119,7 +1130,7 @@ public abstract class TruffleRegexpNodes {
                         getContext().getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
             }
 
-            int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
+            int match = runMatch(matcher, from, to, onlyMatchAtStart);
 
             if (createMatchDataProfile.profile(this, createMatchData)) {
                 if (mismatchProfile.profile(this, match == Matcher.FAILED)) {
@@ -1130,6 +1141,7 @@ public abstract class TruffleRegexpNodes {
 
                 final MultiRegion region = getMatcherEagerRegion(matcher);
                 assert assertValidRegion(region);
+
                 final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
                 RubyMatchData result = new RubyMatchData(
                         coreLibrary().matchDataClass,
@@ -1138,6 +1150,11 @@ public abstract class TruffleRegexpNodes {
                         dupedString,
                         region);
                 AllocationTracing.trace(result, this);
+
+                if (nonZeroStart.profile(this, start != 0)) {
+                    fixupMatchDataStartNode.execute(this, result, start);
+                }
+
                 return result;
             } else {
                 return match != Matcher.FAILED;
@@ -1145,14 +1162,14 @@ public abstract class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
+        private int runMatch(Matcher matcher, int from, int to, boolean onlyMatchAtStart) {
             // Keep status as RUN because MRI has an uninterruptible Regexp engine
             if (onlyMatchAtStart) {
                 return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        unused -> matcher.matchInterruptible(startPos, range, Option.DEFAULT), null);
+                        unused -> matcher.matchInterruptible(from, to, Option.DEFAULT), null);
             } else {
                 return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        unused -> matcher.searchInterruptible(startPos, range, Option.DEFAULT), null);
+                        unused -> matcher.searchInterruptible(from, to, Option.DEFAULT), null);
             }
         }
 

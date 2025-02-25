@@ -387,7 +387,6 @@ class StringScanner
     else
       start = @fixed_anchor ? 0 : @pos
       md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, start
-      Primitive.matchdata_fixup_positions(md, start) if md
     end
 
     if md

@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.dsl.GenerateCached;
+import com.oracle.truffle.api.dsl.GenerateInline;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -188,35 +190,35 @@ public abstract class MatchDataNodes {
         }
     }
 
-    @TruffleBoundary
-    private static void fixupMatchDataForStart(RubyMatchData matchData, int startPos) {
-        assert startPos != 0;
-        MultiRegion regs = matchData.region;
-        for (int i = 0; i < regs.getNumRegs(); i++) {
-            assert regs.getBeg(i) != RubyMatchData.LAZY && regs
-                    .getEnd(i) != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
-            if (regs.getBeg(i) >= 0) {
-                regs.setBeg(i, regs.getBeg(i) + startPos);
-                regs.setEnd(i, regs.getEnd(i) + startPos);
-            }
-        }
-    }
+    @GenerateInline
+    @GenerateCached(false)
+    public abstract static class FixupMatchDataStartNode extends RubyBaseNode {
 
-    @Primitive(name = "matchdata_fixup_positions", lowerFixnum = { 1 })
-    public abstract static class FixupMatchData extends PrimitiveArrayArgumentsNode {
+        public abstract void execute(Node node, RubyMatchData matchData, int start);
 
         @Specialization
-        RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos,
-                @Cached InlinedConditionProfile nonZeroPos,
+        static void fixupMatchData(Node node, RubyMatchData matchData, int start,
                 @Cached InlinedConditionProfile lazyProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary interop) {
-            if (nonZeroPos.profile(this, startPos != 0)) {
-                if (lazyProfile.profile(this, matchData.tRegexResult != null)) {
-                    forceLazyMatchData(matchData, interop);
-                }
-                fixupMatchDataForStart(matchData, startPos);
+            assert start != 0 : "should be checked by caller";
+            if (lazyProfile.profile(node, matchData.tRegexResult != null)) {
+                forceLazyMatchData(matchData, interop);
             }
-            return matchData;
+            fixupMatchDataForStart(matchData, start);
+        }
+
+        @TruffleBoundary
+        private static void fixupMatchDataForStart(RubyMatchData matchData, int start) {
+            assert start != 0;
+            MultiRegion regs = matchData.region;
+            for (int i = 0; i < regs.getNumRegs(); i++) {
+                assert regs.getBeg(i) != RubyMatchData.LAZY && regs
+                        .getEnd(i) != RubyMatchData.LAZY : "Group bounds must be computed before fixupMatchDataForStart()";
+                if (regs.getBeg(i) >= 0) {
+                    regs.setBeg(i, regs.getBeg(i) + start);
+                    regs.setEnd(i, regs.getEnd(i) + start);
+                }
+            }
         }
     }
 
