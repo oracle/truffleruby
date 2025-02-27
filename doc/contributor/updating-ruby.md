@@ -166,8 +166,9 @@ Update all of these:
 
 * Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION`
 * Reset `truffleruby-abi-version.h` to `$RUBY_VERSION.1` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
+  * use `$RUBY_VERSION.$GRAALVM_VERSION.1` for releases in `truffleruby-abi-version.h`
 * Update `versions.json`
-  * with bundled gem versions provided by `cat ../ruby/gems/bundled_gems | sort`,
+  * with bundled gem versions provided by `cat ../ruby/gems/bundled_gems | sort` (ensure the target Ruby version is checked out in the `../ruby` directory),
   * default gem versions provided by `ls -l lib/gems/specifications/default`
   * and `gem` gem version provided by `grep 'VERSION =' lib/mri/rubygems.rb`
 * Also update version numbers for `debug`, `racc`, and `rbs` in `src/main/c/Makefile`, `mx.truffleruby/suite.py` and `lib/gems/gems/debug-*/ext/debug/extconf.rb`.
@@ -176,9 +177,11 @@ Update all of these:
 * Copy and paste the TruffleRuby `--help` output to `doc/user/options.md` (e.g., with `jt ruby --help | xsel -b`)
 * Update `doc/user/compatibility.md` and `README.md`
 * Update `doc/legal/legal.md`, notably the `Bundled gems` section
-* Update method lists - see `spec/truffle/methods_spec.rb`
+* Update method lists (see `spec/truffle/methods_spec.rb`)
+  * run `jt -u ruby test spec/truffle/methods_spec.rb` to add new methods
+  * run `jt purge spec/truffle/methods_spec.rb` to remove tags for implemented methods
 * Build TruffleRuby (`jt build`).
-* Run `jt test gems default-bundled-gems`
+* Run `jt test gems default-bundled-gems` and commit generated `Gemfile` and `Gemfile.lock` files
 * Get `jt test spec/truffle/rubygems/default_gems_list_spec.rb` to pass
 * Grep for the old Ruby version with `git grep -F x.y.z`
 * Grep for the old Bundler version with `git grep -F x.y.z`
