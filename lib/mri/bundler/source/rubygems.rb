@@ -148,7 +148,7 @@ module Bundler
       end
 
       def install(spec, options = {})
-        if (spec.default_gem? && !cached_built_in_gem(spec)) || (installed?(spec) && !options[:force])
+        if (spec.default_gem? && !cached_built_in_gem(spec, local: options[:local])) || (installed?(spec) && !options[:force])
           print_using_message "Using #{version_message(spec, options[:previous_spec])}"
           return nil # no post-install message
         end
@@ -222,12 +222,13 @@ module Bundler
         raise InstallError, e.message
       end
 
-      def cached_built_in_gem(spec)
-        cached_path = cached_path(spec)
-        if cached_path.nil?
+      def cached_built_in_gem(spec, local: false)
+        cached_path = cached_gem(spec)
+        if cached_path.nil? && !local
           remote_spec = remote_specs.search(spec).first
           if remote_spec
             cached_path = fetch_gem(remote_spec)
+            spec.remote = remote_spec.remote
           else
             Bundler.ui.warn "#{spec.full_name} is built in to Ruby, and can't be cached because your Gemfile doesn't have any sources that contain it."
           end
@@ -324,14 +325,6 @@ module Bundler
       end
 
       def cached_gem(spec)
-        if spec.default_gem?
-          cached_built_in_gem(spec)
-        else
-          cached_path(spec)
-        end
-      end
-
-      def cached_path(spec)
         global_cache_path = download_cache_path(spec)
         caches << global_cache_path if global_cache_path
 
@@ -364,10 +357,7 @@ module Bundler
         @installed_specs ||= Index.build do |idx|
           Bundler.rubygems.installed_specs.reverse_each do |spec|
             spec.source = self
-            if Bundler.rubygems.spec_missing_extensions?(spec, false)
-              Bundler.ui.debug "Source #{self} is ignoring #{spec} because it is missing extensions"
-              next
-            end
+            next if spec.ignored?
             idx << spec
           end
         end

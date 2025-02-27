@@ -3,14 +3,13 @@
 require 'tempfile'
 
 class TestIOBuffer < Test::Unit::TestCase
-  # TruffleRuby: no IO::Buffer yet
-  # experimental = Warning[:experimental]
-  # begin
-  #   Warning[:experimental] = false
-  #   IO::Buffer.new(0)
-  # ensure
-  #   Warning[:experimental] = experimental
-  # end
+  experimental = Warning[:experimental]
+  begin
+    Warning[:experimental] = false
+    IO::Buffer.new(0)
+  ensure
+    Warning[:experimental] = experimental
+  end
 
   def assert_negative(value)
     assert(value < 0, "Expected #{value} to be negative!")
@@ -235,6 +234,43 @@ class TestIOBuffer < Test::Unit::TestCase
     assert_raise ArgumentError do
       buffer.slice(-10, 10)
     end
+  end
+
+  def test_slice_readonly
+    hello = %w"Hello World".join(" ").freeze
+    buffer = IO::Buffer.for(hello)
+    slice = buffer.slice
+    assert_predicate slice, :readonly?
+    assert_raise IO::Buffer::AccessError do
+      # This breaks the literal in string pool and many other tests in this file.
+      slice.set_string("Adios", 0, 5)
+    end
+    assert_equal "Hello World", hello
+  end
+
+  def test_transfer
+    hello = %w"Hello World".join(" ")
+    buffer = IO::Buffer.for(hello)
+    transferred = buffer.transfer
+    assert_equal "Hello World", transferred.get_string
+    assert_predicate buffer, :null?
+    assert_raise IO::Buffer::AccessError do
+      transferred.set_string("Goodbye")
+    end
+    assert_equal "Hello World", hello
+  end
+
+  def test_transfer_in_block
+    hello = %w"Hello World".join(" ")
+    buffer = IO::Buffer.for(hello, &:transfer)
+    assert_equal "Hello World", buffer.get_string
+    buffer.set_string("Ciao!")
+    assert_equal "Ciao! World", hello
+    hello.freeze
+    assert_raise IO::Buffer::AccessError do
+      buffer.set_string("Hola")
+    end
+    assert_equal "Ciao! World", hello
   end
 
   def test_locked

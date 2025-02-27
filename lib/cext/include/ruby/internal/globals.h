@@ -145,7 +145,6 @@ RUBY_EXTERN VALUE rb_eLoadError;                 /**< `LoadError` exception. */
 
 RUBY_EXTERN VALUE rb_eMathDomainError;           /**< `Math::DomainError` exception. */
 
-#ifndef TRUFFLERUBY
 /**
  * @}
  * @addtogroup object
@@ -155,11 +154,7 @@ RUBY_EXTERN VALUE rb_eMathDomainError;           /**< `Math::DomainError` except
 RUBY_EXTERN VALUE rb_stdin;                      /**< `STDIN` constant. */
 RUBY_EXTERN VALUE rb_stdout;                     /**< `STDOUT` constant. */
 RUBY_EXTERN VALUE rb_stderr;                     /**< `STDERR` constant. */
-#endif
 
-#ifdef TRUFFLERUBY
-VALUE rb_class_of(VALUE object);
-#else
 RBIMPL_ATTR_PURE()
 /**
  * Object  to class  mapping  function.   Every object  have  its class.   This
@@ -204,7 +199,6 @@ rb_class_of(VALUE obj)
     RUBY_ASSERT_FAIL("unexpected type");
 #endif
 }
-#endif
 
 #define CLASS_OF rb_class_of /**< @old{rb_class_of} */
 

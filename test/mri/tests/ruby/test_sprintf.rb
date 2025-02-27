@@ -227,6 +227,10 @@ class TestSprintf < Test::Unit::TestCase
 
     bug11766 = '[ruby-core:71806] [Bug #11766]'
     assert_equal("x"*10+"     1.0", sprintf("x"*10+"%8.1f", 1r), bug11766)
+
+    require 'rbconfig/sizeof'
+    fmin, fmax = RbConfig::LIMITS.values_at("FIXNUM_MIN", "FIXNUM_MAX")
+    assert_match(/\A-\d+\.\d+\z/, sprintf("%f", Rational(fmin, fmax)))
   end
 
   def test_rational_precision
@@ -341,20 +345,9 @@ class TestSprintf < Test::Unit::TestCase
   end
 
   def test_float_prec
-    # These four tests are intended to test the round half even
-    # behaviour. We have commented out two of these tests because the
-    # numbers used cannot be precisely represented in double precision
-    # floating point, and so the behaviour depends heavily on how you
-    # treat these cases. We format 5.015 to 5.01 because it is
-    # fractionally below 5.015, and we format 5.025 as 5.03 because it
-    # is fractionally above 5.025.
-
-    # MRI treats these cases differently, but it is unclear if this is
-    # by accident or design as they also format anything between
-    # 5.014999999999997 and 5.014999999999999 inclusive as 5.02,
     assert_equal("5.00", sprintf("%.2f",5.005))
-#    assert_equal("5.02", sprintf("%.2f",5.015))
-#    assert_equal("5.02", sprintf("%.2f",5.025))
+    assert_equal("5.02", sprintf("%.2f",5.015))
+    assert_equal("5.02", sprintf("%.2f",5.025))
     assert_equal("5.04", sprintf("%.2f",5.035))
     bug12889 = '[ruby-core:77864] [Bug #12889]'
     assert_equal("1234567892", sprintf("%.0f", 1234567891.99999))
@@ -552,6 +545,14 @@ class TestSprintf < Test::Unit::TestCase
   def test_negative_width_overflow
     assert_raise_with_message(ArgumentError, /too big/) do
       sprintf("%*s", RbConfig::LIMITS["INT_MIN"], "")
+    end
+  end
+
+  def test_binary_format_coderange
+    1.upto(500) do |i|
+      str = sprintf("%*s".b, i, "\xe2".b)
+      refute_predicate str, :ascii_only?
+      assert_equal i, str.bytesize
     end
   end
 end

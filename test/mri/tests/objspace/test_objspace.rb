@@ -7,8 +7,6 @@ rescue LoadError
 end
 
 class TestObjSpace < Test::Unit::TestCase
-  SOME_BASIC_OBJECT = BasicObject.new
-
   def test_memsize_of
     assert_equal(0, ObjectSpace.memsize_of(true))
     assert_equal(0, ObjectSpace.memsize_of(nil))
@@ -900,6 +898,12 @@ class TestObjSpace < Test::Unit::TestCase
 
   def test_load_allocation_path_load_from_binary
     # load_allocation_path_helper 'iseq = RubyVM::InstructionSequence.load_from_binary(File.binread(path))', to_binary: true
+  end
+
+  def test_escape_class_name
+    class_name = '" little boby table [Bug #20892]'
+    json = ObjectSpace.dump(Class.new.tap { |c| c.set_temporary_name(class_name) })
+    assert_equal class_name, JSON.parse(json)["name"]
   end
 
   def test_utf8_method_names

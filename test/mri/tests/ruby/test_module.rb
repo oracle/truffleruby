@@ -89,7 +89,7 @@ class TestModule < Test::Unit::TestCase
 
   OtherSetup = -> do
     remove_const :Other if defined? ::TestModule::Other
-    Other = Module.new do
+    module Other
       def other
       end
     end
@@ -782,6 +782,18 @@ class TestModule < Test::Unit::TestCase
     sc.prepend m1
     sc.prepend m1
     assert_equal([:m1, :m0, :m, :sc, :m1, :m0, :c], sc.new.m)
+  end
+
+  def test_include_into_module_after_prepend_bug_20871
+    bar = Module.new{def bar; 'bar'; end}
+    foo = Module.new{def foo; 'foo'; end}
+    m = Module.new
+    c = Class.new{include m}
+    m.prepend bar
+    Class.new{include m}
+    m.include foo
+    assert_include c.ancestors, foo
+    assert_equal "foo", c.new.foo
   end
 
   def test_protected_include_into_included_module

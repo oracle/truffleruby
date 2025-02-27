@@ -168,6 +168,24 @@ class TestProc < Test::Unit::TestCase
    assert_operator(procs.map(&:hash).uniq.size, :>=, 500)
   end
 
+  def test_hash_does_not_change_after_compaction
+    # [Bug #20853]
+    [
+      "proc {}", # iseq backed proc
+      "{}.to_proc", # ifunc backed proc
+      ":hello.to_proc", # symbol backed proc
+    ].each do |proc|
+      assert_separately([], <<~RUBY)
+        p1 = #{proc}
+        hash = p1.hash
+
+        GC.verify_compaction_references(expand_heap: true, toward: :empty)
+
+        assert_equal(hash, p1.hash, "proc is `#{proc}`")
+      RUBY
+    end
+  end
+
   def test_block_par
     assert_equal(10, Proc.new{|&b| b.call(10)}.call {|x| x})
     assert_equal(12, Proc.new{|a,&b| b.call(a)}.call(12) {|x| x})
@@ -390,6 +408,18 @@ class TestProc < Test::Unit::TestCase
     assert_equal c1, c1.new{}.dup.class, '[Bug #17545]'
     c1 = Class.new(Proc) {def initialize_dup(*) throw :initialize_dup; end}
     assert_throw(:initialize_dup) {c1.new{}.dup}
+  end
+
+  def test_dup_ifunc_proc_bug_20950
+    assert_normal_exit(<<~RUBY, "[Bug #20950]")
+      p = { a: 1 }.to_proc
+      100.times do
+        p = p.dup
+        GC.start
+        p.call
+      rescue ArgumentError
+      end
+    RUBY
   end
 
   def test_clone_subclass
