@@ -119,7 +119,7 @@ See the [contributor workflow](doc/contributor/workflow.md) document if you wish
 We recommend that people trying TruffleRuby on their gems and applications [get in touch with us](#contact) for any help they might need.
 
 TruffleRuby runs Rails and is compatible with many gems, including C extensions.
-TruffleRuby is not 100% compatible with MRI 3.2 yet. Please [report](https://github.com/oracle/truffleruby/issues) any compatibility issues you might find.
+TruffleRuby is not 100% compatible with MRI 3.3 yet. Please [report](https://github.com/oracle/truffleruby/issues) any compatibility issues you might find.
 TruffleRuby [passes around 97% of ruby/spec](https://eregon.me/rubyspec-stats/),
 more than any other alternative Ruby implementation.
 
@@ -193,4 +193,4 @@ For further licensing information, see [LICENCE](LICENCE.md), [3rd_party_license
 
 ## Attribution
 
-TruffleRuby includes infrastructure code from [JRuby](https://github.com/jruby/jruby) (e.g. parser, JCodings, Joni), core library code from the [Rubinius](https://github.com/rubinius/rubinius) project, as well as code from the standard implementation of Ruby, [MRI](https://github.com/ruby/ruby).
+TruffleRuby includes infrastructure code from [JRuby](https://github.com/jruby/jruby) (e.g. JCodings, Joni), core library code from the [Rubinius](https://github.com/rubinius/rubinius) project, as well as code from the standard implementation of Ruby, [MRI](https://github.com/ruby/ruby).
