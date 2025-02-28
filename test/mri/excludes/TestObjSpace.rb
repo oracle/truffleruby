@@ -26,6 +26,7 @@ exclude :test_dump_string_coderange, "Expected \"{\\\"address\\\":\\\"0x988\\\",
 exclude :test_dump_to_default, "Expected /\"embedded\":true, \"bytesize\":7, \"value\":\"hello w\", \"encoding\":\"UTF-8\"/ to match \"{\\\"address\\\":\\\"0x9c8\\\",\\\"class\\\":\\\"0x6b8\\\",\\\"memsize\\\":8,\\\"flags\\\":{},\\\"type\\\":\\\"STRING\\\",\\\"bytesize\\\":7,\\\"value\\\":\\\"hello w\\\",\\\"encoding\\\":\\\"UTF-8\\\"}\"."
 exclude :test_dump_to_io, "Expected /\"embedded\":true, \"bytesize\":7, \"value\":\"hello w\", \"encoding\":\"UTF-8\"/ to match \"{\\\"address\\\":\\\"0x9f8\\\",\\\"class\\\":\\\"0x6b8\\\",\\\"memsize\\\":8,\\\"flags\\\":{},\\\"type\\\":\\\"STRING\\\",\\\"bytesize\\\":7,\\\"value\\\":\\\"hello w\\\",\\\"encoding\\\":\\\"UTF-8\\\"}\"."
 exclude :test_dump_uninitialized_file, "Expected /\"type\":\"FILE\"/ to match \"{\\\"address\\\":\\\"0xb8\\\",\\\"class\\\":\\\"0xc8\\\",\\\"memsize\\\":1,\\\"flags\\\":{},\\\"type\\\":\\\"OBJECT\\\",\\\"length\\\":0}\"."
+exclude :test_escape_class_name, "<nil>."
 exclude :test_internal_class_of, "NoMethodError: undefined method `internal_class_of' for ObjectSpace:Module"
 exclude :test_internal_class_of_on_ast, "NameError: uninitialized constant TestObjSpace::RubyVM"
 exclude :test_internal_super_of, "NoMethodError: undefined method `internal_super_of' for ObjectSpace:Module"

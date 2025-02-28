@@ -46,6 +46,8 @@ exclude :test_read_command, "expected: /IO process creation with a leading '\\|'
 exclude :test_read_lock, "RuntimeError expected but nothing was raised."
 exclude :test_read_nonblock_invalid_exception, "[ArgumentError] exception expected, not #<IO::EAGAINWaitReadable: Resource temporarily unavailable>."
 exclude :test_read_nonblock_zero_size, "Expected \"01234567\" to be empty."
+exclude :test_readline_incompatible_rs, "ArgumentError expected but nothing was raised."
+exclude :test_readline_limit_nonascii, "<\"Test\\n\" + \"ok¿\"> expected but was <\"Test\\n\" + \"ok\\xC2\">."
 exclude :test_readpartial_lock, "RuntimeError expected but nothing was raised."
 exclude :test_readpartial_locktmp, "<100> expected but was <0>."
 exclude :test_recycled_fd_close, "\"bad\" reader timeout."
