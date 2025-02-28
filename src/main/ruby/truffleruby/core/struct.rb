@@ -318,10 +318,6 @@ class Struct
   end
   alias_method :size, :length
 
-  def self.length
-    self::STRUCT_ATTRS.size
-  end
-
   def members
     Primitive.class(self).members
   end
