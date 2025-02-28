@@ -81,6 +81,10 @@ class Struct
         return nil if Primitive.nil?(self::KEYWORD_INIT)
         Primitive.as_boolean(self::KEYWORD_INIT)
       end
+
+      def self.members
+        self::STRUCT_ATTRS.dup
+      end
     end
 
     const_set klass_name, klass if klass_name
@@ -316,10 +320,6 @@ class Struct
 
   def self.length
     self::STRUCT_ATTRS.size
-  end
-
-  def self.members
-    self::STRUCT_ATTRS.dup
   end
 
   def members
