@@ -1,1 +1,0 @@
-fails:Struct.new raises ArgumentError if not provided any arguments
