@@ -114,7 +114,8 @@ describe "Time.now" do
         it "could be Time instance" do
           zone = Object.new
           def zone.utc_to_local(t)
-            Time.new(t.year, t.mon, t.day, t.hour + 1, t.min, t.sec, t.utc_offset)
+            time = Time.new(t.year, t.mon, t.day, t.hour, t.min, t.sec, t.utc_offset)
+            time + 60 * 60 # + 1 hour
           end
 
           Time.now(in: zone).should be_kind_of(Time)
@@ -124,7 +125,10 @@ describe "Time.now" do
         it "could be Time subclass instance" do
           zone = Object.new
           def zone.utc_to_local(t)
-            Class.new(Time).new(t.year, t.mon, t.day, t.hour + 1, t.min, t.sec, t.utc_offset)
+            time = Time.new(t.year, t.mon, t.day, t.hour, t.min, t.sec, t.utc_offset)
+            time += 60 * 60 # + 1 hour
+
+            Class.new(Time).new(time.year, time.mon, time.day, time.hour, time.min, time.sec, time.utc_offset)
           end
 
           Time.now(in: zone).should be_kind_of(Time)
@@ -166,7 +170,9 @@ describe "Time.now" do
         it "raises ArgumentError if difference between argument and result is too large" do
           zone = Object.new
           def zone.utc_to_local(t)
-            Time.utc(t.year, t.mon, t.day - 1, t.hour, t.min, t.sec, t.utc_offset)
+            time = Time.utc(t.year, t.mon, t.day, t.hour, t.min, t.sec, t.utc_offset)
+            time -= 24 * 60 * 60 # - 1 day
+            Time.utc(time.year, time.mon, time.day, time.hour, time.min, time.sec, time.utc_offset)
           end
 
           -> {

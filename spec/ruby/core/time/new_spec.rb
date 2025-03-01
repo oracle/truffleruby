@@ -243,7 +243,8 @@ describe "Time.new with a timezone argument" do
     it "could be Time instance" do
       zone = Object.new
       def zone.local_to_utc(t)
-        Time.utc(t.year, t.mon, t.day, t.hour - 1, t.min, t.sec)
+        time = Time.utc(t.year, t.mon, t.day, t.hour, t.min, t.sec)
+        time - 60 * 60 # - 1 hour
       end
 
       Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
@@ -253,7 +254,9 @@ describe "Time.new with a timezone argument" do
     it "could be Time subclass instance" do
       zone = Object.new
       def zone.local_to_utc(t)
-        Class.new(Time).utc(t.year, t.mon, t.day, t.hour - 1, t.min, t.sec)
+        time = Time.utc(t.year, t.mon, t.day, t.hour, t.min, t.sec)
+        time -= 60 * 60 # - 1 hour
+        Class.new(Time).utc(time.year, time.mon, time.day, time.hour, t.min, t.sec)
       end
 
       Time.new(2000, 1, 1, 12, 0, 0, zone).should be_kind_of(Time)
