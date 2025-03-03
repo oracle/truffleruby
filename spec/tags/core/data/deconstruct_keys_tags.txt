@@ -1,2 +1,0 @@
-fails:Data#deconstruct accepts argument position number as well but returns them as keys
-fails:Data#deconstruct ignores incorrect position numbers

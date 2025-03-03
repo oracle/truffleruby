@@ -166,15 +166,19 @@ class Data
         return {} if members_hash.size < keys.size
 
         h = {}
+        members = Primitive.class(self)::CLASS_MEMBERS
         keys.each do |requested_key|
           case requested_key
           when Symbol
             symbolized_key = requested_key
           when String
             symbolized_key = requested_key.to_sym
+          else
+            index = Truffle::Type.rb_convert_type(requested_key, Integer, :to_int)
+            symbolized_key = members[index]
           end
 
-          if members_hash.include?(symbolized_key)
+          if symbolized_key && members_hash.include?(symbolized_key)
             h[requested_key] = Primitive.object_hidden_var_get(self, symbolized_key)
           else
             return h
