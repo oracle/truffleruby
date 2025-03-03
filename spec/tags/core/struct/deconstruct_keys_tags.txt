@@ -1,2 +1,0 @@
-fails:Struct#deconstruct_keys returns at first not existing argument position number
-fails:Struct#deconstruct_keys raises TypeError if index is not a String, a Symbol and not convertible to Integer 
