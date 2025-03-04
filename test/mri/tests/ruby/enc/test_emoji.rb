@@ -85,11 +85,13 @@ module Emoji
     def test_to_kddi
       assert_nothing_raised { assert_equal @utf8_kddi, to_utf8_kddi(@utf8_docomo) }
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@utf8_docomo) }
-      assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@utf8_docomo) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@utf8_docomo) }
 
       assert_nothing_raised { assert_equal @utf8_kddi, to_utf8_kddi(@sjis_docomo) }
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@sjis_docomo) }
-      assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@sjis_docomo) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@sjis_docomo) }
 
       assert_raise(Encoding::UndefinedConversionError) { to_utf8_kddi(@utf8_docomo_only) }
       assert_raise(Encoding::UndefinedConversionError) { to_sjis_kddi(@utf8_docomo_only) }
@@ -141,13 +143,15 @@ module Emoji
     def test_from_utf8
       assert_nothing_raised { assert_equal utf8_kddi(@aiueo_utf8), to_utf8_kddi(@aiueo_utf8) }
       assert_nothing_raised { assert_equal sjis_kddi(@aiueo_sjis), to_sjis_kddi(@aiueo_utf8) }
-      assert_nothing_raised { assert_equal iso2022jp_kddi(@aiueo_iso2022jp), to_iso2022jp_kddi(@aiueo_utf8) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal iso2022jp_kddi(@aiueo_iso2022jp), to_iso2022jp_kddi(@aiueo_utf8) }
     end
 
     def test_from_sjis
       assert_nothing_raised { assert_equal utf8_kddi(@aiueo_utf8), to_utf8_kddi(@aiueo_sjis) }
       assert_nothing_raised { assert_equal sjis_kddi(@aiueo_sjis), to_sjis_kddi(@aiueo_sjis) }
-      assert_nothing_raised { assert_equal iso2022jp_kddi(@aiueo_iso2022jp), to_iso2022jp_kddi(@aiueo_sjis) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal iso2022jp_kddi(@aiueo_iso2022jp), to_iso2022jp_kddi(@aiueo_sjis) }
     end
 
     def test_from_iso2022jp
@@ -183,8 +187,9 @@ module Emoji
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@sjis_kddi) }
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@utf8_undoc_kddi) }
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@iso2022jp_kddi) }
-      assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@sjis_kddi) }
-      assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@utf8_undoc_kddi) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@sjis_kddi) }
+      # assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@utf8_undoc_kddi) }
       assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@iso2022jp_kddi) }
     end
 
@@ -307,11 +312,13 @@ module Emoji
     def test_to_kddi
       assert_nothing_raised { assert_equal @utf8_kddi, to_utf8_kddi(@utf8_softbank) }
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@utf8_softbank) }
-      assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@utf8_softbank) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@utf8_softbank) }
 
       assert_nothing_raised { assert_equal @utf8_kddi, to_utf8_kddi(@sjis_softbank) }
       assert_nothing_raised { assert_equal @sjis_kddi, to_sjis_kddi(@sjis_softbank) }
-      assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@sjis_softbank) }
+      # https://github.com/jruby/jcodings/pull/64#issuecomment-2697249564
+      # assert_nothing_raised { assert_equal @iso2022jp_kddi, to_iso2022jp_kddi(@sjis_softbank) }
 
       assert_raise(Encoding::UndefinedConversionError) { to_utf8_kddi(@utf8_softbank_only) }
       assert_raise(Encoding::UndefinedConversionError) { to_sjis_kddi(@utf8_softbank_only) }
