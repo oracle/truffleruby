@@ -1787,7 +1787,9 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--ea', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
-      vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
+      # Note: GR-62802: --vm.XX:-UseJVMCICompiler does not work for unchained standalones or needs --vm.Dpolyglotimpl.DisableVersionChecks=true
+      vm_args << '--vm.XX:-UseJVMCICompiler'
+      vm_args << '--experimental-options' << '--engine.Compilation=false'
       vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
