@@ -20,7 +20,6 @@ import mx_util
 import mx_gate
 import mx_sdk
 import mx_sdk_vm
-import mx_sdk_vm_impl
 import mx_subst
 import mx_spotbugs
 import mx_truffle
@@ -28,6 +27,7 @@ import mx_unittest
 
 # re-export custom mx project classes, so they can be used from suite.py
 from mx_sdk_shaded import ShadedLibraryProject # pylint: disable=unused-import
+from mx_sdk_vm_ng import StandaloneLicenses, ThinLauncherProject, LanguageLibraryProject, DynamicPOMDistribution, DeliverableStandaloneArchive  # pylint: disable=unused-import
 
 # Fail early and clearly when trying to build with a too old JDK
 jdk = mx.get_jdk(mx.JavaCompliance('11+'), 'building TruffleRuby which requires JDK 11 or newer')
@@ -187,6 +187,27 @@ class YARPNativeProject(mx.NativeProject):
             results=kwArgs.pop('results'),
             output=path, d=path, vpath=False, **kwArgs)
 
+# Functions called from suite.py
+
+def has_suite(name):
+    return mx.suite(name, fatalIfMissing=False)
+
+def is_ee():
+    return has_suite('truffle-enterprise')
+
+def truffleruby_standalone_deps():
+    deps = mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=has_suite('compiler'))
+    if is_ee():
+        deps += ['sulong-managed:SULONG_ENTERPRISE_NATIVE']
+    return deps
+
+def librubyvm_build_args():
+    if is_ee() and mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ:
+        mx.suite('substratevm-enterprise-gcs', fatalIfMissing=True) # fail early if missing
+        return ['--gc=G1', '-H:-ProtectionKeys']
+    else:
+        return []
+
 # Commands
 
 def jt(*args):
@@ -219,7 +240,7 @@ def ruby_check_heap_dump(input_args, out=None):
         ruby_check_heap_dump(["--keep-dump"] + input_args, out=out)
         path = out.data.strip().partition("Dump file:")[2].strip()
         if path:
-            save_path = os.path.join(root, "dumps", "leak_test")
+            save_path = join(root, "dumps", "leak_test")
             try:
                 os.makedirs(save_path)
             except OSError:
@@ -233,8 +254,8 @@ def ruby_check_heap_dump(input_args, out=None):
         raise Exception("heap dump check failed")
 
 def ruby_run_ruby(args):
-    """run TruffleRuby in $(mx standalone-home --type=jvm ruby), needs an env including a ruby standalone. Use bin/jt for more control and shortcuts"""
-    standalone_home = mx_sdk_vm_impl.standalone_home('ruby', is_jvm=True)
+    """run TruffleRuby in mxbuild/$OS-$ARCH/TRUFFLERUBY_JVM_STANDALONE, needs an env including a ruby standalone. Use bin/jt for more control and shortcuts"""
+    standalone_home = mx.distribution('TRUFFLERUBY_JVM_STANDALONE').output
     ruby = join(standalone_home, 'bin/ruby')
     os.execlp(ruby, ruby, *args)
 
@@ -329,8 +350,8 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'TruffleRuby license files': ('', []),
     }},
     standalone_dependencies_enterprise={**standalone_dependencies_common, **{
-        'LLVM Runtime Enterprise': ('lib/sulong', []),
-        'LLVM Runtime Native Enterprise': ('lib/sulong', []),
+        'LLVM Runtime Enterprise': ('lib/sulong', []), # sulong-managed:SULONG_ENTERPRISE
+        'LLVM Runtime Native Enterprise': ('lib/sulong', []), # sulong-managed:SULONG_ENTERPRISE_NATIVE
         'TruffleRuby license files EE': ('', []),
         'GraalVM enterprise license files': ('', ['LICENSE.txt', 'GRAALVM-README.md']),
     }},

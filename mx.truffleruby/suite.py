@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "7.27.0",
+    "mxversion": "7.45.0",
     "name": "truffleruby",
     "version": "25.0.0",
     "release": False,
@@ -59,7 +59,7 @@ suite = {
         "truffleruby-binary-snapshots": {
             "url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots",
             "licenses": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
                 "MIT",              # JCodings, minitest, did_you_mean, rake
@@ -98,7 +98,7 @@ suite = {
     "externalProjects": {
         "truffleruby-root": {
             "type": "ruby",
-            "path": '.',
+            "path": ".",
             "source": [
                 "lib/json",
                 "lib/mri",
@@ -290,7 +290,7 @@ suite = {
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated": True,
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings, YARP
@@ -302,7 +302,7 @@ suite = {
             "sourceDirs": ["."],
             "javaCompliance": "17+",
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
             ],
             "externalProjects": {
@@ -423,7 +423,7 @@ suite = {
                 "src/main/c/rbs/<extsuffix:rbs_extension>",
             ],
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-simplified",   # MRI
             ],
         },
@@ -458,6 +458,54 @@ suite = {
             "forceJavac": "true",
             "javac.lint.overrides": "none",
             "jacoco": "exclude",
+        },
+
+        "truffleruby_licenses": {
+            "class": "StandaloneLicenses",
+            "community_license_file": "LICENCE.md",
+            "community_3rd_party_license_file": "3rd_party_licenses.txt",
+        },
+
+        "truffleruby_thin_launcher": {
+            "class": "ThinLauncherProject",
+            "mainClass": "org.truffleruby.launcher.RubyLauncher",
+            "jar_distributions": ["truffleruby:TRUFFLERUBY-LAUNCHER"],
+            "option_vars": [
+                "RUBYOPT",
+                "TRUFFLERUBYOPT",
+            ],
+            "relative_home_paths": {
+                "ruby": "..",
+                "llvm": "../lib/sulong",
+            },
+            "relative_jre_path": "../jvm",
+            "relative_module_path": "../modules",
+            "relative_extracted_lib_paths": {
+                "truffle.attach.library": "../jvmlibs/<lib:truffleattach>",
+                "truffle.nfi.library": "../jvmlibs/<lib:trufflenfi>",
+            },
+            "liblang_relpath": "../lib/<lib:rubyvm>",
+        },
+
+        "librubyvm": {
+            "class": "LanguageLibraryProject",
+            "dependencies": [
+                "TRUFFLERUBY_STANDALONE_DEPENDENCIES",
+                # LLVM_NATIVE_COMMUNITY is intentionally not used as that would include SULONG_NATIVE_RESOURCES,
+                # which would copy the resources in the image, regardless of IncludeLanguageResources,
+                # see com.oracle.truffle.llvm.nativemode.resources.NativeResourceFeature.
+            ],
+            "buildDependencies": [
+                "TRUFFLERUBY_STANDALONE_COMMON",
+            ],
+            "build_args": [
+                # From mx.truffleruby/native-image.properties
+                "-Dpolyglot.image-build-time.PreinitializeContexts=ruby",
+                "-Dorg.graalvm.language.ruby.home=<path:TRUFFLERUBY_STANDALONE_COMMON>",
+                # Configure launcher
+                "-Dorg.graalvm.launcher.class=org.truffleruby.launcher.RubyLauncher",
+            ],
+            "dynamicBuildArgs": "librubyvm_build_args",
         },
     },
 
@@ -555,11 +603,12 @@ suite = {
                 "truffleruby:TRUFFLERUBY_JONI",
                 # runtime-only dependencies
                 "truffle:TRUFFLE_NFI_LIBFFI",
+                "truffle:TRUFFLE_NFI_PANAMA",
                 "sulong:SULONG_NATIVE",
             ],
             "description": "Core module of Ruby on Truffle",
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
@@ -585,7 +634,7 @@ suite = {
                 "tag": ["default", "public"],
             },
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
                 "BSD-simplified",   # MRI
                 "MIT",              # Joni, JCodings
@@ -645,7 +694,7 @@ suite = {
                 "java.base",
             ],
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "MIT",              # minitest, did_you_mean, rake
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
@@ -713,7 +762,7 @@ suite = {
 
         "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC": {
             "description": "Platform-agnostic TruffleRuby home files",
-            "fileListPurpose": 'native-image-resources',
+            "fileListPurpose": "native-image-resources",
             "native": True,
             "platformDependent": False,
             "layout": {
@@ -735,7 +784,7 @@ suite = {
                 ],
             },
             "license": [
-                "EPL-2.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "MIT",              # minitest, did_you_mean, rake
                 "BSD-simplified",   # MRI
                 "BSD-new",          # Rubinius, FFI
@@ -745,7 +794,7 @@ suite = {
 
         "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_SPECIFIC": {
             "description": "Platform-specific TruffleRuby home files",
-            "fileListPurpose": 'native-image-resources',
+            "fileListPurpose": "native-image-resources",
             "native": True,
             "platformDependent": True,
             "layout": {
@@ -837,8 +886,125 @@ suite = {
             "maven": False,
         },
 
+        "TRUFFLERUBY_STANDALONE_DEPENDENCIES": {
+            "description": "TruffleRuby standalone dependencies",
+            "class": "DynamicPOMDistribution",
+            "distDependencies": [
+                "truffleruby:TRUFFLERUBY-LAUNCHER",
+                "truffleruby:TRUFFLERUBY",
+                "sdk:TOOLS_FOR_STANDALONE",
+            ],
+            "dynamicDistDependencies": "truffleruby_standalone_deps",
+            "maven": False,
+        },
+
+        "TRUFFLERUBY_STANDALONE_COMMON": {
+            "description": "Common layout for Native and JVM standalones",
+            "type": "dir",
+            "platformDependent": True,
+            "platforms": "local",
+            "layout": {
+                "./": [
+                    "extracted-dependency:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC",
+                    "extracted-dependency:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_SPECIFIC",
+                    "extracted-dependency:TRUFFLERUBY_GRAALVM_SUPPORT_NO_NI_RESOURCES",
+                    "dependency:truffleruby_licenses/*",
+                ],
+                "bin/ruby": "dependency:truffleruby_thin_launcher",
+                "bin/truffleruby": "dependency:truffleruby_thin_launcher",
+                "bin/truffleruby-polyglot-get": "dependency:truffleruby_thin_launcher",
+                "lib/sulong/": [
+                    "extracted-dependency:sulong:SULONG_CORE_HOME",
+                    "extracted-dependency:sulong:SULONG_GRAALVM_DOCS",
+                    {
+                        "source_type": "extracted-dependency",
+                        "dependency": "sulong:SULONG_BITCODE_HOME",
+                        "path": "*",
+                        "exclude": [
+                            "native/lib/*++*",
+                        ],
+                    },
+                    {
+                        "source_type": "extracted-dependency",
+                        "dependency": "sulong:SULONG_NATIVE_HOME",
+                        "path": "*",
+                        "exclude": [
+                            "native/cmake",
+                            "native/include",
+                            "native/lib/*++*",
+                        ],
+                    },
+                ],
+                "release": "dependency:sdk:STANDALONE_JAVA_HOME/release",
+            },
+        },
+
+        "TRUFFLERUBY_NATIVE_STANDALONE": {
+            "description": "TruffleRuby Native standalone",
+            "type": "dir",
+            "platformDependent": True,
+            "platforms": "local",
+            "layout": {
+                "./": [
+                    "dependency:TRUFFLERUBY_STANDALONE_COMMON/*",
+                ],
+                "lib/": "dependency:librubyvm",
+            },
+        },
+
+        "TRUFFLERUBY_JVM_STANDALONE": {
+            "description": "TruffleRuby JVM standalone",
+            "type": "dir",
+            "platformDependent": True,
+            "platforms": "local",
+            "layout": {
+                "./": [
+                    "dependency:TRUFFLERUBY_STANDALONE_COMMON/*",
+                ],
+                "jvm/": {
+                    "source_type": "dependency",
+                    "dependency": "sdk:STANDALONE_JAVA_HOME",
+                    "path": "*",
+                    "exclude": [
+                        # Native Image-related
+                        "bin/native-image*",
+                        "lib/static",
+                        "lib/svm",
+                        "lib/<lib:native-image-agent>",
+                        "lib/<lib:native-image-diagnostics-agent>",
+                        # Unnecessary and big
+                        "lib/src.zip",
+                        "jmods",
+                    ],
+                },
+                "jvmlibs/": [
+                    "extracted-dependency:truffle:TRUFFLE_ATTACH_GRAALVM_SUPPORT",
+                    "extracted-dependency:truffle:TRUFFLE_NFI_NATIVE_GRAALVM_SUPPORT",
+                ],
+                "modules/": [
+                    "classpath-dependencies:TRUFFLERUBY_STANDALONE_DEPENDENCIES",
+                ],
+            },
+        },
+
+        "TRUFFLERUBY_NATIVE_STANDALONE_RELEASE_ARCHIVE": {
+            "class": "DeliverableStandaloneArchive",
+            "platformDependent": True,
+            "standalone_dist": "TRUFFLERUBY_NATIVE_STANDALONE",
+            "community_archive_name": "truffleruby-community",
+            "enterprise_archive_name": "truffleruby",
+        },
+
+        "TRUFFLERUBY_JVM_STANDALONE_RELEASE_ARCHIVE": {
+            "class": "DeliverableStandaloneArchive",
+            "platformDependent": True,
+            "standalone_dist": "TRUFFLERUBY_JVM_STANDALONE",
+            "community_archive_name": "truffleruby-community-jvm",
+            "enterprise_archive_name": "truffleruby-jvm",
+        },
+
         "TRUFFLERUBY_GRAALVM_LICENSES": {
-            "fileListPurpose": 'native-image-resources',
+            "fileListPurpose": "native-image-resources",
             "native": True,
             "platformDependent": True,
             "description": "TruffleRuby support distribution for the GraalVM license files",

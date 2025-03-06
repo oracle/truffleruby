@@ -1,8 +1,2 @@
-GRAALVM_SKIP_ARCHIVE=true
-DYNAMIC_IMPORTS=/tools,/truffleruby-enterprise,/graal-enterprise,/vm-enterprise,/sulong-managed,/substratevm-enterprise
-COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterprise,GraalVM enterprise license files,LLVM Runtime Native Enterprise,SubstrateVM Enterprise
-NATIVE_IMAGES=false
-# To also create the standalone
-INSTALLABLES=TruffleRuby
-BUILD_TARGETS=GRAALVM_STANDALONES
-# NOTE: SVM EE is added as a workaround to tell the JVM standalone to be EE
+DYNAMIC_IMPORTS=/tools,/graal-enterprise,/truffle-enterprise,/sulong-managed
+BUILD_TARGETS=TRUFFLERUBY_JVM_STANDALONE

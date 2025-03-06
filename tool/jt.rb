@@ -675,6 +675,16 @@ module Utilities
     end
   end
 
+  def mx_arch
+    if amd64?
+      'amd64'
+    elsif aarch64?
+      'aarch64'
+    else
+      abort 'Unknown OS'
+    end
+  end
+
   def bitbucket_url(repo)
     unless Remotes.bitbucket
       raise 'Need a git remote in truffleruby with the internal repository URL'
@@ -937,7 +947,9 @@ module Commands
     puts ruby_launcher
   end
 
+  # Not `def ruby_home` because calls to `ruby_home` would then unintentionally print
   define_method(:'ruby-home') do
+    @silent = true
     puts ruby_home
   end
 
@@ -2643,13 +2655,14 @@ module Commands
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options
 
-    standalone_type = env.include?('native') ? 'native' : 'jvm'
     mx(*mx_args, 'build', *mx_build_options, primary_suite: TRUFFLERUBY_DIR)
-    build_dir = mx(*mx_args, 'standalone-home', "--type=#{standalone_type}", 'ruby', primary_suite: TRUFFLERUBY_DIR, capture: :out).lines.last.chomp
 
+    standalone_dist = env.include?('native') ? 'TRUFFLERUBY_NATIVE_STANDALONE' : 'TRUFFLERUBY_JVM_STANDALONE'
+    build_dir = "#{TRUFFLERUBY_DIR}/mxbuild/#{mx_os}-#{mx_arch}/#{standalone_dist}"
+
+    # Copy to mxbuild/$name. We need to copy and not symlink because e.g. CE/EE use the same standalone_dist (GR-53433)
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
     FileUtils.rm_rf dest
-    # NOTE: revert the changes and create a symlink if possible when [GR-53433] is resolved
     FileUtils.cp_r(build_dir, dest)
 
     # Symlink builds into version manager
