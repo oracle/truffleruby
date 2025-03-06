@@ -83,6 +83,9 @@ JDK_VERSIONS = %w[latest 21]
 LTS_JDK_VERSION = '21'
 DEFAULT_JDK_VERSION = 'latest'
 
+# Not yet 'jdk.graal' as we test against 21 and 21 does not know 'jdk.graal'
+GRAAL_OPTION_PREFIX = 'graal'
+
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
 MRI_TEST_CEXT_DIR = "#{MRI_TEST_PREFIX}/cext-c"
@@ -825,9 +828,9 @@ module Commands
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --ea            enable assertions
           --asm           show assembly
-          --igv           dump select Graal graphs to graal_dumps/ (-Djdk.graal.Dump=Truffle:1)
-          --igv-full      dump all Graal graphs to graal_dumps/ (-Djdk.graal.Dump=Truffle:2,TruffleHostInlining:0)
-          --igv-network   dump to IGV directly through the network (-Djdk.graal.PrintGraph=Network)
+          --igv           dump select Graal graphs to graal_dumps/ (-D#{GRAAL_OPTION_PREFIX}.Dump=Truffle:1)
+          --igv-full      dump all Graal graphs to graal_dumps/ (-D#{GRAAL_OPTION_PREFIX}.Dump=Truffle:2,TruffleHostInlining:0)
+          --igv-network   dump to IGV directly through the network (-D#{GRAAL_OPTION_PREFIX}.PrintGraph=Network)
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
@@ -1071,14 +1074,14 @@ module Commands
       when '--igv', '--igv-full'
         truffleruby_compiler!
         if arg == '--igv-full'
-          vm_args << '--vm.Djdk.graal.Dump=Truffle:2,TruffleHostInlining:0,TruffleInjectImmutableFrameFields:0'
+          vm_args << "--vm.D#{GRAAL_OPTION_PREFIX}.Dump=Truffle:2,TruffleHostInlining:0,TruffleInjectImmutableFrameFields:0"
         else
-          vm_args << '--vm.Djdk.graal.Dump=Truffle:1'
+          vm_args << "--vm.D#{GRAAL_OPTION_PREFIX}.Dump=Truffle:1"
         end
-        vm_args << '--vm.Djdk.graal.PrintBackendCFG=false'
+        vm_args << "--vm.D#{GRAAL_OPTION_PREFIX}.PrintBackendCFG=false"
       when '--igv-network'
         truffleruby_compiler!
-        vm_args << '--vm.Djdk.graal.PrintGraph=Network'
+        vm_args << "--vm.D#{GRAAL_OPTION_PREFIX}.PrintGraph=Network"
       when '--exec'
         options[:use_exec] = true
       when /^--vm\./
@@ -1787,7 +1790,9 @@ module Commands
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--ea', *ruby_args])
 
     if !JT_SPECS_COMPILATION && truffleruby_compiler? && truffleruby_jvm?
-      vm_args << '--vm.XX:-UseJVMCICompiler' << '--experimental-options' << '--engine.Compilation=false'
+      # Note: GR-62802: --vm.XX:-UseJVMCICompiler does not work for unchained standalones or needs --vm.Dpolyglotimpl.DisableVersionChecks=true
+      vm_args << '--vm.XX:-UseJVMCICompiler'
+      vm_args << '--experimental-options' << '--engine.Compilation=false'
       vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
@@ -2323,19 +2328,19 @@ module Commands
       "--engine.CompileOnly=#{method}",
       '--engine.MultiTier=false',
       '--compiler.NodeSourcePositions',
-      '--vm.Djdk.graal.PrintGraphWithSchedule=true',
-      *('--vm.Djdk.graal.PrintBackendCFG=true' if cfg2asm),
-      '--vm.Djdk.graal.Dump=Truffle:1',
+      "--vm.D#{GRAAL_OPTION_PREFIX}.PrintGraphWithSchedule=true",
+      *("--vm.D#{GRAAL_OPTION_PREFIX}.PrintBackendCFG=true" if cfg2asm),
+      "--vm.D#{GRAAL_OPTION_PREFIX}.Dump=Truffle:1",
       '--log.file=/dev/stderr', # suppress the Truffle log output help message
     ]
 
     # As per https://github.com/Shopify/seafoam/blob/master/docs/getting-graphs.md
     # GR-36849: needs #truffleruby_native_built? instead of #truffleruby_native?
     simplify_vm_args = [
-      *('--vm.Djdk.graal.PartialUnroll=false' unless truffleruby_native_built?),
-      *('--vm.Djdk.graal.LoopPeeling=false' unless truffleruby_native_built?),
-      *('--vm.Djdk.graal.LoopUnswitch=false' unless truffleruby_native_built?),
-      '--vm.Djdk.graal.OptScheduleOutOfLoops=false',
+      *("--vm.D#{GRAAL_OPTION_PREFIX}.PartialUnroll=false" unless truffleruby_native_built?),
+      *("--vm.D#{GRAAL_OPTION_PREFIX}.LoopPeeling=false" unless truffleruby_native_built?),
+      *("--vm.D#{GRAAL_OPTION_PREFIX}.LoopUnswitch=false" unless truffleruby_native_built?),
+      "--vm.D#{GRAAL_OPTION_PREFIX}.OptScheduleOutOfLoops=false",
     ]
 
     base_vm_args += simplify_vm_args if simplify
