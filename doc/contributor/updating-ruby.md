@@ -27,12 +27,42 @@ To update a specific default gem to a newer version than in the MRI release, run
 ```
 cd ruby
 git checkout -b truffleruby-updates-$VERSION vn_n_n
+cd ..
+git clone git@github.com:ruby/<gem>.git
+cd <gem>
+git checkout v<gem-version>
+cd ../ruby
 ruby tool/sync_default_gems.rb $GEM
 
 git push -u eregon HEAD
 ```
 to update the default gem in MRI.
 Then follow the instructions below to reimport MRI files and to update default gems.
+
+Another way to update a gem to a specific version is to pass a commits range:
+
+```
+ruby tool/sync_default_gems.rb <gem-name> <sha1-of-currently-imported-version>..<sha1-of-a-new-version>
+```
+
+Run `ruby tool/sync_default_gems.rb --help` to get other ways to run the script.
+
+## Updating a specific bundled gem
+
+Set new version of the bundled gem in `gems/bundled_gems` in a Ruby source code directory.
+
+Build Ruby (currently supported version) with the following commands:
+
+```
+./autogen.sh
+mkdir ~/.rubies
+./configure --prefix="${HOME}/.rubies/ruby-$VERSION-updated-gems" --disable-install-doc
+make -j8 install-nodoc
+```
+
+Use `~/.rubies/ruby-$VERSION-updated-gems` directory as a source for copying a new bundled gem version.
+
+Follow instructions how to update default and bundled gems.
 
 ## Setup
 
