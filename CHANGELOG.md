@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Fix `Range#cover?` on begin-less ranges and non-integer values (@nirvdrum, @rwstauner).
 
 Compatibility:
 
