@@ -9,7 +9,7 @@ module Net
       # Net::IMAP#authenticate.
       #
       # The EXTERNAL mechanism requests that the server use client credentials
-      # established external to SASL, for example by TLS certificate or IPsec.
+      # established external to SASL, for example by TLS certificate or IPSec.
       class ExternalAuthenticator
 
         # Authorization identity: an identity to act as or on behalf of.  The

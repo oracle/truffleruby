@@ -60,18 +60,20 @@ module Net
     #     set = Net::IMAP::SequenceSet[1, 2, [3..7, 5], 6..10, 2048, 1024]
     #     set.valid_string  #=> "1:10,55,1024:2048"
     #
-    # == Normalized form
+    # == Ordered and Normalized sets
     #
-    # When a sequence set is created with a single String value, that #string
-    # representation is preserved.  SequenceSet's internal representation
-    # implicitly sorts all entries, de-duplicates numbers, and coalesces
-    # adjacent or overlapping ranges.  Most enumeration methods and offset-based
-    # methods use this normalized representation.  Most modification methods
-    # will convert #string to its normalized form.
+    # Sometimes the order of the set's members is significant, such as with the
+    # +ESORT+, <tt>CONTEXT=SORT</tt>, and +UIDPLUS+ extensions.  So, when a
+    # sequence set is created by the parser or with a single string value, that
+    # #string representation is preserved.
     #
-    # In some cases the order of the string representation is significant, such
-    # as the +ESORT+, <tt>CONTEXT=SORT</tt>, and +UIDPLUS+ extensions.  Use
-    # #entries or #each_entry to enumerate the set in its original order.  To
+    # Internally, SequenceSet stores a normalized representation which sorts all
+    # entries, de-duplicates numbers, and coalesces adjacent or overlapping
+    # ranges.  Most methods use this normalized representation to achieve
+    # <tt>O(lg n)</tt> porformance.  Use #entries or #each_entry to enumerate
+    # the set in its original order.
+    #
+    # Most modification methods convert #string to its normalized form.  To
     # preserve #string order while modifying a set, use #append, #string=, or
     # #replace.
     #
@@ -164,7 +166,7 @@ module Net
     # - #===:
     #   Returns whether a given object is fully contained within +self+, or
     #   +nil+ if the object cannot be converted to a compatible type.
-    # - #cover? (aliased as #===):
+    # - #cover?:
     #   Returns whether a given object is fully contained within +self+.
     # - #intersect? (aliased as #overlap?):
     #   Returns whether +self+ and a given object have any common elements.
@@ -185,30 +187,41 @@ module Net
     # - #max: Returns the maximum number in the set.
     # - #minmax: Returns the minimum and maximum numbers in the set.
     #
-    # <i>Accessing value by offset:</i>
+    # <i>Accessing value by offset in sorted set:</i>
     # - #[] (aliased as #slice): Returns the number or consecutive subset at a
-    #   given offset or range of offsets.
-    # - #at: Returns the number at a given offset.
-    # - #find_index: Returns the given number's offset in the set
+    #   given offset or range of offsets in the sorted set.
+    # - #at: Returns the number at a given offset in the sorted set.
+    # - #find_index: Returns the given number's offset in the sorted set.
+    #
+    # <i>Accessing value by offset in ordered entries</i>
+    # - #ordered_at: Returns the number at a given offset in the ordered entries.
+    # - #find_ordered_index: Returns the index of the given number's first
+    #   occurrence in entries.
     #
     # <i>Set cardinality:</i>
     # - #count (aliased as #size): Returns the count of numbers in the set.
+    #   Duplicated numbers are not counted.
     # - #empty?: Returns whether the set has no members.  \IMAP syntax does not
     #   allow empty sequence sets.
     # - #valid?: Returns whether the set has any members.
     # - #full?: Returns whether the set contains every possible value, including
     #   <tt>*</tt>.
     #
+    # <i>Denormalized properties:</i>
+    # - #has_duplicates?: Returns whether the ordered entries repeat any
+    #   numbers.
+    # - #count_duplicates: Returns the count of repeated numbers in the ordered
+    #   entries.
+    # - #count_with_duplicates: Returns the count of numbers in the ordered
+    #   entries, including any repeated numbers.
+    #
     # === Methods for Iterating
     #
+    # <i>Normalized (sorted and coalesced):</i>
     # - #each_element: Yields each number and range in the set, sorted and
     #   coalesced, and returns +self+.
     # - #elements (aliased as #to_a): Returns an Array of every number and range
     #   in the set, sorted and coalesced.
-    # - #each_entry: Yields each number and range in the set, unsorted and
-    #   without deduplicating numbers or coalescing ranges, and returns +self+.
-    # - #entries: Returns an Array of every number and range in the set,
-    #   unsorted and without deduplicating numbers or coalescing ranges.
     # - #each_range:
     #   Yields each element in the set as a Range and returns +self+.
     # - #ranges: Returns an Array of every element in the set, converting
@@ -217,6 +230,14 @@ module Net
     # - #numbers: Returns an Array with every number in the set, expanding
     #   ranges into all of their contained numbers.
     # - #to_set: Returns a Set containing all of the #numbers in the set.
+    #
+    # <i>Order preserving:</i>
+    # - #each_entry: Yields each number and range in the set, unsorted and
+    #   without deduplicating numbers or coalescing ranges, and returns +self+.
+    # - #entries: Returns an Array of every number and range in the set,
+    #   unsorted and without deduplicating numbers or coalescing ranges.
+    # - #each_ordered_number: Yields each number in the ordered entries and
+    #   returns +self+.
     #
     # === Methods for \Set Operations
     # These methods do not modify +self+.
@@ -237,19 +258,29 @@ module Net
     # === Methods for Assigning
     # These methods add or replace elements in +self+.
     #
+    # <i>Normalized (sorted and coalesced):</i>
+    #
+    # These methods always update #string to be fully sorted and coalesced.
+    #
     # - #add (aliased as #<<): Adds a given object to the set; returns +self+.
     # - #add?: If the given object is not an element in the set, adds it and
     #   returns +self+; otherwise, returns +nil+.
     # - #merge: Merges multiple elements into the set; returns +self+.
+    # - #complement!: Replaces the contents of the set with its own #complement.
+    #
+    # <i>Order preserving:</i>
+    #
+    # These methods _may_ cause #string to not be sorted or coalesced.
+    #
     # - #append: Adds a given object to the set, appending it to the existing
     #   string, and returns +self+.
     # - #string=: Assigns a new #string value and replaces #elements to match.
     # - #replace: Replaces the contents of the set with the contents
     #   of a given object.
-    # - #complement!: Replaces the contents of the set with its own #complement.
     #
     # === Methods for Deleting
-    # These methods remove elements from +self+.
+    # These methods remove elements from +self+, and update #string to be fully
+    # sorted and coalesced.
     #
     # - #clear: Removes all elements in the set; returns +self+.
     # - #delete: Removes a given object from the set; returns +self+.
@@ -304,7 +335,7 @@ module Net
         # Use ::new to create a mutable or empty SequenceSet.
         def [](first, *rest)
           if rest.empty?
-            if first.is_a?(SequenceSet) && set.frozen? && set.valid?
+            if first.is_a?(SequenceSet) && first.frozen? && first.valid?
               first
             else
               new(first).validate.freeze
@@ -325,7 +356,7 @@ module Net
         # raised.
         def try_convert(obj)
           return obj if obj.is_a?(SequenceSet)
-          return nil unless respond_to?(:to_sequence_set)
+          return nil unless obj.respond_to?(:to_sequence_set)
           obj = obj.to_sequence_set
           return obj if obj.is_a?(SequenceSet)
           raise DataFormatError, "invalid object returned from to_sequence_set"
@@ -682,10 +713,12 @@ module Net
       # Unlike #add, #merge, or #union, the new value is appended to #string.
       # This may result in a #string which has duplicates or is out-of-order.
       def append(object)
+        modifying!
         tuple = input_to_tuple object
         entry = tuple_to_str tuple
+        string unless empty? # write @string before tuple_add
         tuple_add tuple
-        @string = -(string ? "#{@string},#{entry}" : entry)
+        @string = -(@string ? "#{@string},#{entry}" : entry)
         self
       end
 
@@ -841,8 +874,8 @@ module Net
       # <tt>*</tt> translates to an endless range.  Use #limit to translate both
       # cases to a maximum value.
       #
-      # If the original input was unordered or contains overlapping ranges, the
-      # returned ranges will be ordered and coalesced.
+      # The returned elements will be sorted and coalesced, even when the input
+      # #string is not.  <tt>*</tt> will sort last.  See #normalize.
       #
       #   Net::IMAP::SequenceSet["2,5:9,6,*,12:11"].elements
       #   #=> [2, 5..9, 11..12, :*]
@@ -860,7 +893,7 @@ module Net
       # translates to <tt>:*..</tt>.  Use #limit to set <tt>*</tt> to a maximum
       # value.
       #
-      # The returned ranges will be ordered and coalesced, even when the input
+      # The returned ranges will be sorted and coalesced, even when the input
       # #string is not.  <tt>*</tt> will sort last.  See #normalize.
       #
       #   Net::IMAP::SequenceSet["2,5:9,6,*,12:11"].ranges
@@ -902,16 +935,14 @@ module Net
       # Yields each number or range in #string to the block and returns +self+.
       # Returns an enumerator when called without a block.
       #
-      # The entries are yielded in the same order they appear in #tring, with no
-      # sorting, deduplication, or coalescing.  When #string is in its
+      # The entries are yielded in the same order they appear in #string, with
+      # no sorting, deduplication, or coalescing.  When #string is in its
       # normalized form, this will yield the same values as #each_element.
       #
       # Related: #entries, #each_element
-      def each_entry(&block)
+      def each_entry(&block) # :yields: integer or range or :*
         return to_enum(__method__) unless block_given?
-        return each_element(&block) unless @string
-        @string.split(",").each do yield tuple_to_entry str_to_tuple _1 end
-        self
+        each_entry_tuple do yield tuple_to_entry _1 end
       end
 
       # Yields each number or range (or <tt>:*</tt>) in #elements to the block
@@ -927,13 +958,27 @@ module Net
         self
       end
 
-      private def tuple_to_entry((min, max))
+      private
+
+      def each_entry_tuple(&block)
+        return to_enum(__method__) unless block_given?
+        if @string
+          @string.split(",") do block.call str_to_tuple _1 end
+        else
+          @tuples.each(&block)
+        end
+        self
+      end
+
+      def tuple_to_entry((min, max))
         if    min == STAR_INT then :*
         elsif max == STAR_INT then min..
         elsif min == max      then min
         else                       min..max
         end
       end
+
+      public
 
       # Yields each range in #ranges to the block and returns self.
       # Returns an enumerator when called without a block.
@@ -956,17 +1001,34 @@ module Net
       # Returns an enumerator when called without a block (even if the set
       # contains <tt>*</tt>).
       #
-      # Related: #numbers
+      # Related: #numbers, #each_ordered_number
       def each_number(&block) # :yields: integer
         return to_enum(__method__) unless block_given?
         raise RangeError, '%s contains "*"' % [self.class] if include_star?
-        each_element do |elem|
-          case elem
-          when Range   then elem.each(&block)
-          when Integer then block.(elem)
-          end
-        end
+        @tuples.each do each_number_in_tuple _1, _2, &block end
         self
+      end
+
+      # Yields each number in #entries to the block and returns self.
+      # If the set contains a <tt>*</tt>, RangeError will be raised.
+      #
+      # Returns an enumerator when called without a block (even if the set
+      # contains <tt>*</tt>).
+      #
+      # Related: #entries, #each_number
+      def each_ordered_number(&block)
+        return to_enum(__method__) unless block_given?
+        raise RangeError, '%s contains "*"' % [self.class] if include_star?
+        each_entry_tuple do each_number_in_tuple _1, _2, &block end
+      end
+
+      private def each_number_in_tuple(min, max, &block)
+        if    min == STAR_INT then yield :*
+        elsif min == max      then yield min
+        elsif max != STAR_INT then (min..max).each(&block)
+        else
+          raise RangeError, "#{SequenceSet} cannot enumerate range with '*'"
+        end
       end
 
       # Returns a Set with all of the #numbers in the sequence set.
@@ -980,8 +1042,10 @@ module Net
 
       # Returns the count of #numbers in the set.
       #
-      # If <tt>*</tt> and <tt>2**32 - 1</tt> (the maximum 32-bit unsigned
-      # integer value) are both in the set, they will only be counted once.
+      # <tt>*</tt> will be counted as <tt>2**32 - 1</tt> (the maximum 32-bit
+      # unsigned integer value).
+      #
+      # Related: #count_with_duplicates
       def count
         @tuples.sum(@tuples.count) { _2 - _1 } +
           (include_star? && include?(UINT32_MAX) ? -1 : 0)
@@ -989,51 +1053,129 @@ module Net
 
       alias size count
 
-      # Returns the index of +number+ in the set, or +nil+ if +number+ isn't in
-      # the set.
+      # Returns the count of numbers in the ordered #entries, including any
+      # repeated numbers.
       #
-      # Related: #[]
+      # <tt>*</tt> will be counted as <tt>2**32 - 1</tt> (the maximum 32-bit
+      # unsigned integer value).
+      #
+      # When #string is normalized, this behaves the same as #count.
+      #
+      # Related: #entries, #count_duplicates, #has_duplicates?
+      def count_with_duplicates
+        return count unless @string
+        each_entry_tuple.sum {|min, max|
+          max - min + ((max == STAR_INT && min != STAR_INT) ? 0 : 1)
+        }
+      end
+
+      # Returns the count of repeated numbers in the ordered #entries, the
+      # difference between #count_with_duplicates and #count.
+      #
+      # When #string is normalized, this is zero.
+      #
+      # Related: #entries, #count_with_duplicates, #has_duplicates?
+      def count_duplicates
+        return 0 unless @string
+        count_with_duplicates - count
+      end
+
+      # :call-seq: has_duplicates? -> true | false
+      #
+      # Returns whether or not the ordered #entries repeat any numbers.
+      #
+      # Always returns +false+ when #string is normalized.
+      #
+      # Related: #entries, #count_with_duplicates, #count_duplicates?
+      def has_duplicates?
+        return false unless @string
+        count_with_duplicates != count
+      end
+
+      # Returns the (sorted and deduplicated) index of +number+ in the set, or
+      # +nil+ if +number+ isn't in the set.
+      #
+      # Related: #[], #at, #find_ordered_index
       def find_index(number)
         number = to_tuple_int number
-        each_tuple_with_index do |min, max, idx_min|
+        each_tuple_with_index(@tuples) do |min, max, idx_min|
           number <  min and return nil
           number <= max and return from_tuple_int(idx_min + (number - min))
         end
         nil
       end
 
-      private def each_tuple_with_index
+      # Returns the first index of +number+ in the ordered #entries, or
+      # +nil+ if +number+ isn't in the set.
+      #
+      # Related: #find_index
+      def find_ordered_index(number)
+        number = to_tuple_int number
+        each_tuple_with_index(each_entry_tuple) do |min, max, idx_min|
+          if min <= number && number <= max
+            return from_tuple_int(idx_min + (number - min))
+          end
+        end
+        nil
+      end
+
+      private
+
+      def each_tuple_with_index(tuples)
         idx_min = 0
-        @tuples.each do |min, max|
-          yield min, max, idx_min, (idx_max = idx_min + (max - min))
+        tuples.each do |min, max|
+          idx_max = idx_min + (max - min)
+          yield min, max, idx_min, idx_max
           idx_min = idx_max + 1
         end
         idx_min
       end
 
-      private def reverse_each_tuple_with_index
+      def reverse_each_tuple_with_index(tuples)
         idx_max = -1
-        @tuples.reverse_each do |min, max|
+        tuples.reverse_each do |min, max|
           yield min, max, (idx_min = idx_max - (max - min)), idx_max
           idx_max = idx_min - 1
         end
         idx_max
       end
 
+      public
+
       # :call-seq: at(index) -> integer or nil
       #
-      # Returns a number from +self+, without modifying the set.  Behaves the
-      # same as #[], except that #at only allows a single integer argument.
+      # Returns the number at the given +index+ in the sorted set, without
+      # modifying the set.
       #
-      # Related: #[], #slice
+      # +index+ is interpreted the same as in #[], except that #at only allows a
+      # single integer argument.
+      #
+      # Related: #[], #slice, #ordered_at
       def at(index)
+        lookup_number_by_tuple_index(tuples, index)
+      end
+
+      # :call-seq: ordered_at(index) -> integer or nil
+      #
+      # Returns the number at the given +index+ in the ordered #entries, without
+      # modifying the set.
+      #
+      # +index+ is interpreted the same as in #at (and #[]), except that
+      # #ordered_at applies to the ordered #entries, not the sorted set.
+      #
+      # Related: #[], #slice, #ordered_at
+      def ordered_at(index)
+        lookup_number_by_tuple_index(each_entry_tuple, index)
+      end
+
+      private def lookup_number_by_tuple_index(tuples, index)
         index = Integer(index.to_int)
         if index.negative?
-          reverse_each_tuple_with_index do |min, max, idx_min, idx_max|
+          reverse_each_tuple_with_index(tuples) do |min, max, idx_min, idx_max|
             idx_min <= index and return from_tuple_int(min + (index - idx_min))
           end
         else
-          each_tuple_with_index do |min, _, idx_min, idx_max|
+          each_tuple_with_index(tuples) do |min, _, idx_min, idx_max|
             index <= idx_max and return from_tuple_int(min + (index - idx_min))
           end
         end
@@ -1048,17 +1190,18 @@ module Net
       #    seqset[range]         -> sequence set or nil
       #    slice(range)          -> sequence set or nil
       #
-      # Returns a number or a subset from +self+, without modifying the set.
+      # Returns a number or a subset from the _sorted_ set, without modifying
+      # the set.
       #
       # When an Integer argument +index+ is given, the number at offset +index+
-      # is returned:
+      # in the sorted set is returned:
       #
       #     set = Net::IMAP::SequenceSet["10:15,20:23,26"]
       #     set[0]   #=> 10
       #     set[5]   #=> 15
       #     set[10]  #=> 26
       #
-      # If +index+ is negative, it counts relative to the end of +self+:
+      # If +index+ is negative, it counts relative to the end of the sorted set:
       #     set = Net::IMAP::SequenceSet["10:15,20:23,26"]
       #     set[-1]  #=> 26
       #     set[-3]  #=> 22
@@ -1070,13 +1213,14 @@ module Net
       #     set[11]  #=> nil
       #     set[-12] #=> nil
       #
-      # The result is based on the normalized set—sorted and de-duplicated—not
-      # on the assigned value of #string.
+      # The result is based on the sorted and de-duplicated set, not on the
+      # ordered #entries in #string.
       #
       #     set = Net::IMAP::SequenceSet["12,20:23,11:16,21"]
       #     set[0]   #=> 11
       #     set[-1]  #=> 23
       #
+      # Related: #at
       def [](index, length = nil)
         if    length              then slice_length(index, length)
         elsif index.is_a?(Range)  then slice_range(index)
@@ -1086,7 +1230,9 @@ module Net
 
       alias slice :[]
 
-      private def slice_length(start, length)
+      private
+
+      def slice_length(start, length)
         start  = Integer(start.to_int)
         length = Integer(length.to_int)
         raise ArgumentError, "length must be positive" unless length.positive?
@@ -1094,7 +1240,7 @@ module Net
         slice_range(start..last)
       end
 
-      private def slice_range(range)
+      def slice_range(range)
         first = range.begin ||  0
         last  = range.end   || -1
         last -= 1 if range.exclude_end? && range.end && last != STAR_INT
@@ -1108,6 +1254,8 @@ module Net
           end
         end
       end
+
+      public
 
       # Returns a frozen SequenceSet with <tt>*</tt> converted to +max+, numbers
       # and ranges over +max+ removed, and ranges containing +max+ converted to
@@ -1305,6 +1453,12 @@ module Net
           range.include?(min) || range.include?(max) || (min..max).cover?(range)
       end
 
+      def modifying!
+        if frozen?
+          raise FrozenError, "can't modify frozen #{self.class}: %p" % [self]
+        end
+      end
+
       def tuples_add(tuples)      tuples.each do tuple_add _1      end; self end
       def tuples_subtract(tuples) tuples.each do tuple_subtract _1 end; self end
 
@@ -1319,10 +1473,11 @@ module Net
       #   ---------??===lower==|--|==|----|===upper===|-- join until upper
       #   ---------??===lower==|--|==|--|=====upper===|-- join to upper
       def tuple_add(tuple)
+        modifying!
         min, max = tuple
         lower, lower_idx = tuple_gte_with_index(min - 1)
-        if    lower.nil?              then tuples << tuple
-        elsif (max + 1) < lower.first then tuples.insert(lower_idx, tuple)
+        if    lower.nil?              then tuples << [min, max]
+        elsif (max + 1) < lower.first then tuples.insert(lower_idx, [min, max])
         else  tuple_coalesce(lower, lower_idx, min, max)
         end
       end
@@ -1355,6 +1510,7 @@ module Net
       # -------??=====lower====|--|====|---|====upper====|-- 7. delete until
       # -------??=====lower====|--|====|--|=====upper====|-- 8. delete and trim
       def tuple_subtract(tuple)
+        modifying!
         min, max = tuple
         lower, idx = tuple_gte_with_index(min)
         if    lower.nil?        then nil # case 1.

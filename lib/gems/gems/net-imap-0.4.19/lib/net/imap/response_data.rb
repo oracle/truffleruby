@@ -5,6 +5,9 @@ module Net
     autoload :FetchData,        "#{__dir__}/fetch_data"
     autoload :SearchResult,     "#{__dir__}/search_result"
     autoload :SequenceSet,      "#{__dir__}/sequence_set"
+    autoload :UIDPlusData,      "#{__dir__}/uidplus_data"
+    autoload :AppendUIDData,    "#{__dir__}/uidplus_data"
+    autoload :CopyUIDData,      "#{__dir__}/uidplus_data"
 
     # Net::IMAP::ContinuationRequest represents command continuation requests.
     #
@@ -58,7 +61,7 @@ module Net
 
     # Net::IMAP::IgnoredResponse represents intentionally ignored responses.
     #
-    # This includes untagged response "NOOP" sent by eg. Zimbra to avoid
+    # This includes untagged response "NOOP" sent by e.g. Zimbra to avoid
     # some clients to close the connection.
     #
     # It matches no IMAP standard.
@@ -280,7 +283,7 @@ module Net
     # ==== +QRESYNC+ extension
     # See {[RFC7162]}[https://www.rfc-editor.org/rfc/rfc7162.html].
     # * +CLOSED+, returned when the currently selected mailbox is closed
-    #   implicity by selecting or examining another mailbox.  #data is +nil+.
+    #   implicitly by selecting or examining another mailbox.  #data is +nil+.
     #
     # ==== +IMAP4rev2+ Response Codes
     # See {[RFC9051]}[https://www.rfc-editor.org/rfc/rfc9051] {§7.1, "Server
@@ -322,60 +325,6 @@ module Net
       # strings, an array of character set strings, a list of permanent flags,
       # an Integer, etc.  The response #code determines what form the response
       # code data can take.
-    end
-
-    # Net::IMAP::UIDPlusData represents the ResponseCode#data that accompanies
-    # the +APPENDUID+ and +COPYUID+ response codes.
-    #
-    # See [[UIDPLUS[https://www.rfc-editor.org/rfc/rfc4315.html]].
-    #
-    # ==== Capability requirement
-    #
-    # The +UIDPLUS+ capability[rdoc-ref:Net::IMAP#capability] must be supported.
-    # A server that supports +UIDPLUS+ should send a UIDPlusData object inside
-    # every TaggedResponse returned by the append[rdoc-ref:Net::IMAP#append],
-    # copy[rdoc-ref:Net::IMAP#copy], move[rdoc-ref:Net::IMAP#move], {uid
-    # copy}[rdoc-ref:Net::IMAP#uid_copy], and {uid
-    # move}[rdoc-ref:Net::IMAP#uid_move] commands---unless the destination
-    # mailbox reports +UIDNOTSTICKY+.
-    #
-    #--
-    # TODO: support MULTIAPPEND
-    #++
-    #
-    class UIDPlusData < Struct.new(:uidvalidity, :source_uids, :assigned_uids)
-      ##
-      # method: uidvalidity
-      # :call-seq: uidvalidity -> nonzero uint32
-      #
-      # The UIDVALIDITY of the destination mailbox.
-
-      ##
-      # method: source_uids
-      # :call-seq: source_uids -> nil or an array of nonzero uint32
-      #
-      # The UIDs of the copied or moved messages.
-      #
-      # Note:: Returns +nil+ for Net::IMAP#append.
-
-      ##
-      # method: assigned_uids
-      # :call-seq: assigned_uids -> an array of nonzero uint32
-      #
-      # The newly assigned UIDs of the copied, moved, or appended messages.
-      #
-      # Note:: This always returns an array, even when it contains only one UID.
-
-      ##
-      # :call-seq: uid_mapping -> nil or a hash
-      #
-      # Returns a hash mapping each source UID to the newly assigned destination
-      # UID.
-      #
-      # Note:: Returns +nil+ for Net::IMAP#append.
-      def uid_mapping
-        source_uids&.zip(assigned_uids)&.to_h
-      end
     end
 
     # Net::IMAP::MailboxList represents contents of the LIST response,
@@ -1045,7 +994,7 @@ module Net
     # === Bug Analysis
     #
     # \IMAP body structures are parenthesized lists and assign their fields
-    # positionally, so missing fields change the intepretation of all
+    # positionally, so missing fields change the interpretation of all
     # following fields.  Additionally, different body types have a different
     # number of required fields, followed by optional "extension" fields.
     #
@@ -1060,7 +1009,7 @@ module Net
     # Normally, +envelope+ and +md5+ are incompatible, but Net::IMAP leniently
     # allowed buggy servers to send +NIL+ for +envelope+.  As a result, when a
     # server sent a <tt>message/rfc822</tt> part with +NIL+ for +md5+ and a
-    # non-<tt>NIL</tt> +dsp+, Net::IMAP mis-interpreted the
+    # non-<tt>NIL</tt> +dsp+, Net::IMAP misinterpreted the
     # <tt>Content-Disposition</tt> as if it were a strange body type.  In all
     # reported cases, the <tt>Content-Disposition</tt> was "attachment", so
     # BodyTypeAttachment was created as the workaround.
@@ -1068,7 +1017,7 @@ module Net
     # === Current behavior
     #
     # When interpreted strictly, +envelope+ and +md5+ are incompatible.  So the
-    # current parsing algorithm peeks ahead after it has recieved the seventh
+    # current parsing algorithm peeks ahead after it has received the seventh
     # body field.  If the next token is not the start of an +envelope+, we assume
     # the server has incorrectly sent us a <tt>body-type-basic</tt> and return
     # BodyTypeBasic.  As a result, what was previously BodyTypeMessage#body =>

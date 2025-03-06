@@ -11,12 +11,19 @@ module Net
       include ParserUtils
       extend  ParserUtils::Generator
 
-      # :call-seq: Net::IMAP::ResponseParser.new -> Net::IMAP::ResponseParser
-      def initialize
+      attr_reader :config
+
+      # Creates a new ResponseParser.
+      #
+      # When +config+ is frozen or global, the parser #config inherits from it.
+      # Otherwise, +config+ will be used directly.
+      def initialize(config: Config.global)
         @str = nil
         @pos = nil
         @lex_state = nil
         @token = nil
+        @config = Config[config]
+        @config = @config.new if @config == Config.global || @config.frozen?
       end
 
       # :call-seq:
@@ -1155,6 +1162,7 @@ module Net
       # RFC3501, RFC9051:
       # body-fld-param  = "(" string SP string *(SP string SP string) ")" / nil
       def body_fld_param
+        quirky_SP? # See comments on test_bodystructure_extra_space
         return if NIL?
         param = {}
         lpar
@@ -1335,7 +1343,8 @@ module Net
         assert_no_lookahead
         start = @pos
         astring
-        @str[start...@pos - 1]
+        end_pos = @token ? @pos - 1 : @pos
+        @str[start...end_pos]
       end
 
       # mailbox-data    =  "FLAGS" SP flag-list / "LIST" SP mailbox-list /
@@ -1858,11 +1867,10 @@ module Net
       #
       # n.b, uniqueid ⊂ uid-set.  To avoid inconsistent return types, we always
       # match uid_set even if that returns a single-member array.
-      #
       def resp_code_apnd__data
         validity = number; SP!
         dst_uids = uid_set # uniqueid ⊂ uid-set
-        UIDPlusData.new(validity, nil, dst_uids)
+        AppendUID(validity, dst_uids)
       end
 
       # already matched:  "COPYUID"
@@ -1872,7 +1880,25 @@ module Net
         validity = number;  SP!
         src_uids = uid_set; SP!
         dst_uids = uid_set
-        UIDPlusData.new(validity, src_uids, dst_uids)
+        CopyUID(validity, src_uids, dst_uids)
+      end
+
+      def AppendUID(...) DeprecatedUIDPlus(...) || AppendUIDData.new(...) end
+      def CopyUID(...)   DeprecatedUIDPlus(...) || CopyUIDData.new(...)   end
+
+      # TODO: remove this code in the v0.6.0 release
+      def DeprecatedUIDPlus(validity, src_uids = nil, dst_uids)
+        return unless config.parser_use_deprecated_uidplus_data
+        compact_uid_sets = [src_uids, dst_uids].compact
+        count = compact_uid_sets.map { _1.count_with_duplicates }.max
+        max   = config.parser_max_deprecated_uidplus_data_size
+        if count <= max
+          src_uids &&= src_uids.each_ordered_number.to_a
+          dst_uids   = dst_uids.each_ordered_number.to_a
+          UIDPlusData.new(validity, src_uids, dst_uids)
+        elsif config.parser_use_deprecated_uidplus_data != :up_to_max_size
+          parse_error("uid-set is too large: %d > %d", count, max)
+        end
       end
 
       ADDRESS_REGEXP = /\G
@@ -1998,15 +2024,9 @@ module Net
       #      uniqueid        = nz-number
       #                          ; Strictly ascending
       def uid_set
-        token = match(T_NUMBER, T_ATOM)
-        case token.symbol
-        when T_NUMBER then [Integer(token.value)]
-        when T_ATOM
-          token.value.split(",").flat_map {|range|
-            range = range.split(":").map {|uniqueid| Integer(uniqueid) }
-            range.size == 1 ? range : Range.new(range.min, range.max).to_a
-          }
-        end
+        set = sequence_set
+        parse_error("uid-set cannot contain '*'") if set.include_star?
+        set
       end
 
       def nil_atom

@@ -16,11 +16,11 @@ module Net
       #
       # ==== Obsolete arguments
       #
-      # Using obsolete arguments does not a warning.  Obsolete arguments will be
-      # deprecated by a future release.
+      # Use of obsolete arguments does not print a warning.  Obsolete arguments
+      # will be deprecated by a future release.
       #
       # If a second positional argument is given and it is a hash (or is
-      # convertable via +#to_hash+), it is converted to keyword arguments.
+      # convertible via +#to_hash+), it is converted to keyword arguments.
       #
       #     # Obsolete:
       #     Net::IMAP.new("imap.example.com", options_hash)

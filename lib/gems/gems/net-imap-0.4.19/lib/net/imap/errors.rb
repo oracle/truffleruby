@@ -11,7 +11,7 @@ module Net
     class DataFormatError < Error
     end
 
-    # Error raised when a response from the server is non-parseable.
+    # Error raised when a response from the server is non-parsable.
     class ResponseParseError < Error
     end
 

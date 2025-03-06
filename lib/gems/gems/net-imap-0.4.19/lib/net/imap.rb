@@ -288,6 +288,8 @@ module Net
   #   pre-authenticated connection.
   # - #responses: Yields unhandled UntaggedResponse#data and <em>non-+nil+</em>
   #   ResponseCode#data.
+  # - #extract_responses: Removes and returns the responses for which the block
+  #   returns a true value.
   # - #clear_responses: Deletes unhandled data from #responses and returns it.
   # - #add_response_handler: Add a block to be called inside the receiver thread
   #   with every server response.
@@ -717,7 +719,7 @@ module Net
   # * {IMAP URLAUTH Authorization Mechanism Registry}[https://www.iana.org/assignments/urlauth-authorization-mechanism-registry/urlauth-authorization-mechanism-registry.xhtml]
   #
   class IMAP < Protocol
-    VERSION = "0.4.9.1"
+    VERSION = "0.4.19"
 
     # Aliases for supported capabilities, to be used with the #enable command.
     ENABLE_ALIASES = {
@@ -735,14 +737,15 @@ module Net
       include SSL
     end
 
-    # Returns the debug mode.
-    def self.debug
-      return @@debug
-    end
+    # Returns the global Config object
+    def self.config; Config.global end
 
-    # Sets the debug mode.
+    # Returns the global debug mode.
+    def self.debug; config.debug end
+
+    # Sets the global debug mode.
     def self.debug=(val)
-      return @@debug = val
+      config.debug = val
     end
 
     # The default port for IMAP connections, port 143
@@ -764,13 +767,19 @@ module Net
     # Returns the initial greeting the server, an UntaggedResponse.
     attr_reader :greeting
 
+    # The client configuration.  See Net::IMAP::Config.
+    #
+    # By default, the client's local configuration inherits from the global
+    # Net::IMAP.config.
+    attr_reader :config
+
     # Seconds to wait until a connection is opened.
     # If the IMAP object cannot open a connection within this time,
     # it raises a Net::OpenTimeout exception. The default value is 30 seconds.
-    attr_reader :open_timeout
+    def open_timeout; config.open_timeout end
 
     # Seconds to wait until an IDLE response is received.
-    attr_reader :idle_response_timeout
+    def idle_response_timeout; config.idle_response_timeout end
 
     # The hostname this client connected to
     attr_reader :host
@@ -809,18 +818,44 @@ module Net
     #   If +ssl+ is a hash, it's passed to
     #   {OpenSSL::SSL::SSLContext#set_params}[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html#method-i-set_params];
     #   the keys are names of attribute assignment methods on
-    #   SSLContext[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html].
+    #   SSLContext[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html].  For example:
     #
-    # [open_timeout]
-    #   Seconds to wait until a connection is opened
-    # [idle_response_timeout]
-    #   Seconds to wait until an IDLE response is received
+    #   [{ca_file}[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html#attribute-i-ca_file]]
+    #     The path to a file containing a PEM-format CA certificate.
+    #   [{ca_path}[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html#attribute-i-ca_path]]
+    #     The path to a directory containing CA certificates in PEM format.
+    #   [{min_version}[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html#method-i-min_version-3D]]
+    #     Sets the lower bound on the supported SSL/TLS protocol version. Set to
+    #     an +OpenSSL+ constant such as +OpenSSL::SSL::TLS1_2_VERSION+,
+    #   [{verify_mode}[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html#attribute-i-verify_mode]]
+    #     SSL session verification mode.  Valid modes include
+    #     +OpenSSL::SSL::VERIFY_PEER+ and +OpenSSL::SSL::VERIFY_NONE+.
     #
-    # See DeprecatedClientOptions.new for deprecated arguments.
+    #   See {OpenSSL::SSL::SSLContext}[https://docs.ruby-lang.org/en/master/OpenSSL/SSL/SSLContext.html] for other valid SSL context params.
+    #
+    #   See DeprecatedClientOptions.new for deprecated SSL arguments.
+    #
+    # [config]
+    #   A Net::IMAP::Config object to use as the basis for #config.  By default,
+    #   the global Net::IMAP.config is used.
+    #
+    #   >>>
+    #     *NOTE:* +config+ does not set #config directly---it sets the _parent_
+    #     config for inheritance.  Every client creates its own unique #config.
+    #
+    #   All other keyword arguments are forwarded to Net::IMAP::Config.new, to
+    #   initialize the client's #config. For example:
+    #
+    #   [{open_timeout}[rdoc-ref:Config#open_timeout]]
+    #     Seconds to wait until a connection is opened
+    #   [{idle_response_timeout}[rdoc-ref:Config#idle_response_timeout]]
+    #     Seconds to wait until an IDLE response is received
+    #
+    #   See Net::IMAP::Config for other valid options.
     #
     # ==== Examples
     #
-    # Connect to cleartext port 143 at mail.example.com and recieve the server greeting:
+    # Connect to cleartext port 143 at mail.example.com and receive the server greeting:
     #   imap = Net::IMAP.new('mail.example.com', ssl: false) # => #<Net::IMAP:0x00007f79b0872bd0>
     #   imap.port          => 143
     #   imap.tls_verified? => false
@@ -872,13 +907,12 @@ module Net
     #   Connected to the host successfully, but it immediately said goodbye.
     #
     def initialize(host, port: nil, ssl:  nil,
-                   open_timeout: 30, idle_response_timeout: 5)
+                   config: Config.global, **config_options)
       super()
       # Config options
       @host = host
+      @config = Config.new(config, **config_options)
       @port = port || (ssl ? SSL_PORT : PORT)
-      @open_timeout = Integer(open_timeout)
-      @idle_response_timeout = Integer(idle_response_timeout)
       @ssl_ctx_params, @ssl_ctx = build_ssl_ctx(ssl)
 
       # Basic Client State
@@ -888,8 +922,8 @@ module Net
       @greeting = nil
       @capabilities = nil
 
-      # Client Protocol Reciever
-      @parser = ResponseParser.new
+      # Client Protocol Receiver
+      @parser = ResponseParser.new(config: @config)
       @responses = Hash.new {|h, k| h[k] = [] }
       @response_handlers = []
       @receiver_thread = nil
@@ -1188,17 +1222,25 @@ module Net
     #
     def starttls(**options)
       @ssl_ctx_params, @ssl_ctx = build_ssl_ctx(options)
-      send_command("STARTTLS") do |resp|
+      error = nil
+      ok = send_command("STARTTLS") do |resp|
         if resp.kind_of?(TaggedResponse) && resp.name == "OK"
           clear_cached_capabilities
           clear_responses
           start_tls_session
         end
+      rescue Exception => error
+        raise # note that the error backtrace is in the receiver_thread
       end
+      if error
+        disconnect
+        raise error
+      end
+      ok
     end
 
     # :call-seq:
-    #   authenticate(mechanism, *, sasl_ir: true, registry: Net::IMAP::SASL.authenticators, **, &) -> ok_resp
+    #   authenticate(mechanism, *, sasl_ir: config.sasl_ir, registry: Net::IMAP::SASL.authenticators, **, &) -> ok_resp
     #
     # Sends an {AUTHENTICATE command [IMAP4rev1 §6.2.2]}[https://www.rfc-editor.org/rfc/rfc3501#section-6.2.2]
     # to authenticate the client.  If successful, the connection enters the
@@ -1207,7 +1249,8 @@ module Net
     # +mechanism+ is the name of the \SASL authentication mechanism to be used.
     #
     # +sasl_ir+ allows or disallows sending an "initial response" (see the
-    # +SASL-IR+ capability, below).
+    # +SASL-IR+ capability, below).  Defaults to the #config value for
+    # {sasl_ir}[rdoc-ref:Config#sasl_ir], which defaults to +true+.
     #
     # All other arguments are forwarded to the registered SASL authenticator for
     # the requested mechanism.  <em>The documentation for each individual
@@ -1303,7 +1346,9 @@ module Net
     # Previously cached #capabilities will be cleared when this method
     # completes.  If the TaggedResponse to #authenticate includes updated
     # capabilities, they will be cached.
-    def authenticate(mechanism, *creds, sasl_ir: true, **props, &callback)
+    def authenticate(mechanism, *creds,
+                     sasl_ir: config.sasl_ir,
+                     **props, &callback)
       mechanism = mechanism.to_s.tr("_", "-").upcase
       authenticator = SASL.authenticator(mechanism, *creds, **props, &callback)
       cmdargs = ["AUTHENTICATE", mechanism]
@@ -2397,10 +2442,16 @@ module Net
     # checks the connection for each 60 seconds.
     #
     #   loop do
-    #     imap.idle(60) do |res|
-    #       ...
+    #     imap.idle(60) do |response|
+    #       do_something_with(response)
+    #       imap.idle_done if some_condition?(response)
     #     end
     #   end
+    #
+    # Returns the server's response to indicate the IDLE state has ended.
+    # Returns +nil+ if the server does not respond to #idle_done within
+    # {config.idle_response_timeout}[rdoc-ref:Config#idle_response_timeout]
+    # seconds.
     #
     # Related: #idle_done, #noop, #check
     #
@@ -2429,7 +2480,7 @@ module Net
           unless @receiver_thread_terminating
             remove_response_handler(response_handler)
             put_string("DONE#{CRLF}")
-            response = get_tagged_response(tag, "IDLE", @idle_response_timeout)
+            response = get_tagged_response(tag, "IDLE", idle_response_timeout)
           end
         end
       end
@@ -2437,7 +2488,11 @@ module Net
       return response
     end
 
-    # Leaves IDLE.
+    # Leaves IDLE, allowing #idle to return.
+    #
+    # If the server does not respond within
+    # {config.idle_response_timeout}[rdoc-ref:Config#idle_response_timeout]
+    # seconds, #idle will return +nil+.
     #
     # Related: #idle
     def idle_done
@@ -2449,40 +2504,98 @@ module Net
       end
     end
 
+    RESPONSES_DEPRECATION_MSG =
+      "Pass a type or block to #responses, " \
+      "set config.responses_without_block to :frozen_dup " \
+      "or :silence_deprecation_warning, " \
+      "or use #extract_responses or #clear_responses."
+    private_constant :RESPONSES_DEPRECATION_MSG
+
     # :call-seq:
+    #   responses       -> hash of {String => Array} (see config.responses_without_block)
+    #   responses(type) -> frozen array
     #   responses       {|hash|  ...} -> block result
     #   responses(type) {|array| ...} -> block result
     #
-    # Yields unhandled responses and returns the result of the block.
+    # Yields or returns unhandled server responses.  Unhandled responses are
+    # stored in a hash, with arrays of UntaggedResponse#data keyed by
+    # UntaggedResponse#name and <em>non-+nil+</em> untagged ResponseCode#data
+    # keyed by ResponseCode#name.
     #
-    # Unhandled responses are stored in a hash, with arrays of
-    # <em>non-+nil+</em> UntaggedResponse#data keyed by UntaggedResponse#name
-    # and ResponseCode#data keyed by ResponseCode#name.  Call without +type+ to
-    # yield the entire responses hash.  Call with +type+ to yield only the array
-    # of responses for that type.
+    # When a block is given, yields unhandled responses and returns the block's
+    # result.  Without a block, returns the unhandled responses.
+    #
+    # [With +type+]
+    #   Yield or return only the array of responses for that +type+.
+    #   When no block is given, the returned array is a frozen copy.
+    # [Without +type+]
+    #   Yield or return the entire responses hash.
+    #
+    #   When no block is given, the behavior is determined by
+    #   Config#responses_without_block:
+    #   >>>
+    #     [+:silence_deprecation_warning+ <em>(original behavior)</em>]
+    #       Returns the mutable responses hash (without any warnings).
+    #       <em>This is not thread-safe.</em>
+    #
+    #     [+:warn+ <em>(default since +v0.5+)</em>]
+    #       Prints a warning and returns the mutable responses hash.
+    #       <em>This is not thread-safe.</em>
+    #
+    #     [+:frozen_dup+ <em>(planned default for +v0.6+)</em>]
+    #       Returns a frozen copy of the unhandled responses hash, with frozen
+    #       array values.
+    #
+    #     [+:raise+]
+    #       Raise an +ArgumentError+ with the deprecation warning.
     #
     # For example:
     #
     #   imap.select("inbox")
-    #   p imap.responses("EXISTS", &:last)
+    #   p imap.responses("EXISTS").last
     #   #=> 2
+    #   p imap.responses("UIDNEXT", &:last)
+    #   #=> 123456
     #   p imap.responses("UIDVALIDITY", &:last)
     #   #=> 968263756
+    #   p imap.responses {|responses|
+    #     {
+    #       exists:      responses.delete("EXISTS").last,
+    #       uidnext:     responses.delete("UIDNEXT").last,
+    #       uidvalidity: responses.delete("UIDVALIDITY").last,
+    #     }
+    #   }
+    #   #=> {:exists=>2, :uidnext=>123456, :uidvalidity=>968263756}
+    #   # "EXISTS", "UIDNEXT", and "UIDVALIDITY" have been removed:
+    #   p imap.responses(&:keys)
+    #   #=> ["FLAGS", "OK", "PERMANENTFLAGS", "RECENT", "HIGHESTMODSEQ"]
     #
+    # Related: #extract_responses, #clear_responses, #response_handlers, #greeting
+    #
+    # ===== Thread safety
     # >>>
     #   *Note:* Access to the responses hash is synchronized for thread-safety.
     #   The receiver thread and response_handlers cannot process new responses
     #   until the block completes.  Accessing either the response hash or its
-    #   response type arrays outside of the block is unsafe.
+    #   response type arrays outside of the block is unsafe.  They can be safely
+    #   updated inside the block.  Consider using #clear_responses or
+    #   #extract_responses instead.
     #
-    #   Calling without a block is unsafe and deprecated.  Future releases will
-    #   raise ArgumentError unless a block is given.
+    #   Net::IMAP will add and remove responses from the responses hash and its
+    #   array values, in the calling threads for commands and in the receiver
+    #   thread, but will not modify any responses after adding them to the
+    #   responses hash.
+    #
+    # ===== Clearing responses
     #
     # Previously unhandled responses are automatically cleared before entering a
     # mailbox with #select or #examine.  Long-lived connections can receive many
     # unhandled server responses, which must be pruned or they will continually
     # consume more memory.  Update or clear the responses hash or arrays inside
-    # the block, or use #clear_responses.
+    # the block, or remove responses with #extract_responses, #clear_responses,
+    # or #add_response_handler.
+    #
+    # ===== Missing responses
     #
     # Only non-+nil+ data is stored.  Many important response codes have no data
     # of their own, but are used as "tags" on the ResponseText object they are
@@ -2493,15 +2606,25 @@ module Net
     # ResponseCode#data on tagged responses.  Although some command methods do
     # return the TaggedResponse directly, #add_response_handler must be used to
     # handle all response codes.
-    #
-    # Related: #clear_responses, #response_handlers, #greeting
     def responses(type = nil)
       if block_given?
         synchronize { yield(type ? @responses[type.to_s.upcase] : @responses) }
       elsif type
-        raise ArgumentError, "Pass a block or use #clear_responses"
+        synchronize { @responses[type.to_s.upcase].dup.freeze }
       else
-        # warn("DEPRECATED: pass a block or use #clear_responses", uplevel: 1)
+        case config.responses_without_block
+        when :raise
+          raise ArgumentError, RESPONSES_DEPRECATION_MSG
+        when :warn
+          warn(RESPONSES_DEPRECATION_MSG, uplevel: 1)
+        when :frozen_dup
+          synchronize {
+            responses = @responses.transform_values(&:freeze)
+            responses.default_proc = nil
+            responses.default = [].freeze
+            return responses.freeze
+          }
+        end
         @responses
       end
     end
@@ -2516,7 +2639,7 @@ module Net
     # Clearing responses is synchronized with other threads.  The lock is
     # released before returning.
     #
-    # Related: #responses, #response_handlers
+    # Related: #extract_responses, #responses, #response_handlers
     def clear_responses(type = nil)
       synchronize {
         if type
@@ -2528,6 +2651,30 @@ module Net
         end
       }
         .freeze
+    end
+
+    # :call-seq:
+    #   extract_responses(type) {|response| ... } -> array
+    #
+    # Yields all of the unhandled #responses for a single response +type+.
+    # Removes and returns the responses for which the block returns a true
+    # value.
+    #
+    # Extracting responses is synchronized with other threads.  The lock is
+    # released before returning.
+    #
+    # Related: #responses, #clear_responses
+    def extract_responses(type)
+      type = String.try_convert(type) or
+        raise ArgumentError, "type must be a string"
+      raise ArgumentError, "must provide a block" unless block_given?
+      extracted = []
+      responses(type) do |all|
+        all.reject! do |response|
+          extracted << response if yield response
+        end
+      end
+      extracted
     end
 
     # Returns all response handlers, including those that are added internally
@@ -2582,8 +2729,6 @@ module Net
     PORT = 143         # :nodoc:
     SSL_PORT = 993   # :nodoc:
 
-    @@debug = false
-
     def start_imap_connection
       @greeting        = get_server_greeting
       @capabilities    = capabilities_from_resp_code @greeting
@@ -2611,12 +2756,12 @@ module Net
     end
 
     def tcp_socket(host, port)
-      s = Socket.tcp(host, port, :connect_timeout => @open_timeout)
+      s = Socket.tcp(host, port, :connect_timeout => open_timeout)
       s.setsockopt(:SOL_SOCKET, :SO_KEEPALIVE, true)
       s
     rescue Errno::ETIMEDOUT
       raise Net::OpenTimeout, "Timeout to open TCP connection to " +
-        "#{host}:#{port} (exceeds #{@open_timeout} seconds)"
+        "#{host}:#{port} (exceeds #{open_timeout} seconds)"
     end
 
     def receive_responses
@@ -2728,7 +2873,7 @@ module Net
         end
       end
       return nil if buff.length == 0
-      if @@debug
+      if config.debug?
         $stderr.print(buff.gsub(/^/n, "S: "))
       end
       return @parser.parse(buff)
@@ -2807,7 +2952,7 @@ module Net
 
     def put_string(str)
       @sock.print(str)
-      if @@debug
+      if config.debug?
         if @debug_output_bol
           $stderr.print("C: ")
         end
@@ -2934,7 +3079,7 @@ module Net
       @sock = SSLSocket.new(@sock, ssl_ctx)
       @sock.sync_close = true
       @sock.hostname = @host if @sock.respond_to? :hostname=
-      ssl_socket_connect(@sock, @open_timeout)
+      ssl_socket_connect(@sock, open_timeout)
       if ssl_ctx.verify_mode != VERIFY_NONE
         @sock.post_connection_check(@host)
         @tls_verified = true
@@ -2959,6 +3104,7 @@ module Net
 end
 
 require_relative "imap/errors"
+require_relative "imap/config"
 require_relative "imap/command_data"
 require_relative "imap/data_encoding"
 require_relative "imap/flags"

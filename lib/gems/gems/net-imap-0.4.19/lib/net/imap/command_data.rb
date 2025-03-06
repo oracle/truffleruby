@@ -40,10 +40,10 @@ module Net
         send_number_data(data)
       when Array
         send_list_data(data, tag)
-      when Date
-        send_date_data(data)
       when Time, DateTime
         send_time_data(data)
+      when Date
+        send_date_data(data)
       when Symbol
         send_symbol_data(data)
       else

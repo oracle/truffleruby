@@ -71,7 +71,7 @@ module Net
     # Mailbox name attributes are not case-sensitive.  <em>The current
     # implementation</em> normalizes mailbox attribute case using
     # String#capitalize, such as +:Noselect+ (not +:NoSelect+).  The constants
-    # (such as NO_SELECT) can also be used for comparison.  The contants have
+    # (such as NO_SELECT) can also be used for comparison.  The constants have
     # been defined both with and without underscores between words.
     #
     # <em>The descriptions here were copied from</em> {[RFC-9051 §

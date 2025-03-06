@@ -4,6 +4,10 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "digest"
+gem "strscan"
+gem "base64"
+
 gem "rake"
 gem "rdoc"
 gem "test-unit"

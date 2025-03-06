@@ -37,7 +37,7 @@ module Net
     #     See ExternalAuthenticator.
     #
     #     Authenticates using already established credentials, such as a TLS
-    #     certificate or IPsec.
+    #     certificate or IPSec.
     #
     # +OAUTHBEARER+::
     #     See OAuthBearerAuthenticator.

@@ -136,7 +136,7 @@ module Net
       alias parse_datetime  decode_datetime
       alias parse_time      decode_time
 
-      # alias format_datetime encode_datetime  # n.b. this is overridden below...
+      # alias format_datetime encode_datetime  # n.b: this is overridden below...
     end
 
     # DEPRECATED:: The original version returned incorrectly formatted strings.

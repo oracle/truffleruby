@@ -154,7 +154,7 @@ module Net
         end
 
         # To be used conditionally:
-        #   assert_no_lookahead if Net::IMAP.debug
+        #   assert_no_lookahead if config.debug?
         def assert_no_lookahead
           @token.nil? or
             parse_error("assertion failed: expected @token.nil?, actual %s: %p",
@@ -181,23 +181,23 @@ module Net
         end
 
         def peek_str?(str)
-          assert_no_lookahead if Net::IMAP.debug
+          assert_no_lookahead if config.debug?
           @str[@pos, str.length] == str
         end
 
         def peek_re(re)
-          assert_no_lookahead if Net::IMAP.debug
+          assert_no_lookahead if config.debug?
           re.match(@str, @pos)
         end
 
         def accept_re(re)
-          assert_no_lookahead if Net::IMAP.debug
+          assert_no_lookahead if config.debug?
           re.match(@str, @pos) and @pos = $~.end(0)
           $~
         end
 
         def match_re(re, name)
-          assert_no_lookahead if Net::IMAP.debug
+          assert_no_lookahead if config.debug?
           if re.match(@str, @pos)
             @pos = $~.end(0)
             $~
@@ -212,7 +212,7 @@ module Net
 
         def parse_error(fmt, *args)
           msg = format(fmt, *args)
-          if IMAP.debug
+          if config.debug?
             local_path = File.dirname(__dir__)
             tok = @token ? "%s: %p" % [@token.symbol, @token.value] : "nil"
             warn "%s %s: %s"        % [self.class, __method__, msg]

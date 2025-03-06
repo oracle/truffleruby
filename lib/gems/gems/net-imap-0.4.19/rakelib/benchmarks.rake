@@ -26,7 +26,7 @@ file "benchmarks/parser.yml" => PARSER_TEST_FIXTURES do |t|
   files = path.glob("*.yml")
   tests = files.flat_map {|file|
     file.read
-      .gsub(%r{([-:]) !ruby/(object|struct):\S+}) { $1 }
+      .gsub(%r{([-:]) !ruby/(object|struct|array):\S+}) { $1 }
       .then {
         YAML.safe_load(_1, filename: file,
                        permitted_classes: [Symbol, Regexp], aliases: true)

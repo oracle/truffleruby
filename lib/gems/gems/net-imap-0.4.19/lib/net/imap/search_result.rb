@@ -9,7 +9,7 @@ module Net
     # For backward compatibility, SearchResult inherits from Array.
     class SearchResult < Array
 
-      # Returns a frozen SearchResult populated with the given +seq_nums+.
+      # Returns a SearchResult populated with the given +seq_nums+.
       #
       #     Net::IMAP::SearchResult[1, 3, 5, modseq: 9]
       #     # => Net::IMAP::SearchResult[1, 3, 5, modseq: 9]
@@ -22,18 +22,14 @@ module Net
       # §3.1.6]}[https://www.rfc-editor.org/rfc/rfc7162.html#section-3.1.6].
       attr_reader :modseq
 
-      # Returns a frozen SearchResult populated with the given +seq_nums+.
+      # Returns a SearchResult populated with the given +seq_nums+.
       #
       #     Net::IMAP::SearchResult.new([1, 3, 5], modseq: 9)
       #     # => Net::IMAP::SearchResult[1, 3, 5, modseq: 9]
       def initialize(seq_nums, modseq: nil)
         super(seq_nums.to_ary.map { Integer _1 })
         @modseq = Integer modseq if modseq
-        freeze
       end
-
-      # Returns a frozen copy of +other+.
-      def initialize_copy(other); super; freeze end
 
       # Returns whether +other+ is a SearchResult with the same values and the
       # same #modseq.  The order of numbers is irrelevant.
