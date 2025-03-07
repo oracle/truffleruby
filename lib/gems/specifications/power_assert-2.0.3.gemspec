@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Kazuki Tsujimoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Power Assert shows each value of variables and method calls in the expression. It is useful for testing, providing which value wasn't correct when the condition is not satisfied.".freeze
   s.email = ["kazuki@callcc.net".freeze]
   s.extra_rdoc_files = ["README.md".freeze]
@@ -17,10 +17,10 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/power_assert".freeze
   s.licenses = ["BSD-2-Clause".freeze, "Ruby".freeze]
   s.rdoc_options = ["--main".freeze, "README.md".freeze]
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Power Assert for Ruby".freeze
 
-  s.installed_by_version = "3.5.16".freeze if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.5.22".freeze
 
   s.specification_version = 4
 

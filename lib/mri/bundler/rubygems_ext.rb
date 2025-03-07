@@ -30,23 +30,30 @@ module Gem
     end
   end
 
-  # Can be removed once RubyGems 3.5.14 support is dropped
-  unless Gem.respond_to?(:open_file_with_flock)
-    def self.open_file_with_flock(path, &block)
-      flags = File.exist?(path) ? "r+" : "a+"
+  # Can be removed once RubyGems 3.5.18 support is dropped
+  unless Gem.respond_to?(:open_file_with_lock)
+    class << self
+      remove_method :open_file_with_flock if Gem.respond_to?(:open_file_with_flock)
 
-      File.open(path, flags) do |io|
-        begin
-          io.flock(File::LOCK_EX)
-        rescue Errno::ENOSYS, Errno::ENOTSUP
+      def open_file_with_flock(path, &block)
+        # read-write mode is used rather than read-only in order to support NFS
+        mode = IO::RDWR | IO::APPEND | IO::CREAT | IO::BINARY
+        mode |= IO::SHARE_DELETE if IO.const_defined?(:SHARE_DELETE)
+
+        File.open(path, mode) do |io|
+          begin
+            io.flock(File::LOCK_EX)
+          rescue Errno::ENOSYS, Errno::ENOTSUP
+          end
+          yield io
         end
-        yield io
-      rescue Errno::ENOLCK # NFS
-        if Thread.main != Thread.current
-          raise
-        else
-          File.open(path, flags, &block)
-        end
+      end
+
+      def open_file_with_lock(path, &block)
+        file_lock = "#{path}.lock"
+        open_file_with_flock(file_lock, &block)
+      ensure
+        FileUtils.rm_f file_lock
       end
     end
   end
@@ -237,24 +244,18 @@ module Gem
 
     include ::Bundler::ForcePlatform
 
+    attr_reader :force_ruby_platform
+
     attr_accessor :source, :groups
 
     alias_method :eql?, :==
 
-    def force_ruby_platform
-      return @force_ruby_platform if defined?(@force_ruby_platform) && !@force_ruby_platform.nil?
-
-      @force_ruby_platform = default_force_ruby_platform
-    end
-
-    def encode_with(coder)
-      to_yaml_properties.each do |ivar|
-        coder[ivar.to_s.sub(/^@/, "")] = instance_variable_get(ivar)
+    unless method_defined?(:encode_with, false)
+      def encode_with(coder)
+        [:@name, :@requirement, :@type, :@prerelease, :@version_requirements].each do |ivar|
+          coder[ivar.to_s.sub(/^@/, "")] = instance_variable_get(ivar)
+        end
       end
-    end
-
-    def to_yaml_properties
-      instance_variables.reject {|p| ["@source", "@groups"].include?(p.to_s) }
     end
 
     def to_lock
@@ -264,6 +265,16 @@ module Gem
         out << " (#{reqs.join(", ")})"
       end
       out
+    end
+
+    if Gem.rubygems_version < Gem::Version.new("3.5.22")
+      module FilterIgnoredSpecs
+        def matching_specs(platform_only = false)
+          super.reject(&:ignored?)
+        end
+      end
+
+      prepend FilterIgnoredSpecs
     end
   end
 
@@ -387,6 +398,15 @@ module Gem
         end
       end
     end
+
+    # Can be removed once RubyGems 3.5.22 support is dropped
+    unless new.respond_to?(:ignored?)
+      def ignored?
+        return @ignored unless @ignored.nil?
+
+        @ignored = missing_extensions?
+      end
+    end
   end
 
   require "rubygems/name_tuple"
@@ -410,6 +430,25 @@ module Gem
         "#{name} (#{version})"
       else
         "#{name} (#{version}-#{platform})"
+      end
+    end
+  end
+
+  unless Gem.rubygems_version >= Gem::Version.new("3.5.19")
+    class Resolver::ActivationRequest
+      remove_method :installed?
+
+      def installed?
+        case @spec
+        when Gem::Resolver::VendorSpecification then
+          true
+        else
+          this_spec = full_spec
+
+          Gem::Specification.any? do |s|
+            s == this_spec && s.base_dir == this_spec.base_dir
+          end
+        end
       end
     end
   end

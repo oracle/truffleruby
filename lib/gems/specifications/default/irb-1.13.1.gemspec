@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["aycabta".freeze, "Keiju ISHITSUKA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Interactive Ruby command-line tool for REPL (Read Eval Print Loop).".freeze
   s.email = ["aycabta@gmail.com".freeze, "keiju@ruby-lang.org".freeze]
   s.executables = ["irb".freeze]
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/irb".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.7".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Interactive Ruby command-line tool for REPL (Read Eval Print Loop).".freeze
 
   s.specification_version = 4
