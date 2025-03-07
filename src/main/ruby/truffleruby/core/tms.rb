@@ -34,6 +34,14 @@ module Process
     STRUCT_ATTRS = [:utime, :stime, :cutime, :cstime]
     attr_accessor :utime, :stime, :cutime, :cstime
 
+    def self.keyword_init?
+      nil
+    end
+
+    def self.members
+      STRUCT_ATTRS.dup
+    end
+
     def self.new(*args, &block)
       subclass_new(*args, &block)
     end

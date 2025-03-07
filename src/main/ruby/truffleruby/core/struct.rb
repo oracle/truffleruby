@@ -33,6 +33,8 @@ class Struct
     alias_method :subclass_new, :new
   end
 
+  # Process:Tms (tms.rb) is duplicating some of this logic and must be kept in sync.
+
   def self.new(*attrs, keyword_init: nil, &block)
     klass_name = nil
 
