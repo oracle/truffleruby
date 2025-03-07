@@ -263,15 +263,6 @@ class Struct
     _attrs[var]
   end
 
-  private def check_index_var(var)
-    var = Truffle::Type.rb_convert_type(var, Integer, :to_int)
-    a_len = _attrs.length
-
-    if var < a_len && var >= -a_len
-      _attrs[var]
-    end
-  end
-
   def dig(key, *more)
     result = read_or_nil(key)
     if Primitive.nil?(result) || more.empty?
@@ -353,7 +344,7 @@ class Struct
       when String
         symbolized_key = requested_key.to_sym
       else
-        symbolized_key = check_index_var(requested_key)
+        symbolized_key = _attrs[requested_key]
       end
 
       if symbolized_key && _attrs.include?(symbolized_key)

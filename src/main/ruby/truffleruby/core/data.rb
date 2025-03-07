@@ -174,8 +174,7 @@ class Data
           when String
             symbolized_key = requested_key.to_sym
           else
-            index = Truffle::Type.rb_convert_type(requested_key, Integer, :to_int)
-            symbolized_key = members[index]
+            symbolized_key = members[requested_key]
           end
 
           if symbolized_key && members_hash.include?(symbolized_key)
