@@ -12,6 +12,7 @@ Compatibility:
 * Support String patterns in `StringScanner#{exist?,scan_until,skip_until,check_until,search_full}` methods (@andrykonchin).
 * Implement `ObjectSpace::WeakKeyMap` (#3681, @andrykonchin).
 * Fix `String#slice` called with negative offset (@andrykonchin).
+* Fix explicitly inherited `Struct` subclasses and don't provide `#members` method (#3802, @andrykonchin).
 
 Performance:
 

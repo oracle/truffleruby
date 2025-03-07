@@ -33,6 +33,8 @@ class Struct
     alias_method :subclass_new, :new
   end
 
+  # Process:Tms (tms.rb) is duplicating some of this logic and must be kept in sync.
+
   def self.new(*attrs, keyword_init: nil, &block)
     klass_name = nil
 
@@ -80,6 +82,10 @@ class Struct
       def self.keyword_init?
         return nil if Primitive.nil?(self::KEYWORD_INIT)
         Primitive.as_boolean(self::KEYWORD_INIT)
+      end
+
+      def self.members
+        self::STRUCT_ATTRS.dup
       end
     end
 
@@ -313,14 +319,6 @@ class Struct
     _attrs.length
   end
   alias_method :size, :length
-
-  def self.length
-    self::STRUCT_ATTRS.size
-  end
-
-  def self.members
-    self::STRUCT_ATTRS.dup
-  end
 
   def members
     Primitive.class(self).members

@@ -1,4 +1,5 @@
 require_relative '../../spec_helper'
+require_relative 'fixtures/classes'
 
 ruby_version_is "3.1" do
   # See https://bugs.ruby-lang.org/issues/18008
@@ -35,6 +36,12 @@ ruby_version_is "3.1" do
 
       struct = Struct.new(:arg, keyword_init: {})
       struct.keyword_init?.should be_true
+    end
+
+    context "class inheriting Struct" do
+      it "isn't available in a subclass" do
+        StructClasses::StructSubclass.should_not.respond_to?(:keyword_init?)
+      end
     end
   end
 end
