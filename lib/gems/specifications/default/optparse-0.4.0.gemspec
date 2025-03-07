@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Nobu Nakada".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "OptionParser is a class for command-line option analysis.".freeze
   s.email = ["nobu@ruby-lang.org".freeze]
   s.files = ["optionparser.rb".freeze, "optparse.rb".freeze, "optparse/ac.rb".freeze, "optparse/date.rb".freeze, "optparse/kwargs.rb".freeze, "optparse/shellwords.rb".freeze, "optparse/time.rb".freeze, "optparse/uri.rb".freeze, "optparse/version.rb".freeze]
@@ -18,6 +18,6 @@ Gem::Specification.new do |s|
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.rdoc_options = ["--main=README.md".freeze, "--op=rdoc".freeze, "--page-dir=doc".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "OptionParser is a class for command-line option analysis.".freeze
 end

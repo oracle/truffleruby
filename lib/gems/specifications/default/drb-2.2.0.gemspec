@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.metadata = { "homepage_uri" => "https://github.com/ruby/drb", "source_code_uri" => "https://github.com/ruby/drb" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Masatoshi SEKI".freeze]
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Distributed object system for Ruby".freeze
   s.email = ["seki@ruby-lang.org".freeze]
   s.files = ["drb.rb".freeze, "drb/acl.rb".freeze, "drb/drb.rb".freeze, "drb/eq.rb".freeze, "drb/extserv.rb".freeze, "drb/extservm.rb".freeze, "drb/gw.rb".freeze, "drb/invokemethod.rb".freeze, "drb/observer.rb".freeze, "drb/ssl.rb".freeze, "drb/timeridconv.rb".freeze, "drb/unix.rb".freeze, "drb/version.rb".freeze, "drb/weakidconv.rb".freeze]
   s.homepage = "https://github.com/ruby/drb".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.7.0".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Distributed object system for Ruby".freeze
 
   s.specification_version = 4

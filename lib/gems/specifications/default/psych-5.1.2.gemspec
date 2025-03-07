@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.metadata = { "msys2_mingw_dependencies" => "libyaml" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Aaron Patterson".freeze, "SHIBATA Hiroshi".freeze, "Charles Oliver Nutter".freeze]
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Psych is a YAML parser and emitter. Psych leverages libyaml[https://pyyaml.org/wiki/LibYAML]\nfor its YAML parsing and emitting capabilities. In addition to wrapping libyaml,\nPsych also knows how to serialize and de-serialize most Ruby objects to and from the YAML format.\n".freeze
   s.email = ["aaron@tenderlovemaking.com".freeze, "hsbt@ruby-lang.org".freeze, "headius@headius.com".freeze]
   s.extensions = ["ext/psych/extconf.rb".freeze]
@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--main".freeze, "README.md".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Psych is a YAML parser and emitter".freeze
 
   s.specification_version = 4

@@ -1,3 +1,24 @@
+# 24.2.1
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+* Updated to Ruby 3.3.7 (@andrykonchin).
+
+Performance:
+
+
+Changes:
+
+
+Memory Footprint:
+
+
 # 24.2.0
 
 New features:

@@ -2,6 +2,7 @@ exclude :test_autoload, "NoMethodError: undefined method `set_scheduler' for Fib
 exclude :test_close_at_exit, "| -:5:in `<main>': undefined method `set_scheduler' for Fiber:Class (NoMethodError)"
 exclude :test_closed_at_thread_exit, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_closed_when_set_to_nil, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
+exclude :test_condition_variable, "NoMethodError: undefined method `set_scheduler' for class Fiber"
 exclude :test_current_scheduler, "hangs, no Fiber.set_scheduler"
 exclude :test_deadlock, "NoMethodError: undefined method `set_scheduler' for Fiber:Class"
 exclude :test_fiber_blocking, "NoMethodError: undefined method `blocking' for Fiber:Class"

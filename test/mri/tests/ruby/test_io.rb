@@ -2002,6 +2002,44 @@ class TestIO < Test::Unit::TestCase
     end
   end
 
+  def test_readline_incompatible_rs
+    first_line = File.open(__FILE__, &:gets).encode("utf-32le")
+    File.open(__FILE__, encoding: "utf-8:utf-32le") {|f|
+      assert_equal first_line, f.readline
+      assert_raise(ArgumentError) {f.readline("\0")}
+    }
+  end
+
+  def test_readline_limit_nonascii
+    mkcdtmpdir do
+      i = 0
+
+      File.open("text#{i+=1}", "w+:utf-8") do |f|
+        f.write("Test\nok\u{bf}ok\n")
+        f.rewind
+
+        assert_equal("Test\nok\u{bf}", f.readline("\u{bf}"))
+        assert_equal("ok\n", f.readline("\u{bf}"))
+      end
+
+      File.open("text#{i+=1}", "w+b:utf-32le") do |f|
+        f.write("0123456789")
+        f.rewind
+
+        assert_equal(4, f.readline(4).bytesize)
+        assert_equal(4, f.readline(3).bytesize)
+      end
+
+      File.open("text#{i+=1}", "w+:utf-8:utf-32le") do |f|
+        f.write("0123456789")
+        f.rewind
+
+        assert_equal(4, f.readline(4).bytesize)
+        assert_equal(4, f.readline(3).bytesize)
+      end
+    end
+  end
+
   def test_set_lineno_readline
     pipe(proc do |w|
       w.puts "foo"

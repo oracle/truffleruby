@@ -1208,7 +1208,7 @@ class Gem::Specification < Gem::BasicSpecification
       unresolved.values.each do |dep|
         warn "      #{dep}"
 
-        versions = find_all_by_name(dep.name)
+        versions = find_all_by_name(dep.name).uniq(&:full_name)
         unless versions.empty?
           warn "      Available/installed versions of this gem:"
           versions.each {|s| warn "      - #{s.version}" }
@@ -1318,7 +1318,7 @@ class Gem::Specification < Gem::BasicSpecification
     spec.instance_variable_set :@has_rdoc,                  array[15]
     spec.instance_variable_set :@new_platform,              array[16]
     spec.instance_variable_set :@platform,                  array[16].to_s
-    spec.instance_variable_set :@license,                   array[17]
+    spec.instance_variable_set :@licenses,                  [array[17]]
     spec.instance_variable_set :@metadata,                  array[18]
     spec.instance_variable_set :@loaded,                    false
     spec.instance_variable_set :@activated,                 false
@@ -1412,7 +1412,7 @@ class Gem::Specification < Gem::BasicSpecification
       end
 
       begin
-        specs = spec_dep.to_specs
+        specs = spec_dep.to_specs.uniq(&:full_name)
       rescue Gem::MissingSpecError => e
         raise Gem::MissingSpecError.new(e.name, e.requirement, "at: #{spec_file}")
       end
@@ -2470,7 +2470,7 @@ class Gem::Specification < Gem::BasicSpecification
 
     if @installed_by_version
       result << nil
-      result << "  s.installed_by_version = #{ruby_code Gem::VERSION} if s.respond_to? :installed_by_version"
+      result << "  s.installed_by_version = #{ruby_code Gem::VERSION}"
     end
 
     unless dependencies.empty?

@@ -22,6 +22,7 @@ matched?
 matched_size
 named_captures
 peek
+peek_byte
 peep
 pointer
 pointer=
@@ -35,7 +36,9 @@ rest?
 rest_size
 restsize
 scan
+scan_byte
 scan_full
+scan_integer
 scan_until
 search_full
 size

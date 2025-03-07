@@ -9,15 +9,15 @@ Gem::Specification.new do |s|
   s.metadata = { "bug_tracker_uri" => "https://github.com/test-unit/test-unit/issues", "documentation_uri" => "https://test-unit.github.io/test-unit/en/", "source_code_uri" => "https://github.com/test-unit/test-unit" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Kouhei Sutou".freeze, "Haruka Yoshihara".freeze]
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "test-unit (Test::Unit) is unit testing framework for Ruby, based on xUnit\nprinciples. These were originally designed by Kent Beck, creator of extreme\nprogramming software development methodology, for Smalltalk's SUnit. It allows\nwriting tests, checking results and automated testing in Ruby.".freeze
   s.email = ["kou@cozmixng.org".freeze, "yoshihara@clear-code.com".freeze]
   s.homepage = "http://test-unit.github.io/".freeze
   s.licenses = ["Ruby".freeze, "BSDL".freeze, "PSFL".freeze]
-  s.rubygems_version = "3.3.5".freeze
+  s.rubygems_version = "3.4.20".freeze
   s.summary = "An xUnit family unit testing framework for Ruby.".freeze
 
-  s.installed_by_version = "3.5.16".freeze if s.respond_to? :installed_by_version
+  s.installed_by_version = "3.5.22".freeze
 
   s.specification_version = 4
 

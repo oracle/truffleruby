@@ -115,7 +115,7 @@ module Bundler
         @originally_locked_specs = @locked_specs
         @locked_sources = []
         @locked_platforms = []
-        @locked_checksums = nil
+        @locked_checksums = Bundler.feature_flag.bundler_3_mode?
       end
 
       locked_gem_sources = @locked_sources.select {|s| s.is_a?(Source::Rubygems) }
@@ -137,7 +137,7 @@ module Bundler
       end
       @unlocking ||= @unlock[:ruby] ||= (!@locked_ruby_version ^ !@ruby_version)
 
-      add_current_platform unless Bundler.frozen_bundle?
+      @current_platform_missing = add_current_platform unless Bundler.frozen_bundle?
 
       converge_path_sources_to_gemspec_sources
       @path_changes = converge_paths
@@ -214,6 +214,7 @@ module Bundler
       @resolve = nil
       @resolver = nil
       @resolution_packages = nil
+      @source_requirements = nil
       @specs = nil
 
       Bundler.ui.debug "The definition is missing dependencies, failed to resolve & materialize locally (#{e})"
@@ -316,7 +317,7 @@ module Bundler
 
     def lock(file_or_preserve_unknown_sections = false, preserve_unknown_sections_or_unused = false)
       if [true, false, nil].include?(file_or_preserve_unknown_sections)
-        target_lockfile = lockfile || Bundler.default_lockfile
+        target_lockfile = lockfile
         preserve_unknown_sections = file_or_preserve_unknown_sections
       else
         target_lockfile = file_or_preserve_unknown_sections
@@ -476,14 +477,12 @@ module Bundler
       end
     end
 
-    attr_reader :sources
-    private :sources
-
     def nothing_changed?
       return false unless lockfile_exists?
 
       !@source_changes &&
         !@dependency_changes &&
+        !@current_platform_missing &&
         @new_platforms.empty? &&
         !@path_changes &&
         !@local_changes &&
@@ -501,22 +500,22 @@ module Bundler
       @unlocking
     end
 
+    attr_writer :source_requirements
+
     private
+
+    attr_reader :sources
 
     def should_add_extra_platforms?
       !lockfile_exists? && generic_local_platform_is_ruby? && !Bundler.settings[:force_ruby_platform]
     end
 
     def lockfile_exists?
-      file_exists?(lockfile)
-    end
-
-    def file_exists?(file)
-      file && File.exist?(file)
+      lockfile && File.exist?(lockfile)
     end
 
     def write_lock(file, preserve_unknown_sections)
-      return if Definition.no_lock
+      return if Definition.no_lock || file.nil?
 
       contents = to_lock
 
@@ -533,7 +532,7 @@ module Bundler
 
       preserve_unknown_sections ||= !updating_major && (Bundler.frozen_bundle? || !(unlocking? || @unlocking_bundler))
 
-      if file_exists?(file) && lockfiles_equal?(@lockfile_contents, contents, preserve_unknown_sections)
+      if File.exist?(file) && lockfiles_equal?(@lockfile_contents, contents, preserve_unknown_sections)
         return if Bundler.frozen_bundle?
         SharedHelpers.filesystem_access(file) { FileUtils.touch(file) }
         return
@@ -568,7 +567,7 @@ module Bundler
       @resolution_packages ||= begin
         last_resolve = converge_locked_specs
         remove_invalid_platforms!
-        packages = Resolver::Base.new(source_requirements, expanded_dependencies, last_resolve, @platforms, locked_specs: @originally_locked_specs, unlock: @gems_to_unlock, prerelease: gem_version_promoter.pre?)
+        packages = Resolver::Base.new(source_requirements, expanded_dependencies, last_resolve, @platforms, locked_specs: @originally_locked_specs, unlock: @gems_to_unlock, prerelease: gem_version_promoter.pre?, prefer_local: @prefer_local)
         packages = additional_base_requirements_to_prevent_downgrades(packages, last_resolve)
         packages = additional_base_requirements_to_force_updates(packages)
         packages
@@ -629,6 +628,7 @@ module Bundler
     def start_resolution
       local_platform_needed_for_resolvability = @most_specific_non_local_locked_ruby_platform && !@platforms.include?(local_platform)
       @platforms << local_platform if local_platform_needed_for_resolvability
+      add_platform(Gem::Platform::RUBY) if RUBY_ENGINE == "truffleruby"
 
       result = SpecSet.new(resolver.start)
 
@@ -651,19 +651,6 @@ module Bundler
       sources.non_global_rubygems_sources.all?(&:dependency_api_available?) && !sources.aggregate_global_source?
     end
 
-    def pin_locally_available_names(source_requirements)
-      source_requirements.each_with_object({}) do |(name, original_source), new_source_requirements|
-        local_source = original_source.dup
-        local_source.local_only!
-
-        new_source_requirements[name] = if local_source.specs.search(name).any?
-          local_source
-        else
-          original_source
-        end
-      end
-    end
-
     def current_platform_locked?
       @platforms.any? do |bundle_platform|
         MatchPlatform.platforms_match?(bundle_platform, local_platform)
@@ -671,19 +658,19 @@ module Bundler
     end
 
     def add_current_platform
-      @most_specific_non_local_locked_ruby_platform = find_most_specific_non_local_locked_ruby_platform
+      return if @platforms.include?(local_platform)
+
+      @most_specific_non_local_locked_ruby_platform = find_most_specific_locked_ruby_platform
       return if @most_specific_non_local_locked_ruby_platform
 
-      add_platform(local_platform)
+      @platforms << local_platform
+      true
     end
 
-    def find_most_specific_non_local_locked_ruby_platform
+    def find_most_specific_locked_ruby_platform
       return unless generic_local_platform_is_ruby? && current_platform_locked?
 
-      most_specific_locked_ruby_platform = most_specific_locked_platform
-      return unless most_specific_locked_ruby_platform != local_platform
-
-      most_specific_locked_ruby_platform
+      most_specific_locked_platform
     end
 
     def change_reason
@@ -705,6 +692,7 @@ module Bundler
       [
         [@source_changes, "the list of sources changed"],
         [@dependency_changes, "the dependencies in your gemfile changed"],
+        [@current_platform_missing, "your lockfile does not include the current platform"],
         [@new_platforms.any?, "you added a new platform to your gemfile"],
         [@path_changes, "the gemspecs for path gems changed"],
         [@local_changes, "the gemspecs for git local gems changed"],
@@ -969,12 +957,15 @@ module Bundler
     end
 
     def source_requirements
+      @source_requirements ||= find_source_requirements
+    end
+
+    def find_source_requirements
       # Record the specs available in each gem's source, so that those
       # specs will be available later when the resolver knows where to
       # look for that gemspec (or its dependencies)
       source_requirements = if precompute_source_requirements_for_indirect_dependencies?
         all_requirements = source_map.all_requirements
-        all_requirements = pin_locally_available_names(all_requirements) if @prefer_local
         { default: default_source }.merge(all_requirements)
       else
         { default: Source::RubygemsAggregate.new(sources, source_map) }.merge(source_map.direct_requirements)
@@ -1050,6 +1041,7 @@ module Bundler
 
     def dup_for_full_unlock
       unlocked_definition = self.class.new(@lockfile, @dependencies, @sources, true, @ruby_version, @optional_groups, @gemfiles)
+      unlocked_definition.source_requirements = source_requirements
       unlocked_definition.gem_version_promoter.tap do |gvp|
         gvp.level = gem_version_promoter.level
         gvp.strict = gem_version_promoter.strict
