@@ -223,7 +223,7 @@ class Struct
     when String
       var = var.to_sym
     else
-      var = check_index_var(var)
+      var = check_index_var!(var)
     end
 
     unless _attrs.include? var.to_sym
@@ -245,15 +245,15 @@ class Struct
         raise NameError, "no member '#{var}' in struct"
       end
     else
-      var = check_index_var(var)
+      var = check_index_var!(var)
     end
 
     Primitive.check_frozen self
     Primitive.object_hidden_var_set(self, var, obj)
   end
 
-  private def check_index_var(var)
-    var = Integer(var)
+  private def check_index_var!(var)
+    var = Truffle::Type.rb_convert_type(var, Integer, :to_int)
     a_len = _attrs.length
     if var >= a_len
       raise IndexError, "offset #{var} too large for struct(size:#{a_len})"
@@ -344,10 +344,10 @@ class Struct
       when String
         symbolized_key = requested_key.to_sym
       else
-        symbolized_key = check_index_var(requested_key)
+        symbolized_key = _attrs[requested_key]
       end
 
-      if _attrs.include?(symbolized_key)
+      if symbolized_key && _attrs.include?(symbolized_key)
         h[requested_key] = Primitive.object_hidden_var_get(self, symbolized_key)
       else
         return h
@@ -369,14 +369,14 @@ class Struct
 
         finish_in_bounds = [finish, _attrs.length - 1].min
         start.upto(finish_in_bounds) do |index|
-          name = check_index_var(index)
+          name = check_index_var!(index)
           out << Primitive.object_hidden_var_get(self, name)
         end
 
         (finish_in_bounds + 1).upto(finish) { out << nil }
       else
         index = Primitive.rb_num2int(elem)
-        name = check_index_var(index)
+        name = check_index_var!(index)
         out << Primitive.object_hidden_var_get(self, name)
       end
     end
