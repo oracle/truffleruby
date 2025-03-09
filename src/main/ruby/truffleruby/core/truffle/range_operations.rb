@@ -122,13 +122,15 @@ module Truffle
       if !Primitive.nil?(range.begin)
         # MRI uses <=> to compare, so must we.
         cmp = (range.begin <=> value)
-        return false unless cmp
+        return false if Primitive.nil?(cmp)
         return false if Comparable.compare_int(cmp) > 0
       end
 
       # Check upper bound.
       if !Primitive.nil?(range.end)
         cmp = (value <=> range.end)
+        return false if Primitive.nil?(cmp)
+
         if range.exclude_end?
           return false if Comparable.compare_int(cmp) >= 0
         else
