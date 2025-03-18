@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Keiju ISHITSUKA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Mixin to extend objects to be handled like a Mutex.".freeze
   s.email = ["keiju@ruby-lang.org".freeze]
   s.files = ["mutex_m.rb".freeze]
   s.homepage = "https://github.com/ruby/mutex_m".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Mixin to extend objects to be handled like a Mutex.".freeze
 
   s.specification_version = 4

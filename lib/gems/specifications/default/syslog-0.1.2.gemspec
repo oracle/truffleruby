@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Akinori MUSHA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Ruby interface for the POSIX system logging facility.".freeze
   s.email = ["knu@idaemons.org".freeze]
   s.extensions = ["ext/syslog/extconf.rb".freeze]
@@ -19,6 +19,6 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/syslog".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Ruby interface for the POSIX system logging facility.".freeze
 end

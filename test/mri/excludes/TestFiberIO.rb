@@ -6,3 +6,4 @@ exclude :test_read, "NoMethodError: undefined method `set_scheduler' for Fiber:C
 exclude :test_read_write_blocking, "hangs, no Fiber.set_scheduler"
 exclude :test_tcp_accept, "hangs, no Fiber.set_scheduler"
 exclude :test_tcp_connect, "hangs, no Fiber.set_scheduler"
+exclude :test_close_while_reading_on_thread, "hangs, no Fiber.set_scheduler"

@@ -1,6 +1,7 @@
 exclude :test_backref_overrun, "Expected Exception(SyntaxError) was raised, but the message doesn't match. Expected /invalid backref number/ to match \"(eval):1: Index 90000 out of bounds for length 5: /(())(?<X>)((?(90000)))/\"."
 exclude :test_bug_19467, "NoMethodError: undefined method `timeout=' for Regexp:Class"
 exclude :test_bug_20453, "NoMethodError: undefined method `timeout=' for Regexp:Class"
+exclude :test_bug_20886, "Timeout::Error expected but nothing was raised."
 exclude :test_cache_index_initialize, "is too slow so leads to timeouts on CI"
 exclude :test_cache_opcodes_initialize, "is too slow so leads to timeouts on CI"
 exclude :test_dup, "[TypeError] exception expected, not #<FrozenError: can't modify frozen Regexp: //>."

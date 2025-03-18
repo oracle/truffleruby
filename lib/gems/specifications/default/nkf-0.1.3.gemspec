@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["NARUSE Yui".freeze]
   s.bindir = "exe".freeze
-  s.date = "2024-09-03"
+  s.date = "2025-01-15"
   s.description = "Ruby extension for Network Kanji Filter".freeze
   s.email = ["naruse@airemix.jp".freeze]
   s.extensions = ["ext/nkf/extconf.rb".freeze]
@@ -19,6 +19,6 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/ruby/nkf".freeze
   s.licenses = ["Ruby".freeze, "BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.5.16".freeze
+  s.rubygems_version = "3.5.22".freeze
   s.summary = "Ruby extension for Network Kanji Filter".freeze
 end
