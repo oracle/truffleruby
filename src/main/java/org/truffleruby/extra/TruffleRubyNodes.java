@@ -17,7 +17,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -26,7 +25,6 @@ import org.truffleruby.annotations.Split;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.annotations.CoreModule;
-import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.proc.RubyProc;
 
@@ -48,21 +46,9 @@ public abstract class TruffleRubyNodes {
     public abstract static class GraalvmHomeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        Object graalvmHome(
-                @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String value = getProperty("org.graalvm.home");
-            if (value == null) {
-                return nil;
-            } else {
-                return createString(fromJavaStringNode, value, Encodings.UTF_8);
-            }
+        Object graalvmHome() {
+            return nil;
         }
-
-        @TruffleBoundary
-        private static String getProperty(String key) {
-            return System.getProperty(key);
-        }
-
     }
 
     @CoreMethod(names = "jit?", onSingleton = true)

@@ -38,8 +38,6 @@ TruffleRuby provides these non-standard methods and classes that provide additio
 
 * `TruffleRuby.full_memory_barrier` ensures lack of reordering of loads or stores before the barrier with loads or stores after the barrier.
 
-* `TruffleRuby.graalvm_home` returns the GraalVM home or `nil` if running outside of GraalVM (e.g., Native standalone).
-
 * `TruffleRuby.synchronized(object) { }` will run the block while holding an implicit lock per object instance.
 
 ### Atomic References
