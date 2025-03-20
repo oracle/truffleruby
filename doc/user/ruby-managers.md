@@ -81,6 +81,14 @@ You can also install the TruffleRuby JVM Standalone with:
 asdf install ruby truffleruby+graalvm-VERSION OR truffleruby+graalvm-dev
 ```
 
+## `mise` (with ruby mise core plugin)
+
+You can install a TruffleRuby Native Standalone release or dev build with:
+
+```bash
+mise install ruby@truffleruby-VERSION OR truffleruby-dev
+```
+
 ## `ruby-install` and `chruby`
 
 See https://github.com/postmodern/ruby-install#install for installing and updating `ruby-install`.
