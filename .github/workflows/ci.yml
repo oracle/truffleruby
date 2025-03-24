@@ -11,7 +11,7 @@ permissions:
 jobs:
   lint:
     name: lint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       JT_JDK: '21'
     steps:
@@ -42,7 +42,7 @@ jobs:
 
   build:
     name: build jvm
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         # Ensure all build files are in build/.
@@ -84,7 +84,7 @@ jobs:
 
   build_native:
     name: build native
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         # Ensure all build files are in build/.
@@ -128,7 +128,7 @@ jobs:
   fast_specs:
     name: fast specs
     needs: [build]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Clone TruffleRuby
       uses: actions/checkout@v4
@@ -148,7 +148,7 @@ jobs:
   all_specs:
     name: specs ${{ matrix.specs }}
     needs: [build]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -174,7 +174,7 @@ jobs:
   test_integration:
     name: test integration
     needs: [build]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Clone TruffleRuby
         uses: actions/checkout@v4
@@ -193,7 +193,7 @@ jobs:
   test_native:
     name: test native
     needs: [build_native]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Clone TruffleRuby
         uses: actions/checkout@v4
@@ -219,7 +219,7 @@ jobs:
   test_mri:
     name: run MRI tests on native
     needs: [build_native]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Clone TruffleRuby
         uses: actions/checkout@v4
