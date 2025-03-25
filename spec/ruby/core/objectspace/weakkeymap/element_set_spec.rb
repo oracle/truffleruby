@@ -50,32 +50,32 @@ ruby_version_is "3.3" do
     context "a key cannot be garbage collected" do
       it "raises ArgumentError when Integer is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
-        -> { map[1] = "x" }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+        -> { map[1] = "x" }.should raise_error(ArgumentError, /WeakKeyMap (keys )?must be garbage collectable/)
       end
 
       it "raises ArgumentError when Float is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
-        -> { map[1.0] = "x" }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+        -> { map[1.0] = "x" }.should raise_error(ArgumentError, /WeakKeyMap (keys )?must be garbage collectable/)
       end
 
       it "raises ArgumentError when Symbol is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
-        -> { map[:a] = "x" }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+        -> { map[:a] = "x" }.should raise_error(ArgumentError, /WeakKeyMap (keys )?must be garbage collectable/)
       end
 
       it "raises ArgumentError when true is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
-        -> { map[true] = "x" }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+        -> { map[true] = "x" }.should raise_error(ArgumentError, /WeakKeyMap (keys )?must be garbage collectable/)
       end
 
       it "raises ArgumentError when false is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
-        -> { map[false] = "x" }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+        -> { map[false] = "x" }.should raise_error(ArgumentError, /WeakKeyMap (keys )?must be garbage collectable/)
       end
 
       it "raises ArgumentError when nil is used as a key" do
         map = ObjectSpace::WeakKeyMap.new
-        -> { map[nil] = "x" }.should raise_error(ArgumentError, "WeakKeyMap must be garbage collectable")
+        -> { map[nil] = "x" }.should raise_error(ArgumentError, /WeakKeyMap (keys )?must be garbage collectable/)
       end
     end
   end
