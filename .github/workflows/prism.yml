@@ -10,7 +10,7 @@ jobs:
   # Inspired from the job "build" in ../ci.yml
   test-import-prism:
     if: github.repository == 'oracle/truffleruby'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       BUNDLE_WITHOUT: "memcheck:types"
     steps:
