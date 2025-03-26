@@ -3184,7 +3184,7 @@ module Commands
     command_format(changed['.java']) if changed['.java']
     shellcheck if changed['.sh'] or changed['.inc']
 
-    mx 'verify-ci' if changed['.py']
+    mx 'verify-ci' if changed['.py'] and !ENV['JT_IMPORTS_DONT_ASK']
 
     check_abi(fail: !compare_to)
 

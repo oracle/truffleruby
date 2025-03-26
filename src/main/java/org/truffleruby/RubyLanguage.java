@@ -812,10 +812,15 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
         }
 
-        TruffleFile homeResource;
+        final TruffleFile homeResource;
+        TruffleFile homeResourceRelative;
         try {
-            var homeResourceRelative = env.getInternalResource("ruby-home");
-            homeResource = homeResourceRelative == null ? null : homeResourceRelative.getCanonicalFile();
+            homeResourceRelative = env.getInternalResource("ruby-home");
+            if (homeResourceRelative != null && homeResourceRelative.exists()) {
+                homeResource = homeResourceRelative.getCanonicalFile();
+            } else {
+                homeResource = null;
+            }
         } catch (IOException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
@@ -828,8 +833,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         throw new Error("Could not find TruffleRuby's home - not possible to parse Ruby code" + String.format(
-                " (Truffle-reported home %s and internal resource %s do not look like TruffleRuby's home).",
-                truffleReported, homeResource));
+                " (Truffle-reported home %s and internal resource %s (%s) do not look like TruffleRuby's home).",
+                truffleReported, homeResourceRelative, homeResource));
     }
 
     private boolean isRubyHome(TruffleFile path) {
