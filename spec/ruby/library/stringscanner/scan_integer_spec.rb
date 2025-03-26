@@ -128,7 +128,7 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
 
     # https://github.com/ruby/strscan/issues/135
     version_is StringScanner::Version, "3.1.1"..."3.1.3" do # ruby_version_is "3.4.0"..."3.4.3"
-      it "ignores the previous matching with Regexp" do
+      it "does not ignore the previous matching with Regexp" do
         s = StringScanner.new("42")
 
         s.exist?(/(?<a>42)/)
@@ -137,7 +137,7 @@ version_is StringScanner::Version, "3.1.1" do # ruby_version_is "3.4"
 
         s.scan_integer
         s.should.matched?
-        s[:a].should == nil
+        s[:a].should == "42"
       end
     end
     version_is StringScanner::Version, "3.1.3" do # ruby_version_is "3.4"
