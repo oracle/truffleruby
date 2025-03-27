@@ -142,6 +142,13 @@ describe "Predefined global $&" do
       eval %q{$& = ""}
     }.should raise_error(SyntaxError, /Can't set variable \$&/)
   end
+
+  it "is read-only when aliased" do
+    alias $predefined_spec_ampersand $&
+    -> {
+      $predefined_spec_ampersand = ""
+    }.should raise_error(NameError, '$predefined_spec_ampersand is a read-only variable')
+  end
 end
 
 describe "Predefined global $`" do
@@ -165,6 +172,13 @@ describe "Predefined global $`" do
     -> {
       eval %q{$` = ""}
     }.should raise_error(SyntaxError, /Can't set variable \$`/)
+  end
+
+  it "is read-only when aliased" do
+    alias $predefined_spec_backquote $`
+    -> {
+      $predefined_spec_backquote = ""
+    }.should raise_error(NameError, '$predefined_spec_backquote is a read-only variable')
   end
 end
 
@@ -190,6 +204,13 @@ describe "Predefined global $'" do
       eval %q{$' = ""}
     }.should raise_error(SyntaxError, /Can't set variable \$'/)
   end
+
+  it "is read-only when aliased" do
+    alias $predefined_spec_single_quote $'
+    -> {
+      $predefined_spec_single_quote = ""
+    }.should raise_error(NameError, '$predefined_spec_single_quote is a read-only variable')
+  end
 end
 
 describe "Predefined global $+" do
@@ -213,6 +234,13 @@ describe "Predefined global $+" do
     -> {
       eval %q{$+ = ""}
     }.should raise_error(SyntaxError, /Can't set variable \$\+/)
+  end
+
+  it "is read-only when aliased" do
+    alias $predefined_spec_plus $+
+    -> {
+      $predefined_spec_plus = ""
+    }.should raise_error(NameError, '$predefined_spec_plus is a read-only variable')
   end
 end
 
@@ -1198,7 +1226,7 @@ describe "The predefined standard object nil" do
   end
 
   it "raises a SyntaxError if assigned to" do
-    -> { eval("nil = true") }.should raise_error(SyntaxError)
+    -> { eval("nil = true") }.should raise_error(SyntaxError, /Can't assign to nil/)
   end
 end
 
@@ -1208,7 +1236,7 @@ describe "The predefined standard object true" do
   end
 
   it "raises a SyntaxError if assigned to" do
-    -> { eval("true = false") }.should raise_error(SyntaxError)
+    -> { eval("true = false") }.should raise_error(SyntaxError, /Can't assign to true/)
   end
 end
 
@@ -1218,13 +1246,13 @@ describe "The predefined standard object false" do
   end
 
   it "raises a SyntaxError if assigned to" do
-    -> { eval("false = nil") }.should raise_error(SyntaxError)
+    -> { eval("false = nil") }.should raise_error(SyntaxError, /Can't assign to false/)
   end
 end
 
 describe "The self pseudo-variable" do
   it "raises a SyntaxError if assigned to" do
-    -> { eval("self = 1") }.should raise_error(SyntaxError)
+    -> { eval("self = 1") }.should raise_error(SyntaxError, /Can't change the value of self/)
   end
 end
 
