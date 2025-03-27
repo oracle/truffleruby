@@ -332,7 +332,7 @@ local part_definitions = {
       run+: jt(["test", "fast"]),
     },
 
-    lint: {
+    lint: common.deps.spotbugs + {
       is_after:: ["$.use.build"],
       downloads+: {
         ECLIPSE: {
