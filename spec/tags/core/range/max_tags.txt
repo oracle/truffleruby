@@ -1,3 +1,0 @@
-fails:Range#max raises for an exclusive beginless range
-fails:Range#max raises for an exclusive beginless Integer range
-fails:Range#max raises for an exclusive beginless non Integer range
