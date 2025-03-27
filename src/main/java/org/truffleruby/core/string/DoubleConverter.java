@@ -107,7 +107,7 @@ public final class DoubleConverter {
     }
 
     private boolean isWhitespace(byte b) {
-        return b == ' ' || (b <= 13 && b >= 9 && b != 11);
+        return b == ' ' || (b >= 9 && b <= 13);
     }
 
     private void addToResult(byte b) {
