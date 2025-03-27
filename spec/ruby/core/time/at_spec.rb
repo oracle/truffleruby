@@ -288,39 +288,19 @@ describe "Time.at" do
     end
 
     it "raises ArgumentError if hours greater than 23" do # TODO
-      ruby_version_is ""..."3.1" do
-        -> { Time.at(@epoch_time, in: "+24:00") }.should raise_error(ArgumentError, 'utc_offset out of range')
-        -> { Time.at(@epoch_time, in: "+2400") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
+      -> { Time.at(@epoch_time, in: "+24:00") }.should raise_error(ArgumentError, "utc_offset out of range")
+      -> { Time.at(@epoch_time, in: "+2400") }.should raise_error(ArgumentError, "utc_offset out of range")
 
-        -> { Time.at(@epoch_time, in: "+99:00") }.should raise_error(ArgumentError, 'utc_offset out of range')
-        -> { Time.at(@epoch_time, in: "+9900") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
-      end
-
-      ruby_version_is "3.1" do
-        -> { Time.at(@epoch_time, in: "+24:00") }.should raise_error(ArgumentError, "utc_offset out of range")
-        -> { Time.at(@epoch_time, in: "+2400") }.should raise_error(ArgumentError, "utc_offset out of range")
-
-        -> { Time.at(@epoch_time, in: "+99:00") }.should raise_error(ArgumentError, "utc_offset out of range")
-        -> { Time.at(@epoch_time, in: "+9900") }.should raise_error(ArgumentError, "utc_offset out of range")
-      end
+      -> { Time.at(@epoch_time, in: "+99:00") }.should raise_error(ArgumentError, "utc_offset out of range")
+      -> { Time.at(@epoch_time, in: "+9900") }.should raise_error(ArgumentError, "utc_offset out of range")
     end
 
     it "raises ArgumentError if minutes greater than 59" do # TODO
-      ruby_version_is ""..."3.1" do
-        -> { Time.at(@epoch_time, in: "+00:60") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
-        -> { Time.at(@epoch_time, in: "+0060") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
+      -> { Time.at(@epoch_time, in: "+00:60") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +00:60')
+      -> { Time.at(@epoch_time, in: "+0060") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +0060')
 
-        -> { Time.at(@epoch_time, in: "+00:99") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
-        -> { Time.at(@epoch_time, in: "+0099") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset')
-      end
-
-      ruby_version_is "3.1" do
-        -> { Time.at(@epoch_time, in: "+00:60") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +00:60')
-        -> { Time.at(@epoch_time, in: "+0060") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +0060')
-
-        -> { Time.at(@epoch_time, in: "+00:99") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +00:99')
-        -> { Time.at(@epoch_time, in: "+0099") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +0099')
-      end
+      -> { Time.at(@epoch_time, in: "+00:99") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +00:99')
+      -> { Time.at(@epoch_time, in: "+0099") }.should raise_error(ArgumentError, '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: +0099')
     end
 
     ruby_bug '#20797', ''...'3.4' do
