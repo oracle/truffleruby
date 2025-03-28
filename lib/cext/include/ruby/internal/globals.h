@@ -72,6 +72,7 @@ RUBY_EXTERN VALUE rb_cClass;                  /**< `Class` class. */
 RUBY_EXTERN VALUE rb_cDir;                    /**< `Dir` class. */
 RUBY_EXTERN VALUE rb_cEncoding;               /**< `Encoding` class. */
 RUBY_EXTERN VALUE rb_cEnumerator;             /**< `Enumerator` class. */
+RUBY_EXTERN VALUE rb_cArithSeq;               /**< `Enumerator::ArithmeticSequence` class. */
 RUBY_EXTERN VALUE rb_cFalseClass;             /**< `FalseClass` class. */
 RUBY_EXTERN VALUE rb_cFile;                   /**< `File` class. */
 RUBY_EXTERN VALUE rb_cComplex;                /**< `Complex` class. */

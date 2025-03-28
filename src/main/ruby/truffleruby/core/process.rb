@@ -927,7 +927,7 @@ end
 Truffle::KernelOperations.define_hooked_variable(
   :'$0',
   -> { Primitive.global_variable_get :'$0' },
-  -> v {
+  -> _, v {
     v = StringValue(v)
     Process.setproctitle(v)
     Primitive.global_variable_set :'$0', v

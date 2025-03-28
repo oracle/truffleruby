@@ -35,7 +35,7 @@ module Truffle
     end
 
     def self.define_read_only_global(name, getter)
-      setter = -> _ { raise NameError, "#{name} is a read-only variable." }
+      setter = -> n, _ { raise NameError, "#{n} is a read-only variable" }
       define_hooked_variable(name, getter, setter)
     end
 
@@ -74,9 +74,9 @@ module Truffle
     define_hooked_variable(
       :$/,
       -> { Primitive.global_variable_get :$/ },
-      -> v {
+      -> name, v {
         if v && !Primitive.is_a?(v, String)
-          raise TypeError, '$/ must be a String'
+          raise TypeError, "value of #{name} must be String"
         end
         Primitive.global_variable_set :$/, v
       })
@@ -86,9 +86,9 @@ module Truffle
     define_hooked_variable(
       :$\,
       -> { Primitive.global_variable_get :$\ },
-      -> v {
+      -> name, v {
         if v && !Primitive.is_a?(v, String)
-          raise TypeError, '$\ must be a String'
+          raise TypeError, "value of #{name} must be String"
         end
         Primitive.global_variable_set :$\, v
       })
@@ -106,11 +106,11 @@ module Truffle
     define_hooked_variable(
       :'$,',
       -> { Primitive.global_variable_get :$, },
-      -> v {
+      -> name, v {
         if v && !Primitive.is_a?(v, String)
-          raise TypeError, '$, must be a String'
+          raise TypeError, "value of #{name} must be String"
         end
-        warn "`$,' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
+        warn "`#{name}' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
         Primitive.global_variable_set :$,, v
       })
 
@@ -137,7 +137,7 @@ module Truffle
         warn 'variable $= is no longer effective', uplevel: 1 if Warning[:deprecated]
         Primitive.global_variable_get :$=
       },
-      -> v {
+      -> _, v {
         warn 'variable $= is no longer effective', uplevel: 1 if Warning[:deprecated]
         Primitive.global_variable_set :$=, v
       })
@@ -147,7 +147,7 @@ module Truffle
     define_hooked_variable(
       :$VERBOSE,
       -> { Primitive.global_variable_get :$VERBOSE },
-      -> v {
+      -> _, v {
         v = Primitive.nil?(v) ? nil : Primitive.as_boolean(v)
         Primitive.global_variable_set :$VERBOSE, v
       })
@@ -171,8 +171,8 @@ module Truffle
     define_hooked_variable(
       :$stdout,
       -> { Primitive.global_variable_get :$stdout },
-      -> v {
-        raise TypeError, "$stdout must have a write method, #{Primitive.class(v)} given" unless v.respond_to?(:write)
+      -> name, v {
+        raise TypeError, "#{name} must have write method, #{Primitive.class(v)} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stdout, v
       })
 
@@ -181,15 +181,15 @@ module Truffle
     define_hooked_variable(
       :$stderr,
       -> { Primitive.global_variable_get :$stderr },
-      -> v {
-        raise TypeError, "$stderr must have a write method, #{Primitive.class(v)} given" unless v.respond_to?(:write)
+      -> name, v {
+        raise TypeError, "#{name} must have a write method, #{Primitive.class(v)} given" unless v.respond_to?(:write)
         Primitive.global_variable_set :$stderr, v
       })
 
     define_hooked_variable(
       :"$;",
       -> { Primitive.global_variable_get :"$;" },
-      -> v {
+      -> _, v {
         warn "`$;' is deprecated", uplevel: 1 if !Primitive.nil?(v) && Warning[:deprecated]
         Primitive.global_variable_set :"$;", v
       })

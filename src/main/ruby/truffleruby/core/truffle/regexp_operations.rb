@@ -11,9 +11,9 @@
 module Truffle
   module RegexpOperations
 
-    LAST_MATCH_SET = -> v, s {
+    LAST_MATCH_SET = -> _, v, s {
       unless Primitive.nil?(v) || Primitive.is_a?(v, MatchData)
-        raise TypeError, "Wrong argument type #{v} (expected MatchData)"
+        raise TypeError, "wrong argument type #{Primitive.class(v)} (expected MatchData)"
       end
       Primitive.regexp_last_match_set(s, v)
     }

@@ -377,6 +377,6 @@ Truffle::KernelOperations.define_read_only_global(:$?, -> { Primitive.thread_get
 Truffle::KernelOperations.define_hooked_variable(
   :$@,
   -> { $!.backtrace if $! },
-  -> value { raise ArgumentError, '$! not set' unless $!
-             $!.set_backtrace value }
+  -> _, value { raise ArgumentError, '$! not set' unless $!
+                $!.set_backtrace value }
 )

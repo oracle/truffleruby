@@ -2488,4 +2488,4 @@ end
 Truffle::KernelOperations.define_hooked_variable(
   :$_,
   -> s { Primitive.io_last_line_get(s) },
-  -> v, s { Primitive.io_last_line_set(s, v) })
+  -> _, v, s { Primitive.io_last_line_set(s, v) })

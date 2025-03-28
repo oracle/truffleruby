@@ -637,5 +637,5 @@ Truffle::KernelOperations.define_read_only_global(:$FILENAME, -> { ARGF.filename
 Truffle::KernelOperations.define_hooked_variable(
   :$.,
   -> { ARGF.instance_variable_get(:@last_lineno) },
-  -> value { value = Primitive.rb_to_int(value)
-             ARGF.instance_variable_set(:@last_lineno, value) } )
+  -> _, value { value = Primitive.rb_to_int(value)
+                ARGF.instance_variable_set(:@last_lineno, value) } )
