@@ -52,24 +52,27 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceAssignabl
         return value;
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity != 2" })
+    @Specialization(guards = { "storage.hasHooks()", "arity != 3" })
     Object writeHooks(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("setterArity(storage)") int arity,
+            @Bind("name") String boundName,
             @Cached @Exclusive CallBlockNode yieldNode) {
-        yieldNode.yield(this, storage.getSetter(), value);
+        yieldNode.yield(this, storage.getSetter(), boundName, value);
         return value;
     }
 
-    @Specialization(guards = { "storage.hasHooks()", "arity == 2" })
+    @Specialization(guards = { "storage.hasHooks()", "arity == 3" })
     static Object writeHooksWithStorage(VirtualFrame frame, Object value,
             @Bind("getStorage(frame)") GlobalVariableStorage storage,
             @Bind("setterArity(storage)") int arity,
+            @Bind("name") String boundName,
             @Cached @Exclusive CallBlockNode yieldNode,
             @Cached GetSpecialVariableStorage storageNode,
             @Bind Node node) {
         yieldNode.yield(node,
                 storage.getSetter(),
+                boundName,
                 value,
                 storageNode.execute(frame, node));
         return value;

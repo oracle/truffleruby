@@ -188,30 +188,34 @@ Truffle::KernelOperations.define_hooked_variable(
   -> s { Primitive.regexp_last_match_get(s) },
   Truffle::RegexpOperations::LAST_MATCH_SET)
 
+# Prism gives a SyntaxError if $` is not aliased
 Truffle::KernelOperations.define_hooked_variable(
   :'$`',
   -> s { match = Primitive.regexp_last_match_get(s)
          match.pre_match if match },
-  -> { raise SyntaxError, "Can't set variable $`" },
+  -> name, _ { raise NameError, "#{name} is a read-only variable" },
   -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
 
+# Prism gives a SyntaxError if $' is not aliased
 Truffle::KernelOperations.define_hooked_variable(
   :"$'",
   -> s { match = Primitive.regexp_last_match_get(s)
          match.post_match if match },
-  -> { raise SyntaxError, "Can't set variable $'" },
+  -> name, _ { raise NameError, "#{name} is a read-only variable" },
   -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
 
+# Prism gives a SyntaxError if $& is not aliased
 Truffle::KernelOperations.define_hooked_variable(
   :'$&',
   -> s { match = Primitive.regexp_last_match_get(s)
          match[0] if match },
-  -> { raise SyntaxError, "Can't set variable $&" },
+  -> name, _ { raise NameError, "#{name} is a read-only variable" },
   -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
 
+# Prism gives a SyntaxError if $+ is not aliased
 Truffle::KernelOperations.define_hooked_variable(
   :'$+',
   -> s { match = Primitive.regexp_last_match_get(s)
          match.captures.reverse.find { |m| !Primitive.nil?(m) } if match },
-  -> { raise SyntaxError, "Can't set variable $+" },
+  -> name, _ { raise NameError, "#{name} is a read-only variable" },
   -> s { 'global-variable' if Primitive.regexp_last_match_get(s) })
