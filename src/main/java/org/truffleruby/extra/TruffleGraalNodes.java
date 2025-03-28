@@ -202,7 +202,7 @@ public abstract class TruffleGraalNodes {
         }
     }
 
-    @Primitive(name = "blackhole")
+    @Primitive(name = "blackhole", isPublic = true)
     public abstract static class BlackholeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

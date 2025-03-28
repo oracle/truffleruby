@@ -174,7 +174,6 @@ class JT
       if full_test
         test_files = %w[
           spec
-          test/truffle/compiler/pe
           versions.json
         ]
 
@@ -183,7 +182,9 @@ class JT
             branch_args = test_branch == 'current' ? [] : ['--branch', test_branch]
             sh 'git', 'clone', *branch_args, TRUFFLERUBY_DIR, 'truffleruby-tests'
             test_files.each do |file|
-              FileUtils.cp_r "truffleruby-tests/#{file}", '.'
+              dir = File.dirname(file)
+              FileUtils.mkdir_p dir
+              FileUtils.cp_r "truffleruby-tests/#{file}", dir
             end
             FileUtils.rm_rf 'truffleruby-tests'
           end
@@ -224,8 +225,6 @@ class JT
           t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
           lines << "RUN ruby spec/mspec/bin/mspec -t #{ruby_bin}/ruby #{t_excludes} #{set}"
         end
-
-        lines << 'RUN ruby --experimental-options --engine.CompilationFailureAction=ExitVM --compiler.TreatPerformanceWarningsAsErrors=all --compiler.IterativePartialEscape  --engine.MultiTier=false pe/pe.rb || true'
       end
 
       lines << 'CMD bash'

@@ -677,6 +677,17 @@ public class YARPTranslator extends YARPBaseTranslator {
 
             final PrimitiveNodeConstructor constructor = language.primitiveManager.getPrimitive(methodName);
 
+            if (!constructor.isPublic() && !parseEnvironment.canUsePrivatePrimitives()) {
+                final RubyContext context = RubyLanguage.getCurrentContext();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().syntaxError(
+                                "Primitive." + methodName +
+                                        " is not public and cannot be used outside the TruffleRuby core library",
+                                currentNode,
+                                getSourceSection(node)));
+            }
+
             if (translatedArguments.length != constructor.getPrimitiveArity()) {
                 throw new Error(
                         "Incorrect number of arguments (expected " + constructor.getPrimitiveArity() + ") at " +

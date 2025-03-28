@@ -1917,6 +1917,7 @@ module Commands
 
   def metrics(command, *args)
     require_ruby_launcher!
+    ENV['TRUFFLERUBY_ALLOW_PRIVATE_PRIMITIVES_IN'] = "#{TRUFFLERUBY_DIR}/bench/metrics/"
     args = args.dup
     case command
     when 'alloc'

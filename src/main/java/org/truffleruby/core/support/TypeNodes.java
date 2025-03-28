@@ -102,7 +102,7 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "singleton_class")
+    @Primitive(name = "singleton_class", isPublic = true)
     public abstract static class SingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         RubyClass singletonClass(Object object,
@@ -201,7 +201,7 @@ public abstract class TypeNodes {
 
     }
 
-    @Primitive(name = "nil?")
+    @Primitive(name = "nil?", isPublic = true)
     public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         boolean isNil(Object value) {

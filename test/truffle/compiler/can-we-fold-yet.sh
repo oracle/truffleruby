@@ -2,7 +2,8 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby --experimental-options --compiler.IterativePartialEscape --engine.MultiTier=false test/truffle/compiler/can-we-fold-yet/can-we-fold-yet.rb < test/truffle/compiler/can-we-fold-yet/input.txt > actual.txt
+export TRUFFLERUBY_ALLOW_PRIVATE_PRIMITIVES_IN="$truffle/compiler/"
+jt ruby --experimental-options --compiler.IterativePartialEscape --engine.MultiTier=false "$PWD/test/truffle/compiler/can-we-fold-yet/can-we-fold-yet.rb" < test/truffle/compiler/can-we-fold-yet/input.txt > actual.txt
 
 if ! cmp test/truffle/compiler/can-we-fold-yet/expected.txt actual.txt
 then
