@@ -308,7 +308,7 @@ public abstract class RequireNode extends RubyBaseNode {
                 message = linkError;
             }
 
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().runtimeError(message, this));
+            throw new RaiseException(getContext(), getContext().getCoreExceptions().loadError(message, this));
         }
 
         final Throwable linkerException = searchForException("LLVMLinkerException", e);
