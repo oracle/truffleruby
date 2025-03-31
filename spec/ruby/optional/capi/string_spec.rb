@@ -1201,28 +1201,50 @@ describe "C-API String function" do
 
   describe "rb_str_locktmp" do
     it "raises an error when trying to lock an already locked string" do
-      str = "test"
+      str = +"test"
       @s.rb_str_locktmp(str).should == str
       -> { @s.rb_str_locktmp(str) }.should raise_error(RuntimeError, 'temporal locking already locked string')
     end
 
     it "locks a string so that modifications would raise an error" do
-      str = "test"
+      str = +"test"
       @s.rb_str_locktmp(str).should == str
       -> { str.upcase! }.should raise_error(RuntimeError, 'can\'t modify string; temporarily locked')
+    end
+
+    ruby_bug "#20998", ""..."3.5" do
+      it "raises FrozenError if string is frozen" do
+        str = -"rb_str_locktmp"
+        -> { @s.rb_str_locktmp(str) }.should raise_error(FrozenError)
+
+        str = +"rb_str_locktmp"
+        str.freeze
+        -> { @s.rb_str_locktmp(str) }.should raise_error(FrozenError)
+      end
     end
   end
 
   describe "rb_str_unlocktmp" do
     it "unlocks a locked string" do
-      str = "test"
+      str = +"test"
       @s.rb_str_locktmp(str)
       @s.rb_str_unlocktmp(str).should == str
       str.upcase!.should == "TEST"
     end
 
     it "raises an error when trying to unlock an already unlocked string" do
-      -> { @s.rb_str_unlocktmp("test") }.should raise_error(RuntimeError, 'temporal unlocking already unlocked string')
+      -> { @s.rb_str_unlocktmp(+"test") }.should raise_error(RuntimeError, 'temporal unlocking already unlocked string')
+    end
+
+    ruby_bug "#20998", ""..."3.5" do
+      it "raises FrozenError if string is frozen" do
+        str = -"rb_str_locktmp"
+        -> { @s.rb_str_unlocktmp(str) }.should raise_error(FrozenError)
+
+        str = +"rb_str_locktmp"
+        str.freeze
+        -> { @s.rb_str_unlocktmp(str) }.should raise_error(FrozenError)
+      end
     end
   end
 

@@ -964,7 +964,10 @@ public abstract class CExtNodes {
 
         @Specialization
         RubyString rbStrLockTmp(RubyString string,
-                @Cached InlinedBranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
+            raiseIfFrozenNode.execute(this, string);
+
             if (string.locked) {
                 errorProfile.enter(this);
                 throw new RaiseException(getContext(),
@@ -976,8 +979,7 @@ public abstract class CExtNodes {
 
         @Specialization
         RubyString rbStrLockTmpImmutable(ImmutableRubyString string) {
-            throw new RaiseException(getContext(),
-                    coreExceptions().runtimeError("temporal locking immutable string", this));
+            throw new RaiseException(getContext(this), coreExceptions(this).frozenError(string, this));
         }
 
     }
@@ -987,7 +989,10 @@ public abstract class CExtNodes {
 
         @Specialization
         RubyString rbStrUnlockTmp(RubyString string,
-                @Cached InlinedBranchProfile errorProfile) {
+                @Cached InlinedBranchProfile errorProfile,
+                @Cached TypeNodes.CheckFrozenNode raiseIfFrozenNode) {
+            raiseIfFrozenNode.execute(this, string);
+
             if (!string.locked) {
                 errorProfile.enter(this);
                 throw new RaiseException(getContext(),
@@ -999,8 +1004,7 @@ public abstract class CExtNodes {
 
         @Specialization
         ImmutableRubyString rbStrUnlockTmpImmutable(ImmutableRubyString string) {
-            throw new RaiseException(getContext(),
-                    coreExceptions().runtimeError("temporal unlocking immutable string", this));
+            throw new RaiseException(getContext(this), coreExceptions(this).frozenError(string, this));
         }
 
     }
