@@ -665,10 +665,11 @@ public final class ClassicRegexp {
     public static TStringWithEncoding quote19(ATStringWithEncoding bs) {
         final boolean asciiOnly = bs.isAsciiOnly();
         boolean metaFound = false;
+        final var tencoding = bs.encoding.tencoding;
 
         var iterator = bs.createCodePointIterator();
         while (iterator.hasNext()) {
-            final int c = iterator.nextUncached();
+            final int c = iterator.nextUncached(tencoding);
 
             switch (c) {
                 case '[':
@@ -712,7 +713,7 @@ public final class ClassicRegexp {
         iterator = bs.createCodePointIterator();
         while (iterator.hasNext()) {
             int p = iterator.getByteIndex();
-            final int c = iterator.nextUncached();
+            final int c = iterator.nextUncached(tencoding);
 
             if (c == -1) {
                 int after = iterator.getByteIndex();
@@ -919,11 +920,12 @@ public final class ClassicRegexp {
         var str = fullStr.substring(start, len);
 
         final var enc = str.encoding.jcoding;
+        final var tencoding = str.encoding.tencoding;
         var iterator = str.createCodePointIterator();
 
         boolean needEscape = false;
         while (iterator.hasNext()) {
-            final int c = iterator.nextUncached();
+            final int c = iterator.nextUncached(tencoding);
             if ((c >= 0 && Encoding.isAscii(c)) && (c == '/' || !enc.isPrint(c))) {
                 needEscape = true;
                 break;
@@ -936,10 +938,10 @@ public final class ClassicRegexp {
             iterator = str.createCodePointIterator();
             while (iterator.hasNext()) {
                 final int p = iterator.getByteIndex();
-                final int c = iterator.nextUncached();
+                final int c = iterator.nextUncached(tencoding);
 
                 if (c == '\\' && iterator.hasNext()) {
-                    iterator.nextUncached();
+                    iterator.nextUncached(tencoding);
                     to.append(str, p, iterator.getByteIndex() - p);
                 } else if (c == '/') {
                     to.append((byte) '\\');

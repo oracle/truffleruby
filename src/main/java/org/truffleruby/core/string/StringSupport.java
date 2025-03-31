@@ -1226,10 +1226,10 @@ public final class StringSupport {
 
         while (selfIterator.hasNext() && otherIterator.hasNext()) {
             final int selfPos = selfIterator.getByteIndex();
-            final int c = selfIterator.nextUncached();
+            final int c = selfIterator.nextUncached(selfEncoding);
 
             final int otherPos = otherIterator.getByteIndex();
-            final int oc = otherIterator.nextUncached();
+            final int oc = otherIterator.nextUncached(otherEncoding);
 
             if (enc.isAsciiCompatible && (c >= 0 && Encoding.isAscii(c)) && (oc >= 0 && Encoding.isAscii(oc))) {
                 byte uc = AsciiTables.ToUpperCaseTable[c];

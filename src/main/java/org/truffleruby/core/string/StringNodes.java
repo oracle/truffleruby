@@ -1273,7 +1273,7 @@ public abstract class StringNodes {
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
 
             while (iterator.hasNext()) {
-                int codePoint = nextNode.execute(iterator);
+                int codePoint = nextNode.execute(iterator, tencoding);
 
                 if (codePoint == -1) {
                     invalidCodePointProfile.enter(this);
@@ -1313,7 +1313,7 @@ public abstract class StringNodes {
 
             int i = 0;
             while (iterator.hasNext()) {
-                int codePoint = nextNode.execute(iterator);
+                int codePoint = nextNode.execute(iterator, tencoding);
 
                 if (codePoint == -1) {
                     invalidCodePointProfile.enter(this);
@@ -1639,7 +1639,7 @@ public abstract class StringNodes {
             var tencoding = encoding.tencoding;
 
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
-            int codePoint = nextNode.execute(iterator);
+            int codePoint = nextNode.execute(iterator, tencoding);
 
             // Check the first code point to see if it's broken. In the case of strings without leading spaces,
             // this check can avoid having to compile the while loop.
@@ -1657,7 +1657,7 @@ public abstract class StringNodes {
 
             while (iterator.hasNext()) {
                 int byteIndex = iterator.getByteIndex();
-                codePoint = nextNode.execute(iterator);
+                codePoint = nextNode.execute(iterator, tencoding);
 
                 if (codePoint == -1) {
                     badCodePointProfile.enter(node);
@@ -1780,7 +1780,7 @@ public abstract class StringNodes {
 
             var iterator = createBackwardCodePointIteratorNode.execute(tstring, tencoding,
                     ErrorHandling.RETURN_NEGATIVE);
-            int codePoint = previousNode.execute(iterator);
+            int codePoint = previousNode.execute(iterator, tencoding);
 
             // Check the last code point to see if it's broken. In the case of strings without trailing spaces,
             // this check can avoid having to compile the while loop.
@@ -1798,7 +1798,7 @@ public abstract class StringNodes {
 
             while (iterator.hasPrevious()) {
                 int byteIndex = iterator.getByteIndex();
-                codePoint = previousNode.execute(iterator);
+                codePoint = previousNode.execute(iterator, tencoding);
 
                 if (codePoint == -1) {
                     badCodePointProfile.enter(node);
@@ -3023,7 +3023,7 @@ public abstract class StringNodes {
             byte[] bytes = null;
 
             var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
-            int firstCodePoint = nextNode.execute(iterator);
+            int firstCodePoint = nextNode.execute(iterator, tencoding);
             if (firstCharIsLowerProfile.profile(this, StringSupport.isAsciiLowercase(firstCodePoint))) {
                 bytes = copyByteArray(tstring, tencoding);
                 bytes[0] ^= 0x20;
@@ -3289,7 +3289,7 @@ public abstract class StringNodes {
             int e = 0, b = 0, iterations = 0;
             try {
                 while (loopProfile.inject(node, iterator.hasNext())) {
-                    int c = nextNode.execute(iterator);
+                    int c = nextNode.execute(iterator, tencoding);
                     int p = iterator.getByteIndex();
                     iterations++;
 
@@ -3521,7 +3521,7 @@ public abstract class StringNodes {
 
             while (iterator.hasNext()) {
                 final int p = iterator.getByteIndex();
-                int c = iterator.nextUncached();
+                int c = iterator.nextUncached(tencoding);
 
                 if (c == -1) {
                     int n = iterator.getByteIndex() - p;

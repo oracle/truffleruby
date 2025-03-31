@@ -510,7 +510,7 @@ public abstract class StringHelperNodes {
 
             while (iterator.hasNext()) {
                 int p = iterator.getByteIndex();
-                int c = nextNode.execute(iterator);
+                int c = nextNode.execute(iterator, encoding);
 
                 if ((lowerToUpper && StringSupport.isAsciiLowercase(c)) ||
                         (upperToLower && StringSupport.isAsciiUppercase(c))) {
