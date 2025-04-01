@@ -139,6 +139,7 @@ cp lib/cext/include/ccan/licenses/CC0 doc/legal/ccan-cc0.txt
 rm -rf lib/cext/include/ruby
 git checkout lib/cext/include/ruby/config.h
 cp -R ../ruby/include/. lib/cext/include
+cp -R ../ruby/ext/digest/digest.h lib/cext/include/ruby
 
 rm -rf lib/cext/include/ccan
 cp -R ../ruby/ccan lib/cext/include
