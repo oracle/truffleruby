@@ -976,6 +976,16 @@ public final class CoreExceptions {
     }
 
     @TruffleBoundary
+    public RubyException loadError(String message, Node currentNode) {
+        RubyString messageString = StringOperations.createUTF8String(context, language, message);
+        RubyClass exceptionClass = context.getCoreLibrary().loadErrorClass;
+        RubyException loadError = ExceptionOperations
+                .createRubyException(context, exceptionClass, messageString, currentNode, null);
+
+        return loadError;
+    }
+
+    @TruffleBoundary
     public RubyException loadErrorCannotLoad(String name, Node currentNode) {
         return loadError(StringUtils.format("cannot load such file -- %s", name), name, currentNode);
     }

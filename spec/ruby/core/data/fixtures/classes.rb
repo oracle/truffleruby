@@ -7,7 +7,7 @@ module DataSpecs
         "A"
       end
     end
-    
+
     class DataSubclass < Data; end
   end
 end

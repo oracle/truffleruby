@@ -5,3 +5,4 @@ slow:Kernel.require ($LOADED_FEATURES) unicode_normalize is part of core and not
 slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread, ruby2_keywords are already required
 slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread, ruby2_keywords are already required
 slow:Kernel#require complex, enumerator, rational, thread, ruby2_keywords, fiber are already required
+slow:Kernel#require complex, enumerator, fiber, rational, thread, ruby2_keywords are already required

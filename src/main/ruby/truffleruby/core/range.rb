@@ -398,24 +398,29 @@ class Range
 
   def max
     raise RangeError, 'cannot get the maximum of endless range' if Primitive.nil? self.end
-    if Primitive.nil? self.begin
-      raise RangeError, 'cannot get the maximum of beginless range with custom comparison method' if block_given?
-      return exclude_end? ? self.end - 1 : self.end
-    end
-    return super if block_given? || (exclude_end? && !Primitive.is_a?(self.end, Numeric))
-    return nil if Comparable.compare_int(self.end <=> self.begin) < 0
-    return nil if exclude_end? && Comparable.compare_int(self.end <=> self.begin) == 0
-    return self.end unless exclude_end?
 
-    unless Primitive.is_a?(self.end, Integer)
-      raise TypeError, 'cannot exclude non Integer end value'
+    if block_given? || (exclude_end? && !Primitive.is_a?(self.end, Numeric))
+      if Primitive.nil? self.begin
+        raise RangeError, 'cannot get the maximum of beginless range with custom comparison method'
+      end
+
+      return super
     end
 
-    unless Primitive.is_a?(self.begin, Integer)
-      raise TypeError, 'cannot exclude end value with non Integer begin value'
-    end
+    if exclude_end?
+      if !Primitive.is_a?(self.end, Integer)
+        raise TypeError, 'cannot exclude non Integer end value'
+      elsif !Primitive.is_a?(self.begin, Integer)
+        raise TypeError, 'cannot exclude end value with non Integer begin value'
+      elsif self.end <= self.begin
+        return nil
+      end
 
-    self.end - 1
+      self.end - 1
+    else
+      return nil if !Primitive.nil?(self.begin) && Comparable.compare_int(self.end <=> self.begin) < 0
+      self.end
+    end
   end
 
   def min

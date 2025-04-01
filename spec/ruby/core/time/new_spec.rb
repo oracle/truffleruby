@@ -58,30 +58,28 @@ describe "Time.new with a utc_offset argument" do
     Time.new(2000, 1, 1, 0, 0, 0, "-04:10:43").utc_offset.should == -15043
   end
 
-  ruby_bug '#13669', ''...'3.1' do
-    it "returns a Time with a UTC offset specified as +HH" do
-      Time.new(2000, 1, 1, 0, 0, 0, "+05").utc_offset.should == 3600 * 5
-    end
+  it "returns a Time with a UTC offset specified as +HH" do
+    Time.new(2000, 1, 1, 0, 0, 0, "+05").utc_offset.should == 3600 * 5
+  end
 
-    it "returns a Time with a UTC offset specified as -HH" do
-      Time.new(2000, 1, 1, 0, 0, 0, "-05").utc_offset.should == -3600 * 5
-    end
+  it "returns a Time with a UTC offset specified as -HH" do
+    Time.new(2000, 1, 1, 0, 0, 0, "-05").utc_offset.should == -3600 * 5
+  end
 
-    it "returns a Time with a UTC offset specified as +HHMM" do
-      Time.new(2000, 1, 1, 0, 0, 0, "+0530").utc_offset.should == 19800
-    end
+  it "returns a Time with a UTC offset specified as +HHMM" do
+    Time.new(2000, 1, 1, 0, 0, 0, "+0530").utc_offset.should == 19800
+  end
 
-    it "returns a Time with a UTC offset specified as -HHMM" do
-      Time.new(2000, 1, 1, 0, 0, 0, "-0530").utc_offset.should == -19800
-    end
+  it "returns a Time with a UTC offset specified as -HHMM" do
+    Time.new(2000, 1, 1, 0, 0, 0, "-0530").utc_offset.should == -19800
+  end
 
-    it "returns a Time with a UTC offset specified as +HHMMSS" do
-      Time.new(2000, 1, 1, 0, 0, 0, "+053037").utc_offset.should == 19837
-    end
+  it "returns a Time with a UTC offset specified as +HHMMSS" do
+    Time.new(2000, 1, 1, 0, 0, 0, "+053037").utc_offset.should == 19837
+  end
 
-    it "returns a Time with a UTC offset specified as -HHMMSS" do
-      Time.new(2000, 1, 1, 0, 0, 0, "-053037").utc_offset.should == -19837
-    end
+  it "returns a Time with a UTC offset specified as -HHMMSS" do
+    Time.new(2000, 1, 1, 0, 0, 0, "-053037").utc_offset.should == -19837
   end
 
   describe "with an argument that responds to #to_str" do
@@ -129,18 +127,9 @@ describe "Time.new with a utc_offset argument" do
     end
   end
 
-  ruby_version_is ""..."3.1" do
-    it "raises ArgumentError if the string argument is J" do
-      message = '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset'
-      -> { Time.new(2000, 1, 1, 0, 0, 0, "J") }.should raise_error(ArgumentError, message)
-    end
-  end
-
-  ruby_version_is "3.1" do
-    it "raises ArgumentError if the string argument is J" do
-      message = '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: J'
-      -> { Time.new(2000, 1, 1, 0, 0, 0, "J") }.should raise_error(ArgumentError, message)
-    end
+  it "raises ArgumentError if the string argument is J" do
+    message = '"+HH:MM", "-HH:MM", "UTC" or "A".."I","K".."Z" expected for utc_offset: J'
+    -> { Time.new(2000, 1, 1, 0, 0, 0, "J") }.should raise_error(ArgumentError, message)
   end
 
   it "returns a local Time if the argument is nil" do
@@ -404,79 +393,77 @@ describe "Time.new with a timezone argument" do
     end
   end
 
-  ruby_version_is '3.1' do # https://bugs.ruby-lang.org/issues/17485
-    describe ":in keyword argument" do
-      it "could be UTC offset as a String in '+HH:MM or '-HH:MM' format" do
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: "+05:00")
+  describe ":in keyword argument" do
+    it "could be UTC offset as a String in '+HH:MM or '-HH:MM' format" do
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: "+05:00")
 
-        time.utc_offset.should == 5*60*60
-        time.zone.should == nil
+      time.utc_offset.should == 5*60*60
+      time.zone.should == nil
 
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: "-09:00")
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: "-09:00")
 
-        time.utc_offset.should == -9*60*60
-        time.zone.should == nil
+      time.utc_offset.should == -9*60*60
+      time.zone.should == nil
 
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: "-09:00:01")
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: "-09:00:01")
 
-        time.utc_offset.should == -(9*60*60 + 1)
-        time.zone.should == nil
-      end
+      time.utc_offset.should == -(9*60*60 + 1)
+      time.zone.should == nil
+    end
 
-      it "could be UTC offset as a number of seconds" do
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: 5*60*60)
+    it "could be UTC offset as a number of seconds" do
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: 5*60*60)
 
-        time.utc_offset.should == 5*60*60
-        time.zone.should == nil
+      time.utc_offset.should == 5*60*60
+      time.zone.should == nil
 
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: -9*60*60)
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: -9*60*60)
 
-        time.utc_offset.should == -9*60*60
-        time.zone.should == nil
-      end
+      time.utc_offset.should == -9*60*60
+      time.zone.should == nil
+    end
 
-      it "returns a Time with UTC offset specified as a single letter military timezone" do
-        Time.new(2000, 1, 1, 0, 0, 0, in: "W").utc_offset.should == 3600 * -10
-      end
+    it "returns a Time with UTC offset specified as a single letter military timezone" do
+      Time.new(2000, 1, 1, 0, 0, 0, in: "W").utc_offset.should == 3600 * -10
+    end
 
-      it "could be a timezone object" do
-        zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
+    it "could be a timezone object" do
+      zone = TimeSpecs::TimezoneWithName.new(name: "Asia/Colombo")
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
 
-        time.utc_offset.should == 5*3600+30*60
-        time.zone.should == zone
+      time.utc_offset.should == 5*3600+30*60
+      time.zone.should == zone
 
-        zone = TimeSpecs::TimezoneWithName.new(name: "PST")
-        time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
+      zone = TimeSpecs::TimezoneWithName.new(name: "PST")
+      time = Time.new(2000, 1, 1, 12, 0, 0, in: zone)
 
-        time.utc_offset.should == -9*60*60
-        time.zone.should == zone
-      end
+      time.utc_offset.should == -9*60*60
+      time.zone.should == zone
+    end
 
-      it "allows omitting minor arguments" do
-        Time.new(2000, 1, 1, 12, 1, 1, in: "+05:00").should == Time.new(2000, 1, 1, 12, 1, 1, "+05:00")
-        Time.new(2000, 1, 1, 12, 1, in: "+05:00").should == Time.new(2000, 1, 1, 12, 1, 0, "+05:00")
-        Time.new(2000, 1, 1, 12, in: "+05:00").should == Time.new(2000, 1, 1, 12, 0, 0, "+05:00")
-        Time.new(2000, 1, 1, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
-        Time.new(2000, 1, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
-        Time.new(2000, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
-        Time.new(in: "+05:00").should be_close(Time.now.getlocal("+05:00"), TIME_TOLERANCE)
-      end
+    it "allows omitting minor arguments" do
+      Time.new(2000, 1, 1, 12, 1, 1, in: "+05:00").should == Time.new(2000, 1, 1, 12, 1, 1, "+05:00")
+      Time.new(2000, 1, 1, 12, 1, in: "+05:00").should == Time.new(2000, 1, 1, 12, 1, 0, "+05:00")
+      Time.new(2000, 1, 1, 12, in: "+05:00").should == Time.new(2000, 1, 1, 12, 0, 0, "+05:00")
+      Time.new(2000, 1, 1, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
+      Time.new(2000, 1, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
+      Time.new(2000, in: "+05:00").should == Time.new(2000, 1, 1, 0, 0, 0, "+05:00")
+      Time.new(in: "+05:00").should be_close(Time.now.getlocal("+05:00"), TIME_TOLERANCE)
+    end
 
-      it "converts to a provided timezone if all the positional arguments are omitted" do
-        Time.new(in: "+05:00").utc_offset.should == 5*3600
-      end
+    it "converts to a provided timezone if all the positional arguments are omitted" do
+      Time.new(in: "+05:00").utc_offset.should == 5*3600
+    end
 
-      it "raises ArgumentError if format is invalid" do
-        -> { Time.new(2000, 1, 1, 12, 0, 0, in: "+09:99") }.should raise_error(ArgumentError)
-        -> { Time.new(2000, 1, 1, 12, 0, 0, in: "ABC") }.should raise_error(ArgumentError)
-      end
+    it "raises ArgumentError if format is invalid" do
+      -> { Time.new(2000, 1, 1, 12, 0, 0, in: "+09:99") }.should raise_error(ArgumentError)
+      -> { Time.new(2000, 1, 1, 12, 0, 0, in: "ABC") }.should raise_error(ArgumentError)
+    end
 
-      it "raises ArgumentError if two offset arguments are given" do
-        -> {
-          Time.new(2000, 1, 1, 12, 0, 0, "+05:00", in: "+05:00")
-        }.should raise_error(ArgumentError, "timezone argument given as positional and keyword arguments")
-      end
+    it "raises ArgumentError if two offset arguments are given" do
+      -> {
+        Time.new(2000, 1, 1, 12, 0, 0, "+05:00", in: "+05:00")
+      }.should raise_error(ArgumentError, "timezone argument given as positional and keyword arguments")
     end
   end
 
