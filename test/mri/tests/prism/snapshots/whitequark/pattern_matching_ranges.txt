@@ -1,0 +1,229 @@
+@ ProgramNode (location: (1,0)-(11,32))
+├── flags: ∅
+├── locals: []
+└── statements:
+    @ StatementsNode (location: (1,0)-(11,32))
+    ├── flags: ∅
+    └── body: (length: 6)
+        ├── @ CaseMatchNode (location: (1,0)-(1,32))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ CallNode (location: (1,5)-(1,8))
+        │   │   ├── flags: variable_call, ignore_visibility
+        │   │   ├── receiver: ∅
+        │   │   ├── call_operator_loc: ∅
+        │   │   ├── name: :foo
+        │   │   ├── message_loc: (1,5)-(1,8) = "foo"
+        │   │   ├── opening_loc: ∅
+        │   │   ├── arguments: ∅
+        │   │   ├── closing_loc: ∅
+        │   │   └── block: ∅
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (1,10)-(1,27))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ RangeNode (location: (1,13)-(1,17))
+        │   │       │   ├── flags: static_literal, exclude_end
+        │   │       │   ├── left: ∅
+        │   │       │   ├── right:
+        │   │       │   │   @ IntegerNode (location: (1,16)-(1,17))
+        │   │       │   │   ├── flags: static_literal, decimal
+        │   │       │   │   └── value: 2
+        │   │       │   └── operator_loc: (1,13)-(1,16) = "..."
+        │   │       ├── statements:
+        │   │       │   @ StatementsNode (location: (1,23)-(1,27))
+        │   │       │   ├── flags: ∅
+        │   │       │   └── body: (length: 1)
+        │   │       │       └── @ TrueNode (location: (1,23)-(1,27))
+        │   │       │           └── flags: newline, static_literal
+        │   │       ├── in_loc: (1,10)-(1,12) = "in"
+        │   │       └── then_loc: (1,18)-(1,22) = "then"
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (1,0)-(1,4) = "case"
+        │   └── end_keyword_loc: (1,29)-(1,32) = "end"
+        ├── @ CaseMatchNode (location: (3,0)-(3,31))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ CallNode (location: (3,5)-(3,8))
+        │   │   ├── flags: variable_call, ignore_visibility
+        │   │   ├── receiver: ∅
+        │   │   ├── call_operator_loc: ∅
+        │   │   ├── name: :foo
+        │   │   ├── message_loc: (3,5)-(3,8) = "foo"
+        │   │   ├── opening_loc: ∅
+        │   │   ├── arguments: ∅
+        │   │   ├── closing_loc: ∅
+        │   │   └── block: ∅
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (3,10)-(3,26))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ RangeNode (location: (3,13)-(3,16))
+        │   │       │   ├── flags: static_literal
+        │   │       │   ├── left: ∅
+        │   │       │   ├── right:
+        │   │       │   │   @ IntegerNode (location: (3,15)-(3,16))
+        │   │       │   │   ├── flags: static_literal, decimal
+        │   │       │   │   └── value: 2
+        │   │       │   └── operator_loc: (3,13)-(3,15) = ".."
+        │   │       ├── statements:
+        │   │       │   @ StatementsNode (location: (3,22)-(3,26))
+        │   │       │   ├── flags: ∅
+        │   │       │   └── body: (length: 1)
+        │   │       │       └── @ TrueNode (location: (3,22)-(3,26))
+        │   │       │           └── flags: newline, static_literal
+        │   │       ├── in_loc: (3,10)-(3,12) = "in"
+        │   │       └── then_loc: (3,17)-(3,21) = "then"
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (3,0)-(3,4) = "case"
+        │   └── end_keyword_loc: (3,28)-(3,31) = "end"
+        ├── @ CaseMatchNode (location: (5,0)-(5,31))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ CallNode (location: (5,5)-(5,8))
+        │   │   ├── flags: variable_call, ignore_visibility
+        │   │   ├── receiver: ∅
+        │   │   ├── call_operator_loc: ∅
+        │   │   ├── name: :foo
+        │   │   ├── message_loc: (5,5)-(5,8) = "foo"
+        │   │   ├── opening_loc: ∅
+        │   │   ├── arguments: ∅
+        │   │   ├── closing_loc: ∅
+        │   │   └── block: ∅
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (5,10)-(5,26))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ RangeNode (location: (5,13)-(5,16))
+        │   │       │   ├── flags: static_literal
+        │   │       │   ├── left:
+        │   │       │   │   @ IntegerNode (location: (5,13)-(5,14))
+        │   │       │   │   ├── flags: static_literal, decimal
+        │   │       │   │   └── value: 1
+        │   │       │   ├── right: ∅
+        │   │       │   └── operator_loc: (5,14)-(5,16) = ".."
+        │   │       ├── statements:
+        │   │       │   @ StatementsNode (location: (5,22)-(5,26))
+        │   │       │   ├── flags: ∅
+        │   │       │   └── body: (length: 1)
+        │   │       │       └── @ TrueNode (location: (5,22)-(5,26))
+        │   │       │           └── flags: newline, static_literal
+        │   │       ├── in_loc: (5,10)-(5,12) = "in"
+        │   │       └── then_loc: (5,17)-(5,21) = "then"
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (5,0)-(5,4) = "case"
+        │   └── end_keyword_loc: (5,28)-(5,31) = "end"
+        ├── @ CaseMatchNode (location: (7,0)-(7,32))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ CallNode (location: (7,5)-(7,8))
+        │   │   ├── flags: variable_call, ignore_visibility
+        │   │   ├── receiver: ∅
+        │   │   ├── call_operator_loc: ∅
+        │   │   ├── name: :foo
+        │   │   ├── message_loc: (7,5)-(7,8) = "foo"
+        │   │   ├── opening_loc: ∅
+        │   │   ├── arguments: ∅
+        │   │   ├── closing_loc: ∅
+        │   │   └── block: ∅
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (7,10)-(7,27))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ RangeNode (location: (7,13)-(7,17))
+        │   │       │   ├── flags: static_literal, exclude_end
+        │   │       │   ├── left:
+        │   │       │   │   @ IntegerNode (location: (7,13)-(7,14))
+        │   │       │   │   ├── flags: static_literal, decimal
+        │   │       │   │   └── value: 1
+        │   │       │   ├── right: ∅
+        │   │       │   └── operator_loc: (7,14)-(7,17) = "..."
+        │   │       ├── statements:
+        │   │       │   @ StatementsNode (location: (7,23)-(7,27))
+        │   │       │   ├── flags: ∅
+        │   │       │   └── body: (length: 1)
+        │   │       │       └── @ TrueNode (location: (7,23)-(7,27))
+        │   │       │           └── flags: newline, static_literal
+        │   │       ├── in_loc: (7,10)-(7,12) = "in"
+        │   │       └── then_loc: (7,18)-(7,22) = "then"
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (7,0)-(7,4) = "case"
+        │   └── end_keyword_loc: (7,29)-(7,32) = "end"
+        ├── @ CaseMatchNode (location: (9,0)-(9,33))
+        │   ├── flags: newline
+        │   ├── predicate:
+        │   │   @ CallNode (location: (9,5)-(9,8))
+        │   │   ├── flags: variable_call, ignore_visibility
+        │   │   ├── receiver: ∅
+        │   │   ├── call_operator_loc: ∅
+        │   │   ├── name: :foo
+        │   │   ├── message_loc: (9,5)-(9,8) = "foo"
+        │   │   ├── opening_loc: ∅
+        │   │   ├── arguments: ∅
+        │   │   ├── closing_loc: ∅
+        │   │   └── block: ∅
+        │   ├── conditions: (length: 1)
+        │   │   └── @ InNode (location: (9,10)-(9,28))
+        │   │       ├── flags: ∅
+        │   │       ├── pattern:
+        │   │       │   @ RangeNode (location: (9,13)-(9,18))
+        │   │       │   ├── flags: static_literal, exclude_end
+        │   │       │   ├── left:
+        │   │       │   │   @ IntegerNode (location: (9,13)-(9,14))
+        │   │       │   │   ├── flags: static_literal, decimal
+        │   │       │   │   └── value: 1
+        │   │       │   ├── right:
+        │   │       │   │   @ IntegerNode (location: (9,17)-(9,18))
+        │   │       │   │   ├── flags: static_literal, decimal
+        │   │       │   │   └── value: 2
+        │   │       │   └── operator_loc: (9,14)-(9,17) = "..."
+        │   │       ├── statements:
+        │   │       │   @ StatementsNode (location: (9,24)-(9,28))
+        │   │       │   ├── flags: ∅
+        │   │       │   └── body: (length: 1)
+        │   │       │       └── @ TrueNode (location: (9,24)-(9,28))
+        │   │       │           └── flags: newline, static_literal
+        │   │       ├── in_loc: (9,10)-(9,12) = "in"
+        │   │       └── then_loc: (9,19)-(9,23) = "then"
+        │   ├── else_clause: ∅
+        │   ├── case_keyword_loc: (9,0)-(9,4) = "case"
+        │   └── end_keyword_loc: (9,30)-(9,33) = "end"
+        └── @ CaseMatchNode (location: (11,0)-(11,32))
+            ├── flags: newline
+            ├── predicate:
+            │   @ CallNode (location: (11,5)-(11,8))
+            │   ├── flags: variable_call, ignore_visibility
+            │   ├── receiver: ∅
+            │   ├── call_operator_loc: ∅
+            │   ├── name: :foo
+            │   ├── message_loc: (11,5)-(11,8) = "foo"
+            │   ├── opening_loc: ∅
+            │   ├── arguments: ∅
+            │   ├── closing_loc: ∅
+            │   └── block: ∅
+            ├── conditions: (length: 1)
+            │   └── @ InNode (location: (11,10)-(11,27))
+            │       ├── flags: ∅
+            │       ├── pattern:
+            │       │   @ RangeNode (location: (11,13)-(11,17))
+            │       │   ├── flags: static_literal
+            │       │   ├── left:
+            │       │   │   @ IntegerNode (location: (11,13)-(11,14))
+            │       │   │   ├── flags: static_literal, decimal
+            │       │   │   └── value: 1
+            │       │   ├── right:
+            │       │   │   @ IntegerNode (location: (11,16)-(11,17))
+            │       │   │   ├── flags: static_literal, decimal
+            │       │   │   └── value: 2
+            │       │   └── operator_loc: (11,14)-(11,16) = ".."
+            │       ├── statements:
+            │       │   @ StatementsNode (location: (11,23)-(11,27))
+            │       │   ├── flags: ∅
+            │       │   └── body: (length: 1)
+            │       │       └── @ TrueNode (location: (11,23)-(11,27))
+            │       │           └── flags: newline, static_literal
+            │       ├── in_loc: (11,10)-(11,12) = "in"
+            │       └── then_loc: (11,18)-(11,22) = "then"
+            ├── else_clause: ∅
+            ├── case_keyword_loc: (11,0)-(11,4) = "case"
+            └── end_keyword_loc: (11,29)-(11,32) = "end"

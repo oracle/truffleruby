@@ -29,6 +29,7 @@
             │   ├── exceptions: (length: 0)
             │   ├── operator_loc: ∅
             │   ├── reference: ∅
+            │   ├── then_keyword_loc: ∅
             │   ├── statements:
             │   │   @ StatementsNode (location: (1,21)-(1,24))
             │   │   ├── flags: ∅

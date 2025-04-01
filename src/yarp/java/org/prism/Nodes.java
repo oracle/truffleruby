@@ -662,6 +662,49 @@ public abstract class Nodes {
     }
 
     /**
+     * Flags for parentheses nodes.
+     */
+    public static final class ParenthesesNodeFlags implements Comparable<ParenthesesNodeFlags> {
+
+        // parentheses that contain multiple potentially void statements
+        public static final short MULTIPLE_STATEMENTS = 1 << 2;
+
+        public static boolean isMultipleStatements(short flags) {
+            return (flags & MULTIPLE_STATEMENTS) != 0;
+        }
+
+        private final short flags;
+
+        public ParenthesesNodeFlags(short flags) {
+            this.flags = flags;
+        }
+
+        @Override
+        public int hashCode() {
+            return flags;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof ParenthesesNodeFlags)) {
+                return false;
+            }
+
+            return flags == ((ParenthesesNodeFlags) other).flags;
+        }
+
+        @Override
+        public int compareTo(ParenthesesNodeFlags other) {
+            return flags - other.flags;
+        }
+
+        public boolean isMultipleStatements() {
+            return (flags & MULTIPLE_STATEMENTS) != 0;
+        }
+
+    }
+
+    /**
      * Flags for range and flip-flop nodes.
      */
     public static final class RangeFlags implements Comparable<RangeFlags> {
@@ -1359,6 +1402,14 @@ public abstract class Nodes {
      */
     public static final class ArgumentsNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The list of arguments, if present. These can be any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo(bar, baz)
+         *         ^^^^^^^^
+         * </pre>
+         */
         public final Node[] arguments;
 
         public ArgumentsNode(int startOffset, int length, short flags, Node[] arguments) {
@@ -1504,8 +1555,8 @@ public abstract class Nodes {
      *     foo in [1, 2]
      *     ^^^^^^^^^^^^^
      *
-     *     foo in *1
-     *     ^^^^^^^^^
+     *     foo in *bar
+     *     ^^^^^^^^^^^
      *
      *     foo in Bar[]
      *     ^^^^^^^^^^^^
@@ -1518,9 +1569,33 @@ public abstract class Nodes {
         @Nullable
         @UnionType({ ConstantReadNode.class, ConstantPathNode.class })
         public final Node constant;
+        /**
+         * <pre>
+         * Represents the required elements of the array pattern.
+         *
+         *     foo in [1, 2]
+         *             ^  ^
+         * </pre>
+         */
         public final Node[] requireds;
+        /**
+         * <pre>
+         * Represents the rest element of the array pattern.
+         *
+         *     foo in *bar
+         *            ^^^^
+         * </pre>
+         */
         @Nullable
         public final Node rest;
+        /**
+         * <pre>
+         * Represents the elements after the rest element of the array pattern.
+         *
+         *     foo in *bar, baz
+         *                  ^^^
+         * </pre>
+         */
         public final Node[] posts;
 
         public ArrayPatternNode(int startOffset, int length, Node constant, Node[] requireds, Node rest, Node[] posts) {
@@ -1785,12 +1860,44 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class BeginNode extends Node {
+        /**
+         * <pre>
+         * Represents the statements within the begin block.
+         *
+         *     begin x end
+         *           ^
+         * </pre>
+         */
         @Nullable
         public final StatementsNode statements;
+        /**
+         * <pre>
+         * Represents the rescue clause within the begin block.
+         *
+         *     begin x; rescue y; end
+         *              ^^^^^^^^
+         * </pre>
+         */
         @Nullable
         public final RescueNode rescue_clause;
+        /**
+         * <pre>
+         * Represents the else clause within the begin block.
+         *
+         *     begin x; rescue y; else z; end
+         *                        ^^^^^^
+         * </pre>
+         */
         @Nullable
         public final ElseNode else_clause;
+        /**
+         * <pre>
+         * Represents the ensure clause within the begin block.
+         *
+         *     begin x; ensure y; end
+         *              ^^^^^^^^
+         * </pre>
+         */
         @Nullable
         public final EnsureNode ensure_clause;
 
@@ -1864,6 +1971,14 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class BlockArgumentNode extends Node {
+        /**
+         * <pre>
+         * The expression that is being passed as a block argument. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo(&amp;args)
+         *         ^^^^^
+         * </pre>
+         */
         @Nullable
         public final Node expression;
 
@@ -1912,6 +2027,14 @@ public abstract class Nodes {
      */
     public static final class BlockLocalVariableNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The name of the block local variable.
+         *
+         *     a { |; b| } # name `:b`
+         *            ^
+         * </pre>
+         */
         public final String name;
 
         public BlockLocalVariableNode(int startOffset, int length, short flags, String name) {
@@ -1965,10 +2088,38 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class BlockNode extends Node {
+        /**
+         * <pre>
+         * The local variables declared in the block.
+         *
+         *     [1, 2, 3].each { |i| puts x } # locals: [:i]
+         *                       ^
+         * </pre>
+         */
         public final String[] locals;
+        /**
+         * <pre>
+         * The parameters of the block.
+         *
+         *     [1, 2, 3].each { |i| puts x }
+         *                      ^^^
+         *     [1, 2, 3].each { puts _1 }
+         *                    ^^^^^^^^^^^
+         *     [1, 2, 3].each { puts it }
+         *                    ^^^^^^^^^^^
+         * </pre>
+         */
         @Nullable
         @UnionType({ BlockParametersNode.class, NumberedParametersNode.class, ItParametersNode.class })
         public final Node parameters;
+        /**
+         * <pre>
+         * The body of the block.
+         *
+         *     [1, 2, 3].each { |i| puts x }
+         *                          ^^^^^^
+         * </pre>
+         */
         @Nullable
         @UnionType({ StatementsNode.class, BeginNode.class })
         public final Node body;
@@ -2034,6 +2185,15 @@ public abstract class Nodes {
      */
     public static final class BlockParameterNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The name of the block parameter.
+         *
+         *     def a(&amp;b) # name `:b`
+         *            ^
+         *     end
+         * </pre>
+         */
         @Nullable
         public final String name;
 
@@ -2092,8 +2252,32 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class BlockParametersNode extends Node {
+        /**
+         * <pre>
+         * Represents the parameters of the block.
+         *
+         *     -&gt; (a, b = 1; local) { }
+         *         ^^^^^^^^
+         *
+         *     foo do |a, b = 1; local|
+         *             ^^^^^^^^
+         *     end
+         * </pre>
+         */
         @Nullable
         public final ParametersNode parameters;
+        /**
+         * <pre>
+         * Represents the local variables of the block.
+         *
+         *     -&gt; (a, b = 1; local) { }
+         *                   ^^^^^
+         *
+         *     foo do |a, b = 1; local|
+         *                       ^^^^^
+         *     end
+         * </pre>
+         */
         public final BlockLocalVariableNode[] locals;
 
         public BlockParametersNode(int startOffset, int length, ParametersNode parameters, BlockLocalVariableNode[] locals) {
@@ -2210,10 +2394,42 @@ public abstract class Nodes {
      */
     public static final class CallAndWriteNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The object that the method is being called on. This can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo.bar &amp;&amp;= value
+         *     ^^^
+         * </pre>
+         */
         @Nullable
         public final Node receiver;
+        /**
+         * <pre>
+         * Represents the name of the method being called.
+         *
+         *     foo.bar &amp;&amp;= value # read_name `:bar`
+         *         ^^^
+         * </pre>
+         */
         public final String read_name;
+        /**
+         * <pre>
+         * Represents the name of the method being written to.
+         *
+         *     foo.bar &amp;&amp;= value # write_name `:bar=`
+         *         ^^^
+         * </pre>
+         */
         public final String write_name;
+        /**
+         * <pre>
+         * Represents the value being assigned.
+         *
+         *     foo.bar &amp;&amp;= value
+         *                 ^^^^^
+         * </pre>
+         */
         public final Node value;
 
         public CallAndWriteNode(int startOffset, int length, short flags, Node receiver, String read_name, String write_name, Node value) {
@@ -2328,9 +2544,33 @@ public abstract class Nodes {
          */
         @Nullable
         public final Node receiver;
+        /**
+         * <pre>
+         * Represents the name of the method being called.
+         *
+         *     foo.bar # name `:foo`
+         *     ^^^
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * Represents the arguments to the method call. These can be any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo(bar)
+         *         ^^^
+         * </pre>
+         */
         @Nullable
         public final ArgumentsNode arguments;
+        /**
+         * <pre>
+         * Represents the block that is being passed to the method.
+         *
+         *     foo { |a| a }
+         *         ^^^^^^^^^
+         * </pre>
+         */
         @Nullable
         @UnionType({ BlockNode.class, BlockArgumentNode.class })
         public final Node block;
@@ -2420,11 +2660,51 @@ public abstract class Nodes {
      */
     public static final class CallOperatorWriteNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The object that the method is being called on. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo.bar += value
+         *     ^^^
+         * </pre>
+         */
         @Nullable
         public final Node receiver;
+        /**
+         * <pre>
+         * Represents the name of the method being called.
+         *
+         *     foo.bar += value # read_name `:bar`
+         *         ^^^
+         * </pre>
+         */
         public final String read_name;
+        /**
+         * <pre>
+         * Represents the name of the method being written to.
+         *
+         *     foo.bar += value # write_name `:bar=`
+         *         ^^^
+         * </pre>
+         */
         public final String write_name;
+        /**
+         * <pre>
+         * Represents the binary operator being used.
+         *
+         *     foo.bar += value # binary_operator `:+`
+         *             ^
+         * </pre>
+         */
         public final String binary_operator;
+        /**
+         * <pre>
+         * Represents the value being assigned.
+         *
+         *     foo.bar += value
+         *                ^^^^^
+         * </pre>
+         */
         public final Node value;
 
         public CallOperatorWriteNode(int startOffset, int length, short flags, Node receiver, String read_name, String write_name, String binary_operator, Node value) {
@@ -2513,10 +2793,42 @@ public abstract class Nodes {
      */
     public static final class CallOrWriteNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The object that the method is being called on. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo.bar ||= value
+         *     ^^^
+         * </pre>
+         */
         @Nullable
         public final Node receiver;
+        /**
+         * <pre>
+         * Represents the name of the method being called.
+         *
+         *     foo.bar ||= value # read_name `:bar`
+         *         ^^^
+         * </pre>
+         */
         public final String read_name;
+        /**
+         * <pre>
+         * Represents the name of the method being written to.
+         *
+         *     foo.bar ||= value # write_name `:bar=`
+         *         ^^^
+         * </pre>
+         */
         public final String write_name;
+        /**
+         * <pre>
+         * Represents the value being assigned.
+         *
+         *     foo.bar ||= value
+         *                 ^^^^^
+         * </pre>
+         */
         public final Node value;
 
         public CallOrWriteNode(int startOffset, int length, short flags, Node receiver, String read_name, String write_name, Node value) {
@@ -2608,7 +2920,23 @@ public abstract class Nodes {
      */
     public static final class CallTargetNode extends Node {
         public final short flags;
+        /**
+         * <pre>
+         * The object that the method is being called on. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     foo.bar = 1
+         *     ^^^
+         * </pre>
+         */
         public final Node receiver;
+        /**
+         * <pre>
+         * Represents the name of the method being called.
+         *
+         *     foo.bar = 1 # name `:foo`
+         *     ^^^
+         * </pre>
+         */
         public final String name;
 
         public CallTargetNode(int startOffset, int length, short flags, Node receiver, String name) {
@@ -2679,7 +3007,23 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class CapturePatternNode extends Node {
+        /**
+         * <pre>
+         * Represents the value to capture.
+         *
+         *     foo =&gt; bar
+         *            ^^^
+         * </pre>
+         */
         public final Node value;
+        /**
+         * <pre>
+         * Represents the target of the capture.
+         *
+         *     foo =&gt; bar
+         *     ^^^
+         * </pre>
+         */
         public final LocalVariableTargetNode target;
 
         public CapturePatternNode(int startOffset, int length, Node value, LocalVariableTargetNode target) {
@@ -2731,9 +3075,33 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class CaseMatchNode extends Node {
+        /**
+         * <pre>
+         * Represents the predicate of the case match. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     case true; in false; end
+         *     ^^^^
+         * </pre>
+         */
         @Nullable
         public final Node predicate;
+        /**
+         * <pre>
+         * Represents the conditions of the case match.
+         *
+         *     case true; in false; end
+         *                ^^^^^^^^
+         * </pre>
+         */
         public final InNode[] conditions;
+        /**
+         * <pre>
+         * Represents the else clause of the case match.
+         *
+         *     case true; in false; else; end
+         *                          ^^^^
+         * </pre>
+         */
         @Nullable
         public final ElseNode else_clause;
 
@@ -2805,9 +3173,33 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class CaseNode extends Node {
+        /**
+         * <pre>
+         * Represents the predicate of the case statement. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     case true; when false; end
+         *     ^^^^
+         * </pre>
+         */
         @Nullable
         public final Node predicate;
+        /**
+         * <pre>
+         * Represents the conditions of the case statement.
+         *
+         *     case true; when false; end
+         *                ^^^^^^^^^^
+         * </pre>
+         */
         public final WhenNode[] conditions;
+        /**
+         * <pre>
+         * Represents the else clause of the case statement.
+         *
+         *     case true; when false; else; end
+         *                            ^^^^
+         * </pre>
+         */
         @Nullable
         public final ElseNode else_clause;
 
@@ -2956,7 +3348,23 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ClassVariableAndWriteNode extends Node {
+        /**
+         * <pre>
+         * The name of the class variable, which is a `&#64;&#64;` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+         *
+         *     &#64;&#64;target &amp;&amp;= value # name `:&#64;&#64;target`
+         *     ^^^^^^^^
+         * </pre>
+         */
         public final String name;
+        /**
+         * <pre>
+         * Represents the value being assigned. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+         *
+         *     &#64;&#64;target &amp;&amp;= value
+         *                  ^^^^^
+         * </pre>
+         */
         public final Node value;
 
         public ClassVariableAndWriteNode(int startOffset, int length, String name, Node value) {
@@ -8497,14 +8905,20 @@ public abstract class Nodes {
      * </pre>
      */
     public static final class ParenthesesNode extends Node {
+        public final short flags;
         @Nullable
         public final Node body;
 
-        public ParenthesesNode(int startOffset, int length, Node body) {
+        public ParenthesesNode(int startOffset, int length, short flags, Node body) {
             super(startOffset, length);
+            this.flags = flags;
             this.body = body;
         }
-                
+        
+        public boolean isMultipleStatements() {
+            return ParenthesesNodeFlags.isMultipleStatements(flags);
+        }
+        
         @Override
         public void setNewLineFlag(Source source, boolean[] newlineMarked) {
             // Never mark ParenthesesNode with a newline flag, mark children instead
@@ -8533,6 +8947,10 @@ public abstract class Nodes {
             }
             builder.append('\n');
             String nextIndent = indent + "  ";
+            builder.append(nextIndent);
+            builder.append("ParenthesesNodeFlags: ");
+            builder.append(flags);
+            builder.append('\n');
             builder.append(nextIndent);
             builder.append("body: ");
             builder.append(this.body == null ? "null\n" : this.body.toString(nextIndent));
@@ -9258,7 +9676,7 @@ public abstract class Nodes {
      *     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
      *     end
      *
-     * `Foo, *splat, Bar` are in the `exceptions` field. `ex` is in the `exception` field.
+     * `Foo, *splat, Bar` are in the `exceptions` field. `ex` is in the `reference` field.
      * </pre>
      */
     public static final class RescueNode extends Node {
@@ -10733,6 +11151,7 @@ public abstract class Nodes {
         INSTANCE_VARIABLE_BARE,
         INVALID_BLOCK_EXIT,
         INVALID_CHARACTER,
+        INVALID_COMMA,
         INVALID_ENCODING_MAGIC_COMMENT,
         INVALID_ESCAPE_CHARACTER,
         INVALID_FLOAT_EXPONENT,

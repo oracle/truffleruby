@@ -714,8 +714,8 @@ module Prism
     end
 
     # Create a new RescueNode node.
-    def rescue_node(source: default_source, node_id: 0, location: default_location, flags: 0, keyword_loc: location, exceptions: [], operator_loc: nil, reference: nil, statements: nil, subsequent: nil)
-      RescueNode.new(source, node_id, location, flags, keyword_loc, exceptions, operator_loc, reference, statements, subsequent)
+    def rescue_node(source: default_source, node_id: 0, location: default_location, flags: 0, keyword_loc: location, exceptions: [], operator_loc: nil, reference: nil, then_keyword_loc: nil, statements: nil, subsequent: nil)
+      RescueNode.new(source, node_id, location, flags, keyword_loc, exceptions, operator_loc, reference, then_keyword_loc, statements, subsequent)
     end
 
     # Create a new RestParameterNode node.
@@ -804,8 +804,8 @@ module Prism
     end
 
     # Create a new UntilNode node.
-    def until_node(source: default_source, node_id: 0, location: default_location, flags: 0, keyword_loc: location, closing_loc: nil, predicate: default_node(source, location), statements: nil)
-      UntilNode.new(source, node_id, location, flags, keyword_loc, closing_loc, predicate, statements)
+    def until_node(source: default_source, node_id: 0, location: default_location, flags: 0, keyword_loc: location, do_keyword_loc: nil, closing_loc: nil, predicate: default_node(source, location), statements: nil)
+      UntilNode.new(source, node_id, location, flags, keyword_loc, do_keyword_loc, closing_loc, predicate, statements)
     end
 
     # Create a new WhenNode node.
@@ -814,8 +814,8 @@ module Prism
     end
 
     # Create a new WhileNode node.
-    def while_node(source: default_source, node_id: 0, location: default_location, flags: 0, keyword_loc: location, closing_loc: nil, predicate: default_node(source, location), statements: nil)
-      WhileNode.new(source, node_id, location, flags, keyword_loc, closing_loc, predicate, statements)
+    def while_node(source: default_source, node_id: 0, location: default_location, flags: 0, keyword_loc: location, do_keyword_loc: nil, closing_loc: nil, predicate: default_node(source, location), statements: nil)
+      WhileNode.new(source, node_id, location, flags, keyword_loc, do_keyword_loc, closing_loc, predicate, statements)
     end
 
     # Create a new XStringNode node.
@@ -909,6 +909,14 @@ module Prism
       case name
       when :repeated_parameter then ParameterFlags::REPEATED_PARAMETER
       else Kernel.raise ArgumentError, "invalid ParameterFlags flag: #{name.inspect}"
+      end
+    end
+
+    # Retrieve the value of one of the ParenthesesNodeFlags flags.
+    def parentheses_node_flag(name)
+      case name
+      when :multiple_statements then ParenthesesNodeFlags::MULTIPLE_STATEMENTS
+      else Kernel.raise ArgumentError, "invalid ParenthesesNodeFlags flag: #{name.inspect}"
       end
     end
 

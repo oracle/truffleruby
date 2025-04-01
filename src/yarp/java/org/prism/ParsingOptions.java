@@ -13,7 +13,8 @@ public abstract class ParsingOptions {
      */
     public enum SyntaxVersion {
         LATEST(0),
-        V3_3(1);
+        V3_3(1),
+        V3_4(2);
 
         private final int value;
 
@@ -35,6 +36,69 @@ public abstract class ParsingOptions {
     public enum CommandLine { A, E, L, N, P, X };
 
     /**
+     * The forwarding options for a given scope in the parser.
+     */
+    public enum Forwarding {
+        NONE(0),
+        POSITIONAL(1),
+        KEYWORD(2),
+        BLOCK(4),
+        ALL(8);
+
+        private final int value;
+
+        Forwarding(int value) {
+            this.value = value;
+        }
+
+        public byte getValue() {
+            return (byte) value;
+        }
+    };
+
+    /**
+     * Represents a scope in the parser.
+     */
+    public static class Scope {
+        private byte[][] locals;
+        private Forwarding[] forwarding;
+
+        Scope(byte[][] locals) {
+            this(locals, new Forwarding[0]);
+        }
+
+        Scope(Forwarding[] forwarding) {
+            this(new byte[0][], forwarding);
+        }
+
+        Scope(byte[][] locals, Forwarding[] forwarding) {
+            this.locals = locals;
+            this.forwarding = forwarding;
+        }
+
+        public byte[][] getLocals() {
+            return locals;
+        }
+
+        public int getForwarding() {
+            int value = 0;
+            for (Forwarding f : forwarding) {
+                value |= f.getValue();
+            }
+            return value;
+        }
+    }
+
+    public static byte[] serialize(byte[] filepath, int line, byte[] encoding, boolean frozenStringLiteral, EnumSet<CommandLine> commandLine, SyntaxVersion version, boolean encodingLocked, boolean mainScript, boolean partialScript, byte[][][] scopes) {
+        Scope[] normalizedScopes = new Scope[scopes.length];
+        for (int i = 0; i < scopes.length; i++) {
+            normalizedScopes[i] = new Scope(scopes[i]);
+        }
+
+        return serialize(filepath, line, encoding, frozenStringLiteral, commandLine, version, encodingLocked, mainScript, partialScript, normalizedScopes);
+    }
+
+    /**
      * Serialize parsing options into byte array.
      *
      * @param filepath the name of the file that is currently being parsed
@@ -49,7 +113,7 @@ public abstract class ParsingOptions {
      * @param scopes scopes surrounding the code that is being parsed with local variable names defined in every scope
      *            ordered from the outermost scope to the innermost one
      */
-    public static byte[] serialize(byte[] filepath, int line, byte[] encoding, boolean frozenStringLiteral, EnumSet<CommandLine> commandLine, SyntaxVersion version, boolean encodingLocked, boolean mainScript, boolean partialScript, byte[][][] scopes) {
+    public static byte[] serialize(byte[] filepath, int line, byte[] encoding, boolean frozenStringLiteral, EnumSet<CommandLine> commandLine, SyntaxVersion version, boolean encodingLocked, boolean mainScript, boolean partialScript, Scope[] scopes) {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
         // filepath
@@ -81,18 +145,26 @@ public abstract class ParsingOptions {
         // partialScript
         output.write(partialScript ? 1 : 0);
 
+        // freeze
+        output.write(0);
+
         // scopes
 
         // number of scopes
         write(output, serializeInt(scopes.length));
 
         // local variables in each scope
-        for (byte[][] scope : scopes) {
+        for (Scope scope : scopes) {
+            byte[][] locals = scope.getLocals();
+
             // number of locals
-            write(output, serializeInt(scope.length));
+            write(output, serializeInt(locals.length));
+
+            // forwarding flags
+            output.write(scope.getForwarding());
 
             // locals
-            for (byte[] local : scope) {
+            for (byte[] local : locals) {
                 write(output, serializeInt(local.length));
                 write(output, local);
             }

@@ -1191,6 +1191,11 @@ typedef struct pm_alias_method_node {
 
     /**
      * AliasMethodNode#keyword_loc
+     *
+     * Represents the location of the `alias` keyword.
+     *
+     *     alias foo bar
+     *     ^^^^^
      */
     pm_location_t keyword_loc;
 } pm_alias_method_node_t;
@@ -1323,6 +1328,11 @@ typedef struct pm_arguments_node {
 
     /**
      * ArgumentsNode#arguments
+     *
+     * The list of arguments, if present. These can be any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo(bar, baz)
+     *         ^^^^^^^^
      */
     struct pm_node_list arguments;
 } pm_arguments_node_t;
@@ -1390,8 +1400,8 @@ typedef struct pm_array_node {
  *     foo in [1, 2]
  *     ^^^^^^^^^^^^^
  *
- *     foo in *1
- *     ^^^^^^^^^
+ *     foo in *bar
+ *     ^^^^^^^^^^^
  *
  *     foo in Bar[]
  *     ^^^^^^^^^^^^
@@ -1415,26 +1425,51 @@ typedef struct pm_array_pattern_node {
 
     /**
      * ArrayPatternNode#requireds
+     *
+     * Represents the required elements of the array pattern.
+     *
+     *     foo in [1, 2]
+     *             ^  ^
      */
     struct pm_node_list requireds;
 
     /**
      * ArrayPatternNode#rest
+     *
+     * Represents the rest element of the array pattern.
+     *
+     *     foo in *bar
+     *            ^^^^
      */
     struct pm_node *rest;
 
     /**
      * ArrayPatternNode#posts
+     *
+     * Represents the elements after the rest element of the array pattern.
+     *
+     *     foo in *bar, baz
+     *                  ^^^
      */
     struct pm_node_list posts;
 
     /**
      * ArrayPatternNode#opening_loc
+     *
+     * Represents the opening location of the array pattern.
+     *
+     *     foo in [1, 2]
+     *            ^
      */
     pm_location_t opening_loc;
 
     /**
      * ArrayPatternNode#closing_loc
+     *
+     * Represents the closing location of the array pattern.
+     *
+     *     foo in [1, 2]
+     *                 ^
      */
     pm_location_t closing_loc;
 } pm_array_pattern_node_t;
@@ -1584,31 +1619,61 @@ typedef struct pm_begin_node {
 
     /**
      * BeginNode#begin_keyword_loc
+     *
+     * Represents the location of the `begin` keyword.
+     *
+     *     begin x end
+     *     ^^^^^
      */
     pm_location_t begin_keyword_loc;
 
     /**
      * BeginNode#statements
+     *
+     * Represents the statements within the begin block.
+     *
+     *     begin x end
+     *           ^
      */
     struct pm_statements_node *statements;
 
     /**
      * BeginNode#rescue_clause
+     *
+     * Represents the rescue clause within the begin block.
+     *
+     *     begin x; rescue y; end
+     *              ^^^^^^^^
      */
     struct pm_rescue_node *rescue_clause;
 
     /**
      * BeginNode#else_clause
+     *
+     * Represents the else clause within the begin block.
+     *
+     *     begin x; rescue y; else z; end
+     *                        ^^^^^^
      */
     struct pm_else_node *else_clause;
 
     /**
      * BeginNode#ensure_clause
+     *
+     * Represents the ensure clause within the begin block.
+     *
+     *     begin x; ensure y; end
+     *              ^^^^^^^^
      */
     struct pm_ensure_node *ensure_clause;
 
     /**
      * BeginNode#end_keyword_loc
+     *
+     * Represents the location of the `end` keyword.
+     *
+     *     begin x end
+     *             ^^^
      */
     pm_location_t end_keyword_loc;
 } pm_begin_node_t;
@@ -1632,11 +1697,21 @@ typedef struct pm_block_argument_node {
 
     /**
      * BlockArgumentNode#expression
+     *
+     * The expression that is being passed as a block argument. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo(&args)
+     *         ^^^^^
      */
     struct pm_node *expression;
 
     /**
      * BlockArgumentNode#operator_loc
+     *
+     * Represents the location of the `&` operator.
+     *
+     *     foo(&args)
+     *         ^
      */
     pm_location_t operator_loc;
 } pm_block_argument_node_t;
@@ -1663,6 +1738,11 @@ typedef struct pm_block_local_variable_node {
 
     /**
      * BlockLocalVariableNode#name
+     *
+     * The name of the block local variable.
+     *
+     *     a { |; b| } # name `:b`
+     *            ^
      */
     pm_constant_id_t name;
 } pm_block_local_variable_node_t;
@@ -1686,26 +1766,55 @@ typedef struct pm_block_node {
 
     /**
      * BlockNode#locals
+     *
+     * The local variables declared in the block.
+     *
+     *     [1, 2, 3].each { |i| puts x } # locals: [:i]
+     *                       ^
      */
     pm_constant_id_list_t locals;
 
     /**
      * BlockNode#parameters
+     *
+     * The parameters of the block.
+     *
+     *     [1, 2, 3].each { |i| puts x }
+     *                      ^^^
+     *     [1, 2, 3].each { puts _1 }
+     *                    ^^^^^^^^^^^
+     *     [1, 2, 3].each { puts it }
+     *                    ^^^^^^^^^^^
      */
     struct pm_node *parameters;
 
     /**
      * BlockNode#body
+     *
+     * The body of the block.
+     *
+     *     [1, 2, 3].each { |i| puts x }
+     *                          ^^^^^^
      */
     struct pm_node *body;
 
     /**
      * BlockNode#opening_loc
+     *
+     * Represents the location of the opening `|`.
+     *
+     *     [1, 2, 3].each { |i| puts x }
+     *                      ^
      */
     pm_location_t opening_loc;
 
     /**
      * BlockNode#closing_loc
+     *
+     * Represents the location of the closing `|`.
+     *
+     *     [1, 2, 3].each { |i| puts x }
+     *                        ^
      */
     pm_location_t closing_loc;
 } pm_block_node_t;
@@ -1733,16 +1842,33 @@ typedef struct pm_block_parameter_node {
 
     /**
      * BlockParameterNode#name
+     *
+     * The name of the block parameter.
+     *
+     *     def a(&b) # name `:b`
+     *            ^
+     *     end
      */
     pm_constant_id_t name;
 
     /**
      * BlockParameterNode#name_loc
+     *
+     * Represents the location of the block parameter name.
+     *
+     *     def a(&b)
+     *            ^
      */
     pm_location_t name_loc;
 
     /**
      * BlockParameterNode#operator_loc
+     *
+     * Represents the location of the `&` operator.
+     *
+     *     def a(&b)
+     *           ^
+     *     end
      */
     pm_location_t operator_loc;
 } pm_block_parameter_node_t;
@@ -1770,21 +1896,57 @@ typedef struct pm_block_parameters_node {
 
     /**
      * BlockParametersNode#parameters
+     *
+     * Represents the parameters of the block.
+     *
+     *     -> (a, b = 1; local) { }
+     *         ^^^^^^^^
+     *
+     *     foo do |a, b = 1; local|
+     *             ^^^^^^^^
+     *     end
      */
     struct pm_parameters_node *parameters;
 
     /**
      * BlockParametersNode#locals
+     *
+     * Represents the local variables of the block.
+     *
+     *     -> (a, b = 1; local) { }
+     *                   ^^^^^
+     *
+     *     foo do |a, b = 1; local|
+     *                       ^^^^^
+     *     end
      */
     struct pm_node_list locals;
 
     /**
      * BlockParametersNode#opening_loc
+     *
+     * Represents the opening location of the block parameters.
+     *
+     *     -> (a, b = 1; local) { }
+     *        ^
+     *
+     *     foo do |a, b = 1; local|
+     *            ^
+     *     end
      */
     pm_location_t opening_loc;
 
     /**
      * BlockParametersNode#closing_loc
+     *
+     * Represents the closing location of the block parameters.
+     *
+     *     -> (a, b = 1; local) { }
+     *                        ^
+     *
+     *     foo do |a, b = 1; local|
+     *                            ^
+     *     end
      */
     pm_location_t closing_loc;
 } pm_block_parameters_node_t;
@@ -1852,36 +2014,71 @@ typedef struct pm_call_and_write_node {
 
     /**
      * CallAndWriteNode#receiver
+     *
+     * The object that the method is being called on. This can be either `nil` or any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo.bar &&= value
+     *     ^^^
      */
     struct pm_node *receiver;
 
     /**
      * CallAndWriteNode#call_operator_loc
+     *
+     * Represents the location of the call operator.
+     *
+     *     foo.bar &&= value
+     *        ^
      */
     pm_location_t call_operator_loc;
 
     /**
      * CallAndWriteNode#message_loc
+     *
+     * Represents the location of the message.
+     *
+     *     foo.bar &&= value
+     *         ^^^
      */
     pm_location_t message_loc;
 
     /**
      * CallAndWriteNode#read_name
+     *
+     * Represents the name of the method being called.
+     *
+     *     foo.bar &&= value # read_name `:bar`
+     *         ^^^
      */
     pm_constant_id_t read_name;
 
     /**
      * CallAndWriteNode#write_name
+     *
+     * Represents the name of the method being written to.
+     *
+     *     foo.bar &&= value # write_name `:bar=`
+     *         ^^^
      */
     pm_constant_id_t write_name;
 
     /**
      * CallAndWriteNode#operator_loc
+     *
+     * Represents the location of the operator.
+     *
+     *     foo.bar &&= value
+     *             ^^^
      */
     pm_location_t operator_loc;
 
     /**
      * CallAndWriteNode#value
+     *
+     * Represents the value being assigned.
+     *
+     *     foo.bar &&= value
+     *                 ^^^^^
      */
     struct pm_node *value;
 } pm_call_and_write_node_t;
@@ -1942,36 +2139,73 @@ typedef struct pm_call_node {
 
     /**
      * CallNode#call_operator_loc
+     *
+     * Represents the location of the call operator.
+     *
+     *     foo.bar
+     *        ^
+     *
+     *     foo&.bar
+     *        ^^
      */
     pm_location_t call_operator_loc;
 
     /**
      * CallNode#name
+     *
+     * Represents the name of the method being called.
+     *
+     *     foo.bar # name `:foo`
+     *     ^^^
      */
     pm_constant_id_t name;
 
     /**
      * CallNode#message_loc
+     *
+     * Represents the location of the message.
+     *
+     *     foo.bar
+     *         ^^^
      */
     pm_location_t message_loc;
 
     /**
      * CallNode#opening_loc
+     *
+     * Represents the location of the left parenthesis.
+     *     foo(bar)
+     *        ^
      */
     pm_location_t opening_loc;
 
     /**
      * CallNode#arguments
+     *
+     * Represents the arguments to the method call. These can be any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo(bar)
+     *         ^^^
      */
     struct pm_arguments_node *arguments;
 
     /**
      * CallNode#closing_loc
+     *
+     * Represents the location of the right parenthesis.
+     *
+     *     foo(bar)
+     *            ^
      */
     pm_location_t closing_loc;
 
     /**
      * CallNode#block
+     *
+     * Represents the block that is being passed to the method.
+     *
+     *     foo { |a| a }
+     *         ^^^^^^^^^
      */
     struct pm_node *block;
 } pm_call_node_t;
@@ -2001,41 +2235,81 @@ typedef struct pm_call_operator_write_node {
 
     /**
      * CallOperatorWriteNode#receiver
+     *
+     * The object that the method is being called on. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo.bar += value
+     *     ^^^
      */
     struct pm_node *receiver;
 
     /**
      * CallOperatorWriteNode#call_operator_loc
+     *
+     * Represents the location of the call operator.
+     *
+     *     foo.bar += value
+     *        ^
      */
     pm_location_t call_operator_loc;
 
     /**
      * CallOperatorWriteNode#message_loc
+     *
+     * Represents the location of the message.
+     *
+     *     foo.bar += value
+     *         ^^^
      */
     pm_location_t message_loc;
 
     /**
      * CallOperatorWriteNode#read_name
+     *
+     * Represents the name of the method being called.
+     *
+     *     foo.bar += value # read_name `:bar`
+     *         ^^^
      */
     pm_constant_id_t read_name;
 
     /**
      * CallOperatorWriteNode#write_name
+     *
+     * Represents the name of the method being written to.
+     *
+     *     foo.bar += value # write_name `:bar=`
+     *         ^^^
      */
     pm_constant_id_t write_name;
 
     /**
      * CallOperatorWriteNode#binary_operator
+     *
+     * Represents the binary operator being used.
+     *
+     *     foo.bar += value # binary_operator `:+`
+     *             ^
      */
     pm_constant_id_t binary_operator;
 
     /**
      * CallOperatorWriteNode#binary_operator_loc
+     *
+     * Represents the location of the binary operator.
+     *
+     *     foo.bar += value
+     *             ^^
      */
     pm_location_t binary_operator_loc;
 
     /**
      * CallOperatorWriteNode#value
+     *
+     * Represents the value being assigned.
+     *
+     *     foo.bar += value
+     *                ^^^^^
      */
     struct pm_node *value;
 } pm_call_operator_write_node_t;
@@ -2065,36 +2339,71 @@ typedef struct pm_call_or_write_node {
 
     /**
      * CallOrWriteNode#receiver
+     *
+     * The object that the method is being called on. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo.bar ||= value
+     *     ^^^
      */
     struct pm_node *receiver;
 
     /**
      * CallOrWriteNode#call_operator_loc
+     *
+     * Represents the location of the call operator.
+     *
+     *     foo.bar ||= value
+     *        ^
      */
     pm_location_t call_operator_loc;
 
     /**
      * CallOrWriteNode#message_loc
+     *
+     * Represents the location of the message.
+     *
+     *     foo.bar ||= value
+     *         ^^^
      */
     pm_location_t message_loc;
 
     /**
      * CallOrWriteNode#read_name
+     *
+     * Represents the name of the method being called.
+     *
+     *     foo.bar ||= value # read_name `:bar`
+     *         ^^^
      */
     pm_constant_id_t read_name;
 
     /**
      * CallOrWriteNode#write_name
+     *
+     * Represents the name of the method being written to.
+     *
+     *     foo.bar ||= value # write_name `:bar=`
+     *         ^^^
      */
     pm_constant_id_t write_name;
 
     /**
      * CallOrWriteNode#operator_loc
+     *
+     * Represents the location of the operator.
+     *
+     *     foo.bar ||= value
+     *             ^^^
      */
     pm_location_t operator_loc;
 
     /**
      * CallOrWriteNode#value
+     *
+     * Represents the value being assigned.
+     *
+     *     foo.bar ||= value
+     *                 ^^^^^
      */
     struct pm_node *value;
 } pm_call_or_write_node_t;
@@ -2132,21 +2441,41 @@ typedef struct pm_call_target_node {
 
     /**
      * CallTargetNode#receiver
+     *
+     * The object that the method is being called on. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     foo.bar = 1
+     *     ^^^
      */
     struct pm_node *receiver;
 
     /**
      * CallTargetNode#call_operator_loc
+     *
+     * Represents the location of the call operator.
+     *
+     *     foo.bar = 1
+     *        ^
      */
     pm_location_t call_operator_loc;
 
     /**
      * CallTargetNode#name
+     *
+     * Represents the name of the method being called.
+     *
+     *     foo.bar = 1 # name `:foo`
+     *     ^^^
      */
     pm_constant_id_t name;
 
     /**
      * CallTargetNode#message_loc
+     *
+     * Represents the location of the message.
+     *
+     *     foo.bar = 1
+     *         ^^^
      */
     pm_location_t message_loc;
 } pm_call_target_node_t;
@@ -2170,16 +2499,31 @@ typedef struct pm_capture_pattern_node {
 
     /**
      * CapturePatternNode#value
+     *
+     * Represents the value to capture.
+     *
+     *     foo => bar
+     *            ^^^
      */
     struct pm_node *value;
 
     /**
      * CapturePatternNode#target
+     *
+     * Represents the target of the capture.
+     *
+     *     foo => bar
+     *     ^^^
      */
     struct pm_local_variable_target_node *target;
 
     /**
      * CapturePatternNode#operator_loc
+     *
+     * Represents the location of the `=>` operator.
+     *
+     *     foo => bar
+     *         ^^
      */
     pm_location_t operator_loc;
 } pm_capture_pattern_node_t;
@@ -2205,26 +2549,51 @@ typedef struct pm_case_match_node {
 
     /**
      * CaseMatchNode#predicate
+     *
+     * Represents the predicate of the case match. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     case true; in false; end
+     *     ^^^^
      */
     struct pm_node *predicate;
 
     /**
      * CaseMatchNode#conditions
+     *
+     * Represents the conditions of the case match.
+     *
+     *     case true; in false; end
+     *                ^^^^^^^^
      */
     struct pm_node_list conditions;
 
     /**
      * CaseMatchNode#else_clause
+     *
+     * Represents the else clause of the case match.
+     *
+     *     case true; in false; else; end
+     *                          ^^^^
      */
     struct pm_else_node *else_clause;
 
     /**
      * CaseMatchNode#case_keyword_loc
+     *
+     * Represents the location of the `case` keyword.
+     *
+     *     case true; in false; end
+     *     ^^^^
      */
     pm_location_t case_keyword_loc;
 
     /**
      * CaseMatchNode#end_keyword_loc
+     *
+     * Represents the location of the `end` keyword.
+     *
+     *     case true; in false; end
+     *                          ^^^
      */
     pm_location_t end_keyword_loc;
 } pm_case_match_node_t;
@@ -2250,26 +2619,51 @@ typedef struct pm_case_node {
 
     /**
      * CaseNode#predicate
+     *
+     * Represents the predicate of the case statement. This can be either `nil` or any [non-void expressions](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     case true; when false; end
+     *     ^^^^
      */
     struct pm_node *predicate;
 
     /**
      * CaseNode#conditions
+     *
+     * Represents the conditions of the case statement.
+     *
+     *     case true; when false; end
+     *                ^^^^^^^^^^
      */
     struct pm_node_list conditions;
 
     /**
      * CaseNode#else_clause
+     *
+     * Represents the else clause of the case statement.
+     *
+     *     case true; when false; else; end
+     *                            ^^^^
      */
     struct pm_else_node *else_clause;
 
     /**
      * CaseNode#case_keyword_loc
+     *
+     * Represents the location of the `case` keyword.
+     *
+     *     case true; when false; end
+     *     ^^^^
      */
     pm_location_t case_keyword_loc;
 
     /**
      * CaseNode#end_keyword_loc
+     *
+     * Represents the location of the `end` keyword.
+     *
+     *     case true; when false; end
+     *                            ^^^
      */
     pm_location_t end_keyword_loc;
 } pm_case_node_t;
@@ -2351,21 +2745,41 @@ typedef struct pm_class_variable_and_write_node {
 
     /**
      * ClassVariableAndWriteNode#name
+     *
+     * The name of the class variable, which is a `@@` followed by an [identifier](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#identifiers).
+     *
+     *     @@target &&= value # name `:@@target`
+     *     ^^^^^^^^
      */
     pm_constant_id_t name;
 
     /**
      * ClassVariableAndWriteNode#name_loc
+     *
+     * Represents the location of the variable name.
+     *
+     *     @@target &&= value
+     *     ^^^^^^^^
      */
     pm_location_t name_loc;
 
     /**
      * ClassVariableAndWriteNode#operator_loc
+     *
+     * Represents the location of the `&&=` operator.
+     *
+     *     @@target &&= value
+     *              ^^^
      */
     pm_location_t operator_loc;
 
     /**
      * ClassVariableAndWriteNode#value
+     *
+     * Represents the value being assigned. This can be any [non-void expression](https://github.com/ruby/prism/blob/main/docs/parsing_rules.md#non-void-expression).
+     *
+     *     @@target &&= value
+     *                  ^^^^^
      */
     struct pm_node *value;
 } pm_class_variable_and_write_node_t;
@@ -6027,6 +6441,9 @@ typedef struct pm_parameters_node {
  *     ^^^^^^^^^
  *
  * Type: ::PM_PARENTHESES_NODE
+
+ * Flags (#pm_parentheses_node_flags):
+ * * ::PM_PARENTHESES_NODE_FLAGS_MULTIPLE_STATEMENTS
  *
  * @extends pm_node_t
  */
@@ -6490,7 +6907,7 @@ typedef struct pm_rescue_modifier_node {
  *     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  *     end
  *
- * `Foo, *splat, Bar` are in the `exceptions` field. `ex` is in the `exception` field.
+ * `Foo, *splat, Bar` are in the `exceptions` field. `ex` is in the `reference` field.
  *
  * Type: ::PM_RESCUE_NODE
  *
@@ -6520,6 +6937,11 @@ typedef struct pm_rescue_node {
      * RescueNode#reference
      */
     struct pm_node *reference;
+
+    /**
+     * RescueNode#then_keyword_loc
+     */
+    pm_location_t then_keyword_loc;
 
     /**
      * RescueNode#statements
@@ -7135,6 +7557,11 @@ typedef struct pm_until_node {
     pm_location_t keyword_loc;
 
     /**
+     * UntilNode#do_keyword_loc
+     */
+    pm_location_t do_keyword_loc;
+
+    /**
      * UntilNode#closing_loc
      */
     pm_location_t closing_loc;
@@ -7217,6 +7644,11 @@ typedef struct pm_while_node {
      * WhileNode#keyword_loc
      */
     pm_location_t keyword_loc;
+
+    /**
+     * WhileNode#do_keyword_loc
+     */
+    pm_location_t do_keyword_loc;
 
     /**
      * WhileNode#closing_loc
@@ -7421,6 +7853,14 @@ typedef enum pm_parameter_flags {
     /** a parameter name that has been repeated in the method signature */
     PM_PARAMETER_FLAGS_REPEATED_PARAMETER = 4,
 } pm_parameter_flags_t;
+
+/**
+ * Flags for parentheses nodes.
+ */
+typedef enum pm_parentheses_node_flags {
+    /** parentheses that contain multiple potentially void statements */
+    PM_PARENTHESES_NODE_FLAGS_MULTIPLE_STATEMENTS = 4,
+} pm_parentheses_node_flags_t;
 
 /**
  * Flags for range and flip-flop nodes.

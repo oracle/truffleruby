@@ -1,0 +1,19 @@
+@ ProgramNode (location: (1,0)-(6,9))
+├── flags: ∅
+├── locals: []
+└── statements:
+    @ StatementsNode (location: (1,0)-(6,9))
+    ├── flags: ∅
+    └── body: (length: 2)
+        ├── @ StringNode (location: (1,0)-(1,8))
+        │   ├── flags: newline
+        │   ├── opening_loc: (1,0)-(1,8) = "<<' FOO'"
+        │   ├── content_loc: (2,0)-(3,0) = "[Bug #19539]\n"
+        │   ├── closing_loc: (3,0)-(4,0) = " FOO\n"
+        │   └── unescaped: "[Bug #19539]\n"
+        └── @ StringNode (location: (6,0)-(6,9))
+            ├── flags: newline
+            ├── opening_loc: (6,0)-(6,9) = "<<-' FOO'"
+            ├── content_loc: (7,0)-(8,0) = "[Bug #19539]\n"
+            ├── closing_loc: (8,0)-(9,0) = " FOO\n"
+            └── unescaped: "[Bug #19539]\n"

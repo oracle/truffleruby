@@ -1063,6 +1063,7 @@ pm_serialize_node(pm_parser_t *parser, pm_node_t *node, pm_buffer_t *buffer) {
             break;
         }
         case PM_PARENTHESES_NODE: {
+            pm_buffer_append_varuint(buffer, (uint32_t) node->flags);
             if (((pm_parentheses_node_t *)node)->body == NULL) {
                 pm_buffer_append_byte(buffer, 0);
             } else {
