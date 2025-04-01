@@ -15,6 +15,7 @@ Compatibility:
 * Implement `ObjectSpace::WeakKeyMap` (#3681, @andrykonchin).
 * Fix `String#slice` called with negative offset (@andrykonchin).
 * Fix explicitly inherited `Struct` subclasses and don't provide `#members` method (#3802, @andrykonchin).
+* Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
 
 Performance:
 

@@ -76,7 +76,7 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.joni",
                 "artifactId": "joni",
-                "version": "2.2.1"
+                "version": "2.2.6"
             },
             "digest": "sha512:e4fa4dda7478d5254b80aa77014d6df05317ac55d957da9ade6c9a80968aaf49d87d58930b8ddd44333270fa38984649858655b54c3aa8463602e0da8902d53a",
             "sourceDigest": "sha512:90b9a5216c748cc170a17bf58289553e0fe7695b16e7cacefd126d506ee7700e4cd7739e2d2500442ae7077fb88fcd64621c5a005b1fc6909ea75c88ce8cb536",
