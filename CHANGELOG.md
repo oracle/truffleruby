@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix `Range#cover?` on begin-less ranges and non-integer values (@nirvdrum, @rwstauner).
 * Fix `Time.new` with String argument and handle nanoseconds correctly (#3836, @andrykonchin).
+* Fix parameters forwarding to a method call executed with `Kernel#eval` (@andrykonchin).
 
 Compatibility:
 

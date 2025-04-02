@@ -157,6 +157,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
+import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_BLOCK_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
@@ -564,7 +565,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         if (node.expression == null) {
             // def foo(&) a(&) end
-            valueNode = environment.findLocalVarNode(FORWARDED_BLOCK_NAME);
+            valueNode = environment.findLocalVarNode(DEFAULT_BLOCK_NAME);
         } else {
             // a(&:b)
             valueNode = node.expression.accept(this);
@@ -3871,7 +3872,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
             if (parametersNode.block.name == null) {
                 // def a(&) ... end
-                name = FORWARDED_BLOCK_NAME;
+                name = DEFAULT_BLOCK_NAME;
             } else {
                 name = parametersNode.block.name;
             }

@@ -63,15 +63,15 @@ public abstract class ParsingOptions {
         private byte[][] locals;
         private Forwarding[] forwarding;
 
-        Scope(byte[][] locals) {
+        public Scope(byte[][] locals) {
             this(locals, new Forwarding[0]);
         }
 
-        Scope(Forwarding[] forwarding) {
+        public Scope(Forwarding[] forwarding) {
             this(new byte[0][], forwarding);
         }
 
-        Scope(byte[][] locals, Forwarding[] forwarding) {
+        public Scope(byte[][] locals, Forwarding[] forwarding) {
             this.locals = locals;
             this.forwarding = forwarding;
         }

@@ -8,3 +8,4 @@ fails:Kernel#eval returns from the method calling #eval when evaluating 'return'
 fails:Kernel#eval returns from the method calling #eval when evaluating 'return' in BEGIN
 fails:Kernel#eval uses (eval at __FILE__:__LINE__) if none is provided
 fails:Kernel#eval uses (eval at __FILE__:__LINE__) for __FILE__ and 1 for __LINE__ with a binding argument
+fails:Kernel#eval parameter forwarding allows parameter forwarding to super
