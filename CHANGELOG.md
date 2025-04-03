@@ -15,6 +15,7 @@ Compatibility:
 * Implement `ObjectSpace::WeakKeyMap` (#3681, @andrykonchin).
 * Fix `String#slice` called with negative offset (@andrykonchin).
 * Fix explicitly inherited `Struct` subclasses and don't provide `#members` method (#3802, @andrykonchin).
+* Support Digest plugins (#1390, @nirvdrum).
 
 Performance:
 

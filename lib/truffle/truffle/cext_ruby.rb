@@ -13,7 +13,7 @@ module Truffle::CExt
   # Methods defined in this file are not considered as Ruby code implementing MRI C parts,
   # see org.truffleruby.cext.CExtNodes.BlockProcNode
 
-  # methods defined with rb_define_method are normal Ruby methods therefore they cannot be defined in the cext.rb file
+  # methods defined with rb_define_method are normal Ruby methods therefore they cannot be defined in the cext.rb
   # file because blocks passed as arguments would be skipped by org.truffleruby.cext.CExtNodes.BlockProcNode
   def rb_define_method(mod, name, function, argc)
     if argc < -2 or 15 < argc

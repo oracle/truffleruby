@@ -13,6 +13,24 @@
 # under LICENSE.RUBY as it is derived from lib/ruby/stdlib/digest.rb.
 
 require_relative 'digest/version'
+require_relative 'ffi'
+
+module Truffle
+  class Digest
+    module Foreign
+      class RbDigestMetadata < ::FFI::Struct
+        layout :api_version, :int,
+               :digest_len, :size_t,
+               :block_len, :size_t,
+               :ctx_size, :size_t,
+               :init_func, ::FFI::FunctionType.new(:int, [:pointer]),
+               :update_func, ::FFI::FunctionType.new(:void, [:pointer, :pointer, :size_t]),
+               :finish_func, ::FFI::FunctionType.new(:int, [:pointer, :pointer])
+      end
+    end
+  end
+end
+
 
 module Digest
 
@@ -170,6 +188,12 @@ module Digest
   end
 
   class Base < ::Digest::Class
+    def self.inherited(klass)
+      unless %w[Digest::MD5 Digest::SHA1 Digest::SHA2 Digest::SHA256 Digest::SHA384 Digest::SHA512].include?(klass.name)
+        klass.include(Digest::Plugin)
+      end
+    end
+
     def block_length
       Truffle::Digest.digest_block_length @digest
     end
@@ -186,9 +210,65 @@ module Digest
     def update(str)
       str = StringValue(str)
       Truffle::Digest.update(@digest, str)
+
       self
     end
     alias_method :<<, :update
+  end
+
+  module Plugin
+    attr_reader :metadata
+
+    def initialize
+      super
+      metadata_wrapped = Primitive.object_ivar_get(Primitive.class(self), :metadata)
+      metadata_pointer = Primitive.object_hidden_var_get(metadata_wrapped, Truffle::CExt::DATA_STRUCT).data
+      @metadata = Truffle::Digest::Foreign::RbDigestMetadata.new(FFI::Pointer.new(metadata_pointer))
+
+      reset
+    end
+
+    def initialize_copy(from)
+      @metadata = from.metadata
+      @context = from.context.clone
+
+      self
+    end
+
+    def context
+      @context ||= Truffle::FFI::MemoryPointer.new(:uchar, metadata[:ctx_size])
+    end
+
+    def block_length
+      metadata[:block_len]
+    end
+
+    def digest_length
+      metadata[:digest_len]
+    end
+
+    def update(str)
+      metadata[:update_func].call(context, Truffle::CExt.string_to_ffi_pointer_inplace(str), str.bytesize)
+
+      self
+    end
+    alias_method :<<, :update
+
+    def finish
+      str = Truffle::FFI::MemoryPointer.new(:uchar, metadata[:digest_len], false)
+      metadata[:finish_func].call(context, str)
+
+      reset
+
+      Primitive.pointer_read_bytes str.address, metadata[:digest_len]
+    end
+
+    def reset
+      @context = nil
+      if metadata[:init_func].call(context) != 1
+        raise RuntimeError, 'Digest initialization failed'
+      end
+    end
   end
 
   class MD5 < Base
