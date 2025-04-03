@@ -36,11 +36,7 @@ module Truffle::CExt
 
       # We must set block argument if given here so that the
       # `rb_block_*` functions will be able to find it by walking the stack.
-      if use_cext_lock
-        Primitive.call_with_cext_lock_and_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block)
-      else
-        Primitive.call_with_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block)
-      end
+      Primitive.call_with_cext_lock_and_frame_and_unwrap(wrapper, args, Primitive.caller_special_variables_if_available, block, use_cext_lock)
     end
 
     # Even if the argc is -2, the arity number

@@ -1757,12 +1757,13 @@ module Truffle::CExt
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
+    use_cext_lock = Primitive.use_cext_lock?
 
     rdata = LIBTRUFFLERUBY.rb_tr_rdata_create(mark, free, data)
     Primitive.object_hidden_var_set object, DATA_STRUCT, rdata
     Primitive.object_hidden_var_set object, DATA_MARKER, data_marker(LIBTRUFFLERUBY[:rb_tr_rdata_run_marker], rdata)
     # Could use a simpler finalizer if Truffle::Interop.null?(free)
-    Primitive.objectspace_define_data_finalizer object, LIBTRUFFLERUBY[:rb_tr_rdata_run_finalizer], rdata
+    Primitive.objectspace_define_data_finalizer object, LIBTRUFFLERUBY[:rb_tr_rdata_run_finalizer], rdata, use_cext_lock
 
     Primitive.cext_mark_object_on_call_exit(object) unless Truffle::Interop.null?(mark)
 
@@ -1772,12 +1773,13 @@ module Truffle::CExt
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
+    use_cext_lock = Primitive.use_cext_lock?
 
     rtypeddata = LIBTRUFFLERUBY.rb_tr_rtypeddata_create(data_type, data)
     Primitive.object_hidden_var_set object, DATA_STRUCT, rtypeddata
     Primitive.object_hidden_var_set object, DATA_MARKER, data_marker(LIBTRUFFLERUBY[:rb_tr_rtypeddata_run_marker], rtypeddata)
     # Could use a simpler finalizer if Truffle::Interop.null?(free)
-    Primitive.objectspace_define_data_finalizer object, LIBTRUFFLERUBY[:rb_tr_rtypeddata_run_finalizer], rtypeddata
+    Primitive.objectspace_define_data_finalizer object, LIBTRUFFLERUBY[:rb_tr_rtypeddata_run_finalizer], rtypeddata, use_cext_lock
 
     unless Truffle::Interop.null?(size)
       Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(LIBTRUFFLERUBY[:rb_tr_rtypeddata_run_memsizer], rtypeddata)
@@ -1789,10 +1791,8 @@ module Truffle::CExt
     object
   end
 
-  def run_data_finalizer(function, data)
-    # TODO: Maybe we should not hold the C extension lock here, and instead save the result of Primitive.use_cext_lock?
-    # in DataObjectFinalizerReference from rb_data_object_wrap/rb_data_typed_object_wrap.
-    Primitive.call_with_cext_lock_and_frame POINTER_TO_VOID_WRAPPER, [function, data], nil, nil, CEXT_LOCK
+  def run_data_finalizer(function, data, use_cext_lock)
+    Primitive.call_with_cext_lock_and_frame POINTER_TO_VOID_WRAPPER, [function, data], nil, nil, use_cext_lock
   end
 
   def run_marker(obj)
@@ -1848,6 +1848,8 @@ module Truffle::CExt
   end
 
   def rb_block_call(object, method, args, func, data)
+    use_cext_lock = Primitive.use_cext_lock?
+
     object.__send__(method, *args) do |*block_args|
       Primitive.cext_unwrap(Primitive.call_with_cext_lock(RB_BLOCK_CALL_FUNC_WRAPPER, [ # Probably need to save the frame here for blocks.
         func,
@@ -1856,7 +1858,7 @@ module Truffle::CExt
         block_args.size, # argc
         Truffle::CExt.RARRAY_PTR(block_args), # argv
         nil, # blockarg
-      ]))
+      ], use_cext_lock))
     end
   end
 
@@ -1933,6 +1935,8 @@ module Truffle::CExt
   Truffle::Graal.always_split instance_method(:rb_exec_recursive)
 
   def rb_catch_obj(tag, func, data)
+    use_cext_lock = Primitive.use_cext_lock?
+
     catch tag do |caught|
       Primitive.cext_unwrap(Primitive.call_with_cext_lock(RB_BLOCK_CALL_FUNC_WRAPPER, [
         func,
@@ -1941,7 +1945,7 @@ module Truffle::CExt
         0, # argc
         nil, # argv
         nil, # blockarg
-      ]))
+      ], use_cext_lock))
     end
   end
 
@@ -2026,7 +2030,8 @@ module Truffle::CExt
   end
 
   def rb_thread_call_with_gvl(function, data)
-    Primitive.call_with_cext_lock(POINTER_TO_POINTER_WRAPPER, [function, data])
+    use_cext_lock = Primitive.use_cext_lock?
+    Primitive.call_with_cext_lock(POINTER_TO_POINTER_WRAPPER, [function, data], use_cext_lock)
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
