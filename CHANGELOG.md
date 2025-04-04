@@ -16,6 +16,7 @@ Compatibility:
 * Fix `String#slice` called with negative offset (@andrykonchin).
 * Fix explicitly inherited `Struct` subclasses and don't provide `#members` method (#3802, @andrykonchin).
 * Support Digest plugins (#1390, @nirvdrum).
+* Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
 
 Performance:
 
