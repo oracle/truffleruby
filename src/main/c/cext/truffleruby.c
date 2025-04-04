@@ -39,7 +39,7 @@ VALUE rb_tr_zlib_crc_table(void) {
 }
 
 VALUE rb_tr_cext_lock_owned_p(void) {
-  return RUBY_CEXT_INVOKE("rb_tr_cext_lock_owned_p?");
+  return RUBY_CEXT_INVOKE("rb_tr_cext_lock_owned_p");
 }
 
 // Used for internal testing
