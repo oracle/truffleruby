@@ -1,3 +1,24 @@
+# 24.2.2
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+* Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
+
+Performance:
+
+
+Changes:
+
+
+Memory Footprint:
+
+
 # 24.2.1
 
 New features:
