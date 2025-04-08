@@ -21,7 +21,7 @@ public final class FrozenStrings {
 
     static final List<TruffleString> TSTRINGS = new ArrayList<>();
 
-    public static final ImmutableRubyString EMPTY_US_ASCII = ImmutableStrings.createStringAndCacheLater(
+    public static final ImmutableRubyString EMPTY_US_ASCII = ImmutableStrings.createAndCacheLater(
             TStringConstants.EMPTY_US_ASCII,
             Encodings.US_ASCII);
 
@@ -50,7 +50,7 @@ public final class FrozenStrings {
         // defined?(...) returns frozen strings with a binary encoding
         var tstring = TStringUtils.fromJavaString(string, encoding);
         TSTRINGS.add(tstring);
-        return ImmutableStrings.createStringAndCacheLater(tstring, encoding);
+        return ImmutableStrings.createAndCacheLater(tstring, encoding);
     }
 
 }

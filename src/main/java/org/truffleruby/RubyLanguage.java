@@ -878,12 +878,12 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public ImmutableRubyString getImmutableString(TruffleString tstring, RubyEncoding encoding) {
-        return immutableStrings.getImmutableString(tstring, encoding);
+        return immutableStrings.get(tstring, encoding);
     }
 
     public ImmutableRubyString getImmutableString(InternalByteArray byteArray, boolean isImmutable,
             RubyEncoding encoding) {
-        return immutableStrings.getImmutableString(byteArray, isImmutable, encoding);
+        return immutableStrings.get(byteArray, isImmutable, encoding);
     }
 
     public long getNextObjectID() {

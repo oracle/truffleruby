@@ -113,7 +113,7 @@ public final class Encodings {
                 if (tstring == null) {
                     throw CompilerDirectives.shouldNotReachHere("no TStringConstants for " + encoding);
                 }
-                final ImmutableRubyString name = ImmutableStrings.createStringAndCacheLater(tstring, US_ASCII);
+                final ImmutableRubyString name = ImmutableStrings.createAndCacheLater(tstring, US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, index);
             }
             encodings[index] = rubyEncoding;

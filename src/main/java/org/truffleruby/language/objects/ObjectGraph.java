@@ -115,7 +115,7 @@ public abstract class ObjectGraph {
     public static void visitContextRoots(RubyContext context, Set<Object> roots) {
         final RubyLanguage language = context.getLanguageSlow();
         roots.addAll(language.symbolTable.allSymbols());
-        roots.addAll(language.immutableStrings.allImmutableStrings());
+        roots.addAll(language.immutableStrings.all());
 
         // We do not want to expose the global object
         roots.addAll(context.getCoreLibrary().globalVariables.objectGraphValues());

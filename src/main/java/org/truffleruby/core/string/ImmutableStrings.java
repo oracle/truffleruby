@@ -31,23 +31,23 @@ public final class ImmutableStrings {
     public ImmutableStrings(TStringCache tStringCache) {
         this.tstringCache = tStringCache;
         for (ImmutableRubyString name : STRINGS_TO_CACHE) {
-            addImmutableStringToCache(name);
+            addToCache(name);
         }
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getImmutableString(TruffleString tstring, RubyEncoding encoding) {
-        return getImmutableString(
+    public ImmutableRubyString get(TruffleString tstring, RubyEncoding encoding) {
+        return get(
                 tstring.getInternalByteArrayUncached(encoding.tencoding),
                 TStringUtils.hasImmutableInternalByteArray(tstring),
                 encoding);
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getImmutableString(InternalByteArray byteArray, boolean isImmutable,
+    public ImmutableRubyString get(InternalByteArray byteArray, boolean isLookupKeyImmutable,
             RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
-        var cachedTString = tstringCache.getTString(byteArray, isImmutable, encoding);
+        var cachedTString = tstringCache.getTString(byteArray, isLookupKeyImmutable, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
 
         final ImmutableRubyString string = values.get(tstringWithEncoding);
@@ -59,7 +59,7 @@ public final class ImmutableStrings {
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getImmutableString(byte[] bytes, RubyEncoding encoding) {
+    public ImmutableRubyString get(byte[] bytes, RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
         var cachedTString = tstringCache.getTString(bytes, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
@@ -72,7 +72,7 @@ public final class ImmutableStrings {
         }
     }
 
-    public static ImmutableRubyString createStringAndCacheLater(TruffleString name,
+    public static ImmutableRubyString createAndCacheLater(TruffleString name,
             RubyEncoding encoding) {
         final ImmutableRubyString string = new ImmutableRubyString(name, encoding);
         assert !STRINGS_TO_CACHE.contains(string);
@@ -80,7 +80,7 @@ public final class ImmutableStrings {
         return string;
     }
 
-    private void addImmutableStringToCache(ImmutableRubyString string) {
+    private void addToCache(ImmutableRubyString string) {
         var encoding = string.getEncodingUncached();
         var cachedTString = tstringCache.getTString(string.tstring, encoding);
         assert cachedTString == string.tstring;
@@ -93,7 +93,7 @@ public final class ImmutableStrings {
     }
 
     @TruffleBoundary
-    public Collection<ImmutableRubyString> allImmutableStrings() {
+    public Collection<ImmutableRubyString> all() {
         return values.values();
     }
 
