@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
-
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -40,7 +38,7 @@ public abstract class ArrayPopOneNode extends RubyBaseNode {
         final int size = array.size;
         final Object value = stores.read(store, size - 1);
         stores.clear(store, size - 1, 1);
-        setSize(array, size - 1);
+        array.setSize(size - 1);
         return value;
     }
 

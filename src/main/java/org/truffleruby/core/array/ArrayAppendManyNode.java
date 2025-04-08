@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
-
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -56,7 +54,7 @@ public abstract class ArrayAppendManyNode extends RubyBaseNode {
             array.setStoreAndSize(newStore, newSize);
         } else {
             otherStores.copyContents(otherStore, 0, store, oldSize, otherSize);
-            setSize(array, newSize);
+            array.setSize(newSize);
         }
         return array;
     }

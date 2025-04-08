@@ -61,7 +61,16 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
     public void setStoreAndSize(Object store, int size) {
         assert (store instanceof SharedArrayStorage) == (this.getShape().isShared());
         this.setStore(store);
-        ArrayHelpers.setSize(this, size);
+        setSize(size);
+    }
+
+    /** Sets the size of the given array
+     *
+     * Asserts that the size is valid for the current store of the array. If setting both size and store, use
+     * {@link #setStoreAndSize} or be sure to {@link #setStore} before {@link #setSize} as this assertion may fail. */
+    public void setSize(int size) {
+        assert ArrayOperations.getStoreCapacity(this) >= size;
+        this.size = size;
     }
 
     @TruffleBoundary

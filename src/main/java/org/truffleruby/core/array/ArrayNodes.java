@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
 
 import java.util.Arrays;
@@ -1708,7 +1707,7 @@ public abstract class ArrayNodes {
 
             // Remove the end from the original array.
             stores.clear(store, size - numPop, numPop);
-            setSize(array, size - numPop);
+            array.setSize(size - numPop);
 
             return createArray(popped, numPop);
         }

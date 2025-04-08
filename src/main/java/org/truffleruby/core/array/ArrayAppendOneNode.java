@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
-
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
@@ -63,7 +61,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
             array.setStoreAndSize(newStore, newSize);
         } else {
             stores.write(store, oldSize, value);
-            setSize(array, newSize);
+            array.setSize(newSize);
         }
         return array;
     }
