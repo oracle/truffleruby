@@ -16,12 +16,6 @@ import org.truffleruby.core.array.library.SharedArrayStorage;
 
 public abstract class ArrayHelpers {
 
-    public static void setStoreAndSize(RubyArray array, Object store, int size) {
-        assert (store instanceof SharedArrayStorage) == (array.getShape().isShared());
-        array.setStore(store);
-        setSize(array, size);
-    }
-
     /** Sets the size of the given array
      *
      * Asserts that the size is valid for the current store of the array. If setting both size and store, use

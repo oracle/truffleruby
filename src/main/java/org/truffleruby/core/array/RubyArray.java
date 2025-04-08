@@ -58,6 +58,12 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
         this.store = store;
     }
 
+    public void setStoreAndSize(Object store, int size) {
+        assert (store instanceof SharedArrayStorage) == (this.getShape().isShared());
+        this.setStore(store);
+        ArrayHelpers.setSize(this, size);
+    }
+
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, store);
