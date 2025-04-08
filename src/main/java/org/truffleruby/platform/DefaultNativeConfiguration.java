@@ -56,7 +56,7 @@ public abstract class DefaultNativeConfiguration {
     protected static ImmutableRubyString string(RubyContext context, String value) {
         return context
                 .getLanguageSlow()
-                .getFrozenStringLiteral(TStringUtils.utf8TString(value), Encodings.UTF_8);
+                .getImmutableString(TStringUtils.utf8TString(value), Encodings.UTF_8);
     }
 
 }

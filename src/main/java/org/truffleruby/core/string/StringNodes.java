@@ -4404,7 +4404,7 @@ public abstract class StringNodes {
                 @Cached TruffleString.GetInternalByteArrayNode getInternalByteArrayNode) {
             var encoding = libString.getEncoding(this, string);
             var byteArray = getInternalByteArrayNode.execute(string.tstring, encoding.tencoding);
-            return getLanguage().getFrozenStringLiteral(byteArray,
+            return getLanguage().getImmutableString(byteArray,
                     TStringUtils.hasImmutableInternalByteArray(string.tstring), encoding);
         }
     }

@@ -728,7 +728,7 @@ public final class CoreLibrary {
     }
 
     private ImmutableRubyString frozenUSASCIIString(String string) {
-        return language.getFrozenStringLiteral(TStringUtils.usAsciiString(string), Encodings.US_ASCII);
+        return language.getImmutableString(TStringUtils.usAsciiString(string), Encodings.US_ASCII);
     }
 
     private RubyClass defineClass(String name) {

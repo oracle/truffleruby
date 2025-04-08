@@ -877,13 +877,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return allocationReporter;
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
-        return immutableStrings.getFrozenStringLiteral(tstring, encoding);
+    public ImmutableRubyString getImmutableString(TruffleString tstring, RubyEncoding encoding) {
+        return immutableStrings.getImmutableString(tstring, encoding);
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(InternalByteArray byteArray, boolean isImmutable,
+    public ImmutableRubyString getImmutableString(InternalByteArray byteArray, boolean isImmutable,
             RubyEncoding encoding) {
-        return immutableStrings.getFrozenStringLiteral(byteArray, isImmutable, encoding);
+        return immutableStrings.getImmutableString(byteArray, isImmutable, encoding);
     }
 
     public long getNextObjectID() {

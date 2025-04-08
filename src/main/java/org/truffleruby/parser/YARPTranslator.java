@@ -663,7 +663,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         if (node.receiver instanceof Nodes.StringNode stringNode &&
                 (methodName.equals("freeze") || methodName.equals("-@") || methodName.equals("dedup"))) {
             final TruffleString tstring = TStringUtils.fromByteArray(stringNode.unescaped, sourceEncoding);
-            final ImmutableRubyString frozenString = language.getFrozenStringLiteral(tstring, sourceEncoding);
+            final ImmutableRubyString frozenString = language.getImmutableString(tstring, sourceEncoding);
             final RubyNode rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.METHOD);
 
             return assignPositionAndFlags(node, rubyNode);
@@ -1598,7 +1598,7 @@ public class YARPTranslator extends YARPBaseTranslator {
         if (node.statements == null) {
             // empty interpolation expression, e.g. in "a #{} b"
             RubyNode rubyNode = new ObjectLiteralNode(
-                    language.getFrozenStringLiteral(sourceEncoding.tencoding.getEmpty(), sourceEncoding));
+                    language.getImmutableString(sourceEncoding.tencoding.getEmpty(), sourceEncoding));
             return assignPositionAndFlags(node, rubyNode);
         }
 
@@ -1952,7 +1952,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
                 // String literals in a key position become frozen
                 if (keyNode instanceof StringLiteralNode stringNode) {
-                    var frozenString = language.getFrozenStringLiteral(stringNode.getTString(),
+                    var frozenString = language.getImmutableString(stringNode.getTString(),
                             stringNode.getEncoding());
                     keyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
                 }
@@ -3253,8 +3253,8 @@ public class YARPTranslator extends YARPBaseTranslator {
             final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
-            ImmutableRubyString frozenString = language.immutableStrings.getFrozenStringLiteral(bytes, encoding);
-            rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
+            ImmutableRubyString immutableString = language.immutableStrings.getImmutableString(bytes, encoding);
+            rubyNode = new FrozenStringLiteralNode(immutableString, FrozenStrings.EXPRESSION);
         }
 
         return assignPositionAndFlags(node, rubyNode);

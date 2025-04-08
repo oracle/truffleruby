@@ -31,20 +31,20 @@ public final class ImmutableStrings {
     public ImmutableStrings(TStringCache tStringCache) {
         this.tstringCache = tStringCache;
         for (ImmutableRubyString name : STRINGS_TO_CACHE) {
-            addFrozenStringToCache(name);
+            addImmutableStringToCache(name);
         }
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
-        return getFrozenStringLiteral(
+    public ImmutableRubyString getImmutableString(TruffleString tstring, RubyEncoding encoding) {
+        return getImmutableString(
                 tstring.getInternalByteArrayUncached(encoding.tencoding),
                 TStringUtils.hasImmutableInternalByteArray(tstring),
                 encoding);
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(InternalByteArray byteArray, boolean isImmutable,
+    public ImmutableRubyString getImmutableString(InternalByteArray byteArray, boolean isImmutable,
             RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
         var cachedTString = tstringCache.getTString(byteArray, isImmutable, encoding);
@@ -59,7 +59,7 @@ public final class ImmutableStrings {
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
+    public ImmutableRubyString getImmutableString(byte[] bytes, RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
         var cachedTString = tstringCache.getTString(bytes, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
@@ -80,7 +80,7 @@ public final class ImmutableStrings {
         return string;
     }
 
-    private void addFrozenStringToCache(ImmutableRubyString string) {
+    private void addImmutableStringToCache(ImmutableRubyString string) {
         var encoding = string.getEncodingUncached();
         var cachedTString = tstringCache.getTString(string.tstring, encoding);
         assert cachedTString == string.tstring;
@@ -93,7 +93,7 @@ public final class ImmutableStrings {
     }
 
     @TruffleBoundary
-    public Collection<ImmutableRubyString> allFrozenStrings() {
+    public Collection<ImmutableRubyString> allImmutableStrings() {
         return values.values();
     }
 

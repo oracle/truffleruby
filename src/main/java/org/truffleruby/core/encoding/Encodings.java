@@ -134,7 +134,7 @@ public final class Encodings {
     @TruffleBoundary
     public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name) {
         var tstring = TStringUtils.fromByteArray(name, Encodings.US_ASCII);
-        final ImmutableRubyString string = language.getFrozenStringLiteral(tstring, Encodings.US_ASCII);
+        final ImmutableRubyString string = language.getImmutableString(tstring, Encodings.US_ASCII);
 
         return new RubyEncoding(encoding, string, index);
     }
