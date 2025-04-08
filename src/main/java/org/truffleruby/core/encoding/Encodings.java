@@ -28,7 +28,7 @@ import org.graalvm.shadowed.org.jcodings.specific.UTF32BEEncoding;
 import org.graalvm.shadowed.org.jcodings.specific.UTF32LEEncoding;
 import org.graalvm.shadowed.org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.FrozenStringLiterals;
+import org.truffleruby.core.string.ImmutableStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringConstants;
@@ -113,7 +113,7 @@ public final class Encodings {
                 if (tstring == null) {
                     throw CompilerDirectives.shouldNotReachHere("no TStringConstants for " + encoding);
                 }
-                final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(tstring, US_ASCII);
+                final ImmutableRubyString name = ImmutableStrings.createStringAndCacheLater(tstring, US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, index);
             }
             encodings[index] = rubyEncoding;

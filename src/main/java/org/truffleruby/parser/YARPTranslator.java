@@ -3253,7 +3253,7 @@ public class YARPTranslator extends YARPBaseTranslator {
             final TruffleString cachedTString = language.tstringCache.getTString(bytes, encoding);
             rubyNode = new StringLiteralNode(cachedTString, encoding);
         } else {
-            ImmutableRubyString frozenString = language.frozenStringLiterals.getFrozenStringLiteral(bytes, encoding);
+            ImmutableRubyString frozenString = language.immutableStrings.getFrozenStringLiteral(bytes, encoding);
             rubyNode = new FrozenStringLiteralNode(frozenString, FrozenStrings.EXPRESSION);
         }
 

@@ -21,15 +21,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-// TODO: should rename to ImmutableStrings
-public final class FrozenStringLiterals {
+public final class ImmutableStrings {
 
     private static final List<ImmutableRubyString> STRINGS_TO_CACHE = new ArrayList<>();
 
     private final TStringCache tstringCache;
     private final WeakValueCache<TStringWithEncoding, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public FrozenStringLiterals(TStringCache tStringCache) {
+    public ImmutableStrings(TStringCache tStringCache) {
         this.tstringCache = tStringCache;
         for (ImmutableRubyString name : STRINGS_TO_CACHE) {
             addFrozenStringToCache(name);
@@ -89,7 +88,7 @@ public final class FrozenStringLiterals {
         final ImmutableRubyString existing = values.addInCacheIfAbsent(tstringWithEncoding, string);
         if (existing != string) {
             throw CompilerDirectives
-                    .shouldNotReachHere("Duplicate ImmutableRubyString in FrozenStringLiterals: " + existing);
+                    .shouldNotReachHere("Duplicate ImmutableRubyString in ImmutableStrings: " + existing);
         }
     }
 
