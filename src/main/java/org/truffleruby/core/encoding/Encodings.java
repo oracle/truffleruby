@@ -132,8 +132,13 @@ public final class Encodings {
     }
 
     @TruffleBoundary
-    public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, byte[] name) {
-        var tstring = TStringUtils.fromByteArray(name, Encodings.US_ASCII);
+    public static RubyEncoding newRubyEncoding(RubyLanguage language, Encoding encoding, int index, String name) {
+        if (!StringOperations.isAsciiOnly(name)) {
+            throw CompilerDirectives
+                    .shouldNotReachHere("Encoding name contained non ascii characters \"" + name + "\"");
+        }
+
+        var tstring = TStringUtils.fromJavaString(name, Encodings.US_ASCII);
         final ImmutableRubyString string = language.getImmutableString(tstring, Encodings.US_ASCII);
 
         return new RubyEncoding(encoding, string, index);
