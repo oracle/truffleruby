@@ -69,7 +69,7 @@ import org.truffleruby.core.string.StringHelperNodes.StringToTruffleStringInplac
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
+import org.truffleruby.core.string.StringPrimitiveNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.InteropNodes;
