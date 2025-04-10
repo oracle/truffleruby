@@ -15,6 +15,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.mutex.MutexOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 public final class AutoloadConstant {
@@ -26,7 +27,7 @@ public final class AutoloadConstant {
     AutoloadConstant(Object feature) {
         assert RubyStringLibrary.isRubyStringUncached(feature);
         this.feature = feature;
-        this.autoloadPath = RubyGuards.getJavaString(this.feature);
+        this.autoloadPath = StringOperations.getJavaString(this.feature);
     }
 
     public String getAutoloadPath() {

@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import com.oracle.truffle.api.TruffleContext;
 import com.oracle.truffle.api.dsl.Bind;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -27,8 +28,8 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringHelperNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CallTarget;
@@ -51,6 +52,7 @@ public abstract class PolyglotNodes {
 
     @CoreMethod(names = "eval", onSingleton = true, required = 2)
     @ReportPolymorphism // inline cache
+    @ImportStatic(StringOperations.class)
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
@@ -120,7 +122,7 @@ public abstract class PolyglotNodes {
                 @Cached @Shared RubyStringLibrary stringsId) {
             final Source source;
             // intern() to improve footprint
-            final String path = RubyGuards.getJavaString(fileName).intern();
+            final String path = StringOperations.getJavaString(fileName).intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 String language = Source.findLanguage(file);
@@ -145,8 +147,8 @@ public abstract class PolyglotNodes {
         Object evalFile(Object id, Object fileName,
                 @Cached @Shared RubyStringLibrary stringsId,
                 @Cached @Exclusive RubyStringLibrary stringsFileName) {
-            final String idString = RubyGuards.getJavaString(id);
-            final Source source = getSource(idString, RubyGuards.getJavaString(fileName));
+            final String idString = StringOperations.getJavaString(id);
+            final Source source = getSource(idString, StringOperations.getJavaString(fileName));
             return eval(source);
         }
 
@@ -188,7 +190,7 @@ public abstract class PolyglotNodes {
             String[] permittedLanguages = new String[languages.size];
             int i = 0;
             for (Object language : ArrayOperations.toIterable(languages)) {
-                permittedLanguages[i++] = RubyGuards.getJavaString(language);
+                permittedLanguages[i++] = StringOperations.getJavaString(language);
             }
 
             var builder = getContext().getEnv().newInnerContextBuilder(permittedLanguages);
@@ -197,7 +199,7 @@ public abstract class PolyglotNodes {
             while (iterator.hasNext()) {
                 Object key = iterator.next();
                 Object value = iterator.next();
-                builder.option(RubyGuards.getJavaString(key), RubyGuards.getJavaString(value));
+                builder.option(StringOperations.getJavaString(key), StringOperations.getJavaString(value));
             }
 
             Boolean codeSharingBoolean = codeSharing == nil ? null : (boolean) codeSharing;
@@ -220,6 +222,7 @@ public abstract class PolyglotNodes {
     // Inlined profiles/nodes are @Exclusive to fix truffle-interpreted-performance warning
     @Primitive(name = "inner_context_eval")
     @ReportPolymorphism // inline cache
+    @ImportStatic(StringOperations.class)
     public abstract static class InnerContextEvalNode extends PrimitiveArrayArgumentsNode {
         @Specialization(guards = {
                 "idLib.isRubyString(node, langId)",

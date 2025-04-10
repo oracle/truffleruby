@@ -17,12 +17,12 @@ import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.loader.ByteBasedCharSequence;
 import org.truffleruby.parser.ParserContext;
@@ -53,7 +53,7 @@ public abstract class ToCallTargetNode extends RubyBaseNode {
     @TruffleBoundary
     @Specialization
     static RootCallTarget string(Node node, Object string) {
-        var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(string),
+        var code = new TStringWithEncoding(StringOperations.asTruffleStringUncached(string),
                 RubyStringLibrary.getEncodingUncached(string));
         Source source = Source.newBuilder("ruby", new ByteBasedCharSequence(code), "<parse_ast>").build();
         TranslatorEnvironment.resetTemporaryVariablesIndex();

@@ -68,12 +68,12 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.arguments.ArgumentsDescriptor;
 import org.truffleruby.language.arguments.NoKeywordArgumentsDescriptor;
@@ -279,8 +279,8 @@ public abstract class VMPrimitiveNodes {
         boolean watchSignalString(Object signalString, boolean isRubyDefaultHandler, Object action,
                 @Cached @Shared RubyStringLibrary libSignalString,
                 @Cached @Exclusive RubyStringLibrary libAction) {
-            final String actionString = RubyGuards.getJavaString(action);
-            final String signalName = RubyGuards.getJavaString(signalString);
+            final String actionString = StringOperations.getJavaString(action);
+            final String signalName = StringOperations.getJavaString(signalString);
 
             switch (actionString) {
                 case "DEFAULT":
@@ -305,7 +305,7 @@ public abstract class VMPrimitiveNodes {
                 SharedObjects.writeBarrier(getLanguage(), proc);
             }
 
-            final String signalName = RubyGuards.getJavaString(signalString);
+            final String signalName = StringOperations.getJavaString(signalString);
 
             return registerHandler(signalName, signal -> {
                 var rootThread = context.getThreadManager().getRootThread();
@@ -395,7 +395,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization
         Object get(Object key) {
-            final String keyString = RubyGuards.getJavaString(key);
+            final String keyString = StringOperations.getJavaString(key);
             final Object value = getContext().getNativeConfiguration().get(keyString);
 
             if (value == null) {
@@ -417,7 +417,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached CallBlockNode yieldNode) {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
-                    .getSection(RubyGuards.getJavaString(section))) {
+                    .getSection(StringOperations.getJavaString(section))) {
                 final RubyString key = createString(fromJavaStringNode, entry.getKey(), Encodings.UTF_8); // CR_7BIT
                 yieldNode.yield(this, block, key, entry.getValue());
             }
@@ -576,7 +576,7 @@ public abstract class VMPrimitiveNodes {
         Object shouldNotReachHere(Object message,
                 @Cached RubyStringLibrary libString) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw CompilerDirectives.shouldNotReachHere(RubyGuards.getJavaString(message));
+            throw CompilerDirectives.shouldNotReachHere(StringOperations.getJavaString(message));
         }
 
     }

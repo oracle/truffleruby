@@ -66,6 +66,7 @@ import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.TypeNodes;
@@ -634,7 +635,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError("empty file name", node));
             }
 
-            final String javaStringFilename = RubyGuards.getJavaString(filenameAsPath);
+            final String javaStringFilename = StringOperations.getJavaString(filenameAsPath);
             module.fields.setAutoloadConstant(getLanguage(node), getContext(node), node, name, filenameAsPath,
                     javaStringFilename);
             return nil;
@@ -952,6 +953,7 @@ public abstract class ModuleNodes {
     @GenerateCached(false)
     @GenerateInline
     @ReportPolymorphism // inline cache
+    @ImportStatic(StringOperations.class)
     @SuppressWarnings("truffle-inlining") //TODO [GR-46266] - Remove it when other nodes are converted to DSL inlinable
     public abstract static class ConstGetNode extends RubyBaseNode {
 
@@ -1132,7 +1134,7 @@ public abstract class ModuleNodes {
                 @Cached(inline = false) @Shared TruffleString.FromJavaStringNode fromJavaStringNode,
                 @Cached RubyStringLibrary strings) {
             final ConstantLookupResult lookupResult = ModuleOperations
-                    .lookupScopedConstant(getContext(node), module, RubyGuards.getJavaString(name), inherit, node,
+                    .lookupScopedConstant(getContext(node), module, StringOperations.getJavaString(name), inherit, node,
                             true);
 
             return getLocation(node, lookupResult, fromJavaStringNode);

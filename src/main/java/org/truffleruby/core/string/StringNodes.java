@@ -2612,6 +2612,10 @@ public abstract class StringNodes {
                 @Bind("strings.getEncoding(node, string)") RubyEncoding encoding) {
             throw new RaiseException(getContext(node), coreExceptions(node).encodingError(string, encoding, node));
         }
+
+        static TruffleString asTruffleStringUncached(Object string) {
+            return StringOperations.asTruffleStringUncached(string);
+        }
     }
 
     @CoreMethod(names = "reverse!", raiseIfNotMutableSelf = true)
@@ -2904,6 +2908,14 @@ public abstract class StringNodes {
             } catch (DeferredRaiseException dre) {
                 throw dre.getException(getContext(node));
             }
+        }
+
+        static TruffleString asTruffleStringUncached(Object string) {
+            return StringOperations.asTruffleStringUncached(string);
+        }
+
+        static String getJavaString(Object rubyString) {
+            return StringOperations.getJavaString(rubyString);
         }
 
         protected int getCacheLimit() {
@@ -3737,7 +3749,7 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            final String javaString = RubyGuards.getJavaString(string);
+            final String javaString = StringOperations.getJavaString(string);
             if (javaString.startsWith("0x")) {
                 try {
                     return Double.parseDouble(javaString);

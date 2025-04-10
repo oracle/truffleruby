@@ -28,6 +28,7 @@ import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.RaiseException;
@@ -300,7 +301,7 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "libOptionName.isRubyString(this, optionName)", limit = "1")
         Object getOption(Object optionName,
                 @Cached RubyStringLibrary libOptionName) {
-            final String optionNameString = RubyGuards.getJavaString(optionName);
+            final String optionNameString = StringOperations.getJavaString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
             if (descriptor == null) {
                 throw new RaiseException(

@@ -71,6 +71,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -1524,6 +1525,7 @@ public abstract class ArrayNodes {
     @GenerateCached(false)
     @GenerateInline
     @ReportPolymorphism // inline cache, CallTarget cache
+    @ImportStatic(StringOperations.class)
     public abstract static class PackNode extends RubyBaseNode {
 
         public abstract RubyString execute(Node node, RubyArray array, Object format, Object buffer);

@@ -23,10 +23,10 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
@@ -64,7 +64,7 @@ public abstract class RequireNode extends RubyBaseNode {
 
     @TruffleBoundary
     private boolean requireWithMetrics(String feature, Object pathString) {
-        String internedExpandedPath = RubyGuards.getJavaString(pathString).intern();
+        String internedExpandedPath = StringOperations.getJavaString(pathString).intern();
 
         requireMetric("before-require-" + feature);
         try {
@@ -145,7 +145,7 @@ public abstract class RequireNode extends RubyBaseNode {
             Object relativeFeatureString = relativeFeatureNode
                     .call(coreLibrary().truffleFeatureLoaderModule, "relative_feature", pathString);
             if (RubyStringLibrary.getUncached().isRubyString(this, relativeFeatureString)) {
-                relativeFeature = RubyGuards.getJavaString(relativeFeatureString);
+                relativeFeature = StringOperations.getJavaString(relativeFeatureString);
             }
         }
         Boolean patchLoaded = patchFiles.get(relativeFeature);

@@ -34,7 +34,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.fiber.FiberNodes.FiberGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -90,7 +89,7 @@ public final class CoreExceptions {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
             if (RubyStringLibrary.isRubyStringUncached(message)) {
-                message = RubyGuards.getJavaString(message);
+                message = StringOperations.getJavaString(message);
             }
             final String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
             if (context.getCoreLibrary().isLoaded()) {
@@ -108,21 +107,21 @@ public final class CoreExceptions {
     public String inspect(Object value) {
         Object rubyString = DispatchNode.getUncached().call(
                 context.getCoreLibrary().truffleTypeModule, "rb_inspect", value);
-        return RubyGuards.getJavaString(rubyString);
+        return StringOperations.getJavaString(rubyString);
     }
 
     @TruffleBoundary
     public String inspectReceiver(Object receiver) {
         Object rubyString = DispatchNode.getUncached().call(
                 context.getCoreLibrary().truffleExceptionOperationsModule, "receiver_string", receiver);
-        return RubyGuards.getJavaString(rubyString);
+        return StringOperations.getJavaString(rubyString);
     }
 
     @TruffleBoundary
     public String inspectFrozenObject(Object object) {
         Object rubyString = DispatchNode.getUncached().call(
                 context.getCoreLibrary().truffleExceptionOperationsModule, "inspect_frozen_object", object);
-        return RubyGuards.getJavaString(rubyString);
+        return StringOperations.getJavaString(rubyString);
     }
 
     // ArgumentError
@@ -703,7 +702,8 @@ public final class CoreExceptions {
         String message = exception.getMessage();
         if (message == null) {
             RubyArray rubyArray = createArray(context, language, exception.getSuppliedValues());
-            String formattedValues = RubyGuards.getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
+            String formattedValues = StringOperations
+                    .getJavaString(DispatchNode.getUncached().call(rubyArray, "inspect"));
             message = "unsupported type " + formattedValues;
         }
         return typeError(message, currentNode);

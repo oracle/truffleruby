@@ -14,6 +14,7 @@ import java.util.Iterator;
 
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
@@ -32,6 +33,7 @@ import org.truffleruby.core.encoding.TStringUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.StringHelperNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -178,6 +180,7 @@ public abstract class RegexpNodes {
     }
 
     @Primitive(name = "regexp_compile", lowerFixnum = 1)
+    @ImportStatic(StringOperations.class)
     public abstract static class RegexpCompileNode extends PrimitiveArrayArgumentsNode {
 
         static final InlinedBranchProfile UNCACHED_BRANCH_PROFILE = InlinedBranchProfile.getUncached();
@@ -225,6 +228,7 @@ public abstract class RegexpNodes {
                 throw dre.getException(getContext(node));
             }
         }
+
     }
 
     @CoreMethod(names = "options")

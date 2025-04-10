@@ -60,10 +60,10 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.shared.Platform;
@@ -133,7 +133,7 @@ public abstract class TruffleSystemNodes {
                 @Cached RubyStringLibrary stringsDir) {
             TruffleFile truffleFile = getContext()
                     .getEnv()
-                    .getPublicTruffleFile(RubyGuards.getJavaString(dir));
+                    .getPublicTruffleFile(StringOperations.getJavaString(dir));
             final TruffleFile canonicalFile;
             try {
                 canonicalFile = truffleFile.getCanonicalFile();

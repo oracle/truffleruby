@@ -42,7 +42,6 @@ import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.interop.TranslateInteropExceptionNodeGen;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.platform.NativeConfiguration;
@@ -323,7 +322,7 @@ public final class FeatureLoader {
                     context.getCoreLibrary().truffleFeatureLoaderModule,
                     "get_expanded_load_path");
             for (Object pathObject : ArrayOperations.toIterable(expandedLoadPath)) {
-                final String loadPath = RubyGuards.getJavaString(pathObject);
+                final String loadPath = StringOperations.getJavaString(pathObject);
 
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
                     RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
@@ -344,7 +343,7 @@ public final class FeatureLoader {
                         "get_expanded_load_path");
                 for (Object pathObject : ArrayOperations.toIterable(expandedLoadPath)) {
                     // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
-                    final String loadPath = RubyGuards.getJavaString(pathObject);
+                    final String loadPath = StringOperations.getJavaString(pathObject);
 
                     if (context.getOptions().LOG_FEATURE_LOCATION) {
                         RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));

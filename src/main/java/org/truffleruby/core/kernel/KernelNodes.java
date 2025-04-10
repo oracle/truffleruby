@@ -86,6 +86,7 @@ import org.truffleruby.core.range.RubyIntOrLongRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
@@ -270,7 +271,7 @@ public abstract class KernelNodes {
                 @Bind Node node,
                 @Cached RubyStringLibrary libFeature,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            final String featureString = RubyGuards.getJavaString(feature);
+            final String featureString = StringOperations.getJavaString(feature);
             final String featurePath;
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
@@ -380,7 +381,7 @@ public abstract class KernelNodes {
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
             final String expandedPath = getContext(node)
                     .getFeatureLoader()
-                    .canonicalize(RubyGuards.getJavaString(string), null);
+                    .canonicalize(StringOperations.getJavaString(string), null);
             return createString(node, fromJavaStringNode, expandedPath, Encodings.UTF_8);
         }
 
@@ -714,6 +715,7 @@ public abstract class KernelNodes {
 
     @ReportPolymorphism // inline cache
     @GenerateUncached
+    @ImportStatic(StringOperations.class)
     public abstract static class EvalInternalNode extends RubyBaseNode {
 
         public abstract Object execute(Object self, Object source, RubyBinding binding, Object file, int line);
