@@ -9,6 +9,7 @@ Bug fixes:
 
 Compatibility:
 
+* Support Timezone argument to `Time.{new,at}` and `Time#{getlocal,localtime}` (#1717, @patricklinpl, @manefz, @rwstauner).
 * Updated to Ruby 3.3.7 (@andrykonchin).
 * Implement `StringScanner#{peek_byte,scan_byte,scan_integer,named_captures}` methods (#3788, @andrykonchin).
 * Support String patterns in `StringScanner#{exist?,scan_until,skip_until,check_until,search_full}` methods (@andrykonchin).
@@ -90,7 +91,6 @@ Compatibility:
 * Fix `Module#remove_const` and emit warning when constant is deprecated (@andrykonchin).
 * Add `Module#set_temporary_name` (#3681, @andrykonchin).
 * Modify `Float#round` to match MRI behavior (#3676, @andrykonchin).
-* Support Timezone argument to `Time.{new,at}` and `Time#{getlocal,localtime}` (#1717, @patricklinpl, @manefz, @rwstauner).
 
 Performance:
 
