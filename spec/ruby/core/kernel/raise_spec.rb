@@ -62,6 +62,50 @@ describe "Kernel#raise" do
       end
     end.should raise_error(StandardError, "aaa")
   end
+
+  it "re-raises a previously rescued exception without overwriting the cause" do
+    begin
+      begin
+        begin
+          begin
+            raise "Error 1"
+          rescue => e1
+            raise "Error 2"
+          end
+        rescue => e2
+          raise "Error 3"
+        end
+      rescue
+        e2.cause.should == e1
+        raise e2
+      end
+    rescue => e
+      e.cause.should == e1
+    end
+  end
+
+  it "re-raises a previously rescued exception with overwriting the cause when it's explicitly specified with :cause option" do
+    e4 = RuntimeError.new("Error 4")
+
+    begin
+      begin
+        begin
+          begin
+            raise "Error 1"
+          rescue => e1
+            raise "Error 2"
+          end
+        rescue => e2
+          raise "Error 3"
+        end
+      rescue
+        e2.cause.should == e1
+        raise e2, cause: e4
+      end
+    rescue => e
+      e.cause.should == e4
+    end
+  end
 end
 
 describe "Kernel#raise" do

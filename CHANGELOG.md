@@ -18,6 +18,7 @@ Compatibility:
 * Fix explicitly inherited `Struct` subclasses and don't provide `#members` method (#3802, @andrykonchin).
 * Support Digest plugins (#1390, @nirvdrum).
 * Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
+* Fix `Kernel#raise` and don't override `cause` at exception re-raising (#3831, @andrykonchin).
 
 Performance:
 

@@ -704,7 +704,7 @@ module Kernel
 
       exc.set_backtrace(ctx) if ctx
       Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
-      Primitive.exception_set_cause exc, cause unless Primitive.equal?(exc, cause)
+      Primitive.exception_set_cause exc, cause unless (exc.cause && !cause_given) || Primitive.equal?(exc, cause)
     end
 
     Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG
