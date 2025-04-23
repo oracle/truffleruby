@@ -92,6 +92,7 @@ module Truffle
       Primitive.time_s_from_array(time_class, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
     end
 
+    # MRI: time_init_parse()
     def self.new_from_string(time_class, str, **options)
       raise ArgumentError, 'time string should have ASCII compatible encoding' unless str.encoding.ascii_compatible?
 
@@ -103,9 +104,23 @@ module Truffle
                [ T] (?<hour> \d{2})
                   : (?<min>  \d{2})
                   : (?<sec>  \d{2})
-                  (?:\. (?<usec> \d+) )?
+                  (?:\. (?<subsec> \d+) )?
               (?:\s* (?<offset>\S+))?
              )?\z/x =~ str
+
+        # convert seconds fraction to milliseconds
+        usec = if subsec
+                 ndigits = subsec.length
+
+                 if ndigits <= 6
+                   subsec.to_i * 10.pow(6 - ndigits)
+                 else
+                   subsec.to_r / 10.pow(ndigits - 6) # convert to Rational to not loose precision
+                 end
+               else
+                 nil
+               end
+
         return self.compose(time_class, self.utc_offset_for_compose(offset || options[:in]), year, month, mday, hour, min, sec, usec)
       end
 

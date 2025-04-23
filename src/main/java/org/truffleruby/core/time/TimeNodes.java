@@ -532,7 +532,7 @@ public abstract class TimeNodes {
                 Object utcoffset) {
             final RubyLanguage language = getLanguage();
 
-            if (nsec < 0 || nsec > 999999999 ||
+            if (nsec < 0 || nsec > 999_999_999 ||
                     sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
