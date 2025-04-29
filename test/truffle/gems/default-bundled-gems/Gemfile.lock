@@ -44,7 +44,7 @@ GEM
       time
     net-http (0.4.1)
       uri
-    net-imap (0.4.19)
+    net-imap (0.4.20)
       date
       net-protocol
     net-pop (0.1.2)
@@ -159,7 +159,7 @@ DEPENDENCIES
   mutex_m (= 0.2.0)
   net-ftp (= 0.3.4)
   net-http (= 0.4.1)
-  net-imap (= 0.4.19)
+  net-imap (= 0.4.20)
   net-pop (= 0.1.2)
   net-protocol (= 0.2.2)
   net-smtp (= 0.4.0.1)
