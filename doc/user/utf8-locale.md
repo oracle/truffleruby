@@ -21,6 +21,7 @@ Instead, all values should be `"en_US.UTF-8"` or other regions but still `.UTF-8
 ### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
+sudo dnf install glibc-langpack-en
 export LANG=en_US.UTF-8
 ```
 
