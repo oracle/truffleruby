@@ -127,7 +127,6 @@ public final class EncodingManager {
 
     private void initializeLocaleEncoding(TruffleNFIPlatform nfi, NativeConfiguration nativeConfiguration) {
         final String localeEncodingName;
-        final String detector;
         if (nfi != null) {
             final int codeset = (int) nativeConfiguration.get("platform.langinfo.CODESET");
 
@@ -146,29 +145,14 @@ public final class EncodingManager {
                     context,
                     InteropLibrary.getUncached(),
                     0);
-            detector = "nl_langinfo(CODESET)";
             localeEncodingName = new String(bytes, StandardCharsets.US_ASCII);
         } else {
-            detector = "Charset.defaultCharset()";
             localeEncodingName = Charset.defaultCharset().name();
         }
 
         RubyEncoding rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
             rubyEncoding = Encodings.US_ASCII;
-        }
-
-        if (context.getOptions().WARN_LOCALE && rubyEncoding == Encodings.US_ASCII) {
-            String firstLine = "Encoding.find('locale') is US-ASCII (due to " + detector + " which returned " +
-                    localeEncodingName + "), this often indicates that the system locale is not set properly. ";
-            if ("C".equals(System.getenv("LANG")) && "C".equals(System.getenv("LC_ALL"))) {
-                // The parent process seems to explicitly want a C locale (e.g. EnvUtil#invoke_ruby in the MRI test harness), so only warn at config level in this case.
-                RubyLanguage.LOGGER.config(firstLine + "Warning at level=CONFIG because LANG=C and LC_ALL=C are set. " +
-                        "Set LANG=en_US.UTF-8 and see https://www.graalvm.org/dev/reference-manual/ruby/UTF8Locale/ for details.");
-            } else {
-                RubyLanguage.LOGGER.warning(firstLine +
-                        "Set LANG=en_US.UTF-8 and see https://www.graalvm.org/dev/reference-manual/ruby/UTF8Locale/ for details.");
-            }
         }
 
         localeEncoding = rubyEncoding;

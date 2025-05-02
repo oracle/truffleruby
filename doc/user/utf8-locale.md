@@ -6,17 +6,23 @@ permalink: /reference-manual/ruby/UTF8Locale/
 ---
 # Setting Up a UTF-8 Locale
 
-You need a UTF-8 locale to run some Ruby applications.
-For example, we have found that RubyGems and ruby/spec need such a locale.
+Since TruffleRuby 25.0, TruffleRuby supports the `POSIX` locale, the default locale in Docker images.
+**So there is no need to set up a locale anymore.**
 
-This is not needed if the `$LANG` environment variable is already set and:
+Some Ruby applications however require setting up a proper locale (same on CRuby).
+The instructions below explain how to do that.
+
+You can check the current locale using:
 
 ```bash
 locale
 ```
 
-shows no `="C"` and no warning.
-Instead, all values should be `"en_US.UTF-8"` or other regions but still `.UTF-8`.
+If that shows warnings, it probably means `LANG` is set to a locale which is not installed.
+
+These docs explain how to setup the `en_US.UTF-8` locale.
+
+As a note, the `C.UTF-8` locale also exists on Linux (but not on macOS) and might be more convenient as it does not require installing extra packages.
 
 ### Fedora-based: RHEL, Oracle Linux, etc
 

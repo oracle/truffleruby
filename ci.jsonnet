@@ -245,37 +245,40 @@ local part_definitions = {
 
   platform: {
     local common_deps = common.deps.truffleruby + common.deps.sulong,
+    local locale = {
+      # We want to test with the POSIX locale, which is the default locale for Docker images.
+      # We need to override all locale-related env vars set by the CI.
+      environment+: {
+        LANG: "POSIX",
+        LC_ALL: "POSIX",
+        LC_CTYPE: "POSIX",
+      },
+    },
 
-    linux: common.linux_amd64 + common_deps + {
+    linux: common.linux_amd64 + common_deps + locale + {
       platform_name:: "LinuxAMD64",
       "$.cap":: {
         normal_machine: [],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
     },
-    linux_aarch64: common.linux_aarch64 + common_deps + {
+    linux_aarch64: common.linux_aarch64 + common_deps + locale + {
       platform_name:: "LinuxAArch64",
       "$.cap":: {
         normal_machine: [],
       },
     },
-    darwin_amd64: common.darwin_amd64 + common_deps + {
+    darwin_amd64: common.darwin_amd64 + common_deps + locale + {
       platform_name:: "DarwinAMD64",
       "$.cap":: {
         # GR-45839, GR-46279: exclude macmini_late_2014_8gb, they are too slow, have too little RAM and cause various timeouts
         normal_machine: ["darwin_bigsur", "!macmini_late_2014_8gb"],
       },
-      environment+: {
-        LANG: "en_US.UTF-8",
-      },
     },
-    darwin_aarch64: common.darwin_aarch64 + common_deps + {
+    darwin_aarch64: common.darwin_aarch64 + common_deps + locale + {
       platform_name:: "DarwinAArch64",
       "$.cap":: {
         normal_machine: ["darwin_bigsur"],
-      },
-      environment+: {
-        LANG: "en_US.UTF-8",
       },
     },
   },
