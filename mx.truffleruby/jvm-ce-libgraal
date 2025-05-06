@@ -1,7 +1,5 @@
-GRAALVM_SKIP_ARCHIVE=true
 DYNAMIC_IMPORTS=/tools,/compiler,/substratevm
-COMPONENTS=TruffleRuby,suite:tools,GraalVM compiler,SubstrateVM,LibGraal
+BUILD_TARGETS=TRUFFLERUBY_JVM_STANDALONE
+COMPONENTS=LibGraal
 NATIVE_IMAGES=lib:jvmcicompiler
-# To also create the standalone
-INSTALLABLES=TruffleRuby
-BUILD_TARGETS=GRAALVM_STANDALONES
+GRAALVM_SKIP_ARCHIVE=true

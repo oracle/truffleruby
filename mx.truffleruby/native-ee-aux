@@ -1,10 +1,8 @@
-GRAALVM_SKIP_ARCHIVE=true
-DYNAMIC_IMPORTS=/tools,/truffleruby-enterprise,/graal-enterprise,/vm-enterprise,/sulong-managed,/substratevm-enterprise
-COMPONENTS=TruffleRuby,suite:tools,GraalVM enterprise compiler,Truffle enterprise,GraalVM enterprise license files,LLVM Runtime Native Enterprise,SubstrateVM Enterprise,Truffle Macro Enterprise
+DYNAMIC_IMPORTS=/tools,/graal-enterprise,/truffle-enterprise,/sulong-managed,/substratevm-enterprise
+BUILD_TARGETS=TRUFFLERUBY_NATIVE_STANDALONE
+COMPONENTS=SubstrateVM Enterprise,Truffle SVM Macro Enterprise
 NATIVE_IMAGES=lib:rubyvm
 EXTRA_IMAGE_BUILDER_ARGUMENTS=rubyvm:-H:+UnlockExperimentalVMOptions rubyvm:-H:BuildOutputJSONFile=native-image-build-rubyvm.json rubyvm:-H:-UnlockExperimentalVMOptions rubyvm:-H:+AuxiliaryEngineCache rubyvm:-H:ReservedAuxiliaryImageBytes=1073741824
-GENERATE_DEBUGINFO=false
 NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE=true
-# To also create the standalone
-INSTALLABLES=TruffleRuby
-BUILD_TARGETS=GRAALVM_STANDALONES
+GENERATE_DEBUGINFO=false
+GRAALVM_SKIP_ARCHIVE=true

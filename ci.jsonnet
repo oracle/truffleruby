@@ -216,7 +216,7 @@ local part_definitions = {
         "--extra-image-builder-argument=rubyvm:-H:+TruffleHostInliningPrintExplored",
         "--extra-image-builder-argument=rubyvm:-H:MethodFilter=org.truffleruby.*.*",
         "--extra-image-builder-argument=rubyvm:-H:-UnlockExperimentalVMOptions",
-        "--extra-image-builder-argument=rubyvm:-Djdk.graal.LogFile=host-inlining.txt",
+        "--extra-image-builder-argument=rubyvm:-Dgraal.LogFile=host-inlining.txt",
       ],
       environment+: {
         TRUFFLERUBY_HOST_INLINING_TEST: "1",
@@ -227,8 +227,20 @@ local part_definitions = {
   jdk: {
     local with_path = { environment+: { path+:: ["$JAVA_HOME/bin"] } },
 
-    stable: with_path + common.jdks["labsjdk-ce-21"] + { environment+: { JT_JDK: "21" }, jdk_label:: 'stable' },
-    latest: with_path + common.jdks["labsjdk-ce-latest"] + { environment+: { JT_JDK: "latest" }, jdk_label:: 'latest' },
+    latest: with_path + common.jdks["labsjdk-ce-latest"] + {
+      environment+: {
+        JT_JDK: "latest",
+      },
+    },
+
+    stable: with_path + common.jdks["labsjdk-ce-latest"] + {
+      downloads+: {
+        BOOTSTRAP_GRAALVM: common.jdks_data["graalvm-ee-21"],
+      },
+      environment+: {
+        JT_JDK: "latest",
+      },
+    },
   },
 
   platform: {
@@ -320,7 +332,7 @@ local part_definitions = {
       run+: jt(["test", "fast"]),
     },
 
-    lint: {
+    lint: common.deps.spotbugs + {
       is_after:: ["$.use.build"],
       downloads+: {
         ECLIPSE: {
@@ -718,26 +730,18 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   builds:
     local all_builds = $.test_builds + $.bench_builds + $.manual_builds;
-    local filtered_builds = if $.jdk.stable.jdk_version == $.jdk.latest.jdk_version then
-      {
-        [k]: all_builds[k]
-        for k in std.objectFields(all_builds)
-        if !std.objectHasAll(all_builds[k], "jdk_label") || all_builds[k].jdk_label == $.jdk.stable.jdk_label
-      }
-    else
-      all_builds;
     utils.check_builds(
       restrict_builds_to,
       # Move name inside into `name` field
       # and ensure timelimit is present
       [
-        filtered_builds[k] {
+        all_builds[k] {
           name: k,
-          timelimit: if std.objectHas(filtered_builds[k], "timelimit")
-          then filtered_builds[k].timelimit
+          timelimit: if std.objectHas(all_builds[k], "timelimit")
+          then all_builds[k].timelimit
           else error "Missing timelimit in " + k + " build.",
         }
-        for k in std.objectFields(filtered_builds)
+        for k in std.objectFields(all_builds)
       ]
     ),
 };

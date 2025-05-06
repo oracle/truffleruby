@@ -19,7 +19,7 @@ fi
 
 jt build --env jvm-ce
 
-standalone=$(jt -q mx --quiet --env jvm-ce standalone-home --type=jvm ruby)
+standalone=$(jt -u jvm-ce ruby-home)
 
 export PATH="$standalone/bin:$PATH"
 
