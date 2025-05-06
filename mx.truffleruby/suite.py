@@ -216,7 +216,7 @@ suite = {
                 "org.truffleruby.signal", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror", "-pthread"],
+            "cflags": ["-g", "-O3", "-Wall", "-Werror", "-pthread"],
             "ldflags": ["-pthread"],
         },
 
@@ -245,7 +245,7 @@ suite = {
                 "org.prism", # for the generated JNI header file
             ],
             "use_jdk_headers": True, # the generated JNI header includes jni.h
-            "cflags": ["-g", "-Wall", "-Werror", "-pthread", "-I<path:org.prism.libprism>/include"],
+            "cflags": ["-g", "-O3", "-Wall", "-Werror", "-pthread", "-I<path:org.prism.libprism>/include"],
             "ldflags": ["-pthread"],
             "ldlibs": ["<path:org.prism.libprism>/build/libprism.a"],
             "description": "JNI bindings for YARP"

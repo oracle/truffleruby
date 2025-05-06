@@ -10,10 +10,10 @@ endif
 # Similar values as in RbConfig
 ifeq ($(OS),Darwin)
 CC := clang
-CFLAGS := -fdeclspec -Wall -Werror -fPIC -std=c99 -g
+CFLAGS := -fdeclspec -Wall -Werror -fPIC -std=c99 -g -O3
 else
 CC := gcc
-CFLAGS := -Wall -Werror -fPIC -std=c99 -g
+CFLAGS := -Wall -Werror -fPIC -std=c99 -g -O3
 endif
 
 LDFLAGS :=
