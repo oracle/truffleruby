@@ -263,11 +263,12 @@ public abstract class ObjectSpaceNodes {
     public abstract static class DefineDataObjectFinalizerNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        Object defineFinalizer(RubyDynamicObject object, Object finalizerCFunction, Object dataStruct,
+        Object defineFinalizer(
+                RubyDynamicObject object, Object finalizerCFunction, Object dataStruct, boolean useCExtLock,
                 @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary) {
             DataObjectFinalizerReference newRef = getContext()
                     .getDataObjectFinalizationService()
-                    .addFinalizer(getContext(), object, finalizerCFunction, dataStruct);
+                    .addFinalizer(getContext(), object, finalizerCFunction, dataStruct, useCExtLock);
 
             objectLibrary.put(object, Layouts.DATA_OBJECT_FINALIZER_REF_IDENTIFIER, newRef);
 

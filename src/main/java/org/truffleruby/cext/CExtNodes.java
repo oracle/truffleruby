@@ -178,15 +178,21 @@ public abstract class CExtNodes {
         return nativeBufferSize - NATIVE_STRING_TERMINATOR_LENGTH;
     }
 
-    @Primitive(name = "call_with_c_mutex_and_frame")
+    @Primitive(name = "call_with_cext_lock_and_frame")
     public abstract static class CallWithCExtLockAndFrameNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         Object callWithCExtLockAndFrame(
-                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                VirtualFrame frame,
+                Object receiver,
+                RubyArray argsArray,
+                Object specialVariables,
+                Object block,
+                boolean useCExtLock,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached InlinedConditionProfile lockCExtProfile,
                 @Cached InlinedConditionProfile ownedProfile,
                 @Cached RunMarkOnExitNode runMarksNode) {
             final ExtensionCallStack extensionStack = getLanguage()
@@ -196,8 +202,10 @@ public abstract class CExtNodes {
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
                 final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+                final boolean lockCExt = lockCExtProfile.profile(this,
+                        getContext().getOptions().CEXT_LOCK && useCExtLock);
 
-                if (getContext().getOptions().CEXT_LOCK) {
+                if (lockCExt) {
                     final ReentrantLock lock = getContext().getCExtensionsLock();
                     boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
@@ -230,15 +238,21 @@ public abstract class CExtNodes {
         }
     }
 
-    @Primitive(name = "call_with_c_mutex_and_frame_and_unwrap")
+    @Primitive(name = "call_with_cext_lock_and_frame_and_unwrap")
     public abstract static class CallWithCExtLockAndFrameAndUnwrapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         Object callWithCExtLockAndFrame(
-                VirtualFrame frame, Object receiver, RubyArray argsArray, Object specialVariables, Object block,
+                VirtualFrame frame,
+                Object receiver,
+                RubyArray argsArray,
+                Object specialVariables,
+                Object block,
+                boolean useCExtLock,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached InlinedConditionProfile lockCExtProfile,
                 @Cached InlinedConditionProfile ownedProfile,
                 @Cached RunMarkOnExitNode runMarksNode,
                 @Cached UnwrapNode unwrapNode) {
@@ -247,8 +261,10 @@ public abstract class CExtNodes {
             extensionStack.push(keywordsGiven, specialVariables, block);
             try {
                 final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+                final boolean lockCExt = lockCExtProfile.profile(this,
+                        getContext().getOptions().CEXT_LOCK && useCExtLock);
 
-                if (getContext().getOptions().CEXT_LOCK) {
+                if (lockCExt) {
                     final ReentrantLock lock = getContext().getCExtensionsLock();
                     boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
@@ -283,20 +299,22 @@ public abstract class CExtNodes {
         }
     }
 
-    @Primitive(name = "call_with_c_mutex")
+    @Primitive(name = "call_with_cext_lock")
     public abstract static class CallWithCExtLockNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract Object execute(Object receiver, RubyArray argsArray);
+        public abstract Object execute(Object receiver, RubyArray argsArray, boolean useCExtLock);
 
         @Specialization
-        Object callWithCExtLock(Object receiver, RubyArray argsArray,
+        Object callWithCExtLock(Object receiver, RubyArray argsArray, boolean useCExtLock,
                 @CachedLibrary(limit = "getCacheLimit()") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
+                @Cached InlinedConditionProfile lockCExtProfile,
                 @Cached InlinedConditionProfile ownedProfile) {
             Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
+            final boolean lockCExt = lockCExtProfile.profile(this, getContext().getOptions().CEXT_LOCK && useCExtLock);
 
-            if (getContext().getOptions().CEXT_LOCK) {
+            if (lockCExt) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
                 boolean owned = ownedProfile.profile(this, lock.isHeldByCurrentThread());
 
@@ -459,12 +477,23 @@ public abstract class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "cext_lock_owned?", onSingleton = true)
-    public abstract static class IsCExtLockOwnedNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "cext_lock_owned?")
+    public abstract static class IsCExtLockOwnedPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         boolean isCExtLockOwned() {
-            final ReentrantLock lock = getContext().getCExtensionsLock();
-            return lock.isHeldByCurrentThread();
+            return getContext().getCExtensionsLock().isHeldByCurrentThread();
+        }
+    }
+
+    @Primitive(name = "use_cext_lock?")
+    public abstract static class UseCExtLockNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        boolean useCExtLock() {
+            if (getLanguage().getCurrentFiber().threadSafeExtension) {
+                return false;
+            } else {
+                return getContext().getCExtensionsLock().isHeldByCurrentThread();
+            }
         }
     }
 
@@ -2104,6 +2133,15 @@ public abstract class CExtNodes {
         @Specialization
         RubyArray zlibGetCRCTable() {
             return createArray(ZLibCRCTable.TABLE.clone());
+        }
+    }
+
+    @CoreMethod(names = "set_thread_safe", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class SetThreadSafe extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        Object setThreadSafe(int threadSafe) {
+            getLanguage().getCurrentFiber().threadSafeExtension = threadSafe != 0;
+            return nil;
         }
     }
 
