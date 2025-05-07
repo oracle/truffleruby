@@ -179,9 +179,9 @@ class Numeric
 
   def math_coerce(other, error = :coerce_error)
     other = Truffle::Interop.unbox_if_needed(other)
-    return math_coerce_error(other, error) unless other.respond_to? :coerce
+    return math_coerce_error(other, error) unless other.respond_to?(:coerce, true)
 
-    values = other.coerce(self)
+    values = other.__send__(:coerce, self)
 
     unless Primitive.is_a?(values, Array) && values.length == 2
       if error == :no_error
