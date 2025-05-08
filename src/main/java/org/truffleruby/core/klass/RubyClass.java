@@ -12,6 +12,7 @@ package org.truffleruby.core.klass;
 import java.util.Arrays;
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -41,7 +42,7 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
     public final RubyDynamicObject attached;
     /* a RubyClass or nil for BasicObject */
     public final Object superclass;
-    public final RubyClass[] ancestorClasses;
+    @CompilationFinal(dimensions = 1) public final RubyClass[] ancestorClasses;
     public final ConcurrentWeakSet<RubyClass> directNonSingletonSubclasses;
     /** Depth from BasicObject (= 0) in the inheritance hierarchy. */
     public final int depth;
