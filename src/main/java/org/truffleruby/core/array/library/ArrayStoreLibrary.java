@@ -20,6 +20,7 @@ import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.annotations.SuppressFBWarnings;
 
 /** Library for accessing and manipulating the storage used for representing arrays. This includes reading, modifying,
  * and copy the storage. */
@@ -38,6 +39,7 @@ public abstract class ArrayStoreLibrary extends Library {
     private static final ArrayAllocator SHARED_INITIAL_ALLOCATOR = SharedArrayStorage.SHARED_ZERO_LENGTH_ARRAY_ALLOCATOR;
 
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
+    private static final ArrayStoreLibrary UNCACHED = FACTORY.getUncached();
 
     public static ArrayStoreLibrary createDispatched(RubyLanguage language) {
         return FACTORY.createDispatched(language.options.ARRAY_STRATEGY_CACHE);
@@ -47,9 +49,10 @@ public abstract class ArrayStoreLibrary extends Library {
         return FACTORY.create(store);
     }
 
+    @SuppressFBWarnings("MS_EXPOSE_REP")
     public static ArrayStoreLibrary getUncached() {
         CompilerAsserts.neverPartOfCompilation("uncached libraries must not be used in PE code");
-        return FACTORY.getUncached();
+        return UNCACHED;
     }
 
     public static ArrayStoreLibrary getUncached(Object store) {
