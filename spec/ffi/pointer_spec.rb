@@ -84,6 +84,16 @@ describe "Pointer" do
       expect(memory.read_pointer.address).to eq(0xdeadbeef)
     end
 
+    it "#read_pointer returns a pointer with #type_size 1" do
+      memory = FFI::MemoryPointer.new :pointer
+      expect(memory.read_pointer.type_size).to eq(1)
+    end
+
+    it "#get_pointer returns a pointer with #type_size 1" do
+      memory = FFI::MemoryPointer.new :pointer
+      expect(memory.get_pointer(0).type_size).to eq(1)
+    end
+
     it "#write_pointer" do
       memory = FFI::MemoryPointer.new :pointer
       memory.write_pointer(PointerTestLib.ptr_from_address(0xdeadbeef))
@@ -106,6 +116,7 @@ describe "Pointer" do
       array = memory.read_array_of_pointer(values.size)
       values.each_with_index do |address, j|
         expect(array[j].address).to eq(address)
+        expect(array[j].type_size).to eq(1)
       end
     end
 
