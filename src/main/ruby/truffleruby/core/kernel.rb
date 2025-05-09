@@ -686,29 +686,41 @@ module Kernel
 
   def raise(exc = undefined, msg = undefined, ctx = nil, cause: undefined, **kwargs)
     cause_given = !Primitive.undefined?(cause)
-    cause = cause_given ? cause : $!
 
-    if Primitive.undefined?(exc) and cause
-      raise ArgumentError, 'only cause is given with no arguments' if cause_given
-      exc = cause
+    if Primitive.undefined?(exc) && cause_given
+      raise ArgumentError, 'only cause is given with no arguments'
+    end
+
+    if Primitive.undefined?(exc) && $!
+      exc = $!
     else
-      unless kwargs.empty?
-        if Primitive.undefined?(msg)
-          msg = kwargs
-        else
-          raise ArgumentError, 'cannot give both message and extra keyword arguments'
+      if Primitive.undefined?(msg) && !kwargs.empty?
+        msg = kwargs
+      end
+
+      if cause_given
+        unless Primitive.is_a?(cause, ::Exception) || Primitive.nil?(cause)
+          Truffle::ExceptionOperations.exception_object_expected!
         end
+      else
+        cause = $!
       end
 
       exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
       exc.set_backtrace(ctx) if ctx
       Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
-      Primitive.exception_set_cause exc, cause unless Primitive.equal?(exc, cause)
+
+      if !Primitive.nil?(cause) && (cause_given || Primitive.nil?(exc.cause)) && !Primitive.equal?(cause, exc)
+        if Truffle::ExceptionOperations.circular_cause?(cause, exc)
+          raise ArgumentError, 'circular causes'
+        end
+
+        Primitive.exception_set_cause exc, cause
+      end
     end
 
     Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG
-
     Primitive.vm_raise_exception exc
   end
   module_function :raise

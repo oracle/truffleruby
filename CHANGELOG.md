@@ -9,6 +9,7 @@ Bug fixes:
 
 Compatibility:
 
+* Support Timezone argument to `Time.{new,at}` and `Time#{getlocal,localtime}` (#1717, @patricklinpl, @manefz, @rwstauner).
 * Updated to Ruby 3.3.7 (@andrykonchin).
 * Implement `StringScanner#{peek_byte,scan_byte,scan_integer,named_captures}` methods (#3788, @andrykonchin).
 * Support String patterns in `StringScanner#{exist?,scan_until,skip_until,check_until,search_full}` methods (@andrykonchin).
@@ -18,6 +19,7 @@ Compatibility:
 * Support Digest plugins (#1390, @nirvdrum).
 * Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
 * Fix numeric coercing when `#coerce` method is not public (#3848, @andrykonchin).
+* Fix `Kernel#raise` and don't override `cause` at exception re-raising (#3831, @andrykonchin).
 
 Performance:
 
@@ -91,7 +93,6 @@ Compatibility:
 * Fix `Module#remove_const` and emit warning when constant is deprecated (@andrykonchin).
 * Add `Module#set_temporary_name` (#3681, @andrykonchin).
 * Modify `Float#round` to match MRI behavior (#3676, @andrykonchin).
-* Support Timezone argument to `Time.{new,at}` and `Time#{getlocal,localtime}` (#1717, @patricklinpl, @manefz, @rwstauner).
 
 Performance:
 

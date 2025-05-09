@@ -20,13 +20,21 @@ module Truffle
           exc = exc.exception msg
         end
 
-        exception_class_object_expected! unless Primitive.is_a?(exc, ::Exception)
+        exception_object_expected! unless Primitive.is_a?(exc, ::Exception)
         exc
       elsif Primitive.is_a?(exc, ::String)
         ::RuntimeError.exception exc
       else
         exception_class_object_expected!
       end
+    end
+
+    def self.circular_cause?(cause, exception)
+      while cause && !Primitive.equal?(cause, exception)
+        cause = cause.cause
+      end
+
+      !Primitive.nil?(cause)
     end
 
     def self.make_exception(args)
@@ -50,13 +58,24 @@ module Truffle
 
     def self.call_exception(exc, *args)
       res = Truffle::Type.check_funcall(exc, :exception, args)
-      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res) || !Primitive.is_a?(res, Exception)
+      raise TypeError, 'exception class/object expected' if Primitive.undefined?(res)
+      raise TypeError, 'exception object expected' unless Primitive.is_a?(res, Exception)
       res
     end
 
     # Avoid using #raise here to prevent infinite recursion
     def self.exception_class_object_expected!
       exc = ::TypeError.new('exception class/object expected')
+      Primitive.exception_capture_backtrace(exc, 1)
+
+      show_exception_for_debug(exc, 2) if $DEBUG
+
+      Primitive.vm_raise_exception exc
+    end
+
+    # Avoid using #raise here to prevent infinite recursion
+    def self.exception_object_expected!
+      exc = ::TypeError.new('exception object expected')
       Primitive.exception_capture_backtrace(exc, 1)
 
       show_exception_for_debug(exc, 2) if $DEBUG
