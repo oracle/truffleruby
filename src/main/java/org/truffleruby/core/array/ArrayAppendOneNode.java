@@ -9,9 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
-import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
-
 import com.oracle.truffle.api.dsl.NeverDefault;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.profiles.CountingConditionProfile;
@@ -61,10 +58,10 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
             final int capacity = ArrayUtils.capacityForOneMore(getLanguage(), length);
             final Object newStore = stores.expand(store, capacity);
             stores.write(newStore, oldSize, value);
-            setStoreAndSize(array, newStore, newSize);
+            array.setStoreAndSize(newStore, newSize);
         } else {
             stores.write(store, oldSize, value);
-            setSize(array, newSize);
+            array.setSize(newSize);
         }
         return array;
     }
@@ -82,7 +79,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         final int newCapacity = ArrayUtils.capacityForOneMore(getLanguage(), 0);
         final Object newStore = currentStores.allocateForNewValue(currentStore, value, newCapacity);
         newStores.write(newStore, 0, value);
-        setStoreAndSize(array, newStore, 1);
+        array.setStoreAndSize(newStore, 1);
         return array;
     }
 
@@ -106,7 +103,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         final Object newStore = currentStores.allocateForNewValue(currentStore, value, newCapacity);
         currentStores.copyContents(currentStore, 0, newStore, 0, oldSize);
         newStores.write(newStore, oldSize, value);
-        setStoreAndSize(array, newStore, newSize);
+        array.setStoreAndSize(newStore, newSize);
         return array;
     }
 

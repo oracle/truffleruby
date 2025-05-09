@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
-import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PUBLIC;
 
 import java.util.Arrays;
@@ -473,7 +471,7 @@ public abstract class ArrayNodes {
         @Specialization
         RubyArray clear(RubyArray array,
                 @Cached IsSharedNode isSharedNode) {
-            setStoreAndSize(array,
+            array.setStoreAndSize(
                     ArrayStoreLibrary.initialStorage(isSharedNode.execute(this, array)),
                     0);
             return array;
@@ -571,7 +569,7 @@ public abstract class ArrayNodes {
 
             stores.clear(oldStore, m, size - m);
 
-            setStoreAndSize(array, newStore, m);
+            array.setStoreAndSize(newStore, m);
 
             if (m == size) {
                 return nil;
@@ -738,7 +736,7 @@ public abstract class ArrayNodes {
                 if (sameStores) {
                     oldStores.clear(oldStore, i, size - i);
                 }
-                setStoreAndSize(array, newStore, i);
+                array.setStoreAndSize(newStore, i);
                 return found;
             } else {
                 if (maybeBlock == nil) {
@@ -780,14 +778,14 @@ public abstract class ArrayNodes {
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
                 stores.clear(store, size - 1, 1);
-                setStoreAndSize(array, store, size - 1);
+                array.setStoreAndSize(store, size - 1);
                 return value;
             } else {
                 final Object mutableStore = stores.allocator(store).allocate(size - 1);
                 stores.copyContents(store, 0, mutableStore, 0, i);
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, mutableStore, i, size - i - 1);
-                setStoreAndSize(array, mutableStore, size - 1);
+                array.setStoreAndSize(mutableStore, size - 1);
                 return value;
             }
         }
@@ -1121,7 +1119,7 @@ public abstract class ArrayNodes {
         @Specialization
         RubyArray initializeNoArgs(RubyArray array, NotProvided size, NotProvided fillingValue, Nil block,
                 @Cached @Shared IsSharedNode isSharedNode) {
-            setStoreAndSize(array,
+            array.setStoreAndSize(
                     ArrayStoreLibrary.initialStorage(isSharedNode.execute(this, array)),
                     0);
             return array;
@@ -1136,7 +1134,7 @@ public abstract class ArrayNodes {
                 warningNode.warningMessage(sourceSection, "given block not used");
             }
 
-            setStoreAndSize(array,
+            array.setStoreAndSize(
                     ArrayStoreLibrary.initialStorage(isSharedNode.execute(this, array)),
                     0);
             return array;
@@ -1174,7 +1172,7 @@ public abstract class ArrayNodes {
                 store = new Object[size];
             }
             stores.fill(store, 0, size, nil);
-            setStoreAndSize(array, store, size);
+            array.setStoreAndSize(store, size);
             return array;
         }
 
@@ -1199,7 +1197,7 @@ public abstract class ArrayNodes {
                     profileAndReportLoopCount(loopProfile, i);
                 }
             }
-            setStoreAndSize(array, allocatedStore, size);
+            array.setStoreAndSize(allocatedStore, size);
             return array;
         }
 
@@ -1236,7 +1234,7 @@ public abstract class ArrayNodes {
                 if (isSharedNode.execute(node, array)) {
                     store = stores.makeShared(store, n);
                 }
-                setStoreAndSize(array, store, n);
+                array.setStoreAndSize(store, n);
             }
 
             return array;
@@ -1688,7 +1686,7 @@ public abstract class ArrayNodes {
             final Object prefix = stores.extractRange(store, 0, size - numPop);    // copy on write
             // NOTE(norswap): if one of these two arrays outlives the other, you get a memory leak
 
-            setStoreAndSize(array, prefix, size - numPop);
+            array.setStoreAndSize(prefix, size - numPop);
             return createArray(popped, numPop);
         }
 
@@ -1709,7 +1707,7 @@ public abstract class ArrayNodes {
 
             // Remove the end from the original array.
             stores.clear(store, size - numPop, numPop);
-            setSize(array, size - numPop);
+            array.setSize(size - numPop);
 
             return createArray(popped, numPop);
         }
@@ -1837,7 +1835,7 @@ public abstract class ArrayNodes {
             if (isSharedNode.execute(this, array)) {
                 store = stores.makeShared(store, size);
             }
-            setStoreAndSize(array, store, size);
+            array.setStoreAndSize(store, size);
             return array;
         }
 
@@ -1922,7 +1920,7 @@ public abstract class ArrayNodes {
 
             final Object rotated = stores.allocator(store).allocate(size);
             rotateArrayCopy(rotation, size, stores, store, rotated);
-            setStoreAndSize(array, rotated, size);
+            array.setStoreAndSize(rotated, size);
             return array;
         }
 
@@ -2042,7 +2040,7 @@ public abstract class ArrayNodes {
             final int size = array.size;
             final Object value = stores.read(store, 0);
             stores.clear(store, 0, 1);
-            setStoreAndSize(array, stores.extractRange(store, 1, size), size - 1);
+            array.setStoreAndSize(stores.extractRange(store, 1, size), size - 1);
             return value;
         }
 
@@ -2074,7 +2072,7 @@ public abstract class ArrayNodes {
             final int numShift = minProfile.profile(size < n) ? size : n;
             final Object result = stores.extractRangeAndUnshare(store, 0, numShift);
             final Object newStore = stores.extractRange(store, numShift, size);
-            setStoreAndSize(array, newStore, size - numShift);
+            array.setStoreAndSize(newStore, size - numShift);
             return createArray(result, numShift);
         }
 
@@ -2238,8 +2236,8 @@ public abstract class ArrayNodes {
 
             final int size = other.size;
             final Object store = other.getStore();
-            setStoreAndSize(array, store, size);
-            setStoreAndSize(other, stores.initialStore(store), 0);
+            array.setStoreAndSize(store, size);
+            other.setStoreAndSize(stores.initialStore(store), 0);
 
             return array;
         }
