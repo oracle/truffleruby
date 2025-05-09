@@ -30,10 +30,17 @@ module Truffle
         year, month, mday, hour, min, sec, usec, is_dst = p6, p5, p4, p3, p2, p1, 0, is_dst
       end
 
-      compose(time_class, utc_offset, year, month, mday, hour, min, sec, usec, is_dst)
+      nsec = nil
+      if Primitive.is_a?(usec, String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
+
+      compose(time_class, utc_offset, year, month, mday, hour, min, sec, nsec, is_dst)
     end
 
-    def self.compose(time_class, utc_offset, year, month, mday, hour, min, sec, usec, is_dst)
+    def self.compose(time_class, utc_offset, year, month, mday, hour, min, sec, nsec, is_dst)
       if Primitive.is_a?(month, String) or month.respond_to?(:to_str)
         month = StringValue(month)
         month = MonthValue[month.upcase] || month.to_i
@@ -53,13 +60,6 @@ module Truffle
       mday  = Primitive.rb_num2int(mday  || 1)
       hour  = Primitive.rb_num2int(hour  || 0)
       min   = Primitive.rb_num2int(min   || 0)
-
-      nsec = nil
-      if Primitive.is_a?(usec, String)
-        nsec = usec.to_i * 1000
-      elsif usec
-        nsec = (usec * 1000).to_i
-      end
 
       case utc_offset
       when :utc
@@ -113,21 +113,21 @@ module Truffle
               (?:\s* (?<offset>\S+))?
              )?\z/x =~ str
 
-        # convert seconds fraction to microseconds
-        usec = if subsec
+        # convert seconds fraction to nanoseconds
+        nsec = if subsec
                  ndigits = subsec.length
 
-                 if ndigits <= 6
-                   subsec.to_i * 10.pow(6 - ndigits)
+                 if ndigits <= 9
+                   subsec.to_i * 10.pow(9 - ndigits)
                  else
-                   subsec.to_r / 10.pow(ndigits - 6) # convert to Rational to not loose precision
+                   subsec.to_i / 10.pow(ndigits - 9)
                  end
                else
                  nil
                end
 
         utc_offset = self.utc_offset_for_compose(offset || options[:in])
-        return self.compose(time_class, utc_offset, year, month, mday, hour, min, sec, usec, nil)
+        return self.compose(time_class, utc_offset, year, month, mday, hour, min, sec, nsec, nil)
       end
 
       raise ArgumentError, "can't parse: #{str.inspect}"
