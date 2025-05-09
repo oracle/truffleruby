@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.regexp;
 
-import java.nio.charset.UnsupportedCharsetException;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -155,12 +153,12 @@ public final class TRegexCache {
         var tstring = tstringBuilder.toTString();
         try {
             processedRegexpSource = TStringUtils.toJavaStringOrThrow(tstring, tstringBuilder.getRubyEncoding());
-        } catch (CannotConvertBinaryRubyStringToJavaString | UnsupportedCharsetException e) {
-            // Some strings cannot be converted to Java strings, e.g. strings with the
-            // BINARY encoding containing characters higher than 127.
-            // Also, some charsets might not be supported on the JVM and therefore
-            // a conversion to j.l.String might be impossible.
-            return null;
+        } catch (CannotConvertBinaryRubyStringToJavaString e) {
+            // A BINARY regexp with non-US-ASCII bytes, pass it as "raw bytes" instead.
+            // TRegex knows how to interpret those bytes correctly as we pass the encoding name as well.
+            var latin1string = tstring.forceEncodingUncached(Encodings.BINARY.tencoding,
+                    Encodings.ISO_8859_1.tencoding);
+            processedRegexpSource = TStringUtils.toJavaStringOrThrow(latin1string, Encodings.ISO_8859_1);
         }
 
         String flags = optionsToFlags(regexp.options, atStart);
