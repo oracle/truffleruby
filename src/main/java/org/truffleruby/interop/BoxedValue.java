@@ -42,7 +42,7 @@ public final class BoxedValue implements TruffleObject {
                     "Methods should not be called on a BoxedValue as that would expose the potential Ruby object behind rather than relying on interop messages",
                     node));
         }
-        ReflectionLibrary reflection = ReflectionLibrary.getFactory().getUncached();
+        ReflectionLibrary reflection = ReflectionLibrary.getUncached();
         return reflection.send(value, message, args);
     }
 
