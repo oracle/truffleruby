@@ -421,11 +421,11 @@ class Time
       elsif Primitive.is_a?(year, String) && month_undefined
         Truffle::TimeOperations.new_from_string(self, year, **options)
       elsif Primitive.nil? utc_offset
-        Truffle::TimeOperations.compose(self, :local, year, month, day, hour, minute, second)
+        Truffle::TimeOperations.compose(self, :local, year, month, day, hour, minute, second, nil, nil)
       elsif utc_offset == :std
-        Truffle::TimeOperations.compose(self, :local, second, minute, hour, day, month, year, nil, nil, false, nil)
+        Truffle::TimeOperations.compose(self, :local, year, month, day, hour, minute, second, nil, false)
       elsif utc_offset == :dst
-        Truffle::TimeOperations.compose(self, :local, second, minute, hour, day, month, year, nil, nil, true, nil)
+        Truffle::TimeOperations.compose(self, :local, year, month, day, hour, minute, second, nil, true)
       else
         if utc_offset_in_utc?(utc_offset)
           utc_offset = :utc
@@ -435,7 +435,7 @@ class Time
           utc_offset = Truffle::TimeOperations.calculate_utc_offset_with_timezone_object(utc_offset, :local_to_utc, as_utc) ||
             Truffle::TimeOperations.coerce_to_utc_offset(utc_offset)
         end
-        result = Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second)
+        result = Truffle::TimeOperations.compose(self, utc_offset, year, month, day, hour, minute, second, nil, nil)
         Truffle::TimeOperations.set_zone_if_object(result, zone)
         result
       end
@@ -464,12 +464,12 @@ class Time
     end
 
     def local(*args)
-      Truffle::TimeOperations.compose(self, :local, *args)
+      Truffle::TimeOperations.compose_dual_signature(self, :local, *args)
     end
     alias_method :mktime, :local
 
     def gm(*args)
-      Truffle::TimeOperations.compose(self, :utc, *args)
+      Truffle::TimeOperations.compose_dual_signature(self, :utc, *args)
     end
     alias_method :utc, :gm
   end
