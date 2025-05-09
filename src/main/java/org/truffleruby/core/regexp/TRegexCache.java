@@ -137,6 +137,11 @@ public final class TRegexCache {
 
     @TruffleBoundary
     private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding enc) {
+        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc);
+        if (tRegexEncoding == null) {
+            return null;
+        }
+
         String processedRegexpSource;
         RubyEncoding[] fixedEnc = new RubyEncoding[]{ null };
         final TStringBuilder tstringBuilder;
@@ -162,11 +167,6 @@ public final class TRegexCache {
         }
 
         String flags = optionsToFlags(regexp.options, atStart);
-
-        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc);
-        if (tRegexEncoding == null) {
-            return null;
-        }
 
         String ignoreAtomicGroups = context.getOptions().TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS
                 ? ",IgnoreAtomicGroups=true"
