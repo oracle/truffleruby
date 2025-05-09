@@ -6,7 +6,7 @@ permalink: /reference-manual/ruby/RubyManagers/
 ---
 # Ruby Managers and Installers
 
-TruffleRuby is supported by the 3 major Ruby installers.
+TruffleRuby is supported by all major Ruby installers.
 
 ## `rvm`
 
@@ -79,6 +79,24 @@ You can also install the TruffleRuby JVM Standalone with:
 
 ```bash
 asdf install ruby truffleruby+graalvm-VERSION OR truffleruby+graalvm-dev
+```
+
+## `mise`
+
+Mise includes a Ruby plugin. See https://mise.jdx.dev/lang/ruby.html for details.
+
+You can install a TruffleRuby Native Standalone release or dev build with:
+
+```bash
+mise install ruby@truffleruby-VERSION
+mise install ruby@truffleruby-dev    # latest dev version
+```
+
+You can also install the TruffleRuby JVM Standalone with:
+
+```
+mise install ruby@truffleruby+graalvm-VERSION
+mise install ruby@truffleruby+graalvm-dev    # latest dev version
 ```
 
 ## `ruby-install` and `chruby`
