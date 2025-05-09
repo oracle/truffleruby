@@ -8,7 +8,7 @@ SOEXT := so
 endif
 
 CC := cc
-CFLAGS := -Wall -Werror -fPIC -std=c99 -g
+CFLAGS := -Wall -Werror -fPIC -std=c99 -g -O3
 LDFLAGS :=
 
 ifeq ($(OS),Linux)
