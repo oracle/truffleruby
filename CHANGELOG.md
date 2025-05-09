@@ -23,6 +23,7 @@ Compatibility:
 
 Performance:
 
+* Use TRegex for binary Regexps with non-US-ASCII characters in the pattern like `/[\x80-\xff]/n` (#3858, @eregon).
 
 Changes:
 
