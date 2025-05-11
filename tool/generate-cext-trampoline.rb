@@ -13,6 +13,7 @@ copyright = File.read(__FILE__)[/Copyright \(c\) (\d+, )?\d+ Oracle/]
 NO_RETURN_FUNCTIONS = %w[
   ruby_malloc_size_overflow
   rb_error_arity
+  rb_error_frozen_object
   rb_iter_break
   rb_iter_break_value
   rb_f_notimplement
