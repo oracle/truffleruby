@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix `Range#cover?` on begin-less ranges and non-integer values (@nirvdrum, @rwstauner).
 * Fix `Time.new` with String argument and handle nanoseconds correctly (#3836, @andrykonchin).
+* Fix a possible case of infinite recursion when implementing `frozen?` in a native extension (@nirvdrum).
 
 Compatibility:
 

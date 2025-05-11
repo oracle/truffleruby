@@ -477,7 +477,7 @@ module Truffle::CExt
   end
 
   def rb_obj_frozen_p(object)
-    object.frozen?
+    Primitive.frozen?(object)
   end
 
   def rb_obj_id(object)
