@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fix `Range#cover?` on begin-less ranges and non-integer values (@nirvdrum, @rwstauner).
+* Fix a possible case of infinite recursion when implementing `frozen?` in a native extension (@nirvdrum).
 
 Compatibility:
 
@@ -20,6 +21,7 @@ Compatibility:
 * Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
 * Fix numeric coercing when `#coerce` method is not public (#3848, @andrykonchin).
 * Fix `Kernel#raise` and don't override `cause` at exception re-raising (#3831, @andrykonchin).
+* Implement `rb_error_frozen_object` for the google-protobuf gem (@nirvdrum).
 
 Performance:
 

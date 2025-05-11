@@ -471,7 +471,7 @@ module Truffle::CExt
   end
 
   def rb_obj_frozen_p(object)
-    object.frozen?
+    Primitive.frozen?(object)
   end
 
   def rb_obj_id(object)
@@ -2345,6 +2345,10 @@ module Truffle::CExt
     else
       cmd.call(*args)
     end
+  end
+
+  def rb_error_frozen_object(object)
+    raise FrozenError.new("can't modify frozen #{Primitive.class(self)}", receiver: self)
   end
 
   def rb_tr_warn(message)
