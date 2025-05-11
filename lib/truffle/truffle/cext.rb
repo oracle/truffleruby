@@ -2374,6 +2374,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_error_frozen_object(object)
+    raise FrozenError.new("can't modify frozen #{Primitive.class(object)}", receiver: object)
+  end
+
   def rb_tr_warn(message)
     location = caller_locations(1, 1)[0]
     message_with_prefix = "#{location.label}: warning: #{message}"
