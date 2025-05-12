@@ -1,1 +1,2 @@
 slow:The -0 command line option sets $/ and $-0
+fails:The -0 command line option sets $/ and $-0
