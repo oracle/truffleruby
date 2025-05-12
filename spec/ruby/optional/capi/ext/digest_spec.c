@@ -103,7 +103,7 @@ static rb_digest_metadata_t * get_metadata_ptr(VALUE obj) {
     // In the digest gem there is an additional data type check performed before reading the value out.
     // Since the type definition isn't public, we can't use it as part of a type check here so we omit it.
     // This is safe to do because this code is intended to only load digest plugins written as part of this test suite.
-    algo = RTYPEDDATA_DATA(obj);
+    algo = (rb_digest_metadata_t *) RTYPEDDATA_DATA(obj);
 #else
 # undef RUBY_UNTYPED_DATA_WARNING
 # define RUBY_UNTYPED_DATA_WARNING 0
