@@ -2389,7 +2389,7 @@ public abstract class StringPrimitiveNodes {
     public abstract static class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "libString.isRubyString(node, string)", limit = "1")
-        static Object stringToNullTerminatedByteArray(Object string,
+        static Object toByteArray(Object string,
                 @Bind Node node,
                 @Cached TruffleString.CopyToByteArrayNode copyToByteArrayNode,
                 @Cached RubyStringLibrary libString) {
