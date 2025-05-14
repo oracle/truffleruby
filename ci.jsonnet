@@ -324,8 +324,7 @@ local part_definitions = {
         "CHECK_LEAKS": "true",
         "RUBY_SPEC_TEST_ZLIB_CRC_TABLE": "false", # CRuby was built on OL6 and is used on OL7
       },
-      run+: jt(["-u", "ruby", "mspec", "spec/ruby"]) + # 3.2.2
-            jt(["-u", "/cm/shared/apps-ol7/ruby/3.1.2/bin/ruby", "mspec", "spec/ruby"]),
+      run+: jt(["-u", "ruby", "mspec", "spec/ruby"]), # 3.2.2
     },
 
     test_fast: {

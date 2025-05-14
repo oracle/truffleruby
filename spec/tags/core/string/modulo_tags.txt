@@ -8,3 +8,6 @@ fails:String#% flags # applies to formats bBxX does nothing for zero argument
 fails:String#% other formats c displays only the first character if argument is a string of several characters
 fails:String#% other formats c displays no characters if argument is an empty string
 fails:String#% supports only the first character as argument for %c
+fails:String#% integer formats d converts to the empty string if precision is 0 and value is 0
+fails:String#% integer formats i converts to the empty string if precision is 0 and value is 0
+fails:String#% integer formats u converts to the empty string if precision is 0 and value is 0
