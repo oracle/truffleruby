@@ -29,6 +29,14 @@ static VALUE has_lock_in_call_without_gvl(VALUE self) {
   return rb_thread_call_without_gvl(called_without_gvl, 0, RUBY_UBF_IO, 0);
 }
 
+static void* called_with_gvl(void* data) {
+  return rb_tr_cext_lock_owned_p();
+}
+
+static VALUE has_lock_in_call_with_gvl(VALUE self) {
+  return rb_thread_call_with_gvl(called_with_gvl, 0);
+}
+
 static VALUE has_lock_in_rb_funcall(VALUE self) {
   return rb_funcall(truffleCExt, rb_intern("rb_tr_cext_lock_owned_p"), 0);
 }
@@ -46,6 +54,7 @@ void Init_truffleruby_lock_spec(void) {
   VALUE cls = rb_define_class("CApiTruffleRubyLockSpecs", rb_cObject);
   rb_define_method(cls, "has_lock?", has_lock, 0);
   rb_define_method(cls, "has_lock_in_call_without_gvl?", has_lock_in_call_without_gvl, 0);
+  rb_define_method(cls, "has_lock_in_call_with_gvl?", has_lock_in_call_with_gvl, 0);
   rb_define_method(cls, "has_lock_in_rb_funcall?", has_lock_in_rb_funcall, 0);
 
   rb_ext_ractor_safe(true);

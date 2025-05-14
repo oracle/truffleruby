@@ -31,6 +31,10 @@ describe "TruffleRuby C-ext lock" do
     @t.has_lock_in_call_without_gvl?.should == false
   end
 
+  it "is acquired inside rb_thread_call_with_gvl" do
+    @t.has_lock_in_call_with_gvl?.should == true
+  end
+
   it "is released inside rb_funcall" do
     @t.has_lock_in_rb_funcall?.should == false
   end
