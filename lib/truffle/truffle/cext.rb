@@ -2030,7 +2030,7 @@ module Truffle::CExt
   end
 
   def rb_thread_call_with_gvl(function, data)
-    Primitive.call_with_cext_lock(POINTER_TO_POINTER_WRAPPER, [function, data], true)
+    Primitive.call_with_cext_lock(POINTER_TO_POINTER_WRAPPER, [function, data], CEXT_LOCK)
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
