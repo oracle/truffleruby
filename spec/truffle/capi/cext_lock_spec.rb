@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2021, 2025 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -16,7 +18,7 @@ describe "TruffleRuby C-ext lock" do
   end
 
   it "is not acquired in Ruby code" do
-    Truffle::CExt.cext_lock_owned?.should == false
+    Primitive.cext_lock_owned?.should == false
   end
 
   guard -> { Truffle::Boot.get_option 'cexts-lock' } do
@@ -29,7 +31,16 @@ describe "TruffleRuby C-ext lock" do
     @t.has_lock_in_call_without_gvl?.should == false
   end
 
+  it "is acquired inside rb_thread_call_with_gvl" do
+    @t.has_lock_in_call_with_gvl?.should == true
+  end
+
   it "is released inside rb_funcall" do
     @t.has_lock_in_rb_funcall?.should == false
+  end
+
+  it "is not acquired for methods defined in rb_ext_ractor_safe(true) extensions" do
+    @t.has_lock_for_rb_define_method_after_rb_ext_ractor_safe?.should == false
+    @t.has_lock_for_rb_define_method_after_rb_ext_ractor_safe_false?.should == true
   end
 end

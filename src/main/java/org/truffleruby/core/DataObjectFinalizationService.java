@@ -50,7 +50,7 @@ public final class DataObjectFinalizationService
             if (!getContext().isFinalizing()) {
                 try {
                     callNode.invokeMember(getContext().getCoreLibrary().truffleCExtModule, "run_data_finalizer",
-                            ref.finalizerCFunction, ref.dataStruct);
+                            ref.finalizerCFunction, ref.dataStruct, ref.useCExtLock);
                 } catch (InteropException e) {
                     throw CompilerDirectives.shouldNotReachHere(e);
                 }
@@ -73,8 +73,8 @@ public final class DataObjectFinalizationService
 
     @TruffleBoundary
     public DataObjectFinalizerReference addFinalizer(RubyContext context, Object object, Object finalizerCFunction,
-            Object dataStruct) {
-        final DataObjectFinalizerReference newRef = createRef(object, finalizerCFunction, dataStruct);
+            Object dataStruct, boolean useCExtLock) {
+        final DataObjectFinalizerReference newRef = createRef(object, finalizerCFunction, dataStruct, useCExtLock);
 
         add(newRef);
         context.getReferenceProcessor().processReferenceQueue(this);
@@ -82,8 +82,10 @@ public final class DataObjectFinalizationService
         return newRef;
     }
 
-    public DataObjectFinalizerReference createRef(Object object, Object finalizerCFunction, Object dataStruct) {
-        return new DataObjectFinalizerReference(object, processingQueue, this, finalizerCFunction, dataStruct);
+    public DataObjectFinalizerReference createRef(Object object, Object finalizerCFunction, Object dataStruct,
+            boolean useCExtLock) {
+        return new DataObjectFinalizerReference(object, processingQueue, this, finalizerCFunction, dataStruct,
+                useCExtLock);
     }
 
     @Override

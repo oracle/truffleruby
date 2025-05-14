@@ -19,15 +19,19 @@ public final class DataObjectFinalizerReference
 
     public final Object finalizerCFunction;
     public final Object dataStruct;
+    /** Run a finalizer with or without c-extension lock. It depends on a context where a finalizer was registered. */
+    public final boolean useCExtLock;
 
     DataObjectFinalizerReference(
             Object object,
             ReferenceQueue<? super Object> queue,
             DataObjectFinalizationService service,
             Object finalizerCFunction,
-            Object dataStruct) {
+            Object dataStruct,
+            boolean useCExtLock) {
         super(object, queue, service);
         this.finalizerCFunction = finalizerCFunction;
         this.dataStruct = dataStruct;
+        this.useCExtLock = useCExtLock;
     }
 }

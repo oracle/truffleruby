@@ -276,9 +276,12 @@ public abstract class RequireNode extends RubyBaseNode {
         ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
         var prevGlobals = currentFiber.cGlobalVariablesDuringInitFunction;
         currentFiber.cGlobalVariablesDuringInitFunction = createEmptyArray();
+        var prevThreadSafeExtension = currentFiber.threadSafeExtension;
+        currentFiber.threadSafeExtension = false;
         try {
             RubyContext.send(currentNode, coreLibrary().truffleCExtModule, "init_extension", library, expandedPath);
         } finally {
+            currentFiber.threadSafeExtension = prevThreadSafeExtension;
             currentFiber.cGlobalVariablesDuringInitFunction = prevGlobals;
             ValueWrapperManager.allocateNewBlock(getContext(), getLanguage());
             requireMetric("after-execute-" + feature);
