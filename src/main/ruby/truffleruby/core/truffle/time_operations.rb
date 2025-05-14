@@ -113,19 +113,7 @@ module Truffle
               (?:\s* (?<offset>\S+))?
              )?\z/x =~ str
 
-        # convert seconds fraction to nanoseconds
-        nsec = if subsec
-                 ndigits = subsec.length
-
-                 if ndigits <= 9
-                   subsec.to_i * 10.pow(9 - ndigits)
-                 else
-                   subsec.to_i / 10.pow(ndigits - 9)
-                 end
-               else
-                 nil
-               end
-
+        nsec = subsec[0...9].ljust(9, '0').to_i if subsec
         utc_offset = self.utc_offset_for_compose(offset || options[:in])
         return self.compose(time_class, utc_offset, year, month, mday, hour, min, sec, nsec, nil)
       end
