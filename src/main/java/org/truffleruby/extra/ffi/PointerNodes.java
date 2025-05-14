@@ -47,6 +47,7 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.language.objects.AllocationTracing;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 @CoreModule(value = "Truffle::FFI::Pointer", isClass = true)
 public abstract class PointerNodes {
@@ -503,7 +504,8 @@ public abstract class PointerNodes {
 
         @Specialization
         RubyPointer readPointer(long address,
-                @Cached CheckNullPointerNode checkNullPointerNode) {
+                @Cached CheckNullPointerNode checkNullPointerNode,
+                @Cached WriteObjectFieldNode writeTypeSize) {
             final Pointer ptr = new Pointer(getContext(), address);
             checkNullPointerNode.execute(this, ptr);
             final Pointer readPointer = ptr.readPointer(getContext(), 0);
@@ -512,6 +514,10 @@ public abstract class PointerNodes {
                     getLanguage().truffleFFIPointerShape,
                     readPointer);
             AllocationTracing.trace(instance, this);
+
+            // We don't call Truffle::FFI::Pointer#initialize so we manually set it instead
+            writeTypeSize.execute(this, instance, "@type_size", 1);
+
             return instance;
         }
 

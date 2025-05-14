@@ -20,6 +20,7 @@ Compatibility:
 * Joni has been updated from 2.2.1 to 2.2.6 (@andrykonchin).
 * Fix numeric coercing when `#coerce` method is not public (#3848, @andrykonchin).
 * Fix `Kernel#raise` and don't override `cause` at exception re-raising (#3831, @andrykonchin).
+* Return a pointer with `#type_size` of 1 for `Pointer#read_pointer` (@eregon).
 
 Performance:
 
