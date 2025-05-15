@@ -73,6 +73,7 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -1478,7 +1479,7 @@ public abstract class CExtNodes {
 
                     representation = tstring + " (" + builder + ")";
                 } else if (RubyGuards.isRubyValue(object)) {
-                    representation = object.toString() + " (" + RubyGuards.getJavaString(callToS(object)) + ")";
+                    representation = object.toString() + " (" + StringOperations.getJavaString(callToS(object)) + ")";
                 } else {
                     representation = object.toString();
                 }

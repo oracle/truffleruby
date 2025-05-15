@@ -103,7 +103,7 @@ public final class RubySymbol extends ImmutableRubyObjectNotCopyable implements 
 
     public ImmutableRubyString getName(RubyLanguage language) {
         if (name == null) {
-            name = language.getFrozenStringLiteral(tstring, encoding);
+            name = language.getImmutableString(tstring, encoding);
         }
         return name;
     }

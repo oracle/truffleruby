@@ -10,7 +10,7 @@
 package org.truffleruby.core.exception;
 
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.language.RubyGuards;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -50,7 +50,7 @@ public final class RubySyntaxError extends RubyException {
     @ExportMessage
     public boolean isExceptionIncompleteSource() {
         if (RubyStringLibrary.isRubyStringUncached(message)) {
-            String messageString = RubyGuards.getJavaString(message);
+            String messageString = StringOperations.getJavaString(message);
             return messageString.endsWith(" unexpected end-of-file") ||
                     messageString.endsWith(" meets end of file");
         } else {

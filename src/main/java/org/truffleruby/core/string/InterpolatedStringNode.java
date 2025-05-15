@@ -24,7 +24,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
 
-    @Child private StringNodes.StringAppendPrimitiveNode appendNode;
+    @Child private StringPrimitiveNodes.StringAppendPrimitiveNode appendNode;
 
     private final RubyEncoding encoding;
     private final TruffleString emptyTString;
@@ -56,7 +56,7 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     private RubyString executeStringAppend(RubyString builder, Object string) {
         if (appendNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            appendNode = insert(StringNodesFactory.StringAppendPrimitiveNodeFactory.create(null));
+            appendNode = insert(StringPrimitiveNodesFactory.StringAppendPrimitiveNodeFactory.create(null));
         }
         return appendNode.executeStringAppend(builder, string);
     }

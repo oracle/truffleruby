@@ -21,34 +21,33 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-// TODO: should rename to ImmutableStrings
-public final class FrozenStringLiterals {
+public final class ImmutableStrings {
 
     private static final List<ImmutableRubyString> STRINGS_TO_CACHE = new ArrayList<>();
 
     private final TStringCache tstringCache;
     private final WeakValueCache<TStringWithEncoding, ImmutableRubyString> values = new WeakValueCache<>();
 
-    public FrozenStringLiterals(TStringCache tStringCache) {
+    public ImmutableStrings(TStringCache tStringCache) {
         this.tstringCache = tStringCache;
         for (ImmutableRubyString name : STRINGS_TO_CACHE) {
-            addFrozenStringToCache(name);
+            addToCache(name);
         }
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
-        return getFrozenStringLiteral(
+    public ImmutableRubyString get(TruffleString tstring, RubyEncoding encoding) {
+        return get(
                 tstring.getInternalByteArrayUncached(encoding.tencoding),
                 TStringUtils.hasImmutableInternalByteArray(tstring),
                 encoding);
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(InternalByteArray byteArray, boolean isImmutable,
+    public ImmutableRubyString get(InternalByteArray byteArray, boolean isLookupKeyImmutable,
             RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
-        var cachedTString = tstringCache.getTString(byteArray, isImmutable, encoding);
+        var cachedTString = tstringCache.getTString(byteArray, isLookupKeyImmutable, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
 
         final ImmutableRubyString string = values.get(tstringWithEncoding);
@@ -60,7 +59,7 @@ public final class FrozenStringLiterals {
     }
 
     @TruffleBoundary
-    public ImmutableRubyString getFrozenStringLiteral(byte[] bytes, RubyEncoding encoding) {
+    public ImmutableRubyString get(byte[] bytes, RubyEncoding encoding) {
         // Ensure all ImmutableRubyString have a TruffleString from the TStringCache
         var cachedTString = tstringCache.getTString(bytes, encoding);
         var tstringWithEncoding = new TStringWithEncoding(cachedTString, encoding);
@@ -73,7 +72,7 @@ public final class FrozenStringLiterals {
         }
     }
 
-    public static ImmutableRubyString createStringAndCacheLater(TruffleString name,
+    public static ImmutableRubyString createAndCacheLater(TruffleString name,
             RubyEncoding encoding) {
         final ImmutableRubyString string = new ImmutableRubyString(name, encoding);
         assert !STRINGS_TO_CACHE.contains(string);
@@ -81,7 +80,7 @@ public final class FrozenStringLiterals {
         return string;
     }
 
-    private void addFrozenStringToCache(ImmutableRubyString string) {
+    private void addToCache(ImmutableRubyString string) {
         var encoding = string.getEncodingUncached();
         var cachedTString = tstringCache.getTString(string.tstring, encoding);
         assert cachedTString == string.tstring;
@@ -89,12 +88,12 @@ public final class FrozenStringLiterals {
         final ImmutableRubyString existing = values.addInCacheIfAbsent(tstringWithEncoding, string);
         if (existing != string) {
             throw CompilerDirectives
-                    .shouldNotReachHere("Duplicate ImmutableRubyString in FrozenStringLiterals: " + existing);
+                    .shouldNotReachHere("Duplicate ImmutableRubyString in ImmutableStrings: " + existing);
         }
     }
 
     @TruffleBoundary
-    public Collection<ImmutableRubyString> allFrozenStrings() {
+    public Collection<ImmutableRubyString> all() {
         return values.values();
     }
 

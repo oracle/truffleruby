@@ -765,7 +765,7 @@ public final class RubyContext {
     }
 
     public void initializeMainScriptName(String mainScriptName) {
-        ImmutableRubyString mainScriptString = language.getFrozenStringLiteral(TStringUtils.utf8TString(mainScriptName),
+        ImmutableRubyString mainScriptString = language.getImmutableString(TStringUtils.utf8TString(mainScriptName),
                 Encodings.UTF_8);
 
         int index = language.getGlobalVariableIndex("$0");

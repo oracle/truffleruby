@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
@@ -34,6 +35,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringHelperNodes;
@@ -419,6 +421,7 @@ public abstract class TimeNodes {
 
     @Primitive(name = "time_strftime")
     @ReportPolymorphism // inline cache
+    @ImportStatic(StringOperations.class)
     public abstract static class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(

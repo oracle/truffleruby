@@ -43,8 +43,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 
 import java.util.Objects;
 
-/** All ImmutableRubyString are interned and must be created through
- * {@link FrozenStringLiterals#getFrozenStringLiteral}. */
+/** All ImmutableRubyString are interned and must be created through {@link ImmutableStrings#get}. */
 @ExportLibrary(InteropLibrary.class)
 public final class ImmutableRubyString extends ImmutableRubyObjectCopyable
         implements TruffleObject, DetailedInspectingSupport {

@@ -21,7 +21,7 @@ import org.graalvm.shadowed.org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.core.string.FrozenStringLiterals;
+import org.truffleruby.core.string.ImmutableStrings;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.ImmutableRubyObjectNotCopyable;
 import org.truffleruby.core.string.TStringConstants;
@@ -79,7 +79,7 @@ public final class RubyEncoding extends ImmutableRubyObjectNotCopyable
         this.jcoding = Objects.requireNonNull(USASCIIEncoding.INSTANCE);
         this.tencoding = Objects.requireNonNull(TruffleString.Encoding.US_ASCII);
         this.name = Objects.requireNonNull(
-                FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII, this));
+                ImmutableStrings.createAndCacheLater(TStringConstants.US_ASCII, this));
         this.index = index;
 
         var jcoding = this.jcoding;

@@ -14,11 +14,11 @@ import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.annotations.CoreModule;
 import org.truffleruby.annotations.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.time.GetTimeZoneNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 @CoreModule(value = "Truffle::POSIX", isClass = true)
@@ -38,7 +38,7 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = "libEnvVar.isRubyString(this, envVar)", limit = "1")
         Object invalidate(Object envVar,
                 @Cached RubyStringLibrary libEnvVar) {
-            invalidateENV(RubyGuards.getJavaString(envVar));
+            invalidateENV(StringOperations.getJavaString(envVar));
             return envVar;
         }
 

@@ -35,11 +35,11 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringGuards;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -446,7 +446,7 @@ public abstract class EncodingNodes {
         @TruffleBoundary
         @Specialization
         Object getDefaultEncoding(Object name) {
-            final RubyEncoding encoding = getEncoding(RubyGuards.getJavaString(name));
+            final RubyEncoding encoding = getEncoding(StringOperations.getJavaString(name));
             if (encoding == null) {
                 return nil;
             } else {

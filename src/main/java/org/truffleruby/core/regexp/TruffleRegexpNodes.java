@@ -69,7 +69,7 @@ import org.truffleruby.core.string.StringHelperNodes.StringToTruffleStringInplac
 import org.truffleruby.core.string.TStringBuilder;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
+import org.truffleruby.core.string.StringPrimitiveNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.InteropNodes;
@@ -77,7 +77,6 @@ import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.LazyWarnNode;
 import org.truffleruby.language.PerformanceWarningNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.DeferredRaiseException;
 import org.truffleruby.language.control.RaiseException;
@@ -255,7 +254,7 @@ public abstract class TruffleRegexpNodes {
 
         @TruffleBoundary
         private static String getEncodingName(RubyEncoding matchStringEncoding) {
-            return RubyGuards.getJavaString(matchStringEncoding.name);
+            return StringOperations.getJavaString(matchStringEncoding.name);
         }
     }
 

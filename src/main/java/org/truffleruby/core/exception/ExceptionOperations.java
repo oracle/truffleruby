@@ -20,9 +20,9 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -108,7 +108,7 @@ public abstract class ExceptionOperations {
             final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (RubyStringLibrary.isRubyStringUncached(message)) {
-            return RubyGuards.getJavaString(message);
+            return StringOperations.getJavaString(message);
         } else {
             return message.toString();
         }
@@ -123,7 +123,7 @@ public abstract class ExceptionOperations {
             // Fall back to the internal message field
         }
         if (messageObject != null && RubyStringLibrary.isRubyStringUncached(messageObject)) {
-            return RubyGuards.getJavaString(messageObject);
+            return StringOperations.getJavaString(messageObject);
         } else {
             return messageFieldToString(exception);
         }

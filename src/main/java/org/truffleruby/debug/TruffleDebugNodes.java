@@ -60,6 +60,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringWithEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager;
@@ -72,7 +73,6 @@ import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -125,7 +125,7 @@ public abstract class TruffleDebugNodes {
                 @Cached RubyStringLibrary strings) {
             final String javaString;
             if (strings.isRubyString(this, string)) {
-                javaString = RubyGuards.getJavaString(string);
+                javaString = StringOperations.getJavaString(string);
             } else {
                 javaString = string.toString();
             }
@@ -175,7 +175,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(this, file)", limit = "1")
         RubyHandle setBreak(Object file, int line, RubyProc block,
                 @Cached RubyStringLibrary strings) {
-            final String fileString = RubyGuards.getJavaString(file);
+            final String fileString = StringOperations.getJavaString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
                     .newBuilder()
@@ -259,7 +259,7 @@ public abstract class TruffleDebugNodes {
                 @Bind Node node,
                 @Cached RubyStringLibrary strings,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
+            var codeString = new TStringWithEncoding(StringOperations.asTruffleStringUncached(code),
                     RubyStringLibrary.getUncached().getEncoding(node, code));
 
             var rubySource = createRubySource(codeString);
@@ -289,7 +289,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         Object profileTranslator(Object code, int repeat) {
-            var codeString = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(code),
+            var codeString = new TStringWithEncoding(StringOperations.asTruffleStringUncached(code),
                     RubyStringLibrary.getUncached().getEncoding(this, code));
 
             var rubySource = ParseASTNode.createRubySource(codeString);
@@ -497,7 +497,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(this, message)", limit = "1")
         Object throwJavaException(Object message,
                 @Cached RubyStringLibrary strings) {
-            callingMethod(RubyGuards.getJavaString(message));
+            callingMethod(StringOperations.getJavaString(message));
             return nil;
         }
 
@@ -524,7 +524,7 @@ public abstract class TruffleDebugNodes {
             var cause1 = new RuntimeException("cause 1", cause2);
             TruffleStackTrace.fillIn(cause2);
             TruffleStackTrace.fillIn(cause1);
-            throw new RuntimeException(RubyGuards.getJavaString(message), cause1);
+            throw new RuntimeException(StringOperations.getJavaString(message), cause1);
         }
 
     }
@@ -536,7 +536,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(this, message)", limit = "1")
         Object throwAssertionError(Object message,
                 @Cached RubyStringLibrary strings) {
-            throw new AssertionError(RubyGuards.getJavaString(message));
+            throw new AssertionError(StringOperations.getJavaString(message));
         }
 
     }
@@ -1180,7 +1180,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(this, string)", limit = "1")
         Object foreignString(Object string,
                 @Cached RubyStringLibrary strings) {
-            return new ForeignString(RubyGuards.getJavaString(string));
+            return new ForeignString(StringOperations.getJavaString(string));
         }
     }
 
@@ -1214,7 +1214,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "strings.isRubyString(this, message)", limit = "1")
         Object foreignException(Object message,
                 @Cached RubyStringLibrary strings) {
-            return new ForeignException(RubyGuards.getJavaString(message));
+            return new ForeignException(StringOperations.getJavaString(message));
         }
     }
 
@@ -1420,9 +1420,9 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         Object parseAndDump(Object sourceCode, Object focusedNodeClassName, int index, boolean mainScript,
                 @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-            String nodeClassNameString = RubyGuards.getJavaString(focusedNodeClassName);
+            String nodeClassNameString = StringOperations.getJavaString(focusedNodeClassName);
 
-            var code = new TStringWithEncoding(RubyGuards.asTruffleStringUncached(sourceCode),
+            var code = new TStringWithEncoding(StringOperations.asTruffleStringUncached(sourceCode),
                     RubyStringLibrary.getUncached().getEncoding(this, sourceCode));
 
             RubyRootNode rootNode = parse(code, mainScript);
@@ -1458,14 +1458,14 @@ public abstract class TruffleDebugNodes {
                 @Bind("arguments.getStore()") Object argumentsStore,
                 @CachedLibrary("parametersStore") ArrayStoreLibrary parametersStores,
                 @CachedLibrary("argumentsStore") ArrayStoreLibrary argumentsStores) {
-            String sourceCodeString = RubyGuards.getJavaString(sourceCode);
+            String sourceCodeString = StringOperations.getJavaString(sourceCode);
 
             String[] names = new String[parameters.size];
             Object[] values = new Object[arguments.size];
 
             for (int i = 0; i < names.length; i++) {
                 Object name = parametersStores.read(parametersStore, i);
-                names[i] = RubyGuards.getJavaString(name);
+                names[i] = StringOperations.getJavaString(name);
             }
 
             for (int i = 0; i < values.length; i++) {

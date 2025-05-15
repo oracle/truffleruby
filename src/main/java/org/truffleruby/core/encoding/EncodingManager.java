@@ -30,7 +30,6 @@ import org.truffleruby.annotations.SuppressFBWarnings;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.EncodingUtils;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -221,7 +220,7 @@ public final class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, byte[] name) {
+    public synchronized RubyEncoding defineDynamicEncoding(Encoding encoding, String name) {
         final int encodingIndex = ENCODING_LIST_BY_ENCODING_INDEX.length;
 
         final RubyEncoding rubyEncoding = Encodings.newRubyEncoding(language, encoding, encodingIndex, name);
@@ -252,8 +251,7 @@ public final class EncodingManager {
             return null;
         }
 
-        final byte[] nameBytes = StringOperations.encodeAsciiBytes(name);
-        return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, nameBytes);
+        return defineDynamicEncoding(Encodings.DUMMY_ENCODING_BASE, name);
     }
 
     public RubyEncoding getLocaleEncoding() {

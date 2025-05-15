@@ -87,10 +87,10 @@ import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.regexp.RegexpTable;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
+import org.truffleruby.core.string.ImmutableStrings;
 import org.truffleruby.core.string.PathToTStringCache;
 import org.truffleruby.core.string.TStringCache;
 import org.truffleruby.core.string.CoreStrings;
-import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.TStringWithEncoding;
@@ -272,7 +272,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final RegexpTable regexpTable;
     public final SymbolTable symbolTable;
     public final KeywordArgumentsDescriptorManager keywordArgumentsDescriptorManager = new KeywordArgumentsDescriptorManager();
-    public final FrozenStringLiterals frozenStringLiterals;
+    public final ImmutableStrings immutableStrings;
 
     // GR-44025: We store the cleanerThread explicitly here to make it a clear image building failure if it would still be set.
     public Thread cleanerThread = null;
@@ -385,7 +385,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         tstringCache = new TStringCache(coreSymbols);
         symbolTable = new SymbolTable(tstringCache, coreSymbols);
         regexpTable = new RegexpTable();
-        frozenStringLiterals = new FrozenStringLiterals(tstringCache);
+        immutableStrings = new ImmutableStrings(tstringCache);
     }
 
     public RubyThread getCurrentThread() {
@@ -877,13 +877,13 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         return allocationReporter;
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(TruffleString tstring, RubyEncoding encoding) {
-        return frozenStringLiterals.getFrozenStringLiteral(tstring, encoding);
+    public ImmutableRubyString getImmutableString(TruffleString tstring, RubyEncoding encoding) {
+        return immutableStrings.get(tstring, encoding);
     }
 
-    public ImmutableRubyString getFrozenStringLiteral(InternalByteArray byteArray, boolean isImmutable,
+    public ImmutableRubyString getImmutableString(InternalByteArray byteArray, boolean isImmutable,
             RubyEncoding encoding) {
-        return frozenStringLiterals.getFrozenStringLiteral(byteArray, isImmutable, encoding);
+        return immutableStrings.get(byteArray, isImmutable, encoding);
     }
 
     public long getNextObjectID() {

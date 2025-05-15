@@ -30,13 +30,13 @@ import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.annotations.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyStringLibrary;
@@ -103,7 +103,7 @@ public abstract class PointerNodes {
                 final Object typedef = getContext()
                         .getTruffleNFI()
                         .resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
-                final int typedefSize = typeSize(RubyGuards.getJavaString(typedef));
+                final int typedefSize = typeSize(StringOperations.getJavaString(typedef));
                 assert typedefSize > 0 : typedef;
                 return typedefSize;
             }

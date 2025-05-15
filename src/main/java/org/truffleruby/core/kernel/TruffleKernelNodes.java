@@ -29,11 +29,11 @@ import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.ReadCallerVariablesIfAvailableNode;
 import org.truffleruby.language.arguments.ReadCallerVariablesNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -84,7 +84,7 @@ public abstract class TruffleKernelNodes {
         boolean load(Object file, Nil wrapModule,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
-            final String feature = RubyGuards.getJavaString(file);
+            final String feature = StringOperations.getJavaString(file);
             final RubySource rubySource = getRubySource(feature);
 
             final DeclarationContext declarationContext = DeclarationContext.topLevel(getContext());
@@ -110,7 +110,7 @@ public abstract class TruffleKernelNodes {
         boolean load(Object file, RubyModule wrapModule,
                 @Cached @Shared RubyStringLibrary strings,
                 @Cached @Shared IndirectCallNode callNode) {
-            final String feature = RubyGuards.getJavaString(file);
+            final String feature = StringOperations.getJavaString(file);
             final RubySource rubySource = getRubySource(feature);
 
             final DeclarationContext declarationContext = DeclarationContext.topLevel(wrapModule);
@@ -324,7 +324,7 @@ public abstract class TruffleKernelNodes {
             final String originalRequire = getContext()
                     .getCoreLibrary()
                     .getOriginalRequires()
-                    .get(RubyGuards.getJavaString(string));
+                    .get(StringOperations.getJavaString(string));
             if (originalRequire == null) {
                 return Nil.INSTANCE;
             } else {

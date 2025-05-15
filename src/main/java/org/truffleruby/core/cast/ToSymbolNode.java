@@ -13,11 +13,13 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.GenerateCached;
 import com.oracle.truffle.api.dsl.GenerateInline;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.InlinedBranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.StringHelperNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -30,6 +32,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 @GenerateUncached
 @GenerateCached
 @GenerateInline(inlineByDefault = true)
+@ImportStatic(StringOperations.class)
 public abstract class ToSymbolNode extends RubyBaseNode {
 
     public final RubySymbol executeCached(Object object) {

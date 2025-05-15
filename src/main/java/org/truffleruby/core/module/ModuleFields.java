@@ -38,6 +38,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodEntry;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.string.ImmutableRubyString;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -477,7 +478,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
         SharedObjects.propagate(context.getLanguageSlow(), rubyModule, value);
 
         final String autoloadPath = autoload
-                ? RubyGuards.getJavaString(value)
+                ? StringOperations.getJavaString(value)
                 : null;
         RubyConstant previous;
         RubyConstant newConstant;
@@ -787,7 +788,7 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private void setName(String name) {
         this.name = name;
         if (hasPartialName()) {
-            this.rubyStringName = languageForSetName.getFrozenStringLiteral(TStringUtils.utf8TString(name),
+            this.rubyStringName = languageForSetName.getImmutableString(TStringUtils.utf8TString(name),
                     Encodings.UTF_8);
         } else {
             this.rubyStringName = null;

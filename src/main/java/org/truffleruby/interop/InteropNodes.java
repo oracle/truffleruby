@@ -204,7 +204,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "strings.isRubyString(this, mimeType)", limit = "1")
         boolean isMimeTypeSupported(RubyString mimeType,
                 @Cached RubyStringLibrary strings) {
-            return getContext().getEnv().isMimeTypeSupported(RubyGuards.getJavaString(mimeType));
+            return getContext().getEnv().isMimeTypeSupported(StringOperations.getJavaString(mimeType));
         }
 
     }
@@ -220,7 +220,7 @@ public abstract class InteropNodes {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
-                        .getPublicTruffleFile(RubyGuards.getJavaString(fileName).intern());
+                        .getPublicTruffleFile(StringOperations.getJavaString(fileName).intern());
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
@@ -234,6 +234,7 @@ public abstract class InteropNodes {
 
     @CoreMethod(names = "eval", onSingleton = true, required = 2, split = Split.ALWAYS)
     @ReportPolymorphism // inline cache
+    @ImportStatic(StringOperations.class)
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
@@ -305,7 +306,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         protected static CallTarget parse(Node node, Object code) {
-            final Source source = Source.newBuilder("nfi", RubyGuards.getJavaString(code), "(eval)").build();
+            final Source source = Source.newBuilder("nfi", StringOperations.getJavaString(code), "(eval)").build();
 
             try {
                 return getContext(node).getEnv().parseInternal(source);
@@ -1780,7 +1781,7 @@ public abstract class InteropNodes {
             TruffleLanguage.Env env = getContext().getEnv();
             try {
                 TruffleFile file = FileLoader.getSafeTruffleFile(getLanguage(), getContext(),
-                        RubyGuards.getJavaString(path));
+                        StringOperations.getJavaString(path));
                 env.addToHostClassPath(file);
                 return true;
             } catch (SecurityException e) {
