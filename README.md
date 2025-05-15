@@ -57,12 +57,12 @@ TruffleRuby aims to:
 
 * Run idiomatic Ruby code faster.
   * TruffleRuby is the [fastest Ruby implementation](https://eregon.me/blog/2022/01/06/benchmarking-cruby-mjit-yjit-jruby-truffleruby.html) for many CPU-intensive benchmarks.
-* Run Ruby code in parallel.
-  * TruffleRuby does not have a global interpreter lock and runs Ruby code in parallel.
+* Run Ruby code and native extensions in parallel.
+  * TruffleRuby does not have a global interpreter lock and runs both Ruby code and [thread-safe native extensions](doc/user/thread-safe-extensions.md) in parallel.
 * Support C extensions.
   * Many C extensions work out of the box, including database drivers.
 * Add fast and low-overhead interoperability with languages like Java, JavaScript, Python and WebAssembly.
-  * Provided by GraalVM, see the [Polyglot documentation](doc/user/polyglot.md).
+  * See the [Polyglot documentation](doc/user/polyglot.md).
 * Provide new tooling, such as debuggers and monitoring, that works across languages.
   * Includes a profiler, debugger, VisualVM, and more. See the [Tools documentation](doc/user/tools.md).
 * Provide all of the above while maintaining very high compatibility with the standard implementation of Ruby.
