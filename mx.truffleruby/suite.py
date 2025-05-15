@@ -932,6 +932,7 @@ suite = {
                             "native/cmake",
                             "native/include",
                             "native/lib/*++*",
+                            "native/share",
                         ],
                     },
                 ],

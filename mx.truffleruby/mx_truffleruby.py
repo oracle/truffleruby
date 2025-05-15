@@ -330,7 +330,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
 # Excluding "native/bin" or "native/bin/*" does not work so we have to list them.
 toolchain_launchers = ['binutil', 'clang', 'clang++', 'clang-cl', 'flang', 'ld']
 sulong_home_excludes = [f"native/bin/graalvm-native-{launcher}" for launcher in toolchain_launchers] + \
-    ['native/cmake', 'native/include', 'native/lib/*++*']
+    ['native/cmake', 'native/include', 'native/lib/*++*', 'native/share']
 standalone_dependencies_common = {
     'LLVM Runtime Core': ('lib/sulong', []),
     'LLVM Runtime Native': ('lib/sulong', sulong_home_excludes),
