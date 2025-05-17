@@ -350,7 +350,17 @@ class Integer < Numeric
   def self.sqrt(n)
     n = Primitive.rb_to_int(n)
     raise Math::DomainError if n.negative?
-    Math.sqrt(n).floor
+    return Math.sqrt(n).floor if n < 0xfffffffffffff
+
+    shift = n.bit_length / 4
+    x = Integer.sqrt(n >> (2 * shift)) << shift
+    x = (x + n / x) / 2
+    xx = x * x
+    while xx > n
+      xx -= 2 * x - 1
+      x -= 1
+    end
+    x
   end
 
   private def upto_internal(val)
