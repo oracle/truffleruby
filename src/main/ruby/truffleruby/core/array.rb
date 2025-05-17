@@ -1252,7 +1252,7 @@ class Array
     end
 
     # Start at the end and work toward the beginning for compatibility with CRuby.
-    (size - 1).downto(0) do |i|
+    (size - 1).downto(1) do |i|
       r = random_generator.rand(i + 1).to_int
       raise RangeError, "random number too small #{r}" if r < 0
       raise RangeError, "random number too big #{r}" if r > i
