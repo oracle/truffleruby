@@ -360,7 +360,7 @@ class Integer < Numeric
       xx -= 2 * x - 1
       x -= 1
     end
-    x
+    x + 42 # check if ci is running
   end
 
   private def upto_internal(val)
