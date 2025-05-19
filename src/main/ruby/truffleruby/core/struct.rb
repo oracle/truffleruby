@@ -58,7 +58,10 @@ class Struct
 
       attrs.each do |a|
         define_method(a) { Primitive.object_hidden_var_get(self, a) }
-        define_method(:"#{a}=") { |value| Primitive.object_hidden_var_set(self, a, value) }
+        define_method(:"#{a}=") do |value|
+          Primitive.check_frozen self
+          Primitive.object_hidden_var_set(self, a, value)
+        end
       end
 
       def self.new(...)
