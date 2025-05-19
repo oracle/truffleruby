@@ -19,7 +19,7 @@ import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
-import org.truffleruby.core.format.convert.ToStringOrDefaultValueNodeGen;
+import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.format.FormatAFloatNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
 import org.truffleruby.core.format.format.FormatEFloatNodeGen;
@@ -32,14 +32,12 @@ import org.truffleruby.core.format.rbsprintf.RBSprintfConfig.FormatArgumentType;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
-import org.truffleruby.core.format.read.array.ReadStringOrDefaultValueNodeGen;
+import org.truffleruby.core.format.read.array.ReadStringNodeGen;
 import org.truffleruby.core.format.read.array.ReadCStringNodeGen;
 import org.truffleruby.core.format.read.array.ReadCValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
-import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.core.string.ImmutableRubyString;
 
 public final class RBSprintfSimpleTreeBuilder {
 
@@ -49,8 +47,6 @@ public final class RBSprintfSimpleTreeBuilder {
     private final RubyEncoding encoding;
 
     public static final int DEFAULT = PrintfSimpleTreeBuilder.DEFAULT;
-
-    private static final ImmutableRubyString EMPTY_STRING = FrozenStrings.EMPTY_US_ASCII;
 
     public RBSprintfSimpleTreeBuilder(List<RBSprintfConfig> configs, Object stringReader, RubyEncoding encoding) {
         this.configs = configs;
@@ -278,25 +274,23 @@ public final class RBSprintfSimpleTreeBuilder {
                         final FormatNode conversionNode;
                         if (config.getFormatArgumentType() == FormatArgumentType.VALUE) {
                             if (config.getAbsoluteArgumentIndex() == null) {
-                                conversionNode = ReadStringOrDefaultValueNodeGen
+                                conversionNode = ReadStringNodeGen
                                         .create(
                                                 true,
                                                 conversionMethodName,
                                                 false,
-                                                EMPTY_STRING,
                                                 config.isPlus(),
                                                 new SourceNode());
                             } else {
-                                conversionNode = ToStringOrDefaultValueNodeGen.create(true, conversionMethodName, false, EMPTY_STRING,
+                                conversionNode = ToStringNodeGen.create(true, conversionMethodName, false,
                                         config.isPlus(), valueNode);
                             }
                         } else {
-                            conversionNode = ToStringOrDefaultValueNodeGen
+                            conversionNode = ToStringNodeGen
                                     .create(
                                             true,
                                             conversionMethodName,
                                             false,
-                                            EMPTY_STRING,
                                             config.isPlus(),
                                             (config.getAbsoluteArgumentIndex() == null)
                                                     ? (ReadCValueNodeGen

@@ -1045,6 +1045,16 @@ describe "C-API String function" do
       @s.rb_sprintf4(true.class).should == s
     end
 
+    it "formats nil using to_s if sign not specified in format" do
+      s = 'Result: .'
+      @s.rb_sprintf3(nil).should == s
+    end
+
+    it "formats nil using inspect if sign specified in format" do
+      s = 'Result: nil.'
+      @s.rb_sprintf4(nil).should == s
+    end
+
     it "truncates a string to a supplied precision if that is shorter than the string" do
       s = 'Result: Hel.'
       @s.rb_sprintf5(0, 3, "Hello").should == s

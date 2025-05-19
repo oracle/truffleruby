@@ -22,7 +22,7 @@ import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
-import org.truffleruby.core.format.convert.ToStringOrDefaultValueNodeGen;
+import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.format.FormatAFloatNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
 import org.truffleruby.core.format.format.FormatEFloatNodeGen;
@@ -34,12 +34,10 @@ import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadHashValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
-import org.truffleruby.core.format.read.array.ReadStringOrDefaultValueNodeGen;
+import org.truffleruby.core.format.read.array.ReadStringNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
-import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.core.string.ImmutableRubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 
 public final class PrintfSimpleTreeBuilder {
@@ -50,8 +48,6 @@ public final class PrintfSimpleTreeBuilder {
     private final RubyEncoding encoding;
 
     public static final int DEFAULT = Integer.MIN_VALUE;
-
-    private static final ImmutableRubyString EMPTY_STRING = FrozenStrings.EMPTY_US_ASCII;
 
     public PrintfSimpleTreeBuilder(RubyLanguage language, List<SprintfConfig> configs, RubyEncoding encoding) {
         this.language = language;
@@ -232,16 +228,15 @@ public final class PrintfSimpleTreeBuilder {
                                 final FormatNode conversionNode;
 
                                 if (config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
-                                    conversionNode = ReadStringOrDefaultValueNodeGen
+                                    conversionNode = ReadStringNodeGen
                                             .create(
                                                     true,
                                                     conversionMethodName,
                                                     false,
-                                                    EMPTY_STRING,
                                                     new SourceNode());
                                 } else {
-                                    conversionNode = ToStringOrDefaultValueNodeGen
-                                            .create(true, conversionMethodName, false, EMPTY_STRING, valueNode);
+                                    conversionNode = ToStringNodeGen
+                                            .create(true, conversionMethodName, false, valueNode);
                                 }
 
                                 if (config.getWidth() != null || config.isWidthStar() ||
