@@ -13,8 +13,8 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
-import org.truffleruby.core.format.convert.ToStringNode;
-import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.convert.ToStringOrDefaultValueNode;
+import org.truffleruby.core.format.convert.ToStringOrDefaultValueNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 
 @NodeChild(value = "source", type = SourceNode.class)
 @ImportStatic(ArrayGuards.class)
-public abstract class ReadStringNode extends FormatNode {
+public abstract class ReadStringOrDefaultValueNode extends FormatNode {
 
     private final boolean convertNumbersToStrings;
     private final String conversionMethod;
@@ -35,9 +35,9 @@ public abstract class ReadStringNode extends FormatNode {
     private final Object valueOnNil;
     private final boolean specialClassBehaviour;
 
-    @Child private ToStringNode toStringNode;
+    @Child private ToStringOrDefaultValueNode toStringOrDefaultValueNode;
 
-    public ReadStringNode(
+    public ReadStringOrDefaultValueNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
@@ -45,7 +45,7 @@ public abstract class ReadStringNode extends FormatNode {
         this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, valueOnNil, false);
     }
 
-    public ReadStringNode(
+    public ReadStringOrDefaultValueNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
@@ -65,9 +65,9 @@ public abstract class ReadStringNode extends FormatNode {
     }
 
     private Object readAndConvert(Object value) {
-        if (toStringNode == null) {
+        if (toStringOrDefaultValueNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStringNode = insert(ToStringNodeGen.create(
+            toStringOrDefaultValueNode = insert(ToStringOrDefaultValueNodeGen.create(
                     convertNumbersToStrings,
                     conversionMethod,
                     inspectOnConversionFailure,
@@ -76,7 +76,7 @@ public abstract class ReadStringNode extends FormatNode {
                     WriteByteNodeGen.create(new LiteralFormatNode((byte) 0))));
         }
 
-        return toStringNode.executeToString(value);
+        return toStringOrDefaultValueNode.executeToString(value);
     }
 
 }

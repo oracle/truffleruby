@@ -22,7 +22,7 @@ import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.SharedTreeBuilder;
 import org.truffleruby.core.format.convert.ToNumberWithCoercionNodeGen;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
-import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.convert.ToStringOrDefaultValueNodeGen;
 import org.truffleruby.core.format.format.FormatAFloatNodeGen;
 import org.truffleruby.core.format.format.FormatCharacterNodeGen;
 import org.truffleruby.core.format.format.FormatEFloatNodeGen;
@@ -34,7 +34,7 @@ import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadArgumentIndexValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadHashValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadIntegerNodeGen;
-import org.truffleruby.core.format.read.array.ReadStringNodeGen;
+import org.truffleruby.core.format.read.array.ReadStringOrDefaultValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
@@ -232,7 +232,7 @@ public final class PrintfSimpleTreeBuilder {
                                 final FormatNode conversionNode;
 
                                 if (config.getAbsoluteArgumentIndex() == null && config.getNamesBytes() == null) {
-                                    conversionNode = ReadStringNodeGen
+                                    conversionNode = ReadStringOrDefaultValueNodeGen
                                             .create(
                                                     true,
                                                     conversionMethodName,
@@ -240,7 +240,7 @@ public final class PrintfSimpleTreeBuilder {
                                                     EMPTY_STRING,
                                                     new SourceNode());
                                 } else {
-                                    conversionNode = ToStringNodeGen
+                                    conversionNode = ToStringOrDefaultValueNodeGen
                                             .create(true, conversionMethodName, false, EMPTY_STRING, valueNode);
                                 }
 

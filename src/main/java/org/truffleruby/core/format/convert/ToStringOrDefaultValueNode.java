@@ -35,7 +35,7 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
 @NodeChild("value")
-public abstract class ToStringNode extends FormatNode {
+public abstract class ToStringOrDefaultValueNode extends FormatNode {
 
     protected final boolean convertNumbersToStrings;
     private final String conversionMethod;
@@ -47,7 +47,7 @@ public abstract class ToStringNode extends FormatNode {
     @Child private DispatchNode toSNode;
     @Child private KernelNodes.ToSNode inspectNode;
 
-    public ToStringNode(
+    public ToStringOrDefaultValueNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
@@ -55,7 +55,7 @@ public abstract class ToStringNode extends FormatNode {
         this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, valueOnNil, false);
     }
 
-    public ToStringNode(
+    public ToStringOrDefaultValueNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
