@@ -11,4 +11,3 @@ exclude :test_ceildiv, "NoMethodError: undefined method `-@' for #<Object:0x578>
 exclude :test_floor, "<-100000000000000000000> expected but was <0>."
 exclude :test_pow, "FloatDomainError: Infinity"
 exclude :test_round, "<300> expected but was <200>."
-exclude :test_square_root, "10**33."
