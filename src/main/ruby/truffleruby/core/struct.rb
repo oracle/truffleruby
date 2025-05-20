@@ -180,6 +180,15 @@ class Struct
       attrs.each_with_index do |attr, i|
         Primitive.object_hidden_var_set self, attr, args[i]
       end
+
+      # treat keyword arguments as a positional one
+      if !kwargs.empty?
+        if args.size < attrs.size
+          Primitive.object_hidden_var_set self, attrs[args.size], kwargs
+        else
+          raise ArgumentError, 'struct size differs'
+        end
+      end
     end
   end
 

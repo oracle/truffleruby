@@ -23,6 +23,7 @@ Compatibility:
 * Fix `Kernel#raise` and don't override `cause` at exception re-raising (#3831, @andrykonchin).
 * Return a pointer with `#type_size` of 1 for `Pointer#read_pointer` (@eregon).
 * Fix `rb_str_locktmp()` and `rb_str_unlocktmp()` to raise `FrozenError` when string argument is frozen (#3752, @andrykonchin).
+* Fix `Struct#initialize` when mixed positional and keyword arguments (#3855, @andrykonchin).
 
 Performance:
 
