@@ -190,6 +190,10 @@ describe "StringIO#gets when passed [separator] and [limit]" do
     @io.gets('>', 5).should == "examp"
   end
 
+  it "truncates the multi-character separator at the end to meet the limit" do
+    @io.gets("is>an", 7).should == "this>is"
+  end
+
   it "sets $_ to the read content" do
     @io.gets('>', 8)
     $_.should == "this>"

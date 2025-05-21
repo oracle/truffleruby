@@ -148,3 +148,61 @@ describe "StringIO#readline when passed [limit]" do
     @io.readline(-4).should == "this>is>an>example"
   end
 end
+
+describe "StringIO#readline when passed [separator] and [limit]" do
+  before :each do
+    @io = StringIO.new("this>is>an>example")
+  end
+
+  it "returns the data read until the limit is consumed or the separator is met" do
+    @io.readline('>', 8).should == "this>"
+    @io.readline('>', 2).should == "is"
+    @io.readline('>', 10).should == ">"
+    @io.readline('>', 6).should == "an>"
+    @io.readline('>', 5).should == "examp"
+  end
+
+  it "truncates the multi-character separator at the end to meet the limit" do
+    @io.readline("is>an", 7).should == "this>is"
+  end
+
+  it "sets $_ to the read content" do
+    @io.readline('>', 8)
+    $_.should == "this>"
+    @io.readline('>', 2)
+    $_.should == "is"
+    @io.readline('>', 10)
+    $_.should == ">"
+    @io.readline('>', 6)
+    $_.should == "an>"
+    @io.readline('>', 5)
+    $_.should == "examp"
+  end
+
+  it "updates self's lineno by one" do
+    @io.readline('>', 3)
+    @io.lineno.should eql(1)
+
+    @io.readline('>', 3)
+    @io.lineno.should eql(2)
+
+    @io.readline('>', 3)
+    @io.lineno.should eql(3)
+  end
+
+  it "tries to convert the passed separator to a String using #to_str" do
+    obj = mock('to_str')
+    obj.should_receive(:to_str).and_return('>')
+    @io.readline(obj, 5).should == "this>"
+  end
+
+  it "does not raise TypeError if passed separator is nil" do
+    @io.readline(nil, 5).should == "this>"
+  end
+
+  it "tries to convert the passed limit to an Integer using #to_int" do
+    obj = mock('to_int')
+    obj.should_receive(:to_int).and_return(5)
+    @io.readline('>', obj).should == "this>"
+  end
+end
