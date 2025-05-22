@@ -100,6 +100,15 @@ describe "C-API Exception function" do
     end
   end
 
+  describe "rb_error_frozen_object" do
+    it "raises a FrozenError regardless of the object's frozen state" do
+      # The type of the argument we supply doesn't matter. The choice here is arbitrary and we only change the type
+      # of the argument to ensure the exception messages are set correctly.
+      -> { @s.rb_error_frozen_object(Hash.new) }.should raise_error(FrozenError, "can't modify frozen Hash")
+      -> { @s.rb_error_frozen_object(Array.new.freeze) }.should raise_error(FrozenError, "can't modify frozen Array")
+    end
+  end
+
   describe "rb_syserr_new" do
     it "returns system error with default message when passed message is NULL" do
       exception = @s.rb_syserr_new(Errno::ENOENT::Errno, nil)
