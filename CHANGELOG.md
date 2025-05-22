@@ -24,6 +24,7 @@ Compatibility:
 * Return a pointer with `#type_size` of 1 for `Pointer#read_pointer` (@eregon).
 * Fix `rb_str_locktmp()` and `rb_str_unlocktmp()` to raise `FrozenError` when string argument is frozen (#3752, @andrykonchin).
 * Fix Struct setters to raise `FrozenError` when a struct is frozen (#3850, @andrykonchin).
+* Fix `Struct#initialize` when mixed positional and keyword arguments (#3855, @andrykonchin).
 
 Performance:
 
