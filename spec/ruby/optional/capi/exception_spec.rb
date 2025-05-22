@@ -100,6 +100,13 @@ describe "C-API Exception function" do
     end
   end
 
+  describe "rb_error_frozen_object" do
+    it "raises a FrozenError regardless of the object's frozen state" do
+      -> { @s.rb_error_frozen_object(Object.new) }.should raise_error(FrozenError)
+      -> { @s.rb_error_frozen_object(Object.new.freeze) }.should raise_error(FrozenError)
+    end
+  end
+
   describe "rb_syserr_new" do
     it "returns system error with default message when passed message is NULL" do
       exception = @s.rb_syserr_new(Errno::ENOENT::Errno, nil)
