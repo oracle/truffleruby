@@ -27,6 +27,7 @@ Compatibility:
 * Fix Struct setters to raise `FrozenError` when a struct is frozen (#3850, @andrykonchin).
 * Fix `Struct#initialize` when mixed positional and keyword arguments (#3855, @andrykonchin).
 * Implement `rb_error_frozen_object` for the google-protobuf gem (@nirvdrum).
+* Adjust a `FrozenError`'s message and add a receiver when a frozen module or class is modified (e.g. by defining or undefining an instance method or by defining a nested module (@andrykonchin).
 
 Performance:
 

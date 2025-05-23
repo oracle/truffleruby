@@ -104,8 +104,19 @@ describe "C-API Exception function" do
     it "raises a FrozenError regardless of the object's frozen state" do
       # The type of the argument we supply doesn't matter. The choice here is arbitrary and we only change the type
       # of the argument to ensure the exception messages are set correctly.
-      -> { @s.rb_error_frozen_object(Hash.new) }.should raise_error(FrozenError, "can't modify frozen Hash")
-      -> { @s.rb_error_frozen_object(Array.new.freeze) }.should raise_error(FrozenError, "can't modify frozen Array")
+      -> { @s.rb_error_frozen_object(Array.new) }.should raise_error(FrozenError, "can't modify frozen Array: []")
+      -> { @s.rb_error_frozen_object(Array.new.freeze) }.should raise_error(FrozenError, "can't modify frozen Array: []")
+    end
+
+    it "properly handles recursive rb_error_frozen_object calls" do
+      klass = Class.new(Object)
+      object = klass.new
+      s = @s
+      klass.define_method :inspect do
+        s.rb_error_frozen_object(object)
+      end
+
+      -> { @s.rb_error_frozen_object(object) }.should raise_error(FrozenError, "can't modify frozen #{klass}:  ...")
     end
   end
 

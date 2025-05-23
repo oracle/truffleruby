@@ -304,8 +304,14 @@ public final class CoreExceptions {
                 object);
     }
 
+    public RubyException frozenError(Object object, String name, Node currentNode) {
+        String string = inspectFrozenObject(object);
+        return frozenError(StringUtils.format("can't modify frozen %s: %s", name, string), currentNode,
+                object);
+    }
+
     @TruffleBoundary
-    public RubyException frozenError(String message, Node currentNode, Object receiver) {
+    private RubyException frozenError(String message, Node currentNode, Object receiver) {
         RubyClass exceptionClass = context.getCoreLibrary().frozenErrorClass;
         RubyString errorMessage = StringOperations.createUTF8String(context, language, message);
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
