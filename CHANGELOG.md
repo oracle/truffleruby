@@ -26,6 +26,7 @@ Compatibility:
 * Fix Struct setters to raise `FrozenError` when a struct is frozen (#3850, @andrykonchin).
 * Fix `Struct#initialize` when mixed positional and keyword arguments (#3855, @andrykonchin).
 * Fix `Integer.sqrt` for large values (#3872, @tompng).
+* Fix `Data#inspect` when data contains a recursive attribute (#3847, @andrykonchin).
 
 Performance:
 

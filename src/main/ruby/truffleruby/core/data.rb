@@ -140,15 +140,20 @@ class Data
 
       def inspect
         klass = Primitive.class(self)
-        class_name = Primitive.module_anonymous?(klass) ? '' : "#{Primitive.module_name(klass)} "
-        members_and_values = to_h.map do |member, value|
-          if Truffle::CExt.rb_is_local_id(member) or Truffle::CExt.rb_is_const_id(member)
-            "#{member}=#{value.inspect}"
-          else
-            "#{member.inspect}=#{value.inspect}"
+
+        return "#<data #{klass}:...>" if Truffle::ThreadOperations.detect_recursion(self) do
+          class_name = Primitive.module_anonymous?(klass) ? nil : Primitive.module_name(klass)
+
+          members_and_values = to_h.map do |member, value|
+            if Truffle::CExt.rb_is_local_id(member) or Truffle::CExt.rb_is_const_id(member)
+              "#{member}=#{value.inspect}"
+            else
+              "#{member.inspect}=#{value.inspect}"
+            end
           end
+
+          return "#<data #{class_name}#{' ' if class_name}#{members_and_values.join(', ')}>"
         end
-        "#<data #{class_name}#{members_and_values.join(', ')}>"
       end
       alias_method :to_s, :inspect
 
