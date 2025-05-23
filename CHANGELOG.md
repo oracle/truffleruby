@@ -7,6 +7,7 @@ Bug fixes:
 
 * Fix `Range#cover?` on begin-less ranges and non-integer values (@nirvdrum, @rwstauner).
 * Fix `Time.new` with String argument and handle nanoseconds correctly (#3836, @andrykonchin).
+* Fix a possible case of infinite recursion when implementing `frozen?` in a native extension (@nirvdrum).
 
 Compatibility:
 
@@ -25,6 +26,7 @@ Compatibility:
 * Fix `rb_str_locktmp()` and `rb_str_unlocktmp()` to raise `FrozenError` when string argument is frozen (#3752, @andrykonchin).
 * Fix Struct setters to raise `FrozenError` when a struct is frozen (#3850, @andrykonchin).
 * Fix `Struct#initialize` when mixed positional and keyword arguments (#3855, @andrykonchin).
+* Implement `rb_error_frozen_object` for the google-protobuf gem (@nirvdrum).
 
 Performance:
 

@@ -161,6 +161,15 @@ public abstract class TypeNodes {
         }
     }
 
+    @Primitive(name = "frozen?")
+    public abstract static class IsFrozenPrimitive extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        boolean isFrozen(Object self,
+                @Cached IsFrozenNode isFrozenNode) {
+            return isFrozenNode.execute(self);
+        }
+    }
+
     @Primitive(name = "immediate_value?")
     public abstract static class IsImmediateValueNode extends PrimitiveArrayArgumentsNode {
 
