@@ -3868,16 +3868,13 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         if (parametersNode.block != null) {
-            final String name;
-
             if (parametersNode.block.name == null) {
                 // def a(&) ... end
-                name = DEFAULT_BLOCK_NAME;
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonblock, DEFAULT_BLOCK_NAME));
             } else {
-                name = parametersNode.block.name;
+                var descriptor = new ArgumentDescriptor(ArgumentType.block, parametersNode.block.name);
+                descriptors.add(descriptor);
             }
-
-            descriptors.add(new ArgumentDescriptor(ArgumentType.block, name));
         }
 
         return descriptors.toArray(ArgumentDescriptor.EMPTY_ARRAY);

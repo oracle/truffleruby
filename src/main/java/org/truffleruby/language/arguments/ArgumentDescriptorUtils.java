@@ -55,12 +55,13 @@ public final class ArgumentDescriptorUtils {
             store = new Object[]{ typeSymbol, language.coreSymbols.MULTIPLY };
         } else if (argType == ArgumentType.anonkeyrest) {
             store = new Object[]{ typeSymbol, language.coreSymbols.POW };
+        } else if (argType == ArgumentType.anonblock) {
+            store = new Object[]{ typeSymbol, language.coreSymbols.AMPERSAND };
         } else if (argType == ArgumentType.rest && name.equals(FORWARDED_REST_NAME)) {
             store = new Object[]{ typeSymbol, language.coreSymbols.MULTIPLY };
         } else if (argType == ArgumentType.keyrest && name.equals(FORWARDED_KEYWORD_REST_NAME)) {
             store = new Object[]{ typeSymbol, language.coreSymbols.POW };
-        } else if (argType == ArgumentType.block &&
-                (name.equals(FORWARDED_BLOCK_NAME) || name.equals(DEFAULT_BLOCK_NAME))) {
+        } else if (argType == ArgumentType.block && name.equals(FORWARDED_BLOCK_NAME)) {
             store = new Object[]{ typeSymbol, language.coreSymbols.AMPERSAND };
         } else if (argType.anonymous || name == null) {
             store = new Object[]{ typeSymbol };
