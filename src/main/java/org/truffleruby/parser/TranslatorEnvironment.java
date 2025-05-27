@@ -63,9 +63,6 @@ public final class TranslatorEnvironment {
     /** local variable name for & parameter caused by desugaring ... parameter (forward-everything) */
     public static final String FORWARDED_BLOCK_NAME = Layouts.TEMP_PREFIX + "forward_block";
 
-    /** A prefix for duplicated '_' local variables to build unique names */
-    public static final String UNDERSCORE_PREFIX = "_$";
-
     private final ParseEnvironment parseEnvironment;
 
     private EconomicMap<Object, Integer> nameToIndex = EconomicMap.create();

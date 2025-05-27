@@ -3856,9 +3856,9 @@ public class YARPTranslator extends YARPBaseTranslator {
                 }
             } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
                 // ... => *, **, &
-                descriptors.add(new ArgumentDescriptor(ArgumentType.rest, FORWARDED_REST_NAME));
-                descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, FORWARDED_KEYWORD_REST_NAME));
-                descriptors.add(new ArgumentDescriptor(ArgumentType.block, FORWARDED_BLOCK_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonrest, FORWARDED_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonkeyrest, FORWARDED_KEYWORD_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonblock, FORWARDED_BLOCK_NAME));
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
                 final var descriptor = new ArgumentDescriptor(ArgumentType.nokey);
                 descriptors.add(descriptor);
