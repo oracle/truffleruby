@@ -31,6 +31,7 @@ Compatibility:
 * Fix `StringIO#{gets,readline}` when it is called with both separator and limit to truncate the separator if the limit is exceeded (#3856, @andrykonchin).
 * Implement `rb_error_frozen_object` for the google-protobuf gem (@nirvdrum).
 * Adjust a `FrozenError`'s message and add a receiver when a frozen module or class is modified (e.g. by defining or undefining an instance method or by defining a nested module (@andrykonchin).
+* Fix `Kernel#sprintf` and `%p` format specification to produce `"nil"` for `nil` argument (#3846, @andrykonchin).
 
 Performance:
 

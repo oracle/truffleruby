@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2015, 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -12,8 +12,8 @@ package org.truffleruby.core.format.read.array;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.convert.ToStringNode;
-import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.convert.ToStringOrDefaultValueNode;
+import org.truffleruby.core.format.convert.ToStringOrDefaultValueNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -25,30 +25,34 @@ import com.oracle.truffle.api.library.CachedLibrary;
 
 @NodeChild(value = "source", type = SourceNode.class)
 @ImportStatic(ArrayGuards.class)
-public abstract class ReadStringNode extends FormatNode {
+public abstract class ReadStringOrDefaultValueNode extends FormatNode {
 
     private final boolean convertNumbersToStrings;
     private final String conversionMethod;
     private final boolean inspectOnConversionFailure;
+    private final Object valueOnNil;
     private final boolean specialClassBehaviour;
 
-    @Child private ToStringNode toStringNode;
+    @Child private ToStringOrDefaultValueNode toStringOrDefaultValueNode;
 
-    public ReadStringNode(
-            boolean convertNumbersToStrings,
-            String conversionMethod,
-            boolean inspectOnConversionFailure) {
-        this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, false);
-    }
-
-    public ReadStringNode(
+    public ReadStringOrDefaultValueNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
+            Object valueOnNil) {
+        this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, valueOnNil, false);
+    }
+
+    public ReadStringOrDefaultValueNode(
+            boolean convertNumbersToStrings,
+            String conversionMethod,
+            boolean inspectOnConversionFailure,
+            Object valueOnNil,
             boolean specialClassBehaviour) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
+        this.valueOnNil = valueOnNil;
         this.specialClassBehaviour = specialClassBehaviour;
     }
 
@@ -59,17 +63,18 @@ public abstract class ReadStringNode extends FormatNode {
     }
 
     private Object readAndConvert(Object value) {
-        if (toStringNode == null) {
+        if (toStringOrDefaultValueNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStringNode = insert(ToStringNodeGen.create(
+            toStringOrDefaultValueNode = insert(ToStringOrDefaultValueNodeGen.create(
                     convertNumbersToStrings,
                     conversionMethod,
                     inspectOnConversionFailure,
+                    valueOnNil,
                     specialClassBehaviour,
                     null));
         }
 
-        return toStringNode.executeToString(value);
+        return toStringOrDefaultValueNode.executeToString(value);
     }
 
 }

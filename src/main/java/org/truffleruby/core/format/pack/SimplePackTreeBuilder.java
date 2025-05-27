@@ -36,7 +36,7 @@ import org.truffleruby.core.format.convert.ToStringObjectNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.read.array.ReadDoubleNodeGen;
 import org.truffleruby.core.format.read.array.ReadLongOrBigIntegerNodeGen;
-import org.truffleruby.core.format.read.array.ReadStringNodeGen;
+import org.truffleruby.core.format.read.array.ReadStringOrDefaultValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBERNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBase64StringNodeGen;
@@ -154,7 +154,7 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
         appendNode(WriteUUStringNodeGen.create(
                 starLength.getLength(),
                 starLength.isStar(),
-                ReadStringNodeGen.create(
+                ReadStringOrDefaultValueNodeGen.create(
                         false,
                         "to_str",
                         false,
@@ -180,7 +180,7 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteMIMEStringNodeGen.create(
                 length,
-                ReadStringNodeGen.create(
+                ReadStringOrDefaultValueNodeGen.create(
                         true,
                         "to_s",
                         true,
@@ -197,7 +197,7 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
         appendNode(WriteBase64StringNodeGen.create(
                 starLength.getLength(),
                 starLength.isStar(),
-                ReadStringNodeGen.create(
+                ReadStringOrDefaultValueNodeGen.create(
                         false,
                         "to_str",
                         false,
@@ -383,7 +383,7 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
                 padding,
                 takeAll,
                 appendNull,
-                ReadStringNodeGen.create(
+                ReadStringOrDefaultValueNodeGen.create(
                         false,
                         "to_str",
                         false,
@@ -399,7 +399,7 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
                 byteOrder,
                 starLength.isStar(),
                 starLength.getLength(),
-                ReadStringNodeGen.create(
+                ReadStringOrDefaultValueNodeGen.create(
                         false,
                         "to_str",
                         false,
@@ -421,7 +421,7 @@ public final class SimplePackTreeBuilder implements SimplePackListener {
         appendNode(WriteHexStringNodeGen.create(
                 byteOrder,
                 length,
-                ReadStringNodeGen.create(
+                ReadStringOrDefaultValueNodeGen.create(
                         false,
                         "to_str",
                         false,

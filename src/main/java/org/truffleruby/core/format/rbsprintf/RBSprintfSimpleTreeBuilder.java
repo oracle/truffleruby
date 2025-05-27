@@ -38,8 +38,6 @@ import org.truffleruby.core.format.read.array.ReadCValueNodeGen;
 import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
-import org.truffleruby.core.string.FrozenStrings;
-import org.truffleruby.core.string.ImmutableRubyString;
 
 public final class RBSprintfSimpleTreeBuilder {
 
@@ -49,8 +47,6 @@ public final class RBSprintfSimpleTreeBuilder {
     private final RubyEncoding encoding;
 
     public static final int DEFAULT = PrintfSimpleTreeBuilder.DEFAULT;
-
-    private static final ImmutableRubyString EMPTY_STRING = FrozenStrings.EMPTY_US_ASCII;
 
     public RBSprintfSimpleTreeBuilder(List<RBSprintfConfig> configs, Object stringReader, RubyEncoding encoding) {
         this.configs = configs;
@@ -283,11 +279,10 @@ public final class RBSprintfSimpleTreeBuilder {
                                                 true,
                                                 conversionMethodName,
                                                 false,
-                                                EMPTY_STRING,
                                                 config.isPlus(),
                                                 new SourceNode());
                             } else {
-                                conversionNode = ToStringNodeGen.create(true, conversionMethodName, false, EMPTY_STRING,
+                                conversionNode = ToStringNodeGen.create(true, conversionMethodName, false,
                                         config.isPlus(), valueNode);
                             }
                         } else {
@@ -296,7 +291,6 @@ public final class RBSprintfSimpleTreeBuilder {
                                             true,
                                             conversionMethodName,
                                             false,
-                                            EMPTY_STRING,
                                             config.isPlus(),
                                             (config.getAbsoluteArgumentIndex() == null)
                                                     ? (ReadCValueNodeGen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2025 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2025 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,12 +9,10 @@
  */
 package org.truffleruby.core.format.convert;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 import java.nio.charset.StandardCharsets;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
-import com.oracle.truffle.api.strings.TruffleString;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.Encodings;
 import org.truffleruby.core.format.FormatNode;
@@ -23,16 +21,17 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.TStringConstants;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.library.RubyStringLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.library.RubyStringLibrary;
-
-import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeChild("value")
 public abstract class ToStringNode extends FormatNode {
@@ -40,7 +39,6 @@ public abstract class ToStringNode extends FormatNode {
     protected final boolean convertNumbersToStrings;
     private final String conversionMethod;
     private final boolean inspectOnConversionFailure;
-    private final Object valueOnNil;
     protected final boolean specialClassBehaviour;
 
     @Child private DispatchNode toStrNode;
@@ -50,31 +48,22 @@ public abstract class ToStringNode extends FormatNode {
     public ToStringNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
-            boolean inspectOnConversionFailure,
-            Object valueOnNil) {
-        this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, valueOnNil, false);
+            boolean inspectOnConversionFailure) {
+        this(convertNumbersToStrings, conversionMethod, inspectOnConversionFailure, false);
     }
 
     public ToStringNode(
             boolean convertNumbersToStrings,
             String conversionMethod,
             boolean inspectOnConversionFailure,
-            Object valueOnNil,
             boolean specialClassBehaviour) {
         this.convertNumbersToStrings = convertNumbersToStrings;
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
-
-        this.valueOnNil = valueOnNil;
         this.specialClassBehaviour = specialClassBehaviour;
     }
 
     public abstract Object executeToString(Object object);
-
-    @Specialization
-    Object toStringNil(Nil nil) {
-        return valueOnNil;
-    }
 
     @Specialization(guards = "convertNumbersToStrings")
     RubyString toString(long value,
