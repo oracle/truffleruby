@@ -27,6 +27,7 @@ Compatibility:
 * Fix `Struct#initialize` when mixed positional and keyword arguments (#3855, @andrykonchin).
 * Fix `Integer.sqrt` for large values (#3872, @tompng).
 * Fix `Data#inspect` when data contains a recursive attribute (#3847, @andrykonchin).
+* Fix `StringIO#{gets,readline}` when it is called with both separator and limit to truncate the separator if the limit is exceeded (#3856, @andrykonchin).
 
 Performance:
 

@@ -779,7 +779,7 @@ class StringIO
         end
       else
         if stop = Primitive.find_string(string, sep, pos)
-          if limit && stop - pos >= limit
+          if limit && stop - pos + sep.bytesize >= limit
             stop = pos + limit
           else
             stop += sep.bytesize
