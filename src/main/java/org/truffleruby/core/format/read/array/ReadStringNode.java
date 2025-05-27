@@ -12,11 +12,9 @@ package org.truffleruby.core.format.read.array;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.LiteralFormatNode;
 import org.truffleruby.core.format.convert.ToStringNode;
 import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -68,7 +66,7 @@ public abstract class ReadStringNode extends FormatNode {
                     conversionMethod,
                     inspectOnConversionFailure,
                     specialClassBehaviour,
-                    WriteByteNodeGen.create(new LiteralFormatNode((byte) 0))));
+                    null));
         }
 
         return toStringNode.executeToString(value);
