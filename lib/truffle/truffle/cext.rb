@@ -477,7 +477,7 @@ module Truffle::CExt
   end
 
   def rb_obj_frozen_p(object)
-    object.frozen?
+    Primitive.frozen?(object)
   end
 
   def rb_obj_id(object)
@@ -2372,6 +2372,19 @@ module Truffle::CExt
     else
       cmd.call(*args)
     end
+  end
+
+  def rb_error_frozen_object(object)
+    string = nil
+    recursion = Truffle::ThreadOperations.detect_recursion object do
+      string = object.inspect
+    end
+
+    if recursion
+      string = ' ...'
+    end
+
+    raise FrozenError.new("can't modify frozen #{Primitive.class(object)}: #{string}", receiver: object)
   end
 
   def rb_tr_warn(message)

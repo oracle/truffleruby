@@ -290,9 +290,9 @@ public final class ModuleFields extends ModuleChain implements ObjectGraphNode {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().frozenError(
-                            StringUtils.format("can't modify frozen %s", name),
-                            currentNode,
-                            receiver));
+                            receiver,
+                            name,
+                            currentNode));
         }
     }
 

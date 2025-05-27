@@ -61,6 +61,11 @@ VALUE rb_errinfo(void) {
   return RUBY_CEXT_INVOKE("rb_errinfo");
 }
 
+void rb_error_frozen_object(VALUE frozen_obj) {
+    RUBY_CEXT_INVOKE_NO_WRAP("rb_error_frozen_object", frozen_obj);
+    UNREACHABLE;
+}
+
 void rb_syserr_fail(int eno, const char *message) {
   VALUE messageValue = (message == NULL) ? Qnil : rb_str_new_cstr(message);
   polyglot_invoke(RUBY_CEXT, "rb_syserr_fail", eno, rb_tr_unwrap(messageValue));
