@@ -50,6 +50,7 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
     public Object backtraceLocations = null;
     /** null (not set), RubyArray of Strings, or nil (empty) */
     public Object customBacktrace = null;
+    public boolean usedAsACause = false;
 
     public RubyException(RubyClass rubyClass, Shape shape, Object message, Backtrace backtrace, Object cause) {
         super(rubyClass, shape);
