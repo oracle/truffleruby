@@ -1,4 +1,4 @@
-DYNAMIC_IMPORTS=/tools,/graal-enterprise,/truffle-enterprise,/sulong-managed,/substratevm-enterprise,substratevm-enterprise-gcs
+DYNAMIC_IMPORTS=/tools,/graal-enterprise,/truffle-enterprise,/substratevm-enterprise,substratevm-enterprise-gcs
 BUILD_TARGETS=TRUFFLERUBY_NATIVE_STANDALONE
 COMPONENTS=SubstrateVM Enterprise,Truffle SVM Macro Enterprise,suite:substratevm-enterprise-gcs
 NATIVE_IMAGES=lib:rubyvm

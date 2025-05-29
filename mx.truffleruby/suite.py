@@ -22,7 +22,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "ed067f1f7c575a638991d34bcab15f895a4b26b7",
+                "version": "244745f9c31b747826fc7ca75f2b4c1732bbf215",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -31,7 +31,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "ed067f1f7c575a638991d34bcab15f895a4b26b7",
+                "version": "244745f9c31b747826fc7ca75f2b4c1732bbf215",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -994,6 +994,7 @@ suite = {
             "standalone_dist": "TRUFFLERUBY_NATIVE_STANDALONE",
             "community_archive_name": "truffleruby-community",
             "enterprise_archive_name": "truffleruby",
+            "language_id": "ruby",
         },
 
         "TRUFFLERUBY_JVM_STANDALONE_RELEASE_ARCHIVE": {
@@ -1002,6 +1003,7 @@ suite = {
             "standalone_dist": "TRUFFLERUBY_JVM_STANDALONE",
             "community_archive_name": "truffleruby-community-jvm",
             "enterprise_archive_name": "truffleruby-jvm",
+            "language_id": "ruby",
         },
 
         "TRUFFLERUBY_GRAALVM_LICENSES": {

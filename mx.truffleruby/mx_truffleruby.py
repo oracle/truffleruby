@@ -20,6 +20,7 @@ import mx_util
 import mx_gate
 import mx_sdk
 import mx_sdk_vm
+import mx_sdk_vm_ng
 import mx_subst
 import mx_spotbugs
 import mx_truffle
@@ -189,21 +190,12 @@ class YARPNativeProject(mx.NativeProject):
 
 # Functions called from suite.py
 
-def has_suite(name):
-    return mx.suite(name, fatalIfMissing=False)
-
-def is_ee():
-    return has_suite('truffle-enterprise')
-
 def truffleruby_standalone_deps():
-    deps = mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=has_suite('compiler'))
-    if is_ee():
-        deps += ['sulong-managed:SULONG_ENTERPRISE_NATIVE']
-    return deps
+    include_truffle_runtime = not mx.env_var_to_bool("EXCLUDE_TRUFFLE_RUNTIME")
+    return mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=include_truffle_runtime)
 
 def librubyvm_build_args():
-    if is_ee() and mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ:
-        mx.suite('substratevm-enterprise-gcs', fatalIfMissing=True) # fail early if missing
+    if mx_sdk_vm_ng.is_nativeimage_ee() and mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ:
         return ['--gc=G1', '-H:-ProtectionKeys']
     else:
         return []
@@ -322,39 +314,16 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY_GRAALVM_LICENSES',
     ],
     priority=5,
-    stability="experimental",
-))
-
-# Only keep what we need from the Sulong home.
-# Exclude the toolchain launchers, we don't need them, and they would not work in the native standalone.
-# Excluding "native/bin" or "native/bin/*" does not work so we have to list them.
-toolchain_launchers = ['binutil', 'clang', 'clang++', 'clang-cl', 'flang', 'ld']
-sulong_home_excludes = [f"native/bin/graalvm-native-{launcher}" for launcher in toolchain_launchers] + \
-    ['native/cmake', 'native/include', 'native/lib/*++*', 'native/share']
-standalone_dependencies_common = {
-    'LLVM Runtime Core': ('lib/sulong', []),
-    'LLVM Runtime Native': ('lib/sulong', sulong_home_excludes),
-}
+    stability="experimental"))
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby',
     short_name='rby',
     dir_name='ruby',
-    standalone_dir_name='truffleruby-community-<version>-<graalvm_os>-<arch>',
-    standalone_dir_name_enterprise='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
     dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'TRegex'],  # Use short name for license to select by priority
-    standalone_dependencies={**standalone_dependencies_common, **{
-        'TruffleRuby license files': ('', []),
-    }},
-    standalone_dependencies_enterprise={**standalone_dependencies_common, **{
-        'LLVM Runtime Enterprise': ('lib/sulong', []), # sulong-managed:SULONG_ENTERPRISE
-        'LLVM Runtime Native Enterprise': ('lib/sulong', []), # sulong-managed:SULONG_ENTERPRISE_NATIVE
-        'TruffleRuby license files EE': ('', []),
-        'GraalVM enterprise license files': ('', ['LICENSE.txt', 'GRAALVM-README.md']),
-    }},
     truffle_jars=[
         # Distributions
         'truffleruby:TRUFFLERUBY',
@@ -402,16 +371,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
             ]
         )
     ],
-    stability="experimental",
-    post_install_msg="""
-IMPORTANT NOTE:
----------------
-The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl.
-First, make sure TruffleRuby's dependencies are installed, which are described at:
-  https://github.com/oracle/truffleruby/blob/master/README.md#dependencies
-Then run the following command:
-        ${graalvm_languages_dir}/ruby/lib/truffle/post_install_hook.sh""",
-))
+    stability="experimental"))
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
