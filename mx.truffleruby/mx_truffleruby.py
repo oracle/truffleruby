@@ -192,10 +192,7 @@ class YARPNativeProject(mx.NativeProject):
 
 def truffleruby_standalone_deps():
     include_truffle_runtime = not mx.env_var_to_bool("EXCLUDE_TRUFFLE_RUNTIME")
-    deps = mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=include_truffle_runtime)
-    if mx_sdk_vm_ng.uses_enterprise_sources():
-        deps += ['sulong-managed:SULONG_ENTERPRISE_NATIVE']
-    return deps
+    return mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=include_truffle_runtime)
 
 def librubyvm_build_args():
     if mx_sdk_vm_ng.is_nativeimage_ee() and mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ:
