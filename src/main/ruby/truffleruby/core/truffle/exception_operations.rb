@@ -297,14 +297,14 @@ module Truffle
           append_causes(str, cause, causes, reverse, highlight, options)
           backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause, options)
           if backtrace_message.empty?
-            str << detailed_message_or_fallback(exception, options)
+            str << detailed_message_or_fallback(cause, options)
           else
             str << backtrace_message
           end
         else
           backtrace_message = backtrace_message(highlight, reverse, cause.backtrace, cause, options)
           if backtrace_message.empty?
-            str << detailed_message_or_fallback(exception, options)
+            str << detailed_message_or_fallback(cause, options)
           else
             str << backtrace_message
           end
