@@ -27,13 +27,18 @@
         │   └── block: ∅
         ├── @ CallNode (location: (3,0)-(3,5))
         │   ├── flags: newline
-        │   ├── receiver: ∅
+        │   ├── receiver:
+        │   │   @ ParenthesesNode (location: (3,3)-(3,5))
+        │   │   ├── flags: ∅
+        │   │   ├── body: ∅
+        │   │   ├── opening_loc: (3,3)-(3,4) = "("
+        │   │   └── closing_loc: (3,4)-(3,5) = ")"
         │   ├── call_operator_loc: ∅
         │   ├── name: :!
         │   ├── message_loc: (3,0)-(3,3) = "not"
-        │   ├── opening_loc: (3,3)-(3,4) = "("
+        │   ├── opening_loc: ∅
         │   ├── arguments: ∅
-        │   ├── closing_loc: (3,4)-(3,5) = ")"
+        │   ├── closing_loc: ∅
         │   └── block: ∅
         └── @ CallNode (location: (5,0)-(5,8))
             ├── flags: newline

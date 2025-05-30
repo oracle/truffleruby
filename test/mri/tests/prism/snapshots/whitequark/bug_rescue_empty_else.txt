@@ -19,6 +19,7 @@
             │   │       └── name: :LoadError
             │   ├── operator_loc: ∅
             │   ├── reference: ∅
+            │   ├── then_keyword_loc: ∅
             │   ├── statements: ∅
             │   └── subsequent: ∅
             ├── else_clause:

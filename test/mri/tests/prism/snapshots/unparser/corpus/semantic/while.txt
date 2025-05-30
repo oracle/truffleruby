@@ -8,6 +8,7 @@
         ├── @ UntilNode (location: (1,0)-(1,13))
         │   ├── flags: newline
         │   ├── keyword_loc: (1,2)-(1,7) = "until"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: ∅
         │   ├── predicate:
         │   │   @ CallNode (location: (1,8)-(1,13))
@@ -44,6 +45,7 @@
         ├── @ UntilNode (location: (3,0)-(5,3))
         │   ├── flags: newline
         │   ├── keyword_loc: (3,0)-(3,5) = "until"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: (5,0)-(5,3) = "end"
         │   ├── predicate:
         │   │   @ CallNode (location: (3,6)-(3,11))
@@ -80,6 +82,7 @@
         ├── @ WhileNode (location: (7,0)-(7,19))
         │   ├── flags: newline
         │   ├── keyword_loc: (7,10)-(7,15) = "while"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: ∅
         │   ├── predicate:
         │   │   @ LocalVariableReadNode (location: (7,16)-(7,19))
@@ -110,6 +113,7 @@
         ├── @ UntilNode (location: (9,0)-(9,18))
         │   ├── flags: newline
         │   ├── keyword_loc: (9,2)-(9,7) = "until"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: ∅
         │   ├── predicate:
         │   │   @ AndNode (location: (9,8)-(9,18))
@@ -161,6 +165,7 @@
         ├── @ WhileNode (location: (11,0)-(13,3))
         │   ├── flags: newline
         │   ├── keyword_loc: (11,0)-(11,5) = "while"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: (13,0)-(13,3) = "end"
         │   ├── predicate:
         │   │   @ LocalVariableWriteNode (location: (11,6)-(11,11))
@@ -191,6 +196,7 @@
         ├── @ UntilNode (location: (15,0)-(18,3))
         │   ├── flags: newline
         │   ├── keyword_loc: (15,2)-(15,7) = "until"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: ∅
         │   ├── predicate:
         │   │   @ CallNode (location: (15,8)-(18,3))
@@ -272,6 +278,7 @@
             │       └── @ WhileNode (location: (22,2)-(24,5))
             │           ├── flags: newline
             │           ├── keyword_loc: (22,2)-(22,7) = "while"
+            │           ├── do_keyword_loc: ∅
             │           ├── closing_loc: (24,2)-(24,5) = "end"
             │           ├── predicate:
             │           │   @ LocalVariableReadNode (location: (22,8)-(22,11))

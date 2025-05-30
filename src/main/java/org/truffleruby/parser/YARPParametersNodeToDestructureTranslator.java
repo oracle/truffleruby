@@ -242,7 +242,7 @@ public final class YARPParametersNodeToDestructureTranslator extends YARPBaseTra
 
         if (node.name == null) {
             // def a(&)
-            name = TranslatorEnvironment.FORWARDED_BLOCK_NAME;
+            name = TranslatorEnvironment.DEFAULT_BLOCK_NAME;
         } else {
             name = node.name;
         }

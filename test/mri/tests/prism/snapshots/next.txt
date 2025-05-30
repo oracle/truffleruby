@@ -257,7 +257,7 @@
         │       │           │   ├── flags: ∅
         │       │           │   └── arguments: (length: 1)
         │       │           │       └── @ ParenthesesNode (location: (14,10)-(17,1))
-        │       │           │           ├── flags: ∅
+        │       │           │           ├── flags: multiple_statements
         │       │           │           ├── body:
         │       │           │           │   @ StatementsNode (location: (15,2)-(16,3))
         │       │           │           │   ├── flags: ∅

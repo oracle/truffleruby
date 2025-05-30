@@ -1879,7 +1879,7 @@ module Prism
     # Inspect a ParenthesesNode node.
     def visit_parentheses_node(node)
       commands << [inspect_node("ParenthesesNode", node), indent]
-      flags = [("newline" if node.newline?), ("static_literal" if node.static_literal?), ].compact
+      flags = [("newline" if node.newline?), ("static_literal" if node.static_literal?), ("multiple_statements" if node.multiple_statements?)].compact
       commands << ["├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n", indent]
       if (body = node.body).nil?
         commands << ["├── body: ∅\n", indent]
@@ -2053,6 +2053,7 @@ module Prism
         commands << ["├── reference:\n", indent]
         commands << [reference, "#{indent}│   "]
       end
+      commands << ["├── then_keyword_loc: #{inspect_location(node.then_keyword_loc)}\n", indent]
       if (statements = node.statements).nil?
         commands << ["├── statements: ∅\n", indent]
       else
@@ -2287,6 +2288,7 @@ module Prism
       flags = [("newline" if node.newline?), ("static_literal" if node.static_literal?), ("begin_modifier" if node.begin_modifier?)].compact
       commands << ["├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n", indent]
       commands << ["├── keyword_loc: #{inspect_location(node.keyword_loc)}\n", indent]
+      commands << ["├── do_keyword_loc: #{inspect_location(node.do_keyword_loc)}\n", indent]
       commands << ["├── closing_loc: #{inspect_location(node.closing_loc)}\n", indent]
       commands << ["├── predicate:\n", indent]
       commands << [node.predicate, "#{indent}│   "]
@@ -2328,6 +2330,7 @@ module Prism
       flags = [("newline" if node.newline?), ("static_literal" if node.static_literal?), ("begin_modifier" if node.begin_modifier?)].compact
       commands << ["├── flags: #{flags.empty? ? "∅" : flags.join(", ")}\n", indent]
       commands << ["├── keyword_loc: #{inspect_location(node.keyword_loc)}\n", indent]
+      commands << ["├── do_keyword_loc: #{inspect_location(node.do_keyword_loc)}\n", indent]
       commands << ["├── closing_loc: #{inspect_location(node.closing_loc)}\n", indent]
       commands << ["├── predicate:\n", indent]
       commands << [node.predicate, "#{indent}│   "]

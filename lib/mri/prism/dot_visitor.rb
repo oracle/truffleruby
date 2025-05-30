@@ -3608,6 +3608,9 @@ module Prism
       table = Table.new("ParenthesesNode")
       id = node_id(node)
 
+      # flags
+      table.field("flags", parentheses_node_flags_inspect(node))
+
       # body
       unless (body = node.body).nil?
         table.field("body", port: true)
@@ -3952,6 +3955,11 @@ module Prism
       unless (reference = node.reference).nil?
         table.field("reference", port: true)
         digraph.edge("#{id}:reference -> #{node_id(reference)};")
+      end
+
+      # then_keyword_loc
+      unless (then_keyword_loc = node.then_keyword_loc).nil?
+        table.field("then_keyword_loc", location_inspect(then_keyword_loc))
       end
 
       # statements
@@ -4414,6 +4422,11 @@ module Prism
       # keyword_loc
       table.field("keyword_loc", location_inspect(node.keyword_loc))
 
+      # do_keyword_loc
+      unless (do_keyword_loc = node.do_keyword_loc).nil?
+        table.field("do_keyword_loc", location_inspect(do_keyword_loc))
+      end
+
       # closing_loc
       unless (closing_loc = node.closing_loc).nil?
         table.field("closing_loc", location_inspect(closing_loc))
@@ -4489,6 +4502,11 @@ module Prism
 
       # keyword_loc
       table.field("keyword_loc", location_inspect(node.keyword_loc))
+
+      # do_keyword_loc
+      unless (do_keyword_loc = node.do_keyword_loc).nil?
+        table.field("do_keyword_loc", location_inspect(do_keyword_loc))
+      end
 
       # closing_loc
       unless (closing_loc = node.closing_loc).nil?
@@ -4669,6 +4687,14 @@ module Prism
     def parameter_flags_inspect(node)
       flags = [] #: Array[String]
       flags << "repeated_parameter" if node.repeated_parameter?
+      flags.join(", ")
+    end
+
+    # Inspect a node that has parentheses_node_flags flags to display the flags as a
+    # comma-separated list.
+    def parentheses_node_flags_inspect(node)
+      flags = [] #: Array[String]
+      flags << "multiple_statements" if node.multiple_statements?
       flags.join(", ")
     end
 

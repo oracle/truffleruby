@@ -1,10 +1,10 @@
-@ ProgramNode (location: (1,0)-(48,10))
+@ ProgramNode (location: (1,0)-(58,2))
 ├── flags: ∅
 ├── locals: [:foo, :ab, :abc, :a]
 └── statements:
-    @ StatementsNode (location: (1,0)-(48,10))
+    @ StatementsNode (location: (1,0)-(58,2))
     ├── flags: ∅
-    └── body: (length: 26)
+    └── body: (length: 28)
         ├── @ CallNode (location: (1,0)-(1,9))
         │   ├── flags: newline, ignore_visibility
         │   ├── receiver: ∅
@@ -537,9 +537,21 @@
         │   ├── rparen_loc: (46,12)-(46,13) = ")"
         │   ├── equal_loc: (46,14)-(46,15) = "="
         │   └── end_keyword_loc: ∅
-        └── @ RegularExpressionNode (location: (48,0)-(48,10))
-            ├── flags: newline, static_literal, extended, forced_us_ascii_encoding
-            ├── opening_loc: (48,0)-(48,1) = "/"
-            ├── content_loc: (48,1)-(48,8) = "(?-x:#)"
-            ├── closing_loc: (48,8)-(48,10) = "/x"
-            └── unescaped: "(?-x:#)"
+        ├── @ RegularExpressionNode (location: (48,0)-(48,10))
+        │   ├── flags: newline, static_literal, extended, forced_us_ascii_encoding
+        │   ├── opening_loc: (48,0)-(48,1) = "/"
+        │   ├── content_loc: (48,1)-(48,8) = "(?-x:#)"
+        │   ├── closing_loc: (48,8)-(48,10) = "/x"
+        │   └── unescaped: "(?-x:#)"
+        ├── @ RegularExpressionNode (location: (50,0)-(56,1))
+        │   ├── flags: newline, static_literal, forced_us_ascii_encoding
+        │   ├── opening_loc: (50,0)-(50,1) = "/"
+        │   ├── content_loc: (50,1)-(56,0) = "a\nb\\\nc\\\nd\\\\\\\ne\\\\\nf\\\n"
+        │   ├── closing_loc: (56,0)-(56,1) = "/"
+        │   └── unescaped: "a\nbcd\\\\e\\\\\nf"
+        └── @ RegularExpressionNode (location: (58,0)-(58,2))
+            ├── flags: newline, static_literal, forced_us_ascii_encoding
+            ├── opening_loc: (58,0)-(58,1) = "/"
+            ├── content_loc: (58,1)-(58,1) = ""
+            ├── closing_loc: (58,1)-(58,2) = "/"
+            └── unescaped: ""

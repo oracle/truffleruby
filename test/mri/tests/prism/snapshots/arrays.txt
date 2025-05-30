@@ -1801,6 +1801,7 @@
         │   │   │   │   │           └── expression: ∅
         │   │   │   │   ├── closing_loc: (120,23)-(120,24) = "]"
         │   │   │   │   └── block: ∅
+        │   │   │   ├── then_keyword_loc: ∅
         │   │   │   ├── statements: ∅
         │   │   │   └── subsequent: ∅
         │   │   ├── else_clause: ∅
@@ -1872,6 +1873,7 @@
             │   │   │   │           └── expression: ∅
             │   │   │   ├── closing_loc: (122,26)-(122,27) = "]"
             │   │   │   └── block: ∅
+            │   │   ├── then_keyword_loc: ∅
             │   │   ├── statements: ∅
             │   │   └── subsequent: ∅
             │   ├── else_clause: ∅

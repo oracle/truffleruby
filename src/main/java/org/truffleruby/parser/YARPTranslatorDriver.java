@@ -83,6 +83,12 @@ import java.util.List;
 
 public final class YARPTranslatorDriver {
 
+    private static final byte[][] EMPTY_BYTE_ARRAY_ARRAY = new byte[0][];
+    private static final ParsingOptions.Forwarding[] EMPTY_FORWARDING_ARRAY = new ParsingOptions.Forwarding[0];
+    private static final ParsingOptions.Scope[] EMPTY_SCOPE_ARRAY = new ParsingOptions.Scope[0];
+    private static final ParsingOptions.Scope EMPTY_SCOPE = new ParsingOptions.Scope(EMPTY_BYTE_ARRAY_ARRAY,
+            EMPTY_FORWARDING_ARRAY);
+
     private final RubyContext context;
     private final RubyLanguage language;
     private ParseEnvironment parseEnvironment;
@@ -129,8 +135,7 @@ public final class YARPTranslatorDriver {
                 ArrayList<String> names = new ArrayList<>();
 
                 for (Object identifier : FrameDescriptorNamesIterator.iterate(frame.getFrameDescriptor())) {
-                    if (!BindingNodes.isHiddenVariable(identifier)) {
-                        final String name = (String) identifier;
+                    if (identifier instanceof String name) {
                         names.add(name.intern()); // intern() for footprint
                     }
                 }
@@ -381,31 +386,55 @@ public final class YARPTranslatorDriver {
             commandline = EnumSet.noneOf(ParsingOptions.CommandLine.class);
         }
 
-        byte[][][] scopes;
+        ParsingOptions.Scope[] scopes;
 
         if (!localsInScopes.isEmpty()) {
             int scopesCount = localsInScopes.size();
             // Add one empty extra scope at the end to have local variables treated by Prism
             // as declared in the outer scope.
             // See https://github.com/ruby/prism/issues/2327 and https://github.com/ruby/prism/issues/2192
-            scopes = new byte[scopesCount + 1][][];
+            scopes = new ParsingOptions.Scope[scopesCount + 1];
 
             for (int i = 0; i < scopesCount; i++) {
                 // Local variables are in order from inner scope to outer one, but Prism expects order from outer to inner.
                 // So we need to reverse the order
                 var namesList = localsInScopes.get(scopesCount - 1 - i);
-                byte[][] namesBytes = new byte[namesList.size()][];
-                int j = 0;
+                List<String> publicNamesList = new ArrayList<>();
+                var forwarding = EnumSet.noneOf(ParsingOptions.Forwarding.class);
+
                 for (var name : namesList) {
+                    if (!BindingNodes.isHiddenVariable(name)) {
+                        publicNamesList.add(name);
+                    } else {
+                        switch (name) {
+                            case TranslatorEnvironment.DEFAULT_REST_NAME ->
+                                forwarding.add(ParsingOptions.Forwarding.POSITIONAL);
+                            case TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME ->
+                                forwarding.add(ParsingOptions.Forwarding.KEYWORD);
+                            case TranslatorEnvironment.DEFAULT_BLOCK_NAME ->
+                                forwarding.add(ParsingOptions.Forwarding.BLOCK);
+                            case TranslatorEnvironment.FORWARDED_REST_NAME,
+                                    TranslatorEnvironment.FORWARDED_KEYWORD_REST_NAME,
+                                    TranslatorEnvironment.FORWARDED_BLOCK_NAME ->
+                                forwarding.add(ParsingOptions.Forwarding.ALL);
+                        }
+                    }
+                }
+
+                byte[][] namesBytes = new byte[publicNamesList.size()][];
+                int j = 0;
+                for (var name : publicNamesList) {
                     namesBytes[j] = TStringUtils.javaStringToBytes(name, rubySource.getEncoding());
                     j++;
                 }
-                scopes[i] = namesBytes;
+
+                var forwardingArray = forwarding.toArray(EMPTY_FORWARDING_ARRAY);
+                scopes[i] = new ParsingOptions.Scope(namesBytes, forwardingArray);
             }
 
-            scopes[scopes.length - 1] = new byte[][]{};
+            scopes[scopes.length - 1] = EMPTY_SCOPE;
         } else {
-            scopes = new byte[0][][];
+            scopes = EMPTY_SCOPE_ARRAY;
         }
 
         byte[] parsingOptions = ParsingOptions.serialize(filepath, line, encoding, frozenStringLiteral, commandline,

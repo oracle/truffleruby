@@ -51,6 +51,7 @@ public enum ArgumentType {
     anonreq("req", true),
     anonrest("rest", true),
     anonkeyrest("keyrest", true),
+    anonblock("block", true),
 
     /* Parameters in a method that doesn't provide parameter names, e.g. implemented using #method_missing or a core
      * method implemented in Java.

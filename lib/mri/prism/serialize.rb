@@ -18,110 +18,318 @@ module Prism
 
     # The minor version of prism that we are expecting to find in the serialized
     # strings.
-    MINOR_VERSION = 1
+    MINOR_VERSION = 4
 
     # The patch version of prism that we are expecting to find in the serialized
     # strings.
     PATCH_VERSION = 0
 
-    # Deserialize the AST represented by the given string into a parse result.
-    def self.load(input, serialized)
+    # Deserialize the dumped output from a request to parse or parse_file.
+    #
+    # The formatting of the source of this method is purposeful to illustrate
+    # the structure of the serialized data.
+    def self.load_parse(input, serialized, freeze)
       input = input.dup
       source = Source.for(input)
       loader = Loader.new(source, serialized)
-      result = loader.load_result
 
-      input.force_encoding(loader.encoding)
+                       loader.load_header
+      encoding =       loader.load_encoding
+      start_line =     loader.load_varsint
+      offsets =        loader.load_line_offsets(freeze)
+
+      source.replace_start_line(start_line)
+      source.replace_offsets(offsets)
+
+      comments =       loader.load_comments(freeze)
+      magic_comments = loader.load_magic_comments(freeze)
+      data_loc =       loader.load_optional_location_object(freeze)
+      errors =         loader.load_errors(encoding, freeze)
+      warnings =       loader.load_warnings(encoding, freeze)
+      cpool_base =     loader.load_uint32
+      cpool_size =     loader.load_varuint
+
+      constant_pool = ConstantPool.new(input, serialized, cpool_base, cpool_size)
+
+      node =           loader.load_node(constant_pool, encoding, freeze)
+                       loader.load_constant_pool(constant_pool)
+      raise unless     loader.eof?
+
+      result = ParseResult.new(node, comments, magic_comments, data_loc, errors, warnings, source)
+      result.freeze if freeze
+
+      input.force_encoding(encoding)
+
+      # This is an extremely niche use-case where the file was marked as binary
+      # but it contained UTF-8-encoded characters. In that case we will actually
+      # put it back to UTF-8 to give the location APIs the best chance of being
+      # correct.
+      if !input.ascii_only? && input.encoding == Encoding::BINARY
+        input.force_encoding(Encoding::UTF_8)
+        input.force_encoding(Encoding::BINARY) unless input.valid_encoding?
+      end
+
+      if freeze
+        input.freeze
+        source.deep_freeze
+      end
+
       result
     end
 
-    # Deserialize the tokens represented by the given string into a parse
-    # result.
-    def self.load_tokens(source, serialized)
-      Loader.new(source, serialized).load_tokens_result
+    # Deserialize the dumped output from a request to lex or lex_file.
+    #
+    # The formatting of the source of this method is purposeful to illustrate
+    # the structure of the serialized data.
+    def self.load_lex(input, serialized, freeze)
+      source = Source.for(input)
+      loader = Loader.new(source, serialized)
+
+      tokens =         loader.load_tokens
+      encoding =       loader.load_encoding
+      start_line =     loader.load_varsint
+      offsets =        loader.load_line_offsets(freeze)
+
+      source.replace_start_line(start_line)
+      source.replace_offsets(offsets)
+
+      comments =       loader.load_comments(freeze)
+      magic_comments = loader.load_magic_comments(freeze)
+      data_loc =       loader.load_optional_location_object(freeze)
+      errors =         loader.load_errors(encoding, freeze)
+      warnings =       loader.load_warnings(encoding, freeze)
+      raise unless     loader.eof?
+
+      result = LexResult.new(tokens, comments, magic_comments, data_loc, errors, warnings, source)
+
+      tokens.each do |token|
+        token[0].value.force_encoding(encoding)
+
+        if freeze
+          token[0].deep_freeze
+          token.freeze
+        end
+      end
+
+      if freeze
+        source.deep_freeze
+        tokens.freeze
+        result.freeze
+      end
+
+      result
+    end
+
+    # Deserialize the dumped output from a request to parse_comments or
+    # parse_file_comments.
+    #
+    # The formatting of the source of this method is purposeful to illustrate
+    # the structure of the serialized data.
+    def self.load_parse_comments(input, serialized, freeze)
+      source = Source.for(input)
+      loader = Loader.new(source, serialized)
+
+                   loader.load_header
+                   loader.load_encoding
+      start_line = loader.load_varsint
+
+      source.replace_start_line(start_line)
+
+      result =     loader.load_comments(freeze)
+      raise unless loader.eof?
+
+      source.deep_freeze if freeze
+      result
+    end
+
+    # Deserialize the dumped output from a request to parse_lex or
+    # parse_lex_file.
+    #
+    # The formatting of the source of this method is purposeful to illustrate
+    # the structure of the serialized data.
+    def self.load_parse_lex(input, serialized, freeze)
+      source = Source.for(input)
+      loader = Loader.new(source, serialized)
+
+      tokens =         loader.load_tokens
+                       loader.load_header
+      encoding =       loader.load_encoding
+      start_line =     loader.load_varsint
+      offsets =        loader.load_line_offsets(freeze)
+
+      source.replace_start_line(start_line)
+      source.replace_offsets(offsets)
+
+      comments =       loader.load_comments(freeze)
+      magic_comments = loader.load_magic_comments(freeze)
+      data_loc =       loader.load_optional_location_object(freeze)
+      errors =         loader.load_errors(encoding, freeze)
+      warnings =       loader.load_warnings(encoding, freeze)
+      cpool_base =     loader.load_uint32
+      cpool_size =     loader.load_varuint
+
+      constant_pool = ConstantPool.new(input, serialized, cpool_base, cpool_size)
+
+      node =           loader.load_node(constant_pool, encoding, freeze)
+                       loader.load_constant_pool(constant_pool)
+      raise unless     loader.eof?
+
+      value = [node, tokens]
+      result = ParseLexResult.new(value, comments, magic_comments, data_loc, errors, warnings, source)
+
+      tokens.each do |token|
+        token[0].value.force_encoding(encoding)
+
+        if freeze
+          token[0].deep_freeze
+          token.freeze
+        end
+      end
+
+      if freeze
+        source.deep_freeze
+        tokens.freeze
+        value.freeze
+        result.freeze
+      end
+
+      result
+    end
+
+    class ConstantPool # :nodoc:
+      attr_reader :size
+
+      def initialize(input, serialized, base, size)
+        @input = input
+        @serialized = serialized
+        @base = base
+        @size = size
+        @pool = Array.new(size, nil)
+      end
+
+      def get(index, encoding)
+        @pool[index] ||=
+          begin
+            offset = @base + index * 8
+            start = @serialized.unpack1("L", offset: offset)
+            length = @serialized.unpack1("L", offset: offset + 4)
+
+            if start.nobits?(1 << 31)
+              @input.byteslice(start, length).force_encoding(encoding).to_sym
+            else
+              @serialized.byteslice(start & ((1 << 31) - 1), length).force_encoding(encoding).to_sym
+            end
+          end
+      end
+    end
+
+    if RUBY_ENGINE == "truffleruby"
+      # StringIO is synchronized and that adds a high overhead on TruffleRuby.
+      class FastStringIO # :nodoc:
+        attr_accessor :pos
+
+        def initialize(string)
+          @string = string
+          @pos = 0
+        end
+
+        def getbyte
+          byte = @string.getbyte(@pos)
+          @pos += 1
+          byte
+        end
+
+        def read(n)
+          slice = @string.byteslice(@pos, n)
+          @pos += n
+          slice
+        end
+
+        def eof?
+          @pos >= @string.bytesize
+        end
+      end
+    else
+      FastStringIO = ::StringIO # :nodoc:
     end
 
     class Loader # :nodoc:
-      if RUBY_ENGINE == "truffleruby"
-        # StringIO is synchronized and that adds a high overhead on TruffleRuby.
-        class FastStringIO # :nodoc:
-          attr_accessor :pos
-
-          def initialize(string)
-            @string = string
-            @pos = 0
-          end
-
-          def getbyte
-            byte = @string.getbyte(@pos)
-            @pos += 1
-            byte
-          end
-
-          def read(n)
-            slice = @string.byteslice(@pos, n)
-            @pos += n
-            slice
-          end
-
-          def eof?
-            @pos >= @string.bytesize
-          end
-        end
-      else
-        FastStringIO = ::StringIO
-      end
-      private_constant :FastStringIO
-
-      attr_reader :encoding, :input, :serialized, :io
-      attr_reader :constant_pool_offset, :constant_pool, :source
-      attr_reader :start_line
+      attr_reader :input, :io, :source
 
       def initialize(source, serialized)
-        @encoding = Encoding::UTF_8
-
         @input = source.source.dup
         raise unless serialized.encoding == Encoding::BINARY
-        @serialized = serialized
         @io = FastStringIO.new(serialized)
-
-        @constant_pool_offset = nil
-        @constant_pool = nil
-
         @source = source
-        define_load_node_lambdas unless RUBY_ENGINE == "ruby"
+        define_load_node_lambdas if RUBY_ENGINE != "ruby"
+      end
+
+      def eof?
+        io.getbyte
+        io.eof?
+      end
+
+      def load_constant_pool(constant_pool)
+        trailer = 0
+
+        constant_pool.size.times do |index|
+          start, length = io.read(8).unpack("L2")
+          trailer += length if start.anybits?(1 << 31)
+        end
+
+        io.read(trailer)
       end
 
       def load_header
         raise "Invalid serialization" if io.read(5) != "PRISM"
         raise "Invalid serialization" if io.read(3).unpack("C3") != [MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION]
-        only_semantic_fields = io.getbyte
-        unless only_semantic_fields == 0
-          raise "Invalid serialization (location fields must be included but are not)"
-        end
+        raise "Invalid serialization (location fields must be included but are not)" if io.getbyte != 0
       end
 
       def load_encoding
-        @encoding = Encoding.find(io.read(load_varuint))
-        @input = input.force_encoding(@encoding).freeze
-        @encoding
+        encoding = Encoding.find(io.read(load_varuint))
+        @input = input.force_encoding(encoding).freeze
+        encoding
       end
 
-      def load_start_line
-        source.instance_variable_set :@start_line, load_varsint
+      def load_line_offsets(freeze)
+        offsets = Array.new(load_varuint) { load_varuint }
+        offsets.freeze if freeze
+        offsets
       end
 
-      def load_line_offsets
-        source.instance_variable_set :@offsets, Array.new(load_varuint) { load_varuint }
-      end
+      def load_comments(freeze)
+        comments =
+          Array.new(load_varuint) do
+            comment =
+              case load_varuint
+              when 0 then InlineComment.new(load_location_object(freeze))
+              when 1 then EmbDocComment.new(load_location_object(freeze))
+              end
 
-      def load_comments
-        Array.new(load_varuint) do
-          case load_varuint
-          when 0 then InlineComment.new(load_location_object)
-          when 1 then EmbDocComment.new(load_location_object)
+            comment.freeze if freeze
+            comment
           end
-        end
+
+        comments.freeze if freeze
+        comments
+      end
+
+      def load_magic_comments(freeze)
+        magic_comments =
+          Array.new(load_varuint) do
+            magic_comment =
+              MagicComment.new(
+                load_location_object(freeze),
+                load_location_object(freeze)
+              )
+
+            magic_comment.freeze if freeze
+            magic_comment
+          end
+
+        magic_comments.freeze if freeze
+        magic_comments
       end
 
       DIAGNOSTIC_TYPES = [
@@ -267,6 +475,7 @@ module Prism
         :instance_variable_bare,
         :invalid_block_exit,
         :invalid_character,
+        :invalid_comma,
         :invalid_encoding_magic_comment,
         :invalid_escape_character,
         :invalid_float_exponent,
@@ -447,60 +656,88 @@ module Prism
 
       private_constant :DIAGNOSTIC_TYPES
 
-      def load_metadata
-        comments = load_comments
-        magic_comments = Array.new(load_varuint) { MagicComment.new(load_location_object, load_location_object) }
-        data_loc = load_optional_location_object
-        errors = Array.new(load_varuint) { ParseError.new(DIAGNOSTIC_TYPES.fetch(load_varuint), load_embedded_string, load_location_object, load_error_level) }
-        warnings = Array.new(load_varuint) { ParseWarning.new(DIAGNOSTIC_TYPES.fetch(load_varuint), load_embedded_string, load_location_object, load_warning_level) }
-        [comments, magic_comments, data_loc, errors, warnings]
+      def load_error_level
+        level = io.getbyte
+
+        case level
+        when 0
+          :syntax
+        when 1
+          :argument
+        when 2
+          :load
+        else
+          raise "Unknown level: #{level}"
+        end
+      end
+
+      def load_errors(encoding, freeze)
+        errors =
+          Array.new(load_varuint) do
+            error =
+              ParseError.new(
+                DIAGNOSTIC_TYPES.fetch(load_varuint),
+                load_embedded_string(encoding),
+                load_location_object(freeze),
+                load_error_level
+              )
+
+            error.freeze if freeze
+            error
+          end
+
+        errors.freeze if freeze
+        errors
+      end
+
+      def load_warning_level
+        level = io.getbyte
+
+        case level
+        when 0
+          :default
+        when 1
+          :verbose
+        else
+          raise "Unknown level: #{level}"
+        end
+      end
+
+      def load_warnings(encoding, freeze)
+        warnings =
+          Array.new(load_varuint) do
+            warning =
+              ParseWarning.new(
+                DIAGNOSTIC_TYPES.fetch(load_varuint),
+                load_embedded_string(encoding),
+                load_location_object(freeze),
+                load_warning_level
+              )
+
+            warning.freeze if freeze
+            warning
+          end
+
+        warnings.freeze if freeze
+        warnings
       end
 
       def load_tokens
         tokens = []
-        while type = TOKEN_TYPES.fetch(load_varuint)
+
+        while (type = TOKEN_TYPES.fetch(load_varuint))
           start = load_varuint
           length = load_varuint
           lex_state = load_varuint
+
           location = Location.new(@source, start, length)
-          tokens << [Token.new(source, type, location.slice, location), lex_state]
+          token = Token.new(@source, type, location.slice, location)
+
+          tokens << [token, lex_state]
         end
 
         tokens
       end
-
-      def load_tokens_result
-        tokens = load_tokens
-        encoding = load_encoding
-        load_start_line
-        load_line_offsets
-        comments, magic_comments, data_loc, errors, warnings = load_metadata
-        tokens.each { |token,| token.value.force_encoding(encoding) }
-
-        raise "Expected to consume all bytes while deserializing" unless @io.eof?
-        LexResult.new(tokens, comments, magic_comments, data_loc, errors, warnings, @source)
-      end
-
-      def load_nodes
-        load_header
-        load_encoding
-        load_start_line
-        load_line_offsets
-
-        comments, magic_comments, data_loc, errors, warnings = load_metadata
-
-        @constant_pool_offset = load_uint32
-        @constant_pool = Array.new(load_varuint, nil)
-
-        [load_node, comments, magic_comments, data_loc, errors, warnings]
-      end
-
-      def load_result
-        node, comments, magic_comments, data_loc, errors, warnings = load_nodes
-        ParseResult.new(node, comments, magic_comments, data_loc, errors, warnings, @source)
-      end
-
-      private
 
       # variable-length integer using https://en.wikipedia.org/wiki/LEB128
       # This is also what protobuf uses: https://protobuf.dev/programming-guides/encoding/#varints
@@ -542,1179 +779,1436 @@ module Prism
         io.read(4).unpack1("L")
       end
 
-      def load_optional_node
+      def load_optional_node(constant_pool, encoding, freeze)
         if io.getbyte != 0
           io.pos -= 1
-          load_node
+          load_node(constant_pool, encoding, freeze)
         end
       end
 
-      def load_embedded_string
-        io.read(load_varuint).force_encoding(encoding)
+      def load_embedded_string(encoding)
+        io.read(load_varuint).force_encoding(encoding).freeze
       end
 
-      def load_string
-        type = io.getbyte
-        case type
+      def load_string(encoding)
+        case (type = io.getbyte)
         when 1
-          input.byteslice(load_varuint, load_varuint).force_encoding(encoding)
+          input.byteslice(load_varuint, load_varuint).force_encoding(encoding).freeze
         when 2
-          load_embedded_string
+          load_embedded_string(encoding)
         else
           raise "Unknown serialized string type: #{type}"
         end
       end
 
-      def load_location
+      def load_location_object(freeze)
+        location = Location.new(source, load_varuint, load_varuint)
+        location.freeze if freeze
+        location
+      end
+
+      def load_location(freeze)
+        return load_location_object(freeze) if freeze
         (load_varuint << 32) | load_varuint
       end
 
-      def load_location_object
-        Location.new(source, load_varuint, load_varuint)
+      def load_optional_location(freeze)
+        load_location(freeze) if io.getbyte != 0
       end
 
-      def load_optional_location
-        load_location if io.getbyte != 0
+      def load_optional_location_object(freeze)
+        load_location_object(freeze) if io.getbyte != 0
       end
 
-      def load_optional_location_object
-        load_location_object if io.getbyte != 0
-      end
-
-      def load_constant(index)
-        constant = constant_pool[index]
-
-        unless constant
-          offset = constant_pool_offset + index * 8
-          start = @serialized.unpack1("L", offset: offset)
-          length = @serialized.unpack1("L", offset: offset + 4)
-
-          constant =
-            if start.nobits?(1 << 31)
-              input.byteslice(start, length).force_encoding(@encoding).to_sym
-            else
-              @serialized.byteslice(start & ((1 << 31) - 1), length).force_encoding(@encoding).to_sym
-            end
-
-          constant_pool[index] = constant
-        end
-
-        constant
-      end
-
-      def load_required_constant
-        load_constant(load_varuint - 1)
-      end
-
-      def load_optional_constant
+      def load_constant(constant_pool, encoding)
         index = load_varuint
-        load_constant(index - 1) if index != 0
+        constant_pool.get(index - 1, encoding)
       end
 
-      def load_error_level
-        level = io.getbyte
-
-        case level
-        when 0
-          :syntax
-        when 1
-          :argument
-        when 2
-          :load
-        else
-          raise "Unknown level: #{level}"
-        end
-      end
-
-      def load_warning_level
-        level = io.getbyte
-
-        case level
-        when 0
-          :default
-        when 1
-          :verbose
-        else
-          raise "Unknown level: #{level}"
-        end
+      def load_optional_constant(constant_pool, encoding)
+        index = load_varuint
+        constant_pool.get(index - 1, encoding) if index != 0
       end
 
       if RUBY_ENGINE == "ruby"
-        def load_node
+        def load_node(constant_pool, encoding, freeze)
           type = io.getbyte
           node_id = load_varuint
-          location = load_location
-
-          case type
+          location = load_location(freeze)
+          value = case type
           when 1 then
-            AliasGlobalVariableNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            AliasGlobalVariableNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 2 then
-            AliasMethodNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            AliasMethodNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 3 then
-            AlternationPatternNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            AlternationPatternNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 4 then
-            AndNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            AndNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 5 then
-            ArgumentsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node })
+            ArgumentsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze })
           when 6 then
-            ArrayNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+            ArrayNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_location(freeze))
           when 7 then
-            ArrayPatternNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+            ArrayPatternNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_location(freeze))
           when 8 then
-            AssocNode.new(source, node_id, location, load_varuint, load_node, load_node, load_optional_location)
+            AssocNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze))
           when 9 then
-            AssocSplatNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+            AssocSplatNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 10 then
-            BackReferenceReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+            BackReferenceReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 11 then
-            BeginNode.new(source, node_id, location, load_varuint, load_optional_location, load_optional_node, load_optional_node, load_optional_node, load_optional_node, load_optional_location)
+            BeginNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
           when 12 then
-            BlockArgumentNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+            BlockArgumentNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 13 then
-            BlockLocalVariableNode.new(source, node_id, location, load_varuint, load_required_constant)
+            BlockLocalVariableNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 14 then
-            BlockNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_optional_node, load_optional_node, load_location, load_location)
+            BlockNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
           when 15 then
-            BlockParameterNode.new(source, node_id, location, load_varuint, load_optional_constant, load_optional_location, load_location)
+            BlockParameterNode.new(source, node_id, location, load_varuint, load_optional_constant(constant_pool, encoding), load_optional_location(freeze), load_location(freeze))
           when 16 then
-            BlockParametersNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+            BlockParametersNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_location(freeze))
           when 17 then
-            BreakNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+            BreakNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 18 then
-            CallAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_optional_location, load_required_constant, load_required_constant, load_location, load_node)
+            CallAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 19 then
-            CallNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_required_constant, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node)
+            CallNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_optional_location(freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze))
           when 20 then
-            CallOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_optional_location, load_required_constant, load_required_constant, load_required_constant, load_location, load_node)
+            CallOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 21 then
-            CallOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_optional_location, load_required_constant, load_required_constant, load_location, load_node)
+            CallOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 22 then
-            CallTargetNode.new(source, node_id, location, load_varuint, load_node, load_location, load_required_constant, load_location)
+            CallTargetNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_constant(constant_pool, encoding), load_location(freeze))
           when 23 then
-            CapturePatternNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            CapturePatternNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 24 then
-            CaseMatchNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, load_location, load_location)
+            CaseMatchNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
           when 25 then
-            CaseNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, load_location, load_location)
+            CaseNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
           when 26 then
-            ClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_location, load_required_constant)
+            ClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_constant(constant_pool, encoding))
           when 27 then
-            ClassVariableAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            ClassVariableAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 28 then
-            ClassVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+            ClassVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
           when 29 then
-            ClassVariableOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            ClassVariableOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 30 then
-            ClassVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+            ClassVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 31 then
-            ClassVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+            ClassVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 32 then
-            ClassVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+            ClassVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 33 then
-            ConstantAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            ConstantAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 34 then
-            ConstantOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+            ConstantOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
           when 35 then
-            ConstantOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            ConstantOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 36 then
-            ConstantPathAndWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+            ConstantPathAndWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 37 then
-            ConstantPathNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_constant, load_location, load_location)
+            ConstantPathNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_constant(constant_pool, encoding), load_location(freeze), load_location(freeze))
           when 38 then
-            ConstantPathOperatorWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node, load_required_constant)
+            ConstantPathOperatorWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
           when 39 then
-            ConstantPathOrWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+            ConstantPathOrWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 40 then
-            ConstantPathTargetNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_constant, load_location, load_location)
+            ConstantPathTargetNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_constant(constant_pool, encoding), load_location(freeze), load_location(freeze))
           when 41 then
-            ConstantPathWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+            ConstantPathWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 42 then
-            ConstantReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+            ConstantReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 43 then
-            ConstantTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+            ConstantTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 44 then
-            ConstantWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+            ConstantWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 45 then
             load_uint32
-            DefNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_optional_node, load_optional_node, load_optional_node, Array.new(load_varuint) { load_required_constant }, load_location, load_optional_location, load_optional_location, load_optional_location, load_optional_location, load_optional_location)
+            DefNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze))
           when 46 then
-            DefinedNode.new(source, node_id, location, load_varuint, load_optional_location, load_node, load_optional_location, load_location)
+            DefinedNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze))
           when 47 then
-            ElseNode.new(source, node_id, location, load_varuint, load_location, load_optional_node, load_optional_location)
+            ElseNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
           when 48 then
-            EmbeddedStatementsNode.new(source, node_id, location, load_varuint, load_location, load_optional_node, load_location)
+            EmbeddedStatementsNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 49 then
-            EmbeddedVariableNode.new(source, node_id, location, load_varuint, load_location, load_node)
+            EmbeddedVariableNode.new(source, node_id, location, load_varuint, load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 50 then
-            EnsureNode.new(source, node_id, location, load_varuint, load_location, load_optional_node, load_location)
+            EnsureNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 51 then
             FalseNode.new(source, node_id, location, load_varuint)
           when 52 then
-            FindPatternNode.new(source, node_id, location, load_varuint, load_optional_node, load_node, Array.new(load_varuint) { load_node }, load_node, load_optional_location, load_optional_location)
+            FindPatternNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze))
           when 53 then
-            FlipFlopNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_node, load_location)
+            FlipFlopNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 54 then
             FloatNode.new(source, node_id, location, load_varuint, load_double)
           when 55 then
-            ForNode.new(source, node_id, location, load_varuint, load_node, load_node, load_optional_node, load_location, load_location, load_optional_location, load_location)
+            ForNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_optional_location(freeze), load_location(freeze))
           when 56 then
             ForwardingArgumentsNode.new(source, node_id, location, load_varuint)
           when 57 then
             ForwardingParameterNode.new(source, node_id, location, load_varuint)
           when 58 then
-            ForwardingSuperNode.new(source, node_id, location, load_varuint, load_optional_node)
+            ForwardingSuperNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze))
           when 59 then
-            GlobalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            GlobalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 60 then
-            GlobalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+            GlobalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
           when 61 then
-            GlobalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            GlobalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 62 then
-            GlobalVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+            GlobalVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 63 then
-            GlobalVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+            GlobalVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 64 then
-            GlobalVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+            GlobalVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 65 then
-            HashNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+            HashNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_location(freeze))
           when 66 then
-            HashPatternNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, load_optional_location, load_optional_location)
+            HashPatternNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze))
           when 67 then
-            IfNode.new(source, node_id, location, load_varuint, load_optional_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_optional_location)
+            IfNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
           when 68 then
-            ImaginaryNode.new(source, node_id, location, load_varuint, load_node)
+            ImaginaryNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze))
           when 69 then
-            ImplicitNode.new(source, node_id, location, load_varuint, load_node)
+            ImplicitNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze))
           when 70 then
             ImplicitRestNode.new(source, node_id, location, load_varuint)
           when 71 then
-            InNode.new(source, node_id, location, load_varuint, load_node, load_optional_node, load_location, load_optional_location)
+            InNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_location(freeze))
           when 72 then
-            IndexAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_location, load_optional_node, load_location, load_optional_node, load_location, load_node)
+            IndexAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 73 then
-            IndexOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_location, load_optional_node, load_location, load_optional_node, load_required_constant, load_location, load_node)
+            IndexOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 74 then
-            IndexOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_location, load_optional_node, load_location, load_optional_node, load_location, load_node)
+            IndexOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 75 then
-            IndexTargetNode.new(source, node_id, location, load_varuint, load_node, load_location, load_optional_node, load_location, load_optional_node)
+            IndexTargetNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze))
           when 76 then
-            InstanceVariableAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            InstanceVariableAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 77 then
-            InstanceVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+            InstanceVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
           when 78 then
-            InstanceVariableOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            InstanceVariableOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 79 then
-            InstanceVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+            InstanceVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 80 then
-            InstanceVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+            InstanceVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 81 then
-            InstanceVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+            InstanceVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 82 then
             IntegerNode.new(source, node_id, location, load_varuint, load_integer)
           when 83 then
-            InterpolatedMatchLastLineNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+            InterpolatedMatchLastLineNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_location(freeze))
           when 84 then
-            InterpolatedRegularExpressionNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+            InterpolatedRegularExpressionNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_location(freeze))
           when 85 then
-            InterpolatedStringNode.new(source, node_id, location, load_varuint, load_optional_location, Array.new(load_varuint) { load_node }, load_optional_location)
+            InterpolatedStringNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze))
           when 86 then
-            InterpolatedSymbolNode.new(source, node_id, location, load_varuint, load_optional_location, Array.new(load_varuint) { load_node }, load_optional_location)
+            InterpolatedSymbolNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze))
           when 87 then
-            InterpolatedXStringNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+            InterpolatedXStringNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_location(freeze))
           when 88 then
             ItLocalVariableReadNode.new(source, node_id, location, load_varuint)
           when 89 then
             ItParametersNode.new(source, node_id, location, load_varuint)
           when 90 then
-            KeywordHashNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node })
+            KeywordHashNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze })
           when 91 then
-            KeywordRestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant, load_optional_location, load_location)
+            KeywordRestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant(constant_pool, encoding), load_optional_location(freeze), load_location(freeze))
           when 92 then
-            LambdaNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_location, load_location, load_optional_node, load_optional_node)
+            LambdaNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_location(freeze), load_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
           when 93 then
-            LocalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_location, load_location, load_node, load_required_constant, load_varuint)
+            LocalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_varuint)
           when 94 then
-            LocalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_location, load_location, load_node, load_required_constant, load_required_constant, load_varuint)
+            LocalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_varuint)
           when 95 then
-            LocalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_location, load_location, load_node, load_required_constant, load_varuint)
+            LocalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_varuint)
           when 96 then
-            LocalVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant, load_varuint)
+            LocalVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_varuint)
           when 97 then
-            LocalVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant, load_varuint)
+            LocalVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_varuint)
           when 98 then
-            LocalVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_varuint, load_location, load_node, load_location)
+            LocalVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_varuint, load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 99 then
-            MatchLastLineNode.new(source, node_id, location, load_varuint, load_location, load_location, load_location, load_string)
+            MatchLastLineNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_location(freeze), load_string(encoding))
           when 100 then
-            MatchPredicateNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            MatchPredicateNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 101 then
-            MatchRequiredNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            MatchRequiredNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 102 then
-            MatchWriteNode.new(source, node_id, location, load_varuint, load_node, Array.new(load_varuint) { load_node })
+            MatchWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze })
           when 103 then
             MissingNode.new(source, node_id, location, load_varuint)
           when 104 then
-            ModuleNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_node, load_optional_node, load_location, load_required_constant)
+            ModuleNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_constant(constant_pool, encoding))
           when 105 then
-            MultiTargetNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+            MultiTargetNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_location(freeze))
           when 106 then
-            MultiWriteNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location, load_location, load_node)
+            MultiWriteNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 107 then
-            NextNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+            NextNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 108 then
             NilNode.new(source, node_id, location, load_varuint)
           when 109 then
-            NoKeywordsParameterNode.new(source, node_id, location, load_varuint, load_location, load_location)
+            NoKeywordsParameterNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze))
           when 110 then
             NumberedParametersNode.new(source, node_id, location, load_varuint, io.getbyte)
           when 111 then
             NumberedReferenceReadNode.new(source, node_id, location, load_varuint, load_varuint)
           when 112 then
-            OptionalKeywordParameterNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node)
+            OptionalKeywordParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 113 then
-            OptionalParameterNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+            OptionalParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 114 then
-            OrNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+            OrNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 115 then
-            ParametersNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, Array.new(load_varuint) { load_node }, load_optional_node, load_optional_node)
+            ParametersNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
           when 116 then
-            ParenthesesNode.new(source, node_id, location, load_varuint, load_optional_node, load_location, load_location)
+            ParenthesesNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
           when 117 then
-            PinnedExpressionNode.new(source, node_id, location, load_varuint, load_node, load_location, load_location, load_location)
+            PinnedExpressionNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_location(freeze))
           when 118 then
-            PinnedVariableNode.new(source, node_id, location, load_varuint, load_node, load_location)
+            PinnedVariableNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze))
           when 119 then
-            PostExecutionNode.new(source, node_id, location, load_varuint, load_optional_node, load_location, load_location, load_location)
+            PostExecutionNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_location(freeze))
           when 120 then
-            PreExecutionNode.new(source, node_id, location, load_varuint, load_optional_node, load_location, load_location, load_location)
+            PreExecutionNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_location(freeze))
           when 121 then
-            ProgramNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_node)
+            ProgramNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_node(constant_pool, encoding, freeze))
           when 122 then
-            RangeNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_node, load_location)
+            RangeNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 123 then
             RationalNode.new(source, node_id, location, load_varuint, load_integer, load_integer)
           when 124 then
             RedoNode.new(source, node_id, location, load_varuint)
           when 125 then
-            RegularExpressionNode.new(source, node_id, location, load_varuint, load_location, load_location, load_location, load_string)
+            RegularExpressionNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_location(freeze), load_string(encoding))
           when 126 then
-            RequiredKeywordParameterNode.new(source, node_id, location, load_varuint, load_required_constant, load_location)
+            RequiredKeywordParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze))
           when 127 then
-            RequiredParameterNode.new(source, node_id, location, load_varuint, load_required_constant)
+            RequiredParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
           when 128 then
-            RescueModifierNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+            RescueModifierNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
           when 129 then
-            RescueNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_node, load_optional_node, load_optional_node)
+            RescueNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
           when 130 then
-            RestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant, load_optional_location, load_location)
+            RestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant(constant_pool, encoding), load_optional_location(freeze), load_location(freeze))
           when 131 then
             RetryNode.new(source, node_id, location, load_varuint)
           when 132 then
-            ReturnNode.new(source, node_id, location, load_varuint, load_location, load_optional_node)
+            ReturnNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze))
           when 133 then
             SelfNode.new(source, node_id, location, load_varuint)
           when 134 then
-            ShareableConstantNode.new(source, node_id, location, load_varuint, load_node)
+            ShareableConstantNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze))
           when 135 then
-            SingletonClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_location, load_node, load_optional_node, load_location)
+            SingletonClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }.tap { |constants| constants.freeze if freeze }, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
           when 136 then
             SourceEncodingNode.new(source, node_id, location, load_varuint)
           when 137 then
-            SourceFileNode.new(source, node_id, location, load_varuint, load_string)
+            SourceFileNode.new(source, node_id, location, load_varuint, load_string(encoding))
           when 138 then
             SourceLineNode.new(source, node_id, location, load_varuint)
           when 139 then
-            SplatNode.new(source, node_id, location, load_varuint, load_location, load_optional_node)
+            SplatNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze))
           when 140 then
-            StatementsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node })
+            StatementsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze })
           when 141 then
-            StringNode.new(source, node_id, location, load_varuint, load_optional_location, load_location, load_optional_location, load_string)
+            StringNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_location(freeze), load_optional_location(freeze), load_string(encoding))
           when 142 then
-            SuperNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node)
+            SuperNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze))
           when 143 then
-            SymbolNode.new(source, node_id, location, load_varuint, load_optional_location, load_optional_location, load_optional_location, load_string)
+            SymbolNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_string(encoding))
           when 144 then
             TrueNode.new(source, node_id, location, load_varuint)
           when 145 then
-            UndefNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_location)
+            UndefNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_location(freeze))
           when 146 then
-            UnlessNode.new(source, node_id, location, load_varuint, load_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_optional_location)
+            UnlessNode.new(source, node_id, location, load_varuint, load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
           when 147 then
-            UntilNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_node, load_optional_node)
+            UntilNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
           when 148 then
-            WhenNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_node)
+            WhenNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }.tap { |nodes| nodes.freeze if freeze }, load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze))
           when 149 then
-            WhileNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_node, load_optional_node)
+            WhileNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
           when 150 then
-            XStringNode.new(source, node_id, location, load_varuint, load_location, load_location, load_location, load_string)
+            XStringNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_location(freeze), load_string(encoding))
           when 151 then
-            YieldNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_optional_node, load_optional_location)
+            YieldNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
           end
+
+          value.freeze if freeze
+          value
         end
       else
-        def load_node
-          type = io.getbyte
-          @load_node_lambdas[type].call
+        def load_node(constant_pool, encoding, freeze)
+          @load_node_lambdas[io.getbyte].call(constant_pool, encoding, freeze)
         end
 
         def define_load_node_lambdas
           @load_node_lambdas = [
             nil,
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              AliasGlobalVariableNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = AliasGlobalVariableNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              AliasMethodNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = AliasMethodNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              AlternationPatternNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = AlternationPatternNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              AndNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = AndNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ArgumentsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node })
+              location = load_location(freeze)
+              value = ArgumentsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) })
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ArrayNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+              location = load_location(freeze)
+              value = ArrayNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ArrayPatternNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+              location = load_location(freeze)
+              value = ArrayPatternNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              AssocNode.new(source, node_id, location, load_varuint, load_node, load_node, load_optional_location)
+              location = load_location(freeze)
+              value = AssocNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              AssocSplatNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = AssocSplatNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BackReferenceReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = BackReferenceReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BeginNode.new(source, node_id, location, load_varuint, load_optional_location, load_optional_node, load_optional_node, load_optional_node, load_optional_node, load_optional_location)
+              location = load_location(freeze)
+              value = BeginNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BlockArgumentNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = BlockArgumentNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BlockLocalVariableNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = BlockLocalVariableNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BlockNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_optional_node, load_optional_node, load_location, load_location)
+              location = load_location(freeze)
+              value = BlockNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BlockParameterNode.new(source, node_id, location, load_varuint, load_optional_constant, load_optional_location, load_location)
+              location = load_location(freeze)
+              value = BlockParameterNode.new(source, node_id, location, load_varuint, load_optional_constant(constant_pool, encoding), load_optional_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BlockParametersNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+              location = load_location(freeze)
+              value = BlockParametersNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              BreakNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = BreakNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CallAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_optional_location, load_required_constant, load_required_constant, load_location, load_node)
+              location = load_location(freeze)
+              value = CallAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CallNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_required_constant, load_optional_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node)
+              location = load_location(freeze)
+              value = CallNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_optional_location(freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CallOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_optional_location, load_required_constant, load_required_constant, load_required_constant, load_location, load_node)
+              location = load_location(freeze)
+              value = CallOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CallOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_optional_location, load_required_constant, load_required_constant, load_location, load_node)
+              location = load_location(freeze)
+              value = CallOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CallTargetNode.new(source, node_id, location, load_varuint, load_node, load_location, load_required_constant, load_location)
+              location = load_location(freeze)
+              value = CallTargetNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_constant(constant_pool, encoding), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CapturePatternNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = CapturePatternNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CaseMatchNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, load_location, load_location)
+              location = load_location(freeze)
+              value = CaseMatchNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              CaseNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, load_location, load_location)
+              location = load_location(freeze)
+              value = CaseNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_location, load_required_constant)
+              location = load_location(freeze)
+              value = ClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassVariableAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = ClassVariableAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+              location = load_location(freeze)
+              value = ClassVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassVariableOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = ClassVariableOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = ClassVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = ClassVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ClassVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+              location = load_location(freeze)
+              value = ClassVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = ConstantAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+              location = load_location(freeze)
+              value = ConstantOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = ConstantOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantPathAndWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+              location = load_location(freeze)
+              value = ConstantPathAndWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantPathNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_constant, load_location, load_location)
+              location = load_location(freeze)
+              value = ConstantPathNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_constant(constant_pool, encoding), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantPathOperatorWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node, load_required_constant)
+              location = load_location(freeze)
+              value = ConstantPathOperatorWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantPathOrWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+              location = load_location(freeze)
+              value = ConstantPathOrWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantPathTargetNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_constant, load_location, load_location)
+              location = load_location(freeze)
+              value = ConstantPathTargetNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_constant(constant_pool, encoding), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantPathWriteNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+              location = load_location(freeze)
+              value = ConstantPathWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = ConstantReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = ConstantTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ConstantWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+              location = load_location(freeze)
+              value = ConstantWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
+              location = load_location(freeze)
               load_uint32
-              DefNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_optional_node, load_optional_node, load_optional_node, Array.new(load_varuint) { load_required_constant }, load_location, load_optional_location, load_optional_location, load_optional_location, load_optional_location, load_optional_location)
+              value = DefNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              DefinedNode.new(source, node_id, location, load_varuint, load_optional_location, load_node, load_optional_location, load_location)
+              location = load_location(freeze)
+              value = DefinedNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ElseNode.new(source, node_id, location, load_varuint, load_location, load_optional_node, load_optional_location)
+              location = load_location(freeze)
+              value = ElseNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              EmbeddedStatementsNode.new(source, node_id, location, load_varuint, load_location, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = EmbeddedStatementsNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              EmbeddedVariableNode.new(source, node_id, location, load_varuint, load_location, load_node)
+              location = load_location(freeze)
+              value = EmbeddedVariableNode.new(source, node_id, location, load_varuint, load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              EnsureNode.new(source, node_id, location, load_varuint, load_location, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = EnsureNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              FalseNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = FalseNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              FindPatternNode.new(source, node_id, location, load_varuint, load_optional_node, load_node, Array.new(load_varuint) { load_node }, load_node, load_optional_location, load_optional_location)
+              location = load_location(freeze)
+              value = FindPatternNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              FlipFlopNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = FlipFlopNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              FloatNode.new(source, node_id, location, load_varuint, load_double)
+              location = load_location(freeze)
+              value = FloatNode.new(source, node_id, location, load_varuint, load_double)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ForNode.new(source, node_id, location, load_varuint, load_node, load_node, load_optional_node, load_location, load_location, load_optional_location, load_location)
+              location = load_location(freeze)
+              value = ForNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_optional_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ForwardingArgumentsNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = ForwardingArgumentsNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ForwardingParameterNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = ForwardingParameterNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ForwardingSuperNode.new(source, node_id, location, load_varuint, load_optional_node)
+              location = load_location(freeze)
+              value = ForwardingSuperNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              GlobalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = GlobalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              GlobalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+              location = load_location(freeze)
+              value = GlobalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              GlobalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = GlobalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              GlobalVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = GlobalVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              GlobalVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = GlobalVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              GlobalVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+              location = load_location(freeze)
+              value = GlobalVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              HashNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+              location = load_location(freeze)
+              value = HashNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              HashPatternNode.new(source, node_id, location, load_varuint, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_node, load_optional_location, load_optional_location)
+              location = load_location(freeze)
+              value = HashPatternNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              IfNode.new(source, node_id, location, load_varuint, load_optional_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_optional_location)
+              location = load_location(freeze)
+              value = IfNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ImaginaryNode.new(source, node_id, location, load_varuint, load_node)
+              location = load_location(freeze)
+              value = ImaginaryNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ImplicitNode.new(source, node_id, location, load_varuint, load_node)
+              location = load_location(freeze)
+              value = ImplicitNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ImplicitRestNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = ImplicitRestNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InNode.new(source, node_id, location, load_varuint, load_node, load_optional_node, load_location, load_optional_location)
+              location = load_location(freeze)
+              value = InNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              IndexAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_location, load_optional_node, load_location, load_optional_node, load_location, load_node)
+              location = load_location(freeze)
+              value = IndexAndWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              IndexOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_location, load_optional_node, load_location, load_optional_node, load_required_constant, load_location, load_node)
+              location = load_location(freeze)
+              value = IndexOperatorWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              IndexOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_location, load_location, load_optional_node, load_location, load_optional_node, load_location, load_node)
+              location = load_location(freeze)
+              value = IndexOrWriteNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              IndexTargetNode.new(source, node_id, location, load_varuint, load_node, load_location, load_optional_node, load_location, load_optional_node)
+              location = load_location(freeze)
+              value = IndexTargetNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InstanceVariableAndWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = InstanceVariableAndWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InstanceVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node, load_required_constant)
+              location = load_location(freeze)
+              value = InstanceVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InstanceVariableOrWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = InstanceVariableOrWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InstanceVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = InstanceVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InstanceVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = InstanceVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InstanceVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node, load_location)
+              location = load_location(freeze)
+              value = InstanceVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              IntegerNode.new(source, node_id, location, load_varuint, load_integer)
+              location = load_location(freeze)
+              value = IntegerNode.new(source, node_id, location, load_varuint, load_integer)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InterpolatedMatchLastLineNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+              location = load_location(freeze)
+              value = InterpolatedMatchLastLineNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InterpolatedRegularExpressionNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+              location = load_location(freeze)
+              value = InterpolatedRegularExpressionNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InterpolatedStringNode.new(source, node_id, location, load_varuint, load_optional_location, Array.new(load_varuint) { load_node }, load_optional_location)
+              location = load_location(freeze)
+              value = InterpolatedStringNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InterpolatedSymbolNode.new(source, node_id, location, load_varuint, load_optional_location, Array.new(load_varuint) { load_node }, load_optional_location)
+              location = load_location(freeze)
+              value = InterpolatedSymbolNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              InterpolatedXStringNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_location)
+              location = load_location(freeze)
+              value = InterpolatedXStringNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ItLocalVariableReadNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = ItLocalVariableReadNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ItParametersNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = ItParametersNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              KeywordHashNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node })
+              location = load_location(freeze)
+              value = KeywordHashNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) })
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              KeywordRestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant, load_optional_location, load_location)
+              location = load_location(freeze)
+              value = KeywordRestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant(constant_pool, encoding), load_optional_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LambdaNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_location, load_location, load_optional_node, load_optional_node)
+              location = load_location(freeze)
+              value = LambdaNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_location(freeze), load_location(freeze), load_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LocalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_location, load_location, load_node, load_required_constant, load_varuint)
+              location = load_location(freeze)
+              value = LocalVariableAndWriteNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LocalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_location, load_location, load_node, load_required_constant, load_required_constant, load_varuint)
+              location = load_location(freeze)
+              value = LocalVariableOperatorWriteNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_constant(constant_pool, encoding), load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LocalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_location, load_location, load_node, load_required_constant, load_varuint)
+              location = load_location(freeze)
+              value = LocalVariableOrWriteNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_constant(constant_pool, encoding), load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LocalVariableReadNode.new(source, node_id, location, load_varuint, load_required_constant, load_varuint)
+              location = load_location(freeze)
+              value = LocalVariableReadNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LocalVariableTargetNode.new(source, node_id, location, load_varuint, load_required_constant, load_varuint)
+              location = load_location(freeze)
+              value = LocalVariableTargetNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              LocalVariableWriteNode.new(source, node_id, location, load_varuint, load_required_constant, load_varuint, load_location, load_node, load_location)
+              location = load_location(freeze)
+              value = LocalVariableWriteNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_varuint, load_location(freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MatchLastLineNode.new(source, node_id, location, load_varuint, load_location, load_location, load_location, load_string)
+              location = load_location(freeze)
+              value = MatchLastLineNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_location(freeze), load_string(encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MatchPredicateNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = MatchPredicateNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MatchRequiredNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = MatchRequiredNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MatchWriteNode.new(source, node_id, location, load_varuint, load_node, Array.new(load_varuint) { load_node })
+              location = load_location(freeze)
+              value = MatchWriteNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) })
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MissingNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = MissingNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ModuleNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_node, load_optional_node, load_location, load_required_constant)
+              location = load_location(freeze)
+              value = ModuleNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MultiTargetNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location)
+              location = load_location(freeze)
+              value = MultiTargetNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              MultiWriteNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_location, load_location, load_node)
+              location = load_location(freeze)
+              value = MultiWriteNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              NextNode.new(source, node_id, location, load_varuint, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = NextNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              NilNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = NilNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              NoKeywordsParameterNode.new(source, node_id, location, load_varuint, load_location, load_location)
+              location = load_location(freeze)
+              value = NoKeywordsParameterNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              NumberedParametersNode.new(source, node_id, location, load_varuint, io.getbyte)
+              location = load_location(freeze)
+              value = NumberedParametersNode.new(source, node_id, location, load_varuint, io.getbyte)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              NumberedReferenceReadNode.new(source, node_id, location, load_varuint, load_varuint)
+              location = load_location(freeze)
+              value = NumberedReferenceReadNode.new(source, node_id, location, load_varuint, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              OptionalKeywordParameterNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_node)
+              location = load_location(freeze)
+              value = OptionalKeywordParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              OptionalParameterNode.new(source, node_id, location, load_varuint, load_required_constant, load_location, load_location, load_node)
+              location = load_location(freeze)
+              value = OptionalParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              OrNode.new(source, node_id, location, load_varuint, load_node, load_node, load_location)
+              location = load_location(freeze)
+              value = OrNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ParametersNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, Array.new(load_varuint) { load_node }, load_optional_node, Array.new(load_varuint) { load_node }, Array.new(load_varuint) { load_node }, load_optional_node, load_optional_node)
+              location = load_location(freeze)
+              value = ParametersNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ParenthesesNode.new(source, node_id, location, load_varuint, load_optional_node, load_location, load_location)
+              location = load_location(freeze)
+              value = ParenthesesNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              PinnedExpressionNode.new(source, node_id, location, load_varuint, load_node, load_location, load_location, load_location)
+              location = load_location(freeze)
+              value = PinnedExpressionNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              PinnedVariableNode.new(source, node_id, location, load_varuint, load_node, load_location)
+              location = load_location(freeze)
+              value = PinnedVariableNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              PostExecutionNode.new(source, node_id, location, load_varuint, load_optional_node, load_location, load_location, load_location)
+              location = load_location(freeze)
+              value = PostExecutionNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              PreExecutionNode.new(source, node_id, location, load_varuint, load_optional_node, load_location, load_location, load_location)
+              location = load_location(freeze)
+              value = PreExecutionNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_location(freeze), load_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ProgramNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_node)
+              location = load_location(freeze)
+              value = ProgramNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RangeNode.new(source, node_id, location, load_varuint, load_optional_node, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = RangeNode.new(source, node_id, location, load_varuint, load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RationalNode.new(source, node_id, location, load_varuint, load_integer, load_integer)
+              location = load_location(freeze)
+              value = RationalNode.new(source, node_id, location, load_varuint, load_integer, load_integer)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RedoNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = RedoNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RegularExpressionNode.new(source, node_id, location, load_varuint, load_location, load_location, load_location, load_string)
+              location = load_location(freeze)
+              value = RegularExpressionNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_location(freeze), load_string(encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RequiredKeywordParameterNode.new(source, node_id, location, load_varuint, load_required_constant, load_location)
+              location = load_location(freeze)
+              value = RequiredKeywordParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RequiredParameterNode.new(source, node_id, location, load_varuint, load_required_constant)
+              location = load_location(freeze)
+              value = RequiredParameterNode.new(source, node_id, location, load_varuint, load_constant(constant_pool, encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RescueModifierNode.new(source, node_id, location, load_varuint, load_node, load_location, load_node)
+              location = load_location(freeze)
+              value = RescueModifierNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze), load_location(freeze), load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RescueNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_node, load_optional_node, load_optional_node)
+              location = load_location(freeze)
+              value = RescueNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant, load_optional_location, load_location)
+              location = load_location(freeze)
+              value = RestParameterNode.new(source, node_id, location, load_varuint, load_optional_constant(constant_pool, encoding), load_optional_location(freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              RetryNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = RetryNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ReturnNode.new(source, node_id, location, load_varuint, load_location, load_optional_node)
+              location = load_location(freeze)
+              value = ReturnNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SelfNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = SelfNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              ShareableConstantNode.new(source, node_id, location, load_varuint, load_node)
+              location = load_location(freeze)
+              value = ShareableConstantNode.new(source, node_id, location, load_varuint, load_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SingletonClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_required_constant }, load_location, load_location, load_node, load_optional_node, load_location)
+              location = load_location(freeze)
+              value = SingletonClassNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_constant(constant_pool, encoding) }, load_location(freeze), load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SourceEncodingNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = SourceEncodingNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SourceFileNode.new(source, node_id, location, load_varuint, load_string)
+              location = load_location(freeze)
+              value = SourceFileNode.new(source, node_id, location, load_varuint, load_string(encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SourceLineNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = SourceLineNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SplatNode.new(source, node_id, location, load_varuint, load_location, load_optional_node)
+              location = load_location(freeze)
+              value = SplatNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              StatementsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node })
+              location = load_location(freeze)
+              value = StatementsNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) })
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              StringNode.new(source, node_id, location, load_varuint, load_optional_location, load_location, load_optional_location, load_string)
+              location = load_location(freeze)
+              value = StringNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_location(freeze), load_optional_location(freeze), load_string(encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SuperNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_optional_node, load_optional_location, load_optional_node)
+              location = load_location(freeze)
+              value = SuperNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              SymbolNode.new(source, node_id, location, load_varuint, load_optional_location, load_optional_location, load_optional_location, load_string)
+              location = load_location(freeze)
+              value = SymbolNode.new(source, node_id, location, load_varuint, load_optional_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_string(encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              TrueNode.new(source, node_id, location, load_varuint)
+              location = load_location(freeze)
+              value = TrueNode.new(source, node_id, location, load_varuint)
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              UndefNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node }, load_location)
+              location = load_location(freeze)
+              value = UndefNode.new(source, node_id, location, load_varuint, Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              UnlessNode.new(source, node_id, location, load_varuint, load_location, load_node, load_optional_location, load_optional_node, load_optional_node, load_optional_location)
+              location = load_location(freeze)
+              value = UnlessNode.new(source, node_id, location, load_varuint, load_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              UntilNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_node, load_optional_node)
+              location = load_location(freeze)
+              value = UntilNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              WhenNode.new(source, node_id, location, load_varuint, load_location, Array.new(load_varuint) { load_node }, load_optional_location, load_optional_node)
+              location = load_location(freeze)
+              value = WhenNode.new(source, node_id, location, load_varuint, load_location(freeze), Array.new(load_varuint) { load_node(constant_pool, encoding, freeze) }, load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              WhileNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_node, load_optional_node)
+              location = load_location(freeze)
+              value = WhileNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_location(freeze), load_node(constant_pool, encoding, freeze), load_optional_node(constant_pool, encoding, freeze))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              XStringNode.new(source, node_id, location, load_varuint, load_location, load_location, load_location, load_string)
+              location = load_location(freeze)
+              value = XStringNode.new(source, node_id, location, load_varuint, load_location(freeze), load_location(freeze), load_location(freeze), load_string(encoding))
+              value.freeze if freeze
+              value
             },
-            -> {
+            -> (constant_pool, encoding, freeze) {
               node_id = load_varuint
-              location = load_location
-              YieldNode.new(source, node_id, location, load_varuint, load_location, load_optional_location, load_optional_node, load_optional_location)
+              location = load_location(freeze)
+              value = YieldNode.new(source, node_id, location, load_varuint, load_location(freeze), load_optional_location(freeze), load_optional_node(constant_pool, encoding, freeze), load_optional_location(freeze))
+              value.freeze if freeze
+              value
             },
           ]
         end
@@ -1889,5 +2383,10 @@ module Prism
       :WORDS_SEP,
       :__END__,
     ]
+
+    private_constant :MAJOR_VERSION, :MINOR_VERSION, :PATCH_VERSION
+    private_constant :ConstantPool, :FastStringIO, :Loader, :TOKEN_TYPES
   end
+
+  private_constant :Serialize
 end

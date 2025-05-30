@@ -301,7 +301,7 @@ public final class YARPLoadArgumentsTranslator extends YARPBaseTranslator {
         if (node.name != null) {
             slot = environment.findFrameSlot(node.name);
         } else { // def a(&)
-            slot = environment.declareVar(TranslatorEnvironment.FORWARDED_BLOCK_NAME);
+            slot = environment.declareVar(TranslatorEnvironment.DEFAULT_BLOCK_NAME);
         }
 
         return new SaveMethodBlockNode(slot);

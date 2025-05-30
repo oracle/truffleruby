@@ -1,0 +1,158 @@
+@ ProgramNode (location: (1,0)-(7,16))
+├── flags: ∅
+├── locals: []
+└── statements:
+    @ StatementsNode (location: (1,0)-(7,16))
+    ├── flags: ∅
+    └── body: (length: 4)
+        ├── @ DefNode (location: (1,0)-(1,23))
+        │   ├── flags: newline
+        │   ├── name: :f
+        │   ├── name_loc: (1,4)-(1,5) = "f"
+        │   ├── receiver: ∅
+        │   ├── parameters:
+        │   │   @ ParametersNode (location: (1,7)-(1,17))
+        │   │   ├── flags: ∅
+        │   │   ├── requireds: (length: 0)
+        │   │   ├── optionals: (length: 0)
+        │   │   ├── rest: ∅
+        │   │   ├── posts: (length: 0)
+        │   │   ├── keywords: (length: 1)
+        │   │   │   └── @ OptionalKeywordParameterNode (location: (1,7)-(1,13))
+        │   │   │       ├── flags: ∅
+        │   │   │       ├── name: :foo
+        │   │   │       ├── name_loc: (1,7)-(1,11) = "foo:"
+        │   │   │       └── value:
+        │   │   │           @ IntegerNode (location: (1,12)-(1,13))
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 1
+        │   │   ├── keyword_rest: ∅
+        │   │   └── block:
+        │   │       @ BlockParameterNode (location: (1,15)-(1,17))
+        │   │       ├── flags: ∅
+        │   │       ├── name: :b
+        │   │       ├── name_loc: (1,16)-(1,17) = "b"
+        │   │       └── operator_loc: (1,15)-(1,16) = "&"
+        │   ├── body: ∅
+        │   ├── locals: [:foo, :b]
+        │   ├── def_keyword_loc: (1,0)-(1,3) = "def"
+        │   ├── operator_loc: ∅
+        │   ├── lparen_loc: (1,6)-(1,7) = "("
+        │   ├── rparen_loc: (1,17)-(1,18) = ")"
+        │   ├── equal_loc: ∅
+        │   └── end_keyword_loc: (1,20)-(1,23) = "end"
+        ├── @ DefNode (location: (3,0)-(3,38))
+        │   ├── flags: newline
+        │   ├── name: :f
+        │   ├── name_loc: (3,4)-(3,5) = "f"
+        │   ├── receiver: ∅
+        │   ├── parameters:
+        │   │   @ ParametersNode (location: (3,7)-(3,32))
+        │   │   ├── flags: ∅
+        │   │   ├── requireds: (length: 0)
+        │   │   ├── optionals: (length: 0)
+        │   │   ├── rest: ∅
+        │   │   ├── posts: (length: 0)
+        │   │   ├── keywords: (length: 2)
+        │   │   │   ├── @ OptionalKeywordParameterNode (location: (3,7)-(3,13))
+        │   │   │   │   ├── flags: ∅
+        │   │   │   │   ├── name: :foo
+        │   │   │   │   ├── name_loc: (3,7)-(3,11) = "foo:"
+        │   │   │   │   └── value:
+        │   │   │   │       @ IntegerNode (location: (3,12)-(3,13))
+        │   │   │   │       ├── flags: static_literal, decimal
+        │   │   │   │       └── value: 1
+        │   │   │   └── @ OptionalKeywordParameterNode (location: (3,15)-(3,21))
+        │   │   │       ├── flags: ∅
+        │   │   │       ├── name: :bar
+        │   │   │       ├── name_loc: (3,15)-(3,19) = "bar:"
+        │   │   │       └── value:
+        │   │   │           @ IntegerNode (location: (3,20)-(3,21))
+        │   │   │           ├── flags: static_literal, decimal
+        │   │   │           └── value: 2
+        │   │   ├── keyword_rest:
+        │   │   │   @ KeywordRestParameterNode (location: (3,23)-(3,28))
+        │   │   │   ├── flags: ∅
+        │   │   │   ├── name: :baz
+        │   │   │   ├── name_loc: (3,25)-(3,28) = "baz"
+        │   │   │   └── operator_loc: (3,23)-(3,25) = "**"
+        │   │   └── block:
+        │   │       @ BlockParameterNode (location: (3,30)-(3,32))
+        │   │       ├── flags: ∅
+        │   │       ├── name: :b
+        │   │       ├── name_loc: (3,31)-(3,32) = "b"
+        │   │       └── operator_loc: (3,30)-(3,31) = "&"
+        │   ├── body: ∅
+        │   ├── locals: [:foo, :bar, :baz, :b]
+        │   ├── def_keyword_loc: (3,0)-(3,3) = "def"
+        │   ├── operator_loc: ∅
+        │   ├── lparen_loc: (3,6)-(3,7) = "("
+        │   ├── rparen_loc: (3,32)-(3,33) = ")"
+        │   ├── equal_loc: ∅
+        │   └── end_keyword_loc: (3,35)-(3,38) = "end"
+        ├── @ DefNode (location: (5,0)-(5,20))
+        │   ├── flags: newline
+        │   ├── name: :f
+        │   ├── name_loc: (5,4)-(5,5) = "f"
+        │   ├── receiver: ∅
+        │   ├── parameters:
+        │   │   @ ParametersNode (location: (5,6)-(5,15))
+        │   │   ├── flags: ∅
+        │   │   ├── requireds: (length: 0)
+        │   │   ├── optionals: (length: 0)
+        │   │   ├── rest: ∅
+        │   │   ├── posts: (length: 0)
+        │   │   ├── keywords: (length: 0)
+        │   │   ├── keyword_rest:
+        │   │   │   @ KeywordRestParameterNode (location: (5,6)-(5,11))
+        │   │   │   ├── flags: ∅
+        │   │   │   ├── name: :baz
+        │   │   │   ├── name_loc: (5,8)-(5,11) = "baz"
+        │   │   │   └── operator_loc: (5,6)-(5,8) = "**"
+        │   │   └── block:
+        │   │       @ BlockParameterNode (location: (5,13)-(5,15))
+        │   │       ├── flags: ∅
+        │   │       ├── name: :b
+        │   │       ├── name_loc: (5,14)-(5,15) = "b"
+        │   │       └── operator_loc: (5,13)-(5,14) = "&"
+        │   ├── body: ∅
+        │   ├── locals: [:baz, :b]
+        │   ├── def_keyword_loc: (5,0)-(5,3) = "def"
+        │   ├── operator_loc: ∅
+        │   ├── lparen_loc: ∅
+        │   ├── rparen_loc: ∅
+        │   ├── equal_loc: ∅
+        │   └── end_keyword_loc: (5,17)-(5,20) = "end"
+        └── @ DefNode (location: (7,0)-(7,16))
+            ├── flags: newline
+            ├── name: :f
+            ├── name_loc: (7,4)-(7,5) = "f"
+            ├── receiver: ∅
+            ├── parameters:
+            │   @ ParametersNode (location: (7,6)-(7,11))
+            │   ├── flags: ∅
+            │   ├── requireds: (length: 0)
+            │   ├── optionals: (length: 0)
+            │   ├── rest:
+            │   │   @ RestParameterNode (location: (7,6)-(7,7))
+            │   │   ├── flags: ∅
+            │   │   ├── name: ∅
+            │   │   ├── name_loc: ∅
+            │   │   └── operator_loc: (7,6)-(7,7) = "*"
+            │   ├── posts: (length: 0)
+            │   ├── keywords: (length: 0)
+            │   ├── keyword_rest:
+            │   │   @ KeywordRestParameterNode (location: (7,9)-(7,11))
+            │   │   ├── flags: ∅
+            │   │   ├── name: ∅
+            │   │   ├── name_loc: ∅
+            │   │   └── operator_loc: (7,9)-(7,11) = "**"
+            │   └── block: ∅
+            ├── body: ∅
+            ├── locals: []
+            ├── def_keyword_loc: (7,0)-(7,3) = "def"
+            ├── operator_loc: ∅
+            ├── lparen_loc: ∅
+            ├── rparen_loc: ∅
+            ├── equal_loc: ∅
+            └── end_keyword_loc: (7,13)-(7,16) = "end"

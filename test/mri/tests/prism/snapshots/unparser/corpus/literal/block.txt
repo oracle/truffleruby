@@ -941,6 +941,7 @@
         │       │   │   │   ├── flags: ∅
         │       │   │   │   ├── name: :e
         │       │   │   │   └── depth: 0
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements: ∅
         │       │   │   └── subsequent: ∅
         │       │   ├── else_clause: ∅
@@ -994,6 +995,7 @@
         │       │   │   │   ├── flags: ∅
         │       │   │   │   ├── name: :bar
         │       │   │   │   └── depth: 0
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements:
         │       │   │   │   @ StatementsNode (location: (55,2)-(55,5))
         │       │   │   │   ├── flags: ∅
@@ -1064,6 +1066,7 @@
         │       │   │   │           └── block: ∅
         │       │   │   ├── operator_loc: ∅
         │       │   │   ├── reference: ∅
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements:
         │       │   │   │   @ StatementsNode (location: (60,2)-(60,5))
         │       │   │   │   ├── flags: ∅
@@ -1144,6 +1147,7 @@
         │       │   │   │   ├── flags: ∅
         │       │   │   │   ├── name: :exception
         │       │   │   │   └── depth: 0
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements:
         │       │   │   │   @ StatementsNode (location: (65,2)-(65,5))
         │       │   │   │   ├── flags: ∅
@@ -1217,6 +1221,7 @@
         │       │   │   │           └── block: ∅
         │       │   │   ├── operator_loc: ∅
         │       │   │   ├── reference: ∅
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements:
         │       │   │   │   @ StatementsNode (location: (70,2)-(70,5))
         │       │   │   │   ├── flags: ∅
@@ -1279,6 +1284,7 @@
         │       │   │   │       └── name: :LoadError
         │       │   │   ├── operator_loc: ∅
         │       │   │   ├── reference: ∅
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements: ∅
         │       │   │   └── subsequent: ∅
         │       │   ├── else_clause: ∅
@@ -1325,6 +1331,7 @@
         │       │   │   ├── exceptions: (length: 0)
         │       │   │   ├── operator_loc: ∅
         │       │   │   ├── reference: ∅
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements: ∅
         │       │   │   └── subsequent: ∅
         │       │   ├── else_clause:
@@ -1407,6 +1414,7 @@
         │       │   │   │   ├── flags: ∅
         │       │   │   │   ├── name: :exception
         │       │   │   │   └── depth: 0
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements:
         │       │   │   │   @ StatementsNode (location: (85,2)-(85,5))
         │       │   │   │   ├── flags: ∅
@@ -1483,6 +1491,7 @@
         │       │   │   ├── exceptions: (length: 0)
         │       │   │   ├── operator_loc: ∅
         │       │   │   ├── reference: ∅
+        │       │   │   ├── then_keyword_loc: ∅
         │       │   │   ├── statements: ∅
         │       │   │   └── subsequent: ∅
         │       │   ├── else_clause: ∅
