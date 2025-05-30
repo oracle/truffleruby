@@ -22,7 +22,7 @@ module Truffle
 
         exception_object_expected! unless Primitive.is_a?(exc, ::Exception)
         exc
-      elsif Primitive.is_a?(exc, ::String)
+      elsif Primitive.is_a?(exc, ::String) && Primitive.undefined?(msg)
         ::RuntimeError.exception exc
       else
         exception_class_object_expected!

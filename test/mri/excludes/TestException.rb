@@ -12,7 +12,6 @@ exclude :test_machine_stackoverflow_by_define_method, "assert_separately failed 
 exclude :test_marshal_circular_cause, "\"\\x04\\bo:\\x11RuntimeError\\b:\\tmesgI\\\"\\berr\\x06:\\x06ET:\\abt[\\x00:\\ncauseo:\\x0EException\\a;\\x060;\\b0\"."
 exclude :test_non_exception_cause, "Exception(TypeError) with message matches to /exception/."
 exclude :test_output_string_encoding, "<1> expected but was <0>."
-exclude :test_raise_with_cause, "[TypeError] exception expected, not #<RuntimeError: [Feature #8257]>."
 exclude :test_stackoverflow, "<no message> (java.lang.IndexOutOfBoundsException) from com.oracle.svm.core.jni.functions.JNIFunctions$NewObjectWithObjectArrayArgFunctionPointer.invoke(JNIFunctions.java:-1)"
 exclude :test_too_many_args_in_eval, "[SystemStackError] exception expected, not #<ArgumentError: wrong number of arguments (given 140000, expected 0..3)>."
 exclude :test_undef_Warning_warn, "[NoMethodError] exception expected, not #<NameError: undefined method `warn' for class `Module'>."
