@@ -22,7 +22,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "38a4ec195b58325c3f7d710b3dc17d7941ae0261",
+                "version": "aefacfb7d2d62c2254755922e85c2ee4c79530d5",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -31,7 +31,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "38a4ec195b58325c3f7d710b3dc17d7941ae0261",
+                "version": "aefacfb7d2d62c2254755922e85c2ee4c79530d5",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -491,7 +491,7 @@ suite = {
             "class": "LanguageLibraryProject",
             "dependencies": [
                 "TRUFFLERUBY_STANDALONE_DEPENDENCIES",
-                # LLVM_NATIVE_COMMUNITY is intentionally not used as that would include SULONG_NATIVE_RESOURCES,
+                # LLVM_NATIVE_POM is intentionally not used as that would include SULONG_NATIVE_RESOURCES,
                 # which would copy the resources in the image, regardless of IncludeLanguageResources,
                 # see com.oracle.truffle.llvm.nativemode.resources.NativeResourceFeature.
             ],
@@ -620,17 +620,17 @@ suite = {
             "noMavenJavadoc": True,
         },
 
-        "RUBY_COMMUNITY": {
+        "RUBY_POM": {
             "type": "pom",
             "runtimeDependencies": [
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-RESOURCES",
                 "truffle:TRUFFLE_RUNTIME",
-                "sulong:LLVM_NATIVE_COMMUNITY",
+                "sulong:LLVM_NATIVE_POM",
             ],
             "description": "TruffleRuby (GraalVM Ruby)",
             "maven": {
-                "artifactId": "ruby-community",
+                "artifactId": "ruby",
                 "tag": ["default", "public"],
             },
             "license": [
