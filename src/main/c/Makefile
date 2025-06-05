@@ -17,7 +17,6 @@ endif
 ROOT := $(realpath ../../..)
 RUBY := $(TRUFFLERUBY_BOOTSTRAP_LAUNCHER)
 
-TRUFFLE_POSIX := truffleposix/libtruffleposix.$(SOEXT)
 SPAWN_HELPER := spawn-helper/spawn-helper
 TRAMPOLINE := cext-trampoline/libtrufflerubytrampoline.$(SOEXT)
 
@@ -26,7 +25,7 @@ CEXT_C_FILES := $(shell find cext -name '*.c')
 RBCONFIG := $(ROOT)/lib/truffle/rbconfig.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
 LIBTRUFFLERUBY = cext/libtruffleruby.$(SOEXT)
-BASIC_DEPS := Makefile $(SPAWN_HELPER) $(TRUFFLE_POSIX) $(RUBY_HEADERS)
+BASIC_DEPS := Makefile $(SPAWN_HELPER) $(RUBY_HEADERS)
 BASIC_EXTCONF_DEPS := $(BASIC_DEPS) $(RBCONFIG) $(MKMF)
 # C extensions link against libtruffleruby (and might do have_func() checks against it), so it needs to be there before.
 # However, if libtruffleruby is recompiled, there is no need to rebuild C extensions, so it's a order-only-prerequisite.
@@ -42,10 +41,7 @@ all: $(TRAMPOLINE) $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT)
 			bigdecimal/bigdecimal.$(DLEXT) date/date_core.$(DLEXT) io-console/console.$(DLEXT) etc/etc.$(DLEXT) \
 			rbconfig-sizeof/sizeof.$(DLEXT) debug/debug.$(DLEXT) rbs/rbs_extension.$(DLEXT)
 
-clean: clean_cexts clean_truffleposix clean_trampoline
-
-clean_truffleposix:
-	$(Q) rm -f $(TRUFFLE_POSIX) truffleposix/*.o
+clean: clean_cexts clean_trampoline
 
 clean_trampoline:
 	$(Q) rm -f $(TRAMPOLINE) cext-trampoline/trampoline.c cext/wrappers.c cext-trampoline/*.o
@@ -69,10 +65,6 @@ clean_cexts:
 # spawn-helper
 $(SPAWN_HELPER): spawn-helper/Makefile spawn-helper/spawn-helper.c
 	$(Q) cd spawn-helper && $(MAKE)
-
-# truffleposix
-$(TRUFFLE_POSIX): truffleposix/Makefile truffleposix/truffleposix.c
-	$(Q) cd truffleposix && $(MAKE)
 
 # cext-trampoline
 cext-trampoline/trampoline.c: $(CEXT_C_FILES) $(BASIC_DEPS) $(ROOT)/tool/generate-cext-trampoline.rb
