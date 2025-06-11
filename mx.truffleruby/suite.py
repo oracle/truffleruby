@@ -238,6 +238,13 @@ suite = {
             },
         },
 
+        "org.truffleruby.spawnhelper": {
+            "dir": "src/main/c/spawn-helper",
+            "native": "executable",
+            "deliverable": "spawn-helper",
+            "cflags": ["-g", "-O3", "-std=c99", "-Wall", "-Werror"],
+        },
+
         "org.prism.libprism": {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
@@ -422,7 +429,6 @@ suite = {
             },
             "output": ".",
             "results": [
-                "src/main/c/spawn-helper/spawn-helper",
                 "src/main/c/cext/<lib:truffleruby>",
                 "src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                 "src/main/c/bigdecimal/<extsuffix:bigdecimal>",
@@ -773,6 +779,9 @@ suite = {
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
                 ],
+                "lib/truffle/": [
+                    "dependency:org.truffleruby.spawnhelper",
+                ],
             },
             "maven": False,
         },
@@ -855,7 +864,7 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/<extsuffix:sizeof>",
                 ],
                 "lib/truffle/": [
-                    "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
+                    "dependency:org.truffleruby.spawnhelper",
                 ],
             },
             "license": [
