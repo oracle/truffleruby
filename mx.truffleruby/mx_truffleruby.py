@@ -84,6 +84,7 @@ class TruffleRubyUnittestConfig(mx_unittest.MxUnittestConfig):
     def apply(self, config):
         vmArgs, mainClass, mainClassArgs = config
         mx_truffle.enable_truffle_native_access(vmArgs)
+        mx_truffle.enable_sun_misc_unsafe(vmArgs)
         return (vmArgs, mainClass, mainClassArgs)
 
 mx_unittest.register_unittest_config(TruffleRubyUnittestConfig())
@@ -153,6 +154,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
         jvm_args = [shlex.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
         mx_truffle.enable_truffle_native_access(jvm_args)
+        mx_truffle.enable_sun_misc_unsafe(jvm_args)
 
         debug_args = mx.java_debug_args()
         jvm_args.extend(debug_args)
@@ -219,6 +221,7 @@ def ruby_check_heap_dump(input_args, out=None):
     vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
     vm_args += mx.get_runtime_jvm_args(dists)
     mx_truffle.enable_truffle_native_access(vm_args)
+    mx_truffle.enable_sun_misc_unsafe(vm_args)
     # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
     vm_args.append("org.truffleruby.test.internal.LeakTest")
     out = mx.OutputCapture() if out is None else out
