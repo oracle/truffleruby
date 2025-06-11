@@ -81,6 +81,7 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 JDK_VERSIONS = %w[latest 21]
 LTS_JDK_VERSION = '21'
+IGV_JDK_VERSION = '21'
 DEFAULT_JDK_VERSION = 'latest'
 
 # Not yet 'jdk.graal' as we test against 21 and 21 does not know 'jdk.graal'
@@ -2444,7 +2445,7 @@ module Commands
 
   def igv
     compiler = "#{GRAAL_DIR}/compiler"
-    @jdk_version = LTS_JDK_VERSION
+    ENV['TOOLS_JAVA_HOME'] = install_jvmci("Downloading JDK#{IGV_JDK_VERSION} to run IGV", jdk_version: IGV_JDK_VERSION)
     mx('igv', chdir: compiler)
   end
 
