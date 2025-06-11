@@ -254,6 +254,19 @@ def ruby_run_ruby(args):
     ruby = join(standalone_home, 'bin/ruby')
     os.execlp(ruby, ruby, *args)
 
+def ruby_run_ruby_from_classpath(args):
+    """run TruffleRuby from the classpath"""
+    dists = ['RUBY_COMMUNITY', 'TRUFFLERUBY-LAUNCHER']
+    if '--skip-build' in args:
+        args.remove('--skip-build')
+    else:
+        mx.command_function('build')(['--dependencies', ','.join(dists)])
+    classpath = mx.classpath(dists)
+    jvm_args = ['-cp', classpath]
+    mx_truffle.enable_truffle_native_access(jvm_args)
+    mx_truffle.enable_sun_misc_unsafe(jvm_args)
+    mx.run_java([*jvm_args, 'org.truffleruby.launcher.RubyLauncher', *args], jdk=jdk, nonZeroIsFatal=True)
+
 def ruby_run_specs(ruby, args):
     with VerboseMx():
         jt('--use', ruby, 'test', 'specs', *args)
@@ -378,6 +391,7 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
+    'ruby_from_classpath': [ruby_run_ruby_from_classpath, ''],
     'build_truffleruby': [build_truffleruby, ''],
     'ruby_check_heap_dump': [ruby_check_heap_dump, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
