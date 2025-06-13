@@ -39,13 +39,7 @@ module Truffle::POSIX
   end
 
   LIBTRUFFLEPOSIX = LazyLibrary.new do
-    home = Truffle::Boot.ruby_home
-    if Truffle::Boot.get_option 'building-core-cexts'
-      repo = Truffle::System.get_java_property 'truffleruby.repository'
-      libtruffleposix = "#{repo}/src/main/c/truffleposix/libtruffleposix.#{Truffle::Platform::SOEXT}"
-    else
-      libtruffleposix = "#{home}/lib/cext/libtruffleposix.#{Truffle::Platform::SOEXT}"
-    end
+    libtruffleposix = "#{Truffle::Boot.ruby_home}/lib/cext/libtruffleposix.#{Truffle::Platform::SOEXT}"
     Primitive.interop_eval_nfi "load '#{libtruffleposix}'"
   end
 

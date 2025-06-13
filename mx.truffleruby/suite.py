@@ -220,6 +220,31 @@ suite = {
             "ldflags": ["-pthread"],
         },
 
+        "org.truffleruby.libtruffleposix": {
+            "dir": "src/main/c/truffleposix",
+            "native": "shared_lib",
+            "deliverable": "truffleposix",
+            "buildDependencies": [
+                "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC",
+            ],
+            "cflags": ["-g", "-O3", "-std=c99", "-Wall", "-Werror", "-pthread", "-I<path:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC>/lib/cext/include"],
+            "ldflags": ["-pthread"],
+            "os": {
+                "linux": {
+                    "ldlibs": ["-lrt"],
+                },
+                "<others>": {
+                },
+            },
+        },
+
+        "org.truffleruby.spawnhelper": {
+            "dir": "src/main/c/spawn-helper",
+            "native": "executable",
+            "deliverable": "spawn-helper",
+            "cflags": ["-g", "-O3", "-std=c99", "-Wall", "-Werror"],
+        },
+
         "org.prism.libprism": {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
@@ -404,8 +429,6 @@ suite = {
             },
             "output": ".",
             "results": [
-                "src/main/c/spawn-helper/spawn-helper",
-                "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/cext/<lib:truffleruby>",
                 "src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                 "src/main/c/bigdecimal/<extsuffix:bigdecimal>",
@@ -750,11 +773,14 @@ suite = {
                 ],
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
-                    # libtruffleposix is handled specially in posix.rb to avoid a cyclic dependency between org.truffleruby.cext and TRUFFLERUBY-BOOTSTRAP-LAUNCHER
                     "dependency:org.truffleruby.librubysignal",
+                    "dependency:org.truffleruby.libtruffleposix",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
+                ],
+                "lib/truffle/": [
+                    "dependency:org.truffleruby.spawnhelper",
                 ],
             },
             "maven": False,
@@ -805,10 +831,10 @@ suite = {
                     "dependency:org.prism.libprism.for.gem/build/<lib:prism>",
                 ],
                 "lib/cext/": [
-                    "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
+                    "dependency:org.truffleruby.librubysignal",
+                    "dependency:org.truffleruby.libtruffleposix",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
-                    "dependency:org.truffleruby.librubysignal",
                 ],
                 # Create the complete files to let RubyGems know the gems are fully built and can be activated
                 "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.9.2/gem.build_complete": "string:",
@@ -838,7 +864,7 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/<extsuffix:sizeof>",
                 ],
                 "lib/truffle/": [
-                    "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
+                    "dependency:org.truffleruby.spawnhelper",
                 ],
             },
             "license": [
@@ -1073,7 +1099,7 @@ suite = {
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-RESOURCES",
             ],
-            "description" : "Truffle TCK provider for Ruby language.",
+            "description": "Truffle TCK provider for Ruby language.",
             "license": ["EPL-2.0"],
             "maven": {
                 "artifactId": "ruby-truffle-tck",

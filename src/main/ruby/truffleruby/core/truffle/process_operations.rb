@@ -570,6 +570,7 @@ module Truffle
         if use_helper
           # Go through spawn-helper to change the working dir and then execve()
           spawn_helper = "#{Truffle::Boot.ruby_home}/lib/truffle/spawn-helper"
+          raise "#{spawn_helper} does not exist!" unless File.exist?(spawn_helper)
           cwd = chdir || Dir.pwd
           args = [spawn_helper, cwd, command, *args]
           command = spawn_helper
