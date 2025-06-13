@@ -629,7 +629,7 @@ suite = {
                 "truffle:TRUFFLE_NFI_PANAMA",
                 "sulong:SULONG_NATIVE",
             ],
-            "description": "Core module of Ruby on Truffle",
+            "description": "TruffleRuby, a high-performance embeddable Ruby implementation. This artifact includes the core language runtime without standard libraries. It is not recommended to depend on this artifact directly. Instead, use \'org.graalvm.polyglot:ruby\' to ensure all dependencies are pulled in correctly.", # pylint: disable=line-too-long
             "license": [
                 "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius

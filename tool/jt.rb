@@ -191,7 +191,7 @@ module Utilities
   end
 
   def ee?
-    (@mx_env || @ruby_name || '').include?('ee')
+    @mx_env.include?('ee') || @ruby_name.include?('ee')
   end
 
   def ee_jdk?
@@ -260,14 +260,12 @@ module Utilities
   end
 
   def used_ruby_is_mx_env_name?
-    ruby_launcher # to set @ruby_name
     File.file?(env_path(@ruby_name))
   end
 
   def ruby_launcher
     return @ruby_launcher if defined? @ruby_launcher
 
-    @ruby_name ||= ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
                     elsif @ruby_name.start_with?('/')
@@ -2616,21 +2614,20 @@ module Commands
       FileUtils.touch(build_information_path)
     end
 
-    env = if (i = options.index('--env') || options.index('-e'))
-            options.delete_at i
-            options.delete_at i
-          else
-            ENV['JT_ENV'] || 'jvm'
-          end
-    @mx_env = env
-    raise 'Cannot use both --use and --env' if defined?(@ruby_name)
+    # Override @mx_env if --env is passed
+    if (i = options.index('--env') || options.index('-e'))
+      options.delete_at i
+      @mx_env = options.delete_at i
+    end
+    env = @mx_env
 
-    @ruby_name = if (i = options.index('--name') || options.index('-n'))
-                   options.delete_at i
-                   options.delete_at i
-                 else
-                   env
-                 end
+    # Override @ruby_name from --name or --env
+    if (i = options.index('--name') || options.index('-n'))
+      options.delete_at i
+      @ruby_name = options.delete_at i
+    else
+      @ruby_name = env
+    end
 
     name = "truffleruby-#{@ruby_name}"
     mx_base_args = ['--env', env]
@@ -3310,6 +3307,8 @@ class JT
     @silent = false
     @verbose = false
     @jdk_version = ENV['JT_JDK'] || DEFAULT_JDK_VERSION
+    @ruby_name = ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
+    @mx_env = ENV['JT_ENV'] || 'jvm'
 
     until args.empty?
       arg = args.shift
