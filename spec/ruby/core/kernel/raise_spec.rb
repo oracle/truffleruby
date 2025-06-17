@@ -240,6 +240,25 @@ describe "Kernel#raise" do
     end
   end
 
+  it "re-raises a previously rescued exception that doesn't have a cause and is a cause of other exception (that wasn't raised explicitly) without setting a cause implicitly" do
+    begin
+      begin
+        raise "Error 1"
+      rescue => e1
+        begin
+          foo # raises NameError
+        rescue => e2
+          e1.cause.should == nil
+          e2.cause.should == e1
+          raise e1
+        end
+      end
+    rescue => e
+      e.should == e1
+      e.cause.should == nil
+    end
+  end
+
   it "re-raises a previously rescued exception that has a cause but isn't a cause of any other exception without setting a cause implicitly" do
     begin
       begin
