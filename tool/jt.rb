@@ -702,7 +702,9 @@ module Utilities
   end
 
   def run_mspec(env_vars, command = 'run', *args)
-    mspec_args = ['spec/mspec/bin/mspec', command, '--config', ENV['TRUFFLERUBY_MSPEC_CONFIG'] || 'spec/truffleruby.mspec']
+    # Pass spec/truffleruby.mspec explicitly because we also want to use it when
+    # running specs on CRuby so that it finds that specs are under spec/ruby.
+    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffleruby.mspec']
 
     Dir.chdir(TRUFFLERUBY_DIR) do
       # always enable assertions with --ea to catch issues earlier
@@ -1914,6 +1916,7 @@ module Commands
 
   def metrics(command, *args)
     require_ruby_launcher!
+    ENV['TRUFFLERUBY_ALLOW_PRIVATE_PRIMITIVES_IN'] = "#{TRUFFLERUBY_DIR}/bench/metrics/"
     args = args.dup
     case command
     when 'alloc'

@@ -43,7 +43,7 @@ public final class PrimitiveManager {
             }
         }
 
-        throw new Error("Primitive :" + name + " not found");
+        throw new Error("Primitive." + name + " not found");
     }
 
     public void addLazyPrimitive(String primitive, String nodeFactoryClass) {

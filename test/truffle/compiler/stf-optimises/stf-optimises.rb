@@ -8,7 +8,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
+require_relative '../pe/pe_harness'
 
 def foo
   var = 14
@@ -22,12 +22,11 @@ set_trace_func proc { |event, file, line, id, binding, classname|
   end
 }
 
+create_test_pe_code_method('foo')
 begin
-  loop do
-    x = foo
+  while true
+    x = test_pe_code
     raise 'value not correct' unless x == 200
-    Primitive.assert_compilation_constant x
-    Primitive.assert_not_compiled
   end
 rescue Truffle::GraalError => e
   if e.message.include? 'Primitive.assert_not_compiled'

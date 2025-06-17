@@ -567,7 +567,7 @@ class Array
 
     hash_val
   end
-  Truffle::Graal.always_split instance_method(:hash)
+  Primitive.always_split self, :hash
 
   def find_index(obj = undefined)
     super
@@ -591,7 +591,7 @@ class Array
     end
     self
   end
-  Truffle::Graal.always_split instance_method(:insert)
+  Primitive.always_split self, :insert
 
   def inspect
     return '[]'.encode(Encoding::US_ASCII) if empty?
@@ -727,7 +727,7 @@ class Array
       buffer.replace string.force_encoding(buffer.encoding)
     end
   end
-  Truffle::Graal.always_split instance_method(:pack)
+  Primitive.always_split self, :pack
 
   def permutation(num = undefined, &block)
     unless block_given?

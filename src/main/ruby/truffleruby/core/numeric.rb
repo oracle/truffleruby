@@ -93,7 +93,7 @@ class Numeric
 
     self
   end
-  Truffle::Graal.always_split instance_method(:step)
+  Primitive.always_split self, :step
 
   def truncate
     Float(self).truncate

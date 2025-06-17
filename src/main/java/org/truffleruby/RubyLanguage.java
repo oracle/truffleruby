@@ -208,6 +208,8 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
      * {@link TranslatorEnvironment#newFrameDescriptorBuilderForBlock(BlockDescriptorInfo)}. */
     public static final FrameDescriptor EMPTY_FRAME_DESCRIPTOR = new FrameDescriptor(nil);
 
+    public static final String INTERNAL_CORE_PREFIX = "<internal:core> ";
+
     /** Global cache of call targets that {@code RBSprintfCompiler.compile} returns */
     public static final Map<TStringWithEncoding, RootCallTarget> sprintfCompilerCallTargets = new ConcurrentHashMap<>();
 
@@ -284,6 +286,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     @CompilationFinal public LanguageOptions options;
     @CompilationFinal private String rubyHome;
     @CompilationFinal public String cextPath;
+    public String[] allowPrivatePrimitivesPrefixes;
 
     private TruffleFile rubyHomeTruffleFile;
 
@@ -777,6 +780,28 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         rubyHomeTruffleFile = home;
         rubyHome = home.getPath();
         cextPath = rubyHome + "/lib/truffle/truffle/cext_ruby.rb";
+
+        String allowIn = System.getenv("TRUFFLERUBY_ALLOW_PRIVATE_PRIMITIVES_IN");
+        if (allowIn != null) {
+            if (!allowIn.endsWith("/spec/truffle/") && !allowIn.endsWith("/test/truffle/compiler/") &&
+                    !allowIn.endsWith("/bench/metrics/")) {
+                throw CompilerDirectives
+                        .shouldNotReachHere("Invalid value for TRUFFLERUBY_ALLOW_PRIMITIVES_IN: " + allowIn);
+            }
+
+            allowPrivatePrimitivesPrefixes = new String[]{
+                    rubyHome + "/lib/truffle/",
+                    rubyHome + "/lib/patches/",
+                    rubyHome + "/lib/mri/",
+                    allowIn,
+            };
+        } else {
+            allowPrivatePrimitivesPrefixes = new String[]{
+                    rubyHome + "/lib/truffle/",
+                    rubyHome + "/lib/patches/",
+                    rubyHome + "/lib/mri/",
+            };
+        }
     }
 
     private void resetRubyHome() {
@@ -784,6 +809,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
         rubyHomeTruffleFile = null;
         rubyHome = null;
         cextPath = null;
+        allowPrivatePrimitivesPrefixes = null;
     }
 
     private TruffleFile findRubyHome(Env env) {
@@ -954,7 +980,7 @@ public final class RubyLanguage extends TruffleLanguage<RubyContext> {
     public String getSourcePath(Source source) {
         final String path = getPath(source);
         if (path.startsWith(coreLoadPath)) {
-            return "<internal:core> " + path.substring(coreLoadPath.length() + 1);
+            return INTERNAL_CORE_PREFIX + path.substring(coreLoadPath.length() + 1);
         } else {
             return path;
         }

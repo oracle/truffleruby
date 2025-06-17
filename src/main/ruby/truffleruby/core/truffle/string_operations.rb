@@ -76,7 +76,7 @@ module Truffle
         gsub_other_matches(global, orig, pattern)
       end
     end
-    Truffle::Graal.always_split(method(:gsub_internal_matches))
+    Primitive.always_split singleton_class, :gsub_internal_matches
 
     def self.gsub_new_offset(orig, match)
       start_pos = Primitive.match_data_byte_begin(match, 0)
@@ -95,7 +95,7 @@ module Truffle
     def self.gsub_regexp_matches(global, orig, pattern)
       res = []
       offset = 0
-      while match = Truffle::RegexpOperations.match_in_region(pattern, orig, offset, orig.bytesize, false, 0)
+      while match = Primitive.regexp_search(pattern, orig, offset)
         res << match
         break unless global
         offset = gsub_new_offset(orig, match)
@@ -121,14 +121,14 @@ module Truffle
       pattern = Truffle::Type.coerce_to_regexp(pattern, true)
       res = []
       offset = 0
-      while match = Truffle::RegexpOperations.match_in_region(pattern, orig, offset, orig.bytesize, false, 0)
+      while match = Primitive.regexp_search(pattern, orig, offset)
         res << match
         break unless global
         offset = gsub_new_offset(orig, match)
       end
       res
     end
-    Truffle::Graal.always_split(method(:gsub_other_matches))
+    Primitive.always_split singleton_class, :gsub_other_matches
 
     def self.gsub_internal_yield_matches(orig, matches)
       return nil if matches.empty?

@@ -149,7 +149,7 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      match_data = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, true, true)
+      match_data = Primitive.regexp_search(pattern, self, 0)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
     when String
@@ -280,7 +280,7 @@ class String
 
   def rpartition(pattern)
     if Primitive.is_a?(pattern, Regexp)
-      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, false, true)
+      if m = Primitive.regexp_search_backward(pattern, self, bytesize)
         Primitive.regexp_last_match_set(Primitive.caller_special_variables, m)
         return [m.pre_match, m[0], m.post_match]
       end
@@ -340,12 +340,12 @@ class String
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, last_match)
     ret
   end
-  Truffle::Graal.always_split(instance_method(:scan))
+  Primitive.always_split self, :scan
 
   def split(pattern = nil, limit = undefined, &block)
     Truffle::Splitter.split(Primitive.dup_as_string_instance(self), pattern, limit, &block)
   end
-  Truffle::Graal.always_split(instance_method(:split))
+  Primitive.always_split self, :split
 
   def squeeze(*strings)
     str = Primitive.dup_as_string_instance(self)
@@ -391,7 +391,7 @@ class String
     str = Primitive.dup_as_string_instance(self)
     str.tr!(source, replacement) || str
   end
-  Truffle::Graal.always_split(instance_method(:tr))
+  Primitive.always_split self, :tr
 
   def tr_s(source, replacement)
     str = Primitive.dup_as_string_instance(self)
@@ -681,7 +681,7 @@ class String
     Primitive.string_replace(s, res) if res
     s
   end
-  Truffle::Graal.always_split(instance_method(:sub))
+  Primitive.always_split self, :sub
 
   def sub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
@@ -700,7 +700,7 @@ class String
       nil
     end
   end
-  Truffle::Graal.always_split(instance_method(:sub!))
+  Primitive.always_split self, :sub!
 
   def slice!(one, two = undefined)
     Primitive.check_mutable_string self
@@ -928,7 +928,7 @@ class String
     Primitive.string_replace(s, res) if res
     s
   end
-  Truffle::Graal.always_split(instance_method(:gsub))
+  Primitive.always_split self, :gsub
 
   def gsub!(pattern, replacement = undefined, &block)
     if Primitive.undefined?(replacement) && !block_given?
@@ -947,7 +947,7 @@ class String
       nil
     end
   end
-  Truffle::Graal.always_split(instance_method(:gsub!))
+  Primitive.always_split self, :gsub!
 
   def match(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
@@ -962,13 +962,13 @@ class String
     Primitive.regexp_last_match_set(Primitive.caller_special_variables, $~)
     result
   end
-  Truffle::Graal.always_split(instance_method(:match))
+  Primitive.always_split self, :match
 
   def match?(pattern, pos = 0)
     pattern = Truffle::Type.coerce_to_regexp(pattern) unless Primitive.is_a?(pattern, Regexp)
     pattern.match? self, pos
   end
-  Truffle::Graal.always_split(instance_method(:match?))
+  Primitive.always_split self, :match?
 
   def scrub(replace = nil, &block)
     return Primitive.dup_as_string_instance(self) if valid_encoding?
@@ -1005,7 +1005,7 @@ class String
 
     Primitive.string_scrub(self, replace_block)
   end
-  Truffle::Graal.always_split instance_method(:scrub)
+  Primitive.always_split self, :scrub
 
   def scrub!(replace = nil, &block)
     return self if valid_encoding?
@@ -1153,7 +1153,7 @@ class String
     if Primitive.is_a?(sub, Regexp)
       Primitive.regexp_check_encoding(sub, self)
 
-      match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false, true)
+      match_data = Primitive.regexp_search_backward(sub, self, byte_finish)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match_data)
       return match_data.begin(0) if match_data
 
@@ -1224,7 +1224,7 @@ class String
     if Primitive.is_a?(str, Regexp)
       Primitive.regexp_check_encoding(str, self)
 
-      match = Truffle::RegexpOperations.search_region(str, self, 0, finish, false, true)
+      match = Primitive.regexp_search_backward(str, self, finish)
       Primitive.regexp_last_match_set(Primitive.caller_special_variables, match)
       return match ? Primitive.match_data_byte_begin(match, 0) : nil
     end
@@ -1253,7 +1253,7 @@ class String
     prefixes.each do |original_prefix|
       case original_prefix
       when Regexp
-        match_data = Truffle::RegexpOperations.match_in_region(original_prefix, self, 0, bytesize, true, 0)
+        match_data = Primitive.regexp_match_at_start(original_prefix, self, 0, 0)
         Primitive.regexp_last_match_set(storage, match_data)
         return true if match_data
       else
@@ -1302,7 +1302,7 @@ class String
       end
     end
   end
-  Truffle::Graal.always_split instance_method(:%)
+  Primitive.always_split self, :%
 
   def capitalize!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
@@ -1418,12 +1418,12 @@ class String
     end
     Primitive.string_unpack(self, format, offset)
   end
-  Truffle::Graal.always_split(instance_method(:unpack))
+  Primitive.always_split self, :unpack
 
   def unpack1(format, offset: undefined)
     unpack(format, offset: offset).first
   end
-  Truffle::Graal.always_split(instance_method(:unpack1))
+  Primitive.always_split self, :unpack1
 
   def unicode_normalize(form = :nfc)
     require 'unicode_normalize/normalize.rb' unless defined? UnicodeNormalize

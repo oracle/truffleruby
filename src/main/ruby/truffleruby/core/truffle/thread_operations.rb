@@ -74,7 +74,7 @@ module Truffle::ThreadOperations
 
     Primitive.thread_detect_recursion_single obj, block
   end
-  Truffle::Graal.always_split method(:detect_recursion)
+  Primitive.always_split singleton_class, :detect_recursion
 
   # detect_recursion will return if there's a recursion
   # on the pair obj+paired_obj.
@@ -132,7 +132,7 @@ module Truffle::ThreadOperations
 
     false
   end
-  Truffle::Graal.always_split method(:detect_pair_recursion)
+  Primitive.always_split singleton_class, :detect_pair_recursion
 
   class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
 

@@ -65,7 +65,7 @@ import com.oracle.truffle.api.object.HiddenKey;
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
-    @Primitive(name = "is_a?")
+    @Primitive(name = "is_a?", isPublic = true)
     public abstract static class IsAPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         boolean isA(Object object, RubyModule module,
@@ -84,7 +84,7 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "class")
+    @Primitive(name = "class", isPublic = true)
     public abstract static class ClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         RubyClass objectClass(Object object,
@@ -102,7 +102,7 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "singleton_class")
+    @Primitive(name = "singleton_class", isPublic = true)
     public abstract static class SingletonClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         RubyClass singletonClass(Object object,
@@ -210,7 +210,7 @@ public abstract class TypeNodes {
 
     }
 
-    @Primitive(name = "nil?")
+    @Primitive(name = "nil?", isPublic = true)
     public abstract static class IsNilNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         boolean isNil(Object value) {
@@ -553,7 +553,7 @@ public abstract class TypeNodes {
         }
     }
 
-    @Primitive(name = "as_boolean")
+    @Primitive(name = "as_boolean", isPublic = true)
     public abstract static class AsBooleanNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

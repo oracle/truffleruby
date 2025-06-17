@@ -99,10 +99,12 @@ class StringScanner
   def check(pattern)
     scan_internal pattern, false, true, true
   end
+  Primitive.always_split self, :check
 
   def check_until(pattern)
     scan_internal pattern, false, true, false
   end
+  Primitive.always_split self, :check_until
 
   def clear
     warn 'StringScanner#clear is obsolete; use #terminate instead' if $VERBOSE
@@ -128,6 +130,7 @@ class StringScanner
   def exist?(pattern)
     scan_internal pattern, false, false, false
   end
+  Primitive.always_split self, :exist?
 
   def fixed_anchor?
     @fixed_anchor
@@ -192,6 +195,7 @@ class StringScanner
   def match?(pattern)
     scan_internal pattern, false, false, true
   end
+  Primitive.always_split self, :match?
 
   def matched
     @match&.to_s
@@ -247,6 +251,7 @@ class StringScanner
   def scan(pattern)
     scan_internal pattern, true, true, true
   end
+  Primitive.always_split self, :scan
 
   def scan_byte
     if eos?
@@ -277,21 +282,24 @@ class StringScanner
     end
 
     if substr
-      Primitive.string_to_inum(substr, base, true, true)
+      substr.to_i(base)
     end
   end
 
   def scan_until(pattern)
     scan_internal pattern, true, true, false
   end
+  Primitive.always_split self, :scan_until
 
   def scan_full(pattern, advance_pos, getstr)
     scan_internal pattern, advance_pos, getstr, true
   end
+  Primitive.always_split self, :scan_full
 
   def search_full(pattern, advance_pos, getstr)
     scan_internal pattern, advance_pos, getstr, false
   end
+  Primitive.always_split self, :search_full
 
   def self.must_C_version
     self
@@ -304,10 +312,12 @@ class StringScanner
   def skip(pattern)
     scan_internal pattern, true, false, true
   end
+  Primitive.always_split self, :skip
 
   def skip_until(pattern)
     scan_internal pattern, true, false, false
   end
+  Primitive.always_split self, :skip_until
 
   def string
     @original
@@ -332,7 +342,7 @@ class StringScanner
   end
 
   def unscan
-    raise ScanError if Primitive.nil?(@match)
+    raise ScanError unless @match
     @pos = @prev_pos
     @prev_pos = nil
     @match = nil
@@ -358,7 +368,7 @@ class StringScanner
     peek len
   end
 
-  private def scan_check_args(pattern, headonly)
+  private def scan_check_args(pattern)
     unless Primitive.is_a?(pattern, Regexp) || Primitive.is_a?(pattern, String)
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
@@ -369,15 +379,18 @@ class StringScanner
   # This method is kept very small so that it should fit within 100
   # AST nodes and can be split. This is done to avoid indirect calls
   # to TRegex.
-  private def scan_internal(pattern, advance_pos, getstr, headonly)
-    scan_check_args(pattern, headonly)
+  private def scan_internal(pattern, advance_pos, getstr, only_match_at_start)
+    scan_check_args(pattern)
 
     if Primitive.is_a?(pattern, String)
-      md = scan_internal_string_pattern(pattern, headonly)
+      md = scan_internal_string_pattern(pattern, only_match_at_start)
     else
       start = @fixed_anchor ? 0 : @pos
-      md = Truffle::RegexpOperations.match_in_region pattern, @string, @pos, @string.bytesize, headonly, start
-      Primitive.matchdata_fixup_positions(md, start) if md
+      if only_match_at_start
+        md = Primitive.regexp_match_at_start(pattern, @string, @pos, start)
+      else
+        md = Primitive.regexp_search_with_start(pattern, @string, @pos, start)
+      end
     end
 
     if md
@@ -387,11 +400,12 @@ class StringScanner
       @match = nil
     end
   end
+  Primitive.always_split self, :scan_internal
 
-  private def scan_internal_string_pattern(pattern, headonly)
+  private def scan_internal_string_pattern(pattern, only_match_at_start)
     pos = @pos
 
-    if headonly
+    if only_match_at_start
       if @string.byteslice(pos..).start_with?(pattern)
         Primitive.matchdata_create_single_group(pattern, @string.dup, pos, pos + pattern.bytesize)
       else

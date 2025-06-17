@@ -749,8 +749,8 @@ module Kernel
     nil
   end
   module_function :printf
-  Truffle::Graal.always_split(instance_method(:printf))
-  Truffle::Graal.always_split(method(:printf))
+  Primitive.always_split self, :printf
+  Primitive.always_split singleton_class, :printf
 
   private def pp(*args)
     require 'pp'
@@ -807,8 +807,8 @@ module Kernel
 
     Primitive.kernel_clone self, freeze
   end
-  Truffle::Graal.always_split instance_method(:clone)
-  Truffle::Graal.always_split method(:clone)
+  Primitive.always_split self, :clone
+  Primitive.always_split singleton_class, :clone
 
   def initialize_clone(from, freeze: nil)
     initialize_copy(from)

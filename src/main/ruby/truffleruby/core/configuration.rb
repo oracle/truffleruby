@@ -31,7 +31,7 @@ module Truffle
     def section(section, &block)
       Primitive.vm_get_config_section section, block
     end
-    Truffle::Graal.always_split instance_method(:section)
+    Primitive.always_split self, :section
 
     def lookup(name)
       Primitive.vm_get_config_item name

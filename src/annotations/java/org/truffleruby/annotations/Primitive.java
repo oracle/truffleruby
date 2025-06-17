@@ -33,4 +33,7 @@ public @interface Primitive {
 
     /** Use these names in Ruby core methods stubs, ignore argument names in Java specializations. */
     String[] argumentNames() default {};
+
+    /** Whether this Primitive can be used outside the TruffleRuby repository. */
+    boolean isPublic() default false;
 }

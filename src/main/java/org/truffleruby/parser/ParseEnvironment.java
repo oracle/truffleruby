@@ -33,6 +33,7 @@ public final class ParseEnvironment {
     public final Node currentNode;
 
     private final boolean inCore;
+    private final boolean canUsePrivatePrimitives;
 
     // Set once after parsing and before translating
     public Boolean allowTruffleRubyPrimitives = null;
@@ -48,7 +49,20 @@ public final class ParseEnvironment {
         this.parserContext = parserContext;
         this.currentNode = currentNode;
 
-        this.inCore = RubyLanguage.getPath(source).startsWith(language.corePath);
+        String path = language.getSourcePath(source);
+        this.inCore = path.startsWith(RubyLanguage.INTERNAL_CORE_PREFIX);
+
+        boolean canUsePrivatePrimitives = false;
+        if (!inCore) {
+            for (String prefix : language.allowPrivatePrimitivesPrefixes) {
+                if (path.startsWith(prefix)) {
+                    canUsePrivatePrimitives = true;
+                    break;
+                }
+            }
+        }
+        this.canUsePrivatePrimitives = inCore || canUsePrivatePrimitives;
+
         this.coverageEnabled = rubySource.getSource().getOptions(language).get(RubySourceOptions.Coverage);
     }
 
@@ -59,6 +73,10 @@ public final class ParseEnvironment {
     public boolean canUsePrimitives() {
         assert allowTruffleRubyPrimitives != null;
         return inCore() || allowTruffleRubyPrimitives;
+    }
+
+    public boolean canUsePrivatePrimitives() {
+        return canUsePrivatePrimitives;
     }
 
     /** Returns false if the AST is shared */
