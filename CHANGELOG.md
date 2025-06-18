@@ -185,7 +185,7 @@ Memory Footprint:
 New features:
 
 * C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility, smaller distribution and faster installation for C/C++ extensions (#3118, @eregon).
-* Full support for the Ruby 3.2 and Ruby 3.3 syntax by adopting the [Prism](https://github.com/ruby/prism) parser, which is about twice as fast as the old parser (#3117, #3038, #3039, @andrykonchin, @eregon).
+* Full support for the Ruby 3.2 (and Ruby 3.3) _syntax_ by adopting the [Prism](https://github.com/ruby/prism) parser, which is about twice as fast as the old parser (#3117, #3038, #3039, @andrykonchin, @eregon).
 * Pattern matching is now fully supported (#3332, #2683, @eregon, @razetime).
 
 Bug fixes:
