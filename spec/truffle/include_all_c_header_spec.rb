@@ -10,8 +10,9 @@ require_relative '../ruby/spec_helper'
 
 describe 'lib/cext/include/internal_all.h' do
   it 'includes each *.h file from lib/cext/include/internal/' do
-    filenames = Dir.glob('internal/**/*.h', base: 'lib/cext/include', sort: true)
-    content = File.read('lib/cext/include/internal_all.h')
+    ruby_home = RbConfig::CONFIG['prefix']
+    filenames = Dir.glob('internal/**/*.h', base: "#{ruby_home}/lib/cext/include", sort: true)
+    content = File.read("#{ruby_home}/lib/cext/include/internal_all.h")
 
     filenames.should_not be_empty
 
@@ -20,8 +21,9 @@ describe 'lib/cext/include/internal_all.h' do
   end
 
   it 'includes each *.h file from lib/cext/include/stubs/internal/' do
-    filenames = Dir.glob('internal/**/*.h', base: 'lib/cext/include/stubs', sort: true)
-    content = File.read('lib/cext/include/internal_all.h')
+    ruby_home = RbConfig::CONFIG['prefix']
+    filenames = Dir.glob('internal/**/*.h', base: "#{ruby_home}/lib/cext/include/stubs", sort: true)
+    content = File.read("#{ruby_home}/lib/cext/include/internal_all.h")
 
     filenames.should_not be_empty
 

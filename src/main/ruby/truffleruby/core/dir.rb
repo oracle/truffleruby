@@ -303,7 +303,7 @@ class Dir
 
         total = matches.size
         while index < total
-          matches[index] = matches[index].encode(enc) unless matches[index].encoding == enc
+          matches[index] = matches[index].force_encoding(enc) unless matches[index].encoding == enc
           index += 1
         end
       end
