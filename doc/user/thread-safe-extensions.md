@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Thread-Safe Extensions
-permalink: /reference-manual/ruby/ThreadSafeExtensions/
----
 # Thread-Safe Extensions
 
 Native extensions are by default considered thread-unsafe for maximum compatibility with CRuby and use the global extension lock (unless `--cexts-lock=false` is used).

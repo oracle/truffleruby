@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Benchmarking TruffleRuby
-permalink: /reference-manual/ruby/Benchmarking/
----
 # Benchmarking TruffleRuby
 
 This document lists the most important points to consider when benchmarking TruffleRuby.
