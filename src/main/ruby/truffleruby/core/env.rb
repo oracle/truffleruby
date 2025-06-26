@@ -366,7 +366,11 @@ class << ENV
     if Encoding.default_internal && value.ascii_only?
       value = value.encode Encoding.default_internal, Encoding::LOCALE
     elsif value.encoding != Encoding::LOCALE
-      value = value.dup.force_encoding(Encoding::LOCALE)
+      if Encoding::LOCALE == Encoding::US_ASCII && !value.ascii_only?
+        value = value.b
+      else
+        value = value.dup.force_encoding(Encoding::LOCALE)
+      end
     end
     value.freeze
   end
