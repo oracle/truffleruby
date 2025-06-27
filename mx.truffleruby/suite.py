@@ -22,7 +22,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "afeb9001e485779697122adbddbce521732d9140",
+                "version": "e7523fc73be5b0307fc9d0a5ebc6386cce3d023c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -31,7 +31,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "afeb9001e485779697122adbddbce521732d9140",
+                "version": "e7523fc73be5b0307fc9d0a5ebc6386cce3d023c",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -313,7 +313,7 @@ suite = {
             "checkstyleVersion": "10.7.0",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "findbugsIgnoresGenerated": True,
+            "spotbugsIgnoresGenerated": True,
             "license": [
                 "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
