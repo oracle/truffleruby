@@ -313,7 +313,7 @@ suite = {
             "checkstyleVersion": "10.7.0",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "findbugsIgnoresGenerated": True,
+            "spotbugsIgnoresGenerated": True,
             "license": [
                 "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
