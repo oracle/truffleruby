@@ -43,7 +43,7 @@ all: $(TRAMPOLINE) $(LIBTRUFFLERUBY) openssl/openssl.$(DLEXT) zlib/zlib.$(DLEXT)
 clean: clean_cexts clean_trampoline
 
 clean_trampoline:
-	$(Q) rm -f $(TRAMPOLINE) cext-trampoline/trampoline.c cext/wrappers.c cext-trampoline/*.o
+	$(Q) rm -f $(TRAMPOLINE) cext-trampoline/trampoline.c cext-trampoline/*.o
 
 clean_cexts:
 	$(Q) rm -f cext/Makefile cext/*.o $(LIBTRUFFLERUBY)
