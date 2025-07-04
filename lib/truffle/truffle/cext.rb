@@ -38,7 +38,16 @@ module Truffle::CExt
   end
 
   SETUP_WRAPPERS = -> lib do
-    # signature starts with an extra pointer which is for passing the native function to call
+    # These wrappers must be used when calling native extension functions,
+    # so that setjmp() is done before calling the native extension function,
+    # and if the native extension function (potentially through other functions) calls a Ruby C API function
+    # and if that throws a Java exception, then on return from that Ruby C API function a longjmp()
+    # will be done to unwind the native stack.
+    # It is essential that only native frames and no Java frames are unwinded with longjmp(),
+    # which means these wrappers must be used exactly when calling into native functions, not before or after.
+    # Sulong-executed C code counts as not-native in this context.
+
+    # The signature starts with an extra pointer which is for passing the native function to call
     POINTER_TO_POINTER_WRAPPERS = [nil] + (1..16).map do |n|
       sig = -"(pointer,#{(['pointer'] * n).join(',')}):pointer"
       Primitive.interop_eval_nfi(sig).bind(lib[:"rb_tr_setjmp_wrapper_pointer#{n}_to_pointer"])
@@ -1740,16 +1749,15 @@ module Truffle::CExt
     if Truffle::Interop.null?(marker_function)
       nil
     else
-      -> { Primitive.interop_execute(POINTER_TO_VOID_WRAPPER, [marker_function, struct]) }
+      -> { Primitive.interop_execute(marker_function, [struct]) }
     end
   end
 
   private def data_sizer(sizer_function, rtypeddata)
-    raise unless sizer_function.respond_to?(:call)
     use_cext_lock = Primitive.use_cext_lock?
     proc {
       Primitive.call_with_cext_lock_and_frame(
-        POINTER_TO_SIZE_T_WRAPPER, [sizer_function, rtypeddata],
+        sizer_function, [rtypeddata],
         Primitive.caller_special_variables_if_available, nil, use_cext_lock)
     }
   end
@@ -1792,7 +1800,7 @@ module Truffle::CExt
   end
 
   def run_data_finalizer(function, data, use_cext_lock)
-    Primitive.call_with_cext_lock_and_frame POINTER_TO_VOID_WRAPPER, [function, data], nil, nil, use_cext_lock
+    Primitive.call_with_cext_lock_and_frame function, [data], nil, nil, use_cext_lock
   end
 
   def run_marker(obj)
