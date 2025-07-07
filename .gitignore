@@ -48,7 +48,6 @@ src/main/c/*/Makefile
 !src/main/c/truffleposix/Makefile
 !src/main/c/yarp/Makefile
 src/main/c/cext-trampoline/trampoline.c
-src/main/c/cext/wrappers.c
 src/main/c/etc/constdefs.h
 src/main/c/spawn-helper/spawn-helper
 src/main/c/debug

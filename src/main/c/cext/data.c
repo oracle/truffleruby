@@ -29,11 +29,14 @@ struct RTypedData* rb_tr_rtypeddata_create(const rb_data_type_t *data_type, void
   return result;
 }
 
+void rb_tr_setjmp_wrapper_pointer1_to_void(void (*func)(VALUE arg), VALUE arg);
+size_t rb_tr_setjmp_wrapper_pointer1_to_size_t(size_t (*func)(const void *arg), const void *arg);
+
 void rb_tr_rdata_run_marker(struct RData* rdata) {
   void* data = rdata->data;
   RUBY_DATA_FUNC dmark = rdata->dmark;
   if (data != NULL && dmark != NULL) {
-    dmark(data);
+    rb_tr_setjmp_wrapper_pointer1_to_void(dmark, data);
   }
 }
 
@@ -41,7 +44,7 @@ void rb_tr_rtypeddata_run_marker(struct RTypedData* rtypeddata) {
   void* data = rtypeddata->data;
   RUBY_DATA_FUNC dmark = rtypeddata->type->function.dmark;
   if (data != NULL && dmark != NULL) {
-    dmark(data);
+    rb_tr_setjmp_wrapper_pointer1_to_void(dmark, data);
   }
 }
 
@@ -49,7 +52,7 @@ size_t rb_tr_rtypeddata_run_memsizer(struct RTypedData* rtypeddata) {
   void* data = rtypeddata->data;
   size_t (*dsize)(const void *) = rtypeddata->type->function.dsize;
   if (data != NULL && dsize != NULL) {
-    return dsize(data);
+    return rb_tr_setjmp_wrapper_pointer1_to_size_t(dsize, data);
   } else {
     return 0;
   }
@@ -62,7 +65,7 @@ void rb_tr_rdata_run_finalizer(struct RData* rdata) {
     if (dfree == RUBY_DEFAULT_FREE) {
       ruby_xfree(data);
     } else if (dfree != NULL) {
-      dfree(data);
+      rb_tr_setjmp_wrapper_pointer1_to_void(dfree, data);
     }
   }
   // Also free the struct RData
@@ -76,7 +79,7 @@ void rb_tr_rtypeddata_run_finalizer(struct RTypedData* rtypeddata) {
     if (dfree == RUBY_DEFAULT_FREE) {
       ruby_xfree(data);
     } else if (dfree != NULL) {
-      dfree(data);
+      rb_tr_setjmp_wrapper_pointer1_to_void(dfree, data);
     }
   }  // Also free the struct RTypedData
   free(rtypeddata);
