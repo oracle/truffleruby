@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Testing TruffleRuby in CI
-permalink: /reference-manual/ruby/TestingTruffleRubyInCI/
----
 # Testing TruffleRuby in CI
 
 ## Testing TruffleRuby in GitHub Actions

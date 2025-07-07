@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: FAQ
-permalink: /reference-manual/ruby/FAQ/
----
 # Frequently Asked Questions
 
 ### What is TruffleRuby?

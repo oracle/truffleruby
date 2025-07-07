@@ -2854,7 +2854,7 @@ module Commands
     hardcoded_urls.each_line do |line|
       abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)(#[\w-]+)?[ "'\n]/ =~ line
       file, line, url = $1, $2, $3
-      if !%w[tool/jt.rb tool/generate-user-doc.rb].include?(file) and !known_hardcoded_urls.include?(url)
+      if !%w[tool/jt.rb].include?(file) and !known_hardcoded_urls.include?(url)
         puts "Found unknown hardcoded url #{url} in #{file}:#{line}, add it in tool/jt.rb"
         status = false
       end

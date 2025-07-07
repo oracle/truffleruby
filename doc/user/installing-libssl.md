@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Installing `libssl`
-permalink: /reference-manual/ruby/Installinglibssl/
----
 # Installing `libssl`
 
 TruffleRuby provides the `openssl` gem but not the native `libssl` system library that the gem uses.

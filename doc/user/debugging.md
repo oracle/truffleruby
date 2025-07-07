@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Debugging Ruby
-permalink: /reference-manual/ruby/Debugging/
----
 # Debugging TruffleRuby
 
 TruffleRuby, like other GraalVM languages, supports 2 standard debugging protocols:
