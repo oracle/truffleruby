@@ -695,11 +695,7 @@ suite = {
             ],
             "description": "TruffleRuby Launcher",
             "license": ["EPL-2.0"],
-            "maven": {
-                "groupId": "org.graalvm.ruby",
-                "artifactId": "ruby-launcher",
-                "tag": ["default", "public"],
-            },
+            "maven": False,
         },
 
         "TRUFFLERUBY-RESOURCES": {
