@@ -106,7 +106,6 @@ EXPERT:
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]
     VIRTUAL_THREAD_FIBERS: [virtual-thread-fibers, boolean, false, 'Use VirtualThread for Fibers']
     LOG_SUBPROCESS: [log-subprocess, boolean, false, 'Log whenever a subprocess is created'] # Also see --log-process-args
-    WARN_LOCALE: [warn-locale, boolean, true, 'Warn when the system locale is not set properly']
 
     # Options to tweak backtraces
     EXCEPTIONS_STORE_JAVA: [exceptions-store-java, boolean, false, Store the Java exception with the Ruby backtrace]
