@@ -20,5 +20,14 @@ describe "Integer#ceil" do
       -1832.ceil(-2).should eql(-1800)
       -1832.ceil(-3).should eql(-1000)
     end
+
+    it "returns self if there are already at least precision.abs trailing zeros" do
+      10.ceil(-1).should eql(10)
+      10.ceil(-2).should eql(100)
+      100.ceil(-2).should eql(100)
+      -10.ceil(-1).should eql(-10)
+      -10.ceil(-2).should eql(0)
+      -100.ceil(-2).should eql(-100)
+    end
   end
 end

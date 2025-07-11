@@ -23,4 +23,14 @@ describe "Float#ceil" do
     -1.234.ceil(2).should   eql(-1.23)
     5.123812.ceil(4).should eql(5.1239)
   end
+
+  it "returns self if there are already at least precision.abs trailing zeros" do
+    0.9.ceil(-1).should eql(10)
+    9.9.ceil(-1).should eql(10)
+    100.0.ceil(-2).should eql(100)
+    100.0.ceil(-3).should eql(1000)
+    -10.1.ceil(-1).should eql(-10)
+    -10.1.ceil(-2).should eql(0)
+    -100.0.ceil(-2).should eql(-100)
+  end
 end
