@@ -28,6 +28,15 @@ describe "Rational#ceil" do
       @rational.ceil(-2).should == 400
       @rational.ceil(-1).should == 320
     end
+
+    it "returns corresponding integer if the value is already correct" do
+      Rational(100, 1).ceil(-1).should == 100
+      Rational(100, 1).ceil(-2).should == 100
+      Rational(100, 1).ceil(-3).should == 1000
+      Rational(-100, 1).ceil(-1).should == -100
+      Rational(-100, 1).ceil(-2).should == -100
+      Rational(-100, 1).ceil(-3).should == -1000
+    end
   end
 
   describe "with precision > 0" do

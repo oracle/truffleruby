@@ -39,5 +39,14 @@ describe :integer_ceil_precision, shared: true do
         send(@method, 123).ceil(-50).should.eql?(100000000000000000000000000000000000000000000000000)
       end
     end
+
+    it "returns self if there are already at least precision.abs trailing zeros" do
+      send(@method, 10).ceil(-1).should.eql?(10)
+      send(@method, 10).ceil(-2).should.eql?(100)
+      send(@method, 100).ceil(-2).should.eql?(100)
+      send(@method, -10).ceil(-1).should.eql?(-10)
+      send(@method, -10).ceil(-2).should.eql?(0)
+      send(@method, -100).ceil(-2).should.eql?(-100)
+    end
   end
 end
