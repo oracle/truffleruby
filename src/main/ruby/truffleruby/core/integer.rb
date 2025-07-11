@@ -85,7 +85,11 @@ class Integer < Numeric
     return 0 if self == 0
 
     x = 10 ** precision.abs
-    ((self / x) + 1) * x
+    if (n = self / x) % x == 0
+      self
+    else
+      (n + 1) * x
+    end
   end
 
   def ceildiv(other)
