@@ -3304,14 +3304,17 @@ class JT
     JT.new.gem_test_pack
   end
 
-  def process_pre_args(args)
-    needs_build = false
-    needs_rebuild = false
+  def initialize
     @silent = false
     @verbose = false
     @jdk_version = ENV['JT_JDK'] || DEFAULT_JDK_VERSION
     @ruby_name = ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
     @mx_env = ENV['JT_ENV'] || 'jvm'
+  end
+
+  def process_pre_args(args)
+    needs_build = false
+    needs_rebuild = false
 
     until args.empty?
       arg = args.shift
