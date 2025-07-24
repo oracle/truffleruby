@@ -213,12 +213,6 @@ local common_json = import "../common.json";
       },
     },
 
-    cmake:: {
-      packages+: {
-        cmake: "==3.22.2",
-      },
-    },
-
     gradle:: {
       downloads+: {
         GRADLE_JAVA_HOME: jdks_data["oraclejdk21"],
@@ -239,8 +233,10 @@ local common_json = import "../common.json";
       } else {},
     },
 
-    sulong:: self.cmake + {
-      packages+: if self.os == "windows" then {
+    sulong:: {
+      packages+: {
+        cmake: "==3.22.2",
+      } + if self.os == "windows" then {
         msvc_source: "==14.0",
       } else {},
     },
@@ -275,7 +271,7 @@ local common_json = import "../common.json";
       } else {},
     },
 
-    graalpy:: self.gradle + self.cmake + {
+    graalpy:: self.gradle + {
       packages+: if (self.os == "linux") then {
         libffi: '==3.2.1',
         bzip2: '==1.0.6',
