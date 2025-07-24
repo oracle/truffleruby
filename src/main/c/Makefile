@@ -62,7 +62,9 @@ clean_cexts:
 	$(Q) rm -f rbs/Makefile rbs/*.o rbs/rbs_extension.$(DLEXT)
 
 # cext-trampoline
+# Remove cext/wrappers.c explicitly, as it was a generated file and so `git pull` does not remove it
 cext-trampoline/trampoline.c: $(CEXT_C_FILES) $(BASIC_DEPS) $(ROOT)/tool/generate-cext-trampoline.rb
+	$(Q) rm -f cext/wrappers.c
 	$(Q) cd $(ROOT) && $(RUBY) tool/generate-cext-trampoline.rb
 
 $(TRAMPOLINE): cext-trampoline/Makefile cext-trampoline/trampoline.c cext-trampoline/*.c Makefile
