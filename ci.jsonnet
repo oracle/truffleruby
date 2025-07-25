@@ -40,20 +40,6 @@ local part_definitions = {
       },
 
       setup+: [
-        # We don't want to proxy any internet access
-        [
-          "unset",
-          "ANT_OPTS",
-          "FTP_PROXY",
-          "ftp_proxy",
-          "GRADLE_OPTS",
-          "HTTPS_PROXY",
-          "https_proxy",
-          "HTTP_PROXY",
-          "http_proxy",
-          "MAVEN_OPTS",
-          "no_proxy",
-        ],
         # Fail if any command part of the pipe fails
         ["set", "-o", "pipefail"],
         ["ruby", "--version"],
@@ -496,7 +482,7 @@ local part_definitions = {
 
     server: {
       packages+: {
-        "apache/ab": ">=2.3",
+        "apache/ab": "==2.3",
       },
       setup+: [
         ["set-export", "GEM_TEST_PACK", jt(["gem-test-pack"])[0]],
@@ -747,7 +733,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
 {
   part_definitions:: part_definitions,
-  specVersion: "3",
+  specVersion: "8",
   overlay: overlay,
   builds: composition_environment.builds,
 }
