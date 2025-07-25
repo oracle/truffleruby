@@ -272,6 +272,21 @@ local part_definitions = {
       targets+: ["gate"],
       notify_emails: false,
     },
+    tier1: {
+      capabilities+: self["$.cap"].normal_machine,
+      targets+: ["tier1"],
+      notify_emails: false,
+    },
+    tier2: {
+      capabilities+: self["$.cap"].normal_machine,
+      targets+: ["tier2"],
+      notify_emails: false,
+    },
+    tier3: {
+      capabilities+: self["$.cap"].normal_machine,
+      targets+: ["tier3"],
+      notify_emails: false,
+    },
     bench: {
       capabilities+: self["$.cap"].bench_machine,
       targets+: ["bench"],
@@ -509,26 +524,26 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   test_builds:
     {
       # Lint runs on JDK stable because some lint tools do not work on JDK latest
-      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.stable + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
+      "ruby-lint": $.platform.linux + $.cap.tier2 + $.jdk.stable + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
       # Run specs on CRuby to make sure new specs are compatible and have the needed version guards
-      "ruby-test-specs-on-cruby": $.platform.linux + $.cap.gate + $.use.skip_ci + $.use.common + $.run.test_specs_mri + { timelimit: "45:00" },
+      "ruby-test-specs-on-cruby": $.platform.linux + $.cap.tier2 + $.use.skip_ci + $.use.common + $.run.test_specs_mri + { timelimit: "45:00" },
     } +
 
     {
-      local gate_no_build = $.cap.gate + $.use.skip_ci + $.use.common + { timelimit: "01:00:00" },
-      local gate = gate_no_build + $.use.build,
+      local base = $.use.skip_ci + $.use.common + $.use.build + { timelimit: "01:00:00" },
+      local gate = base + $.cap.tier3,
       local native_config = $.run.generate_native_config + $.run.check_native_config,
       local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       # Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux-amd64-stable":    $.platform.linux  + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-linux-amd64-latest":    $.platform.linux  + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-amd64-stable":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "02:00:00" },
-      "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "02:00:00" },
-      "ruby-test-specs-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
-      "ruby-test-specs-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.jvm + gate_no_build + $.use.build + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-linux-amd64-stable":    $.platform.linux  + $.jdk.stable + $.env.jvm + gate + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-linux-amd64-latest":    $.platform.linux  + $.jdk.latest + $.env.jvm + gate + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-darwin-amd64-stable":   $.platform.darwin_amd64 + $.jdk.stable + $.env.jvm + gate + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "02:00:00" },
+      "ruby-test-specs-darwin-amd64-latest":   $.platform.darwin_amd64 + $.jdk.latest + $.env.jvm + gate + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "02:00:00" },
+      "ruby-test-specs-darwin-aarch64-stable": $.platform.darwin_aarch64 + $.jdk.stable + $.env.jvm + gate + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-aarch64-latest": $.platform.darwin_aarch64 + $.jdk.latest + $.env.jvm + gate + $.run.test_unit_tck + native_config + $.run.test_specs + { timelimit: "01:40:00" },
       "ruby-test-fast-linux-aarch64":   $.platform.linux_aarch64 + $.jdk.latest + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "45:00" },
-      "ruby-test-fast-linux-amd64":     $.platform.linux  + $.jdk.latest + $.env.jvm + gate + $.run.test_fast + { timelimit: "45:00" },  # To catch missing slow tags
+      "ruby-test-fast-linux-amd64":     $.platform.linux  + $.jdk.latest + $.env.jvm + base + $.run.test_fast + $.cap.tier2 + { timelimit: "45:00" },  # To catch missing slow tags
       "ruby-test-mri-asserts":          $.platform.linux  + $.jdk.latest + $.env.jvm + gate + $.run.test_mri_fast + { timelimit: "01:15:00" },
       "ruby-test-mri-linux-amd64-ce":      $.platform.linux  + $.jdk.latest + $.env.native + gate + $.run.test_mri + { timelimit: "01:20:00" }, # matches public CI and useful for GR-61281
       "ruby-test-mri-linux-amd64":      $.platform.linux  + $.jdk.latest + $.env.native_ee + gate + $.run.test_mri + { timelimit: "01:20:00" },
@@ -735,6 +750,11 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   part_definitions:: part_definitions,
   specVersion: "8",
   overlay: overlay,
+  tierConfig: {
+    "tier1": "gate",
+    "tier2": "gate",
+    "tier3": "gate",
+  },
   builds: composition_environment.builds,
 }
 
