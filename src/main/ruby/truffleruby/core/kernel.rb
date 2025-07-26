@@ -698,18 +698,21 @@ module Kernel
         msg = kwargs
       end
 
+      exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
+      exc.set_backtrace(ctx) if ctx
+      Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
+
       if cause_given
         unless Primitive.is_a?(cause, ::Exception) || Primitive.nil?(cause)
           Truffle::ExceptionOperations.exception_object_expected!
         end
       else
-        cause = $!
+        if Primitive.nil?(exc.cause) && !Primitive.exception_used_as_a_cause?(exc)
+          cause = $!
+        else
+          cause = nil
+        end
       end
-
-      exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
-
-      exc.set_backtrace(ctx) if ctx
-      Primitive.exception_capture_backtrace(exc, 1) unless Truffle::ExceptionOperations.backtrace?(exc)
 
       if !Primitive.nil?(cause) && (cause_given || Primitive.nil?(exc.cause)) && !Primitive.equal?(cause, exc)
         if Truffle::ExceptionOperations.circular_cause?(cause, exc)
@@ -717,6 +720,7 @@ module Kernel
         end
 
         Primitive.exception_set_cause exc, cause
+        Primitive.exception_used_as_a_cause!(cause)
       end
     end
 
@@ -745,8 +749,8 @@ module Kernel
     nil
   end
   module_function :printf
-  Truffle::Graal.always_split(instance_method(:printf))
-  Truffle::Graal.always_split(method(:printf))
+  Primitive.always_split self, :printf
+  Primitive.always_split singleton_class, :printf
 
   private def pp(*args)
     require 'pp'
@@ -803,8 +807,8 @@ module Kernel
 
     Primitive.kernel_clone self, freeze
   end
-  Truffle::Graal.always_split instance_method(:clone)
-  Truffle::Graal.always_split method(:clone)
+  Primitive.always_split self, :clone
+  Primitive.always_split singleton_class, :clone
 
   def initialize_clone(from, freeze: nil)
     initialize_copy(from)

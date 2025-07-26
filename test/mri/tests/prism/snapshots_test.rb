@@ -2,6 +2,10 @@
 
 require_relative "test_helper"
 
+# We don't want to generate snapshots when running
+# against files outside of the project folder.
+return if Prism::TestCase::Fixture.custom_base_path?
+
 module Prism
   class SnapshotsTest < TestCase
     # When we pretty-print the trees to compare against the snapshots, we want

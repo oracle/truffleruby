@@ -157,6 +157,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
+import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_BLOCK_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_KEYWORD_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.DEFAULT_REST_NAME;
 import static org.truffleruby.parser.TranslatorEnvironment.FORWARDED_BLOCK_NAME;
@@ -564,7 +565,7 @@ public class YARPTranslator extends YARPBaseTranslator {
 
         if (node.expression == null) {
             // def foo(&) a(&) end
-            valueNode = environment.findLocalVarNode(FORWARDED_BLOCK_NAME);
+            valueNode = environment.findLocalVarNode(DEFAULT_BLOCK_NAME);
         } else {
             // a(&:b)
             valueNode = node.expression.accept(this);
@@ -676,6 +677,17 @@ public class YARPTranslator extends YARPBaseTranslator {
                 constantReadNode.name.equals("Primitive")) {
 
             final PrimitiveNodeConstructor constructor = language.primitiveManager.getPrimitive(methodName);
+
+            if (!constructor.isPublic() && !parseEnvironment.canUsePrivatePrimitives()) {
+                final RubyContext context = RubyLanguage.getCurrentContext();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().syntaxError(
+                                "Primitive." + methodName +
+                                        " is not public and cannot be used outside the TruffleRuby core library",
+                                currentNode,
+                                getSourceSection(node)));
+            }
 
             if (translatedArguments.length != constructor.getPrimitiveArity()) {
                 throw new Error(
@@ -3855,9 +3867,9 @@ public class YARPTranslator extends YARPBaseTranslator {
                 }
             } else if (parametersNode.keyword_rest instanceof Nodes.ForwardingParameterNode) {
                 // ... => *, **, &
-                descriptors.add(new ArgumentDescriptor(ArgumentType.rest, FORWARDED_REST_NAME));
-                descriptors.add(new ArgumentDescriptor(ArgumentType.keyrest, FORWARDED_KEYWORD_REST_NAME));
-                descriptors.add(new ArgumentDescriptor(ArgumentType.block, FORWARDED_BLOCK_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonrest, FORWARDED_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonkeyrest, FORWARDED_KEYWORD_REST_NAME));
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonblock, FORWARDED_BLOCK_NAME));
             } else if (parametersNode.keyword_rest instanceof Nodes.NoKeywordsParameterNode) {
                 final var descriptor = new ArgumentDescriptor(ArgumentType.nokey);
                 descriptors.add(descriptor);
@@ -3867,16 +3879,13 @@ public class YARPTranslator extends YARPBaseTranslator {
         }
 
         if (parametersNode.block != null) {
-            final String name;
-
             if (parametersNode.block.name == null) {
                 // def a(&) ... end
-                name = FORWARDED_BLOCK_NAME;
+                descriptors.add(new ArgumentDescriptor(ArgumentType.anonblock, DEFAULT_BLOCK_NAME));
             } else {
-                name = parametersNode.block.name;
+                var descriptor = new ArgumentDescriptor(ArgumentType.block, parametersNode.block.name);
+                descriptors.add(descriptor);
             }
-
-            descriptors.add(new ArgumentDescriptor(ArgumentType.block, name));
         }
 
         return descriptors.toArray(ArgumentDescriptor.EMPTY_ARRAY);

@@ -79,6 +79,7 @@
         │   │   │   ├── exceptions: (length: 0)
         │   │   │   ├── operator_loc: ∅
         │   │   │   ├── reference: ∅
+        │   │   │   ├── then_keyword_loc: ∅
         │   │   │   ├── statements: ∅
         │   │   │   └── subsequent: ∅
         │   │   ├── else_clause:
@@ -226,6 +227,7 @@
         │   │           │   │   ├── exceptions: (length: 0)
         │   │           │   │   ├── operator_loc: ∅
         │   │           │   │   ├── reference: ∅
+        │   │           │   │   ├── then_keyword_loc: ∅
         │   │           │   │   ├── statements: ∅
         │   │           │   │   └── subsequent: ∅
         │   │           │   ├── else_clause:

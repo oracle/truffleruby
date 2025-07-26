@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Optcarrot Example
-permalink: /reference-manual/ruby/Optcarrot/
----
 # Running Optcarrot
 
 ## Running the Demo

@@ -1,10 +1,10 @@
-@ ProgramNode (location: (1,0)-(47,17))
+@ ProgramNode (location: (1,0)-(49,10))
 ├── flags: ∅
 ├── locals: [:abc, :foo, :bar, :baz, :a, :b, :c, :d]
 └── statements:
-    @ StatementsNode (location: (1,0)-(47,17))
+    @ StatementsNode (location: (1,0)-(49,10))
     ├── flags: ∅
-    └── body: (length: 25)
+    └── body: (length: 26)
         ├── @ ClassVariableReadNode (location: (1,0)-(1,5))
         │   ├── flags: newline
         │   └── name: :@@abc
@@ -383,7 +383,7 @@
         │   │   └── closing_loc: ∅
         │   └── operator_loc: (43,4)-(43,5) = "="
         ├── @ ParenthesesNode (location: (45,0)-(45,9))
-        │   ├── flags: newline
+        │   ├── flags: newline, multiple_statements
         │   ├── body:
         │   │   @ StatementsNode (location: (45,1)-(45,8))
         │   │   ├── flags: ∅
@@ -420,40 +420,69 @@
         │   │           └── block: ∅
         │   ├── opening_loc: (45,0)-(45,1) = "("
         │   └── closing_loc: (45,8)-(45,9) = ")"
-        └── @ MultiWriteNode (location: (47,0)-(47,17))
+        ├── @ MultiWriteNode (location: (47,0)-(47,17))
+        │   ├── flags: newline
+        │   ├── lefts: (length: 3)
+        │   │   ├── @ LocalVariableTargetNode (location: (47,0)-(47,1))
+        │   │   │   ├── flags: ∅
+        │   │   │   ├── name: :a
+        │   │   │   └── depth: 0
+        │   │   ├── @ MultiTargetNode (location: (47,3)-(47,9))
+        │   │   │   ├── flags: ∅
+        │   │   │   ├── lefts: (length: 2)
+        │   │   │   │   ├── @ LocalVariableTargetNode (location: (47,4)-(47,5))
+        │   │   │   │   │   ├── flags: ∅
+        │   │   │   │   │   ├── name: :b
+        │   │   │   │   │   └── depth: 0
+        │   │   │   │   └── @ LocalVariableTargetNode (location: (47,7)-(47,8))
+        │   │   │   │       ├── flags: ∅
+        │   │   │   │       ├── name: :c
+        │   │   │   │       └── depth: 0
+        │   │   │   ├── rest: ∅
+        │   │   │   ├── rights: (length: 0)
+        │   │   │   ├── lparen_loc: (47,3)-(47,4) = "("
+        │   │   │   └── rparen_loc: (47,8)-(47,9) = ")"
+        │   │   └── @ LocalVariableTargetNode (location: (47,11)-(47,12))
+        │   │       ├── flags: ∅
+        │   │       ├── name: :d
+        │   │       └── depth: 0
+        │   ├── rest: ∅
+        │   ├── rights: (length: 0)
+        │   ├── lparen_loc: ∅
+        │   ├── rparen_loc: ∅
+        │   ├── operator_loc: (47,13)-(47,14) = "="
+        │   └── value:
+        │       @ ArrayNode (location: (47,15)-(47,17))
+        │       ├── flags: static_literal
+        │       ├── elements: (length: 0)
+        │       ├── opening_loc: (47,15)-(47,16) = "["
+        │       └── closing_loc: (47,16)-(47,17) = "]"
+        └── @ MultiWriteNode (location: (49,0)-(49,10))
             ├── flags: newline
-            ├── lefts: (length: 3)
-            │   ├── @ LocalVariableTargetNode (location: (47,0)-(47,1))
-            │   │   ├── flags: ∅
-            │   │   ├── name: :a
-            │   │   └── depth: 0
-            │   ├── @ MultiTargetNode (location: (47,3)-(47,9))
-            │   │   ├── flags: ∅
-            │   │   ├── lefts: (length: 2)
-            │   │   │   ├── @ LocalVariableTargetNode (location: (47,4)-(47,5))
-            │   │   │   │   ├── flags: ∅
-            │   │   │   │   ├── name: :b
-            │   │   │   │   └── depth: 0
-            │   │   │   └── @ LocalVariableTargetNode (location: (47,7)-(47,8))
-            │   │   │       ├── flags: ∅
-            │   │   │       ├── name: :c
-            │   │   │       └── depth: 0
-            │   │   ├── rest: ∅
-            │   │   ├── rights: (length: 0)
-            │   │   ├── lparen_loc: (47,3)-(47,4) = "("
-            │   │   └── rparen_loc: (47,8)-(47,9) = ")"
-            │   └── @ LocalVariableTargetNode (location: (47,11)-(47,12))
+            ├── lefts: (length: 1)
+            │   └── @ MultiTargetNode (location: (49,0)-(49,4))
             │       ├── flags: ∅
-            │       ├── name: :d
-            │       └── depth: 0
-            ├── rest: ∅
+            │       ├── lefts: (length: 1)
+            │       │   └── @ LocalVariableTargetNode (location: (49,1)-(49,2))
+            │       │       ├── flags: ∅
+            │       │       ├── name: :a
+            │       │       └── depth: 0
+            │       ├── rest:
+            │       │   @ ImplicitRestNode (location: (49,2)-(49,3))
+            │       │   └── flags: ∅
+            │       ├── rights: (length: 0)
+            │       ├── lparen_loc: (49,0)-(49,1) = "("
+            │       └── rparen_loc: (49,3)-(49,4) = ")"
+            ├── rest:
+            │   @ ImplicitRestNode (location: (49,4)-(49,5))
+            │   └── flags: ∅
             ├── rights: (length: 0)
             ├── lparen_loc: ∅
             ├── rparen_loc: ∅
-            ├── operator_loc: (47,13)-(47,14) = "="
+            ├── operator_loc: (49,6)-(49,7) = "="
             └── value:
-                @ ArrayNode (location: (47,15)-(47,17))
+                @ ArrayNode (location: (49,8)-(49,10))
                 ├── flags: static_literal
                 ├── elements: (length: 0)
-                ├── opening_loc: (47,15)-(47,16) = "["
-                └── closing_loc: (47,16)-(47,17) = "]"
+                ├── opening_loc: (49,8)-(49,9) = "["
+                └── closing_loc: (49,9)-(49,10) = "]"

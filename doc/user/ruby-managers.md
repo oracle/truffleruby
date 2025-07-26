@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Ruby Managers and Installers
-permalink: /reference-manual/ruby/RubyManagers/
----
 # Ruby Managers and Installers
 
 TruffleRuby is supported by all major Ruby installers.

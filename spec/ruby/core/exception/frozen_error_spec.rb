@@ -28,7 +28,7 @@ describe "FrozenError#message" do
 
     -> {
       def object.x; end
-    }.should raise_error(FrozenError, "can't modify frozen object: #{object.to_s}")
+    }.should raise_error(FrozenError, "can't modify frozen object: #{object}")
 
     object = [].freeze
     -> { object << nil }.should raise_error(FrozenError, "can't modify frozen Array: []")

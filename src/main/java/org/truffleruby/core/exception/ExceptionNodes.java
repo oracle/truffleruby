@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.Shape;
@@ -364,6 +365,37 @@ public abstract class ExceptionNodes {
             } else {
                 return nil;
             }
+        }
+
+    }
+
+    @Primitive(name = "exception_used_as_a_cause?")
+    public abstract static class IsUsedAsACauseNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        boolean isUsedAsACause(RubyException exception) {
+            return exception.usedAsACause;
+        }
+
+        @Fallback
+        boolean isUsedAsACauseForeignException(Object exception) {
+            return false;
+        }
+
+    }
+
+    @Primitive(name = "exception_used_as_a_cause!")
+    public abstract static class UsedAsACauseNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        Object usedAsACause(RubyException exception) {
+            exception.usedAsACause = true;
+            return nil;
+        }
+
+        @Fallback
+        Object usedAsACauseForeignException(Object exception) {
+            return nil;
         }
 
     }

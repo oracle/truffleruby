@@ -42,6 +42,7 @@
             │   │       └── block: ∅
             │   ├── operator_loc: ∅
             │   ├── reference: ∅
+            │   ├── then_keyword_loc: ∅
             │   ├── statements:
             │   │   @ StatementsNode (location: (1,36)-(1,39))
             │   │   ├── flags: ∅

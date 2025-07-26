@@ -22,7 +22,7 @@ suite = {
             {
                 "name": "regex",
                 "subdir": True,
-                "version": "ed067f1f7c575a638991d34bcab15f895a4b26b7",
+                "version": "332b248f064449ce6930b81f2fa75e0b3a2fe261",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -31,7 +31,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "ed067f1f7c575a638991d34bcab15f895a4b26b7",
+                "version": "332b248f064449ce6930b81f2fa75e0b3a2fe261",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
@@ -220,6 +220,31 @@ suite = {
             "ldflags": ["-pthread"],
         },
 
+        "org.truffleruby.libtruffleposix": {
+            "dir": "src/main/c/truffleposix",
+            "native": "shared_lib",
+            "deliverable": "truffleposix",
+            "buildDependencies": [
+                "TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC",
+            ],
+            "cflags": ["-g", "-O3", "-std=c99", "-Wall", "-Werror", "-pthread", "-I<path:TRUFFLERUBY_GRAALVM_SUPPORT_PLATFORM_AGNOSTIC>/lib/cext/include"],
+            "ldflags": ["-pthread"],
+            "os": {
+                "linux": {
+                    "ldlibs": ["-lrt"],
+                },
+                "<others>": {
+                },
+            },
+        },
+
+        "org.truffleruby.spawnhelper": {
+            "dir": "src/main/c/spawn-helper",
+            "native": "executable",
+            "deliverable": "spawn-helper",
+            "cflags": ["-g", "-O3", "-std=c99", "-Wall", "-Werror"],
+        },
+
         "org.prism.libprism": {
             "class": "YARPNativeProject",
             "dir": "src/main/c/yarp",
@@ -288,7 +313,7 @@ suite = {
             "checkstyleVersion": "10.7.0",
             "checkstyle": "org.truffleruby",
             "workingSets": "TruffleRuby",
-            "findbugsIgnoresGenerated": True,
+            "spotbugsIgnoresGenerated": True,
             "license": [
                 "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -404,8 +429,6 @@ suite = {
             },
             "output": ".",
             "results": [
-                "src/main/c/spawn-helper/spawn-helper",
-                "src/main/c/truffleposix/<lib:truffleposix>",
                 "src/main/c/cext/<lib:truffleruby>",
                 "src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
                 "src/main/c/bigdecimal/<extsuffix:bigdecimal>",
@@ -491,7 +514,7 @@ suite = {
             "class": "LanguageLibraryProject",
             "dependencies": [
                 "TRUFFLERUBY_STANDALONE_DEPENDENCIES",
-                # LLVM_NATIVE_COMMUNITY is intentionally not used as that would include SULONG_NATIVE_RESOURCES,
+                # LLVM_NATIVE_POM is intentionally not used as that would include SULONG_NATIVE_RESOURCES,
                 # which would copy the resources in the image, regardless of IncludeLanguageResources,
                 # see com.oracle.truffle.llvm.nativemode.resources.NativeResourceFeature.
             ],
@@ -606,7 +629,7 @@ suite = {
                 "truffle:TRUFFLE_NFI_PANAMA",
                 "sulong:SULONG_NATIVE",
             ],
-            "description": "Core module of Ruby on Truffle",
+            "description": "TruffleRuby, a high-performance embeddable Ruby implementation. This artifact includes the core language runtime without standard libraries. It is not recommended to depend on this artifact directly. Instead, use \'org.graalvm.polyglot:ruby\' to ensure all dependencies are pulled in correctly.", # pylint: disable=line-too-long
             "license": [
                 "EPL-2.0",          # JRuby (we choose EPL out of EPL,GPL,LGPL)
                 "BSD-new",          # Rubinius
@@ -620,17 +643,17 @@ suite = {
             "noMavenJavadoc": True,
         },
 
-        "RUBY_COMMUNITY": {
+        "RUBY_POM": {
             "type": "pom",
             "runtimeDependencies": [
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-RESOURCES",
                 "truffle:TRUFFLE_RUNTIME",
-                "sulong:LLVM_NATIVE_COMMUNITY",
+                "sulong:LLVM_NATIVE_POM",
             ],
             "description": "TruffleRuby (GraalVM Ruby)",
             "maven": {
-                "artifactId": "ruby-community",
+                "artifactId": "ruby",
                 "tag": ["default", "public"],
             },
             "license": [
@@ -750,11 +773,14 @@ suite = {
                 ],
                 "lib/cext/": [
                     "file:lib/cext/*.rb",
-                    # libtruffleposix is handled specially in posix.rb to avoid a cyclic dependency between org.truffleruby.cext and TRUFFLERUBY-BOOTSTRAP-LAUNCHER
                     "dependency:org.truffleruby.librubysignal",
+                    "dependency:org.truffleruby.libtruffleposix",
                 ],
                 "lib/cext/include/": [
                     "file:lib/cext/include/*",
+                ],
+                "lib/truffle/": [
+                    "dependency:org.truffleruby.spawnhelper",
                 ],
             },
             "maven": False,
@@ -805,10 +831,10 @@ suite = {
                     "dependency:org.prism.libprism.for.gem/build/<lib:prism>",
                 ],
                 "lib/cext/": [
-                    "dependency:org.truffleruby.cext/src/main/c/truffleposix/<lib:truffleposix>",
+                    "dependency:org.truffleruby.librubysignal",
+                    "dependency:org.truffleruby.libtruffleposix",
                     "dependency:org.truffleruby.cext/src/main/c/cext/<lib:truffleruby>",
                     "dependency:org.truffleruby.cext/src/main/c/cext-trampoline/<lib:trufflerubytrampoline>",
-                    "dependency:org.truffleruby.librubysignal",
                 ],
                 # Create the complete files to let RubyGems know the gems are fully built and can be activated
                 "lib/gems/extensions/<cruby_arch>-<os>/<truffleruby_abi_version>/debug-1.9.2/gem.build_complete": "string:",
@@ -838,7 +864,7 @@ suite = {
                     "dependency:org.truffleruby.cext/src/main/c/rbconfig-sizeof/<extsuffix:sizeof>",
                 ],
                 "lib/truffle/": [
-                    "dependency:org.truffleruby.cext/src/main/c/spawn-helper/spawn-helper",
+                    "dependency:org.truffleruby.spawnhelper",
                 ],
             },
             "license": [
@@ -994,6 +1020,7 @@ suite = {
             "standalone_dist": "TRUFFLERUBY_NATIVE_STANDALONE",
             "community_archive_name": "truffleruby-community",
             "enterprise_archive_name": "truffleruby",
+            "language_id": "ruby",
         },
 
         "TRUFFLERUBY_JVM_STANDALONE_RELEASE_ARCHIVE": {
@@ -1002,6 +1029,7 @@ suite = {
             "standalone_dist": "TRUFFLERUBY_JVM_STANDALONE",
             "community_archive_name": "truffleruby-community-jvm",
             "enterprise_archive_name": "truffleruby-jvm",
+            "language_id": "ruby",
         },
 
         "TRUFFLERUBY_GRAALVM_LICENSES": {
@@ -1071,7 +1099,7 @@ suite = {
                 "TRUFFLERUBY",
                 "TRUFFLERUBY-RESOURCES",
             ],
-            "description" : "Truffle TCK provider for Ruby language.",
+            "description": "Truffle TCK provider for Ruby language.",
             "license": ["EPL-2.0"],
             "maven": {
                 "artifactId": "ruby-truffle-tck",

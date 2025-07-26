@@ -48,7 +48,7 @@ function_regexp = /(^(#{type_regexp})\s*(\w+)(#{arguments_regexp})\s*\{)$/
 functions = []
 
 Dir["src/main/c/cext/*.c"].sort.each do |file|
-  next if %w[cext_constants.c wrappers.c ruby.c st.c strlcpy.c].include?(File.basename(file))
+  next if %w[cext_constants.c ruby.c st.c strlcpy.c].include?(File.basename(file))
 
   contents = File.read(file)
   found_functions = contents.scan(function_regexp)
@@ -128,37 +128,31 @@ static inline void rb_tr_exception_from_java_jump(const char *function) {
 
 C
 
-  File.open("src/main/c/cext/wrappers.c", "w") do |sulong|
-    sulong.puts <<C
-#include <ruby.h>
-
-C
-
-    signatures = [
-      ['rb_tr_setjmp_wrapper_void_to_void', '(void):void'],
-      ['rb_tr_setjmp_wrapper_pointer1_to_void', '(VALUE arg):void'],
-      ['rb_tr_setjmp_wrapper_pointer2_to_void', '(VALUE tracepoint, void *data):void'],
-      ['rb_tr_setjmp_wrapper_pointer3_to_void', '(VALUE val, ID id, VALUE *data):void'],
-      ['rb_tr_setjmp_wrapper_pointer3_to_int', '(VALUE key, VALUE val, VALUE arg):int'],
-      ['rb_tr_setjmp_wrapper_pointer1_to_size_t', '(const void *arg):size_t'],
-      ['rb_tr_setjmp_wrapper_int_pointer2_to_pointer', '(int argc, VALUE *argv, VALUE obj):VALUE'],
-      ['rb_tr_setjmp_wrapper_pointer2_int_to_pointer', '(VALUE g, VALUE h, int r):VALUE'],
-      ['rb_tr_setjmp_wrapper_pointer2_int_pointer2_to_pointer', '(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg):VALUE'],
+  signatures = [
+    ['rb_tr_setjmp_wrapper_void_to_void', '(void):void'],
+    ['rb_tr_setjmp_wrapper_pointer1_to_void', '(VALUE arg):void'],
+    ['rb_tr_setjmp_wrapper_pointer2_to_void', '(VALUE tracepoint, void *data):void'],
+    ['rb_tr_setjmp_wrapper_pointer3_to_void', '(VALUE val, ID id, VALUE *data):void'],
+    ['rb_tr_setjmp_wrapper_pointer3_to_int', '(VALUE key, VALUE val, VALUE arg):int'],
+    ['rb_tr_setjmp_wrapper_pointer1_to_size_t', '(const void *arg):size_t'],
+    ['rb_tr_setjmp_wrapper_int_pointer2_to_pointer', '(int argc, VALUE *argv, VALUE obj):VALUE'],
+    ['rb_tr_setjmp_wrapper_pointer2_int_to_pointer', '(VALUE g, VALUE h, int r):VALUE'],
+    ['rb_tr_setjmp_wrapper_pointer2_int_pointer2_to_pointer', '(VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg):VALUE'],
+  ]
+  (1..16).each do |arity|
+    signatures << [
+      "rb_tr_setjmp_wrapper_pointer#{arity}_to_pointer",
+      "(#{(1..arity).map { |i| "VALUE arg#{i}" }.join(', ')}):VALUE"
     ]
-    (1..16).each do |arity|
-      signatures << [
-        "rb_tr_setjmp_wrapper_pointer#{arity}_to_pointer",
-        "(#{(1..arity).map { |i| "VALUE arg#{i}" }.join(', ')}):VALUE"
-      ]
-    end
+  end
 
-    signatures.each do |function_name, signature|
-      argument_types, return_type = signature.split(':')
-      argument_types = argument_types.delete_prefix('(').delete_suffix(')')
-      original_argument_types = argument_types
-      argument_types = '' if argument_types == 'void'
-      void = return_type == 'void'
-      f.puts <<C
+  signatures.each do |function_name, signature|
+    argument_types, return_type = signature.split(':')
+    argument_types = argument_types.delete_prefix('(').delete_suffix(')')
+    original_argument_types = argument_types
+    argument_types = '' if argument_types == 'void'
+    void = return_type == 'void'
+    f.puts <<C
 #{return_type} #{function_name}(#{return_type} (*func)(#{original_argument_types})#{', ' unless argument_types.empty?}#{argument_types}) {
   #{"#{return_type} result;" unless void}
 
@@ -179,13 +173,6 @@ C
 }
 
 C
-      sulong.puts <<C
-#{return_type} #{function_name}(#{return_type} (*func)(#{original_argument_types})#{', ' unless argument_types.empty?}#{argument_types}) {
-  #{'return ' unless void}func(#{argument_types.split(', ').map { |param| param[/\w+$/] }.join(', ')});
-}
-
-C
-    end
   end
 
   f.puts "\n// Functions\n\n"

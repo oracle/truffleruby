@@ -63,6 +63,7 @@ import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.library.HashStoreLibrary;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.core.regexp.MatchDataNodes.FixupMatchDataStartNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.string.ATStringWithEncoding;
 import org.truffleruby.core.string.StringHelperNodes.StringToTruffleStringInplaceNode;
@@ -385,60 +386,60 @@ public abstract class TruffleRegexpNodes {
     @ImportStatic(Encodings.class)
     public abstract static class TRegexCompileNode extends RubyBaseNode {
 
-        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean atStart, RubyEncoding encoding);
+        public abstract Object executeTRegexCompile(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding);
 
         @Child DispatchNode warnOnFallbackNode;
 
         @Specialization(guards = "encoding == US_ASCII")
-        Object usASCII(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object usASCII(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getUSASCIIRegex(atStart);
+            final Object tregex = regexp.tregexCache.getUSASCIIRegex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == ISO_8859_1")
-        Object latin1(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object latin1(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getLatin1Regex(atStart);
+            final Object tregex = regexp.tregexCache.getLatin1Regex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == UTF_8")
-        Object utf8(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object utf8(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getUTF8Regex(atStart);
+            final Object tregex = regexp.tregexCache.getUTF8Regex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Specialization(guards = "encoding == BINARY")
-        Object binary(RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+        Object binary(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
                 @Cached @Exclusive RunTwiceBranchProfile compileProfile) {
-            final Object tregex = regexp.tregexCache.getBinaryRegex(atStart);
+            final Object tregex = regexp.tregexCache.getBinaryRegex(onlyMatchAtStart);
             if (tregex != null) {
                 return tregex;
             } else {
                 compileProfile.enter();
-                return regexp.tregexCache.compile(getContext(), regexp, atStart, encoding, this);
+                return regexp.tregexCache.compile(getContext(), regexp, onlyMatchAtStart, encoding, this);
             }
         }
 
         @Fallback
-        Object other(RubyRegexp regexp, boolean atStart, RubyEncoding encoding) {
+        Object other(RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding) {
             return nil;
         }
 
@@ -780,44 +781,133 @@ public abstract class TruffleRegexpNodes {
         }
     }
 
-    @Primitive(name = "regexp_match_in_region", lowerFixnum = { 2, 3, 5 })
-    public abstract static class MatchInRegionNode extends PrimitiveArrayArgumentsNode {
-
-        @NeverDefault
-        public static MatchInRegionNode create() {
-            return TruffleRegexpNodesFactory.MatchInRegionNodeFactory.create(null);
+    @Primitive(name = "regexp_search", lowerFixnum = 2)
+    public abstract static class RegexpSearchNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        Object match(RubyRegexp regexp, Object string, int from,
+                @Cached RubyStringLibrary libString,
+                @Cached MatchInRegionNode matchInRegionNode) {
+            int to = libString.byteLength(this, string);
+            return matchInRegionNode.execute(regexp, string, from, to, false, 0, true);
         }
+    }
 
-        public abstract Object executeMatchInRegion(RubyRegexp regexp, Object string, int fromPos, int toPos,
-                boolean atStart, int startPos, boolean createMatchData);
+    @Primitive(name = "regexp_search?", lowerFixnum = 2)
+    public abstract static class RegexpSearchPredicateNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        boolean match(RubyRegexp regexp, Object string, int from,
+                @Cached RubyStringLibrary libString,
+                @Cached MatchInRegionNode matchInRegionNode) {
+            int to = libString.byteLength(this, string);
+            return (boolean) matchInRegionNode.execute(regexp, string, from, to, false, 0, false);
+        }
+    }
 
+    @Primitive(name = "regexp_search_backward", lowerFixnum = 2)
+    public abstract static class RegexpSearchBackwardNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        Object match(RubyRegexp regexp, Object string, int end,
+                @Cached MatchInRegionNode matchInRegionNode) {
+            return matchInRegionNode.execute(regexp, string, end, 0, false, 0, true);
+        }
+    }
+
+    @Primitive(name = "regexp_search_with_start", lowerFixnum = { 2, 3 }, isPublic = true)
+    public abstract static class RegexpSearchWithStartNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        Object match(RubyRegexp regexp, Object string, int from, int start,
+                @Cached RubyStringLibrary libString,
+                @Cached MatchInRegionNode matchInRegionNode) {
+            int to = libString.byteLength(this, string);
+            return matchInRegionNode.execute(regexp, string, from, to, false, start, true);
+        }
+    }
+
+    @Primitive(name = "regexp_match_at_start", lowerFixnum = { 2, 3 }, isPublic = true)
+    public abstract static class RegexpMatchAtStartNode extends PrimitiveArrayArgumentsNode {
+        @Specialization
+        Object match(RubyRegexp regexp, Object string, int from, int start,
+                @Cached RubyStringLibrary libString,
+                @Cached MatchInRegionNode matchInRegionNode) {
+            int to = libString.byteLength(this, string);
+            return matchInRegionNode.execute(regexp, string, from, to, true, start, true);
+        }
+    }
+
+    /** This node has many complicated arguments, so instead of exposing it as a Primitive we expose multiple simpler
+     * Primitives. */
+    public abstract static class MatchInRegionNode extends RubyBaseNode {
         /** Matches a regular expression against a string over the specified range of characters.
          *
          * @param regexp The regexp to match
          *
          * @param string The string to match against
          *
-         * @param fromPos The position to search from
+         * @param from The position to search from
          *
-         * @param toPos The position to search to (if less than from pos then this means search backwards)
+         * @param to The position to search to (if less than from pos then this means search backwards)
          *
-         * @param atStart Whether to only match at the beginning of the string, if false then the regexp can have any
-         *            amount of prematch.
+         * @param onlyMatchAtStart Whether to only match at the beginning of the string, if false then the regexp can
+         *            have any amount of prematch.
          *
-         * @param startPos The position within the string which the matcher should consider the start. Setting this to
-         *            the from position allows scanners to match starting part-way through a string while still setting
-         *            atStart and thus forcing the match to be at the specific starting position.
+         * @param start The position within the string which the matcher should consider the "start" for \A, ^ and
+         *            onlyMatchAtStart. It is functionally equivalent to matching against a substring of string starting
+         *            at start, but also returning the correct offsets in the MatchData. The value can only be 0 or
+         *            equal to from. Setting this to the from position allows StringScanner to match starting part-way
+         *            through a string while still setting onlyMatchAtStart and thus forcing the match to start at the
+         *            specific starting position.
          *
          * @param createMatchData Whether to create a Ruby `MatchData` object with the results of the match or return a
          *            simple Boolean value indicating a successful match (true: match; false: mismatch). */
+        public abstract Object execute(RubyRegexp regexp, Object string, int from, int to, boolean onlyMatchAtStart,
+                int start, boolean createMatchData);
+
+        @Specialization
+        Object match(
+                RubyRegexp regexp,
+                Object string,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
+                boolean createMatchData,
+                @Cached LazyMatchInRegionJoniNode matchInRegionJoniNode,
+                @Cached MatchInRegionTRegexNode matchInRegionTRegexNode,
+                @Cached LazyDispatchNode callCompareEngines) {
+            if (getContext().getOptions().COMPARE_REGEX_ENGINES) {
+                return callCompareEngines.get(this).call(coreLibrary().truffleRegexpOperationsModule,
+                        "match_in_region_compare_engines",
+                        new Object[]{ regexp, string, from, to, onlyMatchAtStart, start, createMatchData });
+            } else if (getContext().getOptions().USE_TRUFFLE_REGEX) {
+                return matchInRegionTRegexNode.execute(regexp, string, from, to, onlyMatchAtStart, start,
+                        createMatchData);
+            } else {
+                return matchInRegionJoniNode.get(this).execute(regexp, string, from, to, onlyMatchAtStart, start,
+                        createMatchData);
+            }
+        }
+    }
+
+    @Primitive(name = "regexp_match_in_region_joni", lowerFixnum = { 2, 3, 5 })
+    public abstract static class MatchInRegionJoniNode extends PrimitiveArrayArgumentsNode {
+
+        @NeverDefault
+        public static MatchInRegionJoniNode create() {
+            return TruffleRegexpNodesFactory.MatchInRegionJoniNodeFactory.create(null);
+        }
+
+        public abstract Object execute(RubyRegexp regexp, Object string, int from, int to, boolean onlyMatchAtStart,
+                int start, boolean createMatchData);
+
+        /** See {@link MatchInRegionNode#match} for parameters documentation */
         @Specialization
         static Object matchInRegion(
                 RubyRegexp regexp,
                 Object string,
-                int fromPos,
-                int toPos,
-                boolean atStart,
-                int startPos,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
                 boolean createMatchData,
                 @Cached InlinedConditionProfile createMatchDataProfile,
                 @Cached InlinedConditionProfile encodingMismatchProfile,
@@ -848,29 +938,134 @@ public abstract class TruffleRegexpNodes {
 
             final Matcher matcher;
             if (createMatchDataProfile.profile(node, createMatchData)) {
-                matcher = getMatcher(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
+                matcher = getMatcher(regex, byteArray.getArray(), offset + start, byteArray.getEnd());
             } else {
-                matcher = getMatcherNoRegion(regex, byteArray.getArray(), offset + startPos, byteArray.getEnd());
+                matcher = getMatcherNoRegion(regex, byteArray.getArray(), offset + start, byteArray.getEnd());
             }
 
-            return matchNode.execute(regexp, string, matcher, offset + fromPos, offset + toPos, atStart,
+            return matchNode.execute(regexp, string, matcher, offset + from, offset + to, onlyMatchAtStart, start,
                     createMatchData);
+        }
+    }
+
+    public abstract static class MatchNode extends RubyBaseNode {
+
+        public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher, int from, int to,
+                boolean onlyMatchAtStart, int start, boolean createMatchData);
+
+        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
+        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
+        // implemented using the source string data. We mustn't allow the source string's contents to change, however, so we must ensure that we have
+        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
+        // the MatchData object, it would be possible for the source string to be modified externally.
+        //
+        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
+        //
+        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
+        // same as when the MatchData was created.
+        @Specialization
+        Object match(
+                RubyRegexp regexp,
+                Object string,
+                Matcher matcher,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
+                boolean createMatchData,
+                @Cached LazyDispatchNode stringDupNode,
+                @Cached InlinedConditionProfile createMatchDataProfile,
+                @Cached InlinedConditionProfile mismatchProfile,
+                @Cached InlinedConditionProfile nonZeroStart,
+                @Cached FixupMatchDataStartNode fixupMatchDataStartNode) {
+            if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
+                TruffleRegexpNodes.instrumentMatch(
+                        MATCHED_REGEXPS_JONI,
+                        regexp,
+                        string,
+                        onlyMatchAtStart,
+                        getContext().getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
+            }
+
+            int match = runMatch(matcher, from, to, onlyMatchAtStart);
+
+            if (createMatchDataProfile.profile(this, createMatchData)) {
+                if (mismatchProfile.profile(this, match == Matcher.FAILED)) {
+                    return nil;
+                }
+
+                assert match >= 0;
+
+                final MultiRegion region = getMatcherEagerRegion(matcher);
+                assert assertValidRegion(region);
+
+                var dupedString = stringDupNode.get(this).call(string, "dup");
+                RubyMatchData result = new RubyMatchData(
+                        coreLibrary().matchDataClass,
+                        getLanguage().matchDataShape,
+                        regexp,
+                        dupedString,
+                        region);
+                AllocationTracing.trace(result, this);
+
+                if (nonZeroStart.profile(this, start != 0)) {
+                    fixupMatchDataStartNode.execute(this, result, start);
+                }
+
+                return result;
+            } else {
+                return match != Matcher.FAILED;
+            }
+        }
+
+        @TruffleBoundary
+        private int runMatch(Matcher matcher, int from, int to, boolean onlyMatchAtStart) {
+            // Keep status as RUN because MRI has an uninterruptible Regexp engine
+            if (onlyMatchAtStart) {
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        unused -> matcher.matchInterruptible(from, to, Option.DEFAULT), null);
+            } else {
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        unused -> matcher.searchInterruptible(from, to, Option.DEFAULT), null);
+            }
+        }
+
+        /** Is equivalent to {@link org.graalvm.shadowed.org.joni.Matcher#getEagerRegion()} but returns MultiRegion
+         * instead of abstract Region class */
+        private MultiRegion getMatcherEagerRegion(Matcher matcher) {
+            Region eagerRegion = matcher.getEagerRegion();
+
+            if (eagerRegion instanceof SingleRegion singleRegion) {
+                return new MultiRegion(singleRegion.getBeg(0), singleRegion.getEnd(0));
+            } else if (eagerRegion instanceof MultiRegion multiRegion) {
+                return multiRegion;
+            } else {
+                throw CompilerDirectives.shouldNotReachHere();
+            }
+        }
+
+        private boolean assertValidRegion(MultiRegion region) {
+            for (int i = 0; i < region.getNumRegs(); i++) {
+                assert region.getBeg(i) >= 0 || region.getBeg(i) == RubyMatchData.MISSING;
+                assert region.getEnd(i) >= 0 || region.getEnd(i) == RubyMatchData.MISSING;
+            }
+            return true;
         }
     }
 
     @GenerateCached(false)
     @GenerateInline
-    public abstract static class LazyMatchInRegionNode extends RubyBaseNode {
+    public abstract static class LazyMatchInRegionJoniNode extends RubyBaseNode {
 
-        public final MatchInRegionNode get(Node node) {
+        public final MatchInRegionJoniNode get(Node node) {
             return execute(node);
         }
 
-        protected abstract MatchInRegionNode execute(Node node);
+        protected abstract MatchInRegionJoniNode execute(Node node);
 
         @Specialization
-        static MatchInRegionNode doLazy(
-                @Cached(inline = false) MatchInRegionNode matchInRegionNode) {
+        static MatchInRegionJoniNode doLazy(
+                @Cached(inline = false) MatchInRegionJoniNode matchInRegionNode) {
             return matchInRegionNode;
         }
     }
@@ -895,15 +1090,23 @@ public abstract class TruffleRegexpNodes {
     @Primitive(name = "regexp_match_in_region_tregex", lowerFixnum = { 2, 3, 5 })
     public abstract static class MatchInRegionTRegexNode extends PrimitiveArrayArgumentsNode {
 
+        @NeverDefault
+        public static MatchInRegionTRegexNode create() {
+            return TruffleRegexpNodesFactory.MatchInRegionTRegexNodeFactory.create(null);
+        }
 
+        public abstract Object execute(RubyRegexp regexp, Object string, int from, int to, boolean onlyMatchAtStart,
+                int start, boolean createMatchData);
+
+        /** See {@link MatchInRegionNode#match} for parameters documentation */
         @Specialization
         static Object matchInRegionTRegex(
                 RubyRegexp regexp,
                 Object string,
-                int fromPos,
-                int toPos,
-                boolean atStart,
-                int startPos,
+                int from,
+                int to,
+                boolean onlyMatchAtStart,
+                int start,
                 boolean createMatchData,
                 @Cached StringToTruffleStringInplaceNode stringToTruffleStringInplaceNode,
                 @Cached TruffleString.SwitchEncodingNode switchEncodingNode,
@@ -911,7 +1114,7 @@ public abstract class TruffleRegexpNodes {
                 @Cached InlinedConditionProfile matchFoundProfile,
                 @Cached InlinedConditionProfile tRegexCouldNotCompileProfile,
                 @Cached InlinedConditionProfile tRegexIncompatibleProfile,
-                @Cached InlinedConditionProfile startPosNotZeroProfile,
+                @Cached InlinedConditionProfile startNotZeroProfile,
                 @Cached InlinedLoopConditionProfile loopProfile,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary regexInterop,
                 @CachedLibrary(limit = "getInteropCacheLimit()") InteropLibrary resultInterop,
@@ -922,8 +1125,10 @@ public abstract class TruffleRegexpNodes {
                 @Cached LazyDispatchNode warnOnFallbackNode,
                 @Cached LazyDispatchNode stringDupNode,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
-                @Cached LazyMatchInRegionNode fallbackMatchInRegionNode,
+                @Cached LazyMatchInRegionJoniNode fallbackMatchInRegionJoniNode,
                 @Cached LazyTruffleStringSubstringByteIndexNode substringByteIndexNode,
+                @Cached InlinedConditionProfile nonZeroStart,
+                @Cached FixupMatchDataStartNode fixupMatchDataStartNode,
                 @Bind Node node) {
             stringToTruffleStringInplaceNode.execute(node, string);
             final RubyEncoding negotiatedEncoding = prepareRegexpEncodingNode.executePrepare(node, regexp, string);
@@ -932,23 +1137,23 @@ public abstract class TruffleRegexpNodes {
 
             final Object tRegex;
             if (tRegexIncompatibleProfile
-                    .profile(node, toPos < fromPos || toPos != byteLength || fromPos < 0) ||
+                    .profile(node, to < from || to != byteLength || from < 0) ||
                     tRegexCouldNotCompileProfile.profile(node, (tRegex = tRegexCompileNode.executeTRegexCompile(
                             regexp,
-                            atStart,
+                            onlyMatchAtStart,
                             negotiatedEncoding)) == nil)) {
                 return fallbackToJoni(
                         node,
                         regexp,
                         string,
                         negotiatedEncoding,
-                        fromPos,
-                        toPos,
-                        atStart,
-                        startPos,
+                        from,
+                        to,
+                        onlyMatchAtStart,
+                        start,
                         createMatchData,
                         warnOnFallbackNode,
-                        fallbackMatchInRegionNode.get(node));
+                        fallbackMatchInRegionJoniNode.get(node));
             }
 
             if (getContext(node).getOptions().REGEXP_INSTRUMENT_MATCH) {
@@ -956,29 +1161,29 @@ public abstract class TruffleRegexpNodes {
                         MATCHED_REGEXPS_TREGEX,
                         regexp,
                         string,
-                        atStart,
+                        onlyMatchAtStart,
                         getContext(node).getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
             }
 
-            int fromIndex = fromPos;
+            int fromIndex = from;
             final TruffleString tstringToMatch;
             final String execMethod;
 
             if (createMatchDataProfile.profile(node, createMatchData)) {
-                if (startPosNotZeroProfile.profile(node, startPos > 0)) {
-                    // If startPos != 0, then fromPos == startPos.
-                    assert fromPos == startPos;
+                if (startNotZeroProfile.profile(node, start > 0)) {
+                    // If start != 0, then from == start.
+                    assert from == start;
                     fromIndex = 0;
 
-                    tstringToMatch = substringByteIndexNode.get(node).execute(tstring, startPos, toPos - startPos,
+                    tstringToMatch = substringByteIndexNode.get(node).execute(tstring, start, to - start,
                             negotiatedEncoding.tencoding, true);
                 } else {
                     tstringToMatch = tstring;
                 }
                 execMethod = "exec";
             } else {
-                // Only strscan ever passes a non-zero startPos and that never uses `match?`.
-                assert startPos == 0 : "Simple Boolean match not supported with non-zero startPos";
+                // Only strscan ever passes a non-zero start and that never uses `match?`.
+                assert start == 0 : "Simple Boolean match not supported with non-zero start";
 
                 tstringToMatch = tstring;
                 execMethod = "execBoolean";
@@ -1008,7 +1213,12 @@ public abstract class TruffleRegexpNodes {
                         profileAndReportLoopCount(node, loopProfile, groupCount);
                     }
 
-                    return createMatchData(node, regexp, dupString(string, stringDupNode.get(node)), region, result);
+                    var dupedString = stringDupNode.get(node).call(string, "dup");
+                    var matchData = createMatchData(node, regexp, dupedString, region, result);
+                    if (nonZeroStart.profile(node, start != 0)) {
+                        fixupMatchDataStartNode.execute(node, matchData, start);
+                    }
+                    return matchData;
                 } else {
                     return nil;
                 }
@@ -1018,9 +1228,8 @@ public abstract class TruffleRegexpNodes {
         }
 
         private static Object fallbackToJoni(Node node, RubyRegexp regexp, Object string, RubyEncoding encoding,
-                int fromPos, int toPos,
-                boolean atStart, int startPos, boolean createMatchData, LazyDispatchNode warnOnFallbackNode,
-                MatchInRegionNode fallbackMatchInRegionNode) {
+                int from, int to, boolean onlyMatchAtStart, int start, boolean createMatchData,
+                LazyDispatchNode warnOnFallbackNode, MatchInRegionJoniNode fallbackMatchInRegionJoniNode) {
             if (getContext(node).getOptions().WARN_TRUFFLE_REGEX_MATCH_FALLBACK) {
 
                 warnOnFallbackNode.get(node).call(
@@ -1030,17 +1239,17 @@ public abstract class TruffleRegexpNodes {
                                 regexp,
                                 string,
                                 encoding,
-                                fromPos,
-                                toPos,
-                                atStart,
-                                startPos });
+                                from,
+                                to,
+                                onlyMatchAtStart,
+                                start });
             }
 
-            return fallbackMatchInRegionNode
-                    .executeMatchInRegion(regexp, string, fromPos, toPos, atStart, startPos, createMatchData);
+            return fallbackMatchInRegionJoniNode
+                    .execute(regexp, string, from, to, onlyMatchAtStart, start, createMatchData);
         }
 
-        private static Object createMatchData(Node node, RubyRegexp regexp, Object string, MultiRegion region,
+        private static RubyMatchData createMatchData(Node node, RubyRegexp regexp, Object string, MultiRegion region,
                 Object tRegexResult) {
             final RubyMatchData matchData = new RubyMatchData(
                     coreLibrary(node).matchDataClass,
@@ -1053,9 +1262,6 @@ public abstract class TruffleRegexpNodes {
             return matchData;
         }
 
-        private static Object dupString(Object string, DispatchNode stringDupNode) {
-            return stringDupNode.call(string, "dup");
-        }
     }
 
     @CoreMethod(names = "linear_time?", onSingleton = true, required = 1)
@@ -1077,104 +1283,6 @@ public abstract class TruffleRegexpNodes {
             boolean isBacktracking = (boolean) InteropNodes.readMember(node, regexInterop, compiledRegex,
                     "isBacktracking", translateInteropExceptionNode);
             return !isBacktracking;
-        }
-    }
-
-    public abstract static class MatchNode extends RubyBaseNode {
-
-        @Child private DispatchNode dupNode = DispatchNode.create();
-
-        public abstract Object execute(RubyRegexp regexp, Object string, Matcher matcher,
-                int startPos, int range, boolean onlyMatchAtStart, boolean createMatchData);
-
-        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
-        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods are nicely
-        // implemented using the source string data. Likewise, we need to taint objects based on the source string's
-        // taint state. We mustn't allow the source string's contents to change, however, so we must ensure that we have
-        // a private copy of that string. Since the source string would otherwise be a reference to string held outside
-        // the MatchData object, it would be possible for the source string to be modified externally.
-        //
-        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
-        //
-        // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
-        // same as when the MatchData was created.
-        @Specialization
-        Object match(
-                RubyRegexp regexp,
-                Object string,
-                Matcher matcher,
-                int startPos,
-                int range,
-                boolean onlyMatchAtStart,
-                boolean createMatchData,
-                @Cached InlinedConditionProfile createMatchDataProfile,
-                @Cached InlinedConditionProfile mismatchProfile) {
-            if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
-                TruffleRegexpNodes.instrumentMatch(
-                        MATCHED_REGEXPS_JONI,
-                        regexp,
-                        string,
-                        onlyMatchAtStart,
-                        getContext().getOptions().REGEXP_INSTRUMENT_MATCH_DETAILED);
-            }
-
-            int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
-
-            if (createMatchDataProfile.profile(this, createMatchData)) {
-                if (mismatchProfile.profile(this, match == Matcher.FAILED)) {
-                    return nil;
-                }
-
-                assert match >= 0;
-
-                final MultiRegion region = getMatcherEagerRegion(matcher);
-                assert assertValidRegion(region);
-                final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
-                RubyMatchData result = new RubyMatchData(
-                        coreLibrary().matchDataClass,
-                        getLanguage().matchDataShape,
-                        regexp,
-                        dupedString,
-                        region);
-                AllocationTracing.trace(result, this);
-                return result;
-            } else {
-                return match != Matcher.FAILED;
-            }
-        }
-
-        @TruffleBoundary
-        private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
-            // Keep status as RUN because MRI has an uninterruptible Regexp engine
-            if (onlyMatchAtStart) {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        unused -> matcher.matchInterruptible(startPos, range, Option.DEFAULT), null);
-            } else {
-                return getContext().getThreadManager().runUntilResultKeepStatus(this,
-                        unused -> matcher.searchInterruptible(startPos, range, Option.DEFAULT), null);
-            }
-        }
-
-        /** Is equivalent to {@link org.graalvm.shadowed.org.joni.Matcher#getEagerRegion()} but returns MultiRegion
-         * instead of abstract Region class */
-        private MultiRegion getMatcherEagerRegion(Matcher matcher) {
-            Region eagerRegion = matcher.getEagerRegion();
-
-            if (eagerRegion instanceof SingleRegion singleRegion) {
-                return new MultiRegion(singleRegion.getBeg(0), singleRegion.getEnd(0));
-            } else if (eagerRegion instanceof MultiRegion multiRegion) {
-                return multiRegion;
-            } else {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-        }
-
-        private boolean assertValidRegion(MultiRegion region) {
-            for (int i = 0; i < region.getNumRegs(); i++) {
-                assert region.getBeg(i) >= 0 || region.getBeg(i) == RubyMatchData.MISSING;
-                assert region.getEnd(i) >= 0 || region.getEnd(i) == RubyMatchData.MISSING;
-            }
-            return true;
         }
     }
 

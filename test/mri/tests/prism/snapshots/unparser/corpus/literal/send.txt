@@ -157,6 +157,7 @@
         │   │   │   ├── exceptions: (length: 0)
         │   │   │   ├── operator_loc: ∅
         │   │   │   ├── reference: ∅
+        │   │   │   ├── then_keyword_loc: ∅
         │   │   │   ├── statements: ∅
         │   │   │   └── subsequent: ∅
         │   │   ├── else_clause: ∅
@@ -176,7 +177,7 @@
         │   │   ├── flags: ∅
         │   │   ├── predicate:
         │   │   │   @ ParenthesesNode (location: (16,5)-(17,10))
-        │   │   │   ├── flags: ∅
+        │   │   │   ├── flags: multiple_statements
         │   │   │   ├── body:
         │   │   │   │   @ StatementsNode (location: (16,6)-(17,9))
         │   │   │   │   ├── flags: ∅
@@ -349,6 +350,7 @@
         │   │   @ UntilNode (location: (29,0)-(30,3))
         │   │   ├── flags: ∅
         │   │   ├── keyword_loc: (29,0)-(29,5) = "until"
+        │   │   ├── do_keyword_loc: ∅
         │   │   ├── closing_loc: (30,0)-(30,3) = "end"
         │   │   ├── predicate:
         │   │   │   @ CallNode (location: (29,6)-(29,9))
@@ -375,6 +377,7 @@
         │   │   @ WhileNode (location: (31,0)-(32,3))
         │   │   ├── flags: ∅
         │   │   ├── keyword_loc: (31,0)-(31,5) = "while"
+        │   │   ├── do_keyword_loc: ∅
         │   │   ├── closing_loc: (32,0)-(32,3) = "end"
         │   │   ├── predicate:
         │   │   │   @ CallNode (location: (31,6)-(31,9))

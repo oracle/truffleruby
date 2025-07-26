@@ -81,6 +81,7 @@ ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 JDK_VERSIONS = %w[latest 21]
 LTS_JDK_VERSION = '21'
+IGV_JDK_VERSION = '21'
 DEFAULT_JDK_VERSION = 'latest'
 
 # Not yet 'jdk.graal' as we test against 21 and 21 does not know 'jdk.graal'
@@ -190,7 +191,7 @@ module Utilities
   end
 
   def ee?
-    (@mx_env || @ruby_name || '').include?('ee')
+    @mx_env.include?('ee') || @ruby_name.include?('ee')
   end
 
   def ee_jdk?
@@ -259,14 +260,12 @@ module Utilities
   end
 
   def used_ruby_is_mx_env_name?
-    ruby_launcher # to set @ruby_name
     File.file?(env_path(@ruby_name))
   end
 
   def ruby_launcher
     return @ruby_launcher if defined? @ruby_launcher
 
-    @ruby_name ||= ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
                     elsif @ruby_name.start_with?('/')
@@ -703,7 +702,9 @@ module Utilities
   end
 
   def run_mspec(env_vars, command = 'run', *args)
-    mspec_args = ['spec/mspec/bin/mspec', command, '--config', ENV['TRUFFLERUBY_MSPEC_CONFIG'] || 'spec/truffleruby.mspec']
+    # Pass spec/truffleruby.mspec explicitly because we also want to use it when
+    # running specs on CRuby so that it finds that specs are under spec/ruby.
+    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffleruby.mspec']
 
     Dir.chdir(TRUFFLERUBY_DIR) do
       # always enable assertions with --ea to catch issues earlier
@@ -1915,6 +1916,7 @@ module Commands
 
   def metrics(command, *args)
     require_ruby_launcher!
+    ENV['TRUFFLERUBY_ALLOW_PRIVATE_PRIMITIVES_IN'] = "#{TRUFFLERUBY_DIR}/bench/metrics/"
     args = args.dup
     case command
     when 'alloc'
@@ -2444,7 +2446,7 @@ module Commands
 
   def igv
     compiler = "#{GRAAL_DIR}/compiler"
-    @jdk_version = LTS_JDK_VERSION
+    ENV['TOOLS_JAVA_HOME'] = install_jvmci("Downloading JDK#{IGV_JDK_VERSION} to run IGV", jdk_version: IGV_JDK_VERSION)
     mx('igv', chdir: compiler)
   end
 
@@ -2615,21 +2617,20 @@ module Commands
       FileUtils.touch(build_information_path)
     end
 
-    env = if (i = options.index('--env') || options.index('-e'))
-            options.delete_at i
-            options.delete_at i
-          else
-            ENV['JT_ENV'] || 'jvm'
-          end
-    @mx_env = env
-    raise 'Cannot use both --use and --env' if defined?(@ruby_name)
+    # Override @mx_env if --env is passed
+    if (i = options.index('--env') || options.index('-e'))
+      options.delete_at i
+      @mx_env = options.delete_at i
+    end
+    env = @mx_env
 
-    @ruby_name = if (i = options.index('--name') || options.index('-n'))
-                   options.delete_at i
-                   options.delete_at i
-                 else
-                   env
-                 end
+    # Override @ruby_name from --name or --env
+    if (i = options.index('--name') || options.index('-n'))
+      options.delete_at i
+      @ruby_name = options.delete_at i
+    else
+      @ruby_name = env
+    end
 
     name = "truffleruby-#{@ruby_name}"
     mx_base_args = ['--env', env]
@@ -2853,7 +2854,7 @@ module Commands
     hardcoded_urls.each_line do |line|
       abort "Could not parse #{line.inspect}" unless /(.+?):(\d+):.+?(https:.+?)(#[\w-]+)?[ "'\n]/ =~ line
       file, line, url = $1, $2, $3
-      if !%w[tool/jt.rb tool/generate-user-doc.rb].include?(file) and !known_hardcoded_urls.include?(url)
+      if !%w[tool/jt.rb].include?(file) and !known_hardcoded_urls.include?(url)
         puts "Found unknown hardcoded url #{url} in #{file}:#{line}, add it in tool/jt.rb"
         status = false
       end
@@ -3303,12 +3304,17 @@ class JT
     JT.new.gem_test_pack
   end
 
-  def process_pre_args(args)
-    needs_build = false
-    needs_rebuild = false
+  def initialize
     @silent = false
     @verbose = false
     @jdk_version = ENV['JT_JDK'] || DEFAULT_JDK_VERSION
+    @ruby_name = ENV['RUBY_BIN'] || ENV['JT_ENV'] || 'jvm'
+    @mx_env = ENV['JT_ENV'] || 'jvm'
+  end
+
+  def process_pre_args(args)
+    needs_build = false
+    needs_rebuild = false
 
     until args.empty?
       arg = args.shift

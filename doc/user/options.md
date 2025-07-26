@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: TruffleRuby Options and Command Line
-permalink: /reference-manual/ruby/Options/
----
 # TruffleRuby Options and Command Line
 
 TruffleRuby has the same command-line interface as our compatible MRI version.
@@ -84,13 +78,13 @@ Languages:
 
 Tools:
   [id]        [name]                  [website]
-  agentscript Agent Script            
+  agentscript Agent Script
   coverage    Code Coverage           https://www.graalvm.org/tools/code-coverage/
   cpusampler  CPU Sampler             https://www.graalvm.org/tools/profiling/
   cputracer   CPU Tracer              https://www.graalvm.org/tools/profiling/
   dap         Debug Protocol Server   https://www.graalvm.org/tools/dap/
-  heap        Heap Dump               
-  heapmonitor Heap Allocation Monitor 
+  heap        Heap Dump
+  heapmonitor Heap Allocation Monitor
   insight     Insight                 https://www.graalvm.org/tools/graalvm-insight/
   inspect     Chrome Inspector        https://www.graalvm.org/tools/chrome-debugger/
   lsp         Language Server         https://www.graalvm.org/tools/lsp/

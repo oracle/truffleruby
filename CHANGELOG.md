@@ -8,6 +8,8 @@ Bug fixes:
 * Fix `Range#cover?` on begin-less ranges and non-integer values (@nirvdrum, @rwstauner).
 * Fix `Time.new` with String argument and handle nanoseconds correctly (#3836, @andrykonchin).
 * Fix a possible case of infinite recursion when implementing `frozen?` in a native extension (@nirvdrum).
+* Fix parameters forwarding to a method call executed with `Kernel#eval` (@andrykonchin).
+* Fix segfaults in native extensions when the reference processing thread is interrupted and would `longjmp()` incorrectly (#3903, @eregon).
 
 Compatibility:
 
@@ -32,6 +34,7 @@ Compatibility:
 * Implement `rb_error_frozen_object` for the google-protobuf gem (@nirvdrum).
 * Adjust a `FrozenError`'s message and add a receiver when a frozen module or class is modified (e.g. by defining or undefining an instance method or by defining a nested module (@andrykonchin).
 * Fix `Kernel#sprintf` and `%p` format specification to produce `"nil"` for `nil` argument (#3846, @andrykonchin).
+* Reimplement `Data#with` to not call `Data.new` that can be removed or redefined (#3890, @andrykonchin).
 
 Performance:
 
@@ -183,7 +186,7 @@ Memory Footprint:
 New features:
 
 * C/C++ extensions are now compiled using the system toolchain and executed natively instead of using GraalVM LLVM (Sulong). This leads to faster startup, no warmup, better compatibility, smaller distribution and faster installation for C/C++ extensions (#3118, @eregon).
-* Full support for the Ruby 3.2 and Ruby 3.3 syntax by adopting the [Prism](https://github.com/ruby/prism) parser, which is about twice as fast as the old parser (#3117, #3038, #3039, @andrykonchin, @eregon).
+* Full support for the Ruby 3.2 (and Ruby 3.3) _syntax_ by adopting the [Prism](https://github.com/ruby/prism) parser, which is about twice as fast as the old parser (#3117, #3038, #3039, @andrykonchin, @eregon).
 * Pattern matching is now fully supported (#3332, #2683, @eregon, @razetime).
 
 Bug fixes:

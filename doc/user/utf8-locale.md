@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Setting up a UTF-8 Locale
-permalink: /reference-manual/ruby/UTF8Locale/
----
 # Setting Up a UTF-8 Locale
 
 You need a UTF-8 locale to run some Ruby applications.
@@ -21,6 +15,7 @@ Instead, all values should be `"en_US.UTF-8"` or other regions but still `.UTF-8
 ### Fedora-based: RHEL, Oracle Linux, etc
 
 ```bash
+sudo dnf install glibc-langpack-en
 export LANG=en_US.UTF-8
 ```
 

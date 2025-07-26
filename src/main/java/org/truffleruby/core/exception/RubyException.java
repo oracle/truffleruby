@@ -50,6 +50,9 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
     public Object backtraceLocations = null;
     /** null (not set), RubyArray of Strings, or nil (empty) */
     public Object customBacktrace = null;
+    /** whether a Ruby exception referencing this exception as its cause exists. One of the way to prevent circles in
+     * exception cause chains */
+    public boolean usedAsACause = false;
 
     public RubyException(RubyClass rubyClass, Shape shape, Object message, Backtrace backtrace, Object cause) {
         super(rubyClass, shape);
@@ -57,6 +60,10 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
         this.message = message;
         this.backtrace = backtrace;
         this.cause = cause;
+
+        if (cause instanceof RubyException) {
+            ((RubyException) cause).usedAsACause = true;
+        }
     }
 
     @TruffleBoundary

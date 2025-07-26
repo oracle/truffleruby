@@ -7347,6 +7347,18 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             const pm_parentheses_node_t *cast = (const pm_parentheses_node_t *) node;
             pm_dump_json_location(buffer, parser, &cast->base.location);
 
+            // Dump the ParenthesesNodeFlags field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"ParenthesesNodeFlags\":", 23);
+            size_t flags = 0;
+            pm_buffer_append_byte(buffer, '[');
+            if (PM_NODE_FLAG_P(cast, PM_PARENTHESES_NODE_FLAGS_MULTIPLE_STATEMENTS)) {
+                if (flags != 0) pm_buffer_append_byte(buffer, ',');
+                pm_buffer_append_string(buffer, "\"MULTIPLE_STATEMENTS\"", 21);
+                flags++;
+            }
+            pm_buffer_append_byte(buffer, ']');
+
             // Dump the body field
             pm_buffer_append_byte(buffer, ',');
             pm_buffer_append_string(buffer, "\"body\":", 7);
@@ -7820,6 +7832,15 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             pm_buffer_append_string(buffer, "\"reference\":", 12);
             if (cast->reference != NULL) {
                 pm_dump_json(buffer, parser, (const pm_node_t *) cast->reference);
+            } else {
+                pm_buffer_append_string(buffer, "null", 4);
+            }
+
+            // Dump the then_keyword_loc field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"then_keyword_loc\":", 19);
+            if (cast->then_keyword_loc.start != NULL) {
+                pm_dump_json_location(buffer, parser, &cast->then_keyword_loc);
             } else {
                 pm_buffer_append_string(buffer, "null", 4);
             }
@@ -8418,6 +8439,15 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             pm_buffer_append_string(buffer, "\"keyword_loc\":", 14);
             pm_dump_json_location(buffer, parser, &cast->keyword_loc);
 
+            // Dump the do_keyword_loc field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"do_keyword_loc\":", 17);
+            if (cast->do_keyword_loc.start != NULL) {
+                pm_dump_json_location(buffer, parser, &cast->do_keyword_loc);
+            } else {
+                pm_buffer_append_string(buffer, "null", 4);
+            }
+
             // Dump the closing_loc field
             pm_buffer_append_byte(buffer, ',');
             pm_buffer_append_string(buffer, "\"closing_loc\":", 14);
@@ -8510,6 +8540,15 @@ pm_dump_json(pm_buffer_t *buffer, const pm_parser_t *parser, const pm_node_t *no
             pm_buffer_append_byte(buffer, ',');
             pm_buffer_append_string(buffer, "\"keyword_loc\":", 14);
             pm_dump_json_location(buffer, parser, &cast->keyword_loc);
+
+            // Dump the do_keyword_loc field
+            pm_buffer_append_byte(buffer, ',');
+            pm_buffer_append_string(buffer, "\"do_keyword_loc\":", 17);
+            if (cast->do_keyword_loc.start != NULL) {
+                pm_dump_json_location(buffer, parser, &cast->do_keyword_loc);
+            } else {
+                pm_buffer_append_string(buffer, "null", 4);
+            }
 
             // Dump the closing_loc field
             pm_buffer_append_byte(buffer, ',');

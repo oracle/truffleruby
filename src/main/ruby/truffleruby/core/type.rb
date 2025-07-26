@@ -410,7 +410,7 @@ module Truffle
         Primitive.regexp_compile pattern, 0
       end
     end
-    Truffle::Graal.always_split(method(:coerce_to_regexp))
+    Primitive.always_split singleton_class, :coerce_to_regexp
 
     def self.coerce_to_encoding(obj)
       case obj

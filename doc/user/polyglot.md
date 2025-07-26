@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Polyglot Programming
-permalink: /reference-manual/ruby/Polyglot/
----
 # Polyglot Programming
 
 TruffleRuby allows you to interface with any other Truffle language to create polyglot programs -- programs written in more than one language.
@@ -277,7 +271,7 @@ Conceptually it is similar to running multiple Ruby interpreters in the same pro
 This can also be used with other languages, so for instance the outer/default context might run some Ruby code and some inner contexts run JavaScript code.
 This is very useful to interoperate with languages which do not support shared-memory multithreading like JavaScript, as one can then create one or more inner contexts per thread and still have the outer context use multithreaded Ruby.
 
-Objects from an inner context can be passed to other contexts and they are treated as foreign objects: 
+Objects from an inner context can be passed to other contexts and they are treated as foreign objects:
 ```ruby
 Polyglot::InnerContext.new do |context|
   context.eval('ruby', "p Object.new") # prints #<Object:0xd8>

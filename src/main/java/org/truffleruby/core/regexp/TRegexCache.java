@@ -28,38 +28,38 @@ import org.truffleruby.language.control.DeferredRaiseException;
 
 public final class TRegexCache {
 
-    // atStart=false
+    // onlyMatchAtStart=false
     private Object usAsciiRegex;
     private Object latin1Regex;
     private Object utf8Regex;
     private Object binaryRegex;
 
-    // atStart=true
+    // onlyMatchAtStart=true
     private Object usAsciiRegexAtStart;
     private Object latin1RegexAtStart;
     private Object utf8RegexAtStart;
     private Object binaryRegexAtStart;
 
-    public Object getUSASCIIRegex(boolean atStart) {
-        return atStart ? usAsciiRegexAtStart : usAsciiRegex;
+    public Object getUSASCIIRegex(boolean onlyMatchAtStart) {
+        return onlyMatchAtStart ? usAsciiRegexAtStart : usAsciiRegex;
     }
 
-    public Object getLatin1Regex(boolean atStart) {
-        return atStart ? latin1RegexAtStart : latin1Regex;
+    public Object getLatin1Regex(boolean onlyMatchAtStart) {
+        return onlyMatchAtStart ? latin1RegexAtStart : latin1Regex;
     }
 
-    public Object getUTF8Regex(boolean atStart) {
-        return atStart ? utf8RegexAtStart : utf8Regex;
+    public Object getUTF8Regex(boolean onlyMatchAtStart) {
+        return onlyMatchAtStart ? utf8RegexAtStart : utf8Regex;
     }
 
-    public Object getBinaryRegex(boolean atStart) {
-        return atStart ? binaryRegexAtStart : binaryRegex;
+    public Object getBinaryRegex(boolean onlyMatchAtStart) {
+        return onlyMatchAtStart ? binaryRegexAtStart : binaryRegex;
     }
 
     @TruffleBoundary
-    public Object compile(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding encoding,
+    public Object compile(RubyContext context, RubyRegexp regexp, boolean onlyMatchAtStart, RubyEncoding encoding,
             TRegexCompileNode node) {
-        Object tregex = compileTRegex(context, regexp, atStart, encoding);
+        Object tregex = compileTRegex(context, regexp, onlyMatchAtStart, encoding);
         if (tregex == null) {
             tregex = Nil.INSTANCE;
             if (context.getOptions().WARN_TRUFFLE_REGEX_COMPILE_FALLBACK) {
@@ -67,7 +67,7 @@ public final class TRegexCache {
                         context.getCoreLibrary().truffleRegexpOperationsModule,
                         "warn_fallback_regex",
                         regexp,
-                        atStart,
+                        onlyMatchAtStart,
                         encoding);
             }
         } else if (isBacktracking(tregex)) {
@@ -76,31 +76,31 @@ public final class TRegexCache {
                         context.getCoreLibrary().truffleRegexpOperationsModule,
                         "warn_backtracking",
                         regexp,
-                        atStart,
+                        onlyMatchAtStart,
                         encoding);
             }
         }
 
         if (encoding == Encodings.US_ASCII) {
-            if (atStart) {
+            if (onlyMatchAtStart) {
                 usAsciiRegexAtStart = tregex;
             } else {
                 usAsciiRegex = tregex;
             }
         } else if (encoding == Encodings.ISO_8859_1) {
-            if (atStart) {
+            if (onlyMatchAtStart) {
                 latin1RegexAtStart = tregex;
             } else {
                 latin1Regex = tregex;
             }
         } else if (encoding == Encodings.UTF_8) {
-            if (atStart) {
+            if (onlyMatchAtStart) {
                 utf8RegexAtStart = tregex;
             } else {
                 utf8Regex = tregex;
             }
         } else if (encoding == Encodings.BINARY) {
-            if (atStart) {
+            if (onlyMatchAtStart) {
                 binaryRegexAtStart = tregex;
             } else {
                 binaryRegex = tregex;
@@ -136,7 +136,8 @@ public final class TRegexCache {
     }
 
     @TruffleBoundary
-    private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean atStart, RubyEncoding enc) {
+    private static Object compileTRegex(RubyContext context, RubyRegexp regexp, boolean onlyMatchAtStart,
+            RubyEncoding enc) {
         String tRegexEncoding = TRegexCache.toTRegexEncoding(enc);
         if (tRegexEncoding == null) {
             return null;
@@ -166,7 +167,7 @@ public final class TRegexCache {
             processedRegexpSource = TStringUtils.toJavaStringOrThrow(latin1string, Encodings.ISO_8859_1);
         }
 
-        String flags = optionsToFlags(regexp.options, atStart);
+        String flags = optionsToFlags(regexp.options, onlyMatchAtStart);
 
         String ignoreAtomicGroups = context.getOptions().TRUFFLE_REGEX_IGNORE_ATOMIC_GROUPS
                 ? ",IgnoreAtomicGroups=true"
@@ -187,7 +188,7 @@ public final class TRegexCache {
         }
     }
 
-    public static String optionsToFlags(RegexpOptions options, boolean atStart) {
+    public static String optionsToFlags(RegexpOptions options, boolean onlyMatchAtStart) {
         StringBuilder flags = new StringBuilder(4);
         if (options.isMultiline()) {
             flags.append('m');
@@ -198,7 +199,7 @@ public final class TRegexCache {
         if (options.isExtended()) {
             flags.append('x');
         }
-        if (atStart) {
+        if (onlyMatchAtStart) {
             flags.append('y');
         }
         return flags.toString();

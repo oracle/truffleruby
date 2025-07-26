@@ -102,7 +102,7 @@ public class Loader {
         expect((byte) 'M', "incorrect prism header");
 
         expect((byte) 1, "prism major version does not match");
-        expect((byte) 1, "prism minor version does not match");
+        expect((byte) 4, "prism minor version does not match");
         expect((byte) 0, "prism patch version does not match");
 
         expect((byte) 1, "Loader.java requires no location fields in the serialized output");
@@ -216,7 +216,7 @@ public class Loader {
 
         // warning messages only contain ASCII characters
         for (int i = 0; i < count; i++) {
-            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 288];
+            Nodes.WarningType type = Nodes.WARNING_TYPES[loadVarUInt() - 289];
             byte[] bytes = loadEmbeddedString();
             String message = new String(bytes, StandardCharsets.US_ASCII);
             Nodes.Location location = loadLocation();
@@ -592,7 +592,7 @@ public class Loader {
             case 115:
                 return new Nodes.ParametersNode(startOffset, length, loadNodes(), loadOptionalParameterNodes(), loadOptionalNode(), loadNodes(), loadNodes(), loadOptionalNode(), (Nodes.BlockParameterNode) loadOptionalNode());
             case 116:
-                return new Nodes.ParenthesesNode(startOffset, length, loadOptionalNode());
+                return new Nodes.ParenthesesNode(startOffset, length, loadFlags(), loadOptionalNode());
             case 117:
                 return new Nodes.PinnedExpressionNode(startOffset, length, loadNode());
             case 118:

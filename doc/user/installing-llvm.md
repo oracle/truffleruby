@@ -1,9 +1,3 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Installing Make and GCC
-permalink: /reference-manual/ruby/InstallingLLVM/
----
 # Installing Make and GCC
 
 Since TruffleRuby 24.0.0, TruffleRuby no longer needs a LLVM toolchain and instead uses the system toolchain.

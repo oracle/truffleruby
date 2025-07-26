@@ -16,6 +16,7 @@
         │   │   ├── exceptions: (length: 0)
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements: ∅
         │   │   └── subsequent: ∅
         │   ├── else_clause: ∅
@@ -79,6 +80,7 @@
         │   │   ├── exceptions: (length: 0)
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (16,2)-(16,3))
         │   │   │   ├── flags: ∅
@@ -131,6 +133,7 @@
         │   │   ├── exceptions: (length: 0)
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (23,2)-(23,3))
         │   │   │   ├── flags: ∅
@@ -163,6 +166,7 @@
         │   │   │       └── name: :A
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements: ∅
         │   │   └── subsequent: ∅
         │   ├── else_clause: ∅
@@ -186,6 +190,7 @@
         │   │   │   ├── flags: ∅
         │   │   │   ├── name: :foo
         │   │   │   └── depth: 0
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements: ∅
         │   │   └── subsequent: ∅
         │   ├── else_clause: ∅
@@ -218,6 +223,7 @@
         │   │   │       └── name: :A
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (37,2)-(37,3))
         │   │   │   ├── flags: ∅
@@ -242,6 +248,7 @@
         │   │       │       └── name: :B
         │   │       ├── operator_loc: ∅
         │   │       ├── reference: ∅
+        │   │       ├── then_keyword_loc: ∅
         │   │       ├── statements:
         │   │       │   @ StatementsNode (location: (39,2)-(39,3))
         │   │       │   ├── flags: ∅
@@ -313,6 +320,7 @@
         │   │           │   ├── exceptions: (length: 0)
         │   │           │   ├── operator_loc: ∅
         │   │           │   ├── reference: ∅
+        │   │           │   ├── then_keyword_loc: ∅
         │   │           │   ├── statements: ∅
         │   │           │   └── subsequent: ∅
         │   │           ├── else_clause: ∅
@@ -325,6 +333,7 @@
         │   │   ├── exceptions: (length: 0)
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (51,2)-(52,5))
         │   │   │   ├── flags: ∅
@@ -408,6 +417,7 @@
         │   │   │       └── name: :Exception
         │   │   ├── operator_loc: ∅
         │   │   ├── reference: ∅
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements: ∅
         │   │   └── subsequent: ∅
         │   ├── else_clause: ∅
@@ -435,6 +445,7 @@
         │   │   │   ├── flags: ∅
         │   │   │   ├── name: :bar
         │   │   │   └── depth: 0
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (63,2)-(63,5))
         │   │   │   ├── flags: ∅
@@ -475,6 +486,7 @@
         │   │   │   ├── flags: ∅
         │   │   │   ├── name: :bar
         │   │   │   └── depth: 0
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (69,2)-(69,5))
         │   │   │   ├── flags: ∅
@@ -520,6 +532,7 @@
         │   │   │   ├── flags: ∅
         │   │   │   ├── name: :exception
         │   │   │   └── depth: 0
+        │   │   ├── then_keyword_loc: ∅
         │   │   ├── statements:
         │   │   │   @ StatementsNode (location: (75,2)-(75,5))
         │   │   │   ├── flags: ∅

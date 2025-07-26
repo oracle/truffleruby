@@ -6950,6 +6950,20 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
             prettyprint_location(output_buffer, parser, &node->location);
             pm_buffer_append_string(output_buffer, ")\n", 2);
 
+            // ParenthesesNodeFlags
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- ParenthesesNodeFlags:", 25);
+                bool found = false;
+                if (cast->base.flags & PM_PARENTHESES_NODE_FLAGS_MULTIPLE_STATEMENTS) {
+                    if (found) pm_buffer_append_byte(output_buffer, ',');
+                    pm_buffer_append_string(output_buffer, " multiple_statements", 20);
+                    found = true;
+                }
+                if (!found) pm_buffer_append_string(output_buffer, " nil", 4);
+                pm_buffer_append_byte(output_buffer, '\n');
+            }
+
             // body
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -7673,6 +7687,22 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                     pm_buffer_concat(output_buffer, prefix_buffer);
                     prettyprint_node(output_buffer, parser, (pm_node_t *) cast->reference, prefix_buffer);
                     prefix_buffer->length = prefix_length;
+                }
+            }
+
+            // then_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- then_keyword_loc:", 21);
+                pm_location_t *location = &cast->then_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
                 }
             }
 
@@ -8521,6 +8551,22 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
             }
 
+            // do_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- do_keyword_loc:", 19);
+                pm_location_t *location = &cast->do_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
+            }
+
             // closing_loc
             {
                 pm_buffer_concat(output_buffer, prefix_buffer);
@@ -8670,6 +8716,22 @@ prettyprint_node(pm_buffer_t *output_buffer, const pm_parser_t *parser, const pm
                 pm_buffer_append_string(output_buffer, " = \"", 4);
                 pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
                 pm_buffer_append_string(output_buffer, "\"\n", 2);
+            }
+
+            // do_keyword_loc
+            {
+                pm_buffer_concat(output_buffer, prefix_buffer);
+                pm_buffer_append_string(output_buffer, "+-- do_keyword_loc:", 19);
+                pm_location_t *location = &cast->do_keyword_loc;
+                if (location->start == NULL) {
+                    pm_buffer_append_string(output_buffer, " nil\n", 5);
+                } else {
+                    pm_buffer_append_byte(output_buffer, ' ');
+                    prettyprint_location(output_buffer, parser, location);
+                    pm_buffer_append_string(output_buffer, " = \"", 4);
+                    pm_buffer_append_source(output_buffer, location->start, (size_t) (location->end - location->start), PM_BUFFER_ESCAPING_RUBY);
+                    pm_buffer_append_string(output_buffer, "\"\n", 2);
+                }
             }
 
             // closing_loc

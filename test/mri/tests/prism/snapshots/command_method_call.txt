@@ -139,6 +139,7 @@
         ├── @ WhileNode (location: (9,0)-(9,17))
         │   ├── flags: newline
         │   ├── keyword_loc: (9,6)-(9,11) = "while"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: ∅
         │   ├── predicate:
         │   │   @ CallNode (location: (9,12)-(9,17))
@@ -180,6 +181,7 @@
         ├── @ UntilNode (location: (11,0)-(11,17))
         │   ├── flags: newline
         │   ├── keyword_loc: (11,6)-(11,11) = "until"
+        │   ├── do_keyword_loc: ∅
         │   ├── closing_loc: ∅
         │   ├── predicate:
         │   │   @ CallNode (location: (11,12)-(11,17))

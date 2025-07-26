@@ -38,7 +38,16 @@ module Truffle::CExt
   end
 
   SETUP_WRAPPERS = -> lib do
-    # signature starts with an extra pointer which is for passing the native function to call
+    # These wrappers must be used when calling native extension functions,
+    # so that setjmp() is done before calling the native extension function,
+    # and if the native extension function (potentially through other functions) calls a Ruby C API function
+    # and if that throws a Java exception, then on return from that Ruby C API function a longjmp()
+    # will be done to unwind the native stack.
+    # It is essential that only native frames and no Java frames are unwinded with longjmp(),
+    # which means these wrappers must be used exactly when calling into native functions, not before or after.
+    # Sulong-executed C code counts as not-native in this context.
+
+    # The signature starts with an extra pointer which is for passing the native function to call
     POINTER_TO_POINTER_WRAPPERS = [nil] + (1..16).map do |n|
       sig = -"(pointer,#{(['pointer'] * n).join(',')}):pointer"
       Primitive.interop_eval_nfi(sig).bind(lib[:"rb_tr_setjmp_wrapper_pointer#{n}_to_pointer"])
@@ -1193,7 +1202,7 @@ module Truffle::CExt
       end
     end
   end
-  Truffle::Graal.always_split instance_method(:rb_hash_foreach)
+  Primitive.always_split self, :rb_hash_foreach
 
   def rb_path_to_class(path)
     begin
@@ -1264,7 +1273,7 @@ module Truffle::CExt
     Truffle::Interop.execute_without_conversion(write_status, status, pos)
     res
   end
-  Truffle::Graal.always_split instance_method(:rb_protect)
+  Primitive.always_split self, :rb_protect
 
   def rb_jump_tag(pos)
     if pos > 0
@@ -1279,12 +1288,12 @@ module Truffle::CExt
   def rb_yield(value)
     rb_block_proc.call(value)
   end
-  Truffle::Graal.always_split instance_method(:rb_yield)
+  Primitive.always_split self, :rb_yield
 
   def rb_yield_splat(values)
     rb_block_proc.call(*values)
   end
-  Truffle::Graal.always_split instance_method(:rb_yield_splat)
+  Primitive.always_split self, :rb_yield_splat
 
   def rb_ivar_lookup(object, name, default_value)
     # TODO CS 24-Jul-16 races - needs a new primitive or be defined in Java?
@@ -1649,7 +1658,7 @@ module Truffle::CExt
       Primitive.interop_execute(POINTER_TO_POINTER_WRAPPER, [func, arg])
     end
   end
-  Truffle::Graal.always_split instance_method(:rb_mutex_synchronize)
+  Primitive.always_split self, :rb_mutex_synchronize
 
   def rb_gc_enable
     GC.enable
@@ -1740,16 +1749,15 @@ module Truffle::CExt
     if Truffle::Interop.null?(marker_function)
       nil
     else
-      -> { Primitive.interop_execute(POINTER_TO_VOID_WRAPPER, [marker_function, struct]) }
+      -> { Primitive.interop_execute(marker_function, [struct]) }
     end
   end
 
   private def data_sizer(sizer_function, rtypeddata)
-    raise unless sizer_function.respond_to?(:call)
     use_cext_lock = Primitive.use_cext_lock?
     proc {
       Primitive.call_with_cext_lock_and_frame(
-        POINTER_TO_SIZE_T_WRAPPER, [sizer_function, rtypeddata],
+        sizer_function, [rtypeddata],
         Primitive.caller_special_variables_if_available, nil, use_cext_lock)
     }
   end
@@ -1792,7 +1800,7 @@ module Truffle::CExt
   end
 
   def run_data_finalizer(function, data, use_cext_lock)
-    Primitive.call_with_cext_lock_and_frame POINTER_TO_VOID_WRAPPER, [function, data], nil, nil, use_cext_lock
+    Primitive.call_with_cext_lock_and_frame function, [data], nil, nil, use_cext_lock
   end
 
   def run_marker(obj)
@@ -1879,7 +1887,7 @@ module Truffle::CExt
       end
     end
   end
-  Truffle::Graal.always_split instance_method(:rb_ensure)
+  Primitive.always_split self, :rb_ensure
 
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
@@ -1898,7 +1906,7 @@ module Truffle::CExt
       end
     end
   end
-  Truffle::Graal.always_split instance_method(:rb_rescue)
+  Primitive.always_split self, :rb_rescue
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
@@ -1913,7 +1921,7 @@ module Truffle::CExt
       end
     end
   end
-  Truffle::Graal.always_split instance_method(:rb_rescue2)
+  Primitive.always_split self, :rb_rescue2
 
   def rb_exec_recursive(func, obj, arg)
     result = nil
@@ -1932,7 +1940,7 @@ module Truffle::CExt
       result
     end
   end
-  Truffle::Graal.always_split instance_method(:rb_exec_recursive)
+  Primitive.always_split self, :rb_exec_recursive
 
   def rb_catch_obj(tag, func, data)
     use_cext_lock = Primitive.use_cext_lock?

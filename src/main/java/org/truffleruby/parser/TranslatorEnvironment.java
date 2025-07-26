@@ -20,7 +20,6 @@ import org.truffleruby.Layouts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import org.graalvm.collections.EconomicMap;
-import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -54,6 +53,8 @@ public final class TranslatorEnvironment {
     static final String DEFAULT_REST_NAME = Layouts.TEMP_PREFIX + "unnamed_rest";
     /** local variable name for ** parameter */
     static final String DEFAULT_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "kwrest";
+    /** local variable name for & parameter */
+    public static final String DEFAULT_BLOCK_NAME = Layouts.TEMP_PREFIX + "unnamed_block";
 
     /** local variable name for * parameter caused by desugaring ... parameter (forward-everything) */
     public static final String FORWARDED_REST_NAME = Layouts.TEMP_PREFIX + "forward_rest";
@@ -61,9 +62,6 @@ public final class TranslatorEnvironment {
     public static final String FORWARDED_KEYWORD_REST_NAME = Layouts.TEMP_PREFIX + "forward_kwrest";
     /** local variable name for & parameter caused by desugaring ... parameter (forward-everything) */
     public static final String FORWARDED_BLOCK_NAME = Layouts.TEMP_PREFIX + "forward_block";
-
-    /** A prefix for duplicated '_' local variables to build unique names */
-    public static final String UNDERSCORE_PREFIX = "_$";
 
     private final ParseEnvironment parseEnvironment;
 
@@ -130,7 +128,7 @@ public final class TranslatorEnvironment {
             int slots = descriptor.getNumberOfSlots();
             for (int slot = 0; slot < slots; slot++) {
                 Object identifier = descriptor.getSlotName(slot);
-                if (!BindingNodes.isHiddenVariable(identifier)) {
+                if (identifier instanceof String) {
                     nameToIndex.put(identifier, slot);
                 }
             }

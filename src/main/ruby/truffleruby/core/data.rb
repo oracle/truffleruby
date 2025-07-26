@@ -95,6 +95,9 @@ class Data
     instance_methods_module.module_eval "#{<<~'RUBY'}", __FILE__, __LINE__+1
       # truffleruby_primitives: true
 
+      ORIGINAL_NEW = klass.method(:new)
+      private_constant :ORIGINAL_NEW
+
       def initialize(**kwargs)
         members_hash = Primitive.class(self)::CLASS_MEMBERS_HASH
         kwargs.each do |member, value|
@@ -135,7 +138,7 @@ class Data
       def with(**changes)
         return self if changes.empty?
 
-        Primitive.class(self).new(**to_h.merge(changes))
+        ORIGINAL_NEW.call(**to_h.merge(changes))
       end
 
       def inspect

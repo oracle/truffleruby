@@ -111,7 +111,7 @@ module Enumerable
       to_enum(:collect) { enumerator_size }
     end
   end
-  Truffle::Graal.always_split instance_method(:map)
+  Primitive.always_split self, :map
   alias_method :collect, :map
 
   def compact
@@ -385,7 +385,7 @@ module Enumerable
       self
     end
   end
-  Truffle::Graal.always_split instance_method(:each_with_index)
+  Primitive.always_split self, :each_with_index
 
   def grep(pattern, &block)
     ary = []
@@ -561,7 +561,7 @@ module Enumerable
 
     Primitive.undefined?(initial) ? nil : initial
   end
-  Truffle::Graal.always_split instance_method(:inject)
+  Primitive.always_split self, :inject
   alias_method :reduce, :inject
 
   def all?(pattern = undefined)

@@ -28,6 +28,10 @@ public final class PrimitiveNodeConstructor {
         this.factory = factory;
     }
 
+    public boolean isPublic() {
+        return annotation.isPublic();
+    }
+
     public int getPrimitiveArity() {
         return factory.getExecutionSignature().size();
     }

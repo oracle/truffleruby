@@ -20,6 +20,7 @@ import mx_util
 import mx_gate
 import mx_sdk
 import mx_sdk_vm
+import mx_sdk_vm_ng
 import mx_subst
 import mx_spotbugs
 import mx_truffle
@@ -83,6 +84,7 @@ class TruffleRubyUnittestConfig(mx_unittest.MxUnittestConfig):
     def apply(self, config):
         vmArgs, mainClass, mainClassArgs = config
         mx_truffle.enable_truffle_native_access(vmArgs)
+        mx_truffle.enable_sun_misc_unsafe(vmArgs)
         return (vmArgs, mainClass, mainClassArgs)
 
 mx_unittest.register_unittest_config(TruffleRubyUnittestConfig())
@@ -152,6 +154,7 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
         jvm_args = [shlex.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
         mx_truffle.enable_truffle_native_access(jvm_args)
+        mx_truffle.enable_sun_misc_unsafe(jvm_args)
 
         debug_args = mx.java_debug_args()
         jvm_args.extend(debug_args)
@@ -189,21 +192,12 @@ class YARPNativeProject(mx.NativeProject):
 
 # Functions called from suite.py
 
-def has_suite(name):
-    return mx.suite(name, fatalIfMissing=False)
-
-def is_ee():
-    return has_suite('truffle-enterprise')
-
 def truffleruby_standalone_deps():
-    deps = mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=has_suite('compiler'))
-    if is_ee():
-        deps += ['sulong-managed:SULONG_ENTERPRISE_NATIVE']
-    return deps
+    include_truffle_runtime = not mx.env_var_to_bool("EXCLUDE_TRUFFLE_RUNTIME")
+    return mx_truffle.resolve_truffle_dist_names(use_optimized_runtime=include_truffle_runtime)
 
 def librubyvm_build_args():
-    if is_ee() and mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ:
-        mx.suite('substratevm-enterprise-gcs', fatalIfMissing=True) # fail early if missing
+    if mx_sdk_vm_ng.is_nativeimage_ee() and mx.get_os() == 'linux' and 'NATIVE_IMAGE_AUXILIARY_ENGINE_CACHE' not in os.environ:
         return ['--gc=G1', '-H:-ProtectionKeys']
     else:
         return []
@@ -227,6 +221,7 @@ def ruby_check_heap_dump(input_args, out=None):
     vm_args, truffleruby_args = mx.extract_VM_args(args, useDoubleDash=True, defaultAllVMArgs=False)
     vm_args += mx.get_runtime_jvm_args(dists)
     mx_truffle.enable_truffle_native_access(vm_args)
+    mx_truffle.enable_sun_misc_unsafe(vm_args)
     # vm_args.append("-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y")
     vm_args.append("org.truffleruby.test.internal.LeakTest")
     out = mx.OutputCapture() if out is None else out
@@ -258,6 +253,19 @@ def ruby_run_ruby(args):
     standalone_home = mx.distribution('TRUFFLERUBY_JVM_STANDALONE').output
     ruby = join(standalone_home, 'bin/ruby')
     os.execlp(ruby, ruby, *args)
+
+def ruby_run_ruby_from_classpath(args):
+    """run TruffleRuby from the classpath"""
+    dists = ['RUBY_COMMUNITY', 'TRUFFLERUBY-LAUNCHER']
+    if '--skip-build' in args:
+        args.remove('--skip-build')
+    else:
+        mx.command_function('build')(['--dependencies', ','.join(dists)])
+    classpath = mx.classpath(dists)
+    jvm_args = ['-cp', classpath]
+    mx_truffle.enable_truffle_native_access(jvm_args)
+    mx_truffle.enable_sun_misc_unsafe(jvm_args)
+    mx.run_java([*jvm_args, 'org.truffleruby.launcher.RubyLauncher', *args], jdk=jdk, nonZeroIsFatal=True)
 
 def ruby_run_specs(ruby, args):
     with VerboseMx():
@@ -322,39 +330,16 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
         'truffleruby:TRUFFLERUBY_GRAALVM_LICENSES',
     ],
     priority=5,
-    stability="experimental",
-))
-
-# Only keep what we need from the Sulong home.
-# Exclude the toolchain launchers, we don't need them, and they would not work in the native standalone.
-# Excluding "native/bin" or "native/bin/*" does not work so we have to list them.
-toolchain_launchers = ['binutil', 'clang', 'clang++', 'clang-cl', 'flang', 'ld']
-sulong_home_excludes = [f"native/bin/graalvm-native-{launcher}" for launcher in toolchain_launchers] + \
-    ['native/cmake', 'native/include', 'native/lib/*++*', 'native/share']
-standalone_dependencies_common = {
-    'LLVM Runtime Core': ('lib/sulong', []),
-    'LLVM Runtime Native': ('lib/sulong', sulong_home_excludes),
-}
+    stability="experimental"))
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby',
     short_name='rby',
     dir_name='ruby',
-    standalone_dir_name='truffleruby-community-<version>-<graalvm_os>-<arch>',
-    standalone_dir_name_enterprise='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
     dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'TRegex'],  # Use short name for license to select by priority
-    standalone_dependencies={**standalone_dependencies_common, **{
-        'TruffleRuby license files': ('', []),
-    }},
-    standalone_dependencies_enterprise={**standalone_dependencies_common, **{
-        'LLVM Runtime Enterprise': ('lib/sulong', []), # sulong-managed:SULONG_ENTERPRISE
-        'LLVM Runtime Native Enterprise': ('lib/sulong', []), # sulong-managed:SULONG_ENTERPRISE_NATIVE
-        'TruffleRuby license files EE': ('', []),
-        'GraalVM enterprise license files': ('', ['LICENSE.txt', 'GRAALVM-README.md']),
-    }},
     truffle_jars=[
         # Distributions
         'truffleruby:TRUFFLERUBY',
@@ -402,19 +387,11 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmLanguage(
             ]
         )
     ],
-    stability="experimental",
-    post_install_msg="""
-IMPORTANT NOTE:
----------------
-The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl.
-First, make sure TruffleRuby's dependencies are installed, which are described at:
-  https://github.com/oracle/truffleruby/blob/master/README.md#dependencies
-Then run the following command:
-        ${graalvm_languages_dir}/ruby/lib/truffle/post_install_hook.sh""",
-))
+    stability="experimental"))
 
 mx.update_commands(_suite, {
     'ruby': [ruby_run_ruby, ''],
+    'ruby_from_classpath': [ruby_run_ruby_from_classpath, ''],
     'build_truffleruby': [build_truffleruby, ''],
     'ruby_check_heap_dump': [ruby_check_heap_dump, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],

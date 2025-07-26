@@ -1,15 +1,9 @@
----
-layout: docs-experimental
-toc_group: ruby
-link_title: Installing TruffleRuby
-permalink: /reference-manual/ruby/InstallingTruffleRuby/
----
 # Installing TruffleRuby
 
 The recommended way to install TruffleRuby is via your Ruby manager/installer, see [Getting Started](../../README.md#getting-started).
 
 You can also install TruffleRuby by manually downloading the binary tarball, extracting it, running the post-install script and adding TruffleRuby to `$PATH`.
-This page documents the URLs and the extra steps necessary after downloading the tarball. 
+This page documents the URLs and the extra steps necessary after downloading the tarball.
 
 ## Dependencies
 
@@ -45,7 +39,7 @@ truffleruby-VERSION-PLATFORM.tar.gz
 truffleruby-community-VERSION-PLATFORM.tar.gz
 ```
 
-Development builds are [also available](https://github.com/ruby/truffleruby-dev-builder/releases/latest).  
+Development builds are [also available](https://github.com/ruby/truffleruby-dev-builder/releases/latest).
 More platforms for dev builds are [available here](https://github.com/graalvm/graalvm-ce-dev-builds/releases/latest) but those builds tend to be slightly older.
 The Native Standalones are the files `truffleruby-community-dev-PLATFORM.tar.gz`.
 

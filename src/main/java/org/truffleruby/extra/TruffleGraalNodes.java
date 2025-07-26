@@ -20,9 +20,12 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.ToCallTargetNode;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.ProcCallTargets;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyLambdaRootNode;
 import org.truffleruby.language.RubyNode;
@@ -51,17 +54,23 @@ import java.lang.management.ManagementFactory;
 @CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
 
-    @CoreMethod(names = "always_split", onSingleton = true, required = 1)
-    public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "always_split")
+    public abstract static class AlwaysSplitNode extends PrimitiveArrayArgumentsNode {
         @TruffleBoundary
         @Specialization
-        Object alwaysSplit(Object executable,
-                @Cached ToCallTargetNode toCallTargetNode) {
-            final RootCallTarget callTarget = toCallTargetNode.execute(this, executable);
+        Object alwaysSplit(RubyModule module, RubySymbol instanceMethod) {
+            String name = instanceMethod.getString();
+            var method = ModuleOperations.lookupMethodUncached(module, name, null);
+
+            if (method == null || method.isUndefined()) {
+                throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
+            }
+
+            final RootCallTarget callTarget = method.getCallTarget();
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 RubyRootNode.of(callTarget).setSplit(Split.ALWAYS);
             }
-            return executable;
+            return nil;
         }
     }
 
@@ -193,7 +202,7 @@ public abstract class TruffleGraalNodes {
         }
     }
 
-    @Primitive(name = "blackhole")
+    @Primitive(name = "blackhole", isPublic = true)
     public abstract static class BlackholeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

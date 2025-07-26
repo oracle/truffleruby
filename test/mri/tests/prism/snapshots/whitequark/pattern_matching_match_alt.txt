@@ -1,0 +1,46 @@
+@ ProgramNode (location: (1,0)-(1,33))
+├── flags: ∅
+├── locals: []
+└── statements:
+    @ StatementsNode (location: (1,0)-(1,33))
+    ├── flags: ∅
+    └── body: (length: 1)
+        └── @ CaseMatchNode (location: (1,0)-(1,33))
+            ├── flags: newline
+            ├── predicate:
+            │   @ CallNode (location: (1,5)-(1,8))
+            │   ├── flags: variable_call, ignore_visibility
+            │   ├── receiver: ∅
+            │   ├── call_operator_loc: ∅
+            │   ├── name: :foo
+            │   ├── message_loc: (1,5)-(1,8) = "foo"
+            │   ├── opening_loc: ∅
+            │   ├── arguments: ∅
+            │   ├── closing_loc: ∅
+            │   └── block: ∅
+            ├── conditions: (length: 1)
+            │   └── @ InNode (location: (1,10)-(1,28))
+            │       ├── flags: ∅
+            │       ├── pattern:
+            │       │   @ AlternationPatternNode (location: (1,13)-(1,18))
+            │       │   ├── flags: ∅
+            │       │   ├── left:
+            │       │   │   @ IntegerNode (location: (1,13)-(1,14))
+            │       │   │   ├── flags: static_literal, decimal
+            │       │   │   └── value: 1
+            │       │   ├── right:
+            │       │   │   @ IntegerNode (location: (1,17)-(1,18))
+            │       │   │   ├── flags: static_literal, decimal
+            │       │   │   └── value: 2
+            │       │   └── operator_loc: (1,15)-(1,16) = "|"
+            │       ├── statements:
+            │       │   @ StatementsNode (location: (1,24)-(1,28))
+            │       │   ├── flags: ∅
+            │       │   └── body: (length: 1)
+            │       │       └── @ TrueNode (location: (1,24)-(1,28))
+            │       │           └── flags: newline, static_literal
+            │       ├── in_loc: (1,10)-(1,12) = "in"
+            │       └── then_loc: (1,19)-(1,23) = "then"
+            ├── else_clause: ∅
+            ├── case_keyword_loc: (1,0)-(1,4) = "case"
+            └── end_keyword_loc: (1,30)-(1,33) = "end"
