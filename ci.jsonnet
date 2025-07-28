@@ -765,7 +765,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   specVersion: "7",
   overlay: overlay,
   tierConfig: {
-    "tier1": "gate",
     "tier2": "gate",
     "tier3": "gate",
   },
