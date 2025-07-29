@@ -537,8 +537,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      # Lint runs on JDK stable because some lint tools do not work on JDK latest
-      "ruby-lint": $.platform.linux + $.cap.tier2 + $.jdk.stable + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
+      "ruby-lint": $.platform.linux + $.cap.tier2 + $.jdk.latest + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "45:00" },
       # Run specs on CRuby to make sure new specs are compatible and have the needed version guards
       "ruby-test-specs-on-cruby": $.platform.linux + $.cap.tier2 + $.use.skip_ci + $.use.common + $.run.test_specs_mri + { timelimit: "45:00" },
     } +
