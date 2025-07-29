@@ -303,7 +303,7 @@ def ruby_spotbugs(args):
     spotbugsArgs = ['-textui', '-low', '-longBugCodes', '-include', filters]
     if mx.is_interactive():
         spotbugsArgs.append('-progress')
-    sys.exit(mx_spotbugs.spotbugs(args, spotbugsArgs))
+    sys.exit(mx_spotbugs.spotbugs(['--primary', *args], spotbugsArgs))
 
 def verify_ci(args):
     """Verify CI configuration"""
