@@ -75,8 +75,6 @@ public final class Options {
     public final boolean VIRTUAL_THREAD_FIBERS;
     /** --log-subprocess=false */
     public final boolean LOG_SUBPROCESS;
-    /** --warn-locale=true */
-    public final boolean WARN_LOCALE;
     /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;
     /** --exceptions-print-java=false */
@@ -236,7 +234,6 @@ public final class Options {
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
         VIRTUAL_THREAD_FIBERS = options.get(OptionsCatalog.VIRTUAL_THREAD_FIBERS_KEY);
         LOG_SUBPROCESS = options.get(OptionsCatalog.LOG_SUBPROCESS_KEY);
-        WARN_LOCALE = options.get(OptionsCatalog.WARN_LOCALE_KEY);
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
         EXCEPTIONS_PRINT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_JAVA_KEY);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY);
@@ -357,8 +354,6 @@ public final class Options {
                 return VIRTUAL_THREAD_FIBERS;
             case "ruby.log-subprocess":
                 return LOG_SUBPROCESS;
-            case "ruby.warn-locale":
-                return WARN_LOCALE;
             case "ruby.exceptions-store-java":
                 return EXCEPTIONS_STORE_JAVA;
             case "ruby.exceptions-print-java":

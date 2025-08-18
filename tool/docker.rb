@@ -116,8 +116,6 @@ class JT
       run_post_install_hook = rebuild_openssl
 
       packages = []
-      packages << distro.fetch('locale')
-
       packages << distro.fetch('tar')
       packages << distro.fetch('specs') if full_test
 
@@ -140,11 +138,7 @@ class JT
         "FROM #{distro.fetch('base')}",
         *proxy_vars,
         [distro.fetch('install'), *packages.compact].join(' '),
-        *distro.fetch('set-locale'),
       ]
-
-      # Check the locale is properly generated
-      lines << 'RUN locale -a | grep en_US.utf8'
 
       lines << 'WORKDIR /test'
 
