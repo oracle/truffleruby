@@ -18,16 +18,3 @@ describe "Truffle::Interop.languages" do
     `#{RbConfig.ruby} -e 'p Truffle::Interop.languages'`.should == "[\"ruby\"]\n"
   end
 end
-
-describe "Truffle::Interop.other_languages?" do
-  guard_not -> { TruffleRuby.native? } do
-    it "returns true with --polyglot" do
-      ruby_exe('p Truffle::Interop.other_languages?', options: '--polyglot').should == "true\n"
-    end
-  end
-
-  it "returns false without --polyglot" do
-    # Use RbConfig.ruby to remove a potential --polyglot option
-    `#{RbConfig.ruby} -e 'p Truffle::Interop.other_languages?'`.should == "false\n"
-  end
-end

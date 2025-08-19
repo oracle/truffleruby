@@ -97,7 +97,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         public boolean processOnMainThread() {
-            return context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages();
+            return context.getOptions().SINGLE_THREADED;
         }
 
         private static final String THREAD_NAME = "Ruby-reference-processor";

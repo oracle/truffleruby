@@ -1628,16 +1628,6 @@ public abstract class InteropNodes {
         }
 
     }
-
-    @CoreMethod(names = "other_languages?", onSingleton = true, required = 0)
-    public abstract static class HasOtherLanguagesNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        boolean hasOtherlanguages() {
-            return getContext().hasOtherPublicLanguages();
-        }
-
-    }
     // endregion
 
     // region Java
