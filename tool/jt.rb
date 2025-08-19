@@ -1809,9 +1809,6 @@ module Commands
       vm_args << '--engine.Splitting=false' unless JT_SPECS_SPLITTING
     end
 
-
-    vm_args << '--polyglot' if truffleruby_jvm?
-
     raise "unsupported options #{parsed_options}" unless parsed_options.empty?
 
     prefixed_ruby_args = [*(vm_args if truffleruby?), *ruby_args].map { |v| "-T#{v}" }

@@ -25,7 +25,7 @@ export PATH="$standalone/bin:$PATH"
 
 env org.graalvm.maven.downloader.repository="file://$maven_repo" truffleruby-polyglot-get js-community
 
-out=$(ruby --polyglot -e 'p Polyglot.eval("js", "1/2")')
+out=$(ruby -e 'p Polyglot.eval("js", "1/2")')
 if [ "$out" != "0.5" ]; then
     echo "Wrong output: >>$out<<"
     exit 1

@@ -250,10 +250,10 @@ git clone https://github.com/graalvm/graalpython.git ../graalpython
 jt build --env jvm-py
 ```
 
-Then, run TruffleRuby with `--polyglot` support and evaluate some JavaScript:
+Then, run TruffleRuby and evaluate some JavaScript:
 
 ```bash
-$ jt --use jvm-js ruby --polyglot
+$ jt --use jvm-js ruby
 > Polyglot.eval('js', 'var a = 1; a + 1')
 => 2
 ```
