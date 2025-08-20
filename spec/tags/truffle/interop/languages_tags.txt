@@ -1,3 +1,0 @@
-slow:Truffle::Interop.languages returns only ruby from the RubyLauncher
-slow:Truffle::Interop.other_languages? returns false without --polyglot
-slow:Truffle::Interop.other_languages? returns true with --polyglot

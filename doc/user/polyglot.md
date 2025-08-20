@@ -4,9 +4,6 @@ TruffleRuby allows you to interface with any other Truffle language to create po
 
 This guide describes how to load code written in foreign languages, how to export and import objects between languages, how to use Ruby objects from a foreign language, how to use foreign objects from Ruby, how to load Java types to interface with Java, and how to embed in Java.
 
-If you are using the native configuration, you will need to use the `--polyglot` flag to get access to other languages.
-The JVM configuration automatically has access to other languages.
-
 * [Running Ruby code from another language](#running-ruby-code-from-another-language)
 * [Loading code written in foreign languages](#loading-code-written-in-foreign-languages)
 * [Exporting Ruby objects to foreign languages](#exporting-ruby-objects-to-foreign-languages)
@@ -43,8 +40,6 @@ The semantics are the same as the Ruby semantics of calling `INTERACTIVE_BINDING
 This is similar to most REPL semantics.
 
 ## Loading Code Written in Foreign Languages
-
-Note the ruby command line needs to be passed `--polyglot` to enable access to foreign languages.
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by its ID.
 

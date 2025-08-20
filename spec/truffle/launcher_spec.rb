@@ -340,11 +340,6 @@ describe "The launcher" do
     else
       out.should include("--jvm")
     end
-
-    unless TruffleRuby.native?
-      # This is only shown in JVM standalones
-      out.should include("--polyglot")
-    end
   end
 
   it "prints help:ruby containing ruby language options" do

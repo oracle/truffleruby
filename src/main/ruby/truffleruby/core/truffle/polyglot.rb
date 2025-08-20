@@ -60,8 +60,6 @@ module Polyglot
   end
 
   # The list of all languages that are installed in GraalVM and publicly accessible.
-  # Note that you need --polyglot on the command-line to enable access to other languages.
-  # Typically --jvm is also passed as native launchers by default only contain one language.
   def self.languages
     Truffle::Interop.languages
   end

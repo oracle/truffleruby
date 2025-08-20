@@ -20,7 +20,6 @@ The advantages of the native configuration are that it [starts about as fast as 
 The disadvantages are that you can't use Java tools like VisualVM, it is less convenient for Java interoperability (see the details [here](compatibility.md#java-interoperability-with-the-native-configuration)), and *peak performance may be lower than on the JVM*.
 
 The native configuration is used by default, but you can also request it using `--native`.
-To use polyglot programming with the *native* configuration, you need to pass the `--polyglot` flag.
 
 ### JVM Configuration
 

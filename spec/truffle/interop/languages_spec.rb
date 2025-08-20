@@ -10,24 +10,6 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.languages" do
   it "returns the public languages" do
-    Truffle::Interop.languages.should.include?('ruby')
-  end
-
-  it "returns only ruby from the RubyLauncher" do
-    # Use RbConfig.ruby to remove a potential --polyglot option
-    `#{RbConfig.ruby} -e 'p Truffle::Interop.languages'`.should == "[\"ruby\"]\n"
-  end
-end
-
-describe "Truffle::Interop.other_languages?" do
-  guard_not -> { TruffleRuby.native? } do
-    it "returns true with --polyglot" do
-      ruby_exe('p Truffle::Interop.other_languages?', options: '--polyglot').should == "true\n"
-    end
-  end
-
-  it "returns false without --polyglot" do
-    # Use RbConfig.ruby to remove a potential --polyglot option
-    `#{RbConfig.ruby} -e 'p Truffle::Interop.other_languages?'`.should == "false\n"
+    Truffle::Interop.languages.sort.should == %w[llvm ruby]
   end
 end

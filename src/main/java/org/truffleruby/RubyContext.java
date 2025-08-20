@@ -101,7 +101,6 @@ public final class RubyContext {
     @CompilationFinal private TruffleLanguage.Env env;
     @CompilationFinal private PrintStream outStream;
     @CompilationFinal private PrintStream errStream;
-    @CompilationFinal private boolean hasOtherPublicLanguages;
 
     @CompilationFinal public TruffleLogger logger;
     @CompilationFinal private Options options;
@@ -399,7 +398,6 @@ public final class RubyContext {
         this.outStream = printStreamFor(env.out());
         this.errStream = printStreamFor(env.err());
         this.logger = env.getLogger("");
-        this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
         this.preInitializing = env.isPreInitialization();
     }
 
@@ -409,19 +407,6 @@ public final class RubyContext {
         } catch (UnsupportedEncodingException e) {
             throw CompilerDirectives.shouldNotReachHere(e);
         }
-    }
-
-    private static boolean computeHasOtherPublicLanguages(Env env) {
-        for (String language : env.getPublicLanguages().keySet()) {
-            if (!language.equals(TruffleRuby.LANGUAGE_ID)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasOtherPublicLanguages() {
-        return hasOtherPublicLanguages;
     }
 
     private long generateHashingSeed() {
