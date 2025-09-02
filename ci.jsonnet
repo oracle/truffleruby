@@ -40,20 +40,6 @@ local part_definitions = {
       },
 
       setup+: [
-        # We don't want to proxy any internet access
-        [
-          "unset",
-          "ANT_OPTS",
-          "FTP_PROXY",
-          "ftp_proxy",
-          "GRADLE_OPTS",
-          "HTTPS_PROXY",
-          "https_proxy",
-          "HTTP_PROXY",
-          "http_proxy",
-          "MAVEN_OPTS",
-          "no_proxy",
-        ],
         # Fail if any command part of the pipe fails
         ["set", "-o", "pipefail"],
         ["ruby", "--version"],
@@ -761,7 +747,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
 {
   part_definitions:: part_definitions,
-  specVersion: "7",
+  specVersion: "8",
   overlay: overlay,
   tierConfig: {
     "tier1": "gate",
