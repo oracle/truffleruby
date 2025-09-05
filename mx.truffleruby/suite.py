@@ -2,7 +2,7 @@ suite = {
     "mxversion": "7.45.0",
     "name": "truffleruby",
     "version": "25.0.0",
-    "release": False,
+    "release": True,
     "groupId": "org.graalvm.ruby",
     "url": "https://www.graalvm.org/ruby/",
     "developer": {
