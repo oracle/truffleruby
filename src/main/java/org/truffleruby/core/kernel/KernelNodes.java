@@ -1706,21 +1706,7 @@ public abstract class KernelNodes {
                         encoding);
 
                 if (warnNode.shouldWarn()) {
-                    int modifiersCount = 0;
-                    for (var config : configs) {
-                        if (!config.isLiteral()) {
-                            modifiersCount++;
-                        }
-                    }
-
-                    // don't check number of values passed as a Hash:
-                    //   format("%<foo>d : %<bar>f", { :foo => 1, :bar => 2 })
-                    boolean areReferences = arguments.length == 1 && arguments[0] instanceof RubyHash;
-                    if (!areReferences && modifiersCount < arguments.length) {
-                        warnNode.warningMessage(
-                                RubyContext.get(node).getCallStack().getTopMostUserSourceSection(),
-                                "too many arguments for format string");
-                    }
+                    warn(configs, arguments, warnNode, node);
                 }
 
                 return new FormatRootNode(
@@ -1732,6 +1718,33 @@ public abstract class KernelNodes {
                         false).getCallTarget();
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(node), coreExceptions(node).argumentError(e.getMessage(), node));
+            }
+        }
+
+        private static void warn(List<SprintfConfig> configs, Object[] arguments, WarningNode warnNode, Node node) {
+            // don't warn if arguments are passed as a Hash:
+            //   format("%<foo>d : %<bar>f", { :foo => 1, :bar => 2 })
+            if (arguments.length == 1 && arguments[0] instanceof RubyHash) {
+                return;
+            }
+
+            int modifiersCount = 0;
+            for (var config : configs) {
+                if (config.getAbsoluteArgumentIndex() != null) {
+                    return; // no warnings if there is an absolute argument index
+                }
+                if (!config.isLiteral()) {
+                    modifiersCount++;
+                    if (config.isWidthStar() || config.isPrecisionStar()) {
+                        modifiersCount++;
+                    }
+                }
+            }
+
+            if (modifiersCount < arguments.length) {
+                warnNode.warningMessage(
+                        RubyContext.get(node).getCallStack().getTopMostUserSourceSection(),
+                        "too many arguments for format string");
             }
         }
     }
