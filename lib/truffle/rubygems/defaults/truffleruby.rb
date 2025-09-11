@@ -30,5 +30,5 @@ end
 
 class Gem::Platform
   # The list of gems we want to install precompiled (using the local platform) on TruffleRuby
-  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sass-embedded sorbet-static] + Truffle::Boot.get_option('reuse-precompiled-gems')
+  REUSE_AS_BINARY_ON_TRUFFLERUBY = %w[libv8 libv8-node sass-embedded sorbet-static tailwindcss-ruby] + Truffle::Boot.get_option('reuse-precompiled-gems')
 end

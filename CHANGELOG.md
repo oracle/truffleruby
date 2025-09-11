@@ -9,6 +9,7 @@ Bug fixes:
 Compatibility:
 
 * Fix extra warnings for `Kernel#sprintf` (#3938, @eregon).
+* Support using tailwindcss-ruby's native platform gems (@nirvdrum).
 
 Performance:
 
