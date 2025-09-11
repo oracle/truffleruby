@@ -1,3 +1,24 @@
+# 26.0.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+* Fix extra warnings for `Kernel#sprintf` (#3938, @eregon).
+
+Performance:
+
+
+Changes:
+
+
+Memory Footprint:
+
+
 # 25.0.0
 
 New features:
