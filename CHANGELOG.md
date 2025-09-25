@@ -57,6 +57,7 @@ Compatibility:
 * Adjust a `FrozenError`'s message and add a receiver when a frozen module or class is modified (e.g. by defining or undefining an instance method or by defining a nested module (@andrykonchin).
 * Fix `Kernel#sprintf` and `%p` format specification to produce `"nil"` for `nil` argument (#3846, @andrykonchin).
 * Reimplement `Data#with` to not call `Data.new` that can be removed or redefined (#3890, @andrykonchin).
+* TruffleRuby now supports the `POSIX` locale, the default locale in Docker images (@eregon).
 
 Performance:
 

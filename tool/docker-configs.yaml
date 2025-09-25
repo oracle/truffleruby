@@ -6,11 +6,8 @@ rpm: &rpm
   yaml: libyaml-devel
   cext: gcc make
   c++: gcc-c++
-  set-locale:
-    - ENV LANG=en_US.UTF-8
 
 deb: &deb
-  locale: locales
   tar:
   specs: netbase
   zlib: libz-dev
@@ -18,45 +15,34 @@ deb: &deb
   yaml: libyaml-dev
   cext: gcc make
   c++: g++
-  set-locale:
-    # Uncomment the en_US.UTF-8 line in /etc/locale.gen
-    - RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen
-    # locale-gen generates locales for all uncommented locales in /etc/locale.gen
-    - RUN locale-gen
-    - ENV LANG=en_US.UTF-8
 
 # Too old g++
 #ol7:
 #  base: oraclelinux:7-slim
 #  # --enablerepo needed for libyaml-devel
 #  install: RUN yum install --enablerepo=ol7_optional_latest -y
-#  locale:
 #  <<: *rpm
 
 ol8:
   base: oraclelinux:8-slim
   # --enablerepo needed for libyaml-devel
   install: RUN microdnf install --enablerepo=ol8_codeready_builder -y
-  locale: glibc-langpack-en
   <<: *rpm
 
 ol9:
   base: oraclelinux:9-slim
   # --enablerepo needed for libyaml-devel
   install: RUN microdnf install --enablerepo=ol9_codeready_builder -y
-  locale: glibc-langpack-en
   <<: *rpm
 
 fedora37:
   base: fedora:37
   install: RUN dnf install -y
-  locale: glibc-langpack-en
   <<: *rpm
 
 fedora38:
   base: fedora:38
   install: RUN dnf install -y
-  locale: glibc-langpack-en
   <<: *rpm
 
 ubuntu1804:
